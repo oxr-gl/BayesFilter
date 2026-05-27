@@ -1,106 +1,231 @@
-\chapter{Candidate Synthesis for Industrial-Scale Nonlinear Filtering}
+\chapter[Candidate Synthesis]{Candidate Synthesis for Industrial-Scale Nonlinear Filtering}
 \label{ch:bf-highdim-candidate-synthesis}
 
 \section{Chapter Claim}
 \label{sec:bf-highdim-synthesis-claim}
 
-The most defensible industrial strategy is hybrid: use block-local Gaussian or
-transport filters to stabilize high-dimensional filtering structure, then use
-transport-preconditioned or learned-accelerated HMC only after target and
-diagnostic gates pass.  This is a research ranking, not a default policy.
+The most defensible industrial strategy is hybrid and staged.  Start with
+block-local Gaussian and smoothing structure because it is inspectable.  Add
+high-order block checks where they answer a specific local question.  Use
+transport, flow, particle, tensor, NeuTra, or HNN components only behind
+correction and diagnostic gates.  The ranking in this chapter is a
+reviewer-defensible evidence-building order, not a leaderboard for posterior
+accuracy, speed, or production readiness.
 
-\section{Assumptions}
+\section{Assumptions And Current Evidence State}
 \label{sec:bf-highdim-synthesis-assumptions}
 
-The ranking assumes the current BayesFilter evidence state: V1 nonlinear
-sigma-point diagnostics are narrow, P8 rows are execution diagnostics only, no
-NAWM nonlinear validation exists, and tensor/transport/HMC acceleration sources
-still need deeper technical review before theorem-level claims.  The ranking is
-therefore a low-confidence research-prior for planning evidence, not an
-empirical method leaderboard.
+The ranking assumes the current BayesFilter record:
+\begin{itemize}
+  \item V1 nonlinear sigma-point diagnostics are narrow finite/parity cells.
+  \item The May 27 P8 harness is CPU-only and records execution metadata for
+    selected existing and deterministic-block rows.
+  \item No tensor, ensemble-transport, NeuTra, HNN, RMHMC, or flow-particle
+    backend is validated in this lane.
+  \item No high-dimensional posterior recovery benchmark and no nonlinear NAWM
+    validation exists.
+\end{itemize}
+Therefore the ranking is split into implementation-near candidates and
+source-gated research-watchlist candidates.  It is a research prior for where to
+spend evidence, not a scientific conclusion.
 
 \section{Ranking Criteria}
 \label{sec:bf-highdim-ranking-criteria}
 
-Candidates are ranked by expected scaling, required structure, degeneracy
-behavior, differentiability, XLA/GPU readiness, implementation burden, evidence
-burden, and suitability for a NAWM-style nonlinear DSGE target.
+Each candidate is judged by:
+\begin{enumerate}[label=(\roman*)]
+  \item expected computational and memory scaling;
+  \item required model structure;
+  \item degeneracy and failure behavior;
+  \item differentiability and same-scalar compatibility;
+  \item XLA/GPU readiness as an engineering property;
+  \item BayesFilter implementation burden;
+  \item evidence needed before promotion;
+  \item suitability for a NAWM-like nonlinear DSGE stress target.
+\end{enumerate}
 
-\section{Candidate Ranking}
+\section{Ranked Candidate Tables}
 \label{sec:bf-highdim-ranking-table}
 
-The table orders candidates by reviewer-defensible evidence-building priority.
-It does not rank posterior accuracy, speed, or production suitability.
+\subsection{Implementation-Near Evidence-Building Order}
+\label{subsec:bf-highdim-implementation-near-ranking}
 
-\begin{tabular}{p{0.06\linewidth}p{0.21\linewidth}p{0.18\linewidth}p{0.22\linewidth}p{0.23\linewidth}}
-\toprule
-Rank & Candidate & Expected scaling & Main failure mode & NAWM suitability \\
-\midrule
-1 & Block IEKF/IEKS plus selective second-order correction & Near-linear or
-block-cubic with sparse derivatives & local linearization bias, bad Hessian
-blocks & Best first rung because diagnostics and derivatives are inspectable. \\
-2 & Sparse-grid or block cubature & Exponential in block size, not full state &
-cross-block interactions and PSD reconstruction & Strong if economic blocks are
-well localized. \\
-3 & Ensemble transport filtering/smoothing & Ensemble-size and map-complexity
-dependent & map class bias, finite ensemble collapse & Promising for
-localization and conditional structure. \\
-4 & Guided or flow particle filtering & Particle count times proposal cost &
-weight collapse, proposal mismatch & Useful only with strong guide maps and
-ESS/posterior checks. \\
-5 & TT/TN density or likelihood compression & Rank-dependent & rank explosion,
-positivity/normalization loss & Research lane for structured maps or
-surrogates, not default. \\
-6 & NeuTra/transport-preconditioned fixed HMC & Training plus HMC cost &
-transport bias, failed transformed diagnostics & High payoff after target
-readiness; not first-line validation. \\
-7 & HNN/learned Hamiltonian acceleration & Training plus cheap learned steps &
-proposal invalidity, poor correction, domain shift & Speed research lane after
-plain/NeuTra baselines. \\
-8 & Hybrid filter-assisted HMC proposals & Filter cost plus sampler cost &
-approximate target drift and double-use errors & Valuable synthesis path if
-proposal/target correction is explicit. \\
-\bottomrule
-\end{tabular}
+These entries have enough BayesFilter-local or primary-source support to define
+near-term evidence ladders.  They still are not validated for NAWM-like
+deployment.
 
-\section{Recommended Synthesis}
-\label{sec:bf-highdim-synthesis-recommendation}
+\begin{enumerate}[label=\textbf{\arabic*.}, leftmargin=*]
+  \item \textbf{Block IEKF/IEKS plus selective second-order correction.}
+  Scaling is near-linear across blocks plus block-cubic solves if the partition
+  is real.  It needs sparse derivatives and stable economic blocks.  Vetoes are
+  local linearization bias, failed iterates, bad Hessian blocks, and PSD loss.
+  Promotion requires derivative parity, innovation checks, PSD residuals, and
+  block-reference recovery.
 
-For NAWM-style nonlinear DSGE work, the recommended order is:
-\begin{enumerate}[label=(\arabic*)]
-  \item Build block-local deterministic and stochastic partitions.
-  \item Establish IEKF/IEKS and block cubature references on small blocks.
-  \item Add transport or flow proposals only with corrected weights.
-  \item Use tensor or low-rank compression where rank diagnostics stay stable.
-  \item Use fixed-trajectory HMC as the inspectable sampler baseline.
-  \item Add NeuTra or HNN acceleration only after value/score and posterior
-    diagnostics pass on the unaccelerated target.
+  \item \textbf{Block CKF/UKF/CUT4 references.}
+  Scaling is exponential only inside chosen blocks, so bounded block size and
+  controlled cross-block reconstruction are mandatory.  Vetoes are point-cap
+  skips, covariance reconstruction error, and local rule bias.  Promotion
+  requires small-block reference comparisons, point-count and memory gates, and
+  cross-block residuals.
+
+  \item \textbf{Guided or flow particle filtering.}
+  Scaling is $N$ times proposal or map cost and requires strong guides with
+  support coverage.  Vetoes are weight collapse, support mismatch, and unstable
+  Jacobians.  Promotion requires corrected-weight ESS, finite density ratios,
+  and low-dimensional reference likelihood or posterior checks.
+
+  \item \textbf{NeuTra or transport-preconditioned fixed HMC.}
+  Scaling is training cost plus HMC cost.  It needs an invertible map and the
+  exact transformed target.  Vetoes are bad tails, map bias, and failed
+  transformed diagnostics.  Promotion requires a plain-HMC baseline, transformed
+  value/score parity, zero-divergence controlled rows, and posterior checks.
+
+  \item \textbf{HNN or learned Hamiltonian acceleration.}
+  Scaling is training plus cheap learned steps, but the proposal must still be
+  corrected against the intended target.  Vetoes are invalid proposal mechanics,
+  domain shift, and poor Metropolis efficiency.  ESS per gradient is considered
+  only after validity diagnostics pass.
+
+  \item \textbf{Hybrid filter-assisted HMC proposals.}
+  Scaling combines filter and sampler cost and requires explicit target/proposal
+  separation.  Vetoes are approximate-target drift, double use of data, and a
+  mismatch between filter diagnostics and posterior diagnostics.  Promotion
+  requires same-scalar audit, proposal correction, posterior recovery, and no
+  failed filter diagnostics.
 \end{enumerate}
+
+\subsection{Source-Gated Research Watchlist}
+\label{subsec:bf-highdim-source-gated-ranking}
+
+The next entries are not lower because they are uninteresting; they are separated
+because this execution lacks enough technical source review or BayesFilter
+evidence to rank them as implementable choices.
+
+\begin{description}[leftmargin=*, style=nextline]
+  \item[Ensemble transport filtering/smoothing.]
+  Primary OT and ensemble-transform sources are cited, but this lane has no
+  BayesFilter transport backend or localized posterior check.  Promotion would
+  require coupling residuals, localization sensitivity, ESS, and
+  low-dimensional posterior/reference checks.  NAWM-like use is promising only
+  with localization.
+
+  \item[Sparse-grid filtering beyond block references.]
+  The local run has no audited primary sparse-grid filtering source.  Promotion
+  would require primary-source review, point-count and interaction residual
+  gates, and comparison to CUT4/CKF blocks.  It remains a blocked candidate.
+
+  \item[TT/TN density or likelihood compression.]
+  Named tensor sources are metadata/source-gap support only.  Promotion would
+  require technical source review, rank stability, positivity, normalization,
+  value/score parity, and downstream checks.  It remains a blocked pilot.
+\end{description}
+
+\section{Synthesis Architecture}
+\label{sec:bf-highdim-synthesis-architecture}
+
+A credible BayesFilter research architecture for a NAWM-like nonlinear DSGE
+should proceed in layers:
+\begin{enumerate}[label=(\arabic*)]
+  \item \emph{Structural partition}: declare stochastic, deterministic, and
+    economic block coordinates before choosing a filter.
+  \item \emph{Gaussian scaffold}: run IEKF/IEKS and selective second-order
+    diagnostics to locate curvature and invalid covariance behavior.
+  \item \emph{Block references}: use CKF/UKF/CUT4 blocks where point counts and
+    cross-block residuals are controlled; add sparse-grid blocks only after a
+    primary-source review unblocks them.
+  \item \emph{Non-Gaussian proposals}: add guided particles or flow proposals
+    with density correction and ESS gates.
+  \item \emph{Compression pilots}: keep TT/TN or low-rank observation compression
+    as source-gated isolated pilots before using them in filtering.
+  \item \emph{Sampler layer}: use fixed HMC on the declared approximate or exact
+    target; add NeuTra/HNN acceleration only after validity diagnostics pass.
+\end{enumerate}
+
+\section{Decision Table}
+\label{sec:bf-highdim-synthesis-decision-table}
+
+\begin{description}[leftmargin=*, style=nextline]
+  \item[Move from EKF to block high order.]
+  Promote only if residuals show local curvature matters and point count is
+  bounded.  Veto on PSD failure, derivative mismatch, or disagreement with a
+  block reference.  Passing this gate does not prove global posterior accuracy.
+
+  \item[Move from bootstrap PF to guided or flow PF.]
+  Promote only if ESS and support diagnostics improve with corrected weights.
+  Veto on nonfinite density ratios or support mismatch.  Passing does not
+  validate a learned proposal scientifically.
+
+  \item[Use ensemble transport.]
+  Promote only after source review, coupling residual checks, and localized
+  posterior checks.  Veto if localization materially changes posterior
+  summaries.  Passing does not prove an exact Bayesian update.
+
+  \item[Use TT/TN compression.]
+  Promote only after source review and stable rank, positivity, normalization,
+  and value/score parity.  Veto if source review is missing, rank grows
+  unbounded, or signed-density defects appear.  Passing does not solve
+  high-dimensional filtering generally.
+
+  \item[Use NeuTra or HNN acceleration.]
+  Promote only after the plain target gates pass and the accelerated chain passes
+  sampler diagnostics.  Veto on any persistent divergence or same-scalar failure.
+  Passing does not establish production HMC.
+\end{description}
+
+\section{Industrial Practitioner Questions}
+\label{sec:bf-highdim-synthesis-practitioner}
+
+A skeptical former professor working in industry will ask five questions before
+accepting any candidate:
+\begin{enumerate}[label=(\arabic*)]
+  \item What exact scalar target is being approximated or sampled?
+  \item Which structure reduces dimension: blocks, sparsity, low rank,
+    localization, transport, or tensor rank?
+  \item What diagnostic vetoes the method before speed is considered?
+  \item What BayesFilter artifact proves the implementation fact being cited?
+  \item What remains unproved for NAWM-like deployment?
+\end{enumerate}
+Every chapter in this block is organized to answer those questions.  When an
+answer is unavailable, the correct label is blocker or research hypothesis, not
+implicit acceptance.
 
 \section{BayesFilter Evidence Boundary}
 \label{sec:bf-highdim-synthesis-evidence}
 
-The V1 evidence supports current nonlinear value/score diagnostics and narrow
-performance rows.  The P8 harness adds execution metadata for block extensions
-only.  The ranking above is therefore a research roadmap.  It is not an
-empirical winner table.
+The current evidence supports a planning conclusion: BayesFilter has enough
+nonlinear value/score and execution scaffolding to design a disciplined
+high-dimensional research ladder.  It does not yet have evidence for an
+industrial default.  The P8 rows should be used to test harness shape and
+metadata discipline; they should not rank candidate families by speed or
+accuracy.
 
 \section{Source And Evidence Ledger}
 \label{sec:bf-highdim-synthesis-ledger}
 
-\begin{tabular}{p{0.28\linewidth}p{0.24\linewidth}p{0.38\linewidth}}
-\toprule
-Claim & Support class & Boundary \\
-\midrule
-Block-local Gaussian methods are first-rung candidates & BayesFilter code
-structure plus chapter synthesis & Ranking judgment, not proof. \\
-Tensor/transport/HMC methods are promising but gated & P1-P6 survey and V1
-evidence boundaries & Requires future implementation and validation. \\
-Hybrid strategy is preferred as an evidence-building order & engineering
-synthesis with source gaps & No production default change; technical literature
-review and downstream validation required. \\
-\bottomrule
-\end{tabular}
+\begin{description}[leftmargin=*, style=nextline]
+  \item[Block Gaussian methods are first-rung candidates.]
+  Support comes from Chapter~\ref{ch:bf-highdim-gaussian-quadrature} and current
+  BayesFilter nonlinear sigma-point evidence.  The boundary is ranking judgment,
+  not accuracy proof.
+
+  \item[Particle and transport methods need correction and degeneracy gates.]
+  Support comes from Chapter~\ref{ch:bf-highdim-particle-transport-tensor} and
+  primary SMC/OT sources.  The boundary is no BayesFilter promotion.
+
+  \item[Sparse-grid and tensor methods are source-gated watchlist candidates.]
+  Support comes from the source-gap ledgers in Chapters~\ref{ch:bf-highdim-gaussian-quadrature}
+  and~\ref{ch:bf-highdim-particle-transport-tensor}.  The boundary is no
+  sparse-grid or tensor validation claim.
+
+  \item[HMC acceleration comes after target validity.]
+  Support comes from Chapter~\ref{ch:bf-highdim-hmc-research} and primary HMC
+  sources.  The boundary is no convergence or production claim.
+
+  \item[Hybrid strategy is the recommended evidence-building order.]
+  Support comes from synthesis across chapters and current BayesFilter artifacts.
+  The boundary is research roadmap only.
+\end{description}
 
 \section{Unresolved Claim Register}
 \label{sec:bf-highdim-synthesis-unresolved}
@@ -110,11 +235,14 @@ review and downstream validation required. \\
   \item No candidate has a full high-dimensional posterior recovery benchmark.
   \item No GPU/XLA policy change is supported.
   \item No HMC acceleration method is promoted.
+  \item Tensor and sparse-grid claims need deeper primary-source technical audit
+    before theorem-level monograph prose.
 \end{itemize}
 
 \section{What Is Not Concluded}
 \label{sec:bf-highdim-synthesis-nonclaims}
 
 The ranking does not conclude that the top method is scientifically correct or
-that lower-ranked methods are poor.  It states a reviewer-defensible order for
-building evidence under current BayesFilter constraints.
+that lower-ranked methods are poor.  It states a practical order for building
+evidence under current BayesFilter constraints while preserving all no-overclaim
+boundaries.

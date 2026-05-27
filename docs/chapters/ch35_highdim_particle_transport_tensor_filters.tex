@@ -1,154 +1,372 @@
-\chapter{Particle, Transport, Tensor-Train, and Tensor-Network Filters}
+\chapter[Particle, Transport, And Tensor Filters]{Particle, Transport, Tensor-Train, and Tensor-Network Filters}
 \label{ch:bf-highdim-particle-transport-tensor}
 
 \section{Chapter Claim}
 \label{sec:bf-highdim-ptt-claim}
 
-Particle, transport, and tensor methods are plausible high-dimensional research
-directions only when their approximation errors are measured in the downstream
-filtering or inference task.  They reduce effective complexity when structure is
-present; they do not remove the curse of dimensionality by declaration.
+Particle, transport, and tensor methods are high-payoff research directions for
+high-dimensional nonlinear filtering only when their approximation errors are
+measured on the downstream filtering or posterior task.  Particles give
+non-Gaussian support but suffer weight degeneracy.  Transport maps can move
+samples toward posterior mass but must carry density corrections.  Tensor
+trains and tensor networks can compress structured functions or covariance
+objects but can fail through rank growth, truncation, positivity, and
+normalization errors.  None of these mechanisms removes the curse of
+dimensionality by declaration.
 
-\section{Assumptions}
-\label{sec:bf-highdim-ptt-assumptions}
+\section{Particle Filter Baseline}
+\label{sec:bf-highdim-particle-baseline}
 
-The particle-filter discussion assumes finite proposal and target densities on
-the tested support.  Transport and flow statements assume a differentiable map
-with a computable proposal density when exact-target correction is claimed.
-Tensor-train and tensor-network statements assume that low-rank structure is an
-empirical or model-derived hypothesis to be tested by rank, normalization,
-positivity, covariance, value, score, and downstream diagnostics.
+The bootstrap particle filter of \citet{gordon1993novel} and related SMC
+methods \citep{kitagawa1996montecarlo,arulampalam2002tutorial,doucet2001sequential,chopin2020introduction}
+represent the filtering law by a weighted empirical measure
+\begin{equation}
+\label{eq:bf-highdim-particle-measure}
+  \widehat\pi_t^N(dx)
+  =
+  \sum_{i=1}^N \bar w_t^{(i)}\delta_{x_t^{(i)}}(dx),
+  \qquad
+  \bar w_t^{(i)}
+  =
+  \frac{w_t^{(i)}}{\sum_{j=1}^N w_t^{(j)}}.
+\end{equation}
+With a proposal $q_t(x_t\mid x_{t-1},y_t)$, the incremental weight is
+\begin{equation}
+\label{eq:bf-highdim-pf-weight}
+  \alpha_t^{(i)}
+  =
+  \frac{g_\theta(y_t\mid x_t^{(i)})
+        f_\theta(x_t^{(i)}\mid x_{t-1}^{a(i)})}
+       {q_t(x_t^{(i)}\mid x_{t-1}^{a(i)},y_t)}.
+\end{equation}
+The bootstrap filter is the special case $q_t=f_\theta$, so the incremental
+weight is the observation likelihood.  The standard likelihood estimator is
+\begin{equation}
+\label{eq:bf-highdim-pf-likelihood-estimator}
+  \widehat p_\theta(y_{1:T})
+  =
+  \prod_{t=1}^T
+  \left(\frac{1}{N}\sum_{i=1}^N w_t^{(i)}\right),
+\end{equation}
+with the usual SMC caveat that unbiasedness statements concern the likelihood
+estimator, not the log likelihood.
 
-\section{Particle Degeneracy}
-\label{sec:bf-highdim-particle-degeneracy}
+\begin{algorithm}
+\caption{Sequential importance resampling filter}
+\label{alg:bf-highdim-sir}
+\begin{algorithmic}[1]
+\Require Particle count $N$, initial sampler, transition $f_\theta$,
+  observation likelihood $g_\theta$, resampling threshold $\tau$.
+\State Sample $x_0^{(i)}\sim \mu_\theta$ and set $\bar w_0^{(i)}=1/N$.
+\For{$t=1,\ldots,T$}
+  \If{$\mathrm{ESS}_{t-1}<\tau N$}
+    \State Resample ancestor indices $a(i)$ from $\bar w_{t-1}$.
+    \State Reset ancestor weights to $1/N$.
+  \Else
+    \State Set $a(i)=i$.
+  \EndIf
+  \State Propagate $x_t^{(i)}\sim f_\theta(\cdot\mid x_{t-1}^{a(i)})$.
+  \State Weight $w_t^{(i)}=g_\theta(y_t\mid x_t^{(i)})$.
+  \State Normalize weights and record ESS, finite status, and ancestor count.
+\EndFor
+\end{algorithmic}
+\end{algorithm}
 
-The bootstrap particle filter represents the predictive or filtering law by a
-weighted empirical measure.  In high-dimensional observation regimes, likelihood
-weights can concentrate on a tiny fraction of particles.  Resampling prevents
-weight collapse from persisting forever, but it does not create missing
-posterior support.  Guided proposals, auxiliary particle filters, localization,
-and flow proposals all try to move particles closer to the next posterior before
-weighting.
+The effective sample size diagnostic
+\begin{equation}
+\label{eq:bf-highdim-ess}
+  \mathrm{ESS}_t=\frac{1}{\sum_{i=1}^N(\bar w_t^{(i)})^2}
+\end{equation}
+is a degeneracy signal, not a posterior-accuracy certificate.  In a
+high-dimensional observation, small likelihood mismatches compound across
+coordinates and the maximum weight can dominate.  The high-dimensional collapse
+warnings of \citet{bengtsson2008curse} and \citet{snyder2008obstacles} are
+therefore central, not incidental.
 
-\section{Flow And Transport Proposals}
+\section{Guided And Auxiliary Proposals}
+\label{sec:bf-highdim-guided-proposals}
+
+Auxiliary and guided particle filters spend computation before weighting to
+choose better ancestors or proposals.  The implementation contract is simple:
+if the proposal changes, the density ratio in
+\eqref{eq:bf-highdim-pf-weight} must change with it.  A guide can be an EKF
+linearization, block IEKF smoother, flow proposal, local Laplace
+approximation, or learned policy, but it remains a proposal until the correction
+is explicit.
+
+\begin{algorithm}
+\caption{Guided proposal particle step}
+\label{alg:bf-highdim-guided-pf}
+\begin{algorithmic}[1]
+\Require Ancestor particles, guide state $r_t$, proposal density
+  $q_t(\cdot\mid x_{t-1},y_t,r_t)$, transition density $f_\theta$, likelihood
+  $g_\theta$.
+\For{$i=1,\ldots,N$}
+  \State Select ancestor $a(i)$ using the declared auxiliary policy.
+  \State Draw $x_t^{(i)}\sim q_t(\cdot\mid x_{t-1}^{a(i)},y_t,r_t)$.
+  \State Set $\alpha_t^{(i)}$ using \eqref{eq:bf-highdim-pf-weight}.
+\EndFor
+\State Normalize, resample if required, and record finite density ratios,
+  ESS, and guide residuals.
+\end{algorithmic}
+\end{algorithm}
+
+The practitioner question is not whether the guide looks plausible.  It is
+whether the corrected weights avoid collapse and whether the resulting
+filtering estimate agrees with a reference on controlled cells.
+
+\section{Transport And Flow Proposals}
 \label{sec:bf-highdim-flow-proposals}
 
-A deterministic transport $T_\phi$ can push reference samples toward a
-filtering proposal.  If the exact target density is still required, the
-importance weight must include the proposal density and Jacobian correction.
-Thus a learned flow is a proposal or preconditioner until a target-preserving
-argument is supplied.
+Let $z\sim r(z)$ and let $T_\phi$ be an invertible differentiable map with
+$x=T_\phi(z)$.  The proposal density induced by the map is
+\begin{equation}
+\label{eq:bf-highdim-flow-density}
+  q_\phi(x)
+  =
+  r(T_\phi^{-1}(x))
+  \left|\det DT_\phi^{-1}(x)\right|.
+\end{equation}
+If this proposal is used for filtering, the importance weight must divide by
+$q_\phi$.  Normalizing-flow references such as \citet{papamakarios2021flows}
+and transport-map MCMC work such as \citet{parno2018transport} support the
+change-of-variables and geometry-preconditioning framing, but they do not by
+themselves validate a BayesFilter nonlinear SSM proposal.
 
-\paragraph{Transport proposal with correction boundary.}
-\label{par:bf-highdim-transport-proposal}
-\begin{enumerate}[label=(\arabic*)]
-  \item Draw base samples $z^{(i)}$ from a reference proposal.
-  \item Set proposed particles $x^{(i)}=T_\phi(z^{(i)})$.
-  \item Evaluate proposal density using the change-of-variables formula.
-  \item Weight particles against the desired prediction/update target.
-  \item Record ESS, map residuals, log-Jacobian stability, and finite weights.
-\end{enumerate}
+\begin{proposition}[Transport proposal correction]
+\label{prop:bf-highdim-transport-correction}
+For any invertible differentiable proposal map with density
+\eqref{eq:bf-highdim-flow-density}, importance sampling estimates expectations
+under a target density $\gamma(x)/Z$ using weights proportional to
+$\gamma(x^{(i)})/q_\phi(x^{(i)})$, provided $q_\phi>0$ wherever $\gamma>0$.
+\end{proposition}
+
+\begin{proof}
+For integrable $\varphi$,
+$\int \varphi(x)\gamma(x)\,dx
+=\int \varphi(x)\gamma(x)q_\phi(x)^{-1}q_\phi(x)\,dx$ on the target support.
+Monte Carlo under $q_\phi$ gives the usual self-normalized estimator after
+dividing by the estimated normalizing constant.
+\end{proof}
+
+The diagnostics are finite inverse map, finite log determinant, finite density
+ratio, ESS, support mismatch, and posterior or filtering checks.  A map-training
+loss is explanatory only unless the phase plan explicitly makes it a promotion
+criterion and connects it to the downstream computation.
 
 \section{Ensemble Transport}
 \label{sec:bf-highdim-ensemble-transport}
 
-Ensemble transport filters and smoothers construct couplings between forecast
-and analysis ensembles.  They are attractive because localization and triangular
-or decomposable maps can express conditional structure.  The approximation is
-the finite ensemble plus the chosen map class.  A transport update should be
-judged by posterior checks, not only by map-training loss.
+Ensemble transform methods build a coupling between forecast particles and
+analysis particles.  Reich's ensemble transform method \citep{reich2013nonparametric}
+and entropy-regularized optimal transport
+\citep{villani2003topics,cuturi2013sinkhorn,peyre2019computational,schmitzer2019stabilized}
+are useful because they expose a deterministic map or coupling matrix.  For
+filtering, the approximation is the finite ensemble, the localization or map
+class, the regularization, and the numerical transport solve.
 
-\section{Tensor-Train Filtering}
+\begin{algorithm}
+\caption{Localized ensemble transport diagnostic step}
+\label{alg:bf-highdim-ensemble-transport}
+\begin{algorithmic}[1]
+\Require Forecast ensemble $\{x_f^{(i)}\}_{i=1}^N$, weights $\bar w_i$,
+  localization blocks, transport regularization $\epsilon$.
+\For{each localization block}
+  \State Build a block cost matrix between forecast and analysis support.
+  \State Solve a constrained coupling or entropy-regularized transport problem.
+  \State Transform the block ensemble and record marginal mismatch.
+\EndFor
+\State Recombine blocks using the declared cross-block policy.
+\State Record ESS before transport, coupling residual, localization residual,
+  finite status, and posterior/reference diagnostics where available.
+\end{algorithmic}
+\end{algorithm}
+
+For NAWM-like use, localization is the likely rescue structure.  Without it,
+the transport problem itself becomes high-dimensional and finite-ensemble
+collapse returns under a different name.
+
+\section{Tensor-Train Density And Operator Compression Blocker}
 \label{sec:bf-highdim-tt-filtering}
 
-Tensor-train methods represent a high-dimensional density or operator by a
-chain of low-rank cores.  Direct nonlinear filtering work uses tensor trains to
-approximate PDE-style filtering recursions or sequential Bayesian updates.
-Sequential tensor-train Bayesian learning is especially relevant because
-conditional transports and tensor decompositions can be connected to
-NeuTra-style preconditioning.
+A tensor train represents a $d$-way array $A(i_1,\ldots,i_d)$ as
+\begin{equation}
+\label{eq:bf-highdim-tt}
+  A(i_1,\ldots,i_d)
+  =
+  G_1(i_1)G_2(i_2)\cdots G_d(i_d),
+\end{equation}
+where each $G_k(i_k)$ is an $r_{k-1}\times r_k$ matrix with $r_0=r_d=1$.
+For equal mode size $M$ and rank bound $r$, storage is approximately
+$O(dMr^2)$ rather than $O(M^d)$.  This is compression only if the ranks remain
+small.
 
-The mandatory diagnostics are:
-\begin{itemize}
-  \item TT rank growth over time;
-  \item density normalization error;
-  \item positivity or signed-density defects;
-  \item filtering likelihood or moment error against a low-dimensional
-    reference;
-  \item gradient parity if the tensor object is used inside HMC;
-  \item posterior distortion under the actual downstream computation.
-\end{itemize}
+The filtering research idea is to tensorize a density, likelihood, transition
+operator, observation map, or quadrature rule and propagate it through a
+sequential update.  This execution does not have enough source support to present
+that idea as an implementation recommendation.  The specific tensor-train
+filtering papers identified in the May 27 plan remain metadata/source-gap
+support until their technical sections are audited.  Therefore the only
+review-ready content here is the quarantine contract: any future TT pilot must
+expose rank growth, normalization error, positivity defects, and downstream
+likelihood/score distortion before it can be used as more than a diagnostic.
 
-\section{Tensor-Network Kalman Filters}
+\begin{algorithm}
+\caption{Blocked tensor-train filtering pilot checklist}
+\label{alg:bf-highdim-tt-pilot}
+\begin{algorithmic}[1]
+\Require A separately accepted source-review note, low-dimensional or
+  block-structured fixture, tensorization map, initial TT approximation, rank cap
+  $r_{\max}$, low-dimensional reference.
+\State Stop if the source-review note is missing; do not implement from this
+  chapter alone.
+\For{$t=1,\ldots,T$}
+  \State Apply the transition/update operator in TT form or project it into TT
+    form.
+  \State Round/truncate ranks with declared tolerance.
+  \State Renormalize if the representation is a density.
+  \State Record TT ranks, normalization residual, positivity residual, moment
+    error, and value/score parity against the reference.
+\EndFor
+\State Keep the TT object quarantined as a diagnostic/proposal unless
+  downstream posterior checks pass.
+\end{algorithmic}
+\end{algorithm}
+
+\section{Tensor-Network And Square-Root Blocker}
 \label{sec:bf-highdim-tn-kalman}
 
-Tensor-network Kalman filters can compress large lifted linear systems, for
-example Volterra-style nonlinear system identification after feature lifting.
-The square-root tensor-network Kalman lesson is important for BayesFilter:
-rounding compressed covariance factors can damage positive definiteness unless
-the representation preserves a square-root or otherwise enforces covariance
-validity.
+Tensor-network Kalman filters are reported in the planning lane as a way to
+compress lifted linear dynamics or covariance objects, but this run has only
+metadata-level access to those sources.  Consequently this chapter does not make
+a technical claim about tensor-network Kalman filtering.  It records a
+BayesFilter blocker instead: if a future phase compresses covariance or lifted
+dynamics, it must preserve an inspectable factor or square-root validity gate,
+because direct rounding of covariance-like objects can lose positive
+semidefiniteness.  That statement is a general numerical-safeguard requirement,
+not evidence that the named tensor-network methods work for nonlinear SSMs.
 
 \section{Low-Rank Tensor Observation Compression}
 \label{sec:bf-highdim-low-rank-observation}
 
-The diffusion MRI low-rank tensor UKF example is relevant as a design pattern:
-compress the nonlinear observation geometry before filtering.  For BayesFilter,
-the analogous question is whether a DSGE or nonlinear SSM observation/transition
-map has block, low-rank, tensor-train, or sparse-factor structure that survives
-posterior diagnostics.
+The NeuroImage 2023 low-rank tensor UKF paper discussed in the planning lane is
+domain-specific and currently only metadata-supported here.  This chapter
+therefore does not cite it as support for a BayesFilter method.  It records only
+the question a future source-review phase would have to answer: can nonlinear
+observation geometry be compressed while preserving the filtering quantity of
+interest?  For a DSGE model, possible hypotheses include sparse factor loadings,
+block observation maps, or active subspaces in measurement equations, but each
+requires its own source review and downstream posterior checks.
 
-\section{Pilot Architecture}
-\label{sec:bf-highdim-tt-pilot}
+\section{Complexity And Failure Diagnostics}
+\label{sec:bf-highdim-ptt-complexity}
 
-A BayesFilter tensor pilot should start outside production defaults:
-\begin{enumerate}[label=(\arabic*)]
-  \item choose a low-dimensional or block-structured nonlinear fixture;
-  \item fit or construct a TT/low-rank surrogate for a density, likelihood, or
-    observation map;
-  \item test normalization, positivity, value parity, score parity, and rank
-    stability;
-  \item use the surrogate only as a proposal or diagnostic until downstream
-    posterior checks pass.
-\end{enumerate}
+\begin{longtable}{p{0.20\linewidth}p{0.30\linewidth}p{0.25\linewidth}p{0.15\linewidth}}
+\toprule
+Family & Scaling and memory & Degeneracy/failure diagnostics & NAWM-like rescue \\
+\midrule
+\endhead
+Bootstrap PF & $O(N)$ transition/likelihood evaluations per step; $O(Nn)$
+particle memory & ESS, unique ancestors, max weight, support gaps & not viable
+without guide \\
+Guided/APF & $O(N)$ proposal plus guide cost; $O(Nn)$ plus guide state &
+finite density ratios, guide residual, ESS & block IEKF/transport guide \\
+Flow PF & $O(N)$ map evaluations plus Jacobians; particles plus map parameters &
+log-det instability, support mismatch, weight collapse & triangular/block maps \\
+Ensemble transport & transport solve plus ensemble cost; ensemble plus cost or
+coupling matrices & coupling residual, localization bias,
+rank/ensemble collapse & localization and sparse couplings \\
+TT density/operator blocker & rank dependent; rough TT storage formulas are
+illustrative until source audit; $O(dMr^2)$ stored cores under a rank cap & rank
+explosion, negative density, normalization drift & blocked until source audit \\
+TN square-root covariance blocker & rank/network dependent; factor-network
+storage if implemented & PSD/factor residual, rounding drift & blocked; require
+factor validity gate \\
+\bottomrule
+\end{longtable}
+
+\section{Industrial Practitioner Stress Test}
+\label{sec:bf-highdim-ptt-industrial}
+
+At NAWM-like scale, particle filters break first through support and weight
+collapse.  Transport methods break when the map class cannot express the
+posterior geometry or when Jacobian/density evaluation becomes unstable.  Tensor
+methods break when ranks grow with shocks, regimes, or observation channels.
+The only credible rescue is structure:
+\begin{itemize}
+  \item block-local proposals tied to economic model blocks;
+  \item localization for ensemble transport;
+  \item triangular or conditional transports whose density correction is cheap;
+  \item tensor pilots restricted to source-reviewed maps or likelihood factors
+    with measured low rank;
+  \item downstream posterior checks before any method informs HMC or policy.
+\end{itemize}
+
+\section{BayesFilter Evidence Boundary}
+\label{sec:bf-highdim-ptt-evidence}
+
+BayesFilter has particle-filter and differentiable-resampling monograph material
+elsewhere, but this high-dimensional chapter does not import DPF implementation
+evidence or student baselines as authority.  The May 27 P8 harness is cited only
+for CPU-only execution metadata in deterministic block extensions.  There is no
+BayesFilter tensor backend, no promoted transport particle filter, no accepted
+sparse-grid filtering source review, and no high-dimensional posterior recovery
+benchmark in this lane.
 
 \section{Literature Matrix}
 \label{sec:bf-highdim-ptt-literature}
 
-\begin{tabular}{p{0.20\linewidth}p{0.23\linewidth}p{0.20\linewidth}p{0.27\linewidth}}
-\toprule
-Family & Representative source & Support class & BayesFilter use \\
-\midrule
-TT nonlinear filtering & Li, Wang, Yau, Zhang, TT nonlinear filtering,
-arXiv:1908.04010 & primary metadata; technical reading required & Direct
-candidate for density/PDE lane. \\
-Sequential TT Bayesian learning & Zhao and Cui, JMLR 2024 & primary metadata;
-technical reading required & Bridge to transport and parameter learning. \\
-Tensor-network Kalman & Batselier, Chen, Wong, arXiv:1610.05434 & primary
-metadata; technical reading required & Lifted-system compression caution. \\
-Square-root tensor Kalman & Menzen, Kok, Batselier, arXiv:2409.03276 & primary
-metadata; technical reading required & PSD/covariance safeguard. \\
-Low-rank tensor UKF & NeuroImage 2023 tractography paper & primary metadata;
-domain-specific & Observation-compression design pattern. \\
-Ensemble transport & Spantini/Baptista/Marzouk transport filtering line &
-source needed for technical claims & Candidate localized transport lane. \\
-\bottomrule
-\end{tabular}
+\begin{description}[leftmargin=*, style=nextline]
+  \item[Classical SMC.]
+  \citet{gordon1993novel,kitagawa1996montecarlo,arulampalam2002tutorial,doucet2001sequential,chopin2020introduction}
+  are primary technical sources for baseline algorithms and diagnostics.
+
+  \item[High-dimensional particle-filter collapse.]
+  \citet{bengtsson2008curse,snyder2008obstacles} are primary technical sources
+  for the degeneracy warning and evidence burden.
+
+  \item[Particle flow.]
+  \citet{daumhuang2008,li2017particle,hu2021particle} are primary sources for
+  the particle-flow family.  In this lane they support proposal/research framing
+  only.
+
+  \item[Differentiable and OT resampling.]
+  \citet{zhumurphyjonschkowski2020,corenflos2021differentiable,jonschkowski2018differentiable,karkus2018particle}
+  are primary sources, but the DPF implementation lane remains quarantined.  They
+  are background only here.
+
+  \item[Optimal transport and ensemble transform.]
+  \citet{villani2003topics,cuturi2013sinkhorn,peyre2019computational,schmitzer2019stabilized,reich2013nonparametric}
+  are primary technical sources for coupling and ensemble-transform diagnostics.
+
+  \item[Normalizing and transport maps.]
+  \citet{papamakarios2021flows,parno2018transport} support proposal-density and
+  geometry framing.  They do not validate a BayesFilter filtering backend.
+
+  \item[Tensor-train and tensor-network entries.]
+  Li--Wang--Yau--Zhang arXiv:1908.04010, Zhao--Cui JMLR 2024,
+  Batselier--Chen--Wong arXiv:1610.05434, Menzen--Kok--Batselier
+  arXiv:2409.03276, and the NeuroImage 2023 low-rank tensor UKF paper remain
+  source-gap blockers.  They may motivate future source review, but they do not
+  support theorem-level BayesFilter claims in this chapter.
+\end{description}
 
 \section{Unresolved Claim Register}
 \label{sec:bf-highdim-ptt-unresolved}
 
 \begin{itemize}
-  \item Technical sections of several tensor/transport papers still need
-    full-paper review before theorem-level claims.
-  \item No tensor backend exists in BayesFilter from this phase.
+  \item Tensor-train and tensor-network filtering sources still require
+    technical full-paper review before theorem-level claims.
+  \item No tensor, flow-particle, or ensemble-transport backend is implemented
+    or validated by this phase.
   \item No particle/transport method is promoted to HMC readiness.
+  \item DPF student and controlled-baseline files remain outside this lane.
 \end{itemize}
 
 \section{What Is Not Concluded}
 \label{sec:bf-highdim-ptt-nonclaims}
 
 This chapter does not conclude that particle, flow, transport, tensor-train, or
-tensor-network methods solve high-dimensional filtering.  It defines research
-lanes and the diagnostics required before any method can be treated as more than
-a candidate.
+tensor-network methods solve high-dimensional filtering.  It states the
+corrections, diagnostics, and source gaps that must be closed before any method
+can be treated as more than a candidate.

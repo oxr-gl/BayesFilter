@@ -1,144 +1,304 @@
-\chapter{Gaussian Projection and High-Order Quadrature Filters}
+\chapter[Gaussian And High-Order Filters]{Gaussian Projection and High-Order Quadrature Filters}
 \label{ch:bf-highdim-gaussian-quadrature}
 
 \section{Chapter Claim}
 \label{sec:bf-highdim-gaussian-claim}
 
-Gaussian projection filters remain the most inspectable first rung for
-high-dimensional nonlinear SSMs, but unstructured high-order quadrature is not
-scalable.  The defensible industrial direction is block-local or low-rank
-quadrature with explicit approximation diagnostics, not global CUT4 on the full
-state.
+Gaussian projection filters are the most inspectable first rung for
+high-dimensional nonlinear SSMs because their assumptions, derivatives,
+moments, covariance failures, and computational costs can be audited locally.
+They are not automatically accurate.  Unstructured high-order quadrature is
+especially dangerous: it can be mathematically elegant at small dimension and
+computationally impossible at the dimension of a serious DSGE target.  The
+defensible industrial direction is block-local, sparse, or low-rank moment
+projection with explicit diagnostics.
 
-\section{Assumptions}
-\label{sec:bf-highdim-gaussian-assumptions}
+\section{Gaussian Projection Contract}
+\label{sec:bf-highdim-gaussian-contract}
 
-This chapter assumes that Gaussian projection is being used as an approximation
-to a nonlinear filtering law, not as an exact statement unless the model is
-affine Gaussian or another exactness argument is supplied.  Sparse-grid and
-block-local discussion assumes exploitable locality, sparsity, or low effective
-interaction order; without such structure these methods remain candidate
-approximations with no promotion claim.
-
-\section{Moment Projection}
-\label{sec:bf-highdim-moment-projection}
-
-Assume the predictive state is approximated by
-$x_t\mid y_{1:t-1}\approx \mathcal N(m_t^-,P_t^-)$.  A nonlinear observation
-map $h_\theta$ is reduced to approximate moments
+Let the prediction law be approximated by
+$X_t\mid y_{1:t-1}\approx \mathcal N(m_t^-,P_t^-)$ and let
+$Y_t=h_\theta(X_t)+v_t$ with $v_t\sim\mathcal N(0,R_t)$ independent of $X_t$.
+Define the exact moments under the approximate predictive Gaussian:
 \begin{align}
-  \hat y_t &= \mathbb E[h_\theta(X_t)],\\
-  S_t &= \operatorname{Var}(h_\theta(X_t)) + R_\theta,\\
-  C_t &= \operatorname{Cov}(X_t,h_\theta(X_t)).
+  \bar y_t &= \E[h_\theta(X_t)], \label{eq:bf-highdim-obs-mean}\\
+  S_t &= \Var(h_\theta(X_t)) + R_t, \label{eq:bf-highdim-obs-var}\\
+  C_t &= \Cov(X_t,h_\theta(X_t)). \label{eq:bf-highdim-cross-cov}
 \end{align}
-The Gaussian update is
+The Gaussian projection update is
 \begin{align}
-  K_t &= C_t S_t^{-1},\\
-  m_t &= m_t^- + K_t(y_t-\hat y_t),\\
-  P_t &= P_t^- - K_t S_t K_t^\top.
+  K_t &= C_t S_t^{-1}, \label{eq:bf-highdim-gaussian-gain}\\
+  m_t &= m_t^- + K_t(y_t-\bar y_t), \label{eq:bf-highdim-gaussian-mean}\\
+  P_t &= P_t^- - K_t S_t K_t^\top. \label{eq:bf-highdim-gaussian-cov}
 \end{align}
-The approximation is entirely in the moment calculation.  The update is the
-Gaussian projection update for those moments.
+
+\begin{proposition}[Moment projection update]
+\label{prop:bf-highdim-moment-projection}
+Among affine estimators $a+B\,Y_t$ of $X_t$, the mean-square optimal affine
+estimator under the joint moments \eqref{eq:bf-highdim-obs-mean}--\eqref{eq:bf-highdim-cross-cov}
+uses $B=C_tS_t^{-1}$ and gives
+\eqref{eq:bf-highdim-gaussian-mean}--\eqref{eq:bf-highdim-gaussian-cov}.
+\end{proposition}
+
+\begin{proof}
+For centered variables $\tilde X=X_t-m_t^-$ and
+$\tilde Y=Y_t-\bar y_t$, minimize
+$\E\|\tilde X-B\tilde Y\|^2$.  Differentiating with respect to $B$ gives the
+normal equation $B\E[\tilde Y\tilde Y^\top]=\E[\tilde X\tilde Y^\top]$, hence
+$B=C_tS_t^{-1}$ when $S_t$ is nonsingular.  The residual covariance is
+$P_t^- - C_tS_t^{-1}C_t^\top$, equal to \eqref{eq:bf-highdim-gaussian-cov}.
+\end{proof}
+
+The approximation is not in the affine update itself.  It is in replacing the
+true prediction law by a Gaussian and in approximating the moments above.
 
 \section{Derivative-Based Filters}
 \label{sec:bf-highdim-derivative-filters}
 
-The extended Kalman filter uses first derivatives of the transition and
-observation maps.  An iterated EKF repeats local linearization around an updated
-state estimate and is often a better optimizer or local filter when the
-observation equation is strongly nonlinear.  A second-order EKF can include
-Hessian corrections to the mean and covariance.  These filters scale better in
-state dimension than dense high-order quadrature when Jacobian and Hessian
-structure is sparse or block-local, but their evidence burden shifts to
-derivative correctness and local approximation error.
+The extended Kalman filter linearizes $f_\theta$ and $h_\theta$:
+\begin{align}
+  f_\theta(x) &\approx f_\theta(m)+F_t(x-m), &
+  h_\theta(x) &\approx h_\theta(m^-)+H_t(x-m^-).
+\end{align}
+This yields the familiar predicted covariance and update
+\begin{align}
+  P_t^- &\approx F_tP_{t-1}F_t^\top+Q_t, &
+  S_t &\approx H_tP_t^-H_t^\top+R_t, &
+  C_t &\approx P_t^-H_t^\top.
+\end{align}
+An iterated EKF repeats the observation linearization around a current state
+estimate; it is closer to a local Gauss--Newton correction than a global
+posterior approximation.  A second-order EKF adds Hessian corrections.  For
+$X=m+\delta$, $\E[\delta]=0$, and twice differentiable scalar component $h_r$,
+\begin{equation}
+\label{eq:bf-highdim-second-order-mean}
+  \E[h_r(X)]
+  \approx
+  h_r(m) + \frac{1}{2}\tr\!\left(H_{r}(m)P\right),
+\end{equation}
+where $H_r(m)$ is the Hessian of $h_r$ at $m$.
 
-\section{Sigma-Point Rules}
+\begin{proof}[Derivation sketch for \eqref{eq:bf-highdim-second-order-mean}]
+Taylor expand $h_r(m+\delta)$ through second order:
+$h_r(m)+J_r\delta+\frac12\delta^\top H_r\delta$.  The linear term vanishes
+because $\E[\delta]=0$, and
+$\E[\delta^\top H_r\delta]=\tr(H_r\E[\delta\delta^\top])=\tr(H_rP)$.
+\end{proof}
+
+Derivative-based filters scale well only when derivatives are available and
+structured.  Dense Hessian corrections can cost $O(mn^2)$ storage and
+computation per observation block before any factorization is considered.  For
+NAWM-like models, selective second-order corrections must therefore be tied to
+economic blocks or low-rank sensitivities.
+
+\section{Sigma-Point And Cubature Rules}
 \label{sec:bf-highdim-sigma-rules}
 
-A sigma-point rule replaces expectations by
-\[
-  \mathcal Q[\varphi] = \sum_{j=1}^{N_q} w_j \varphi(m + L\xi_j),
+A sigma-point rule approximates Gaussian expectations by
+\begin{equation}
+\label{eq:bf-highdim-sigma-rule}
+  \E[\varphi(X)]
+  \approx
+  \mathcal Q[\varphi]
+  =
+  \sum_{j=1}^{N_q} w_j \varphi(m + L\xi_j),
   \qquad LL^\top=P.
-\]
-BayesFilter currently exposes TensorFlow SVD/eigen sigma-point backends for
-cubature, unscented, and CUT4-G value paths.  Chapter~\ref{ch:bf-sigma-point-filters}
-records the CUT4-G rule:
-\[
+\end{equation}
+The unscented transform and sigma-point Kalman filters are associated with
+\citet{julier1996general,julier1997new,vandermerwe2004sigma}.  Cubature and
+CUT-style rules choose points to integrate polynomials exactly up to a stated
+degree under a Gaussian weight; BayesFilter's CUT4-G support follows the
+conjugate unscented-transform line of
+\citet{adurthi2012cut,adurthi2012cutfiltering}.
+
+\begin{algorithm}
+\caption{Gaussian sigma-point filtering step}
+\label{alg:bf-highdim-sigma-filter-step}
+\begin{algorithmic}[1]
+\Require Mean $m^-$, covariance factor $L$, observation $y_t$, rule
+  $\{(w_j,\xi_j)\}_{j=1}^{N_q}$, nonlinear observation map $h_\theta$,
+  observation covariance $R_t$.
+\State Form sigma states $x_j=m^-+L\xi_j$.
+\State Evaluate $z_j=h_\theta(x_j)$.
+\State Compute $\bar y=\sum_jw_jz_j$.
+\State Compute $S=R_t+\sum_jw_j(z_j-\bar y)(z_j-\bar y)^\top$.
+\State Compute $C=\sum_jw_j(x_j-m^-)(z_j-\bar y)^\top$.
+\State Solve $K=CS^{-1}$ using a stable factorization.
+\State Return $m=m^-+K(y_t-\bar y)$ and $P=P^- - KSK^\top$ with a PSD check.
+\end{algorithmic}
+\end{algorithm}
+
+Implementation-grade review of Algorithm~\ref{alg:bf-highdim-sigma-filter-step}
+focuses on the covariance factor, weight signs, solve stability, finite
+nonlinear evaluations, PSD residual, and whether the same rule is used for the
+value and score path.
+
+\section{Point Growth And Sparse Alternatives}
+\label{sec:bf-highdim-point-growth}
+
+Tensor-product Gauss--Hermite rules with $r$ one-dimensional nodes use $r^d$
+points in dimension $d$.  The implemented CUT4-G point count in the current
+BayesFilter sigma-point chapter is
+\begin{equation}
+\label{eq:bf-highdim-cut4-count}
   N_{\mathrm{CUT4}}(d)=2d+2^d.
-\]
-This is the central high-dimensional warning.  At augmented dimension $d=15$,
-the rule needs $32798$ points; at $d=100$, the corner set is physically
-irrelevant as an implementation proposal.
+\end{equation}
+At $d=15$, this is $32{,}798$ points; at $d=100$, the corner set is not a
+credible production proposal.
 
-\begin{remark}[High-order does not mean high-dimensional]
-\label{rem:bf-highdim-cut4-boundary}
-High polynomial exactness at fixed dimension is not the same as high-dimensional
-tractability.  CUT4-G is useful as a small-dimensional reference and a block
-rule.  It is not an unstructured industrial default.
-\end{remark}
+Sparse-grid and Smolyak rules are often proposed as an antidote to tensor-product
+growth because they combine lower-level tensor rules.  In this lane they remain a
+source-gated candidate, not an accepted filtering result: the local
+ResearchAssistant index did not supply an audited sparse-grid filtering source,
+and this execution did not perform a primary-source technical review.  The only
+claim retained here is the blocker logic.  A sparse rule would still require
+smoothness, low effective interaction order, bounded point count, and a measured
+residual for interactions omitted by the sparse construction.  If the neglected
+interaction is where the likelihood is informative, the approximation can fail
+while its point count looks attractive.
 
-\section{Sparse Grids And Block Rules}
-\label{sec:bf-highdim-sparse-block}
+\section{Block-Local High-Order Filtering}
+\label{sec:bf-highdim-block-quadrature}
 
-Sparse-grid and Smolyak rules try to spend points on lower-order interactions
-instead of all tensor-product corners.  Block-local quadrature goes further:
-partition the state or innovation coordinates into groups, apply higher-order
-rules inside each group, and stitch the result through a Gaussian or ensemble
-approximation.  This changes the approximation class.  It requires diagnostics
-for neglected cross-block interactions, covariance positive-definiteness, and
-downstream likelihood or posterior distortion.
+Let the stochastic integration coordinates be partitioned into blocks
+$B_1,\ldots,B_K$ with sizes $d_k$.  A block quadrature approximation applies a
+rule inside each block and uses a reconstruction policy for cross-block
+moments.  If a rule uses $N(d_k)$ points in block $k$, the per-step nonlinear
+evaluation count is approximately
+\begin{equation}
+\label{eq:bf-highdim-block-point-count}
+  N_{\mathrm{block}}=\sum_{k=1}^K N(d_k)
+\end{equation}
+for additive/block-separable propagation, rather than $N(\sum_k d_k)$.  The
+price is an approximation to cross-block interactions.
 
-\section{Algorithmic Template}
-\label{sec:bf-highdim-block-quadrature-template}
+\begin{algorithm}
+\caption{Block-local Gaussian projection with selective high order}
+\label{alg:bf-highdim-block-gaussian}
+\begin{algorithmic}[1]
+\Require Block partition $B_1,\ldots,B_K$, predictive Gaussian $(m^-,P^-)$,
+  per-block rules, cross-block reconstruction policy, observation $y_t$.
+\For{$k=1,\ldots,K$}
+  \State Extract block marginal $(m^-_{B_k},P^-_{B_kB_k})$.
+  \State Choose EKF, CKF/UKF, CUT4, or a separately audited sparse-grid rule
+    according to the block diagnostic budget.
+  \State Propagate block moments and local cross-covariances.
+\EndFor
+\State Reconstruct global $\bar y$, $S$, and $C$ using the declared cross-block
+  policy.
+\State Apply the Gaussian projection update.
+\State Record point count, PSD residual, neglected-cross-block diagnostic,
+  finite status, runtime, and comparator status.
+\end{algorithmic}
+\end{algorithm}
 
-\begin{enumerate}[label=(\arabic*)]
-  \item Choose a stochastic integration block partition.
-  \item For each block, select EKF, CKF/UKF, CUT4, or sparse-grid moment rule.
-  \item Propagate block moments through the nonlinear transition/observation
-    maps.
-  \item Reconstruct global mean/covariance with an explicit cross-block policy.
-  \item Record point count, PSD residual, cross-block residual proxy, value
-    parity on small cells, and runtime.
-\end{enumerate}
+The cross-block policy is the mathematical weak point.  A reviewer should ask
+whether the policy is exact by model structure, an approximation with measured
+residuals, or merely a convenience.
+
+\section{Complexity And Failure Diagnostics}
+\label{sec:bf-highdim-gaussian-complexity}
+
+\begin{longtable}{p{0.20\linewidth}p{0.28\linewidth}p{0.25\linewidth}p{0.17\linewidth}}
+\toprule
+Method & Scaling and memory & Main failure diagnostics & NAWM-like status \\
+\midrule
+\endhead
+EKF/IEKF & Jacobian evaluation plus dense solves, often $O(n^3)$ if dense;
+$O(n^2)$ covariance memory & derivative mismatch, innovation residual, PSD failure,
+iteration nonconvergence & first rung if derivatives and blocks are available \\
+Second-order EKF & Hessian contractions, dense worst case $O(mn^2)$ plus solves
+and $O(n^2)$ plus Hessian storage or products & Hessian noise, excessive local
+bias, non-PSD covariance & selective block correction only \\
+UKF/CKF & $O(N_q)$ model evaluations, usually $N_q=O(n)$ for common rules;
+$O(n^2)$ covariance memory and batch point storage & weight/pathology, PSD
+residual, score mismatch & useful small/block reference \\
+CUT4-G & $O(2d+2^d)$ model evaluations; covariance plus point batch storage &
+point-cap skip, runtime explosion, PSD failure & not global; block reference \\
+Tensor Gauss--Hermite & $O(r^d)$ model evaluations and point batch storage &
+impossible point count, overflow, memory exhaustion & validation-only at
+tiny dimension \\
+Block cubature and source-gated sparse grids & rank/block dependent; exponential
+or source-dependent in block size, plus covariance and block point batches &
+neglected cross-block residual, point-cap skip, rule bias & CUT4/CKF can be a
+block reference; sparse-grid use is blocked until primary-source audit \\
+\bottomrule
+\end{longtable}
 
 \section{BayesFilter Evidence Box}
 \label{sec:bf-highdim-gaussian-evidence}
 
-The existing V1 record supports finite value and score diagnostics for Models
-A-C on narrow cells and CPU/GPU/XLA timing diagnostics for exact tested Model B
-rows.  The P8 harness in this program is allowed to add point-count and
-execution diagnostics for block extensions.  Neither artifact validates
-high-dimensional posterior accuracy.
+BayesFilter currently supports nonlinear sigma-point value and score
+diagnostics in narrow V1 cells, and the May 27 high-dimensional smoke artifact
+records CPU-only execution rows for existing Model B and deterministic block
+extensions.  The artifact intentionally sets \code{CUDA\_VISIBLE\_DEVICES=-1}
+before TensorFlow import and records CPU-only policy.  The two skipped CUT4
+block-4 rows are successful stop-rule evidence, not failures of LaTeX or code:
+the point cap prevented an unsupported large-point diagnostic.
+
+The evidence supports engineering statements such as ``this command completed
+with finite value and shape status for this row.''  It does not support
+posterior accuracy, default policy, broad XLA readiness, GPU speedup, or NAWM
+readiness.
+
+\section{Industrial Practitioner Stress Test}
+\label{sec:bf-highdim-gaussian-industrial}
+
+At NAWM-like scale, global Gaussian projection can break because the posterior
+mass may live away from the linearization point, shocks can enter different
+economic blocks with different curvature, and observation channels can create
+nearly singular innovation covariance.  The rescue structure is not ``use a
+higher order rule everywhere.''  The plausible rescue is:
+\begin{enumerate}[label=(\arabic*)]
+  \item block IEKF/IEKS to get a stable local trajectory;
+  \item selective second-order corrections only for blocks with demonstrated
+    curvature impact;
+  \item CUT4 or source-gated sparse-grid block references to audit the local
+    approximation only where point counts and source support permit;
+  \item a covariance-validity gate before any HMC or posterior use.
+\end{enumerate}
 
 \section{Source And Evidence Ledger}
 \label{sec:bf-highdim-gaussian-ledger}
 
-\begin{tabular}{p{0.28\linewidth}p{0.24\linewidth}p{0.38\linewidth}}
+\begin{longtable}{p{0.24\linewidth}p{0.28\linewidth}p{0.38\linewidth}}
 \toprule
 Claim & Support class & Boundary \\
 \midrule
-CUT4-G point count is $2d+2^d$ & BayesFilter implementation and existing
-Chapter~\ref{ch:bf-sigma-point-filters} derivation & Applies to implemented
-CUT4-G rule, not all high-order rules. \\
-Gaussian projection update formulas & standard derivation, chapter exposition &
-Moment approximation quality is not guaranteed. \\
-Sparse/block quadrature is a candidate direction & literature taxonomy and
-research synthesis & No BayesFilter default or production claim. \\
+\endhead
+Gaussian projection update & Proposition~\ref{prop:bf-highdim-moment-projection}
+and standard Kalman/Gaussian filtering literature, e.g. \citet{durbin2012time}
+& Exact only for the stated joint moments; moment calculation may be approximate. \\
+UKF/sigma-point lineage & Primary sources
+\citet{julier1996general,julier1997new,vandermerwe2004sigma} & Does not imply
+high-dimensional accuracy. \\
+CUT4-G point count & BayesFilter chapter source and
+\citet{adurthi2012cut,adurthi2012cutfiltering} & Applies to the discussed
+implemented rule, not every high-order cubature rule. \\
+Sparse-grid filtering & Explicit source-gap blocker; requires further primary
+sparse-grid filtering audit & Roadmap-only candidate; no theorem, accuracy, or
+production claim. \\
+P8 high-dimensional rows & BayesFilter JSON and markdown artifacts & Execution
+diagnostics only. \\
 \bottomrule
-\end{tabular}
+\end{longtable}
 
 \section{Unresolved Claim Register}
 \label{sec:bf-highdim-gaussian-unresolved}
 
 \begin{itemize}
-  \item No sparse-grid backend is implemented in this phase.
-  \item No block-local quadrature theorem is proved for NAWM.
+  \item No sparse-grid backend is implemented or validated in this phase.
+  \item No block-local quadrature theorem is proved for a NAWM nonlinear DSGE.
   \item No default policy change is justified.
+  \item Sparse-grid source support is inadequate for theorem-level prose; it is
+    retained only as an explicit roadmap blocker until a primary technical
+    sparse-grid filtering source is audited.
 \end{itemize}
 
 \section{What Is Not Concluded}
 \label{sec:bf-highdim-gaussian-nonclaims}
 
-The chapter does not conclude that EKF, sparse grids, CUT4, or block quadrature
-is accurate for a given high-dimensional DSGE model.  It ranks them as
-diagnosable candidates and defines the evidence needed before promotion.
+This chapter does not conclude that EKF, IEKF, second-order EKF, UKF, CKF,
+CUT4, sparse grids, or block quadrature is accurate for any particular
+high-dimensional DSGE model.  It explains how to make these methods auditable
+and why their failures should be expected unless structure is demonstrated.

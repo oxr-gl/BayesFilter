@@ -1,58 +1,81 @@
-\chapter{High-Dimensional Nonlinear Filtering Foundations}
+\chapter[High-Dimensional Filtering Foundations]{High-Dimensional Nonlinear Filtering Foundations}
 \label{ch:bf-highdim-nonlinear-foundations}
 
-\section{Chapter Claim}
+\section{Chapter Claim And Source Discipline}
 \label{sec:bf-highdim-foundations-claim}
 
-This chapter fixes notation and evidence boundaries for high-dimensional
-nonlinear state-space filtering.  It does not certify any BayesFilter backend as
-NAWM-ready, HMC-ready, or production-ready.  Its role is to make later
-algorithmic chapters reviewable by separating exact filtering identities from
-approximate filters, samplers, and performance diagnostics.
+This chapter fixes the notation, exact identities, and evidence boundaries used
+by Chapters~\ref{ch:bf-highdim-gaussian-quadrature}--\ref{ch:bf-highdim-candidate-synthesis}.
+It is deliberately strict about what follows from mathematics, what follows
+from a BayesFilter execution artifact, and what remains a research hypothesis.
+The chapter does not certify any BayesFilter backend as NAWM-ready,
+HMC-ready, GPU-ready, or production-ready.
 
-\section{Assumptions}
-\label{sec:bf-highdim-foundations-assumptions}
+Literature statements in this block use four support classes:
+\begin{enumerate}[label=(\roman*)]
+  \item \emph{primary technical source}: a cited paper/book is used for a
+    specific method or diagnostic claim;
+  \item \emph{local ResearchAssistant summary}: the local MCP summary is used
+    only as review material and never as theorem-level support;
+  \item \emph{BayesFilter artifact}: a code path, benchmark row, result note, or
+    source-map entry supports only the exact observed engineering fact;
+  \item \emph{source-gap blocker}: the idea is named because it matters to the
+    research program, but the present chapter refuses to use it as support for
+    a technical claim.
+\end{enumerate}
+This convention is part of the content, not clerical metadata: it prevents a
+survey sentence from becoming an accidental validation claim.
 
-The exact recursions in this chapter assume that the stated transition and
-observation kernels exist on a common measurable state space, that the
-predictive densities used in the likelihood factorization are finite and
-positive on the observed path, and that all integrals are interpreted in the
-measure induced by the model.  Approximate-filter statements assume only that a
-backend declares the scalar value it computes; they do not assume that this
-value is an accurate approximation to the exact likelihood.
-
-\section{Nonlinear State-Space Contract}
+\section{State-Space Contract}
 \label{sec:bf-highdim-ssm-contract}
 
-Let $\theta \in \Theta$ be a static parameter, $x_t \in \mathbb R^n$ a latent
-state, and $y_t \in \mathbb R^m$ an observation.  A discrete-time nonlinear
-state-space model has transition and observation kernels
+Let $\theta \in \Theta$ be static parameters, $x_t\in\mathbb R^n$ a latent
+state, and $y_t\in\mathbb R^m$ an observation.  A discrete-time nonlinear
+state-space model is specified by an initial law $\mu_\theta(dx_0)$, transition
+kernel $f_\theta(dx_t\mid x_{t-1})$, and observation likelihood
+$g_\theta(y_t\mid x_t)$:
 \begin{align}
-  x_t \mid x_{t-1},\theta &\sim f_\theta(\cdot \mid x_{t-1}),\\
-  y_t \mid x_t,\theta &\sim g_\theta(\cdot \mid x_t).
+  x_0 &\sim \mu_\theta, &
+  x_t \mid x_{t-1},\theta &\sim f_\theta(\cdot\mid x_{t-1}), &
+  y_t \mid x_t,\theta &\sim g_\theta(\cdot\mid x_t).
+  \label{eq:bf-highdim-ssm-kernels}
 \end{align}
-Equivalently, when simulation maps exist,
+When simulation maps exist, we write
 \begin{align}
   x_t &= F_\theta(x_{t-1},\varepsilon_t), &
   y_t &= H_\theta(x_t,\eta_t),
+  \label{eq:bf-highdim-simulation-form}
 \end{align}
-with innovations $\varepsilon_t$ and observation shocks $\eta_t$.  The
-BayesFilter implementation often separates stochastic integration coordinates
-from deterministic completion coordinates.  In that case the declared
-integration dimension, not the full state dimension alone, controls the number
-of quadrature or particle coordinates that a backend must propagate.
+with innovations $\varepsilon_t$ and observation shocks $\eta_t$.  In structural
+models the full state may contain deterministic completion coordinates.  The
+dimension that controls particles or quadrature is then the declared stochastic
+integration dimension, not merely the length of the storage vector.
+
+\begin{assumption}[Existence and dominated differentiation]
+\label{ass:bf-highdim-existence}
+For exact filtering identities, the transition and observation kernels are
+defined on a common measurable state space, the predictive densities appearing
+below are finite and positive on the observed path, and all integrals are with
+respect to the model-induced measure.  For score identities, differentiation
+under the integral sign is justified by a local dominating function.
+\end{assumption}
+
+\section{Prediction, Update, And Likelihood}
+\label{sec:bf-highdim-prediction-update}
 
 \begin{definition}[Exact filtering recursion]
 \label{def:bf-highdim-filtering-recursion}
-Given an initial density $p_\theta(x_0)$, the prediction and update densities
-are
+Under Assumption~\ref{ass:bf-highdim-existence}, the prediction and update
+density recursions are
 \begin{align}
   p_\theta(x_t \mid y_{1:t-1})
     &= \int f_\theta(x_t \mid x_{t-1})
-       p_\theta(x_{t-1}\mid y_{1:t-1})\,dx_{t-1}, \\
+       p_\theta(x_{t-1}\mid y_{1:t-1})\,dx_{t-1},
+       \label{eq:bf-highdim-prediction}\\
   p_\theta(x_t \mid y_{1:t})
     &= \frac{g_\theta(y_t\mid x_t)p_\theta(x_t\mid y_{1:t-1})}
             {p_\theta(y_t\mid y_{1:t-1})},
+       \label{eq:bf-highdim-update}
 \end{align}
 where
 \begin{equation}
@@ -65,7 +88,8 @@ where
 \begin{proposition}[Likelihood factorization]
 \label{prop:bf-highdim-likelihood-factorization}
 If the conditional predictive densities in
-\eqref{eq:bf-highdim-predictive-density} exist and are finite, then
+\eqref{eq:bf-highdim-predictive-density} exist, are finite, and are positive,
+then
 \begin{equation}
 \label{eq:bf-highdim-loglik-factorization}
   \ell_T(\theta)
@@ -77,102 +101,195 @@ If the conditional predictive densities in
 \end{proposition}
 
 \begin{proof}
-Apply the probability chain rule
-$p_\theta(y_{1:T})=\prod_{t=1}^T p_\theta(y_t\mid y_{1:t-1})$ and take logs
-where the predictive terms are positive and finite.
+The probability chain rule gives
+$p_\theta(y_{1:T})=\prod_{t=1}^T p_\theta(y_t\mid y_{1:t-1})$.  Positivity and
+finiteness permit taking logarithms term by term.
 \end{proof}
 
-\section{Approximate Filtering Targets}
+\begin{proposition}[Predictive-score identity]
+\label{prop:bf-highdim-predictive-score}
+Let $Z_t(\theta)=p_\theta(y_t\mid y_{1:t-1})$ be finite and positive, and
+assume dominated differentiation.  Then
+\begin{equation}
+\label{eq:bf-highdim-predictive-score}
+  \nabla_\theta \log Z_t(\theta)
+  =
+  \frac{\nabla_\theta Z_t(\theta)}{Z_t(\theta)}.
+\end{equation}
+If $Z_t(\theta)=\int a_t(x_t,\theta)\,dx_t$ for
+$a_t(x_t,\theta)=g_\theta(y_t\mid x_t)p_\theta(x_t\mid y_{1:t-1})$, then
+\begin{equation}
+\label{eq:bf-highdim-score-integral}
+  \nabla_\theta \log Z_t(\theta)
+  =
+  \int \nabla_\theta \log a_t(x_t,\theta)\,
+       p_\theta(x_t\mid y_{1:t})\,dx_t,
+\end{equation}
+whenever $a_t>0$ on the posterior support.
+\end{proposition}
+
+\begin{proof}
+Equation~\eqref{eq:bf-highdim-predictive-score} is the derivative of
+$\log Z_t$.  For \eqref{eq:bf-highdim-score-integral}, dominated
+differentiation gives
+$\nabla_\theta Z_t=\int \nabla_\theta a_t\,dx_t
+=\int a_t\nabla_\theta\log a_t\,dx_t$.  Divide by $Z_t$ and use
+$a_t/Z_t=p_\theta(x_t\mid y_{1:t})$ from \eqref{eq:bf-highdim-update}.
+\end{proof}
+
+The score identity is not an implementation instruction by itself.  In a large
+nonlinear SSM the derivative of the predictive density also depends on the
+filtering distribution inherited from the previous step.  A backend must state
+which approximation it differentiates and must verify that the scalar value and
+gradient refer to the same approximate target.
+
+\section{Exact Posterior Versus Approximate Posterior}
 \label{sec:bf-highdim-approximate-targets}
 
-Most high-dimensional nonlinear filters in this monograph replace the exact
-prediction/update recursion by a controlled approximation.  A Gaussian
-projection filter propagates moments rather than densities.  A particle filter
-propagates an empirical measure.  A tensor-train filter propagates a compressed
-density or operator.  A learned transport or HNN sampler changes coordinates or
-proposal dynamics but still needs a target-preserving correction before exact
-posterior language is allowed.
-
-For a parameter prior $\pi(\theta)$, the exact posterior target is
+For a parameter prior $\pi(\theta)$, the exact parameter posterior is
 \begin{equation}
 \label{eq:bf-highdim-posterior-target}
   \log \pi(\theta\mid y_{1:T})
   =
   \ell_T(\theta) + \log \pi(\theta) - \log p(y_{1:T}).
 \end{equation}
-An approximate filter supplies $\widehat \ell_T(\theta)$ and therefore targets
-the approximate posterior proportional to
-$\exp\{\widehat \ell_T(\theta)\}\pi(\theta)$ unless a correction mechanism is
-specified.
+A nonlinear filter used inside HMC or optimization usually supplies
+$\widehat\ell_T(\theta)$ instead.  Unless an unbiased pseudo-marginal or
+otherwise target-correcting mechanism is supplied, the resulting target is
+\begin{equation}
+\label{eq:bf-highdim-approx-posterior}
+  \widehat\pi(\theta\mid y_{1:T})
+  \propto
+  \exp\{\widehat\ell_T(\theta)\}\pi(\theta),
+\end{equation}
+not the exact posterior in \eqref{eq:bf-highdim-posterior-target}.  This is the
+main boundary behind the later HMC chapter: an exact integrator for an
+approximate likelihood samples the approximate posterior.
 
-\section{Degeneracy In High Dimension}
+\section{High-Dimensional Failure Mechanisms}
 \label{sec:bf-highdim-degeneracy}
 
-High dimension changes which failures are ordinary.  Gaussian filters can lose
-positive definiteness or collapse onto poor local linearizations.  Sigma-point
-rules can grow from linear to exponential point counts.  Particle filters can
-collapse to a small number of effective ancestors.  HMC can report finite values
-but still move through a target geometry with divergences, poor energy
-exploration, or unacceptable chain diagnostics.  Tensor compression can reduce
-storage while introducing rank truncation, positivity, normalization, and
-covariance-validity errors.
+High dimension is not a single obstacle.  It is a collection of failure modes
+that show up in different ledgers:
+\begin{itemize}
+  \item \emph{Gaussian projection}: the propagated covariance can lose positive
+    semidefiniteness, the local linearization can be wrong in the posterior
+    mass, or a low-order moment closure can hide multimodality.
+  \item \emph{Quadrature}: global tensor rules grow exponentially, and
+    high-degree cubature may spend points on interactions that the model does
+    not actually have.
+  \item \emph{Particles}: normalized weights
+    $\bar w_i=w_i/\sum_jw_j$ can concentrate, giving
+    $\mathrm{ESS}=1/\sum_i\bar w_i^2$ close to one even with many particles;
+    this is the obstacle emphasized in high-dimensional particle-filter
+    analyses such as \citet{bengtsson2008curse} and \citet{snyder2008obstacles}.
+  \item \emph{HMC}: finite log density and gradients do not guarantee valid
+    exploration.  Divergences, poor energy exploration, high $\widehat R$, low
+    effective sample size, and strong step-size sensitivity can veto a chain
+    before speed is meaningful; see the HMC diagnostics framing of
+    \citet{neal2011mcmc} and \citet{betancourt2017conceptual}.
+  \item \emph{Tensor compression}: rank truncation can reduce storage while
+    introducing signed-density artifacts, normalization drift, covariance
+    invalidity, or posterior distortion.
+\end{itemize}
 
-The NAWM-scale design target in Chapter~\ref{ch:bf-nawm-design-target} should be
-read as a stress standard.  It motivates local structure, transport, analytic
-gradients, and compiled execution, but it is not itself validation evidence.
+\section{NAWM-Like Industrial Stress}
+\label{sec:bf-highdim-nawm-stress}
 
-\section{Evidence Ledgers}
+The NAWM-style nonlinear DSGE target is used here as a stress standard, not as
+validation evidence.  A method that looks plausible on a ten-dimensional
+fixture can fail at NAWM-like scale because the state vector mixes stocks,
+forward-looking controls, shocks, measurement channels, occasionally binding
+features, deterministic completion equations, and parameter transforms.  The
+three rescue structures that matter most are:
+\begin{enumerate}[label=(\arabic*)]
+  \item \emph{locality}: economic blocks or shock blocks interact sparsely;
+  \item \emph{low rank}: observation or transition sensitivity is concentrated
+    in a smaller active subspace;
+  \item \emph{transport geometry}: an invertible or approximately invertible
+    map removes the worst curvature before filtering or sampling.
+\end{enumerate}
+Each is a hypothesis.  Promotion requires evidence on the downstream filtering
+or posterior computation, not only a local residual, a training loss, or a
+small smoke row.
+
+\section{BayesFilter Evidence Boundary}
+\label{sec:bf-highdim-bayesfilter-boundary}
+
+The current BayesFilter evidence relevant to this chapter is narrow:
+\begin{itemize}
+  \item existing nonlinear sigma-point tests support finite value and score
+    diagnostics on selected Model A--C cells;
+  \item the May 27 high-dimensional smoke artifact, abbreviated here as the
+    P8 smoke JSON,
+    contains 18 CPU-only rows, of which 16 completed and 2 were skipped by the
+    declared point cap;
+  \item those rows recorded comparator, shape, dtype, seed policy, tolerance,
+    finite/shape status, runtime, command, environment, CPU/GPU policy, labels,
+    and non-implication text;
+  \item no row establishes posterior accuracy, HMC convergence, GPU speedup,
+    broad XLA readiness, tensor validation, production defaults, or NAWM
+    readiness.
+\end{itemize}
+
+\section{Ledgers And Promotion Rule}
 \label{sec:bf-highdim-ledgers}
 
-The chapters that follow use five ledgers:
+The remaining chapters keep five ledgers:
 \begin{enumerate}[label=(\roman*)]
-  \item engineering correctness: code runs, shapes are stable, contracts are
-    honored;
-  \item numerical validity: finite values, stable covariance factors, parity
-    against a stated comparator;
-  \item sampler validity: HMC or Monte Carlo diagnostics satisfy a declared
-    contract;
-  \item scientific interpretation: the model and approximation answer the
-    economic or statistical question;
-  \item performance evidence: measured runtime, memory, compilation, and device
-    behavior for exact tested cells.
+  \item engineering correctness: contracts, shapes, dtypes, finite status, and
+    reproducible commands;
+  \item numerical validity: parity against a declared comparator, positive
+    covariance factors, and stable residuals;
+  \item sampler validity: divergences, acceptance, $\widehat R$, ESS, E-BFMI,
+    energy error, and posterior/reference checks under a stated sampler plan;
+  \item scientific interpretation: whether the approximation answers the
+    statistical or economic question;
+  \item performance evidence: runtime, memory, compilation, and device behavior
+    after validity vetoes have passed.
 \end{enumerate}
-No ledger automatically promotes another.  A fast row with a failed validity
-diagnostic is not a better method; it is a faster invalid or unresolved
-diagnostic.
+No result moves from one ledger to another without an explicit promotion
+criterion.  A fast invalid row is invalid first and fast second.
 
 \section{Source And Evidence Ledger}
 \label{sec:bf-highdim-foundations-ledger}
 
-\begin{tabular}{p{0.28\linewidth}p{0.24\linewidth}p{0.38\linewidth}}
+\begin{longtable}{p{0.30\linewidth}p{0.30\linewidth}p{0.30\linewidth}}
 \toprule
 Claim & Support class & Boundary \\
 \midrule
-Filtering recursion and likelihood factorization & derivation in this chapter;
-MathDevMCP localized but did not certify & Exact only under existence and
-finiteness of predictive densities; human-review derivation. \\
-Approximate filters target approximate likelihoods unless corrected &
-derivation in this chapter and existing BayesFilter sigma-point/HMC chapters &
-Does not classify any approximation as good or bad. \\
-High dimension creates ordinary degeneracy risks & BayesFilter V1 evidence and
-chapter synthesis & Qualitative design warning, not theorem. \\
+\endhead
+Filtering recursion, likelihood factorization, and predictive-score identity
+& Derivations in this chapter; MathDevMCP audit attempt recorded in the
+execution note & Exact only under Assumption~\ref{ass:bf-highdim-existence}. \\
+Particle-filter collapse is a high-dimensional obstacle & Primary sources
+\citet{bengtsson2008curse,snyder2008obstacles} & Qualitative warning here; no
+new theorem is proved. \\
+HMC diagnostics can veto speed comparisons & Primary HMC sources
+\citet{neal2011mcmc,betancourt2017conceptual} & The chapter does not validate
+BayesFilter nonlinear HMC. \\
+May 27 P8 rows are bounded execution diagnostics & BayesFilter benchmark JSON
+and markdown artifact & No posterior, GPU, XLA, NAWM, or production claim. \\
 \bottomrule
-\end{tabular}
+\end{longtable}
 
 \section{Unresolved Claim Register}
 \label{sec:bf-highdim-foundations-unresolved}
 
 \begin{itemize}
-  \item No theorem here proves that any candidate scales to NAWM.
+  \item No theorem proves that any candidate filter scales to NAWM.
   \item No exact nonlinear reference likelihood is established for BayesFilter
-    Models B-C.
-  \item No HMC convergence claim is made.
+    Models B--C in this chapter block.
+  \item No HMC convergence, tensor-method validation, or GPU speedup claim is
+    made.
+  \item Source gaps in later tensor and transport sections remain visible until
+    primary technical papers are audited.
 \end{itemize}
 
 \section{What Is Not Concluded}
 \label{sec:bf-highdim-foundations-nonclaims}
 
 This chapter does not conclude production readiness, high-dimensional
-tractability, GPU speedup, tensor-rank adequacy, HMC convergence, or NAWM
-validation.  It provides the notation and claim discipline needed to test those
-questions later.
+tractability, posterior accuracy, GPU speedup, tensor-rank adequacy, HMC
+convergence, or NAWM validation.  It provides the notation and claim discipline
+needed for skeptical review of the methods that follow.
