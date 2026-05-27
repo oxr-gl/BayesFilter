@@ -67,6 +67,13 @@ the audit limitation rather than claiming machine certification.
 | Execution | 1 | `REJECT` | Codex agreed with actionable issues.  Patched assumptions sections in all five chapters, downgraded source-gap phase labels, strengthened ranking caveats, added per-row command/environment fields to the P8 JSON schema, regenerated P8 artifacts, and kept MathDevMCP audits explicitly inconclusive/human-review. |
 | Execution | 2 | `ACCEPT` | Codex accepted convergence and proceeded to final validation. |
 
+## Claude Final Schema Review History
+
+| Block | Iteration | Claude verdict | Codex audit |
+| --- | ---: | --- | --- |
+| P8/P10 schema repair | 1 | `REJECT` | Codex agreed.  The rows had semantically recoverable `comparator_id`, dimension fields, and `non_implication`, but the reviewer-facing audit contract asks for explicit comparator, shape, and non-implication text fields. |
+| P8/P10 schema repair | 2 | `ACCEPT` | Codex added explicit row fields `comparator`, `shape`, and `non_implication_text`, preserved the original fields, regenerated P8 artifacts CPU-only, reran validation, and removed one harmless duplicate command assignment noted by Claude. |
+
 ## Phase Results
 
 | Phase | Exit label | Result |
@@ -109,6 +116,8 @@ Claude:
 ```bash
 bash /home/chakwong/python/claudecodex/scripts/claude_worker.sh --cwd /home/chakwong/BayesFilter --name highdim-nonlinear-planning-review --model sonnet --effort high "<planning review prompt>"
 bash /home/chakwong/python/claudecodex/scripts/claude_worker.sh --cwd /home/chakwong/BayesFilter --name highdim-nonlinear-planning-review-iter2 --model sonnet --effort high "<planning review prompt iteration 2>"
+bash /home/chakwong/python/claudecodex/scripts/claude_worker.sh --cwd /home/chakwong/BayesFilter --name highdim-nonlinear-final-audit-schema-review --model sonnet --effort high "<bounded P8/P10 schema review prompt>"
+bash /home/chakwong/python/claudecodex/scripts/claude_worker.sh --cwd /home/chakwong/BayesFilter --name highdim-nonlinear-final-audit-schema-review-iter2 --model sonnet --effort high "<bounded P8/P10 schema review prompt iteration 2>"
 ```
 
 Validation and harness:
@@ -118,6 +127,14 @@ PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES=-1 python -m py_compile docs/benc
 PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES=-1 python docs/benchmarks/benchmark_highdim_nonlinear_filtering_smoke.py --output docs/benchmarks/bayesfilter-highdim-nonlinear-filtering-smoke-2026-05-27.json --markdown-output docs/benchmarks/bayesfilter-highdim-nonlinear-filtering-smoke-2026-05-27.md --point-cap 256
 python -m json.tool docs/benchmarks/bayesfilter-highdim-nonlinear-filtering-smoke-2026-05-27.json
 git diff --check
+```
+
+Final schema repair/audit:
+
+```bash
+python -c "import json; d=json.load(open('docs/benchmarks/bayesfilter-highdim-nonlinear-filtering-smoke-2026-05-27.json')); rows=d['rows']; req=['comparator','comparator_id','shape','dtype','seed_policy','tolerance','finite_status','shape_status','runtime_seconds','command','environment','cpu_gpu_policy','promotion_label','continuation_label','repair_label','non_implication','non_implication_text','row_status']; missing=[(i,k) for i,r in enumerate(rows) for k in req if k not in r]; print({'rows':len(rows),'missing_count':len(missing),'missing':missing[:10]})"
+PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES=-1 python -m py_compile docs/benchmarks/benchmark_highdim_nonlinear_filtering_smoke.py
+PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES=-1 python docs/benchmarks/benchmark_highdim_nonlinear_filtering_smoke.py --output docs/benchmarks/bayesfilter-highdim-nonlinear-filtering-smoke-2026-05-27.json --markdown-output docs/benchmarks/bayesfilter-highdim-nonlinear-filtering-smoke-2026-05-27.md --point-cap 256
 ```
 
 ## Artifacts Created
@@ -169,6 +186,9 @@ Rows:
 - 16 `ok`;
 - 2 `skipped` because block Model B with 4 blocks has CUT4 augmented dimension
   12 and point count 4120, above the point cap 256.
+- Every row now records explicit reviewer-facing `comparator`, `shape`, and
+  `non_implication_text` fields, while retaining `comparator_id`, dimension
+  fields, and `non_implication` for compatibility.
 
 The XLA rows are host CPU XLA diagnostics only and do not support broad XLA or
 performance claims.
@@ -193,11 +213,14 @@ performance claims.
 Validation passed:
 
 - Claude execution review iteration 2 returned `ACCEPT`.
+- Claude final schema review iteration 1 returned `REJECT`; Codex agreed and
+  repaired the P8 row schema.  Iteration 2 returned `ACCEPT`.
 - `docs/source_map.yml` parses and contains top-level and grouped provenance
   for this lane.
 - P8 JSON rows contain comparator, shape, dtype, seed policy, tolerance,
   finite/shape status, runtime or skip, command, environment, CPU/GPU policy,
-  promotion/continuation/repair labels, and non-implication text.
+  promotion/continuation/repair labels, and non-implication text as explicit
+  row fields.
 - `git diff --check` passed.
 - `py_compile` passed for the P8 harness.
 - No production module, public API, student-baseline, or controlled-DPF file was

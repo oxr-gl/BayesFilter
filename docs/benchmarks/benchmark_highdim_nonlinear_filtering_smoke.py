@@ -278,25 +278,36 @@ def _row(
     observations = _observations_for_case(case, block_count)
     augmented_dim = model.partition.state_dim + model.partition.innovation_dim
     point_count = _point_count(backend, augmented_dim)
+    shape = {
+        "state_dim": model.partition.state_dim,
+        "observation_dim": int(model.observation_dim),
+        "innovation_dim": model.partition.innovation_dim,
+        "timesteps": int(observations.shape[0]),
+        "augmented_dim": augmented_dim,
+        "point_count": point_count,
+    }
     base = {
         "case": case,
         "block_count": block_count,
-        "state_dim": model.partition.state_dim,
-        "innovation_dim": model.partition.innovation_dim,
-        "observation_dim": int(model.observation_dim),
-        "timesteps": int(observations.shape[0]),
+        "state_dim": shape["state_dim"],
+        "innovation_dim": shape["innovation_dim"],
+        "observation_dim": shape["observation_dim"],
+        "timesteps": shape["timesteps"],
         "backend": backend,
         "mode": mode,
-        "augmented_dim": augmented_dim,
-        "point_count": point_count,
+        "augmented_dim": shape["augmented_dim"],
+        "point_count": shape["point_count"],
+        "shape": shape,
         "dtype": "float64",
         "seed_policy": "deterministic_fixture_no_random_seed",
         "tolerance": "finite_and_shape_only",
+        "comparator": "Existing Model B or deterministic block extension",
         "comparator_id": "existing_model_b_or_block_extension",
         "cpu_gpu_policy": "CPU-only; CUDA_VISIBLE_DEVICES=-1 set before TensorFlow import",
         "command": command,
         "environment": environment,
         "non_implication": NON_IMPLICATION_TEXT,
+        "non_implication_text": NON_IMPLICATION_TEXT,
     }
     if point_count > point_cap:
         return {
@@ -401,7 +412,6 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    command = " ".join(sys.argv)
     command = " ".join(sys.argv)
     environment = {
         "platform": platform.platform(),
