@@ -20,6 +20,11 @@ Primary criterion:
 - A survey matrix records method family, problem class, assumptions, update
   object, complexity/scaling, degeneracy mode, implementation availability,
   BayesFilter relevance, source-support class, and non-claims.
+- For scholarly readiness, every theorem, approximation-order, complexity,
+  degeneracy, empirical-performance, or implementation-availability claim must
+  map to a primary technical source section/equation, a reviewed local
+  ResearchAssistant summary, or a blocker.  Metadata-only rows may remain only
+  as search scaffolding.
 
 Veto diagnostics:
 
@@ -30,6 +35,9 @@ Veto diagnostics:
 - Any row lacks a source URL or explicit "local source unavailable" blocker.
 - A mathematical theorem, complexity claim, or empirical performance claim lacks
   a source-support class.
+- A row with `primary_metadata_only`, `local_ra_summary_only`,
+  `secondary_context_only`, or `blocked_source_needed` is used to support a
+  final chapter claim rather than a motivation or blocker.
 
 Explanatory diagnostics:
 
@@ -57,13 +65,17 @@ Each matrix row must use one of:
 
 Chapter prose may rely on `primary_metadata_only`, `local_ra_summary_only`, or
 `secondary_context_only` only for scoped motivation, not for theorem,
-complexity, or performance claims.
+complexity, algorithmic, implementation-availability, or performance claims.
+Final scholarly-readiness requires that each method family have at least one
+technically checked primary source or a recorded source-gap blocker.
 
 ## Stop Rules
 
 Stop P1 with a structured blocker if direct tensor/transport/HMC sources cannot
-be assigned at least metadata-level support, or if the survey matrix cannot
-distinguish primary technical support from abstract-level support.
+be assigned at least metadata-level support, if the survey matrix cannot
+distinguish primary technical support from abstract-level support, or if any
+method family needed by later chapters lacks a technically checked source and no
+source-gap blocker is recorded.
 
 ## Required Families
 
@@ -82,3 +94,7 @@ distinguish primary technical support from abstract-level support.
 ## Exit Label
 
 `P1_SURVEY_ACCEPTED` if the matrix is broad enough and all claims are bounded.
+
+`P1_SCHOLARLY_SOURCE_ACCEPTED` only if source gaps have been closed for claims
+that appear in final chapter prose, or those claims are explicitly removed or
+blocked.

@@ -17,6 +17,10 @@ Primary criterion:
 - A candidate table ranks at least eight method families by scaling, required
   structure, failure modes, degeneracy behavior, XLA/GPU readiness, BayesFilter
   implementation burden, evidence needed, and NAWM suitability.
+- For scholarly readiness, every ranking entry must cite the supporting
+  chapter evidence, source-support class, BayesFilter evidence or blocker,
+  downstream validation burden, and the reason the ranking is not a performance
+  or posterior-accuracy leaderboard.
 
 Veto diagnostics:
 
@@ -24,6 +28,9 @@ Veto diagnostics:
 - A fast but invalid method is ranked above a slower but diagnosable method
   without stating that the ranking is research-directional.
 - Synthesis claims production readiness.
+- Ranking relies on intuition without linking to P1-P6 evidence, source gaps,
+  or BayesFilter diagnostics.
+- The ranking omits what would overturn it.
 
 Explanatory diagnostics:
 
@@ -41,3 +48,6 @@ Artifact:
 ## Exit Label
 
 `P7_SYNTHESIS_ACCEPTED` if the ranking is explicit and conservative.
+
+`P7_SCHOLARLY_SYNTHESIS_ACCEPTED` only if the ranking reads as a defended
+research-prior with evidence burden, not as an unsupported opinion table.

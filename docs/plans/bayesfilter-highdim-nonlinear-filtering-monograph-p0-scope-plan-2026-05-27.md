@@ -19,6 +19,11 @@ Primary criterion:
 - A reviewer can tell exactly which claims are allowed, which are forbidden,
   what evidence would promote a result, and which stop rules protect the
   program from overclaiming.
+- A reviewer can also tell the difference between a conservative draft scaffold
+  and a scholarly, review-ready monograph chapter.  Safe prose is not enough;
+  the plan must require source depth, derivation substance, algorithms,
+  complexity analysis, BayesFilter evidence links, industrial relevance, PDF
+  integration, and page/section hostile review.
 
 Veto diagnostics:
 
@@ -26,6 +31,9 @@ Veto diagnostics:
 - Any plan merges engineering correctness, numerical validity, sampler validity,
   and scientific interpretation.
 - Any plan treats HMC, tensor networks, GPU, XLA, or NAWM as solved.
+- Any plan permits a final scholarly-readiness label while source gaps,
+  unaudited major derivations, missing pseudocode, missing scaling tables, or
+  missing PDF integration remain unblocked.
 
 Explanatory diagnostics:
 
@@ -45,8 +53,13 @@ Artifact:
 2. Record allowed/forbidden claims in the master program.
 3. Define review-loop and stop-rule mechanics.
 4. Prepare P0 result entry in the consolidated execution result.
+5. Record the scholarly-refinement gates and the max-10 section/page review
+   loop in the master program.
 
 ## Exit Label
 
 `P0_SCOPE_ACCEPTED` if the master program has explicit claim boundaries and no
 scope leak.
+
+`P0_SCHOLARLY_SCOPE_ACCEPTED` only if the master program prevents "safe but
+thin" chapter drafts from receiving final scholarly acceptance.

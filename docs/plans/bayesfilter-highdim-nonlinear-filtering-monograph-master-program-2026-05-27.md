@@ -6,7 +6,11 @@
 
 ## Status
 
-Planning block draft, pending bounded Claude review and Codex audit.
+Scholarly-refinement planning revision.  The existing May 27 chapter drafts are
+conservative and evidence-disciplined, but they are not yet accepted as
+scholarly, review-ready monograph chapters.  This program now treats the May 27
+drafts as scaffolds that must be deepened before a skeptical panel of former
+professors turned industrial practitioners could approve them.
 
 ## Supervisor Contract
 
@@ -19,6 +23,18 @@ for high-dimensional nonlinear filtering in nonlinear state-space models.  The
 industrial design target is a high-dimensional, nonlinear, DSGE-style model such
 as NAWM.  The program is not allowed to claim that NAWM-scale filtering, HMC,
 GPU speedup, tensor compression, or production readiness is solved.
+
+## Scholarly-Readiness Diagnosis
+
+The May 27 execution produced useful chapter scaffolds, not final scholarly
+chapters.  A final-ready chapter block must not pass merely because it avoids
+overclaiming.  It must contain enough positive substance for hostile review:
+primary-source support, explicit assumptions, derivations or proof sketches,
+implementation-grade algorithms, dimensional and memory scaling, failure-mode
+diagnostics, BayesFilter evidence links, industrial relevance, and an
+integrated LaTeX/PDF artifact.  Source gaps, informal derivations, and smoke
+diagnostics may support a research roadmap only; they cannot by themselves
+support a scholarly-readiness exit label.
 
 ## Prior Evidence To Respect
 
@@ -56,6 +72,40 @@ The program starts from the BayesFilter V1 record:
 - No public API change or default-policy change.
 - No exact nonlinear likelihood claim for Models B-C from dense one-step or
   sigma-point diagnostics.
+- No statement that the current May 27 chapter drafts are final scholarly
+  chapters until the scholarly gates below pass.
+
+## Scholarly Acceptance Gates
+
+Each chapter and each phase that touches chapter substance must satisfy the
+following gates before receiving a final scholarly-readiness label:
+
+1. Primary-source depth gate: every literature claim must cite or map to a
+   primary technical source, a local ResearchAssistant summary with review
+   status, or an explicit source-gap blocker.  Metadata-only support cannot
+   justify theorem, complexity, or performance claims.
+2. Derivation substance gate: every major equation must state assumptions,
+   provide a derivation or proof sketch, and receive a MathDevMCP audit attempt
+   where the tool can apply.  Inconclusive audits must remain visible.
+3. Algorithm gate: every method family discussed as a candidate must include
+   implementation-grade pseudocode or a precise reason for exclusion.
+4. Complexity/scaling gate: every method family must record dimensional
+   scaling, memory scaling, degeneracy mode, and failure diagnostics.
+5. Industrial-practitioner gate: every chapter must answer what breaks at
+   NAWM-like scale, what model structure could rescue the method, and what
+   evidence would be needed before promotion.
+6. BayesFilter evidence gate: every implementation or benchmark claim must link
+   to BayesFilter code, test, benchmark artifact, result note, or blocker.
+7. Page/section review gate: every section and every rendered page after PDF
+   build must pass hostile review for unsupported claims, missing citations,
+   vague prose, derivation gaps, and practical irrelevance.
+8. PDF integration gate: the new chapters must be included in `docs/main.tex`,
+   LaTeX must build, and `docs/main.pdf` must contain the new chapters.
+9. Final page-by-page PDF review gate: after build, rendered pages must be
+   checked for layout, references, table readability, equation continuity, and
+   orphan claims.
+10. No-overclaim gate: all prior forbidden claims remain forbidden unless
+   directly supported by the required evidence.
 
 ## Evidence Ledgers
 
@@ -95,9 +145,20 @@ For the planning block and for each execution block:
 3. Claude Code reviews in read-only mode and must output `ACCEPT` or `REJECT`.
 4. Codex audits Claude's review.
 5. If Claude rejects and Codex agrees, Codex patches and resubmits.
-6. Stop after 5 review iterations if convergence fails.
+6. Repeat up to 5 planning-review iterations.  On iteration 5, accept only if
+   all remaining issues are minor planning/editorial issues; any major issue in
+   scholarly gates, evidence gates, source support, derivation auditability, PDF
+   integration, section/page review design, or final audit design becomes a
+   structured blocker.
 7. During execution, Claude Code may be launched as a bounded executor with an
    explicit write set and no commit or push.
+
+For scholarly-refinement execution, the local review unit is a chapter section
+first and a rendered PDF page second.  Each section/page review loop may run at
+most 10 iterations.  Iteration 10 may be accepted only if all remaining issues
+are minor editorial issues that do not affect source support, derivation
+validity, evidence linkage, reproducibility, scope, or final audit.  Any major
+issue at iteration 10 becomes a structured blocker, not an acceptance.
 
 ## Allowed Write Set
 
@@ -107,6 +168,8 @@ For the planning block and for each execution block:
 - `docs/chapters/ch35_highdim_particle_transport_tensor_filters.tex`
 - `docs/chapters/ch36_nonlinear_ssm_hmc_research_program.tex`
 - `docs/chapters/ch37_highdim_filtering_candidate_synthesis.tex`
+- `docs/main.tex` only during the accepted PDF-integration phase
+- `docs/main.pdf` only during the accepted PDF-integration phase
 - `docs/benchmarks/benchmark_highdim_nonlinear_filtering_smoke.py`
 - `docs/benchmarks/bayesfilter-highdim-nonlinear-filtering-*`
 - `experiments/highdim_nonlinear_filtering/`
@@ -142,6 +205,15 @@ P10 may pass only if:
 - source support is recorded for literature claims;
 - every chapter has a per-claim source ledger, an unresolved-claim register,
   and a "what is not concluded" section;
+- every chapter section has passed hostile local review or has a blocker;
+- every method family has pseudocode or an exclusion rationale, complexity and
+  memory scaling, degeneracy mode, failure diagnostics, and industrial
+  NAWM-scale relevance notes;
+- every major equation has assumptions, derivation/proof sketch, and a recorded
+  MathDevMCP audit attempt or audit limitation;
+- `docs/main.tex` includes the new chapters and `docs/main.pdf` contains them;
+- the rendered PDF has passed page-by-page review for layout, references,
+  tables, equations, and orphan claims;
 - P8 smoke-harness rows are cited only as BayesFilter execution diagnostics,
   not as algorithm validation or ranking evidence;
 - no unsupported HMC, tensor, GPU, XLA, production, or NAWM readiness claims are
@@ -163,6 +235,11 @@ Stop or return a structured blocker if:
   value/score parity, or unavailable R-hat/ESS fields and the phase attempts to
   use it as anything stronger than blocker or diagnostic evidence;
 - P9 cannot produce per-chapter claim ledgers and non-implication sections;
+- P9 or the scholarly-refinement execution cannot produce section/page review
+  evidence for every new chapter section;
+- PDF integration fails, cross-references are broken, or the rendered PDF does
+  not contain chapters 33--37;
+- source gaps remain in theorem, complexity, performance, or promotion claims;
 - P10 lacks a concrete final result artifact.
 
 ## Commit Policy
