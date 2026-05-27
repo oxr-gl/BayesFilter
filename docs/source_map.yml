@@ -79,6 +79,17 @@ sources:
     entrypoint: /home/chakwong/BayesFilter/experiments/student_dpf_baselines/vendor/advanced_particle_filter/docs/amortized_ot_operator.md
     status: candidate
     role: Engineering note on the learned OT resampler architecture, training distribution, speedups, and approximation residuals used for comparison-only critique.
+  - id: bayesfilter_highdim_nonlinear_filtering_monograph_program_2026_05_27
+    project: BayesFilter
+    root: /home/chakwong/BayesFilter/docs
+    entrypoint: /home/chakwong/BayesFilter/docs/plans/bayesfilter-highdim-nonlinear-filtering-monograph-master-program-2026-05-27.md
+    status: drafted
+    role: >
+      Reviewed master program, draft chapters, and diagnostic harness for the
+      high-dimensional nonlinear filtering monograph lane.  The lane is
+      research-grade and explicitly does not claim NAWM readiness, HMC
+      convergence, tensor-method validation, GPU speedup, or production default
+      changes.
   - id: bayesfilter_dpf_literature_block_2026_05_08
     project: BayesFilter
     root: /home/chakwong/BayesFilter/docs/chapters
@@ -1591,6 +1602,33 @@ duplicate_groups:
       - /home/chakwong/latex/CIP_monograph/chapters/ch27_ledh_pfpf_neural_ot.tex
       - /home/chakwong/latex/CIP_monograph/chapters/ch32_diff_resampling_neural_ot.tex
     resolution: Literature-gated; do not draft claims until ResearchAssistant summaries exist.
+  - topic: High-dimensional nonlinear filtering monograph program
+    sources:
+      - /home/chakwong/BayesFilter/docs/plans/bayesfilter-v1-master-program-execution-summary-2026-05-14.md
+      - /home/chakwong/BayesFilter/docs/plans/bayesfilter-v1-nonlinear-performance-final-summary-2026-05-16.md
+      - /home/chakwong/BayesFilter/docs/plans/bayesfilter-v1-model-bc-bc5-hmc-ladder-result-2026-05-15.md
+      - /home/chakwong/BayesFilter/docs/chapters/ch16_sigma_point_filters.tex
+      - /home/chakwong/BayesFilter/docs/chapters/ch21_hmc_for_state_space.tex
+      - /home/chakwong/BayesFilter/docs/chapters/ch31_nawm_design_target.tex
+      - /home/chakwong/BayesFilter/docs/chapters/ch33_highdim_nonlinear_filtering_foundations.tex
+      - /home/chakwong/BayesFilter/docs/chapters/ch34_highdim_gaussian_and_sparse_quadrature.tex
+      - /home/chakwong/BayesFilter/docs/chapters/ch35_highdim_particle_transport_tensor_filters.tex
+      - /home/chakwong/BayesFilter/docs/chapters/ch36_nonlinear_ssm_hmc_research_program.tex
+      - /home/chakwong/BayesFilter/docs/chapters/ch37_highdim_filtering_candidate_synthesis.tex
+    resolution: >
+      Reviewer-grade draft lane only.  The new chapters synthesize V1
+      nonlinear evidence, local ResearchAssistant HMC summaries, explicit
+      primary source URLs for tensor/transport methods, and P8 diagnostic rows.
+      They do not claim high-dimensional filtering validity, HMC convergence,
+      NAWM readiness, tensor-method success, GPU speedup, or production default
+      changes.
+    local_benchmark:
+      path: docs/benchmarks/benchmark_highdim_nonlinear_filtering_smoke.py
+      result_note: docs/benchmarks/bayesfilter-highdim-nonlinear-filtering-smoke-2026-05-27.md
+      reason: >
+        CPU-only execution diagnostic for existing Model B and block nonlinear
+        extensions.  Rows may be cited only for finite execution, shape/dtype,
+        point-count, XLA-host diagnostic, skip-label, and runtime metadata.
 
 phase_gates:
   phase_1_source_map:

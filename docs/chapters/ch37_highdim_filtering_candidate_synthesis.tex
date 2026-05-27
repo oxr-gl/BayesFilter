@@ -1,0 +1,120 @@
+\chapter{Candidate Synthesis for Industrial-Scale Nonlinear Filtering}
+\label{ch:bf-highdim-candidate-synthesis}
+
+\section{Chapter Claim}
+\label{sec:bf-highdim-synthesis-claim}
+
+The most defensible industrial strategy is hybrid: use block-local Gaussian or
+transport filters to stabilize high-dimensional filtering structure, then use
+transport-preconditioned or learned-accelerated HMC only after target and
+diagnostic gates pass.  This is a research ranking, not a default policy.
+
+\section{Assumptions}
+\label{sec:bf-highdim-synthesis-assumptions}
+
+The ranking assumes the current BayesFilter evidence state: V1 nonlinear
+sigma-point diagnostics are narrow, P8 rows are execution diagnostics only, no
+NAWM nonlinear validation exists, and tensor/transport/HMC acceleration sources
+still need deeper technical review before theorem-level claims.  The ranking is
+therefore a low-confidence research-prior for planning evidence, not an
+empirical method leaderboard.
+
+\section{Ranking Criteria}
+\label{sec:bf-highdim-ranking-criteria}
+
+Candidates are ranked by expected scaling, required structure, degeneracy
+behavior, differentiability, XLA/GPU readiness, implementation burden, evidence
+burden, and suitability for a NAWM-style nonlinear DSGE target.
+
+\section{Candidate Ranking}
+\label{sec:bf-highdim-ranking-table}
+
+The table orders candidates by reviewer-defensible evidence-building priority.
+It does not rank posterior accuracy, speed, or production suitability.
+
+\begin{tabular}{p{0.06\linewidth}p{0.21\linewidth}p{0.18\linewidth}p{0.22\linewidth}p{0.23\linewidth}}
+\toprule
+Rank & Candidate & Expected scaling & Main failure mode & NAWM suitability \\
+\midrule
+1 & Block IEKF/IEKS plus selective second-order correction & Near-linear or
+block-cubic with sparse derivatives & local linearization bias, bad Hessian
+blocks & Best first rung because diagnostics and derivatives are inspectable. \\
+2 & Sparse-grid or block cubature & Exponential in block size, not full state &
+cross-block interactions and PSD reconstruction & Strong if economic blocks are
+well localized. \\
+3 & Ensemble transport filtering/smoothing & Ensemble-size and map-complexity
+dependent & map class bias, finite ensemble collapse & Promising for
+localization and conditional structure. \\
+4 & Guided or flow particle filtering & Particle count times proposal cost &
+weight collapse, proposal mismatch & Useful only with strong guide maps and
+ESS/posterior checks. \\
+5 & TT/TN density or likelihood compression & Rank-dependent & rank explosion,
+positivity/normalization loss & Research lane for structured maps or
+surrogates, not default. \\
+6 & NeuTra/transport-preconditioned fixed HMC & Training plus HMC cost &
+transport bias, failed transformed diagnostics & High payoff after target
+readiness; not first-line validation. \\
+7 & HNN/learned Hamiltonian acceleration & Training plus cheap learned steps &
+proposal invalidity, poor correction, domain shift & Speed research lane after
+plain/NeuTra baselines. \\
+8 & Hybrid filter-assisted HMC proposals & Filter cost plus sampler cost &
+approximate target drift and double-use errors & Valuable synthesis path if
+proposal/target correction is explicit. \\
+\bottomrule
+\end{tabular}
+
+\section{Recommended Synthesis}
+\label{sec:bf-highdim-synthesis-recommendation}
+
+For NAWM-style nonlinear DSGE work, the recommended order is:
+\begin{enumerate}[label=(\arabic*)]
+  \item Build block-local deterministic and stochastic partitions.
+  \item Establish IEKF/IEKS and block cubature references on small blocks.
+  \item Add transport or flow proposals only with corrected weights.
+  \item Use tensor or low-rank compression where rank diagnostics stay stable.
+  \item Use fixed-trajectory HMC as the inspectable sampler baseline.
+  \item Add NeuTra or HNN acceleration only after value/score and posterior
+    diagnostics pass on the unaccelerated target.
+\end{enumerate}
+
+\section{BayesFilter Evidence Boundary}
+\label{sec:bf-highdim-synthesis-evidence}
+
+The V1 evidence supports current nonlinear value/score diagnostics and narrow
+performance rows.  The P8 harness adds execution metadata for block extensions
+only.  The ranking above is therefore a research roadmap.  It is not an
+empirical winner table.
+
+\section{Source And Evidence Ledger}
+\label{sec:bf-highdim-synthesis-ledger}
+
+\begin{tabular}{p{0.28\linewidth}p{0.24\linewidth}p{0.38\linewidth}}
+\toprule
+Claim & Support class & Boundary \\
+\midrule
+Block-local Gaussian methods are first-rung candidates & BayesFilter code
+structure plus chapter synthesis & Ranking judgment, not proof. \\
+Tensor/transport/HMC methods are promising but gated & P1-P6 survey and V1
+evidence boundaries & Requires future implementation and validation. \\
+Hybrid strategy is preferred as an evidence-building order & engineering
+synthesis with source gaps & No production default change; technical literature
+review and downstream validation required. \\
+\bottomrule
+\end{tabular}
+
+\section{Unresolved Claim Register}
+\label{sec:bf-highdim-synthesis-unresolved}
+
+\begin{itemize}
+  \item No candidate is validated on NAWM.
+  \item No candidate has a full high-dimensional posterior recovery benchmark.
+  \item No GPU/XLA policy change is supported.
+  \item No HMC acceleration method is promoted.
+\end{itemize}
+
+\section{What Is Not Concluded}
+\label{sec:bf-highdim-synthesis-nonclaims}
+
+The ranking does not conclude that the top method is scientifically correct or
+that lower-ranked methods are poor.  It states a reviewer-defensible order for
+building evidence under current BayesFilter constraints.

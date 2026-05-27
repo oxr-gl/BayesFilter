@@ -1,0 +1,125 @@
+\chapter{HMC as a Research Program for Nonlinear State-Space Models}
+\label{ch:bf-highdim-hmc-research}
+
+\section{Chapter Claim}
+\label{sec:bf-highdim-hmc-claim}
+
+HMC for nonlinear state-space models is a per-model research problem.  A finite
+short chain, a valid log density, or a dense mass matrix is not enough.  The
+BayesFilter production direction is an inspectable fixed-trajectory HMC layer
+with explicit value/score contracts, while TFP NUTS remains diagnostic and
+reference-only.
+
+\section{Assumptions}
+\label{sec:bf-highdim-hmc-assumptions}
+
+HMC statements assume a declared unconstrained parameter coordinate, a finite
+scalar target on the region visited by the integrator, and gradients that match
+the same scalar target used in the Metropolis correction.  Acceleration
+statements for NeuTra, transport maps, RMHMC, or learned Hamiltonian dynamics
+assume target-preserving correction and downstream sampler diagnostics; without
+those checks they remain proposal or preconditioning ideas only.
+
+\section{Target And Gradient Contract}
+\label{sec:bf-highdim-hmc-target-gradient}
+
+Let $q$ denote the unconstrained parameter coordinate used by the integrator,
+with transform $\theta=\tau(q)$.  The HMC potential is
+\[
+  U(q) = -\ell_T(\tau(q)) - \log \pi(\tau(q)) - \log|\det D\tau(q)|.
+\]
+The gradient used by the integrator must be the gradient of the same scalar
+target used by the Metropolis correction.  If the filter supplies an approximate
+likelihood, the HMC chain targets that approximate posterior unless a correction
+is added.
+
+\section{Why Plain HMC Can Fail}
+\label{sec:bf-highdim-plain-hmc-failure}
+
+Dense or diagonal mass matrices can handle global scale but not arbitrary
+curvature, funnels, invalid regions, hard constraints, or branch-induced
+gradient roughness.  Divergences are therefore not cosmetic.  They are evidence
+that the numerical Hamiltonian trajectory is failing to follow the declared
+target geometry at the chosen step size and trajectory length.
+
+The BayesFilter Model B/C HMC ladder is a candidate diagnostic only: finite
+values and samples were observed, but acceptance was near 1.0 and maximum R-hat
+was around 2.0.  That supports future research, not convergence.
+
+\section{Diagnostic-Only NUTS Policy}
+\label{sec:bf-highdim-nuts-policy}
+
+TFP NUTS is useful for small references and debugging.  It is not the strategic
+production backend for industrial nonlinear SSMs in this project because
+dynamic control flow, adaptation, and nested kernel internals make full-pipeline
+compilation, failure triage, and model-specific diagnostics harder than a small
+BayesFilter-owned transition.
+
+\section{Geometry-Aware Acceleration}
+\label{sec:bf-highdim-hmc-acceleration}
+
+NeuTra-style neural transport learns a map to reduce posterior geometry before
+HMC.  HNN or learned HMC proposals try to reduce integration cost or improve
+mode movement.  Riemannian HMC uses local metric information.  All three
+directions have a high evidence burden in nonlinear filtering:
+\begin{itemize}
+  \item target-preserving Metropolis correction;
+  \item value and score parity in transformed coordinates;
+  \item finite invalid-region policy;
+  \item diagnostics on the actual filtering target;
+  \item runtime measured per effective sample after validity gates pass.
+\end{itemize}
+
+\section{HMC Diagnostic Ladder}
+\label{sec:bf-highdim-hmc-ladder}
+
+\begin{enumerate}[label=(\arabic*)]
+  \item Value/score finite check at representative points.
+  \item Eager/compiled value and gradient parity.
+  \item Short multi-chain smoke with divergence and nonfinite checks.
+  \item Step-size and trajectory sensitivity ladder.
+  \item R-hat, ESS, E-BFMI, energy error, and posterior recovery on a controlled
+    reference.
+  \item Only after all validity diagnostics pass, compare runtime per effective
+    sample across plain HMC, transport HMC, and learned-dynamics variants.
+\end{enumerate}
+
+Any divergence, nonfinite value, failed parity, unavailable R-hat/ESS, or
+failed E-BFMI reroutes the result to `hmc_blocker_or_repair`.
+
+\section{Source And Evidence Ledger}
+\label{sec:bf-highdim-hmc-ledger}
+
+\begin{tabular}{p{0.28\linewidth}p{0.24\linewidth}p{0.38\linewidth}}
+\toprule
+Claim & Support class & Boundary \\
+\midrule
+TFP NUTS is diagnostic/reference-only in BayesFilter & existing chapter and
+benchmark policy & Project implementation decision, not a mathematical claim
+against NUTS. \\
+NeuTra addresses bad HMC geometry & ResearchAssistant local summary for
+Hoffman et al. 2019 & Summary-level support; full technical audit still needed
+before theorem-level prose. \\
+HNN/learned HMC can accelerate proposals in some domains & ResearchAssistant
+summary for learned HMC material & Domain transfer to nonlinear SSMs unproved. \\
+RMHMC uses geometry-aware metrics & ResearchAssistant summary for Girolami and
+Calderhead & Implementation burden and filtering Hessian readiness unresolved. \\
+\bottomrule
+\end{tabular}
+
+\section{Unresolved Claim Register}
+\label{sec:bf-highdim-hmc-unresolved}
+
+\begin{itemize}
+  \item No BayesFilter nonlinear HMC convergence result exists.
+  \item No NeuTra or HNN BayesFilter backend is implemented here.
+  \item No nonlinear Hessian readiness is claimed.
+  \item No NAWM HMC diagnostic is run.
+\end{itemize}
+
+\section{What Is Not Concluded}
+\label{sec:bf-highdim-hmc-nonclaims}
+
+This chapter does not conclude that HMC, NeuTra, HNN, RMHMC, or any TFP kernel
+is production-ready for nonlinear SSMs.  It defines the research ladder required
+before such a claim can be considered.

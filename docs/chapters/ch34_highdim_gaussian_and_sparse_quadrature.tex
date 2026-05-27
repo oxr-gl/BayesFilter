@@ -1,0 +1,144 @@
+\chapter{Gaussian Projection and High-Order Quadrature Filters}
+\label{ch:bf-highdim-gaussian-quadrature}
+
+\section{Chapter Claim}
+\label{sec:bf-highdim-gaussian-claim}
+
+Gaussian projection filters remain the most inspectable first rung for
+high-dimensional nonlinear SSMs, but unstructured high-order quadrature is not
+scalable.  The defensible industrial direction is block-local or low-rank
+quadrature with explicit approximation diagnostics, not global CUT4 on the full
+state.
+
+\section{Assumptions}
+\label{sec:bf-highdim-gaussian-assumptions}
+
+This chapter assumes that Gaussian projection is being used as an approximation
+to a nonlinear filtering law, not as an exact statement unless the model is
+affine Gaussian or another exactness argument is supplied.  Sparse-grid and
+block-local discussion assumes exploitable locality, sparsity, or low effective
+interaction order; without such structure these methods remain candidate
+approximations with no promotion claim.
+
+\section{Moment Projection}
+\label{sec:bf-highdim-moment-projection}
+
+Assume the predictive state is approximated by
+$x_t\mid y_{1:t-1}\approx \mathcal N(m_t^-,P_t^-)$.  A nonlinear observation
+map $h_\theta$ is reduced to approximate moments
+\begin{align}
+  \hat y_t &= \mathbb E[h_\theta(X_t)],\\
+  S_t &= \operatorname{Var}(h_\theta(X_t)) + R_\theta,\\
+  C_t &= \operatorname{Cov}(X_t,h_\theta(X_t)).
+\end{align}
+The Gaussian update is
+\begin{align}
+  K_t &= C_t S_t^{-1},\\
+  m_t &= m_t^- + K_t(y_t-\hat y_t),\\
+  P_t &= P_t^- - K_t S_t K_t^\top.
+\end{align}
+The approximation is entirely in the moment calculation.  The update is the
+Gaussian projection update for those moments.
+
+\section{Derivative-Based Filters}
+\label{sec:bf-highdim-derivative-filters}
+
+The extended Kalman filter uses first derivatives of the transition and
+observation maps.  An iterated EKF repeats local linearization around an updated
+state estimate and is often a better optimizer or local filter when the
+observation equation is strongly nonlinear.  A second-order EKF can include
+Hessian corrections to the mean and covariance.  These filters scale better in
+state dimension than dense high-order quadrature when Jacobian and Hessian
+structure is sparse or block-local, but their evidence burden shifts to
+derivative correctness and local approximation error.
+
+\section{Sigma-Point Rules}
+\label{sec:bf-highdim-sigma-rules}
+
+A sigma-point rule replaces expectations by
+\[
+  \mathcal Q[\varphi] = \sum_{j=1}^{N_q} w_j \varphi(m + L\xi_j),
+  \qquad LL^\top=P.
+\]
+BayesFilter currently exposes TensorFlow SVD/eigen sigma-point backends for
+cubature, unscented, and CUT4-G value paths.  Chapter~\ref{ch:bf-sigma-point-filters}
+records the CUT4-G rule:
+\[
+  N_{\mathrm{CUT4}}(d)=2d+2^d.
+\]
+This is the central high-dimensional warning.  At augmented dimension $d=15$,
+the rule needs $32798$ points; at $d=100$, the corner set is physically
+irrelevant as an implementation proposal.
+
+\begin{remark}[High-order does not mean high-dimensional]
+\label{rem:bf-highdim-cut4-boundary}
+High polynomial exactness at fixed dimension is not the same as high-dimensional
+tractability.  CUT4-G is useful as a small-dimensional reference and a block
+rule.  It is not an unstructured industrial default.
+\end{remark}
+
+\section{Sparse Grids And Block Rules}
+\label{sec:bf-highdim-sparse-block}
+
+Sparse-grid and Smolyak rules try to spend points on lower-order interactions
+instead of all tensor-product corners.  Block-local quadrature goes further:
+partition the state or innovation coordinates into groups, apply higher-order
+rules inside each group, and stitch the result through a Gaussian or ensemble
+approximation.  This changes the approximation class.  It requires diagnostics
+for neglected cross-block interactions, covariance positive-definiteness, and
+downstream likelihood or posterior distortion.
+
+\section{Algorithmic Template}
+\label{sec:bf-highdim-block-quadrature-template}
+
+\begin{enumerate}[label=(\arabic*)]
+  \item Choose a stochastic integration block partition.
+  \item For each block, select EKF, CKF/UKF, CUT4, or sparse-grid moment rule.
+  \item Propagate block moments through the nonlinear transition/observation
+    maps.
+  \item Reconstruct global mean/covariance with an explicit cross-block policy.
+  \item Record point count, PSD residual, cross-block residual proxy, value
+    parity on small cells, and runtime.
+\end{enumerate}
+
+\section{BayesFilter Evidence Box}
+\label{sec:bf-highdim-gaussian-evidence}
+
+The existing V1 record supports finite value and score diagnostics for Models
+A-C on narrow cells and CPU/GPU/XLA timing diagnostics for exact tested Model B
+rows.  The P8 harness in this program is allowed to add point-count and
+execution diagnostics for block extensions.  Neither artifact validates
+high-dimensional posterior accuracy.
+
+\section{Source And Evidence Ledger}
+\label{sec:bf-highdim-gaussian-ledger}
+
+\begin{tabular}{p{0.28\linewidth}p{0.24\linewidth}p{0.38\linewidth}}
+\toprule
+Claim & Support class & Boundary \\
+\midrule
+CUT4-G point count is $2d+2^d$ & BayesFilter implementation and existing
+Chapter~\ref{ch:bf-sigma-point-filters} derivation & Applies to implemented
+CUT4-G rule, not all high-order rules. \\
+Gaussian projection update formulas & standard derivation, chapter exposition &
+Moment approximation quality is not guaranteed. \\
+Sparse/block quadrature is a candidate direction & literature taxonomy and
+research synthesis & No BayesFilter default or production claim. \\
+\bottomrule
+\end{tabular}
+
+\section{Unresolved Claim Register}
+\label{sec:bf-highdim-gaussian-unresolved}
+
+\begin{itemize}
+  \item No sparse-grid backend is implemented in this phase.
+  \item No block-local quadrature theorem is proved for NAWM.
+  \item No default policy change is justified.
+\end{itemize}
+
+\section{What Is Not Concluded}
+\label{sec:bf-highdim-gaussian-nonclaims}
+
+The chapter does not conclude that EKF, sparse grids, CUT4, or block quadrature
+is accurate for a given high-dimensional DSGE model.  It ranks them as
+diagnosable candidates and defines the evidence needed before promotion.
