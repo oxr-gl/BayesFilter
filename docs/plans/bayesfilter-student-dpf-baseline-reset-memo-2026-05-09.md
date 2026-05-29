@@ -12,10 +12,23 @@ experimental-baseline stream.
 Active master program:
 `docs/plans/bayesfilter-student-dpf-baseline-master-program-2026-05-10.md`.
 
-Active next-phase plan:
-none yet.  The next justified action is to write a student-lane clean-room
-implementation plan for `experiments/controlled_dpf_baseline/`, based on
-`docs/plans/bayesfilter-student-dpf-baseline-clean-room-controlled-baseline-spec-2026-05-13.md`.
+Current status:
+`student_dpf_baseline_program_complete_with_caveats`, with a completed
+post-MP8 future-work usability-gates revision and a proposed blocker-debug
+master program for the remaining blocked student-lane surfaces.
+
+Most recent follow-up plan:
+`docs/plans/bayesfilter-student-dpf-baseline-blocker-debug-master-program-2026-05-15.md`.
+
+Most recent follow-up result:
+`experiments/student_dpf_baselines/reports/student-dpf-baseline-future-work-usability-gates-result-2026-05-15.md`.
+
+Next justified action:
+audit the blocker-debug master program, then decide whether to execute its
+bounded DBG0-DBG6 gates.  This is optional student-lane follow-up for blocked
+or excluded surfaces only.  It must not reopen MP5-MP8 and must not delay a
+separate BayesFilter-owned clean-room implementation/specification plan for the
+families already classified as ready.
 
 Owned surfaces:
 - `experiments/student_dpf_baselines/`;
@@ -95,15 +108,18 @@ Known caveats:
 
 ## Next justified action
 
-Write a student-lane clean-room implementation plan for
-`experiments/controlled_dpf_baseline/`, then audit it before implementation.
-The implementation plan should use the clean-room controlled-baseline
+Audit and then execute the student-lane clean-room implementation scaffold plan:
+`docs/plans/bayesfilter-student-dpf-baseline-mp5-clean-room-implementation-plan-2026-05-13.md`.
+
+The implementation scaffold plan uses the clean-room controlled-baseline
 specification:
 `docs/plans/bayesfilter-student-dpf-baseline-clean-room-controlled-baseline-spec-2026-05-13.md`.
 
-Do not implement immediately from the specification alone.  The next plan must
-remain outside production `bayesfilter/`, outside monograph rebuild/enrichment
-files, and outside vendored student snapshots.
+Do not skip directly to full-grid execution.  MP5 must remain outside
+production `bayesfilter/`, outside monograph rebuild/enrichment files, and
+outside vendored student snapshots.  MP6 fixed-grid execution is justified only
+after MP5 exits with `mp5_ready_for_fixed_grid_execution` or
+`mp5_ready_with_caveats`.
 
 ## Execution log: gap-closure cycle started 2026-05-10
 
@@ -2300,3 +2316,440 @@ Completion interpretation:
 - the next justified phase is a separate student-lane implementation plan for
   `experiments/controlled_dpf_baseline/`, not immediate implementation,
   production promotion, or monograph work.
+
+## Planning update: final phase ladder created 2026-05-13
+
+Status: planned and audited.
+
+New subplans:
+- MP5 clean-room implementation scaffold:
+  `docs/plans/bayesfilter-student-dpf-baseline-mp5-clean-room-implementation-plan-2026-05-13.md`;
+- MP6 clean-room fixed-grid execution:
+  `docs/plans/bayesfilter-student-dpf-baseline-mp6-clean-room-fixed-grid-execution-plan-2026-05-13.md`;
+- MP7 clean-room comparison audit:
+  `docs/plans/bayesfilter-student-dpf-baseline-mp7-clean-room-comparison-audit-plan-2026-05-13.md`;
+- MP8 final archive and closeout:
+  `docs/plans/bayesfilter-student-dpf-baseline-mp8-final-archive-and-closeout-plan-2026-05-13.md`.
+
+Program/subplan audit:
+`docs/plans/bayesfilter-student-dpf-baseline-master-program-and-final-subplans-audit-2026-05-13.md`.
+
+Audit decision:
+`program_and_subplans_consistent_for_mp5_start`.
+
+Interpretation:
+- the program now has an explicit phase ladder from the current clean-room
+  specification state to final closeout;
+- MP5 is the active next phase and must be audited/executed before MP6;
+- MP6 fixed-grid execution must not expand beyond the specified first target
+  grid;
+- MP7 comparison must remain proxy-only and must not execute student code;
+- MP8 is the finish line and should mark the student-baseline stream complete
+  or complete-with-caveats.
+
+Lane guard:
+- the new plans and audit stay within the student DPF experimental-baseline
+  lane;
+- no production `bayesfilter/`, monograph, reference, vendored student, or
+  experiment-output edits were made by this planning update.
+
+## Planning review: master and final subplans tightened 2026-05-14
+
+Status: reviewed and tightened.
+
+Reviewed documents:
+- `docs/plans/bayesfilter-student-dpf-baseline-master-program-2026-05-10.md`;
+- `docs/plans/bayesfilter-student-dpf-baseline-mp5-clean-room-implementation-plan-2026-05-13.md`;
+- `docs/plans/bayesfilter-student-dpf-baseline-mp6-clean-room-fixed-grid-execution-plan-2026-05-13.md`;
+- `docs/plans/bayesfilter-student-dpf-baseline-mp7-clean-room-comparison-audit-plan-2026-05-13.md`;
+- `docs/plans/bayesfilter-student-dpf-baseline-mp8-final-archive-and-closeout-plan-2026-05-13.md`;
+- `docs/plans/bayesfilter-student-dpf-baseline-master-program-and-final-subplans-audit-2026-05-13.md`.
+
+Tightening applied:
+- master MP5 is now a concrete clean-room implementation scaffold phase, not a
+  broad extraction placeholder;
+- MP5 now specifies a clean-room regularized particle-flow/bootstrap-particle
+  hybrid scaffold with explicit flow-step control and smoke-only scope;
+- MP5 now lists required implementation surfaces, output-size checks,
+  full-grid guard, and vendored-dirt checks;
+- MP6 now fixes the planned record count at 15 and states required record
+  schema, finite metric requirements, runtime gates, and artifact-size gates;
+- MP7 now defines qualitative comparison classes and a default 2.0x proxy
+  regime threshold for median position RMSE and observation proxy RMSE;
+- MP8 now requires a final closeout note with artifact index, claim ledger,
+  prohibited uses, future-work separation, and final verification checks;
+- the master/subplan audit was updated to reflect this second review.
+
+Audit decision remains:
+`program_and_subplans_consistent_for_mp5_start`.
+
+Execution interpretation:
+- MP5 is the next executable phase, after a focused MP5 audit;
+- MP5 must stop after scaffold and smoke checks;
+- MP6 is the only phase allowed to run the 15-record fixed grid;
+- MP7 must compare without executing student code or mutating MP6 outputs;
+- MP8 must close the stream rather than opening new work.
+
+Lane guard:
+- no production `bayesfilter/`, monograph, reference, vendored student, or
+  experiment-output edits were made by this review.
+
+## Supervisor review: MP5-MP8 executability tightened 2026-05-15
+
+Status: reviewed, tightened, and accepted after bounded Claude Code critique
+plus Codex audit.
+
+Scope:
+- student DPF experimental-baseline lane only;
+- reviewed master, reset memo, clean-room specification, MP5-MP8 plans, and
+  existing `experiments/controlled_dpf_baseline/` README scaffolding;
+- did not touch monograph, production `bayesfilter/`, `docs/references.bib`, or
+  vendored student source.
+
+Claude worker decisions:
+- first critical review: `REJECT`;
+- second critical review: `REJECT`;
+- final bounded acceptance check: `ACCEPT`.
+
+Blocking issues identified:
+- MP5-MP8 were planning-consistent but not yet unattended-executable;
+- `experiments/controlled_dpf_baseline/` still contained only README scaffolding;
+- MP5 used flexible filenames instead of exact package surfaces;
+- MP5 and MP6 lacked canonical runner/validation commands and artifact names;
+- MP6 lacked a fixed blocker taxonomy;
+- MP7 did not freeze exact student aggregate JSON inputs and did not define
+  deterministic edge-case comparison rules;
+- MP8 lacked an exact required-artifact checklist.
+
+Tightening applied:
+- MP5 now declares MP6-MP8 non-executable until MP5 creates the fixed package,
+  runner, validation, and artifact surfaces;
+- MP5 now pins required files, smoke command, validation command, smoke pass
+  contract, and fixed smoke artifact names;
+- MP6 now pins the fixed-grid command, validation command, 15-record guard,
+  exact output filenames, status vocabulary, and blocker taxonomy;
+- MP7 now pins frozen student aggregate inputs, frozen MP6 inputs,
+  deterministic comparison rules, and exact comparison artifact names;
+- MP7 machine-readable outputs must preserve per-student comparison classes,
+  denominator medians, final class, and aggregation rule for every clean-room
+  cell;
+- MP8 now requires an exact artifact checklist and hard-stops on missing
+  artifacts unless a linked blocker note classifies the missing phase;
+- phase outputs now use stable canonical artifact paths rather than wall-date
+  filenames; reruns require explicit replacement records or revision plans;
+- the controlled-baseline README placeholders now state the two-fixture
+  clean-room scope and prohibit broad prototype or fixture drift;
+- the master program and master/subplan audit now distinguish consistency from
+  implementation readiness.
+
+Interpretation:
+- MP5 remains the next executable phase, after final focused audit;
+- MP6 cannot run until MP5 creates and validates the exact entry points;
+- MP7 cannot run until MP6 artifacts exist with the fixed names;
+- MP8 cannot close the program until MP5-MP7 artifacts exist or are linked as
+  structured blockers.
+
+Final supervisor interpretation:
+- Codex and Claude now agree that the master program and MP5-MP8 subplans are
+  good to go as plans;
+- this is plan readiness only, not implementation completion;
+- MP5 remains the next executable phase and must still run the phase cycle:
+  plan, execute, test, audit, tidy, update reset memo;
+- MP6-MP8 remain gated on the canonical artifacts and exit labels defined in
+  MP5-MP7.
+
+## Execution log: MP5 clean-room implementation scaffold
+
+Status: completed.
+
+Result note:
+`docs/plans/bayesfilter-student-dpf-baseline-mp5-clean-room-implementation-result.md`.
+
+Decision:
+`mp5_ready_for_fixed_grid_execution`.
+
+Implementation:
+- created the controlled-baseline package, fixture generator, metric functions,
+  result schema, validation runner, smoke runner, fixed-grid runner, and
+  clean-room regularized particle-flow/bootstrap-particle scaffold under
+  `experiments/controlled_dpf_baseline/`;
+- kept all implementation code inside the student DPF experimental-baseline
+  lane;
+- did not edit production `bayesfilter/`, monograph files, references, or
+  vendored student source.
+
+Evidence:
+- `python -m py_compile` passed for all Python files under
+  `experiments/controlled_dpf_baseline/`;
+- fixture parity against the BayesFilter-owned nonlinear fixtures was exact for
+  states, observations, `A`, `Q`, and `R`;
+- canonical MP5 smoke command produced exactly one `ok` record with no runtime
+  warning and `fixed_grid_records = 0`;
+- canonical MP5 validation command passed;
+- clean-room import search over `experiments/controlled_dpf_baseline/` found no
+  forbidden student imports;
+- smoke artifacts are approximately `4.2K` total.
+
+Interpretation:
+- MP5 supports MP5-H1 through MP5-H3;
+- the clean-room scaffold is ready for the fixed 15-record MP6 grid;
+- evidence remains experimental and proxy-only, not production or monograph
+  evidence.
+
+Next phase justified: MP6 clean-room fixed-grid execution.
+
+## Execution log: MP6 clean-room fixed-grid execution
+
+Status: completed.
+
+Result note:
+`docs/plans/bayesfilter-student-dpf-baseline-mp6-clean-room-fixed-grid-execution-result.md`.
+
+Decision:
+`mp6_ready_for_student_comparison_audit`.
+
+Artifacts:
+- `experiments/controlled_dpf_baseline/reports/outputs/clean_room_controlled_baseline_fixed_grid.json`;
+- `experiments/controlled_dpf_baseline/reports/outputs/clean_room_controlled_baseline_fixed_grid_summary.json`;
+- `experiments/controlled_dpf_baseline/reports/controlled-dpf-baseline-fixed-grid-result.md`.
+
+Results:
+- planned records: `15`;
+- ok records: `15`;
+- blocked records: `0`;
+- failed records: `0`;
+- fixed-grid records: `15`;
+- finite required metrics: `15`;
+- runtime warnings: `0`;
+- total artifact size: approximately `42.8K`.
+
+Median proxy metrics:
+- low-noise N128/steps20: position RMSE approximately `0.0474580`,
+  observation proxy RMSE approximately `0.0180015`, average ESS approximately
+  `63.25`;
+- moderate N128/steps10: position RMSE approximately `0.0623641`,
+  observation proxy RMSE approximately `0.0723264`, average ESS approximately
+  `90.39`;
+- moderate N128/steps20: position RMSE approximately `0.0638511`,
+  observation proxy RMSE approximately `0.0725413`, average ESS approximately
+  `90.04`.
+
+Validation:
+- canonical MP6 validation command passed;
+- all planned grid cells are present exactly once;
+- all successful records have finite required metrics;
+- clean-room import search over `experiments/controlled_dpf_baseline/` found no
+  forbidden student imports.
+
+Interpretation:
+- MP6-H1 through MP6-H3 are supported;
+- moderate-noise steps10 and steps20 remain diagnostic variants;
+- the clean-room outputs are ready for proxy-only comparison against frozen
+  student aggregate evidence.
+
+Next phase justified: MP7 clean-room comparison audit.
+
+## Execution log: MP7 clean-room comparison audit
+
+Status: completed.
+
+Result note:
+`docs/plans/bayesfilter-student-dpf-baseline-mp7-clean-room-comparison-audit-result.md`.
+
+Decision:
+`mp7_ready_for_final_archive`.
+
+Artifacts:
+- `experiments/controlled_dpf_baseline/reports/controlled-dpf-baseline-comparison-audit.md`;
+- `experiments/controlled_dpf_baseline/reports/outputs/clean_room_controlled_baseline_comparison_audit.json`;
+- `experiments/controlled_dpf_baseline/reports/outputs/clean_room_controlled_baseline_comparison_audit_summary.json`.
+
+Results:
+- all three MP6 fixed-grid cells were classified exactly once;
+- low-noise N128/steps20: `same_qualitative_regime`;
+- moderate N128/steps10: `same_qualitative_regime`;
+- moderate N128/steps20: `same_qualitative_regime`;
+- comparison JSON and summary JSON preserve per-student classes, denominator
+  medians, final class, and aggregation rule for each clean-room cell;
+- MP7 output artifacts are approximately `16.6K` total.
+
+Validation:
+- frozen MP6 and student aggregate inputs were present;
+- no student implementation code was executed;
+- MP6 outputs were not rewritten;
+- code-only clean-room import search found no forbidden student imports.
+
+Interpretation:
+- MP7-H1 through MP7-H3 are supported;
+- comparison remains proxy-only and comparison-only;
+- student agreement is not a correctness certificate;
+- moderate-noise steps10 and steps20 remain diagnostic variants.
+
+Next phase justified: MP8 final archive and closeout.
+
+## Execution log: MP8 final archive and closeout
+
+Status: completed with caveats.
+
+Result note:
+`docs/plans/bayesfilter-student-dpf-baseline-mp8-final-archive-and-closeout-result.md`.
+
+Final decision:
+`student_dpf_baseline_program_complete_with_caveats`.
+
+Verification:
+- required MP8 artifact checklist passed with all 24 required artifacts present;
+- MP5, MP6, and MP7 canonical outputs are present;
+- code-only clean-room import search found no forbidden student imports;
+- vendored student files were not edited;
+- MP5-MP8 did not require production `bayesfilter/`, monograph chapter, or
+  `docs/references.bib` edits.
+
+Final interpretation:
+- the student DPF experimental-baseline stream is closed as a quarantined
+  evidence package;
+- clean-room fixed-grid evidence completed and compared in the same qualitative
+  proxy regime as frozen student aggregates;
+- all evidence remains comparison-only, proxy-only, or reference-backed as
+  labeled;
+- student agreement is not a correctness certificate;
+- no production or monograph claim is authorized by this closeout.
+
+No further student-baseline phase should run after MP8 unless a new master
+program revision is explicitly approved.
+
+## Execution log: post-MP8 future-work usability gates
+
+Status: completed.
+
+Plan:
+`docs/plans/bayesfilter-student-dpf-baseline-future-work-usability-gates-plan-2026-05-15.md`.
+
+Result:
+`experiments/student_dpf_baselines/reports/student-dpf-baseline-future-work-usability-gates-result-2026-05-15.md`.
+
+Final label:
+`future_work_usability_gates_complete`.
+
+Reason for post-MP8 revision:
+- the user explicitly requested follow-up on stochastic flow, DPF/dPFPF,
+  neural OT, and differentiable resampling because these families are important
+  for future BayesFilter work;
+- the plan was treated as a new student-lane master revision, not a reopening
+  of MP5-MP8.
+
+Claude/Codex review cycle:
+- Claude review 1: `REJECT`, with blockers on post-MP8 governance,
+  mixed-family execution, neural artifact overclaims, stochastic-flow bounds,
+  DPF/dPFPF model contracts, validation, and schema;
+- Claude review 2: `REJECT`, with blockers on independent family gate control,
+  explicit per-path contract verdicts, inventory reconciliation, and schema
+  fields;
+- Claude review 3: `ACCEPT`;
+- Codex accepted the plan after verifying the revisions addressed the blockers.
+
+Artifacts:
+- `experiments/student_dpf_baselines/runners/run_future_work_usability_gates.py`;
+- `experiments/student_dpf_baselines/reports/outputs/future_work_usability_gates_2026-05-15.json`;
+- `experiments/student_dpf_baselines/reports/outputs/future_work_usability_gates_summary_2026-05-15.json`;
+- `experiments/student_dpf_baselines/reports/student-dpf-baseline-future-work-usability-gates-result-2026-05-15.md`.
+
+Execution summary:
+- planned execution probes: `15`;
+- observed execution records: `15`;
+- total records including contract audit: `30`;
+- missing planned probes: `[]`;
+- generated artifact size: approximately `89.7K`;
+- final label: `future_work_usability_gates_complete`.
+
+Classification counts:
+- `usable_for_clean_room_spec`: `6`;
+- `usable_component_only`: `5`;
+- `api_smoke_only`: `13`;
+- `blocked_missing_assumption`: `4`;
+- `blocked_environment_drift`: `2`.
+
+Family decisions:
+- differentiable resampling: `component_spec_next`;
+- neural OT / advanced amortized OT: `component_spec_next`;
+- stochastic flow: `clean_room_spec_next`;
+- DPF: `clean_room_spec_next`;
+- neural resampling / MLCOE transformer: `debug_gate_next`;
+- dPFPF: `debug_gate_next`.
+
+Notable successful probes:
+- advanced and MLCOE soft/Sinkhorn resampling component probes returned finite
+  outputs with finite local gradients;
+- advanced amortized OT restored the bundled checkpoint and returned finite
+  output with finite local gradient;
+- advanced stochastic PFF and stochastic PFPF ran the reduced range-bearing
+  fixture under mandatory lightweight settings;
+- advanced TensorFlow DPF with Sinkhorn and amortized resampling returned
+  finite log evidence, finite particles, and finite local gradients;
+- MLCOE DPF with soft and Sinkhorn methods returned finite particles and finite
+  local gradients on a tiny single-step synthetic probe.
+
+Structured blockers:
+- MLCOE transformer resampling hit a shape error inside
+  `WeightedMultiHeadAttention.call`; it remains `debug_gate_next`;
+- advanced TensorFlow DPF with soft resampling hit a TensorFlow loop shape
+  invariant error; it remains `debug_gate_next`;
+- MLCOE stochastic flow and MLCOE dPFPF were not executed because the contract
+  audit found missing exact model/covariance/observation semantics; both remain
+  `defer_until_artifacts_or_assumptions`.
+
+Validation:
+- `python -m py_compile
+  experiments/student_dpf_baselines/runners/run_future_work_usability_gates.py`
+  passed;
+- `python -m experiments.student_dpf_baselines.runners.run_future_work_usability_gates`
+  completed;
+- `python -m experiments.student_dpf_baselines.runners.run_future_work_usability_gates
+  --validate-only` passed;
+- import-boundary search over production `bayesfilter` and normal `tests`
+  returned no matches;
+- `git diff --check` over student-lane paths passed.
+
+Interpretation:
+- these results make several families usable as inputs to future clean-room
+  specifications;
+- they do not authorize copying student code, production API claims, monograph
+  claims, or production implementation;
+- the next recommended work is a separate BayesFilter-owned clean-room
+  specification/implementation plan, starting with differentiable resampling
+  components and then stochastic flow / DPF filter-level contracts.
+
+## Planning log: post-MP8 blocker-debug master program
+
+Status: proposed, not executed.
+
+Plan:
+`docs/plans/bayesfilter-student-dpf-baseline-blocker-debug-master-program-2026-05-15.md`.
+
+Purpose:
+- work out the remaining blocked or excluded student-lane surfaces:
+  MLCOE transformer resampler, advanced TensorFlow DPF soft resampling,
+  MLCOE stochastic flow, MLCOE dPFPF, and kernel PFF;
+- keep all results comparison-only and student-lane scoped;
+- leave the successful future-work usability classifications unchanged.
+
+Execution boundary:
+- no vendored student source edits;
+- no production `bayesfilter/` edits;
+- no monograph/reviewer-grade edits;
+- no GPU, network, live API, training, notebook conversion, HMC, or unbounded
+  experiments;
+- no commit or push unless explicitly requested.
+
+Planned artifacts if executed:
+- `experiments/student_dpf_baselines/runners/run_blocker_debug_gates.py`;
+- `experiments/student_dpf_baselines/reports/student-dpf-baseline-blocker-debug-gates-result-2026-05-15.md`;
+- `experiments/student_dpf_baselines/reports/outputs/blocker_debug_gates_2026-05-15.json`;
+- `experiments/student_dpf_baselines/reports/outputs/blocker_debug_gates_summary_2026-05-15.json`.
+
+Interpretation:
+- the blocker-debug program is a narrow addendum, not a replacement for the
+  main student-baseline closeout;
+- each blocker has its own gate and must exit with a structured label;
+- a successful gate can create comparison-only evidence or a clean-room spec
+  input, but cannot promote student code into production.
