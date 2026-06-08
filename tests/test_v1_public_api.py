@@ -16,6 +16,7 @@ V1_PUBLIC_SYMBOLS = {
     "tf_qr_sqrt_kalman_score_hessian",
     "tf_qr_sqrt_masked_kalman_score_hessian",
     "tf_svd_linear_gaussian_log_likelihood",
+    "tf_svd_linear_gaussian_score_hessian",
     "tf_svd_kalman_log_likelihood",
     "tf_svd_masked_kalman_log_likelihood",
     "TFStructuralStateSpace",
