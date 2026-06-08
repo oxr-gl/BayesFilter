@@ -28,6 +28,9 @@ from bayesfilter.linear.kalman_svd_tf import (
     tf_svd_linear_gaussian_log_likelihood,
     tf_svd_masked_kalman_log_likelihood,
 )
+from bayesfilter.linear.kalman_svd_derivatives_tf import (
+    tf_svd_linear_gaussian_score_hessian,
+)
 from bayesfilter.linear.qr_factor_tf import (
     cholesky_factor,
     cholesky_factor_derivatives,
@@ -75,6 +78,7 @@ __all__ = [
     "tf_masked_kalman_log_likelihood",
     "tf_svd_kalman_log_likelihood",
     "tf_svd_linear_gaussian_log_likelihood",
+    "tf_svd_linear_gaussian_score_hessian",
     "tf_svd_masked_kalman_log_likelihood",
     "cholesky_factor",
     "cholesky_factor_derivatives",

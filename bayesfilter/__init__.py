@@ -30,6 +30,7 @@ from bayesfilter.linear import (
     tf_qr_sqrt_masked_kalman_score_hessian,
     tf_svd_kalman_log_likelihood,
     tf_svd_linear_gaussian_log_likelihood,
+    tf_svd_linear_gaussian_score_hessian,
     tf_svd_masked_kalman_log_likelihood,
 )
 from bayesfilter.linear.kalman_derivatives_numpy import solve_kalman_score_hessian
@@ -126,6 +127,7 @@ __all__ = [
     "tf_svd_cut4_score",
     "tf_svd_kalman_log_likelihood",
     "tf_svd_linear_gaussian_log_likelihood",
+    "tf_svd_linear_gaussian_score_hessian",
     "tf_svd_masked_kalman_log_likelihood",
     "tf_svd_sigma_point_filter",
     "tf_svd_sigma_point_log_likelihood",
