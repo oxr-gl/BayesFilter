@@ -1,0 +1,679 @@
+{
+  "consumed_artifacts": [
+    {
+      "path": "docs/plans/bayesfilter-dpf-filter-oracle-comparison-target-route-registry-2026-06-08.json",
+      "role": "registry"
+    },
+    {
+      "path": "experiments/dpf_implementation/reports/outputs/dpf_filter_oracle_comparison_p1_lgssm_exact_oracle_2026-06-08.json",
+      "role": "p1_lgssm_dpf_kalman_evidence"
+    },
+    {
+      "path": "experiments/dpf_implementation/reports/outputs/dpf_filter_oracle_comparison_p2_tiny_nonlinear_dense_oracle_2026-06-08.json",
+      "role": "p2_p44_m2_dense_reference"
+    },
+    {
+      "path": "experiments/dpf_implementation/reports/outputs/dpf_filter_oracle_comparison_p4_zhaocui_tt_route_classification_2026-06-08.json",
+      "role": "p4_p5_eligibility"
+    }
+  ],
+  "created_at_utc": "2026-06-08T19:43:21Z",
+  "decision": "PASS_P5_DPF_STATISTICAL_CLOSENESS_PENDING_CLAUDE_REVIEW",
+  "evidence_contract": {
+    "baseline_comparator": "P0 registry and P4 P5-readiness route: exact Kalman for LGSSM; dense_refined_quadrature for P44-M2/M3/M4.",
+    "current_execution_scope": "No new DPF run is performed. Existing P1 LGSSM multi-seed evidence is consumed; P44 DPF rows are blocked pending reviewed same-target adapters and variance artifacts.",
+    "primary_criterion": "Promote only if row-level numeric P5 tolerance/band, fixed branch score, paired seeds, evaluator variance, directional residuals, branch decisions, and value/gradient CI/max-error criteria are all present and passing.",
+    "promotion_policy": "No row is promoted in P5 because DPF P0 promotion bands are placeholders, not numeric predeclared criteria."
+  },
+  "execution_mode": "PURE_PYTHON_EVIDENCE_CLASSIFICATION_ONLY",
+  "execution_route": "VISIBLE_IN_DIALOGUE",
+  "explanatory_diagnostics": {
+    "bf_filterflow_agreement_not_used_as_oracle": true,
+    "p1_lgssm_evidence_reused_without_promotion": true,
+    "p44_dpf_adapters_not_implemented_in_p5": true,
+    "stochastic_score_claim": "not_claimed",
+    "value_closeness_not_used_to_promote_gradient_closeness": true,
+    "zhao_cui_not_used_as_p5_comparator": true
+  },
+  "metadata_date": "2026-06-08",
+  "nonclaims": [
+    "P5 does not promote DPF bootstrap-OT or LEDH-PFPF-OT correctness.",
+    "P5 does not establish stochastic-resampling distribution correctness.",
+    "P5 does not use BF/FilterFlow agreement as oracle evidence.",
+    "P5 does not use Zhao-Cui, CUT4, SVD, or UKF as DPF comparators.",
+    "P5 does not establish nonlinear P44 DPF value or gradient closeness.",
+    "P5 does not establish HMC readiness, production readiness, GPU readiness, or paper-scale claims."
+  ],
+  "phase": "P5",
+  "question": "For P0/P4 DPF-eligible rows, can bootstrap-OT and LEDH-PFPF-OT be promoted as statistically close in value and fixed-branch gradient to the approved exact/dense references, or must the rows be downgraded or blocked?",
+  "reference_tables": {
+    "approximation_reference_rows": [],
+    "exact_reference_rows": [
+      {
+        "claim_class": "EXACT_ORACLE",
+        "model_family": "linear_gaussian_state_space",
+        "primary_gradient_statistic": "reference_score",
+        "promotion_tolerance": "exact_lgssm_tight",
+        "reference_route": "kalman_exact",
+        "route_status": "available_exact_kalman_value_gradient_reference_pending_p1_binding",
+        "target_id": "lgssm_2d_h25_rich"
+      },
+      {
+        "claim_class": "EXACT_ORACLE",
+        "model_family": "tiny_nonlinear_additive_gaussian",
+        "primary_gradient_statistic": "reference_score",
+        "promotion_tolerance": "dense_refined_tiny",
+        "reference_route": "dense_refined_quadrature",
+        "route_status": "available_refined_dense_reference",
+        "target_id": "p44_m2_cubic_additive_gaussian_panel"
+      },
+      {
+        "claim_class": "EXACT_ORACLE",
+        "model_family": "tiny_nonlinear_additive_gaussian",
+        "primary_gradient_statistic": "reference_score",
+        "promotion_tolerance": "dense_refined_tiny",
+        "reference_route": "dense_refined_quadrature",
+        "route_status": "available_refined_dense_reference",
+        "target_id": "p44_m3_quadratic_observation_panel"
+      },
+      {
+        "claim_class": "EXACT_ORACLE",
+        "model_family": "tiny_nonlinear_additive_gaussian",
+        "primary_gradient_statistic": "reference_score",
+        "promotion_tolerance": "dense_refined_tiny",
+        "reference_route": "dense_refined_quadrature",
+        "route_status": "available_refined_dense_reference",
+        "target_id": "p44_m4_nonlinear_transition_h2_panel"
+      }
+    ],
+    "p5_comparator_policy": "Only exact Kalman or dense_refined_quadrature references are used. Zhao-Cui/CUT4/SVD/UKF rows are not P5 DPF comparators here."
+  },
+  "reproducibility_digest": "dd376c462a3bbac6b49423855f9f65eb00829d44610396231d0fa7f81ada7414",
+  "route_summaries": {
+    "blocked_count": 6,
+    "blocked_rows": [
+      "p44_m2_cubic_additive_gaussian_panel/dpf_bootstrap_ot",
+      "p44_m2_cubic_additive_gaussian_panel/dpf_ledh_pfpf_ot",
+      "p44_m3_quadratic_observation_panel/dpf_bootstrap_ot",
+      "p44_m3_quadratic_observation_panel/dpf_ledh_pfpf_ot",
+      "p44_m4_nonlinear_transition_h2_panel/dpf_bootstrap_ot",
+      "p44_m4_nonlinear_transition_h2_panel/dpf_ledh_pfpf_ot"
+    ],
+    "decision_counts": {
+      "BLOCKED": 6,
+      "DOWNGRADED_TO_DIAGNOSTIC_ONLY": 2
+    },
+    "diagnostic_or_downgraded_count": 2,
+    "downgraded_rows": [
+      "lgssm_2d_h25_rich/dpf_bootstrap_ot",
+      "lgssm_2d_h25_rich/dpf_ledh_pfpf_ot"
+    ],
+    "eligible_target_count": 4,
+    "eligible_targets": [
+      "lgssm_2d_h25_rich",
+      "p44_m2_cubic_additive_gaussian_panel",
+      "p44_m3_quadratic_observation_panel",
+      "p44_m4_nonlinear_transition_h2_panel"
+    ],
+    "final_status_interpretation": "All P5-eligible DPF rows are classified, but no row is promoted. LGSSM rows are diagnostic/downgraded; P44 rows are blocked pending reviewed same-target DPF adapters and numeric P5 bands.",
+    "promoted_rows": [],
+    "promotion_count": 0,
+    "row_count": 8
+  },
+  "rows": [
+    {
+      "blockers": [],
+      "comparison_target_class": "exact_target_reference",
+      "consumed_statistics": {
+        "all_rows_finite": true,
+        "branch_decision_record": "aggregate_only_resampling_count_and_transport_trigger_count",
+        "directional_derivative_residuals": "missing_in_consumed_p1_artifact",
+        "final_particle_count": 128,
+        "gradient_error_ci95": [
+          [
+            1.5742356556244408,
+            4.342372999703176
+          ],
+          [
+            0.02219443951101452,
+            0.6598062750815689
+          ]
+        ],
+        "gradient_error_mean": [
+          2.9583043276638086,
+          0.3410003572962917
+        ],
+        "gradient_error_norm_ci95": [
+          2.0142349888228033,
+          4.216571658137372
+        ],
+        "gradient_error_norm_standard_error": 0.561820578906778,
+        "gradient_error_rmse_by_coordinate": [
+          3.2781394225549914,
+          0.4712846759382189
+        ],
+        "gradient_error_standard_error": [
+          0.7061574857343713,
+          0.16265608050269242
+        ],
+        "max_abs_per_observation_value_error": 0.04555767745204392,
+        "max_abs_value_error": 1.138941936301098,
+        "max_relative_score_error": 0.6168878219750391,
+        "max_sinkhorn_residual": 0.0,
+        "mean_gradient_cosine_similarity": 0.9049671965625518,
+        "mean_per_observation_value_error": 0.03129016811303535,
+        "mean_relative_score_error": 0.4565046565890657,
+        "mean_resampling_count": 8.0,
+        "min_ess": 34.48856015995085,
+        "min_gradient_cosine_similarity": 0.8274497577028214,
+        "particle_counts": [
+          32,
+          64,
+          128
+        ],
+        "score_rmse": 3.311843492600966,
+        "seed_count": 5,
+        "source_json": "experiments/dpf_implementation/reports/outputs/dpf_filter_oracle_comparison_p1_lgssm_exact_oracle_2026-06-08.json",
+        "source_phase": "P1",
+        "third_particle_count_included": true,
+        "third_particle_count_reasons": [
+          "mean_value_error_ci_excludes_zero_or_row_tolerance_band",
+          "value_rmse_reduction_less_than_25_percent"
+        ],
+        "value_error_ci95": [
+          0.4989267853919508,
+          1.0655816202598167
+        ],
+        "value_error_mean": 0.7822542028258838,
+        "value_error_rmse": 0.8339700259704327,
+        "value_error_standard_error": 0.1445548048132311
+      },
+      "downgrade_reasons": [
+        "p0_dpf_promotion_tolerance_is_placeholder_not_numeric",
+        "p0_dpf_certification_band_is_placeholder_not_numeric",
+        "directional_derivative_residuals_missing_in_consumed_p1_artifact",
+        "per_time_branch_decisions_missing_aggregate_counts_only",
+        "p1_artifact_explicitly_records_no_dpf_correctness_promotion",
+        "final_particle_count_mean_value_error_ci_excludes_zero"
+      ],
+      "gradient_object": "fixed_branch_score",
+      "method_id": "dpf_bootstrap_ot",
+      "model_family": "linear_gaussian_state_space",
+      "p0_route": {
+        "certification_band": "p5_pending_mc_band",
+        "phase_eligibility": {
+          "p1": true,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": true
+        },
+        "primary_gradient_statistic": "fixed_branch_score",
+        "promotion_tolerance": "dpf_p5_pending_mc_band",
+        "route_status": "eligible_for_p1_p5_kalman_oracle_comparison",
+        "seed_evaluator_variance_policy": "paired_seeds_min_5; particle_counts_min_2; report evaluator variance, RMSE, max error, and 95% CI"
+      },
+      "promotion_status": "not_promoted",
+      "reference_claim_class": "EXACT_ORACLE",
+      "reference_route": "kalman_exact",
+      "row_decision": "DOWNGRADED_TO_DIAGNOSTIC_ONLY",
+      "row_evidence_status": "finite_p1_lgssm_multiseed_evidence_available",
+      "stochastic_score_claim": "not_claimed",
+      "target_id": "lgssm_2d_h25_rich",
+      "zhao_cui_is_p5_comparator": false
+    },
+    {
+      "blockers": [],
+      "comparison_target_class": "exact_target_reference",
+      "consumed_statistics": {
+        "all_rows_finite": true,
+        "branch_decision_record": "aggregate_only_resampling_count_and_transport_trigger_count",
+        "directional_derivative_residuals": "missing_in_consumed_p1_artifact",
+        "final_particle_count": 128,
+        "gradient_error_ci95": [
+          [
+            -1.2499355686155695,
+            1.5944926923404568
+          ],
+          [
+            0.07515247703474959,
+            0.24062848327818714
+          ]
+        ],
+        "gradient_error_mean": [
+          0.1722785618624437,
+          0.15789048015646837
+        ],
+        "gradient_error_norm_ci95": [
+          0.3095561611853537,
+          2.0439715743759086
+        ],
+        "gradient_error_norm_standard_error": 0.4424529115282028,
+        "gradient_error_rmse_by_coordinate": [
+          1.46142884632131,
+          0.17904536668992477
+        ],
+        "gradient_error_standard_error": [
+          0.7256194543255169,
+          0.04221326689883611
+        ],
+        "max_abs_per_observation_value_error": 0.01844378842074434,
+        "max_abs_value_error": 0.4610947105186085,
+        "max_relative_score_error": 0.3350764804019865,
+        "max_sinkhorn_residual": 0.0,
+        "mean_gradient_cosine_similarity": 0.9920409812346314,
+        "mean_per_observation_value_error": 0.0032841469833618923,
+        "mean_relative_score_error": 0.1724329499486878,
+        "mean_resampling_count": 3.8,
+        "min_ess": 53.46690399002581,
+        "min_gradient_cosine_similarity": 0.9837450224804546,
+        "particle_counts": [
+          32,
+          64,
+          128
+        ],
+        "score_rmse": 1.4723557709307777,
+        "seed_count": 5,
+        "source_json": "experiments/dpf_implementation/reports/outputs/dpf_filter_oracle_comparison_p1_lgssm_exact_oracle_2026-06-08.json",
+        "source_phase": "P1",
+        "third_particle_count_included": true,
+        "third_particle_count_reasons": [
+          "mean_value_error_ci_excludes_zero_or_row_tolerance_band"
+        ],
+        "value_error_ci95": [
+          -0.21235352408532082,
+          0.3765608732534155
+        ],
+        "value_error_mean": 0.08210367458404733,
+        "value_error_rmse": 0.3114821802004455,
+        "value_error_standard_error": 0.15023326462722864
+      },
+      "downgrade_reasons": [
+        "p0_dpf_promotion_tolerance_is_placeholder_not_numeric",
+        "p0_dpf_certification_band_is_placeholder_not_numeric",
+        "directional_derivative_residuals_missing_in_consumed_p1_artifact",
+        "per_time_branch_decisions_missing_aggregate_counts_only",
+        "p1_artifact_explicitly_records_no_dpf_correctness_promotion"
+      ],
+      "gradient_object": "fixed_branch_score",
+      "method_id": "dpf_ledh_pfpf_ot",
+      "model_family": "linear_gaussian_state_space",
+      "p0_route": {
+        "certification_band": "p5_pending_mc_band",
+        "phase_eligibility": {
+          "p1": true,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": true
+        },
+        "primary_gradient_statistic": "fixed_branch_score",
+        "promotion_tolerance": "dpf_p5_pending_mc_band",
+        "route_status": "eligible_for_p1_p5_kalman_oracle_comparison",
+        "seed_evaluator_variance_policy": "paired_seeds_min_5; particle_counts_min_2; report evaluator variance, RMSE, max error, and 95% CI"
+      },
+      "promotion_status": "not_promoted",
+      "reference_claim_class": "EXACT_ORACLE",
+      "reference_route": "kalman_exact",
+      "row_decision": "DOWNGRADED_TO_DIAGNOSTIC_ONLY",
+      "row_evidence_status": "finite_p1_lgssm_multiseed_evidence_available",
+      "stochastic_score_claim": "not_claimed",
+      "target_id": "lgssm_2d_h25_rich",
+      "zhao_cui_is_p5_comparator": false
+    },
+    {
+      "blockers": [
+        "p0_dpf_promotion_tolerance_is_placeholder_not_numeric",
+        "p0_dpf_certification_band_is_placeholder_not_numeric",
+        "reviewed_same_target_dpf_adapter_to_dense_reference_missing_for_this_target",
+        "paired_seed_evaluator_variance_artifact_missing_for_this_target",
+        "fixed_branch_gradient_tied_to_dense_scalar_not_yet_demonstrated_for_this_target",
+        "directional_derivative_residuals_and_branch_decisions_missing_for_this_target"
+      ],
+      "comparison_target_class": "exact_target_reference",
+      "consumed_statistics": {
+        "branch_decision_record": "missing",
+        "dense_reference_claim_class": "EXACT_ORACLE",
+        "dense_reference_route_status": "available_refined_dense_reference",
+        "directional_derivative_residuals": "missing",
+        "dpf_value_gradient_rows": "missing",
+        "evaluator_variance": "missing",
+        "particle_counts": "missing",
+        "reference_source_artifacts": [
+          "docs/plans/bayesfilter-dpf-filter-oracle-comparison-p2-tiny-nonlinear-dense-oracle-result-2026-06-08.md",
+          "experiments/dpf_implementation/reports/outputs/dpf_filter_oracle_comparison_p2_tiny_nonlinear_dense_oracle_2026-06-08.json",
+          "experiments/dpf_implementation/reports/outputs/dpf_filter_oracle_comparison_p2_tiny_nonlinear_dense_oracle_2026-06-08.json"
+        ],
+        "seed_count": "missing",
+        "source_phase": "P2/P4/P44 reference classification only"
+      },
+      "downgrade_reasons": [],
+      "gradient_object": "fixed_branch_score",
+      "method_id": "dpf_bootstrap_ot",
+      "model_family": "tiny_nonlinear_additive_gaussian",
+      "p0_route": {
+        "certification_band": "p5_pending_mc_band",
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": true
+        },
+        "primary_gradient_statistic": "fixed_branch_score",
+        "promotion_tolerance": "dpf_p5_pending_mc_band",
+        "route_status": "eligible_after_p2_dense_reference_pass",
+        "seed_evaluator_variance_policy": "paired_seeds_min_5; particle_counts_min_2; report evaluator variance, RMSE, max error, and 95% CI"
+      },
+      "promotion_status": "not_promoted",
+      "reference_claim_class": "EXACT_ORACLE",
+      "reference_route": "dense_refined_quadrature",
+      "row_decision": "BLOCKED",
+      "row_evidence_status": "reference_available_but_dpf_execution_artifact_missing",
+      "stochastic_score_claim": "not_claimed",
+      "target_id": "p44_m2_cubic_additive_gaussian_panel",
+      "zhao_cui_is_p5_comparator": false
+    },
+    {
+      "blockers": [
+        "p0_dpf_promotion_tolerance_is_placeholder_not_numeric",
+        "p0_dpf_certification_band_is_placeholder_not_numeric",
+        "reviewed_same_target_dpf_adapter_to_dense_reference_missing_for_this_target",
+        "paired_seed_evaluator_variance_artifact_missing_for_this_target",
+        "fixed_branch_gradient_tied_to_dense_scalar_not_yet_demonstrated_for_this_target",
+        "directional_derivative_residuals_and_branch_decisions_missing_for_this_target"
+      ],
+      "comparison_target_class": "exact_target_reference",
+      "consumed_statistics": {
+        "branch_decision_record": "missing",
+        "dense_reference_claim_class": "EXACT_ORACLE",
+        "dense_reference_route_status": "available_refined_dense_reference",
+        "directional_derivative_residuals": "missing",
+        "dpf_value_gradient_rows": "missing",
+        "evaluator_variance": "missing",
+        "particle_counts": "missing",
+        "reference_source_artifacts": [
+          "docs/plans/bayesfilter-dpf-filter-oracle-comparison-p2-tiny-nonlinear-dense-oracle-result-2026-06-08.md",
+          "experiments/dpf_implementation/reports/outputs/dpf_filter_oracle_comparison_p2_tiny_nonlinear_dense_oracle_2026-06-08.json",
+          "experiments/dpf_implementation/reports/outputs/dpf_filter_oracle_comparison_p2_tiny_nonlinear_dense_oracle_2026-06-08.json"
+        ],
+        "seed_count": "missing",
+        "source_phase": "P2/P4/P44 reference classification only"
+      },
+      "downgrade_reasons": [],
+      "gradient_object": "fixed_branch_score",
+      "method_id": "dpf_ledh_pfpf_ot",
+      "model_family": "tiny_nonlinear_additive_gaussian",
+      "p0_route": {
+        "certification_band": "p5_pending_mc_band",
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": true
+        },
+        "primary_gradient_statistic": "fixed_branch_score",
+        "promotion_tolerance": "dpf_p5_pending_mc_band",
+        "route_status": "eligible_after_p2_dense_reference_pass",
+        "seed_evaluator_variance_policy": "paired_seeds_min_5; particle_counts_min_2; report evaluator variance, RMSE, max error, and 95% CI"
+      },
+      "promotion_status": "not_promoted",
+      "reference_claim_class": "EXACT_ORACLE",
+      "reference_route": "dense_refined_quadrature",
+      "row_decision": "BLOCKED",
+      "row_evidence_status": "reference_available_but_dpf_execution_artifact_missing",
+      "stochastic_score_claim": "not_claimed",
+      "target_id": "p44_m2_cubic_additive_gaussian_panel",
+      "zhao_cui_is_p5_comparator": false
+    },
+    {
+      "blockers": [
+        "p0_dpf_promotion_tolerance_is_placeholder_not_numeric",
+        "p0_dpf_certification_band_is_placeholder_not_numeric",
+        "reviewed_same_target_dpf_adapter_to_dense_reference_missing_for_this_target",
+        "paired_seed_evaluator_variance_artifact_missing_for_this_target",
+        "fixed_branch_gradient_tied_to_dense_scalar_not_yet_demonstrated_for_this_target",
+        "directional_derivative_residuals_and_branch_decisions_missing_for_this_target"
+      ],
+      "comparison_target_class": "exact_target_reference",
+      "consumed_statistics": {
+        "branch_decision_record": "missing",
+        "dense_reference_claim_class": "EXACT_ORACLE",
+        "dense_reference_route_status": "available_refined_dense_reference",
+        "directional_derivative_residuals": "missing",
+        "dpf_value_gradient_rows": "missing",
+        "evaluator_variance": "missing",
+        "particle_counts": "missing",
+        "reference_source_artifacts": [
+          "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase3-quadratic-observation-result-2026-06-07.md"
+        ],
+        "seed_count": "missing",
+        "source_phase": "P2/P4/P44 reference classification only"
+      },
+      "downgrade_reasons": [],
+      "gradient_object": "fixed_branch_score",
+      "method_id": "dpf_bootstrap_ot",
+      "model_family": "tiny_nonlinear_additive_gaussian",
+      "p0_route": {
+        "certification_band": "p5_pending_mc_band",
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": true
+        },
+        "primary_gradient_statistic": "fixed_branch_score",
+        "promotion_tolerance": "dpf_p5_pending_mc_band",
+        "route_status": "eligible_after_p2_dense_reference_pass",
+        "seed_evaluator_variance_policy": "paired_seeds_min_5; particle_counts_min_2; report evaluator variance, RMSE, max error, and 95% CI"
+      },
+      "promotion_status": "not_promoted",
+      "reference_claim_class": "EXACT_ORACLE",
+      "reference_route": "dense_refined_quadrature",
+      "row_decision": "BLOCKED",
+      "row_evidence_status": "reference_available_but_dpf_execution_artifact_missing",
+      "stochastic_score_claim": "not_claimed",
+      "target_id": "p44_m3_quadratic_observation_panel",
+      "zhao_cui_is_p5_comparator": false
+    },
+    {
+      "blockers": [
+        "p0_dpf_promotion_tolerance_is_placeholder_not_numeric",
+        "p0_dpf_certification_band_is_placeholder_not_numeric",
+        "reviewed_same_target_dpf_adapter_to_dense_reference_missing_for_this_target",
+        "paired_seed_evaluator_variance_artifact_missing_for_this_target",
+        "fixed_branch_gradient_tied_to_dense_scalar_not_yet_demonstrated_for_this_target",
+        "directional_derivative_residuals_and_branch_decisions_missing_for_this_target"
+      ],
+      "comparison_target_class": "exact_target_reference",
+      "consumed_statistics": {
+        "branch_decision_record": "missing",
+        "dense_reference_claim_class": "EXACT_ORACLE",
+        "dense_reference_route_status": "available_refined_dense_reference",
+        "directional_derivative_residuals": "missing",
+        "dpf_value_gradient_rows": "missing",
+        "evaluator_variance": "missing",
+        "particle_counts": "missing",
+        "reference_source_artifacts": [
+          "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase3-quadratic-observation-result-2026-06-07.md"
+        ],
+        "seed_count": "missing",
+        "source_phase": "P2/P4/P44 reference classification only"
+      },
+      "downgrade_reasons": [],
+      "gradient_object": "fixed_branch_score",
+      "method_id": "dpf_ledh_pfpf_ot",
+      "model_family": "tiny_nonlinear_additive_gaussian",
+      "p0_route": {
+        "certification_band": "p5_pending_mc_band",
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": true
+        },
+        "primary_gradient_statistic": "fixed_branch_score",
+        "promotion_tolerance": "dpf_p5_pending_mc_band",
+        "route_status": "eligible_after_p2_dense_reference_pass",
+        "seed_evaluator_variance_policy": "paired_seeds_min_5; particle_counts_min_2; report evaluator variance, RMSE, max error, and 95% CI"
+      },
+      "promotion_status": "not_promoted",
+      "reference_claim_class": "EXACT_ORACLE",
+      "reference_route": "dense_refined_quadrature",
+      "row_decision": "BLOCKED",
+      "row_evidence_status": "reference_available_but_dpf_execution_artifact_missing",
+      "stochastic_score_claim": "not_claimed",
+      "target_id": "p44_m3_quadratic_observation_panel",
+      "zhao_cui_is_p5_comparator": false
+    },
+    {
+      "blockers": [
+        "p0_dpf_promotion_tolerance_is_placeholder_not_numeric",
+        "p0_dpf_certification_band_is_placeholder_not_numeric",
+        "reviewed_same_target_dpf_adapter_to_dense_reference_missing_for_this_target",
+        "paired_seed_evaluator_variance_artifact_missing_for_this_target",
+        "fixed_branch_gradient_tied_to_dense_scalar_not_yet_demonstrated_for_this_target",
+        "directional_derivative_residuals_and_branch_decisions_missing_for_this_target"
+      ],
+      "comparison_target_class": "exact_target_reference",
+      "consumed_statistics": {
+        "branch_decision_record": "missing",
+        "dense_reference_claim_class": "EXACT_ORACLE",
+        "dense_reference_route_status": "available_refined_dense_reference",
+        "directional_derivative_residuals": "missing",
+        "dpf_value_gradient_rows": "missing",
+        "evaluator_variance": "missing",
+        "particle_counts": "missing",
+        "reference_source_artifacts": [
+          "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase4-nonlinear-transition-result-2026-06-07.md"
+        ],
+        "seed_count": "missing",
+        "source_phase": "P2/P4/P44 reference classification only"
+      },
+      "downgrade_reasons": [],
+      "gradient_object": "fixed_branch_score",
+      "method_id": "dpf_bootstrap_ot",
+      "model_family": "tiny_nonlinear_additive_gaussian",
+      "p0_route": {
+        "certification_band": "p5_pending_mc_band",
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": true
+        },
+        "primary_gradient_statistic": "fixed_branch_score",
+        "promotion_tolerance": "dpf_p5_pending_mc_band",
+        "route_status": "eligible_after_p2_dense_reference_pass",
+        "seed_evaluator_variance_policy": "paired_seeds_min_5; particle_counts_min_2; report evaluator variance, RMSE, max error, and 95% CI"
+      },
+      "promotion_status": "not_promoted",
+      "reference_claim_class": "EXACT_ORACLE",
+      "reference_route": "dense_refined_quadrature",
+      "row_decision": "BLOCKED",
+      "row_evidence_status": "reference_available_but_dpf_execution_artifact_missing",
+      "stochastic_score_claim": "not_claimed",
+      "target_id": "p44_m4_nonlinear_transition_h2_panel",
+      "zhao_cui_is_p5_comparator": false
+    },
+    {
+      "blockers": [
+        "p0_dpf_promotion_tolerance_is_placeholder_not_numeric",
+        "p0_dpf_certification_band_is_placeholder_not_numeric",
+        "reviewed_same_target_dpf_adapter_to_dense_reference_missing_for_this_target",
+        "paired_seed_evaluator_variance_artifact_missing_for_this_target",
+        "fixed_branch_gradient_tied_to_dense_scalar_not_yet_demonstrated_for_this_target",
+        "directional_derivative_residuals_and_branch_decisions_missing_for_this_target"
+      ],
+      "comparison_target_class": "exact_target_reference",
+      "consumed_statistics": {
+        "branch_decision_record": "missing",
+        "dense_reference_claim_class": "EXACT_ORACLE",
+        "dense_reference_route_status": "available_refined_dense_reference",
+        "directional_derivative_residuals": "missing",
+        "dpf_value_gradient_rows": "missing",
+        "evaluator_variance": "missing",
+        "particle_counts": "missing",
+        "reference_source_artifacts": [
+          "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase4-nonlinear-transition-result-2026-06-07.md"
+        ],
+        "seed_count": "missing",
+        "source_phase": "P2/P4/P44 reference classification only"
+      },
+      "downgrade_reasons": [],
+      "gradient_object": "fixed_branch_score",
+      "method_id": "dpf_ledh_pfpf_ot",
+      "model_family": "tiny_nonlinear_additive_gaussian",
+      "p0_route": {
+        "certification_band": "p5_pending_mc_band",
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": true
+        },
+        "primary_gradient_statistic": "fixed_branch_score",
+        "promotion_tolerance": "dpf_p5_pending_mc_band",
+        "route_status": "eligible_after_p2_dense_reference_pass",
+        "seed_evaluator_variance_policy": "paired_seeds_min_5; particle_counts_min_2; report evaluator variance, RMSE, max error, and 95% CI"
+      },
+      "promotion_status": "not_promoted",
+      "reference_claim_class": "EXACT_ORACLE",
+      "reference_route": "dense_refined_quadrature",
+      "row_decision": "BLOCKED",
+      "row_evidence_status": "reference_available_but_dpf_execution_artifact_missing",
+      "stochastic_score_claim": "not_claimed",
+      "target_id": "p44_m4_nonlinear_transition_h2_panel",
+      "zhao_cui_is_p5_comparator": false
+    }
+  ],
+  "run_manifest": {
+    "branch": "main",
+    "command": "/home/chakwong/anaconda3/envs/tf-gpu/bin/python -m experiments.dpf_implementation.tf_tfp.runners.run_filter_oracle_comparison_p5_dpf_statistical_closeness_tf",
+    "commit": "137f6ba5a03ebab199c8ab4699354d50bd560123",
+    "cpu_gpu_status": "pure_python_classification_only; TensorFlow not imported",
+    "data_version": "P0-P4 local artifacts; no new DPF observations generated",
+    "dirty_state_digest": "4bce2c22c2106c9b9b4e204e098ece368ea6e31b247bc413910a6f3ad0238874",
+    "dirty_state_line_count": 1424,
+    "json_path": "experiments/dpf_implementation/reports/outputs/dpf_filter_oracle_comparison_p5_dpf_statistical_closeness_2026-06-08.json",
+    "particle_counts": "reused from P1 for LGSSM only: [32, 64, 128]",
+    "plan_path": "docs/plans/bayesfilter-dpf-filter-oracle-comparison-p5-dpf-statistical-closeness-subplan-2026-06-08.md",
+    "python_version": "3.11.14",
+    "report_path": "experiments/dpf_implementation/reports/dpf-filter-oracle-comparison-p5-dpf-statistical-closeness-2026-06-08.md",
+    "result_path": "docs/plans/bayesfilter-dpf-filter-oracle-comparison-p5-dpf-statistical-closeness-result-2026-06-08.md",
+    "review_ledger_path": "docs/plans/bayesfilter-dpf-filter-oracle-comparison-p5-claude-review-ledger-2026-06-08.md",
+    "scoped_dirty_state_summary": "?? docs/plans/bayesfilter-dpf-filter-oracle-comparison-visible-execution-ledger-2026-06-08.md\n?? docs/plans/bayesfilter-dpf-filter-oracle-comparison-visible-gated-execution-runbook-2026-06-08.md\n?? experiments/dpf_implementation/tf_tfp/runners/run_filter_oracle_comparison_p5_dpf_statistical_closeness_tf.py",
+    "seed_list": "reused from P1 for LGSSM only: [101, 202, 303, 404, 505]",
+    "tensorflow_imported": false,
+    "tensorflow_probability_imported": false,
+    "timestamp_utc": "2026-06-08T19:43:21Z",
+    "wall_time_seconds": 0.013246649876236916
+  },
+  "skeptical_plan_audit": {
+    "environment_control": "Pure-Python classification avoids TensorFlow import and does not run a hidden numerical experiment.",
+    "fairness_control": "LGSSM exact-target evidence and P44 dense-reference rows are kept separate; P44 rows are blocked until reviewed same-target DPF adapters and evaluator variance exist.",
+    "proxy_promotion_control": "Placeholder P0 DPF bands, missing directional residuals, and aggregate-only branch decisions prevent promotion; finite values or BF/FilterFlow agreement cannot substitute.",
+    "status": "PASS_FOR_CLASSIFICATION_ONLY_EXECUTION",
+    "stop_condition_control": "Every eligible target-route row is classified as diagnostic/downgraded or blocked; no row is silently omitted.",
+    "wrong_baseline_control": "P5 consumes P0/P4 reference-route decisions and P1 Kalman evidence; it does not compare against BayesFilter-owned FilterFlow adapters or Zhao-Cui approximations."
+  },
+  "veto_diagnostics": {
+    "eligible_row_omitted": false,
+    "eligible_target_set_mismatch": false,
+    "lgssm_p1_evidence_missing": false,
+    "missing_seed_variability_in_consumed_lgssm_evidence": false,
+    "p44_row_promoted_without_reviewed_dpf_adapter": false,
+    "promoted_with_placeholder_band": false,
+    "registry_missing_expected_target": false,
+    "same_target_and_approximation_rows_merged": false,
+    "stochastic_and_fixed_branch_gradients_mixed": false,
+    "tensorflow_imported_in_classification_runner": false,
+    "value_closeness_used_to_promote_gradient": false,
+    "zhao_cui_used_as_p5_comparator": false
+  }
+}

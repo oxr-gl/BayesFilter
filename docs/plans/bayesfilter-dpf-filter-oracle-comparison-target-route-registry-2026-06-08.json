@@ -1,0 +1,2903 @@
+{
+  "certification_band_catalog": {
+    "blocked_na": "N/A: blocked row; no certification.",
+    "dense_refinement_band": "Reference refinement band must pass before use as oracle.",
+    "diagnostic_na": "N/A: diagnostic-only row; no certification.",
+    "exact_numerical_linear_algebra": "Exact up to reviewed numerical linear algebra and dtype limits.",
+    "exact_transformed_sv_dense_band": "Dense transformed-SV reference and Jacobian tie-out band.",
+    "ksc_kalman_mixture_enumeration_band": "Component-enumerated finite-mixture Kalman band for the KSC target.",
+    "p44_local_approximation_band": "Existing P44 local deterministic value/score band.",
+    "p5_pending_mc_band": "Pending P5 Monte Carlo uncertainty band."
+  },
+  "claim_classes": [
+    "BLOCKED",
+    "CERTIFIED_APPROXIMATION",
+    "DIAGNOSTIC_ONLY",
+    "EXACT_ORACLE",
+    "SURROGATE_USEFULNESS"
+  ],
+  "governing_sources": [
+    "docs/plans/bayesfilter-dpf-filter-oracle-comparison-master-program-2026-06-08.md",
+    "docs/plans/bayesfilter-dpf-filter-oracle-comparison-p0-target-route-registry-subplan-2026-06-08.md",
+    "docs/plans/bayesfilter-highdim-zhao-cui-p42-gradient-likelihood-validation-rules-2026-06-07.md",
+    "docs/plans/bayesfilter-highdim-zhao-cui-p45-target-registry-2026-06-08.json"
+  ],
+  "gradient_statistics": [
+    "N/A",
+    "crn_pathwise_score",
+    "diagnostic_fixed_branch_score",
+    "fixed_branch_score",
+    "reference_score"
+  ],
+  "metadata_date": "2026-06-08",
+  "phase": "P0",
+  "program_id": "dpf-filter-oracle-comparison",
+  "promotion_tolerance_catalog": {
+    "blocked_na": {
+      "gradient": "N/A: blocked row.",
+      "value": "N/A: blocked row."
+    },
+    "dense_refined_tiny": {
+      "directional_score_refinement_abs": 1e-07,
+      "scope": "Tiny scalar/factorized nonlinear fixtures after refinement.",
+      "value_refinement_abs": 1e-08
+    },
+    "diagnostic_na": {
+      "gradient": "N/A: diagnostic-only row.",
+      "value": "N/A: diagnostic-only row."
+    },
+    "dpf_p5_pending_mc_band": {
+      "mean_value_error_ci": "P5 must predeclare 95% CI and RMSE tolerances.",
+      "scope": "Pending P5 multi-seed particle ladder.",
+      "score_rmse": "P5 must predeclare reference-score comparison tolerance."
+    },
+    "exact_lgssm_tight": {
+      "relative_score_error": 0.0001,
+      "scope": "LGSSM fixture and declared parameterization only.",
+      "value_abs": 1e-10
+    },
+    "exact_transformed_sv_tight": {
+      "relative_score_error": 0.0001,
+      "scope": "Exact transformed SV dense/reference rows only.",
+      "value_abs": 2e-08
+    },
+    "ksc_mixture_tight": {
+      "relative_score_error": 0.0001,
+      "scope": "Finite KSC transformed-mixture target only; not native SV.",
+      "value_abs": 2e-06
+    },
+    "p44_local_approximation_band": {
+      "directional_score_abs": "target-specific P44 local bound",
+      "scope": "Local deterministic fixture evidence only.",
+      "value_abs": "target-specific P44 local bound"
+    }
+  },
+  "purpose": "Governed target-route registry for comparing DPF value and gradient evidence against exact, approximation, diagnostic, and blocked filter routes.",
+  "registry_nonclaims": [
+    "P0 does not run numerical filters.",
+    "P0 does not establish DPF value or gradient closeness.",
+    "P0 does not make HMC, production, GPU, paper-scale, or deployment claims.",
+    "Rows with implementation-contract evidence are still not oracle evidence unless a same-target reference is named."
+  ],
+  "route_ids": [
+    "cut4",
+    "dense_refined_quadrature",
+    "dpf_bootstrap_ot",
+    "dpf_ledh_pfpf_ot",
+    "kalman_exact",
+    "svd_sigma_point",
+    "ukf",
+    "zhao_cui_fixed_design_tt"
+  ],
+  "route_matrix": {
+    "generalized_sv_gaussian_mixture_or_moment_matched_approximation": {
+      "cut4": {
+        "blockers": [],
+        "certification_band": "diagnostic_na",
+        "claim_class": "SURROGATE_USEFULNESS",
+        "gradient_support": "diagnostic score only.",
+        "nonclaims": [
+          "Surrogate does not equal native generalized SV."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "diagnostic_fixed_branch_score",
+        "promotion_tolerance": "diagnostic_na",
+        "route_path": "future CUT4 approximation row",
+        "route_status": "candidate_surrogate_only_pending_target_definition",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "Approximate surrogate value only after target definition."
+      },
+      "dense_refined_quadrature": {
+        "blockers": [
+          "Exact generalized-SV approximation target is not fixed enough for same-target comparison."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Exact generalized-SV approximation target is not fixed enough for same-target comparison.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "dpf_bootstrap_ot": {
+        "blockers": [
+          "Exact generalized-SV approximation target is not fixed enough for same-target comparison."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Exact generalized-SV approximation target is not fixed enough for same-target comparison.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "dpf_ledh_pfpf_ot": {
+        "blockers": [
+          "Exact generalized-SV approximation target is not fixed enough for same-target comparison."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Exact generalized-SV approximation target is not fixed enough for same-target comparison.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "kalman_exact": {
+        "blockers": [],
+        "certification_band": "diagnostic_na",
+        "claim_class": "SURROGATE_USEFULNESS",
+        "gradient_support": "N/A: no gradient comparison is authorized.",
+        "nonclaims": [
+          "Surrogate does not equal native generalized SV."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "diagnostic_na",
+        "route_path": "future KSC or moment-matched Kalman approximation row",
+        "route_status": "candidate_surrogate_only_pending_target_definition",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "Approximate surrogate value only after target definition."
+      },
+      "svd_sigma_point": {
+        "blockers": [
+          "Exact generalized-SV approximation target is not fixed enough for same-target comparison."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Exact generalized-SV approximation target is not fixed enough for same-target comparison.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "ukf": {
+        "blockers": [
+          "Exact generalized-SV approximation target is not fixed enough for same-target comparison."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Exact generalized-SV approximation target is not fixed enough for same-target comparison.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "zhao_cui_fixed_design_tt": {
+        "blockers": [
+          "Exact generalized-SV approximation target is not fixed enough for same-target comparison."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Exact generalized-SV approximation target is not fixed enough for same-target comparison.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      }
+    },
+    "generalized_sv_native_raw_observation": {
+      "cut4": {
+        "blockers": [
+          "Native generalized-SV same-target reference and route contract are missing."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Native generalized-SV same-target reference and route contract are missing.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "dense_refined_quadrature": {
+        "blockers": [
+          "Native generalized-SV same-target reference and route contract are missing."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Native generalized-SV same-target reference and route contract are missing.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "dpf_bootstrap_ot": {
+        "blockers": [
+          "Native generalized-SV same-target reference and route contract are missing."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Native generalized-SV same-target reference and route contract are missing.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "dpf_ledh_pfpf_ot": {
+        "blockers": [
+          "Native generalized-SV same-target reference and route contract are missing."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Native generalized-SV same-target reference and route contract are missing.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "kalman_exact": {
+        "blockers": [
+          "Native generalized-SV same-target reference and route contract are missing."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Native generalized-SV same-target reference and route contract are missing.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "svd_sigma_point": {
+        "blockers": [
+          "Native generalized-SV same-target reference and route contract are missing."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Native generalized-SV same-target reference and route contract are missing.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "ukf": {
+        "blockers": [
+          "Native generalized-SV same-target reference and route contract are missing."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Native generalized-SV same-target reference and route contract are missing.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "zhao_cui_fixed_design_tt": {
+        "blockers": [
+          "Native generalized-SV same-target reference and route contract are missing."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Native generalized-SV same-target reference and route contract are missing.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      }
+    },
+    "generalized_sv_transformed_residual_diagnostic": {
+      "cut4": {
+        "blockers": [],
+        "certification_band": "diagnostic_na",
+        "claim_class": "DIAGNOSTIC_ONLY",
+        "gradient_support": "diagnostic score only; no native equality.",
+        "nonclaims": [
+          "Diagnostic row cannot promote correctness or oracle status."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "diagnostic_fixed_branch_score",
+        "promotion_tolerance": "diagnostic_na",
+        "route_path": "docs/plans/bayesfilter-highdim-zhao-cui-p45-target-registry-2026-06-08.json",
+        "route_status": "available_transformed_residual_diagnostic_only",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "Finite transformed-residual diagnostic only."
+      },
+      "dense_refined_quadrature": {
+        "blockers": [
+          "Transformed generalized-SV residual is diagnostic only and lacks same-target oracle."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Transformed generalized-SV residual is diagnostic only and lacks same-target oracle.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "dpf_bootstrap_ot": {
+        "blockers": [
+          "Transformed generalized-SV residual is diagnostic only and lacks same-target oracle."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Transformed generalized-SV residual is diagnostic only and lacks same-target oracle.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "dpf_ledh_pfpf_ot": {
+        "blockers": [
+          "Transformed generalized-SV residual is diagnostic only and lacks same-target oracle."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Transformed generalized-SV residual is diagnostic only and lacks same-target oracle.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "kalman_exact": {
+        "blockers": [
+          "Transformed generalized-SV residual is diagnostic only and lacks same-target oracle."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Transformed generalized-SV residual is diagnostic only and lacks same-target oracle.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "svd_sigma_point": {
+        "blockers": [
+          "Transformed generalized-SV residual is diagnostic only and lacks same-target oracle."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Transformed generalized-SV residual is diagnostic only and lacks same-target oracle.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "ukf": {
+        "blockers": [
+          "Transformed generalized-SV residual is diagnostic only and lacks same-target oracle."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Transformed generalized-SV residual is diagnostic only and lacks same-target oracle.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "zhao_cui_fixed_design_tt": {
+        "blockers": [
+          "Transformed generalized-SV residual is diagnostic only and lacks same-target oracle."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Transformed generalized-SV residual is diagnostic only and lacks same-target oracle.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      }
+    },
+    "lgssm_2d_h25_rich": {
+      "cut4": {
+        "blockers": [],
+        "certification_band": "diagnostic_na",
+        "claim_class": "DIAGNOSTIC_ONLY",
+        "gradient_support": "diagnostic fixed-branch score only if P1 binds derivatives.",
+        "nonclaims": [
+          "Diagnostic row cannot promote correctness or oracle status."
+        ],
+        "phase_eligibility": {
+          "p1": true,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Eligible for p1 under P0 routing only; execution still needs phase gate.",
+        "primary_gradient_statistic": "diagnostic_fixed_branch_score",
+        "promotion_tolerance": "diagnostic_na",
+        "route_path": "bayesfilter/nonlinear/svd_cut_tf.py::tf_svd_cut4_filter",
+        "route_status": "available_same_target_affine_cut4_sanity",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "Affine LGSSM CUT4 sanity route; Kalman remains the oracle."
+      },
+      "dense_refined_quadrature": {
+        "blockers": [
+          "LGSSM H25 2D dense quadrature is unnecessary and not approved as the exact reference."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: LGSSM H25 2D dense quadrature is unnecessary and not approved as the exact reference.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "dpf_bootstrap_ot": {
+        "blockers": [],
+        "certification_band": "p5_pending_mc_band",
+        "claim_class": "DIAGNOSTIC_ONLY",
+        "gradient_support": "Fixed-branch score only unless a reviewed stochastic-score amendment is accepted.",
+        "nonclaims": [
+          "No stochastic-resampling distribution correctness claim.",
+          "No DPF oracle closeness claim before P1/P5."
+        ],
+        "phase_eligibility": {
+          "p1": true,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": true
+        },
+        "phase_eligibility_reason": "Eligible for p1, p5 under P0 routing only; execution still needs phase gate.",
+        "primary_gradient_statistic": "fixed_branch_score",
+        "promotion_tolerance": "dpf_p5_pending_mc_band",
+        "route_path": "experiments/dpf_implementation/tf_tfp/runners/run_v2_bootstrap_ot_values_tf.py",
+        "route_status": "eligible_for_p1_p5_kalman_oracle_comparison",
+        "seed_evaluator_variance_policy": "paired_seeds_min_5; particle_counts_min_2; report evaluator variance, RMSE, max error, and 95% CI",
+        "value_support": "Existing implementation-contract evidence is context only; oracle closeness is pending."
+      },
+      "dpf_ledh_pfpf_ot": {
+        "blockers": [],
+        "certification_band": "p5_pending_mc_band",
+        "claim_class": "DIAGNOSTIC_ONLY",
+        "gradient_support": "Fixed-branch score only unless a reviewed stochastic-score amendment is accepted.",
+        "nonclaims": [
+          "No stochastic-resampling distribution correctness claim.",
+          "No DPF oracle closeness claim before P1/P5."
+        ],
+        "phase_eligibility": {
+          "p1": true,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": true
+        },
+        "phase_eligibility_reason": "Eligible for p1, p5 under P0 routing only; execution still needs phase gate.",
+        "primary_gradient_statistic": "fixed_branch_score",
+        "promotion_tolerance": "dpf_p5_pending_mc_band",
+        "route_path": "experiments/dpf_implementation/tf_tfp/runners/run_v2_ledh_pfpf_ot_values_tf.py",
+        "route_status": "eligible_for_p1_p5_kalman_oracle_comparison",
+        "seed_evaluator_variance_policy": "paired_seeds_min_5; particle_counts_min_2; report evaluator variance, RMSE, max error, and 95% CI",
+        "value_support": "Existing implementation-contract evidence is context only; oracle closeness is pending."
+      },
+      "kalman_exact": {
+        "blockers": [],
+        "certification_band": "exact_numerical_linear_algebra",
+        "claim_class": "EXACT_ORACLE",
+        "gradient_support": "reference_score from Kalman analytic recursion in the declared parameterization.",
+        "nonclaims": [
+          "Exactness is scoped to the declared target and fixture only."
+        ],
+        "phase_eligibility": {
+          "p1": true,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": true
+        },
+        "phase_eligibility_reason": "Eligible for p1, p5 under P0 routing only; execution still needs phase gate.",
+        "primary_gradient_statistic": "reference_score",
+        "promotion_tolerance": "exact_lgssm_tight",
+        "route_path": "experiments/dpf_implementation/tf_tfp/references/kalman_lgssm_tf.py::run_kalman_filter_tf; analytic-gradient binding in P1",
+        "route_status": "available_exact_kalman_value_gradient_reference_pending_p1_binding",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "Exact LGSSM log likelihood."
+      },
+      "svd_sigma_point": {
+        "blockers": [],
+        "certification_band": "diagnostic_na",
+        "claim_class": "DIAGNOSTIC_ONLY",
+        "gradient_support": "diagnostic fixed-branch score only if P1 binds derivatives.",
+        "nonclaims": [
+          "Diagnostic row cannot promote correctness or oracle status."
+        ],
+        "phase_eligibility": {
+          "p1": true,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Eligible for p1 under P0 routing only; execution still needs phase gate.",
+        "primary_gradient_statistic": "diagnostic_fixed_branch_score",
+        "promotion_tolerance": "diagnostic_na",
+        "route_path": "bayesfilter/nonlinear/sigma_points_tf.py::tf_svd_sigma_point_filter backend=tf_svd_cubature",
+        "route_status": "available_same_target_affine_cubature_sanity",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "Affine LGSSM sanity route; Kalman remains the oracle."
+      },
+      "ukf": {
+        "blockers": [],
+        "certification_band": "diagnostic_na",
+        "claim_class": "DIAGNOSTIC_ONLY",
+        "gradient_support": "diagnostic fixed-branch score only if P1 binds derivatives.",
+        "nonclaims": [
+          "Diagnostic row cannot promote correctness or oracle status."
+        ],
+        "phase_eligibility": {
+          "p1": true,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Eligible for p1 under P0 routing only; execution still needs phase gate.",
+        "primary_gradient_statistic": "diagnostic_fixed_branch_score",
+        "promotion_tolerance": "diagnostic_na",
+        "route_path": "bayesfilter/nonlinear/sigma_points_tf.py::tf_svd_sigma_point_filter backend=tf_svd_ukf",
+        "route_status": "available_same_target_affine_sigma_point_sanity",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "Affine LGSSM sanity route; Kalman remains the oracle."
+      },
+      "zhao_cui_fixed_design_tt": {
+        "blockers": [],
+        "certification_band": "diagnostic_na",
+        "claim_class": "DIAGNOSTIC_ONLY",
+        "gradient_support": "diagnostic fixed-branch score only after explicit P1 binding.",
+        "nonclaims": [
+          "Diagnostic row cannot promote correctness or oracle status."
+        ],
+        "phase_eligibility": {
+          "p1": true,
+          "p2": false,
+          "p3": false,
+          "p4": true,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Eligible for p1, p4 under P0 routing only; execution still needs phase gate.",
+        "primary_gradient_statistic": "diagnostic_fixed_branch_score",
+        "promotion_tolerance": "diagnostic_na",
+        "route_path": "bayesfilter/highdim/filtering.py::FixedBranchSquaredTTFilter",
+        "route_status": "available_clean_room_exact_reference_sanity_only",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "Clean-room LGSSM value-path sanity route; Kalman remains the oracle."
+      }
+    },
+    "p44_m2_cubic_additive_gaussian_panel": {
+      "cut4": {
+        "blockers": [],
+        "certification_band": "p44_local_approximation_band",
+        "claim_class": "CERTIFIED_APPROXIMATION",
+        "gradient_support": "diagnostic fixed-branch score compared to dense where P44 reports it.",
+        "nonclaims": [
+          "CUT4 is not an exact nonlinear oracle."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": true,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Eligible for p2 under P0 routing only; execution still needs phase gate.",
+        "primary_gradient_statistic": "diagnostic_fixed_branch_score",
+        "promotion_tolerance": "p44_local_approximation_band",
+        "route_path": "bayesfilter/nonlinear/svd_cut_tf.py::tf_svd_cut4_filter",
+        "route_status": "available_local_same_target_approximation",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "Local deterministic same-target approximation evidence from P44."
+      },
+      "dense_refined_quadrature": {
+        "blockers": [],
+        "certification_band": "dense_refinement_band",
+        "claim_class": "EXACT_ORACLE",
+        "gradient_support": "reference_score via AD through the refined dense value path.",
+        "nonclaims": [
+          "Exactness is scoped to the declared target and fixture only."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": true,
+          "p3": false,
+          "p4": false,
+          "p5": true
+        },
+        "phase_eligibility_reason": "Eligible for p2, p5 under P0 routing only; execution still needs phase gate.",
+        "primary_gradient_statistic": "reference_score",
+        "promotion_tolerance": "dense_refined_tiny",
+        "route_path": "tests/highdim/test_p44_cubic_additive_gaussian.py::_dense_panel_value",
+        "route_status": "available_refined_dense_reference",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "Refined dense quadrature reference for the declared tiny target."
+      },
+      "dpf_bootstrap_ot": {
+        "blockers": [],
+        "certification_band": "p5_pending_mc_band",
+        "claim_class": "DIAGNOSTIC_ONLY",
+        "gradient_support": "Fixed-branch score only unless a reviewed stochastic-score amendment is accepted.",
+        "nonclaims": [
+          "No stochastic-resampling distribution correctness claim.",
+          "No DPF oracle closeness claim before P1/P5."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": true
+        },
+        "phase_eligibility_reason": "Eligible for p5 under P0 routing only; execution still needs phase gate.",
+        "primary_gradient_statistic": "fixed_branch_score",
+        "promotion_tolerance": "dpf_p5_pending_mc_band",
+        "route_path": "experiments/dpf_implementation/tf_tfp/filters/dpf_ot_tf.py::run_ot_dpf_tf",
+        "route_status": "eligible_after_p2_dense_reference_pass",
+        "seed_evaluator_variance_policy": "paired_seeds_min_5; particle_counts_min_2; report evaluator variance, RMSE, max error, and 95% CI",
+        "value_support": "Existing implementation-contract evidence is context only; oracle closeness is pending."
+      },
+      "dpf_ledh_pfpf_ot": {
+        "blockers": [],
+        "certification_band": "p5_pending_mc_band",
+        "claim_class": "DIAGNOSTIC_ONLY",
+        "gradient_support": "Fixed-branch score only unless a reviewed stochastic-score amendment is accepted.",
+        "nonclaims": [
+          "No stochastic-resampling distribution correctness claim.",
+          "No DPF oracle closeness claim before P1/P5."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": true
+        },
+        "phase_eligibility_reason": "Eligible for p5 under P0 routing only; execution still needs phase gate.",
+        "primary_gradient_statistic": "fixed_branch_score",
+        "promotion_tolerance": "dpf_p5_pending_mc_band",
+        "route_path": "experiments/dpf_implementation/tf_tfp/filters/ledh_pfpf_ot_tf.py::run_ledh_pfpf_ot_tf",
+        "route_status": "eligible_after_p2_dense_reference_pass",
+        "seed_evaluator_variance_policy": "paired_seeds_min_5; particle_counts_min_2; report evaluator variance, RMSE, max error, and 95% CI",
+        "value_support": "Existing implementation-contract evidence is context only; oracle closeness is pending."
+      },
+      "kalman_exact": {
+        "blockers": [
+          "Nonlinear target; Kalman is exact only for nested linear sanity rows."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Nonlinear target; Kalman is exact only for nested linear sanity rows.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "svd_sigma_point": {
+        "blockers": [],
+        "certification_band": "diagnostic_na",
+        "claim_class": "DIAGNOSTIC_ONLY",
+        "gradient_support": "diagnostic fixed-branch score only.",
+        "nonclaims": [
+          "Diagnostic row cannot promote correctness or oracle status."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": true,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Eligible for p2 under P0 routing only; execution still needs phase gate.",
+        "primary_gradient_statistic": "diagnostic_fixed_branch_score",
+        "promotion_tolerance": "diagnostic_na",
+        "route_path": "bayesfilter/nonlinear/sigma_points_tf.py::tf_svd_sigma_point_filter backend=tf_svd_cubature",
+        "route_status": "available_cubature_sigma_point_diagnostic",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "Cubature sigma-point approximation diagnostic."
+      },
+      "ukf": {
+        "blockers": [],
+        "certification_band": "diagnostic_na",
+        "claim_class": "DIAGNOSTIC_ONLY",
+        "gradient_support": "diagnostic fixed-branch score only.",
+        "nonclaims": [
+          "Diagnostic row cannot promote correctness or oracle status."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": true,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Eligible for p2 under P0 routing only; execution still needs phase gate.",
+        "primary_gradient_statistic": "diagnostic_fixed_branch_score",
+        "promotion_tolerance": "diagnostic_na",
+        "route_path": "bayesfilter/nonlinear/sigma_points_tf.py::tf_svd_sigma_point_filter backend=tf_svd_ukf",
+        "route_status": "available_gaussian_sigma_point_diagnostic",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "Gaussian sigma-point approximation diagnostic."
+      },
+      "zhao_cui_fixed_design_tt": {
+        "blockers": [],
+        "certification_band": "p44_local_approximation_band",
+        "claim_class": "CERTIFIED_APPROXIMATION",
+        "gradient_support": "fixed-branch AD score compared to dense within the local P44 band.",
+        "nonclaims": [
+          "Certificate is local and does not transfer to other targets or dimensions."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": true,
+          "p3": false,
+          "p4": true,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Eligible for p2, p4 under P0 routing only; execution still needs phase gate.",
+        "primary_gradient_statistic": "fixed_branch_score",
+        "promotion_tolerance": "p44_local_approximation_band",
+        "route_path": "bayesfilter/highdim/filtering.py::scalar_nonlinear_fixed_design_tt_value_path",
+        "route_status": "available_local_fixed_design_tt_approximation",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "Local fixed-design TT approximation for p44_cubic."
+      }
+    },
+    "p44_m3_quadratic_observation_panel": {
+      "cut4": {
+        "blockers": [],
+        "certification_band": "diagnostic_na",
+        "claim_class": "DIAGNOSTIC_ONLY",
+        "gradient_support": "diagnostic fixed-branch score compared to dense where P44 reports it.",
+        "nonclaims": [
+          "Quadratic-observation CUT4 stress gap is diagnostic, not a certificate."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": true,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Eligible for p2 under P0 routing only; execution still needs phase gate.",
+        "primary_gradient_statistic": "diagnostic_fixed_branch_score",
+        "promotion_tolerance": "diagnostic_na",
+        "route_path": "bayesfilter/nonlinear/svd_cut_tf.py::tf_svd_cut4_filter",
+        "route_status": "available_stress_diagnostic_only",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "Local deterministic same-target approximation evidence from P44."
+      },
+      "dense_refined_quadrature": {
+        "blockers": [],
+        "certification_band": "dense_refinement_band",
+        "claim_class": "EXACT_ORACLE",
+        "gradient_support": "reference_score via AD through the refined dense value path.",
+        "nonclaims": [
+          "Exactness is scoped to the declared target and fixture only."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": true,
+          "p3": false,
+          "p4": false,
+          "p5": true
+        },
+        "phase_eligibility_reason": "Eligible for p2, p5 under P0 routing only; execution still needs phase gate.",
+        "primary_gradient_statistic": "reference_score",
+        "promotion_tolerance": "dense_refined_tiny",
+        "route_path": "tests/highdim/test_p44_quadratic_observation.py::_dense_panel_value",
+        "route_status": "available_refined_dense_reference",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "Refined dense quadrature reference for the declared tiny target."
+      },
+      "dpf_bootstrap_ot": {
+        "blockers": [],
+        "certification_band": "p5_pending_mc_band",
+        "claim_class": "DIAGNOSTIC_ONLY",
+        "gradient_support": "Fixed-branch score only unless a reviewed stochastic-score amendment is accepted.",
+        "nonclaims": [
+          "No stochastic-resampling distribution correctness claim.",
+          "No DPF oracle closeness claim before P1/P5."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": true
+        },
+        "phase_eligibility_reason": "Eligible for p5 under P0 routing only; execution still needs phase gate.",
+        "primary_gradient_statistic": "fixed_branch_score",
+        "promotion_tolerance": "dpf_p5_pending_mc_band",
+        "route_path": "experiments/dpf_implementation/tf_tfp/filters/dpf_ot_tf.py::run_ot_dpf_tf",
+        "route_status": "eligible_after_p2_dense_reference_pass",
+        "seed_evaluator_variance_policy": "paired_seeds_min_5; particle_counts_min_2; report evaluator variance, RMSE, max error, and 95% CI",
+        "value_support": "Existing implementation-contract evidence is context only; oracle closeness is pending."
+      },
+      "dpf_ledh_pfpf_ot": {
+        "blockers": [],
+        "certification_band": "p5_pending_mc_band",
+        "claim_class": "DIAGNOSTIC_ONLY",
+        "gradient_support": "Fixed-branch score only unless a reviewed stochastic-score amendment is accepted.",
+        "nonclaims": [
+          "No stochastic-resampling distribution correctness claim.",
+          "No DPF oracle closeness claim before P1/P5."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": true
+        },
+        "phase_eligibility_reason": "Eligible for p5 under P0 routing only; execution still needs phase gate.",
+        "primary_gradient_statistic": "fixed_branch_score",
+        "promotion_tolerance": "dpf_p5_pending_mc_band",
+        "route_path": "experiments/dpf_implementation/tf_tfp/filters/ledh_pfpf_ot_tf.py::run_ledh_pfpf_ot_tf",
+        "route_status": "eligible_after_p2_dense_reference_pass",
+        "seed_evaluator_variance_policy": "paired_seeds_min_5; particle_counts_min_2; report evaluator variance, RMSE, max error, and 95% CI",
+        "value_support": "Existing implementation-contract evidence is context only; oracle closeness is pending."
+      },
+      "kalman_exact": {
+        "blockers": [
+          "Nonlinear target; Kalman is exact only for nested linear sanity rows."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Nonlinear target; Kalman is exact only for nested linear sanity rows.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "svd_sigma_point": {
+        "blockers": [],
+        "certification_band": "diagnostic_na",
+        "claim_class": "DIAGNOSTIC_ONLY",
+        "gradient_support": "diagnostic fixed-branch score only.",
+        "nonclaims": [
+          "Diagnostic row cannot promote correctness or oracle status."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": true,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Eligible for p2 under P0 routing only; execution still needs phase gate.",
+        "primary_gradient_statistic": "diagnostic_fixed_branch_score",
+        "promotion_tolerance": "diagnostic_na",
+        "route_path": "bayesfilter/nonlinear/sigma_points_tf.py::tf_svd_sigma_point_filter backend=tf_svd_cubature",
+        "route_status": "available_cubature_sigma_point_diagnostic",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "Cubature sigma-point approximation diagnostic."
+      },
+      "ukf": {
+        "blockers": [],
+        "certification_band": "diagnostic_na",
+        "claim_class": "DIAGNOSTIC_ONLY",
+        "gradient_support": "diagnostic fixed-branch score only.",
+        "nonclaims": [
+          "Diagnostic row cannot promote correctness or oracle status."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": true,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Eligible for p2 under P0 routing only; execution still needs phase gate.",
+        "primary_gradient_statistic": "diagnostic_fixed_branch_score",
+        "promotion_tolerance": "diagnostic_na",
+        "route_path": "bayesfilter/nonlinear/sigma_points_tf.py::tf_svd_sigma_point_filter backend=tf_svd_ukf",
+        "route_status": "available_gaussian_sigma_point_diagnostic",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "Gaussian sigma-point approximation diagnostic."
+      },
+      "zhao_cui_fixed_design_tt": {
+        "blockers": [],
+        "certification_band": "p44_local_approximation_band",
+        "claim_class": "CERTIFIED_APPROXIMATION",
+        "gradient_support": "fixed-branch AD score compared to dense within the local P44 band.",
+        "nonclaims": [
+          "Certificate is local and does not transfer to other targets or dimensions."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": true,
+          "p3": false,
+          "p4": true,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Eligible for p2, p4 under P0 routing only; execution still needs phase gate.",
+        "primary_gradient_statistic": "fixed_branch_score",
+        "promotion_tolerance": "p44_local_approximation_band",
+        "route_path": "bayesfilter/highdim/filtering.py::scalar_nonlinear_fixed_design_tt_value_path",
+        "route_status": "available_local_fixed_design_tt_approximation",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "Local fixed-design TT approximation for p44_quadratic."
+      }
+    },
+    "p44_m4_nonlinear_transition_h2_panel": {
+      "cut4": {
+        "blockers": [],
+        "certification_band": "p44_local_approximation_band",
+        "claim_class": "CERTIFIED_APPROXIMATION",
+        "gradient_support": "diagnostic fixed-branch score compared to dense where P44 reports it.",
+        "nonclaims": [
+          "CUT4 is not an exact nonlinear oracle."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": true,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Eligible for p2 under P0 routing only; execution still needs phase gate.",
+        "primary_gradient_statistic": "diagnostic_fixed_branch_score",
+        "promotion_tolerance": "p44_local_approximation_band",
+        "route_path": "bayesfilter/nonlinear/svd_cut_tf.py::tf_svd_cut4_filter",
+        "route_status": "available_local_same_target_approximation",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "Local deterministic same-target approximation evidence from P44."
+      },
+      "dense_refined_quadrature": {
+        "blockers": [],
+        "certification_band": "dense_refinement_band",
+        "claim_class": "EXACT_ORACLE",
+        "gradient_support": "reference_score via AD through the refined dense value path.",
+        "nonclaims": [
+          "Exactness is scoped to the declared target and fixture only."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": true,
+          "p3": false,
+          "p4": false,
+          "p5": true
+        },
+        "phase_eligibility_reason": "Eligible for p2, p5 under P0 routing only; execution still needs phase gate.",
+        "primary_gradient_statistic": "reference_score",
+        "promotion_tolerance": "dense_refined_tiny",
+        "route_path": "tests/highdim/test_p44_nonlinear_transition.py::_dense_panel_value",
+        "route_status": "available_refined_dense_reference",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "Refined dense quadrature reference for the declared tiny target."
+      },
+      "dpf_bootstrap_ot": {
+        "blockers": [],
+        "certification_band": "p5_pending_mc_band",
+        "claim_class": "DIAGNOSTIC_ONLY",
+        "gradient_support": "Fixed-branch score only unless a reviewed stochastic-score amendment is accepted.",
+        "nonclaims": [
+          "No stochastic-resampling distribution correctness claim.",
+          "No DPF oracle closeness claim before P1/P5."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": true
+        },
+        "phase_eligibility_reason": "Eligible for p5 under P0 routing only; execution still needs phase gate.",
+        "primary_gradient_statistic": "fixed_branch_score",
+        "promotion_tolerance": "dpf_p5_pending_mc_band",
+        "route_path": "experiments/dpf_implementation/tf_tfp/filters/dpf_ot_tf.py::run_ot_dpf_tf",
+        "route_status": "eligible_after_p2_dense_reference_pass",
+        "seed_evaluator_variance_policy": "paired_seeds_min_5; particle_counts_min_2; report evaluator variance, RMSE, max error, and 95% CI",
+        "value_support": "Existing implementation-contract evidence is context only; oracle closeness is pending."
+      },
+      "dpf_ledh_pfpf_ot": {
+        "blockers": [],
+        "certification_band": "p5_pending_mc_band",
+        "claim_class": "DIAGNOSTIC_ONLY",
+        "gradient_support": "Fixed-branch score only unless a reviewed stochastic-score amendment is accepted.",
+        "nonclaims": [
+          "No stochastic-resampling distribution correctness claim.",
+          "No DPF oracle closeness claim before P1/P5."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": true
+        },
+        "phase_eligibility_reason": "Eligible for p5 under P0 routing only; execution still needs phase gate.",
+        "primary_gradient_statistic": "fixed_branch_score",
+        "promotion_tolerance": "dpf_p5_pending_mc_band",
+        "route_path": "experiments/dpf_implementation/tf_tfp/filters/ledh_pfpf_ot_tf.py::run_ledh_pfpf_ot_tf",
+        "route_status": "eligible_after_p2_dense_reference_pass",
+        "seed_evaluator_variance_policy": "paired_seeds_min_5; particle_counts_min_2; report evaluator variance, RMSE, max error, and 95% CI",
+        "value_support": "Existing implementation-contract evidence is context only; oracle closeness is pending."
+      },
+      "kalman_exact": {
+        "blockers": [
+          "Nonlinear target; Kalman is exact only for nested linear sanity rows."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Nonlinear target; Kalman is exact only for nested linear sanity rows.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "svd_sigma_point": {
+        "blockers": [],
+        "certification_band": "diagnostic_na",
+        "claim_class": "DIAGNOSTIC_ONLY",
+        "gradient_support": "diagnostic fixed-branch score only.",
+        "nonclaims": [
+          "Diagnostic row cannot promote correctness or oracle status."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": true,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Eligible for p2 under P0 routing only; execution still needs phase gate.",
+        "primary_gradient_statistic": "diagnostic_fixed_branch_score",
+        "promotion_tolerance": "diagnostic_na",
+        "route_path": "bayesfilter/nonlinear/sigma_points_tf.py::tf_svd_sigma_point_filter backend=tf_svd_cubature",
+        "route_status": "available_cubature_sigma_point_diagnostic",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "Cubature sigma-point approximation diagnostic."
+      },
+      "ukf": {
+        "blockers": [],
+        "certification_band": "diagnostic_na",
+        "claim_class": "DIAGNOSTIC_ONLY",
+        "gradient_support": "diagnostic fixed-branch score only.",
+        "nonclaims": [
+          "Diagnostic row cannot promote correctness or oracle status."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": true,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Eligible for p2 under P0 routing only; execution still needs phase gate.",
+        "primary_gradient_statistic": "diagnostic_fixed_branch_score",
+        "promotion_tolerance": "diagnostic_na",
+        "route_path": "bayesfilter/nonlinear/sigma_points_tf.py::tf_svd_sigma_point_filter backend=tf_svd_ukf",
+        "route_status": "available_gaussian_sigma_point_diagnostic",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "Gaussian sigma-point approximation diagnostic."
+      },
+      "zhao_cui_fixed_design_tt": {
+        "blockers": [],
+        "certification_band": "p44_local_approximation_band",
+        "claim_class": "CERTIFIED_APPROXIMATION",
+        "gradient_support": "fixed-branch AD score compared to dense within the local P44 band.",
+        "nonclaims": [
+          "Certificate is local and does not transfer to other targets or dimensions."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": true,
+          "p3": false,
+          "p4": true,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Eligible for p2, p4 under P0 routing only; execution still needs phase gate.",
+        "primary_gradient_statistic": "fixed_branch_score",
+        "promotion_tolerance": "p44_local_approximation_band",
+        "route_path": "bayesfilter/highdim/filtering.py::scalar_nonlinear_fixed_design_tt_value_path",
+        "route_status": "available_local_fixed_design_tt_approximation",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "Local fixed-design TT approximation for p44_transition_h2."
+      }
+    },
+    "predator_prey_additive_gaussian_rk4_closure": {
+      "cut4": {
+        "blockers": [],
+        "certification_band": "diagnostic_na",
+        "claim_class": "DIAGNOSTIC_ONLY",
+        "gradient_support": "diagnostic fixed-branch score only.",
+        "nonclaims": [
+          "Diagnostic row cannot promote correctness or oracle status."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "diagnostic_fixed_branch_score",
+        "promotion_tolerance": "diagnostic_na",
+        "route_path": "bayesfilter/nonlinear/svd_cut_tf.py::tf_svd_cut4_filter",
+        "route_status": "available_cut4_closure_diagnostic_only",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "Finite closure diagnostic only."
+      },
+      "dense_refined_quadrature": {
+        "blockers": [
+          "Dense/refined same-target closure reference is pending."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Dense/refined same-target closure reference is pending.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "dpf_bootstrap_ot": {
+        "blockers": [],
+        "certification_band": "diagnostic_na",
+        "claim_class": "DIAGNOSTIC_ONLY",
+        "gradient_support": "fixed-branch gradient context only where V2 includes the row.",
+        "nonclaims": [
+          "Diagnostic row cannot promote correctness or oracle status."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "diagnostic_fixed_branch_score",
+        "promotion_tolerance": "diagnostic_na",
+        "route_path": "experiments/dpf_implementation/tf_tfp/runners/run_v2_bootstrap_ot_values_tf.py",
+        "route_status": "available_v2_dpf_contract_value_context_only",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "DPF implementation-contract context only; no closure oracle."
+      },
+      "dpf_ledh_pfpf_ot": {
+        "blockers": [],
+        "certification_band": "diagnostic_na",
+        "claim_class": "DIAGNOSTIC_ONLY",
+        "gradient_support": "fixed-branch gradient context only where V2 includes the row.",
+        "nonclaims": [
+          "Diagnostic row cannot promote correctness or oracle status."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "diagnostic_fixed_branch_score",
+        "promotion_tolerance": "diagnostic_na",
+        "route_path": "experiments/dpf_implementation/tf_tfp/runners/run_v2_ledh_pfpf_ot_values_tf.py",
+        "route_status": "available_v2_ledh_contract_value_context_only",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "LEDH implementation-contract context only; no closure oracle."
+      },
+      "kalman_exact": {
+        "blockers": [
+          "Additive-Gaussian nonlinear closure is not linear Gaussian; Kalman is not exact."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Additive-Gaussian nonlinear closure is not linear Gaussian; Kalman is not exact.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "svd_sigma_point": {
+        "blockers": [],
+        "certification_band": "diagnostic_na",
+        "claim_class": "DIAGNOSTIC_ONLY",
+        "gradient_support": "diagnostic fixed-branch score only.",
+        "nonclaims": [
+          "Diagnostic row cannot promote correctness or oracle status."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "diagnostic_fixed_branch_score",
+        "promotion_tolerance": "diagnostic_na",
+        "route_path": "bayesfilter/nonlinear/sigma_points_tf.py::tf_svd_sigma_point_filter backend=tf_svd_cubature",
+        "route_status": "available_structural_cubature_diagnostic_only",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "Structural cubature diagnostic only."
+      },
+      "ukf": {
+        "blockers": [],
+        "certification_band": "diagnostic_na",
+        "claim_class": "DIAGNOSTIC_ONLY",
+        "gradient_support": "diagnostic fixed-branch score only.",
+        "nonclaims": [
+          "Diagnostic row cannot promote correctness or oracle status."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "diagnostic_fixed_branch_score",
+        "promotion_tolerance": "diagnostic_na",
+        "route_path": "bayesfilter/nonlinear/sigma_points_tf.py::tf_svd_sigma_point_filter backend=tf_svd_ukf",
+        "route_status": "available_structural_sigma_point_diagnostic_only",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "Structural Gaussian sigma-point diagnostic only."
+      },
+      "zhao_cui_fixed_design_tt": {
+        "blockers": [
+          "P46 multistate adapter does not promote this closure without same-target dense/CUT4 gates."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: P46 multistate adapter does not promote this closure without same-target dense/CUT4 gates.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      }
+    },
+    "predator_prey_native_or_nongaussian_route": {
+      "cut4": {
+        "blockers": [
+          "Native or non-Gaussian route is unspecified and unimplemented."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Native or non-Gaussian route is unspecified and unimplemented.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "dense_refined_quadrature": {
+        "blockers": [
+          "Native or non-Gaussian route is unspecified and unimplemented."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Native or non-Gaussian route is unspecified and unimplemented.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "dpf_bootstrap_ot": {
+        "blockers": [
+          "Native or non-Gaussian route is unspecified and unimplemented."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Native or non-Gaussian route is unspecified and unimplemented.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "dpf_ledh_pfpf_ot": {
+        "blockers": [
+          "Native or non-Gaussian route is unspecified and unimplemented."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Native or non-Gaussian route is unspecified and unimplemented.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "kalman_exact": {
+        "blockers": [
+          "Native or non-Gaussian route is unspecified and unimplemented."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Native or non-Gaussian route is unspecified and unimplemented.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "svd_sigma_point": {
+        "blockers": [
+          "Native or non-Gaussian route is unspecified and unimplemented."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Native or non-Gaussian route is unspecified and unimplemented.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "ukf": {
+        "blockers": [
+          "Native or non-Gaussian route is unspecified and unimplemented."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Native or non-Gaussian route is unspecified and unimplemented.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "zhao_cui_fixed_design_tt": {
+        "blockers": [
+          "Native or non-Gaussian route is unspecified and unimplemented."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Native or non-Gaussian route is unspecified and unimplemented.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      }
+    },
+    "spatial_sir_additive_gaussian_closure": {
+      "cut4": {
+        "blockers": [],
+        "certification_band": "diagnostic_na",
+        "claim_class": "DIAGNOSTIC_ONLY",
+        "gradient_support": "diagnostic fixed-branch score only.",
+        "nonclaims": [
+          "Diagnostic row cannot promote correctness or oracle status."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "diagnostic_fixed_branch_score",
+        "promotion_tolerance": "diagnostic_na",
+        "route_path": "bayesfilter/nonlinear/svd_cut_tf.py::tf_svd_cut4_filter",
+        "route_status": "available_cut4_closure_diagnostic_only",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "Finite closure diagnostic only."
+      },
+      "dense_refined_quadrature": {
+        "blockers": [
+          "Dense/refined same-target closure reference is pending."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Dense/refined same-target closure reference is pending.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "dpf_bootstrap_ot": {
+        "blockers": [],
+        "certification_band": "diagnostic_na",
+        "claim_class": "DIAGNOSTIC_ONLY",
+        "gradient_support": "fixed-branch gradient context only where V2 includes the row.",
+        "nonclaims": [
+          "Diagnostic row cannot promote correctness or oracle status."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "diagnostic_fixed_branch_score",
+        "promotion_tolerance": "diagnostic_na",
+        "route_path": "experiments/dpf_implementation/tf_tfp/runners/run_v2_bootstrap_ot_values_tf.py",
+        "route_status": "available_v2_dpf_contract_value_context_only",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "DPF implementation-contract context only; no closure oracle."
+      },
+      "dpf_ledh_pfpf_ot": {
+        "blockers": [],
+        "certification_band": "diagnostic_na",
+        "claim_class": "DIAGNOSTIC_ONLY",
+        "gradient_support": "fixed-branch gradient context only where V2 includes the row.",
+        "nonclaims": [
+          "Diagnostic row cannot promote correctness or oracle status."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "diagnostic_fixed_branch_score",
+        "promotion_tolerance": "diagnostic_na",
+        "route_path": "experiments/dpf_implementation/tf_tfp/runners/run_v2_ledh_pfpf_ot_values_tf.py",
+        "route_status": "available_v2_ledh_contract_value_context_only",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "LEDH implementation-contract context only; no closure oracle."
+      },
+      "kalman_exact": {
+        "blockers": [
+          "Additive-Gaussian nonlinear closure is not linear Gaussian; Kalman is not exact."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Additive-Gaussian nonlinear closure is not linear Gaussian; Kalman is not exact.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "svd_sigma_point": {
+        "blockers": [],
+        "certification_band": "diagnostic_na",
+        "claim_class": "DIAGNOSTIC_ONLY",
+        "gradient_support": "diagnostic fixed-branch score only.",
+        "nonclaims": [
+          "Diagnostic row cannot promote correctness or oracle status."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "diagnostic_fixed_branch_score",
+        "promotion_tolerance": "diagnostic_na",
+        "route_path": "bayesfilter/nonlinear/sigma_points_tf.py::tf_svd_sigma_point_filter backend=tf_svd_cubature",
+        "route_status": "available_structural_cubature_diagnostic_only",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "Structural cubature diagnostic only."
+      },
+      "ukf": {
+        "blockers": [],
+        "certification_band": "diagnostic_na",
+        "claim_class": "DIAGNOSTIC_ONLY",
+        "gradient_support": "diagnostic fixed-branch score only.",
+        "nonclaims": [
+          "Diagnostic row cannot promote correctness or oracle status."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "diagnostic_fixed_branch_score",
+        "promotion_tolerance": "diagnostic_na",
+        "route_path": "bayesfilter/nonlinear/sigma_points_tf.py::tf_svd_sigma_point_filter backend=tf_svd_ukf",
+        "route_status": "available_structural_sigma_point_diagnostic_only",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "Structural Gaussian sigma-point diagnostic only."
+      },
+      "zhao_cui_fixed_design_tt": {
+        "blockers": [
+          "P46 multistate adapter does not promote this closure without same-target dense/CUT4 gates."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: P46 multistate adapter does not promote this closure without same-target dense/CUT4 gates.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      }
+    },
+    "spatial_sir_native_or_nongaussian_route": {
+      "cut4": {
+        "blockers": [
+          "Native or non-Gaussian route is unspecified and unimplemented."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Native or non-Gaussian route is unspecified and unimplemented.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "dense_refined_quadrature": {
+        "blockers": [
+          "Native or non-Gaussian route is unspecified and unimplemented."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Native or non-Gaussian route is unspecified and unimplemented.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "dpf_bootstrap_ot": {
+        "blockers": [
+          "Native or non-Gaussian route is unspecified and unimplemented."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Native or non-Gaussian route is unspecified and unimplemented.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "dpf_ledh_pfpf_ot": {
+        "blockers": [
+          "Native or non-Gaussian route is unspecified and unimplemented."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Native or non-Gaussian route is unspecified and unimplemented.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "kalman_exact": {
+        "blockers": [
+          "Native or non-Gaussian route is unspecified and unimplemented."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Native or non-Gaussian route is unspecified and unimplemented.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "svd_sigma_point": {
+        "blockers": [
+          "Native or non-Gaussian route is unspecified and unimplemented."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Native or non-Gaussian route is unspecified and unimplemented.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "ukf": {
+        "blockers": [
+          "Native or non-Gaussian route is unspecified and unimplemented."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Native or non-Gaussian route is unspecified and unimplemented.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "zhao_cui_fixed_design_tt": {
+        "blockers": [
+          "Native or non-Gaussian route is unspecified and unimplemented."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Native or non-Gaussian route is unspecified and unimplemented.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      }
+    },
+    "sv_exact_transformed_log_chi_square_panel": {
+      "cut4": {
+        "blockers": [
+          "CUT4 route belongs to the KSC mixture target row, not exact transformed SV."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: CUT4 route belongs to the KSC mixture target row, not exact transformed SV.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "dense_refined_quadrature": {
+        "blockers": [],
+        "certification_band": "exact_transformed_sv_dense_band",
+        "claim_class": "EXACT_ORACLE",
+        "gradient_support": "reference_score where P43 gradient ladder binds the transformed target.",
+        "nonclaims": [
+          "Exactness is scoped to the declared target and fixture only."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": true,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Eligible for p3 under P0 routing only; execution still needs phase gate.",
+        "primary_gradient_statistic": "reference_score",
+        "promotion_tolerance": "exact_transformed_sv_tight",
+        "route_path": "bayesfilter/highdim/sv_mixture_cut4.py::exact_transformed_sv_independent_panel_dense_reference",
+        "route_status": "available_exact_transformed_dense_reference",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "Exact transformed SV dense reference."
+      },
+      "dpf_bootstrap_ot": {
+        "blockers": [
+          "No DPF adapter is approved for the exact transformed SV target in P0."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: No DPF adapter is approved for the exact transformed SV target in P0.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "dpf_ledh_pfpf_ot": {
+        "blockers": [
+          "No LEDH-PFPF adapter is approved for the exact transformed SV target in P0."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: No LEDH-PFPF adapter is approved for the exact transformed SV target in P0.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "kalman_exact": {
+        "blockers": [
+          "Exact transformed log-chi-square SV is not linear Gaussian; KSC mixture uses a separate target row."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: Exact transformed log-chi-square SV is not linear Gaussian; KSC mixture uses a separate target row.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "svd_sigma_point": {
+        "blockers": [
+          "No same-target cubature transformed log-chi-square route is approved."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: No same-target cubature transformed log-chi-square route is approved.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "ukf": {
+        "blockers": [
+          "No same-target UKF transformed log-chi-square route is approved."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: No same-target UKF transformed log-chi-square route is approved.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "zhao_cui_fixed_design_tt": {
+        "blockers": [],
+        "certification_band": "exact_transformed_sv_dense_band",
+        "claim_class": "CERTIFIED_APPROXIMATION",
+        "gradient_support": "fixed-branch score only where P43 binds the transformed target.",
+        "nonclaims": [
+          "Certificate is local and does not transfer to other targets or dimensions."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": true,
+          "p4": true,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Eligible for p3, p4 under P0 routing only; execution still needs phase gate.",
+        "primary_gradient_statistic": "fixed_branch_score",
+        "promotion_tolerance": "exact_transformed_sv_tight",
+        "route_path": "bayesfilter/highdim/sv_mixture_cut4.py::exact_transformed_sv_independent_panel_zhaocui_tt_filter",
+        "route_status": "available_exact_transformed_fixed_design_tt_local_certificate",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "Fixed-design TT matches exact transformed dense reference on tiny panels."
+      }
+    },
+    "sv_ksc_transformed_mixture_panel": {
+      "cut4": {
+        "blockers": [],
+        "certification_band": "ksc_kalman_mixture_enumeration_band",
+        "claim_class": "CERTIFIED_APPROXIMATION",
+        "gradient_support": "fixed-branch score in the P43 KSC ladder.",
+        "nonclaims": [
+          "Certificate is local and does not transfer to other targets or dimensions."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": true,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Eligible for p3 under P0 routing only; execution still needs phase gate.",
+        "primary_gradient_statistic": "fixed_branch_score",
+        "promotion_tolerance": "ksc_mixture_tight",
+        "route_path": "bayesfilter/highdim/sv_mixture_cut4.py::independent_panel_sv_mixture_cut4_filter",
+        "route_status": "available_same_target_ksc_cut4_certificate",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "CUT4 matches the component-enumerated KSC Kalman mixture target locally."
+      },
+      "dense_refined_quadrature": {
+        "blockers": [],
+        "certification_band": "diagnostic_na",
+        "claim_class": "DIAGNOSTIC_ONLY",
+        "gradient_support": "diagnostic score only.",
+        "nonclaims": [
+          "Diagnostic row cannot promote correctness or oracle status."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": true,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Eligible for p3 under P0 routing only; execution still needs phase gate.",
+        "primary_gradient_statistic": "diagnostic_fixed_branch_score",
+        "promotion_tolerance": "diagnostic_na",
+        "route_path": "tests/highdim/test_p39_sv_mixture_cut4.py",
+        "route_status": "available_scalar_dense_context_only",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "Dense context for scalar components; not the primary P40 oracle."
+      },
+      "dpf_bootstrap_ot": {
+        "blockers": [
+          "No DPF adapter is approved for the KSC mixture approximation target in P0."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: No DPF adapter is approved for the KSC mixture approximation target in P0.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "dpf_ledh_pfpf_ot": {
+        "blockers": [
+          "No LEDH-PFPF adapter is approved for the KSC mixture approximation target in P0."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: No LEDH-PFPF adapter is approved for the KSC mixture approximation target in P0.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "kalman_exact": {
+        "blockers": [],
+        "certification_band": "ksc_kalman_mixture_enumeration_band",
+        "claim_class": "EXACT_ORACLE",
+        "gradient_support": "reference_score for the KSC finite-mixture target in P43.",
+        "nonclaims": [
+          "Exactness is scoped to the declared target and fixture only."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": true,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Eligible for p3 under P0 routing only; execution still needs phase gate.",
+        "primary_gradient_statistic": "reference_score",
+        "promotion_tolerance": "ksc_mixture_tight",
+        "route_path": "bayesfilter/highdim/sv_mixture_cut4.py::independent_panel_sv_mixture_kalman_filter",
+        "route_status": "available_component_enumerated_kalman_mixture_oracle",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "Exact finite-mixture Kalman evaluation for the KSC approximation target."
+      },
+      "svd_sigma_point": {
+        "blockers": [
+          "No reviewed cubature finite-mixture enumeration route is approved."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: No reviewed cubature finite-mixture enumeration route is approved.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "ukf": {
+        "blockers": [
+          "No reviewed UKF finite-mixture enumeration route is approved."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: No reviewed UKF finite-mixture enumeration route is approved.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      },
+      "zhao_cui_fixed_design_tt": {
+        "blockers": [
+          "No transformed-mixture Zhao-Cui/TT lane is approved."
+        ],
+        "certification_band": "blocked_na",
+        "claim_class": "BLOCKED",
+        "gradient_support": "N/A: route is blocked for this target.",
+        "nonclaims": [
+          "Blocked row is explicit; absence of execution is not a pass."
+        ],
+        "phase_eligibility": {
+          "p1": false,
+          "p2": false,
+          "p3": false,
+          "p4": false,
+          "p5": false
+        },
+        "phase_eligibility_reason": "Not eligible for P1-P5 execution under P0 routing.",
+        "primary_gradient_statistic": "N/A",
+        "promotion_tolerance": "blocked_na",
+        "route_path": "N/A: No transformed-mixture Zhao-Cui/TT lane is approved.",
+        "route_status": "blocked",
+        "seed_evaluator_variance_policy": "N/A: deterministic, blocked, or not P1/P5 DPF execution row",
+        "value_support": "N/A: route is blocked for this target."
+      }
+    }
+  },
+  "run_manifest": {
+    "command": "/home/chakwong/anaconda3/envs/tf-gpu/bin/python -m experiments.dpf_implementation.tf_tfp.runners.run_filter_oracle_comparison_p0_registry_tf",
+    "cpu_gpu_status": "pure_python_cpu_only; CUDA_VISIBLE_DEVICES=-1 set before validation; TensorFlow not imported",
+    "cuda_visible_devices": "-1",
+    "data_version": "N/A: no external data loaded",
+    "environment": "active Python environment; observed executable is recorded in command",
+    "git_branch": "main",
+    "git_commit": "137f6ba5a03ebab199c8ab4699354d50bd560123",
+    "output_artifact_path": "experiments/dpf_implementation/reports/outputs/dpf_filter_oracle_comparison_p0_target_route_registry_2026-06-08.json",
+    "particle_counts": "N/A: P0 does not run DPF filters",
+    "plan_path": "docs/plans/bayesfilter-dpf-filter-oracle-comparison-p0-target-route-registry-subplan-2026-06-08.md",
+    "python_version": "3.11.14",
+    "registry_path": "docs/plans/bayesfilter-dpf-filter-oracle-comparison-target-route-registry-2026-06-08.json",
+    "result_path": "docs/plans/bayesfilter-dpf-filter-oracle-comparison-p0-target-route-registry-result-2026-06-08.md",
+    "scoped_dirty_state_summary": "?? docs/plans/bayesfilter-dpf-filter-oracle-comparison-p0-claude-review-ledger-2026-06-08.md\n?? docs/plans/bayesfilter-dpf-filter-oracle-comparison-p0-target-route-registry-result-2026-06-08.md\n?? docs/plans/bayesfilter-dpf-filter-oracle-comparison-target-route-registry-2026-06-08.json\n?? docs/plans/bayesfilter-dpf-filter-oracle-comparison-visible-execution-ledger-2026-06-08.md\n?? experiments/dpf_implementation/reports/outputs/dpf_filter_oracle_comparison_p0_target_route_registry_2026-06-08.json\n?? experiments/dpf_implementation/tf_tfp/runners/run_filter_oracle_comparison_p0_registry_tf.py",
+    "seeds": "N/A: P0 is schema/governance validation only",
+    "summary_path": "experiments/dpf_implementation/reports/outputs/dpf_filter_oracle_comparison_p0_target_route_registry_2026-06-08.json",
+    "timestamp_utc": "2026-06-08T15:51:41Z",
+    "wall_time_seconds": 0.000668081920593977
+  },
+  "schema_version": "dpf_filter_oracle_comparison.target_route_registry.v1",
+  "targets": [
+    {
+      "dimension_panel_convention": "state_dim=2, observation_dim=1, horizon=25.",
+      "governing_sources": [
+        "experiments/dpf_implementation/tf_tfp/fixtures/common_model_suite_tf.py",
+        "experiments/dpf_implementation/tf_tfp/references/kalman_lgssm_tf.py",
+        "docs/plans/bayesfilter-dpf-filter-oracle-comparison-p1-lgssm-exact-oracle-subplan-2026-06-08.md",
+        "experiments/dpf_implementation/tf_tfp/runners/run_v2_bootstrap_ot_values_tf.py",
+        "experiments/dpf_implementation/tf_tfp/runners/run_v2_ledh_pfpf_ot_values_tf.py",
+        "docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-closeout-result-2026-06-07.md"
+      ],
+      "model_family": "linear_gaussian_state_space",
+      "observation_law": "y_t = C x_t + r_t, r_t ~ N(0,R).",
+      "parameter_vector": "(transition_matrix_scale, observation_noise_scale) plus frozen fixture matrices.",
+      "parameterization": "theta = (transition_matrix_scale, observation_noise_scale) for DPF V2; exact Kalman may also use frozen A,C,Q,R,m0,P0.",
+      "state_law": "x_t = A x_{t-1} + q_t, q_t ~ N(0,Q), x_0 ~ N(m0,P0).",
+      "target_id": "lgssm_2d_h25_rich",
+      "target_identity": "2D LGSSM with horizon 25 from the common V2 fixture.",
+      "target_nonclaims": [
+        "No nonlinear-model claim.",
+        "No DPF closeness claim before P1/P5 multi-seed evidence."
+      ],
+      "transformation_jacobian_terms": "None."
+    },
+    {
+      "dimension_panel_convention": "dims 1,2,3 are independent panel sums in the P44 fixture.",
+      "governing_sources": [
+        "tests/highdim/test_p44_cubic_additive_gaussian.py",
+        "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase2-cubic-additive-gaussian-result-2026-06-07.md"
+      ],
+      "model_family": "tiny_nonlinear_additive_gaussian",
+      "observation_law": "y_t | x_t ~ N(x_t + c x_t^3, R).",
+      "parameter_vector": "(rho_raw, log_q, log_r, raw_initial_mean, cubic_raw).",
+      "parameterization": "theta = (rho_raw, log_q, log_r, raw_initial_mean, cubic_raw).",
+      "state_law": "Per-axis Gaussian AR transition with parameterized rho, q, and initial distribution.",
+      "target_id": "p44_m2_cubic_additive_gaussian_panel",
+      "target_identity": "Factorized scalar panel with linear Gaussian transition and cubic additive-Gaussian observation.",
+      "target_nonclaims": [
+        "No paper-scale nonlinear filtering claim."
+      ],
+      "transformation_jacobian_terms": "None."
+    },
+    {
+      "dimension_panel_convention": "dims 1,2,3 are independent panel sums in the P44 fixture.",
+      "governing_sources": [
+        "tests/highdim/test_p44_quadratic_observation.py",
+        "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase3-quadratic-observation-result-2026-06-07.md"
+      ],
+      "model_family": "tiny_nonlinear_additive_gaussian",
+      "observation_law": "y_t | x_t ~ N(x_t^2, R), producing symmetric-mode stress.",
+      "parameter_vector": "(rho_raw, log_q, log_r, raw_initial_mean).",
+      "parameterization": "theta = (rho_raw, log_q, log_r, raw_initial_mean).",
+      "state_law": "Per-axis Gaussian AR transition with parameterized rho, q, and initial distribution.",
+      "target_id": "p44_m3_quadratic_observation_panel",
+      "target_identity": "Factorized scalar panel with linear Gaussian transition and quadratic observation.",
+      "target_nonclaims": [
+        "CUT4 is a stress diagnostic on this target, not an oracle."
+      ],
+      "transformation_jacobian_terms": "None."
+    },
+    {
+      "dimension_panel_convention": "dims 1,2,3 are independent panel sums; Zhao-Cui row is horizon-2 only.",
+      "governing_sources": [
+        "tests/highdim/test_p44_nonlinear_transition.py",
+        "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase4-nonlinear-transition-result-2026-06-07.md"
+      ],
+      "model_family": "tiny_nonlinear_additive_gaussian",
+      "observation_law": "Gaussian observation closure on the transformed state path.",
+      "parameter_vector": "(rho_raw, log_q, log_r, raw_initial_mean, nonlinear_transition_raw).",
+      "parameterization": "theta = (rho_raw, log_q, log_r, raw_initial_mean, nonlinear_transition_raw).",
+      "state_law": "Per-axis nonlinear Gaussian transition from the P44-M4 fixture.",
+      "target_id": "p44_m4_nonlinear_transition_h2_panel",
+      "target_identity": "Factorized scalar panel with nonlinear transition at horizon 2.",
+      "target_nonclaims": [
+        "No horizon-4 Zhao-Cui promotion for the scalar helper."
+      ],
+      "transformation_jacobian_terms": "None."
+    },
+    {
+      "dimension_panel_convention": "dims 1,2,3 are independent panels, not coupled multivariate TT.",
+      "governing_sources": [
+        "tests/highdim/test_p41_exact_transformed_sv_zhaocui_ladder.py",
+        "docs/plans/bayesfilter-highdim-zhao-cui-p41-exact-transformed-sv-zhaocui-ladder-result-2026-06-07.md"
+      ],
+      "model_family": "stochastic_volatility_transformed",
+      "observation_law": "Exact log-chi-square transformed observation law.",
+      "parameter_vector": "(gamma, beta, sigma).",
+      "parameterization": "theta = (gamma, beta, sigma) in P41 test ordering.",
+      "state_law": "Scalar SV AR law, factorized across panel coordinates.",
+      "target_id": "sv_exact_transformed_log_chi_square_panel",
+      "target_identity": "Exact transformed SV target z_t = log(y_t^2) with observation-only Jacobian tracked separately.",
+      "target_nonclaims": [
+        "No KSC mixture exactness claim.",
+        "No coupled multivariate Zhao-Cui TT claim."
+      ],
+      "transformation_jacobian_terms": "Jacobian log|d log(y^2)/dy| is required for raw-native comparisons; exact transformed rows use z only."
+    },
+    {
+      "dimension_panel_convention": "dims 1,2,3 independent panels; component enumeration scales as 7^dim on tiny fixtures.",
+      "governing_sources": [
+        "tests/highdim/test_p40_sv_kalman_cut4_zhaocui.py",
+        "tests/highdim/test_p43_sv_value_gradient_cut4_zhaocui.py",
+        "docs/plans/bayesfilter-highdim-zhao-cui-p40-sv-kalman-cut4-zhaocui-test-result-2026-06-07.md",
+        "docs/plans/bayesfilter-highdim-zhao-cui-p43-sv-value-gradient-cut4-zhaocui-result-2026-06-07.md"
+      ],
+      "model_family": "stochastic_volatility_ksc_mixture",
+      "observation_law": "Finite Gaussian-mixture approximation to transformed SV observations.",
+      "parameter_vector": "(gamma, beta, sigma).",
+      "parameterization": "theta = (gamma, beta, sigma) in P40/P43 test ordering.",
+      "state_law": "Scalar SV AR law, factorized across panel coordinates.",
+      "target_id": "sv_ksc_transformed_mixture_panel",
+      "target_identity": "Finite KSC transformed-mixture SV approximation target with component enumeration.",
+      "target_nonclaims": [
+        "No exact native SV claim.",
+        "No KSC importance-reweighting claim."
+      ],
+      "transformation_jacobian_terms": "Mixture approximation target only; not the exact transformed or raw-native SV target."
+    },
+    {
+      "dimension_panel_convention": "one series has latent state (s_t,h_t); panels must be labeled factorized unless reviewed.",
+      "governing_sources": [
+        "docs/plans/bayesfilter-highdim-zhao-cui-p45-target-registry-2026-06-08.json"
+      ],
+      "model_family": "generalized_stochastic_volatility",
+      "observation_law": "y_t = beta s_t + exp(h_t / 2) epsilon_t.",
+      "parameter_vector": "(log_beta).",
+      "parameterization": "theta = (log_beta) initially; state-law parameters frozen.",
+      "state_law": "Independent prior AR laws for s_t and h_t in the tiny fixture; posterior couples them.",
+      "target_id": "generalized_sv_native_raw_observation",
+      "target_identity": "Native generalized SV raw-observation likelihood y_t | s_t,h_t,beta.",
+      "target_nonclaims": [
+        "No native generalized-SV exact filter claim."
+      ],
+      "transformation_jacobian_terms": "None for raw-y density; transformed rows are separate targets."
+    },
+    {
+      "dimension_panel_convention": "factorized diagnostic panels only unless separately reviewed.",
+      "governing_sources": [
+        "docs/plans/bayesfilter-highdim-zhao-cui-p45-target-registry-2026-06-08.json"
+      ],
+      "model_family": "generalized_stochastic_volatility",
+      "observation_law": "Diagnostic transformed residual with numerical square floor; not native raw-y likelihood.",
+      "parameter_vector": "(log_beta).",
+      "parameterization": "theta = (log_beta) initially.",
+      "state_law": "Same fixed independent AR laws for s_t and h_t as the P45 diagnostic fixture.",
+      "target_id": "generalized_sv_transformed_residual_diagnostic",
+      "target_identity": "Transformed-residual diagnostic log((y_t - beta s_t)^2) - h_t.",
+      "target_nonclaims": [
+        "Transformed residual is not exact native generalized SV."
+      ],
+      "transformation_jacobian_terms": "Exact transform is blocked because residual transform depends on latent s_t."
+    },
+    {
+      "dimension_panel_convention": "factorized approximation diagnostics only unless separately reviewed.",
+      "governing_sources": [
+        "docs/plans/bayesfilter-highdim-zhao-cui-p45-target-registry-2026-06-08.json"
+      ],
+      "model_family": "generalized_stochastic_volatility",
+      "observation_law": "Approximation route; residual y_t - beta s_t remains state-dependent.",
+      "parameter_vector": "(log_beta).",
+      "parameterization": "theta = (log_beta) initially.",
+      "state_law": "Fixed independent prior AR laws for s_t and h_t unless later amended.",
+      "target_id": "generalized_sv_gaussian_mixture_or_moment_matched_approximation",
+      "target_identity": "Gaussian-mixture or moment-matched approximation row for generalized SV diagnostics.",
+      "target_nonclaims": [
+        "Gaussian mixture is not exact native generalized SV."
+      ],
+      "transformation_jacobian_terms": "Must state whether it approximates log-chi-square residuals or raw conditional variance."
+    },
+    {
+      "dimension_panel_convention": "J=1 first; J=2,3 are factorized or replicated unless reviewed.",
+      "governing_sources": [
+        "tests/highdim/test_p30_cut4_statistical_comparators.py",
+        "docs/plans/bayesfilter-highdim-zhao-cui-p45-target-registry-2026-06-08.json",
+        "experiments/dpf_implementation/tf_tfp/runners/run_v2_bootstrap_ot_values_tf.py",
+        "experiments/dpf_implementation/tf_tfp/runners/run_v2_ledh_pfpf_ot_values_tf.py",
+        "docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-closeout-result-2026-06-07.md"
+      ],
+      "model_family": "spatial_sir",
+      "observation_law": "Gaussian observation noise on infectious coordinates.",
+      "parameter_vector": "(initial_S_shift, initial_I_shift, log_process_scale, log_observation_scale).",
+      "parameterization": "theta = (initial_S_shift, initial_I_shift, log_process_scale, log_observation_scale) for J=1 diagnostic closure.",
+      "state_law": "P44/P45 closure transition with Gaussian process noise around the SIR mean map.",
+      "target_id": "spatial_sir_additive_gaussian_closure",
+      "target_identity": "Clean-room additive-Gaussian spatial-SIR closure with infectious-coordinate observations.",
+      "target_nonclaims": [
+        "Closure likelihood is not native SIR filtering correctness."
+      ],
+      "transformation_jacobian_terms": "No observation transform; negative-state policy must stay fixed across methods."
+    },
+    {
+      "dimension_panel_convention": "Not authorized for comparison until a target-definition amendment passes review.",
+      "governing_sources": [
+        "docs/plans/bayesfilter-highdim-zhao-cui-p45-target-registry-2026-06-08.json"
+      ],
+      "model_family": "spatial_sir",
+      "observation_law": "Unspecified native or non-Gaussian observation law.",
+      "parameter_vector": "Blocked pending native route definition.",
+      "parameterization": "Blocked pending scientific target definition.",
+      "state_law": "Unspecified native stochastic epidemic transition.",
+      "target_id": "spatial_sir_native_or_nongaussian_route",
+      "target_identity": "Native or non-Gaussian spatial-SIR likelihood route if later proposed.",
+      "target_nonclaims": [
+        "No native SIR likelihood correctness claim."
+      ],
+      "transformation_jacobian_terms": "Blocked pending native/non-Gaussian target definition."
+    },
+    {
+      "dimension_panel_convention": "Two-state target first; replicated panels are factorized unless reviewed.",
+      "governing_sources": [
+        "tests/highdim/test_p30_cut4_statistical_comparators.py",
+        "docs/plans/bayesfilter-highdim-zhao-cui-p45-target-registry-2026-06-08.json",
+        "experiments/dpf_implementation/tf_tfp/runners/run_v2_bootstrap_ot_values_tf.py",
+        "experiments/dpf_implementation/tf_tfp/runners/run_v2_ledh_pfpf_ot_values_tf.py",
+        "docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-closeout-result-2026-06-07.md"
+      ],
+      "model_family": "predator_prey",
+      "observation_law": "Gaussian observation noise on prey and predator coordinates.",
+      "parameter_vector": "(r,K,a,s,u,v).",
+      "parameterization": "theta = (r,K,a,s,u,v) for the tiny closure fixture.",
+      "state_law": "P44/P45 RK4 transition mean plus Gaussian process noise.",
+      "target_id": "predator_prey_additive_gaussian_rk4_closure",
+      "target_identity": "Tiny additive-Gaussian RK4 predator-prey closure with state (prey,predator).",
+      "target_nonclaims": [
+        "Closure likelihood is not paper-scale predator-prey validation."
+      ],
+      "transformation_jacobian_terms": "No observation transform; RK4 and positivity diagnostics must stay fixed."
+    },
+    {
+      "dimension_panel_convention": "Not authorized for comparison until a target-definition amendment passes review.",
+      "governing_sources": [
+        "docs/plans/bayesfilter-highdim-zhao-cui-p45-target-registry-2026-06-08.json"
+      ],
+      "model_family": "predator_prey",
+      "observation_law": "Unspecified native/non-Gaussian observation law.",
+      "parameter_vector": "Blocked pending native route definition.",
+      "parameterization": "Blocked pending scientific target definition.",
+      "state_law": "Unspecified native/non-Gaussian predator-prey transition.",
+      "target_id": "predator_prey_native_or_nongaussian_route",
+      "target_identity": "Native or non-Gaussian predator-prey route if later proposed.",
+      "target_nonclaims": [
+        "No native predator-prey likelihood correctness claim."
+      ],
+      "transformation_jacobian_terms": "Blocked pending native/non-Gaussian target definition."
+    }
+  ]
+}

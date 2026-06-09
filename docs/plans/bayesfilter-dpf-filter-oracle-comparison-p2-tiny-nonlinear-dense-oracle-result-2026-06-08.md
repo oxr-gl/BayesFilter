@@ -1,0 +1,1541 @@
+# P2 Result: Tiny Nonlinear Dense-Oracle Comparison
+
+metadata_date: 2026-06-08
+phase: P2
+status: PASS_P2_TINY_NONLINEAR_DENSE_ORACLE_READY_FOR_P3
+
+## Skeptical Plan Audit
+
+Status: `PASS_FOR_P2_DENSE_ORACLE_EVIDENCE_RECORDING_REVIEWED_READY_FOR_P3`.
+
+Wrong-baseline risk is controlled by using dense order-241 quadrature only after order-161 refinement passes; UKF, SVD/cubature, CUT4, and Zhao-Cui/fixed-design TT are not called ground truth.
+
+Proxy-promotion risk is controlled by treating finite values, point counts, and finite-difference checks as diagnostics. Dense refinement is the P2 oracle promotion criterion.
+
+Missing-stop-condition risk is controlled by explicit veto diagnostics for dense refinement failure, DPF execution in P2, non-P2 route execution, and non-oracle routes mislabeled as oracles.
+
+Unfair-comparison risk is controlled by deferring DPF stochastic rows to P5 because P0 marks DPF routes as p2=false and p5=true for this target.
+
+## Evidence Contract
+
+| Field | Contract |
+| --- | --- |
+| Question | For the P44-M2 tiny cubic additive-Gaussian target, do dense refinement and deterministic approximation routes provide same-target value and gradient evidence without promoting non-oracles or running DPF outside P0 eligibility? |
+| Baseline/comparator | dense order-241 fixed quadrature after order-161 refinement passes value and directional score tolerances |
+| Primary criterion | at least one dim has a promoted dense-oracle row; all dims record dense refinement and deterministic route gaps |
+| Veto diagnostics | Dense reference lacks refinement, DPF executed in P2, non-P2 route executed, UKF/SVD/CUT4 called oracle, nonfinite route, parameter mismatch, or single-step finite difference used as promotion. |
+| Not concluded | No DPF correctness, stochastic-resampling correctness, HMC readiness, production readiness, GPU claim, or paper-scale claim. |
+
+## Veto Diagnostics
+
+| Diagnostic | Status |
+| --- | --- |
+| `dense_reference_lacks_refinement_pass` | `False` |
+| `no_promoted_dense_oracle_row` | `False` |
+| `dpf_executed_or_p2_eligible` | `False` |
+| `non_p2_route_executed` | `False` |
+| `ukf_svd_cut4_called_oracle` | `False` |
+| `route_row_nonfinite` | `False` |
+| `dense_reference_nonfinite` | `False` |
+| `single_step_finite_difference_used_as_promotion` | `False` |
+| `directional_fd_diagnostic_large` | `False` |
+| `gradient_parameterization_mismatch` | `False` |
+
+## Dense Reference Summary
+
+| dim | value | value refinement gap | directional score refinement gap | promoted |
+| ---: | ---: | ---: | ---: | --- |
+| 1 | `-0.3905098233550901` | `6.217248937900877e-15` | `3.692153433352775e-15` | `promoted_dense_oracle_for_p2` |
+| 2 | `-0.9831604715607012` | `1.3322676295501878e-14` | `5.426713526167087e-15` | `promoted_dense_oracle_for_p2` |
+| 3 | `-1.5551587807784792` | `2.1538326677728037e-14` | `7.86124949083722e-15` | `promoted_dense_oracle_for_p2` |
+
+## Route Gap Summary
+
+| route | claim class | max abs value error | max directional score gap | max relative score error | interpretation |
+| --- | --- | ---: | ---: | ---: | --- |
+| `ukf` | `DIAGNOSTIC_ONLY` | `0.01354373616081661` | `0.19744859531069286` | `0.1127484564031184` | `ukf_diagnostic_only_not_oracle` |
+| `svd_sigma_point` | `DIAGNOSTIC_ONLY` | `0.013543727112987014` | `0.19744866605344374` | `0.1127484708706417` | `svd_sigma_point_diagnostic_only_not_oracle` |
+| `cut4` | `CERTIFIED_APPROXIMATION` | `0.010705509431428561` | `0.19438180479176714` | `0.10419343443749411` | `cut4_same_target_certified_approximation_not_oracle` |
+| `zhao_cui_fixed_design_tt` | `CERTIFIED_APPROXIMATION` | `0.0003496295403593308` | `0.0018185324574571116` | `0.0011150067551621914` | `zhao_cui_fixed_design_tt_same_target_certified_approximation_not_oracle` |
+
+## DPF Deferral
+
+- `dpf_bootstrap_ot`: deferred to P5 because P0 marks this target-route row `p2=false`, `p5=true`.
+- `dpf_ledh_pfpf_ot`: deferred to P5 because P0 marks this target-route row `p2=false`, `p5=true`.
+
+## Directional FD Diagnostics
+
+Finite differences are multi-step directional diagnostics only; they are not the promotion gate.
+
+| dim | max AD-vs-FD error | max step spread |
+| ---: | ---: | ---: |
+| 1 | `6.867601889948283e-09` | `6.440403765850533e-09` |
+| 2 | `1.2157553852532033e-08` | `1.1403100685924983e-08` |
+| 3 | `1.68767388952773e-08` | `1.582733943905623e-08` |
+
+## Decision Table
+
+| Decision | Primary criterion status | Veto diagnostic status | Main uncertainty | Next justified action | Not concluded |
+| --- | --- | --- | --- | --- | --- |
+| `PASS_P2_TINY_NONLINEAR_DENSE_ORACLE_READY_FOR_P3` | dense reference promoted for dims `[1, 2, 3]` | `{'dense_reference_lacks_refinement_pass': False, 'no_promoted_dense_oracle_row': False, 'dpf_executed_or_p2_eligible': False, 'non_p2_route_executed': False, 'ukf_svd_cut4_called_oracle': False, 'route_row_nonfinite': False, 'dense_reference_nonfinite': False, 'single_step_finite_difference_used_as_promotion': False, 'directional_fd_diagnostic_large': False, 'gradient_parameterization_mismatch': False}` | deterministic approximation errors are target/local only | start P3 conditional Gaussian mixture precheck | no DPF, HMC, production, GPU, or paper-scale claim |
+
+## Claude Review Gate
+
+Iteration 1 returned `VERDICT: REVISE`; Codex accepted the material
+same-target blocker: the dense scalar route and structural sigma-point routes
+used different initial-state parameterizations.
+
+Repair: the structural model now uses the same predictive initial law as the
+dense scalar route, and the artifact records per-dim `initial_law_alignment`.
+Validation rejects any dense/structural initial-law mismatch and derives
+`gradient_parameterization_mismatch` from the recorded alignment.
+
+Iteration 2 returned `VERDICT: AGREE`. Claude found the same-target repair
+resolved and found no remaining material P2 blocker for dense-oracle misuse,
+non-oracle route overclaim, DPF deferral, dense refinement, value/gradient gaps,
+environment recording, missing artifacts, or validator blind spots.
+
+Non-blocking review note: `single_step_finite_difference_used_as_promotion` is
+still hard-coded `False`; this is hardening debt, not a P2 blocker, because the
+promotion path is dense refinement plus multi-step directional
+finite-difference checks.
+
+## Post-Run Red-Team Note
+
+Strongest alternative explanation: the selected P44-M2 fixture is a tiny, factorized scalar panel, so the dense-oracle pass may not generalize to harder nonlinear closures.
+
+Result that would overturn the P2 pass: a reviewed rerun finds dense refinement failure, parameterization drift, or a route table that allows DPF execution in P2.
+
+Weakest part of the evidence: UKF/SVD/CUT4 are diagnostic or certified approximation rows only; their gap size does not establish DPF correctness.
+
+## Run Manifest
+
+- command: `CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp python -m experiments.dpf_implementation.tf_tfp.runners.run_filter_oracle_comparison_p2_tiny_nonlinear_dense_oracle_tf`
+- git branch: `main`
+- git commit: `137f6ba5a03ebab199c8ab4699354d50bd560123`
+- dirty state summary: `M docs/chapters/ch34_highdim_gaussian_and_sparse_quadrature.tex
+ A docs/plans/bayesfilter-highdim-zhao-cui-p47-generalized-sv-equality-target-manifest-2026-06-08.json
+ A docs/plans/bayesfilter-highdim-zhao-cui-p47-paper-scale-readiness-manifest-2026-06-08.json
+ A docs/plans/bayesfilter-highdim-zhao-cui-p47-phase2-paper-scale-filtering-claude-review-ledger-2026-06-08.md
+ A docs/plans/bayesfilter-highdim-zhao-cui-p47-phase2-paper-scale-filtering-result-2026-06-08.md
+ A docs/plans/bayesfilter-highdim-zhao-cui-p47-phase3-generalized-sv-equality-claude-review-ledger-2026-06-08.md
+ A docs/plans/bayesfilter-highdim-zhao-cui-p47-phase3-generalized-sv-equality-result-2026-06-08.md
+ A docs/plans/bayesfilter-highdim-zhao-cui-p47-phase4-spatial-sir-filtering-claude-review-ledger-2026-06-08.md
+ A docs/plans/bayesfilter-highdim-zhao-cui-p47-phase4-spatial-sir-filtering-result-2026-06-08.md
+ A docs/plans/bayesfilter-highdim-zhao-cui-p47-spatial-sir-filtering-target-manifest-2026-06-08.json
+ M docs/plans/bayesfilter-student-dpf-baseline-master-program-2026-05-10.md
+ M docs/plans/bayesfilter-student-dpf-baseline-reset-memo-2026-05-09.md
+ M docs/references.bib
+ M experiments/controlled_dpf_baseline/README.md
+ M experiments/student_dpf_baselines/reports/outputs/student_baseline_panel_2026-05-10.json
+ A tests/highdim/test_p47_generalized_sv_equality.py
+ A tests/highdim/test_p47_paper_scale_readiness.py
+ A tests/highdim/test_p47_spatial_sir_filtering.py
+?? .cache/
+?? .claude/
+?? .local_sources/
+?? .localenv/
+?? .localsource/
+?? AGENTS.md
+?? CLAUDE.md
+?? bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-fixed-sgqf-implementation-ready-companion-note-2026-06-06.pdf
+?? bayesfilter/highdim/
+?? docs/plans/bayesfilter-dpf-1d-filterflow-agreement-governance-plan-2026-06-02.md
+?? docs/plans/bayesfilter-dpf-1d-filterflow-agreement-governance-result-2026-06-02.md
+?? docs/plans/bayesfilter-dpf-1d-lgssm-horizon-ladder-plan-2026-06-01.md
+?? docs/plans/bayesfilter-dpf-1d-lgssm-horizon-ladder-result-2026-06-01.md
+?? docs/plans/bayesfilter-dpf-1d-lgssm-step-gradient-comparison-plan-2026-06-01.md
+?? docs/plans/bayesfilter-dpf-1d-lgssm-step-gradient-comparison-result-2026-06-01.md
+?? docs/plans/bayesfilter-dpf-1d-lgssm-step-gradient-comparison-review-loop-2026-06-01.md
+?? docs/plans/bayesfilter-dpf-1d-lgssm-t4-residual-solver-ladder-plan-2026-06-06.md
+?? docs/plans/bayesfilter-dpf-1d-lgssm-t4-residual-solver-ladder-result-2026-06-06.md
+?? docs/plans/bayesfilter-dpf-1d-to-smoothness-filterflow-agreement-ladder-plan-2026-06-02.md
+?? docs/plans/bayesfilter-dpf-1d-to-smoothness-filterflow-agreement-ladder-result-2026-06-02.md
+?? docs/plans/bayesfilter-dpf-1d-to-smoothness-filterflow-agreement-ladder-review-loop-2026-06-02.md
+?? docs/plans/bayesfilter-dpf-1d-to-smoothness-lgssm-continuation-ladder-plan-2026-06-02.md
+?? docs/plans/bayesfilter-dpf-1d-to-smoothness-lgssm-continuation-ladder-result-2026-06-02.md
+?? docs/plans/bayesfilter-dpf-1d-to-smoothness-lgssm-continuation-ladder-review-loop-2026-06-02.md
+?? docs/plans/bayesfilter-dpf-annealed-transport-reference-alignment-plan-2026-05-31.md
+?? docs/plans/bayesfilter-dpf-annealed-transport-reference-alignment-result-2026-05-31.md
+?? docs/plans/bayesfilter-dpf-annealed-transport-reference-alignment-review-loop-2026-05-31.md
+?? docs/plans/bayesfilter-dpf-annealed-transport-remaining-gaps-closure-plan-2026-06-01.md
+?? docs/plans/bayesfilter-dpf-annealed-transport-remaining-gaps-closure-result-2026-06-01.md
+?? docs/plans/bayesfilter-dpf-annealed-transport-remaining-gaps-closure-review-loop-2026-06-01.md
+?? docs/plans/bayesfilter-dpf-common-filter-path-fixed-resampling-plan-2026-06-06.md
+?? docs/plans/bayesfilter-dpf-common-filter-path-fixed-resampling-result-2026-06-06.md
+?? docs/plans/bayesfilter-dpf-common-filter-path-noresampling-claude-review-ledger-2026-06-06.md
+?? docs/plans/bayesfilter-dpf-common-filter-path-noresampling-plan-2026-06-06.md
+?? docs/plans/bayesfilter-dpf-common-filter-path-noresampling-result-2026-06-06.md
+?? docs/plans/bayesfilter-dpf-common-fixed-branch-gradient-plan-2026-06-06.md
+?? docs/plans/bayesfilter-dpf-common-fixed-branch-gradient-result-2026-06-06.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-implementation-plan-2026-06-06.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-implementation-result-2026-06-06.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-production-claude-review-ledger-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-production-master-plan-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-production-overnight-gated-execution-claude-review-ledger-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-production-overnight-gated-execution-plan-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-production-overnight-gated-execution-result-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-production-p0-governance-result-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-production-p0-governance-subplan-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-production-p1-artifact-adequacy-repair-amendment-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-production-p1-claude-review-ledger-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-production-p1-declarative-spec-result-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-production-p1-declarative-spec-subplan-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-production-p2-claude-review-ledger-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-production-p2-density-tieout-result-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-production-p2-density-tieout-subplan-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-production-p2-filterflow-status-repair-amendment-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-production-p3-claude-review-ledger-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-production-p3-noresampling-paths-result-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-production-p3-noresampling-paths-subplan-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-production-p4-claude-review-ledger-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-production-p4-fixed-ancestor-paths-result-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-production-p4-fixed-ancestor-paths-subplan-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-production-p5-claude-review-ledger-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-production-p5-disconnected-zero-gradient-repair-amendment-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-production-p5-fd-diagnostic-only-contract-amendment-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-production-p5-fixed-branch-gradients-result-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-production-p5-fixed-branch-gradients-subplan-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-production-p5-range-bearing-fd-veto-repair-amendment-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-production-p5-range-bearing-scale-aware-fd-diagnostic-amendment-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-production-p6-claude-review-ledger-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-production-p6-retirement-import-absorption-repair-amendment-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-production-p6-retirement-regression-result-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-production-p6-retirement-regression-subplan-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-production-p7-claude-review-ledger-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-production-p7-terminal-student-planning-result-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-production-p7-terminal-student-planning-subplan-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-student-repetition-execution-claude-review-ledger-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-student-repetition-execution-plan-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-student-repetition-execution-result-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-student-repetition-followup-plan-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-common-model-suite-v2-student-repetition-preflight-metadata-repair-amendment-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-cross-implementation-common-sense-tieout-claude-review-ledger-2026-06-06.md
+?? docs/plans/bayesfilter-dpf-cross-implementation-common-sense-tieout-gated-self-recovery-closeout-result-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-cross-implementation-common-sense-tieout-gated-self-recovery-execution-claude-review-ledger-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-cross-implementation-common-sense-tieout-gated-self-recovery-execution-plan-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-cross-implementation-common-sense-tieout-master-program-claude-review-ledger-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-cross-implementation-common-sense-tieout-p0-governance-claude-review-ledger-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-cross-implementation-common-sense-tieout-p0-governance-result-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-cross-implementation-common-sense-tieout-p0-governance-subplan-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-cross-implementation-common-sense-tieout-p1-common-model-contracts-claude-review-ledger-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-cross-implementation-common-sense-tieout-p1-common-model-contracts-result-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-cross-implementation-common-sense-tieout-p1-common-model-contracts-subplan-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-cross-implementation-common-sense-tieout-p2-value-paths-claude-review-ledger-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-cross-implementation-common-sense-tieout-p2-value-paths-result-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-cross-implementation-common-sense-tieout-p2-value-paths-subplan-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-cross-implementation-common-sense-tieout-p3-fixed-resampling-claude-review-ledger-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-cross-implementation-common-sense-tieout-p3-fixed-resampling-result-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-cross-implementation-common-sense-tieout-p3-fixed-resampling-subplan-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-cross-implementation-common-sense-tieout-p4-fixed-branch-gradients-claude-review-ledger-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-cross-implementation-common-sense-tieout-p4-fixed-branch-gradients-result-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-cross-implementation-common-sense-tieout-p4-fixed-branch-gradients-subplan-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-cross-implementation-common-sense-tieout-p5-remaining-bf-ff-coverage-claude-review-ledger-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-cross-implementation-common-sense-tieout-p5-remaining-bf-ff-coverage-result-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-cross-implementation-common-sense-tieout-p5-remaining-bf-ff-coverage-subplan-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-cross-implementation-common-sense-tieout-p6-terminal-student-repetition-claude-review-ledger-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-cross-implementation-common-sense-tieout-p6-terminal-student-repetition-result-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-cross-implementation-common-sense-tieout-p6-terminal-student-repetition-subplan-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-cross-implementation-common-sense-tieout-plan-2026-06-06.md
+?? docs/plans/bayesfilter-dpf-cross-implementation-common-sense-tieout-result-2026-06-06.md
+?? docs/plans/bayesfilter-dpf-exact-arithmetic-continuation-debug-plan-2026-06-02.md
+?? docs/plans/bayesfilter-dpf-exact-arithmetic-continuation-debug-result-2026-06-02.md
+?? docs/plans/bayesfilter-dpf-filter-oracle-comparison-claude-review-ledger-2026-06-08.md
+?? docs/plans/bayesfilter-dpf-filter-oracle-comparison-master-program-2026-06-08.md
+?? docs/plans/bayesfilter-dpf-filter-oracle-comparison-p0-claude-review-ledger-2026-06-08.md
+?? docs/plans/bayesfilter-dpf-filter-oracle-comparison-p0-target-route-registry-result-2026-06-08.md
+?? docs/plans/bayesfilter-dpf-filter-oracle-comparison-p0-target-route-registry-subplan-2026-06-08.md
+?? docs/plans/bayesfilter-dpf-filter-oracle-comparison-p1-claude-review-ledger-2026-06-08.md
+?? docs/plans/bayesfilter-dpf-filter-oracle-comparison-p1-lgssm-exact-oracle-result-2026-06-08.md
+?? docs/plans/bayesfilter-dpf-filter-oracle-comparison-p1-lgssm-exact-oracle-subplan-2026-06-08.md
+?? docs/plans/bayesfilter-dpf-filter-oracle-comparison-p2-claude-review-ledger-2026-06-08.md
+?? docs/plans/bayesfilter-dpf-filter-oracle-comparison-p2-tiny-nonlinear-dense-oracle-result-2026-06-08.md
+?? docs/plans/bayesfilter-dpf-filter-oracle-comparison-p2-tiny-nonlinear-dense-oracle-subplan-2026-06-08.md
+?? docs/plans/bayesfilter-dpf-filter-oracle-comparison-p3-conditional-gaussian-mixture-subplan-2026-06-08.md
+?? docs/plans/bayesfilter-dpf-filter-oracle-comparison-p4-zhaocui-tt-route-classification-subplan-2026-06-08.md
+?? docs/plans/bayesfilter-dpf-filter-oracle-comparison-p5-dpf-statistical-closeness-subplan-2026-06-08.md
+?? docs/plans/bayesfilter-dpf-filter-oracle-comparison-p6-cross-filter-error-calibration-subplan-2026-06-08.md
+?? docs/plans/bayesfilter-dpf-filter-oracle-comparison-p7-integration-closeout-subplan-2026-06-08.md
+?? docs/plans/bayesfilter-dpf-filter-oracle-comparison-target-route-registry-2026-06-08.json
+?? docs/plans/bayesfilter-dpf-filter-oracle-comparison-visible-execution-ledger-2026-06-08.md
+?? docs/plans/bayesfilter-dpf-filter-oracle-comparison-visible-gated-execution-runbook-2026-06-08.md
+?? docs/plans/bayesfilter-dpf-filterflow-final-gaps-closure-plan-2026-05-30.md
+?? docs/plans/bayesfilter-dpf-filterflow-final-gaps-closure-result-2026-05-30.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-branch-reference-plan-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-branch-reference-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-continuation-debug-plan-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-continuation-debug-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-custom-transport-gradient-plan-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-custom-transport-gradient-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-full-2d-no-replay-plan-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-full-2d-no-replay-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-full-surface-window-coverage-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-optimal-proposal-dtype-fix-plan-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-optimal-proposal-dtype-fix-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-post-r3-continuation-plan-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-post-r3-continuation-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-reference-probe-plan-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-reference-probe-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-adjacent-boundary-plan-2026-06-04.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-adjacent-boundary-result-2026-06-04.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-adjacent-boundary-review-loop-2026-06-04.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-bayesfilter-carryover-split-plan-2026-06-05.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-bayesfilter-carryover-split-result-2026-06-05.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-bayesfilter-carryover-split-review-loop-2026-06-05.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-direct-theta-hypothesis-plan-2026-06-04.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-direct-theta-hypothesis-result-2026-06-04.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-direct-theta-hypothesis-review-loop-2026-06-04.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-downstream-adjoint-route-plan-2026-06-05.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-downstream-adjoint-route-result-2026-06-05.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-downstream-adjoint-route-review-loop-2026-06-05.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-filterflow-unit-upstream-log-weight-plan-2026-06-06.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-filterflow-unit-upstream-log-weight-result-2026-06-06.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-filterflow-unit-upstream-log-weight-review-loop-2026-06-06.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-full-matrix-gradient-parameterization-plan-2026-06-04.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-full-matrix-gradient-parameterization-result-2026-06-04.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-full-path-gradient-scan-plan-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-full-path-gradient-scan-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-gradient-debug-summary-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-gradient-localization-plan-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-gradient-localization-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-historical-transport-vjp-plan-2026-06-04.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-historical-transport-vjp-result-2026-06-04.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-historical-transport-vjp-review-loop-2026-06-04.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-log-weight-edge-factorization-plan-2026-06-05.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-log-weight-edge-factorization-result-2026-06-05.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-log-weight-edge-factorization-review-loop-2026-06-05.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-official-proposal-topology-plan-2026-06-05.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-official-proposal-topology-result-2026-06-05.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-official-proposal-topology-review-loop-2026-06-05.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-post-update-route-hypotheses-plan-2026-06-04.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-post-update-route-hypotheses-result-2026-06-04.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-post-update-route-hypotheses-review-loop-2026-06-04.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-previous-log-weight-jacobian-localization-plan-2026-06-06.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-previous-log-weight-jacobian-localization-result-2026-06-06.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-previous-log-weight-jacobian-localization-review-loop-2026-06-06.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-proposal-adjoint-topology-plan-2026-06-05.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-proposal-adjoint-topology-result-2026-06-05.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-proposal-adjoint-topology-review-loop-2026-06-05.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-proposal-boundary-gradient-localization-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-proposal-likelihood-wiring-plan-2026-06-05.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-proposal-likelihood-wiring-result-2026-06-05.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-proposal-likelihood-wiring-review-loop-2026-06-05.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-scalar-additivity-route-plan-2026-06-04.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-scalar-additivity-route-result-2026-06-04.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-state-update-identity-route-plan-2026-06-05.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-state-update-identity-route-result-2026-06-05.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-state-update-identity-route-review-loop-2026-06-05.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-time-92-vjp-decomposition-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-time-93-transport-jacobian-probe-plan-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-time-93-transport-jacobian-probe-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-time-93-vjp-decomposition-plan-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-time-93-vjp-decomposition-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-time-94-vjp-decomposition-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-transport-upstream-clipping-plan-2026-06-04.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-transport-upstream-clipping-result-2026-06-04.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-transport-upstream-clipping-review-loop-2026-06-04.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-transport-upstream-source-plan-2026-06-04.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-transport-upstream-source-result-2026-06-04.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-transport-upstream-source-review-loop-2026-06-04.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-vjp-decomposition-plan-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-vjp-decomposition-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-244-gradient-localization-plan-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-244-gradient-localization-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-row-gradient-discrepancy-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-plan-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-0-19-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-100-119-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-120-139-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-140-159-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-160-179-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-180-199-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-20-39-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-200-219-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-220-239-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-240-259-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-260-279-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-280-299-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-300-319-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-320-339-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-340-359-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-360-379-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-380-399-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-40-59-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-60-79-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-80-99-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-localization-plan-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-localization-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-surface-plan-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-surface-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-scalar-surface-plan-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-scalar-surface-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-full-comparison-plan-2026-05-31.md
+?? docs/plans/bayesfilter-dpf-filterflow-full-comparison-result-2026-05-31.md
+?? docs/plans/bayesfilter-dpf-filterflow-gap-closure-plan-2026-05-30.md
+?? docs/plans/bayesfilter-dpf-filterflow-gap-closure-program-plan-2026-05-31.md
+?? docs/plans/bayesfilter-dpf-filterflow-gap-closure-program-result-2026-05-31.md
+?? docs/plans/bayesfilter-dpf-filterflow-gap-closure-result-2026-05-30.md
+?? docs/plans/bayesfilter-dpf-filterflow-legacy-env-reproduction-plan-2026-05-30.md
+?? docs/plans/bayesfilter-dpf-filterflow-legacy-env-reproduction-result-2026-05-30.md
+?? docs/plans/bayesfilter-dpf-filterflow-lgssm-cross-implementation-audit-plan-2026-05-30.md
+?? docs/plans/bayesfilter-dpf-filterflow-lgssm-cross-implementation-audit-result-2026-05-30.md
+?? docs/plans/bayesfilter-dpf-filterflow-lgssm-matched-cross-audit-plan-2026-05-30.md
+?? docs/plans/bayesfilter-dpf-filterflow-lgssm-matched-cross-audit-result-2026-05-30.md
+?? docs/plans/bayesfilter-dpf-filterflow-py311-compat-plan-2026-05-30.md
+?? docs/plans/bayesfilter-dpf-filterflow-py311-compat-result-2026-05-30.md
+?? docs/plans/bayesfilter-dpf-filterflow-r3-float64-trace-replay-plan-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-r3-float64-trace-replay-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-r3-proposal-trace-replay-plan-2026-06-02.md
+?? docs/plans/bayesfilter-dpf-filterflow-r3-proposal-trace-replay-result-2026-06-02.md
+?? docs/plans/bayesfilter-dpf-filterflow-r3-transport-internals-audit-plan-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-r3-transport-internals-audit-result-2026-06-03.md
+?? docs/plans/bayesfilter-dpf-filterflow-transport-component-audit-plan-2026-05-30.md
+?? docs/plans/bayesfilter-dpf-filterflow-transport-component-audit-result-2026-05-30.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf0-citation-coverage-register-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf0-claim-extraction-plan-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf0-claim-ledger-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf0-implementation-obligations-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf0-result-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf0a-doc-patch-register-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf0a-student-doc-crosswalk-ledger-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf0a-student-doc-crosswalk-plan-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf0a-student-doc-crosswalk-result-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf1-classical-pf-baseline-plan-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf1-classical-pf-spec-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf1-reference-test-contract-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf1-result-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf1-student-comparison-context-register-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf2-bias-proxy-ledger-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf2-component-spec-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf2-deferred-neural-path-register-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf2-differentiable-resampling-plan-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf2-resampling-test-contract-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf2-result-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf3-excluded-flow-risk-register-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf3-flow-pfpf-spec-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf3-kernel-pff-exclusion-check-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf3-particle-flow-pfpf-plan-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf3-result-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf4-differentiable-objective-gradient-contract-plan-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf4-downstream-evidence-requirements-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf4-gradient-contract-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf4-objective-classification-ledger-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf4-result-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf5-benchmark-ladder-matrix-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf5-cpu-gpu-runtime-policy-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf5-result-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf5-seed-uncertainty-policy-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf5-validation-harness-benchmark-ladder-plan-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf5-validation-harness-spec-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf6-production-boundary-api-review-plan-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf6-production-boundary-decision-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf6-result-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-dpf7-final-audit-implementation-handoff-plan-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-final-audit-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-handoff-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-master-program-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-implementation-sv-test-plan-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-master-program-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p0-scope-default-architecture-plan-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p0-scope-default-architecture-result-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p1-ledh-math-contract-plan-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p1-ledh-math-contract-result-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p10-final-audit-handoff-plan-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p10-final-audit-handoff-result-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p2-affine-lgssm-edh-parity-plan-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p2-affine-lgssm-edh-parity-result-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p3-nonlinear-local-linearization-plan-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p3-nonlinear-local-linearization-result-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p4-pfpf-correction-logdet-plan-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p4-pfpf-correction-logdet-result-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p5-tf-tfp-ledh-flow-implementation-plan-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p5-tf-tfp-ledh-flow-implementation-result-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p6-integrated-ledh-pfpf-ot-runner-plan-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p6-integrated-ledh-pfpf-ot-runner-result-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p7-gradient-tape-contract-plan-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p7-gradient-tape-contract-result-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p8-lgssm-validation-plan-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p8-lgssm-validation-result-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p9-range-bearing-validation-plan-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p9-range-bearing-validation-result-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-lgssm-paper-table-gated-comparator-plan-2026-06-06.md
+?? docs/plans/bayesfilter-dpf-lgssm-paper-table-gated-comparator-result-2026-06-06.md
+?? docs/plans/bayesfilter-dpf-lgssm-paper-table-smoke-residual-localization-plan-2026-06-06.md
+?? docs/plans/bayesfilter-dpf-lgssm-paper-table-smoke-residual-localization-result-2026-06-06.md
+?? docs/plans/bayesfilter-dpf-lgssm-student-filterflow-value-gradient-tieout-claude-review-ledger-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-lgssm-student-filterflow-value-gradient-tieout-diagnostic-parameter-filter-repair-amendment-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-lgssm-student-filterflow-value-gradient-tieout-plan-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-lgssm-student-filterflow-value-gradient-tieout-result-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-nonlgssm-cross-implementation-matching-claude-review-ledger-2026-06-06.md
+?? docs/plans/bayesfilter-dpf-nonlgssm-cross-implementation-matching-plan-2026-06-06.md
+?? docs/plans/bayesfilter-dpf-nonlgssm-cross-implementation-matching-result-2026-06-06.md
+?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-ladder-master-program-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p0-scope-and-estimation-criteria-plan-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p0-scope-and-estimation-criteria-result-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p1-lgssm-multiseed-regression-plan-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p1-lgssm-multiseed-regression-result-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p2-range-bearing-stress-plan-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p2-range-bearing-stress-result-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p3-cut4-differentiable-comparator-plan-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p3-cut4-differentiable-comparator-result-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p4-stochastic-volatility-gradient-mle-plan-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p4-stochastic-volatility-gradient-mle-result-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p5-structural-ar1-quadratic-completion-plan-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p5-structural-ar1-quadratic-completion-result-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p6-particle-count-seed-ladder-plan-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p6-particle-count-seed-ladder-result-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p7-final-audit-handoff-plan-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p7-final-audit-handoff-result-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-ot-backend-governance-correction-plan-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-backend-governance-correction-result-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-implementation-master-program-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-implementation-p0-scope-and-contract-plan-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-implementation-p0-scope-and-contract-result-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-implementation-p1-lgssm-fixture-and-kalman-reference-plan-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-implementation-p1-lgssm-fixture-and-kalman-reference-result-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-implementation-p2-range-bearing-ukf-reference-plan-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-implementation-p2-range-bearing-ukf-reference-result-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-implementation-p3-finite-sinkhorn-resampler-plan-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-implementation-p3-finite-sinkhorn-resampler-result-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-implementation-p4-integrated-dpf-runner-plan-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-implementation-p4-integrated-dpf-runner-result-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-implementation-p5-gradient-contract-and-finite-difference-plan-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-implementation-p5-gradient-contract-and-finite-difference-result-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-implementation-p6-lgssm-validation-result-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-implementation-p6-lgssm-validation-result-plan-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-implementation-p7-range-bearing-validation-result-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-implementation-p7-range-bearing-validation-result-plan-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-implementation-p8-final-audit-and-handoff-plan-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-implementation-p8-final-audit-and-handoff-result-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-resampling-math-source-audit-plan-2026-05-30.md
+?? docs/plans/bayesfilter-dpf-ot-resampling-math-source-audit-result-2026-05-30.md
+?? docs/plans/bayesfilter-dpf-ot-tf-tfp-master-program-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p0-scope-import-gate-plan-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p0-scope-import-gate-result-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p1-lgssm-fixture-kalman-plan-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p1-lgssm-fixture-kalman-result-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p2-range-bearing-ukf-plan-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p2-range-bearing-ukf-result-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p3-sinkhorn-resampler-plan-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p3-sinkhorn-resampler-result-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p4-integrated-dpf-runner-plan-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p4-integrated-dpf-runner-result-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p5-gradient-tape-contract-plan-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p5-gradient-tape-contract-result-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p6-lgssm-validation-plan-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p6-lgssm-validation-result-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p7-range-bearing-validation-plan-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p7-range-bearing-validation-result-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p8-final-audit-handoff-plan-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p8-final-audit-handoff-result-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-ot-tf-tfp-rewrite-plan-2026-05-28.md
+?? docs/plans/bayesfilter-dpf-r1-filterflow-exact-arithmetic-plan-2026-06-02.md
+?? docs/plans/bayesfilter-dpf-r1-filterflow-exact-arithmetic-result-2026-06-02.md
+?? docs/plans/bayesfilter-dpf-r1-observation-path-mismatch-hypothesis-plan-2026-06-02.md
+?? docs/plans/bayesfilter-dpf-r1-observation-path-mismatch-hypothesis-result-2026-06-02.md
+?? docs/plans/bayesfilter-dpf-r1-observation-path-mismatch-hypothesis-review-loop-2026-06-02.md
+?? docs/plans/bayesfilter-dpf-r1-time3-observation-logprob-audit-plan-2026-06-02.md
+?? docs/plans/bayesfilter-dpf-r1-time3-observation-logprob-audit-result-2026-06-02.md
+?? docs/plans/bayesfilter-dpf-structural-ar1-linear-mle-test-plan-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-structural-ar1-linear-mle-test-result-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-structural-ssm-interface-plan-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-structural-ssm-interface-result-2026-05-29.md
+?? docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-claude-review-ledger-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-closeout-result-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-live-gated-execution-claude-review-ledger-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-live-gated-execution-human-risk-acceptance-amendment-2026-06-08.md
+?? docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-live-gated-execution-launch-compatibility-amendment-2026-06-08.md
+?? docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-live-gated-execution-plan-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-master-program-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p0-governance-result-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p0-governance-subplan-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p0-governance-visible-result-2026-06-08.md
+?? docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p1-architecture-result-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p1-architecture-subplan-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p2-bootstrap-ot-contracts-result-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p2-bootstrap-ot-contracts-subplan-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p3-bootstrap-ot-values-result-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p3-bootstrap-ot-values-subplan-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p4-bootstrap-ot-gradients-result-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p4-bootstrap-ot-gradients-subplan-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p4-claude-review-ledger-2026-06-08.md
+?? docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p4-inactive-zero-gradient-repair-amendment-2026-06-08.md
+?? docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p5-claude-review-ledger-2026-06-08.md
+?? docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p5-ledh-pfpf-ot-contracts-result-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p5-ledh-pfpf-ot-contracts-subplan-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p6-claude-review-ledger-2026-06-08.md
+?? docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p6-ledh-pfpf-ot-values-result-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p6-ledh-pfpf-ot-values-subplan-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p7-claude-review-ledger-2026-06-08.md
+?? docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p7-ledh-pfpf-ot-gradients-result-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p7-ledh-pfpf-ot-gradients-subplan-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p8-claude-review-ledger-2026-06-08.md
+?? docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p8-closeout-subplan-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-reset-memo-2026-06-07.md
+?? docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-visible-execution-ledger-2026-06-08.md
+?? docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-visible-gated-execution-runbook-2026-06-08.md
+?? docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-visible-stop-handoff-2026-06-08.md
+?? docs/plans/bayesfilter-fixedsgqf-companion-note-approval-revision-plan-2026-06-06.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p34-zhao-cui-reference-implementation-audit-result-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase-subplans-claude-review-ledger-2026-06-04.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase0-design-contract-claude-review-ledger-2026-06-04.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase0-design-contract-result-2026-06-04.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase0-design-contract-subplan-2026-06-04.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase1-basis-tt-algebra-claude-review-ledger-2026-06-04.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase1-basis-tt-algebra-result-2026-06-04.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase1-basis-tt-algebra-subplan-2026-06-04.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase2-squared-density-transport-claude-review-ledger-2026-06-04.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase2-squared-density-transport-result-2026-06-04.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase2-squared-density-transport-subplan-2026-06-04.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase3-fixed-branch-fitting-claude-review-ledger-2026-06-04.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase3-fixed-branch-fitting-result-2026-06-04.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase3-fixed-branch-fitting-subplan-2026-06-04.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase4-filtering-value-path-claude-review-ledger-2026-06-04.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase4-filtering-value-path-result-2026-06-04.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase4-filtering-value-path-subplan-2026-06-04.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase5-fixed-branch-derivatives-claude-review-ledger-2026-06-04.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase5-fixed-branch-derivatives-result-2026-06-04.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase5-fixed-branch-derivatives-subplan-2026-06-04.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase6-stress-performance-claude-review-ledger-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase6-stress-performance-result-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase6-stress-performance-subplan-2026-06-04.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase7-public-api-decision-claude-review-ledger-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase7-public-api-decision-result-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase7-public-api-decision-subplan-2026-06-04.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-zhao-cui-production-implementation-claude-review-ledger-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-zhao-cui-production-implementation-plan-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p36-phase-specific-hardened-addenda-claude-review-ledger-2026-06-04.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p36-phase-specific-hardened-implementation-addenda-2026-06-04.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p36-subplan-hardening-claude-review-ledger-2026-06-04.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p36-subplan-hardening-plan-2026-06-04.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-claude-review-ledger-2026-05-30.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-code-audit-ledger-2026-05-30.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-code-audit-promotion-plan-2026-05-30.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-filtering-scalar-ledger-2026-05-30.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-gradient-feasibility-ledger-2026-05-30.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-mathdevmcp-ledger-2026-05-30.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-octave-compatibility-plan-2026-05-30.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-octave-compatibility-result-2026-05-30.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-paper-code-crosswalk-ledger-2026-05-30.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-reproducibility-ledger-2026-05-30.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p11-zhao-cui-tt-analytical-derivative-note-2026-05-30.pdf
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p11-zhao-cui-tt-analytical-derivative-note-2026-05-30.tex
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p11-zhao-cui-tt-analytical-derivative-plan-2026-05-30.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p11-zhao-cui-tt-analytical-derivative-result-2026-05-30.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p11-zhao-cui-tt-claude-review-ledger-2026-05-30.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p11-zhao-cui-tt-derivation-ledger-2026-05-30.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p11-zhao-cui-tt-mathdevmcp-ledger-2026-05-30.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-claim-support-ledger-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-claude-review-ledger-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-coverage-and-omission-ledger-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-mathdevmcp-ledger-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-proposition-proof-ledger-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-self-contained-proof-expansion-ledger-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-self-contained-proof-expansion-note-2026-05-31.pdf
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-self-contained-proof-expansion-note-2026-05-31.tex
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-self-contained-proof-expansion-plan-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-self-contained-proof-expansion-result-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-source-anchor-ledger-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-source-support-ledger-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-claude-review-ledger-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-discrepancy-report-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-human-readable-ledger-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-human-readable-note-2026-05-31.pdf
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-human-readable-note-2026-05-31.tex
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-human-readable-plan-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-human-readable-result-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-mathdevmcp-ledger-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-proposition-humanization-ledger-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-reader-comprehension-ledger-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-source-support-ledger-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-claude-review-ledger-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-discrepancy-report-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-gradient-teaching-ledger-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-mathdevmcp-ledger-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-pedagogical-math-ledger-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-pedagogical-math-note-2026-05-31.pdf
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-pedagogical-math-note-2026-05-31.tex
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-pedagogical-math-plan-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-pedagogical-math-result-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-reader-panel-ledger-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-source-support-ledger-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-algorithm-choices-ledger-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-backward-snowball-ledger-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-citation-venue-metadata-ledger-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-claim-support-ledger-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-claude-review-ledger-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-discrepancy-report-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-fixed-branch-minimal-example-2026-05-31.py
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-forward-snowball-ledger-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-gradient-derivation-ledger-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-implementable-fixed-branch-spec-ledger-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-implementable-fixed-branch-spec-note-2026-05-31.pdf
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-implementable-fixed-branch-spec-note-2026-05-31.tex
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-implementable-fixed-branch-spec-plan-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-implementable-fixed-branch-spec-result-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-mathdevmcp-ledger-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-omitted-paper-risk-ledger-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-reference-example-ledger-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-source-support-ledger-2026-05-31.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-annotated-reconstruction-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-annotated-reconstruction-note-2026-06-01.pdf
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-annotated-reconstruction-note-2026-06-01.tex
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-annotated-reconstruction-plan-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-annotated-reconstruction-result-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-backward-snowball-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-bayesfilter-translation-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-citation-venue-metadata-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-claim-support-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-claude-review-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-code-crosswalk-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-discrepancy-report-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-equation-by-equation-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-fixed-branch-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-forward-snowball-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-gradient-derivation-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-mathdevmcp-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-omitted-paper-risk-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-source-support-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-claude-review-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-discrepancy-report-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-fixed-branch-derivative-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-full-annotated-reconstruction-note-2026-06-01.pdf
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-full-annotated-reconstruction-note-2026-06-01.tex
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-full-equation-inventory-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-full-equation-reconstruction-plan-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-full-equation-reconstruction-result-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-mathdevmcp-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-section1-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-section2-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-section3-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-section5-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-source-support-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-backward-snowball-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-citation-venue-metadata-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-claim-support-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-claude-review-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-discrepancy-report-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-eight-issue-control-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-equation-count-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-fixed-branch-gradient-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-forward-snowball-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-omitted-paper-risk-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-section1-source-unit-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-section2-source-unit-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-section3-source-unit-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-section5-source-unit-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-source-support-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-true-annotated-companion-note-2026-06-01.pdf
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-true-annotated-companion-note-2026-06-01.tex
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-true-annotation-inventory-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-true-annotation-plan-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-true-annotation-result-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p19-zhao-cui-chair-readable-gradient-note-2026-06-01.pdf
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p19-zhao-cui-chair-readable-gradient-note-2026-06-01.tex
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p19-zhao-cui-chair-readable-gradient-plan-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p19-zhao-cui-chair-readable-gradient-result-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p19-zhao-cui-claude-review-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p19-zhao-cui-discrepancy-report-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p19-zhao-cui-finite-difference-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p19-zhao-cui-fixed-branch-scalar-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p19-zhao-cui-gradient-equation-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p19-zhao-cui-gradient-teaching-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p19-zhao-cui-mathdevmcp-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p20-zhao-cui-claude-review-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p20-zhao-cui-discrepancy-report-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p20-zhao-cui-equation-and-size-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p20-zhao-cui-integrated-companion-gradient-note-2026-06-01.pdf
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p20-zhao-cui-integrated-companion-gradient-note-2026-06-01.tex
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p20-zhao-cui-integrated-companion-gradient-plan-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p20-zhao-cui-integrated-companion-gradient-result-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p20-zhao-cui-merge-ledger-2026-06-01.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p21-zhao-cui-chair-guide-reference-implementation-claude-review-ledger-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p21-zhao-cui-chair-guide-reference-implementation-note-2026-06-02.pdf
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p21-zhao-cui-chair-guide-reference-implementation-note-2026-06-02.tex
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p21-zhao-cui-chair-guide-reference-implementation-plan-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p21-zhao-cui-chair-guide-reference-implementation-result-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p21-zhao-cui-chair-teachability-ledger-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p21-zhao-cui-discrepancy-report-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p21-zhao-cui-equation-to-specification-ledger-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p21-zhao-cui-finite-difference-protocol-ledger-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p21-zhao-cui-fixed-branch-implementation-ready-spec-ledger-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p21-zhao-cui-full-algorithm-gap-register-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p21-zhao-cui-implementation-readiness-ledger-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p22-zhao-cui-claude-review-ledger-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p22-zhao-cui-discrepancy-report-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p22-zhao-cui-implementation-specification-ledger-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p22-zhao-cui-integrated-readable-companion-note-2026-06-02.pdf
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p22-zhao-cui-integrated-readable-companion-note-2026-06-02.tex
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p22-zhao-cui-integrated-readable-companion-plan-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p22-zhao-cui-integrated-readable-companion-result-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p22-zhao-cui-integration-ledger-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p22-zhao-cui-readable-orientation-ledger-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p23-zhao-cui-chemist-implementation-gap-closure-note-2026-06-02.pdf
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p23-zhao-cui-chemist-implementation-gap-closure-note-2026-06-02.tex
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p23-zhao-cui-chemist-implementation-gap-closure-plan-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p23-zhao-cui-chemist-implementation-gap-closure-result-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p23-zhao-cui-claude-review-ledger-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p23-zhao-cui-discrepancy-report-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p23-zhao-cui-eleven-gap-ledger-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p23-zhao-cui-p22-preservation-ledger-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p24-zhao-cui-backward-snowball-ledger-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p24-zhao-cui-chair-gap-ledger-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p24-zhao-cui-citation-ledger-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p24-zhao-cui-citation-venue-metadata-ledger-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p24-zhao-cui-claim-support-ledger-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p24-zhao-cui-claude-review-ledger-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p24-zhao-cui-discrepancy-report-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p24-zhao-cui-forward-snowball-ledger-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p24-zhao-cui-human-facing-cleanup-ledger-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p24-zhao-cui-human-facing-companion-note-2026-06-02.pdf
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p24-zhao-cui-human-facing-companion-note-2026-06-02.tex
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p24-zhao-cui-human-facing-companion-plan-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p24-zhao-cui-human-facing-companion-result-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p24-zhao-cui-implementation-gap-ledger-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p24-zhao-cui-omitted-paper-risk-ledger-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p24-zhao-cui-source-support-ledger-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p25-zhao-cui-chair-implementation-bridge-note-2026-06-02.pdf
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p25-zhao-cui-chair-implementation-bridge-note-2026-06-02.tex
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p25-zhao-cui-chair-implementation-bridge-plan-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p25-zhao-cui-chair-implementation-bridge-result-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p25-zhao-cui-claim-support-ledger-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p25-zhao-cui-claude-review-ledger-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p25-zhao-cui-discrepancy-report-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p25-zhao-cui-five-gap-closure-ledger-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p25-zhao-cui-source-support-ledger-2026-06-02.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p26-zhao-cui-chemist-gap-ledger-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p26-zhao-cui-claude-review-ledger-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p26-zhao-cui-discrepancy-report-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p26-zhao-cui-human-facing-cleanup-ledger-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p26-zhao-cui-implementation-gap-ledger-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p26-zhao-cui-panel-readable-implementation-note-2026-06-03.pdf
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p26-zhao-cui-panel-readable-implementation-note-2026-06-03.tex
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p26-zhao-cui-panel-readable-implementation-plan-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p26-zhao-cui-panel-readable-implementation-result-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p27-zhao-cui-claude-review-ledger-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p27-zhao-cui-discrepancy-report-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p27-zhao-cui-large-scale-validation-note-2026-06-03.pdf
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p27-zhao-cui-large-scale-validation-note-2026-06-03.tex
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p27-zhao-cui-large-scale-validation-plan-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p27-zhao-cui-large-scale-validation-result-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p27-zhao-cui-validation-ledger-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p28-chair-reader-ledger-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p28-claude-review-ledger-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p28-discrepancy-report-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p28-equation-audit-ledger-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p28-implementation-readiness-ledger-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p28-mathdevmcp-ledger-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p28-notation-dimension-ledger-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p28-numerical-sanity-test-ledger-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p28-source-fidelity-ledger-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p28-submission-audit-plan-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p28-submission-audit-result-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p29-algorithm-provenance-ledger-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p29-claude-review-ledger-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p29-critical-equation-audit-plan-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p29-critical-equation-audit-result-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p29-discrepancy-report-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p29-kr-preconditioning-jacobian-ledger-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p29-mass-normalizer-ledger-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p29-mathdevmcp-ledger-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p29-notation-shape-contract-ledger-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p29-proposition2-derivative-ledger-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p30-alg5c2-claude-review-ledger-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p30-alg5c2-expansion-plan-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p30-alg5c2-mathdevmcp-ledger-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p30-alg5c2-result-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p30-alg5c2-source-ledger-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p30-zhao-cui-alg5c2-expanded-note-2026-06-03.pdf
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p30-zhao-cui-alg5c2-expanded-note-2026-06-03.tex
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p31-fixed-sgqf-claude-review-ledger-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p31-fixed-sgqf-gradient-ledger-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p31-fixed-sgqf-mathdevmcp-ledger-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p31-fixed-sgqf-result-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p31-fixed-sgqf-source-ledger-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p31-fixed-sgqf-standalone-note-2026-06-03.pdf
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p31-fixed-sgqf-standalone-note-2026-06-03.tex
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p31-fixed-sgqf-standalone-plan-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-academic-report-master-program-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-chair-perspective-punch-list-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-fixed-sgqf-claude-review-ledger-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-fixed-sgqf-discrepancy-report-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-fixed-sgqf-expanded-companion-note-2026-06-03.pdf
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-fixed-sgqf-expanded-companion-note-2026-06-03.tex
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-fixed-sgqf-expanded-companion-note-junior-reader-2026-06-05.tex
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-fixed-sgqf-expanded-companion-plan-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-fixed-sgqf-expanded-companion-result-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-fixed-sgqf-gradient-ledger-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-fixed-sgqf-implementation-ready-companion-note-2026-06-06.pdf
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-fixed-sgqf-implementation-ready-companion-note-2026-06-06.tex
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-fixed-sgqf-mathdevmcp-ledger-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-fixed-sgqf-source-support-ledger-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-fixed-sgqf-validation-ledger-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-junior-reader-remediation-plan-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-mathematical-expansion-pass-plan-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-panel-gap-remediation-plan-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-panel-standard-upgrade-plan-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-scholarly-grounding-and-engineering-exposition-remediation-plan-2026-06-04.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-section20-mathematical-selection-argument-plan-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-subplan-conclusion-and-panel-positioning-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-subplan-gradient-path-implementation-completeness-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-subplan-neighboring-method-comparison-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-subplan-opening-and-conceptual-spine-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-subplan-value-path-implementation-completeness-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-subplan-worked-example-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-substantial-scholarly-remediation-plan-2026-06-04.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p33-basis-confidence-claude-review-ledger-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p33-basis-confidence-mathdevmcp-ledger-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p33-basis-confidence-plan-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p33-basis-confidence-result-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p33-basis-confidence-source-ledger-2026-06-03.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p33-fixed-sgqf-expanded-companion-note-2026-06-06.pdf
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p33-fixed-sgqf-expanded-companion-note-2026-06-06.tex
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p34-fixed-sgqf-expanded-companion-note-2026-06-07.pdf
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p34-fixed-sgqf-expanded-companion-note-2026-06-07.tex
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p35-fixed-sgqf-expanded-companion-note-2026-06-07.pdf
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p35-fixed-sgqf-expanded-companion-note-2026-06-07.tex
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p36-fixed-sgqf-expanded-companion-note-2026-06-07.pdf
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p36-fixed-sgqf-expanded-companion-note-2026-06-07.tex
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p37-fixed-sgqf-expanded-companion-note-2026-06-07.pdf
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p37-fixed-sgqf-expanded-companion-note-2026-06-07.tex
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p38-fixed-sgqf-expanded-companion-note-2026-06-07.pdf
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p38-fixed-sgqf-expanded-companion-note-2026-06-07.tex
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p39-fixed-sgqf-expanded-companion-note-2026-06-07.pdf
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p39-fixed-sgqf-expanded-companion-note-2026-06-07.tex
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p40-final-draft-scholarly-audit-findings-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p40-fixed-sgqf-expanded-companion-note-2026-06-08.pdf
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p40-fixed-sgqf-expanded-companion-note-2026-06-08.tex
+?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p41-fix-plan-2026-06-09.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-cut4-fixed-branch-gradient-subplan-2026-06-06.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-cut4-lgssm-subplan-2026-06-06.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-cut4-predator-prey-subplan-2026-06-06.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-cut4-sir-subplan-2026-06-06.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-cut4-statistical-comparator-claude-review-ledger-2026-06-06.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-cut4-statistical-comparator-master-plan-2026-06-06.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-cut4-statistical-comparator-result-2026-06-06.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-cut4-stress-subplan-2026-06-06.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-cut4-sv-subplan-2026-06-06.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase0-governance-fixtures-claude-review-ledger-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase0-governance-fixtures-result-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase0-governance-fixtures-subplan-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase1-lgssm-exact-reference-claude-review-ledger-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase1-lgssm-exact-reference-result-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase1-lgssm-exact-reference-subplan-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase2-stochastic-volatility-claude-review-ledger-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase2-stochastic-volatility-result-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase2-stochastic-volatility-subplan-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase2p5-nonlinear-value-path-claude-review-ledger-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase2p5-nonlinear-value-path-result-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase2p5-nonlinear-value-path-subplan-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase2p6a-fixed-design-tt-sv-target-claude-review-ledger-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase2p6a-fixed-design-tt-sv-target-result-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase2p6a-fixed-design-tt-sv-target-subplan-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase2p6b-squared-density-normalizer-marginal-claude-review-ledger-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase2p6b-squared-density-normalizer-marginal-result-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase2p6b-squared-density-normalizer-marginal-subplan-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase2p6c-short-sequential-sv-tt-value-path-claude-review-ledger-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase2p6c-short-sequential-sv-tt-value-path-result-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase2p6c-short-sequential-sv-tt-value-path-subplan-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase2p6d-sv-tt-lane-closeout-claude-review-ledger-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase2p6d-sv-tt-lane-closeout-result-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase2p6d-sv-tt-lane-closeout-subplan-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase3-spatial-sir-claude-review-ledger-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase3-spatial-sir-result-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase3-spatial-sir-subplan-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase4-predator-prey-preconditioning-claude-review-ledger-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase4-predator-prey-preconditioning-result-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase4-predator-prey-preconditioning-subplan-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase5-stress-ladders-claude-review-ledger-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase5-stress-ladders-result-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase5-stress-ladders-subplan-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase6-fixed-branch-gradient-claude-review-ledger-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase6-fixed-branch-gradient-result-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase6-fixed-branch-gradient-subplan-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase7-integration-closeout-claude-review-ledger-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase7-integration-closeout-result-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-phase7-integration-closeout-subplan-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-test-claude-review-ledger-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-model-suite-test-master-program-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-overnight-gated-self-recovery-runbook-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-overnight-gated-self-recovery-runbook-claude-review-ledger-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p30-remaining-phases-gated-execution-master-plan-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p39-sv-mixture-cut4-claim-support-ledger-2026-06-06.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p39-sv-mixture-cut4-claude-review-ledger-2026-06-06.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p39-sv-mixture-cut4-master-plan-2026-06-06.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p39-sv-mixture-cut4-omitted-paper-risk-ledger-2026-06-06.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p39-sv-mixture-cut4-result-2026-06-06.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p39-sv-mixture-cut4-source-support-ledger-2026-06-06.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p40-sv-kalman-cut4-zhaocui-claude-review-ledger-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p40-sv-kalman-cut4-zhaocui-test-plan-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p40-sv-kalman-cut4-zhaocui-test-result-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p41-exact-transformed-sv-zhaocui-claude-review-ledger-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p41-exact-transformed-sv-zhaocui-ladder-plan-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p41-exact-transformed-sv-zhaocui-ladder-result-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p42-gradient-likelihood-validation-rules-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p42-gradient-likelihood-validation-rules-claude-review-ledger-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p43-sv-value-gradient-cut4-zhaocui-claude-review-ledger-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p43-sv-value-gradient-cut4-zhaocui-plan-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p43-sv-value-gradient-cut4-zhaocui-result-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-cut4-zhaocui-cross-model-claude-review-ledger-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-cut4-zhaocui-cross-model-master-program-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-overnight-gated-self-recovery-claude-review-ledger-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-overnight-gated-self-recovery-execution-result-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-overnight-gated-self-recovery-runbook-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase0-target-governance-claude-review-ledger-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase0-target-governance-evidence-manifest-p44-codex-supervised-20260608-013203.json
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase0-target-governance-matrix-p44-codex-supervised-20260608-013203.json
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase0-target-governance-result-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase0-target-governance-subplan-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase1-lgssm-claude-review-ledger-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase1-lgssm-evidence-manifest-p44-codex-supervised-20260608-013203.json
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase1-lgssm-result-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase1-lgssm-subplan-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase2-cubic-additive-gaussian-claude-review-ledger-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase2-cubic-additive-gaussian-evidence-manifest-p44-codex-supervised-20260608-013203.json
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase2-cubic-additive-gaussian-repair-amendment-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase2-cubic-additive-gaussian-result-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase2-cubic-additive-gaussian-subplan-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase3-quadratic-observation-claude-review-ledger-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase3-quadratic-observation-evidence-manifest-p44-codex-supervised-20260608-013203.json
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase3-quadratic-observation-repair-amendment-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase3-quadratic-observation-result-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase3-quadratic-observation-subplan-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase4-nonlinear-transition-claude-review-ledger-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase4-nonlinear-transition-evidence-manifest-p44-codex-supervised-20260608-013203.json
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase4-nonlinear-transition-repair-amendment-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase4-nonlinear-transition-result-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase4-nonlinear-transition-subplan-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase5-spatial-sir-diagnostic-claude-review-ledger-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase5-spatial-sir-diagnostic-evidence-manifest-p44-codex-supervised-20260608-013203.json
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase5-spatial-sir-diagnostic-result-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase5-spatial-sir-diagnostic-subplan-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase6-predator-prey-diagnostic-claude-review-ledger-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase6-predator-prey-diagnostic-evidence-manifest-p44-codex-supervised-20260608-013203.json
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase6-predator-prey-diagnostic-result-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase6-predator-prey-diagnostic-subplan-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase7-generalized-sv-target-claude-review-ledger-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase7-generalized-sv-target-definition-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase7-generalized-sv-target-evidence-manifest-p44-codex-supervised-20260608-013203.json
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase7-generalized-sv-target-result-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase7-generalized-sv-target-subplan-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase8-integration-closeout-claude-review-ledger-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase8-integration-closeout-evidence-manifest-p44-codex-supervised-20260608-013203.json
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase8-integration-closeout-result-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p44-phase8-integration-closeout-subplan-2026-06-07.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p45-cross-model-error-calibration-2026-06-08.json
+?? docs/plans/bayesfilter-highdim-zhao-cui-p45-generalized-sv-sir-predator-prey-comparison-claude-review-ledger-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p45-generalized-sv-sir-predator-prey-comparison-master-program-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p45-integration-closeout-ledger-2026-06-08.json
+?? docs/plans/bayesfilter-highdim-zhao-cui-p45-overnight-gated-self-recovery-execution-result-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p45-overnight-gated-self-recovery-runbook-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p45-phase0-target-governance-claude-review-ledger-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p45-phase0-target-governance-evidence-manifest-p45-codex-supervised-20260608-055034.json
+?? docs/plans/bayesfilter-highdim-zhao-cui-p45-phase0-target-governance-result-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p45-phase0-target-governance-subplan-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p45-phase1-multistate-zhaocui-route-claude-review-ledger-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p45-phase1-multistate-zhaocui-route-evidence-manifest-p45-codex-supervised-20260608-055034.json
+?? docs/plans/bayesfilter-highdim-zhao-cui-p45-phase1-multistate-zhaocui-route-result-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p45-phase1-multistate-zhaocui-route-subplan-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p45-phase2-generalized-sv-comparison-claude-review-ledger-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p45-phase2-generalized-sv-comparison-evidence-manifest-p45-codex-supervised-20260608-055034.json
+?? docs/plans/bayesfilter-highdim-zhao-cui-p45-phase2-generalized-sv-comparison-result-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p45-phase2-generalized-sv-comparison-subplan-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p45-phase3-spatial-sir-comparison-claude-review-ledger-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p45-phase3-spatial-sir-comparison-evidence-manifest-p45-codex-supervised-20260608-055034.json
+?? docs/plans/bayesfilter-highdim-zhao-cui-p45-phase3-spatial-sir-comparison-result-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p45-phase3-spatial-sir-comparison-subplan-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p45-phase4-predator-prey-comparison-claude-review-ledger-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p45-phase4-predator-prey-comparison-evidence-manifest-p45-codex-supervised-20260608-055034.json
+?? docs/plans/bayesfilter-highdim-zhao-cui-p45-phase4-predator-prey-comparison-result-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p45-phase4-predator-prey-comparison-subplan-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p45-phase5-cross-model-error-calibration-claude-review-ledger-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p45-phase5-cross-model-error-calibration-evidence-manifest-p45-codex-supervised-20260608-055034.json
+?? docs/plans/bayesfilter-highdim-zhao-cui-p45-phase5-cross-model-error-calibration-result-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p45-phase5-cross-model-error-calibration-subplan-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p45-phase6-integration-closeout-claude-review-ledger-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p45-phase6-integration-closeout-evidence-manifest-p45-codex-supervised-20260608-055034.json
+?? docs/plans/bayesfilter-highdim-zhao-cui-p45-phase6-integration-closeout-result-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p45-phase6-integration-closeout-subplan-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p45-target-registry-2026-06-08.json
+?? docs/plans/bayesfilter-highdim-zhao-cui-p46-code-review-packet-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p46-multistate-zhaocui-adapter-plan-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p46-multistate-zhaocui-adapter-result-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p46-resume-governance-result-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p47-overnight-gated-self-recovery-claude-review-ledger-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p47-overnight-gated-self-recovery-execution-result-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p47-overnight-gated-self-recovery-runbook-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p47-phase0-governance-freeze-claude-review-ledger-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p47-phase0-governance-freeze-result-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p47-phase0-governance-freeze-subplan-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p47-phase1-adaptive-tt-sirt-route-claude-review-ledger-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p47-phase1-adaptive-tt-sirt-route-result-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p47-phase1-adaptive-tt-sirt-route-subplan-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p47-phase2-paper-scale-filtering-subplan-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p47-phase3-generalized-sv-equality-subplan-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p47-phase4-spatial-sir-filtering-subplan-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p47-phase5-predator-prey-filtering-subplan-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p47-phase6-score-hmc-readiness-subplan-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p47-phase7-integration-closeout-subplan-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p47-remaining-filtering-completion-claude-review-ledger-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p47-remaining-filtering-completion-master-program-2026-06-08.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-p47-target-registry-2026-06-08.json
+?? docs/plans/bayesfilter-highdim-zhao-cui-source-governance-charter-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-source-governance-claude-review-ledger-2026-06-05.md
+?? docs/plans/bayesfilter-highdim-zhao-cui-traceability-ledger-2026-06-05.md
+?? docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-plan-2026-05-27.md
+?? docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-plan-audit-2026-05-27.md
+?? docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-result-2026-05-27.md
+?? docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-review-2026-05-27.md
+?? docs/plans/logs/
+?? experiments/controlled_dpf_baseline/reports/controlled-dpf-baseline-final-archive-result.md
+?? experiments/dpf_implementation/README.md
+?? experiments/dpf_implementation/__init__.py
+?? experiments/dpf_implementation/filters/
+?? experiments/dpf_implementation/fixtures/
+?? experiments/dpf_implementation/references/
+?? experiments/dpf_implementation/reports/dpf-annealed-transport-component-match-2026-05-31.md
+?? experiments/dpf_implementation/reports/dpf-annealed-transport-gradient-contract-2026-05-31.md
+?? experiments/dpf_implementation/reports/dpf-annealed-transport-reference-alignment-2026-05-31.md
+?? experiments/dpf_implementation/reports/dpf-annealed-transport-remaining-gaps-closure-2026-06-01.md
+?? experiments/dpf_implementation/reports/dpf-common-filter-path-fixed-resampling-2026-06-06.md
+?? experiments/dpf_implementation/reports/dpf-common-filter-path-noresampling-2026-06-06.md
+?? experiments/dpf_implementation/reports/dpf-common-fixed-branch-gradient-2026-06-06.md
+?? experiments/dpf_implementation/reports/dpf-common-model-suite-tieout-2026-06-06.md
+?? experiments/dpf_implementation/reports/dpf-common-model-suite-v2-density-2026-06-07.md
+?? experiments/dpf_implementation/reports/dpf-common-model-suite-v2-fixed-resampling-2026-06-07.md
+?? experiments/dpf_implementation/reports/dpf-common-model-suite-v2-gradients-2026-06-07.md
+?? experiments/dpf_implementation/reports/dpf-common-model-suite-v2-manifest-2026-06-07.md
+?? experiments/dpf_implementation/reports/dpf-common-model-suite-v2-noresampling-2026-06-07.md
+?? experiments/dpf_implementation/reports/dpf-common-model-suite-v2-retirement-2026-06-07.md
+?? experiments/dpf_implementation/reports/dpf-common-model-suite-v2-student-repetition-2026-06-07.md
+?? experiments/dpf_implementation/reports/dpf-cross-implementation-common-sense-tieout-2026-06-06.md
+?? experiments/dpf_implementation/reports/dpf-exact-arithmetic-continuation-debug-2026-06-02.md
+?? experiments/dpf_implementation/reports/dpf-filter-oracle-comparison-p1-lgssm-exact-oracle-2026-06-08.md
+?? experiments/dpf_implementation/reports/dpf-filter-oracle-comparison-p2-tiny-nonlinear-dense-oracle-2026-06-08.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-1d-agreement-governance-2026-06-02.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-1d-lgssm-step-gradient-comparison-2026-06-01.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-1d-lgssm-t4-residual-solver-ladder-2026-06-06.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-1d-to-smoothness-agreement-ladder-2026-06-02.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-1d-to-smoothness-ladder-2026-06-02.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-final-gaps-closure-2026-05-30.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-continuation-debug-2026-06-03.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-full-2d-no-replay-2026-06-03.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-row-173-adjacent-boundary-2026-06-04.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-row-173-bayesfilter-carryover-split-2026-06-05.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-row-173-direct-theta-hypothesis-2026-06-04.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-row-173-downstream-adjoint-route-2026-06-05.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-row-173-filterflow-unit-upstream-log-weight-2026-06-06.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-row-173-full-matrix-gradient-parameterization-2026-06-04.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-row-173-full-path-gradient-scan-2026-06-03.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-row-173-gradient-localization-2026-06-03.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-row-173-historical-transport-vjp-2026-06-04.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-row-173-log-weight-edge-factorization-2026-06-05.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-row-173-official-proposal-topology-2026-06-05.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-row-173-post-update-route-hypotheses-2026-06-04.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-row-173-previous-log-weight-jacobian-localization-2026-06-06.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-row-173-proposal-adjoint-topology-2026-06-05.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-row-173-proposal-boundary-gradient-localization-2026-06-03.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-row-173-proposal-likelihood-wiring-2026-06-05.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-row-173-scalar-additivity-route-2026-06-04.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-row-173-state-update-identity-route-2026-06-05.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-row-173-time-92-vjp-decomposition-2026-06-03.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-row-173-time-93-transport-jacobian-probe-2026-06-03.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-row-173-time-93-vjp-decomposition-2026-06-03.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-row-173-time-94-vjp-decomposition-2026-06-03.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-row-173-transport-upstream-clipping-2026-06-04.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-row-173-transport-upstream-source-2026-06-04.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-row-173-vjp-decomposition-2026-06-03.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-row-244-gradient-localization-2026-06-03.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-smoothness-gradient-full-surface-rows-0-19-2026-06-03.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-smoothness-gradient-full-surface-rows-100-119-2026-06-03.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-smoothness-gradient-full-surface-rows-120-139-2026-06-03.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-smoothness-gradient-full-surface-rows-140-159-2026-06-03.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-smoothness-gradient-full-surface-rows-160-179-2026-06-03.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-smoothness-gradient-full-surface-rows-180-199-2026-06-03.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-smoothness-gradient-full-surface-rows-20-39-2026-06-03.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-smoothness-gradient-full-surface-rows-200-219-2026-06-03.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-smoothness-gradient-full-surface-rows-220-239-2026-06-03.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-smoothness-gradient-full-surface-rows-240-259-2026-06-03.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-smoothness-gradient-full-surface-rows-260-279-2026-06-03.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-smoothness-gradient-full-surface-rows-280-299-2026-06-03.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-smoothness-gradient-full-surface-rows-300-319-2026-06-03.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-smoothness-gradient-full-surface-rows-320-339-2026-06-03.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-smoothness-gradient-full-surface-rows-340-359-2026-06-03.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-smoothness-gradient-full-surface-rows-360-379-2026-06-03.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-smoothness-gradient-full-surface-rows-380-399-2026-06-03.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-smoothness-gradient-full-surface-rows-40-59-2026-06-03.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-smoothness-gradient-full-surface-rows-60-79-2026-06-03.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-smoothness-gradient-full-surface-rows-80-99-2026-06-03.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-smoothness-gradient-localization-2026-06-03.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-smoothness-gradient-surface-2026-06-03.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-float64-smoothness-scalar-surface-2026-06-03.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-full-comparison-2026-05-31.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-gap-closure-program-2026-05-31.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-lgssm-cross-implementation-audit-2026-05-30.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-lgssm-gap-closure-2026-05-30.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-lgssm-matched-cross-audit-2026-05-30.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-lgssm-paper-table-gated-comparator-2026-06-06.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-lgssm-paper-table-smoke-residual-localization-2026-06-06.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-matched-ledh-pfpf-ot-2026-05-31.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-r1-filterflow-exact-arithmetic-2026-06-02.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-r1-observation-path-mismatch-localization-2026-06-02.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-r1-time3-observation-logprob-audit-2026-06-02.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-r3-float64-trace-replay-2026-06-03.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-r3-proposal-trace-replay-2026-06-02.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-r3-transport-internals-audit-2026-06-03.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-smoothness-gradient-audit-2026-05-31.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-smoothness-same-model-gradient-reconciliation-2026-06-01.md
+?? experiments/dpf_implementation/reports/dpf-filterflow-transport-component-audit-2026-05-30.md
+?? experiments/dpf_implementation/reports/dpf-ledh-pfpf-annealed-transport-lgssm-2026-05-31.md
+?? experiments/dpf_implementation/reports/dpf-ledh-pfpf-ot-tf-tfp-gradient-check-result-2026-05-29.md
+?? experiments/dpf_implementation/reports/dpf-ledh-pfpf-ot-tf-tfp-lgssm-result-2026-05-29.md
+?? experiments/dpf_implementation/reports/dpf-ledh-pfpf-ot-tf-tfp-range-bearing-result-2026-05-29.md
+?? experiments/dpf_implementation/reports/dpf-lgssm-student-filterflow-value-gradient-tieout-2026-06-07.md
+?? experiments/dpf_implementation/reports/dpf-nonlgssm-cross-implementation-matching-2026-06-06.md
+?? experiments/dpf_implementation/reports/dpf-nonlinear-ladder-annealed-transport-2026-05-31.md
+?? experiments/dpf_implementation/reports/dpf-nonlinear-ssm-lgssm-multiseed-result-2026-05-29.md
+?? experiments/dpf_implementation/reports/dpf-nonlinear-ssm-range-bearing-stress-result-2026-05-29.md
+?? experiments/dpf_implementation/reports/dpf-nonlinear-ssm-structural-ar1-gradient-mle-result-2026-05-29.md
+?? experiments/dpf_implementation/reports/dpf-nonlinear-ssm-sv-gradient-mle-result-2026-05-29.md
+?? experiments/dpf_implementation/reports/dpf-ot-final-audit-2026-05-28.md
+?? experiments/dpf_implementation/reports/dpf-ot-gradient-check-result-2026-05-28.md
+?? experiments/dpf_implementation/reports/dpf-ot-lgssm-result-2026-05-28.md
+?? experiments/dpf_implementation/reports/dpf-ot-range-bearing-result-2026-05-28.md
+?? experiments/dpf_implementation/reports/dpf-ot-tf-tfp-gradient-check-result-2026-05-28.md
+?? experiments/dpf_implementation/reports/dpf-ot-tf-tfp-lgssm-result-2026-05-28.md
+?? experiments/dpf_implementation/reports/dpf-ot-tf-tfp-range-bearing-result-2026-05-28.md
+?? experiments/dpf_implementation/reports/dpf-structural-ar1-linear-mle-result-2026-05-29.md
+?? experiments/dpf_implementation/reports/dpf-structural-interface-linear-ar1-result-2026-05-29.md
+?? experiments/dpf_implementation/reports/dpf-structural-interface-nonlinear-ar1-result-2026-05-29.md
+?? experiments/dpf_implementation/reports/dpf-sv-smoke-result-2026-05-28.md
+?? experiments/dpf_implementation/reports/dpf-v2-algorithm-full-comparison-closeout-2026-06-07.md
+?? experiments/dpf_implementation/reports/dpf-v2-algorithm-full-comparison-p0-governance-2026-06-07.md
+?? experiments/dpf_implementation/reports/dpf-v2-algorithm-full-comparison-p1-architecture-2026-06-07.md
+?? experiments/dpf_implementation/reports/dpf-v2-bootstrap-ot-contracts-2026-06-07.md
+?? experiments/dpf_implementation/reports/dpf-v2-bootstrap-ot-gradients-2026-06-07.md
+?? experiments/dpf_implementation/reports/dpf-v2-bootstrap-ot-values-2026-06-07.md
+?? experiments/dpf_implementation/reports/dpf-v2-ledh-pfpf-ot-contracts-2026-06-07.md
+?? experiments/dpf_implementation/reports/dpf-v2-ledh-pfpf-ot-gradients-2026-06-07.md
+?? experiments/dpf_implementation/reports/dpf-v2-ledh-pfpf-ot-values-2026-06-07.md
+?? experiments/dpf_implementation/reports/filterflow-legacy-env-smoke-2026-05-30.md
+?? experiments/dpf_implementation/reports/filterflow-py311-compat-2026-05-30.md
+?? experiments/dpf_implementation/reports/outputs/dpf_annealed_transport_component_match_2026-05-31.json
+?? experiments/dpf_implementation/reports/outputs/dpf_annealed_transport_gradient_contract_2026-05-31.json
+?? experiments/dpf_implementation/reports/outputs/dpf_annealed_transport_reference_alignment_2026-05-31.json
+?? experiments/dpf_implementation/reports/outputs/dpf_annealed_transport_remaining_gaps_closure_2026-06-01.json
+?? experiments/dpf_implementation/reports/outputs/dpf_common_filter_path_fixed_resampling_2026-06-06.json
+?? experiments/dpf_implementation/reports/outputs/dpf_common_filter_path_noresampling_2026-06-06.json
+?? experiments/dpf_implementation/reports/outputs/dpf_common_fixed_branch_gradient_2026-06-06.json
+?? experiments/dpf_implementation/reports/outputs/dpf_common_model_suite_tieout_2026-06-06.json
+?? experiments/dpf_implementation/reports/outputs/dpf_common_model_suite_v2_density_2026-06-07.json
+?? experiments/dpf_implementation/reports/outputs/dpf_common_model_suite_v2_fixed_resampling_2026-06-07.json
+?? experiments/dpf_implementation/reports/outputs/dpf_common_model_suite_v2_governance_schema_2026-06-07.json
+?? experiments/dpf_implementation/reports/outputs/dpf_common_model_suite_v2_gradients_2026-06-07.json
+?? experiments/dpf_implementation/reports/outputs/dpf_common_model_suite_v2_manifest_2026-06-07.json
+?? experiments/dpf_implementation/reports/outputs/dpf_common_model_suite_v2_noresampling_2026-06-07.json
+?? experiments/dpf_implementation/reports/outputs/dpf_common_model_suite_v2_retirement_manifest_2026-06-07.json
+?? experiments/dpf_implementation/reports/outputs/dpf_common_model_suite_v2_student_repetition_2026-06-07.json
+?? experiments/dpf_implementation/reports/outputs/dpf_common_model_suite_v2_terminal_student_static_inventory_2026-06-07.json
+?? experiments/dpf_implementation/reports/outputs/dpf_cross_impl_closed_fixture_manifest_2026-06-07.json
+?? experiments/dpf_implementation/reports/outputs/dpf_cross_impl_terminal_student_repetition_2026-06-07.json
+?? experiments/dpf_implementation/reports/outputs/dpf_cross_implementation_common_sense_tieout_2026-06-06.json
+?? experiments/dpf_implementation/reports/outputs/dpf_exact_arithmetic_continuation_debug_2026-06-02.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filter_oracle_comparison_p0_target_route_registry_2026-06-08.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filter_oracle_comparison_p1_lgssm_exact_oracle_2026-06-08.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filter_oracle_comparison_p2_tiny_nonlinear_dense_oracle_2026-06-08.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_1d_agreement_governance_2026-06-02.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_1d_lgssm_step_gradient_comparison_2026-06-01.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_1d_lgssm_t4_residual_solver_ladder_2026-06-06.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_1d_to_smoothness_agreement_ladder_2026-06-02.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_1d_to_smoothness_ladder_2026-06-02.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_final_gaps_closure_2026-05-30.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_branch_reference_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_continuation_debug_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_full_2d_no_replay_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_reference_probe_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_row_173_adjacent_boundary_2026-06-04.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_row_173_bayesfilter_carryover_split_2026-06-05.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_row_173_direct_theta_hypothesis_2026-06-04.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_row_173_downstream_adjoint_route_2026-06-05.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_row_173_filterflow_unit_upstream_log_weight_2026-06-06.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_row_173_full_matrix_gradient_parameterization_2026-06-04.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_row_173_full_path_gradient_scan_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_row_173_gradient_localization_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_row_173_historical_transport_vjp_2026-06-04.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_row_173_log_weight_edge_factorization_2026-06-05.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_row_173_official_proposal_topology_2026-06-05.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_row_173_post_update_route_hypotheses_2026-06-04.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_row_173_previous_log_weight_jacobian_localization_2026-06-06.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_row_173_proposal_adjoint_topology_2026-06-05.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_row_173_proposal_boundary_gradient_localization_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_row_173_proposal_likelihood_wiring_2026-06-05.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_row_173_scalar_additivity_route_2026-06-04.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_row_173_state_update_identity_route_2026-06-05.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_row_173_time_92_vjp_decomposition_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_row_173_time_93_transport_jacobian_input_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_row_173_time_93_transport_jacobian_probe_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_row_173_time_93_vjp_decomposition_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_row_173_time_94_vjp_decomposition_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_row_173_transport_upstream_clipping_2026-06-04.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_row_173_transport_upstream_source_2026-06-04.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_row_173_vjp_decomposition_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_row_244_gradient_localization_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_smoothness_gradient_full_surface_rows_0_19_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_smoothness_gradient_full_surface_rows_100_119_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_smoothness_gradient_full_surface_rows_120_139_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_smoothness_gradient_full_surface_rows_140_159_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_smoothness_gradient_full_surface_rows_160_179_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_smoothness_gradient_full_surface_rows_180_199_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_smoothness_gradient_full_surface_rows_200_219_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_smoothness_gradient_full_surface_rows_20_39_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_smoothness_gradient_full_surface_rows_220_239_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_smoothness_gradient_full_surface_rows_240_259_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_smoothness_gradient_full_surface_rows_260_279_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_smoothness_gradient_full_surface_rows_280_299_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_smoothness_gradient_full_surface_rows_300_319_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_smoothness_gradient_full_surface_rows_320_339_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_smoothness_gradient_full_surface_rows_340_359_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_smoothness_gradient_full_surface_rows_360_379_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_smoothness_gradient_full_surface_rows_380_399_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_smoothness_gradient_full_surface_rows_40_59_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_smoothness_gradient_full_surface_rows_60_79_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_smoothness_gradient_full_surface_rows_80_99_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_smoothness_gradient_localization_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_smoothness_gradient_surface_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_smoothness_scalar_surface_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_full_comparison_2026-05-31.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_gap_closure_program_2026-05-31.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_lgssm_cross_audit_2026-05-30.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_lgssm_gap_closure_2026-05-30.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_lgssm_matched_cross_audit_2026-05-30.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_lgssm_paper_table_gated_comparator_2026-06-06.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_lgssm_paper_table_smoke_residual_localization_2026-06-06.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_matched_ledh_pfpf_ot_2026-05-31.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_r1_filterflow_exact_arithmetic_2026-06-02.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_r1_observation_path_mismatch_localization_2026-06-02.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_r1_time3_observation_logprob_audit_2026-06-02.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_r3_float64_trace_replay_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_r3_proposal_trace_replay_2026-06-02.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_r3_transport_internals_audit_2026-06-03.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_smoothness_gradient_audit_2026-05-31.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_smoothness_same_model_gradient_reconciliation_2026-06-01.json
+?? experiments/dpf_implementation/reports/outputs/dpf_filterflow_transport_component_audit_2026-05-30.json
+?? experiments/dpf_implementation/reports/outputs/dpf_ledh_pfpf_annealed_transport_lgssm_2026-05-31.json
+?? experiments/dpf_implementation/reports/outputs/dpf_ledh_pfpf_ot_tf_tfp_gradient_check_2026-05-29.json
+?? experiments/dpf_implementation/reports/outputs/dpf_ledh_pfpf_ot_tf_tfp_lgssm_2026-05-29.json
+?? experiments/dpf_implementation/reports/outputs/dpf_ledh_pfpf_ot_tf_tfp_range_bearing_2026-05-29.json
+?? experiments/dpf_implementation/reports/outputs/dpf_lgssm_student_filterflow_value_gradient_tieout_2026-06-07.json
+?? experiments/dpf_implementation/reports/outputs/dpf_nonlgssm_cross_implementation_matching_2026-06-06.json
+?? experiments/dpf_implementation/reports/outputs/dpf_nonlinear_ladder_annealed_transport_2026-05-31.json
+?? experiments/dpf_implementation/reports/outputs/dpf_nonlinear_ssm_lgssm_multiseed_2026-05-29.json
+?? experiments/dpf_implementation/reports/outputs/dpf_nonlinear_ssm_range_bearing_stress_2026-05-29.json
+?? experiments/dpf_implementation/reports/outputs/dpf_nonlinear_ssm_structural_ar1_gradient_mle_2026-05-29.json
+?? experiments/dpf_implementation/reports/outputs/dpf_nonlinear_ssm_sv_gradient_mle_2026-05-29.json
+?? experiments/dpf_implementation/reports/outputs/dpf_ot_gradient_check_2026-05-28.json
+?? experiments/dpf_implementation/reports/outputs/dpf_ot_lgssm_2026-05-28.json
+?? experiments/dpf_implementation/reports/outputs/dpf_ot_range_bearing_2026-05-28.json
+?? experiments/dpf_implementation/reports/outputs/dpf_ot_tf_tfp_gradient_check_2026-05-28.json
+?? experiments/dpf_implementation/reports/outputs/dpf_ot_tf_tfp_lgssm_2026-05-28.json
+?? experiments/dpf_implementation/reports/outputs/dpf_ot_tf_tfp_range_bearing_2026-05-28.json
+?? experiments/dpf_implementation/reports/outputs/dpf_structural_ar1_linear_mle_2026-05-29.json
+?? experiments/dpf_implementation/reports/outputs/dpf_structural_interface_linear_ar1_2026-05-29.json
+?? experiments/dpf_implementation/reports/outputs/dpf_structural_interface_nonlinear_ar1_2026-05-29.json
+?? experiments/dpf_implementation/reports/outputs/dpf_sv_smoke_2026-05-28.json
+?? experiments/dpf_implementation/reports/outputs/dpf_v2_algorithm_full_comparison_closeout_2026-06-07.json
+?? experiments/dpf_implementation/reports/outputs/dpf_v2_algorithm_full_comparison_p0_governance_2026-06-07.json
+?? experiments/dpf_implementation/reports/outputs/dpf_v2_algorithm_full_comparison_p0_visible_governance_2026-06-08.json
+?? experiments/dpf_implementation/reports/outputs/dpf_v2_algorithm_full_comparison_p1_architecture_2026-06-07.json
+?? experiments/dpf_implementation/reports/outputs/dpf_v2_bootstrap_ot_contracts_2026-06-07.json
+?? experiments/dpf_implementation/reports/outputs/dpf_v2_bootstrap_ot_gradients_2026-06-07.json
+?? experiments/dpf_implementation/reports/outputs/dpf_v2_bootstrap_ot_values_2026-06-07.json
+?? experiments/dpf_implementation/reports/outputs/dpf_v2_ledh_pfpf_ot_contracts_2026-06-07.json
+?? experiments/dpf_implementation/reports/outputs/dpf_v2_ledh_pfpf_ot_gradients_2026-06-07.json
+?? experiments/dpf_implementation/reports/outputs/dpf_v2_ledh_pfpf_ot_values_2026-06-07.json
+?? experiments/dpf_implementation/reports/outputs/filterflow_legacy_env_smoke_2026-05-30.json
+?? experiments/dpf_implementation/reports/outputs/filterflow_py311_compat_2026-05-30.json
+?? experiments/dpf_implementation/resampling/
+?? experiments/dpf_implementation/runners/
+?? experiments/dpf_implementation/tf_tfp/__init__.py
+?? experiments/dpf_implementation/tf_tfp/cubature/
+?? experiments/dpf_implementation/tf_tfp/filters/
+?? experiments/dpf_implementation/tf_tfp/fixtures/
+?? experiments/dpf_implementation/tf_tfp/flows/
+?? experiments/dpf_implementation/tf_tfp/references/
+?? experiments/dpf_implementation/tf_tfp/resampling/
+?? experiments/dpf_implementation/tf_tfp/runners/__init__.py
+?? experiments/dpf_implementation/tf_tfp/runners/common_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/filterflow_reference_policy.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_common_filter_path_fixed_resampling_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_common_filter_path_noresampling_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_common_fixed_branch_gradient_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_common_model_suite_tieout_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_common_model_suite_v2_density_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_common_model_suite_v2_fixed_resampling_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_common_model_suite_v2_gradients_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_common_model_suite_v2_manifest_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_common_model_suite_v2_noresampling_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_common_model_suite_v2_retirement_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_common_model_suite_v2_student_repetition_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_cross_implementation_common_sense_tieout_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filter_oracle_comparison_p0_registry_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filter_oracle_comparison_p1_lgssm_exact_oracle_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filter_oracle_comparison_p2_tiny_nonlinear_dense_oracle_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_1d_agreement_governance_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_1d_lgssm_horizon_ladder_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_1d_lgssm_step_gradient_comparison_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_1d_lgssm_t4_residual_solver_ladder_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_1d_to_smoothness_agreement_ladder_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_1d_to_smoothness_ladder_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_annealed_transport_component_match_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_annealed_transport_gradient_contract_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_exact_arithmetic_continuation_debug_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_final_gaps_closure_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_float64_branch_reference_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_float64_continuation_debug_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_float64_full_2d_no_replay_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_float64_reference_probe_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_float64_row_173_adjacent_boundary_probe_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_float64_row_173_bayesfilter_carryover_split_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_float64_row_173_direct_theta_hypothesis_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_float64_row_173_downstream_adjoint_route_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_float64_row_173_filterflow_unit_upstream_log_weight_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_float64_row_173_full_matrix_gradient_parameterization_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_float64_row_173_full_path_gradient_scan_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_float64_row_173_historical_transport_vjp_probe_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_float64_row_173_log_weight_edge_factorization_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_float64_row_173_official_proposal_topology_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_float64_row_173_post_update_route_probe_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_float64_row_173_previous_log_weight_jacobian_localization_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_float64_row_173_proposal_adjoint_topology_probe_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_float64_row_173_proposal_likelihood_wiring_probe_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_float64_row_173_scalar_additivity_route_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_float64_row_173_state_update_identity_route_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_float64_row_173_time_93_transport_jacobian_probe_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_float64_row_173_transport_upstream_clipping_probe_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_float64_row_173_transport_upstream_source_probe_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_float64_row_173_vjp_decomposition_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_float64_smoothness_gradient_localization_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_float64_smoothness_gradient_surface_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_float64_smoothness_scalar_surface_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_full_comparison_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_gap_closure_program_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_lgssm_cross_audit_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_lgssm_gap_closure_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_lgssm_matched_cross_audit_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_lgssm_paper_table_gated_comparator_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_lgssm_paper_table_smoke_residual_localization_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_matched_ledh_pfpf_ot_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_r1_filterflow_exact_arithmetic_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_r1_observation_path_mismatch_localization_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_r1_time3_observation_logprob_audit_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_r3_float64_trace_replay_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_r3_proposal_trace_replay_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_r3_transport_internals_audit_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_smoothness_gradient_audit_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_smoothness_same_model_gradient_reconciliation_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_filterflow_transport_component_audit_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_gradient_checks_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_ledh_pfpf_annealed_transport_lgssm_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_ledh_pfpf_gradient_checks_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_lgssm_ledh_pfpf_ot_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_lgssm_multiseed_ledh_pfpf_ot_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_lgssm_ot_dpf_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_lgssm_student_filterflow_value_gradient_tieout_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_nonlgssm_cross_implementation_matching_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_nonlinear_ladder_annealed_transport_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_range_bearing_ledh_pfpf_ot_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_range_bearing_ot_dpf_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_range_bearing_stress_ledh_pfpf_ot_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_structural_ar1_cut4_ledh_gradient_mle_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_structural_ar1_linear_kalman_ledh_mle_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_structural_interface_linear_ar1_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_structural_interface_nonlinear_ar1_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_sv_cut4_ledh_gradient_mle_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_v2_algorithm_full_comparison_closeout.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_v2_bootstrap_ot_contracts_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_v2_bootstrap_ot_gradients_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_v2_bootstrap_ot_values_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_v2_ledh_pfpf_ot_contracts_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_v2_ledh_pfpf_ot_gradients_tf.py
+?? experiments/dpf_implementation/tf_tfp/runners/run_v2_ledh_pfpf_ot_values_tf.py
+?? experiments/dpf_implementation/tf_tfp/structural/
+?? scripts/dpf_v2_algorithm_full_comparison_claude_readonly_review.sh
+?? scripts/dpf_v2_algorithm_full_comparison_live_gate.py
+?? scripts/dpf_v2_algorithm_full_comparison_live_gated_launch.sh
+?? scripts/dpf_v2_algorithm_full_comparison_live_supervisor.sh
+?? scripts/p44_closeout_audit.py
+?? scripts/p44_overnight_gated_launch.sh
+?? scripts/p44_overnight_supervisor.sh
+?? scripts/p44_phase_gate.py
+?? scripts/p45_phase_gate.py
+?? tests/highdim/test_bases.py
+?? tests/highdim/test_failure_exits.py
+?? tests/highdim/test_filtering_kalman_exact.py
+?? tests/highdim/test_fixed_branch_derivatives.py
+?? tests/highdim/test_fixed_branch_fit.py
+?? tests/highdim/test_p30_cut4_statistical_comparators.py
+?? tests/highdim/test_p30_fixed_branch_gradient_tables.py
+?? tests/highdim/test_p30_lgssm_exact_reference.py
+?? tests/highdim/test_p30_model_suite_contracts.py
+?? tests/highdim/test_p30_predator_prey.py
+?? tests/highdim/test_p30_spatial_sir.py
+?? tests/highdim/test_p30_stochastic_volatility.py
+?? tests/highdim/test_p30_stress_ladders.py
+?? tests/highdim/test_p30_sv_fixed_design_tt_target.py
+?? tests/highdim/test_p30_sv_short_sequential_tt_value_path.py
+?? tests/highdim/test_p30_sv_squared_density_normalizer_marginal.py
+?? tests/highdim/test_p39_sv_mixture_cut4.py
+?? tests/highdim/test_p40_sv_kalman_cut4_zhaocui.py
+?? tests/highdim/test_p41_exact_transformed_sv_zhaocui_ladder.py
+?? tests/highdim/test_p43_sv_value_gradient_cut4_zhaocui.py
+?? tests/highdim/test_p44_cubic_additive_gaussian.py
+?? tests/highdim/test_p44_generalized_sv_target.py
+?? tests/highdim/test_p44_lgssm_exact_baseline.py
+?? tests/highdim/test_p44_nonlinear_transition.py
+?? tests/highdim/test_p44_predator_prey_diagnostic.py
+?? tests/highdim/test_p44_quadratic_observation.py
+?? tests/highdim/test_p44_spatial_sir_diagnostic.py
+?? tests/highdim/test_p45_cross_model_error_calibration.py
+?? tests/highdim/test_p45_generalized_sv_comparison_blocker.py
+?? tests/highdim/test_p45_integration_closeout.py
+?? tests/highdim/test_p45_multistate_zhaocui_route.py
+?? tests/highdim/test_p45_predator_prey_comparison_blocker.py
+?? tests/highdim/test_p45_spatial_sir_comparison_blocker.py
+?? tests/highdim/test_p45_target_registry.py
+?? tests/highdim/test_p46_multistate_zhaocui_adapter.py
+?? tests/highdim/test_p47_adaptive_route.py
+?? tests/highdim/test_p47_target_registry.py
+?? tests/highdim/test_phase0_contracts.py
+?? tests/highdim/test_public_api_highdim.py
+?? tests/highdim/test_scaling_smoke.py
+?? tests/highdim/test_squared_tt_density.py
+?? tests/highdim/test_transport.py
+?? tests/highdim/test_tt_algebra.py
+?? third_party/`
+- environment/packages: `{'tensorflow': '2.19.1', 'tensorflow_probability': '0.25.0'}`
+- CPU/GPU status: CPU-only, `CUDA_VISIBLE_DEVICES=-1` before TensorFlow import
+- visible GPU devices: `[]`
+- target id: `p44_m2_cubic_additive_gaussian_panel`
+- dims: `[1, 2, 3]`
+- dense orders: `[161, 241]`
+- FD steps: `[0.0002, 0.0001, 5e-05]`
+- data version: `deterministic P44-M2 cubic additive-Gaussian fixture`
+- plan: `docs/plans/bayesfilter-dpf-filter-oracle-comparison-p2-tiny-nonlinear-dense-oracle-subplan-2026-06-08.md`
+- review ledger: `docs/plans/bayesfilter-dpf-filter-oracle-comparison-p2-claude-review-ledger-2026-06-08.md`
+- JSON: `experiments/dpf_implementation/reports/outputs/dpf_filter_oracle_comparison_p2_tiny_nonlinear_dense_oracle_2026-06-08.json`
+- report: `experiments/dpf_implementation/reports/dpf-filter-oracle-comparison-p2-tiny-nonlinear-dense-oracle-2026-06-08.md`
+- result: `docs/plans/bayesfilter-dpf-filter-oracle-comparison-p2-tiny-nonlinear-dense-oracle-result-2026-06-08.md`
+- wall time seconds: `9.692602100782096`
+
+## Nonclaims
+
+- DPF routes are not executed in P2 and receive no P2 correctness promotion.
+- UKF, SVD/cubature, and CUT4 are not exact oracles on the nonlinear target.
+- Zhao-Cui/fixed-design TT evidence is local certified approximation evidence only.
+- Finite differences are diagnostic only and are not a promotion gate.
+- P2 does not establish high-dimensional nonlinear correctness.
+- P2 does not establish HMC readiness, production readiness, GPU readiness, or paper-scale claims.
+
+## Gate Status
+
+P2 is pending Claude read-only review.
