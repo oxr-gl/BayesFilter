@@ -1,3 +1,6 @@
+import os
+from pathlib import Path
+import subprocess
 import sys
 
 import bayesfilter
@@ -42,11 +45,105 @@ V1_PUBLIC_SYMBOLS = {
 }
 
 
+COMMON_INFERENCE_RUNTIME_SYMBOLS = {
+    "CandidateResult",
+    "BackendParityGate",
+    "BackendParityResult",
+    "BackendParityRow",
+    "CovariancePositiveDefiniteError",
+    "EVIDENCE_MANIFEST_SCOPES",
+    "EvidenceManifest",
+    "GPUSelection",
+    "HMCFailureClassification",
+    "HMC_TUNING_POLICY_LABELS",
+    "HMCDiagnosticSummary",
+    "HMCLogAcceptSummary",
+    "HMCScreenResult",
+    "HMCTuningDiagnosticResult",
+    "HMCTuningPolicy",
+    "HessianPosteriorAdapter",
+    "FactorizationFailure",
+    "LatentAffineHMCTransform",
+    "MassMatrixResult",
+    "PartialResultSnapshot",
+    "PosteriorAdapter",
+    "PrecomputedMassArtifact",
+    "PrecomputedMAP",
+    "PriorSupportError",
+    "ReducerRowStatus",
+    "RunManifest",
+    "SolveResidualError",
+    "StageEvent",
+    "StationarityError",
+    "TIMING_BUCKET_NAMES",
+    "TargetFailureClassification",
+    "TargetFailurePolicy",
+    "TargetPolicyEvaluation",
+    "TargetRegionError",
+    "TimingBucket",
+    "TimeoutRecord",
+    "UnsupportedValueScoreAuthority",
+    "ValueScoreCapability",
+    "ValueScorePosteriorAdapter",
+    "VALID_REDUCER_STATUSES",
+    "WorkerManifest",
+    "WorkerRecord",
+    "append_heartbeat",
+    "append_stage_event",
+    "assert_cpu_only_env",
+    "build_worker_manifest",
+    "canonical_candidate_order",
+    "classify_target_failure_mode",
+    "classify_fixed_kernel_screen_with_tuning_policy",
+    "classify_hmc_screen",
+    "classify_hmc_tuning_diagnostic",
+    "configs_match_exact",
+    "covariance_from_negative_hessian",
+    "covariance_from_precision",
+    "ensure_cpu_only_env",
+    "evaluate_target_with_failure_policy",
+    "latent_to_position",
+    "latent_value_and_score",
+    "make_timing_bucket",
+    "normalize_hmc_tuning_policy",
+    "record_timeout",
+    "record_worker_result",
+    "regularize_covariance",
+    "reduce_worker_artifacts",
+    "select_first_tie_candidate",
+    "select_preferred_gpu",
+    "require_executable_tuning_policy",
+    "run_gaussian_dual_averaging_diagnostic",
+    "screen_hmc_diagnostics",
+    "stable_adapter_signature",
+    "stale_artifacts_match_exact",
+    "stable_config_hash",
+    "stale_match_payload",
+    "summarize_hmc_diagnostics",
+    "summarize_log_accept_ratios",
+    "validate_precomputed_map",
+    "value_score_capability",
+    "whitening_from_covariance",
+    "write_partial_result_snapshot",
+    "write_evidence_manifest",
+    "write_worker_manifest",
+}
+
+
 def test_v1_public_api_symbols_are_top_level_importable() -> None:
     missing = sorted(name for name in V1_PUBLIC_SYMBOLS if not hasattr(bayesfilter, name))
 
     assert missing == []
     assert V1_PUBLIC_SYMBOLS.issubset(set(bayesfilter.__all__))
+
+
+def test_common_inference_runtime_symbols_are_top_level_importable() -> None:
+    missing = sorted(
+        name for name in COMMON_INFERENCE_RUNTIME_SYMBOLS if not hasattr(bayesfilter, name)
+    )
+
+    assert missing == []
+    assert COMMON_INFERENCE_RUNTIME_SYMBOLS.issubset(set(bayesfilter.__all__))
 
 
 def test_v1_public_api_import_does_not_import_external_clients() -> None:
@@ -56,3 +153,29 @@ def test_v1_public_api_import_does_not_import_external_clients() -> None:
     )
 
     assert imported_clients == []
+
+
+def test_top_level_import_does_not_import_tensorflow_until_symbol_resolution() -> None:
+    env = os.environ.copy()
+    env["CUDA_VISIBLE_DEVICES"] = "-1"
+    env["PYTHONPATH"] = str(Path(__file__).resolve().parents[1])
+    code = (
+        "import json, sys; "
+        "import bayesfilter; "
+        "print(json.dumps({"
+        "'tensorflow': 'tensorflow' in sys.modules, "
+        "'tensorflow_probability': 'tensorflow_probability' in sys.modules, "
+        "'has_all': hasattr(bayesfilter, '__all__')"
+        "}, sort_keys=True))"
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", code],
+        check=True,
+        env=env,
+        capture_output=True,
+        text=True,
+    )
+    assert result.stdout.strip() == (
+        '{"has_all": true, "tensorflow": false, '
+        '"tensorflow_probability": false}'
+    )
