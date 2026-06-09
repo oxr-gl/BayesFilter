@@ -4,6 +4,9 @@ import numpy as np
 import pytest
 import tensorflow as tf
 
+from bayesfilter.inference import BackendParityGate, BackendParityRow
+from bayesfilter.inference import TargetFailurePolicy, evaluate_target_with_failure_policy
+from bayesfilter.linear.kalman_tf import tf_kalman_log_likelihood
 from bayesfilter.linear.kalman_qr_tf import tf_qr_linear_gaussian_log_likelihood
 from bayesfilter.linear.kalman_svd_tf import (
     tf_svd_kalman_log_likelihood,
@@ -85,6 +88,102 @@ def test_svd_dense_value_matches_qr_on_regular_case() -> None:
     assert svd.metadata.differentiability_status == "value_only"
     assert svd.diagnostics.regularization.derivative_target == "blocked"
     assert svd.diagnostics.extra["factorization"] == "tf.linalg.eigh"
+
+
+def test_backend_parity_gate_covers_linear_cholesky_qr_svd_value_fixture() -> None:
+    model = _tiny_model()
+    observations = tf.constant(
+        [[0.3, -0.1], [0.2, 0.05], [0.1, 0.04]],
+        dtype=tf.float64,
+    )
+    cholesky_value = tf_kalman_log_likelihood(
+        observations=observations,
+        transition_offset=model.transition_offset,
+        transition_matrix=model.transition_matrix,
+        transition_covariance=model.transition_covariance,
+        observation_offset=model.observation_offset,
+        observation_matrix=model.observation_matrix,
+        observation_covariance=model.observation_covariance,
+        initial_state_mean=model.initial_mean,
+        initial_state_covariance=model.initial_covariance,
+        jitter=tf.constant(1e-9, dtype=tf.float64),
+    )
+    qr_value = tf_qr_linear_gaussian_log_likelihood(
+        observations,
+        model,
+        backend="tf_qr",
+        jitter=tf.constant(1e-9, dtype=tf.float64),
+    ).log_likelihood
+    svd_value = tf_svd_linear_gaussian_log_likelihood(
+        observations,
+        model,
+        backend="tf_svd",
+        jitter=tf.constant(1e-9, dtype=tf.float64),
+        singular_floor=tf.constant(1e-12, dtype=tf.float64),
+    ).log_likelihood
+
+    result = BackendParityGate(
+        (
+            BackendParityRow(
+                "tf_cholesky",
+                "tiny_linear_gaussian_lgssm",
+                value=float(cholesky_value.numpy()),
+            ),
+            BackendParityRow(
+                "tf_qr",
+                "tiny_linear_gaussian_lgssm",
+                value=float(qr_value.numpy()),
+            ),
+            BackendParityRow(
+                "tf_svd",
+                "tiny_linear_gaussian_lgssm",
+                value=float(svd_value.numpy()),
+                regularization_label="singular_floor_no_active_floor",
+            ),
+        ),
+        baseline_backend_name="tf_cholesky",
+        value_atol=1.0e-9,
+    ).evaluate()
+
+    assert result.passed is True
+    assert result.baseline_backend_name == "tf_cholesky"
+    assert result.max_value_abs_diff <= 1.0e-9
+
+
+def test_target_failure_policy_does_not_activate_on_valid_lgssm_value() -> None:
+    model = _tiny_model()
+    observations = tf.constant(
+        [[0.3, -0.1], [0.2, 0.05], [0.1, 0.04]],
+        dtype=tf.float64,
+    )
+    policy = TargetFailurePolicy("tiny_linear_gaussian_lgssm")
+
+    def value_score(theta):
+        theta = np.asarray(theta, dtype=float)
+        value = tf_kalman_log_likelihood(
+            observations=observations,
+            transition_offset=model.transition_offset,
+            transition_matrix=model.transition_matrix,
+            transition_covariance=model.transition_covariance,
+            observation_offset=model.observation_offset,
+            observation_matrix=model.observation_matrix,
+            observation_covariance=model.observation_covariance,
+            initial_state_mean=model.initial_mean + tf.constant([theta[0]], dtype=tf.float64),
+            initial_state_covariance=model.initial_covariance,
+            jitter=tf.constant(1e-9, dtype=tf.float64),
+        )
+        return float(value.numpy()), np.zeros_like(theta)
+
+    evaluation = evaluate_target_with_failure_policy(
+        value_score,
+        np.array([0.0]),
+        policy,
+    )
+
+    assert evaluation.fallback_used is False
+    assert evaluation.branch_label == "valid"
+    assert evaluation.value_finite is True
+    assert evaluation.score_finite is True
 
 
 def test_svd_masked_value_matches_masked_qr_on_regular_case() -> None:
