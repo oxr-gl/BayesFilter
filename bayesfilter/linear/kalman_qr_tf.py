@@ -77,6 +77,7 @@ def tf_qr_sqrt_kalman_log_likelihood(
     initial_state_mean: tf.Tensor,
     initial_state_covariance: tf.Tensor,
     jitter: tf.Tensor | float = 0.0,
+    jitter_updates_filtered_covariance: bool = True,
 ) -> tf.Tensor:
     """QR/square-root prediction-error log likelihood."""
 
@@ -91,6 +92,7 @@ def tf_qr_sqrt_kalman_log_likelihood(
         initial_state_mean=initial_state_mean,
         initial_state_covariance=initial_state_covariance,
         jitter=jitter,
+        jitter_updates_filtered_covariance=bool(jitter_updates_filtered_covariance),
     )
     return value
 
@@ -139,6 +141,7 @@ def tf_qr_sqrt_kalman_filter(
     initial_state_mean: tf.Tensor,
     initial_state_covariance: tf.Tensor,
     jitter: tf.Tensor | float = 0.0,
+    jitter_updates_filtered_covariance: bool = True,
 ) -> tuple[tf.Tensor, tf.Tensor | None, tf.Tensor | None]:
     """Dense direct-QR square-root Kalman recursion."""
 
@@ -173,6 +176,11 @@ def tf_qr_sqrt_kalman_filter(
         H = _matrix_at_time(observation_covariance, t)
         transition_covariance_factor = cholesky_factor(Q, 0.0)
         observation_covariance_factor = cholesky_factor(H + jitter_tensor * obs_identity, 0.0)
+        observation_update_covariance_factor = (
+            observation_covariance_factor
+            if jitter_updates_filtered_covariance
+            else cholesky_factor(H, 0.0)
+        )
 
         predicted_mean = c + _matvec(T, mean)
         prediction_stack = tf.concat(
@@ -196,7 +204,7 @@ def tf_qr_sqrt_kalman_filter(
         update_stack = tf.concat(
             (
                 joseph_left @ predicted_factor,
-                kalman_gain @ observation_covariance_factor,
+                kalman_gain @ observation_update_covariance_factor,
             ),
             axis=1,
         )
@@ -384,6 +392,7 @@ def tf_qr_linear_gaussian_log_likelihood(
     observation_mask: tf.Tensor | None = None,
     jitter: tf.Tensor | float = 0.0,
     return_filtered: bool = False,
+    jitter_updates_filtered_covariance: bool = True,
 ) -> TFFilterValueResult:
     """Dispatch to a QR/square-root TensorFlow linear Gaussian value backend."""
 
@@ -402,6 +411,8 @@ def tf_qr_linear_gaussian_log_likelihood(
                 initial_state_mean=model.initial_mean,
                 initial_state_covariance=model.initial_covariance,
                 jitter=jitter,
+                jitter_updates_filtered_covariance=bool(
+                    jitter_updates_filtered_covariance),
             )
             filter_name = "tf_qr_sqrt_kalman"
             mask_convention = "none"

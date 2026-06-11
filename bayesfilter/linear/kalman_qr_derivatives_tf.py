@@ -1351,6 +1351,391 @@ def _diagnostics(
     )
 
 
+def _require_time_invariant_score_inputs(model: TFLinearGaussianStateSpace) -> None:
+    """Reject per-time state-space tensors in the dynamic public score backend."""
+
+    for name in (
+        "transition_offset",
+        "transition_matrix",
+        "transition_covariance",
+        "observation_offset",
+        "observation_matrix",
+        "observation_covariance",
+    ):
+        tensor = getattr(model, name)
+        if tensor.shape.rank not in (1, 2):
+            raise ValueError(
+                "tf_qr_linear_gaussian_score currently supports time-invariant "
+                f"state-space tensors; {name} has rank {tensor.shape.rank}"
+            )
+
+
+@tf.function(reduce_retracing=True)
+def tf_qr_sqrt_kalman_score(
+    observations: tf.Tensor,
+    transition_offset: tf.Tensor,
+    transition_matrix: tf.Tensor,
+    transition_covariance: tf.Tensor,
+    observation_offset: tf.Tensor,
+    observation_matrix: tf.Tensor,
+    observation_covariance: tf.Tensor,
+    initial_state_mean: tf.Tensor,
+    initial_state_covariance: tf.Tensor,
+    d_initial_state_mean: tf.Tensor,
+    d_initial_state_covariance: tf.Tensor,
+    d_transition_offset: tf.Tensor,
+    d_transition_matrix: tf.Tensor,
+    d_transition_covariance: tf.Tensor,
+    d_observation_offset: tf.Tensor,
+    d_observation_matrix: tf.Tensor,
+    d_observation_covariance: tf.Tensor,
+    jitter: tf.Tensor | float = 0.0,
+    jitter_updates_filtered_covariance: bool = True,
+) -> tuple[tf.Tensor, tf.Tensor]:
+    """Dynamic-time QR square-root Kalman log likelihood and analytic score.
+
+    This public score-only kernel avoids Python unrolling over the observation
+    horizon. It intentionally does not return a Hessian; public Hessian
+    authority remains a separate contract.
+    """
+
+    y = _as_observation_matrix(observations)
+    n_timesteps = tf.shape(y)[0]
+    transition_offset = _to_tensor(transition_offset)
+    transition_matrix = _to_tensor(transition_matrix)
+    transition_covariance = _to_tensor(transition_covariance)
+    observation_offset = _to_tensor(observation_offset)
+    observation_matrix = _to_tensor(observation_matrix)
+    observation_covariance = _to_tensor(observation_covariance)
+    mean0 = _to_tensor(initial_state_mean)
+    initial_state_covariance = _to_tensor(initial_state_covariance)
+
+    dmean0 = _to_tensor(d_initial_state_mean)
+    d_initial_state_covariance = _to_tensor(d_initial_state_covariance)
+    d_transition_offset = _to_tensor(d_transition_offset)
+    d_transition_matrix = _to_tensor(d_transition_matrix)
+    d_transition_covariance = _to_tensor(d_transition_covariance)
+    d_observation_offset = _to_tensor(d_observation_offset)
+    d_observation_matrix = _to_tensor(d_observation_matrix)
+    d_observation_covariance = _to_tensor(d_observation_covariance)
+
+    parameter_dim = _static_dim(d_transition_offset, 0, "parameter dimension")
+    state_dim = tf.shape(mean0)[0]
+    obs_dim = tf.shape(observation_matrix)[0]
+    state_identity = tf.eye(state_dim, dtype=tf.float64)
+    obs_identity = tf.eye(obs_dim, dtype=tf.float64)
+    jitter_tensor = tf.cast(jitter, tf.float64)
+    two_pi = tf.constant(2.0 * math.pi, dtype=tf.float64)
+
+    covariance_factor0, dcovariance_factor0 = cholesky_factor_first_derivatives(
+        initial_state_covariance,
+        d_initial_state_covariance,
+        jitter=0.0,
+    )
+    transition_covariance_factor, dtransition_covariance_factor = (
+        cholesky_factor_first_derivatives(
+            transition_covariance,
+            d_transition_covariance,
+            jitter=0.0,
+        )
+    )
+    observation_covariance_factor, dobservation_covariance_factor = (
+        cholesky_factor_first_derivatives(
+            observation_covariance + jitter_tensor * obs_identity,
+            d_observation_covariance,
+            jitter=0.0,
+        )
+    )
+    if jitter_updates_filtered_covariance:
+        observation_update_covariance_factor = observation_covariance_factor
+        dobservation_update_covariance_factor = dobservation_covariance_factor
+    else:
+        observation_update_covariance_factor, dobservation_update_covariance_factor = (
+            cholesky_factor_first_derivatives(
+                observation_covariance,
+                d_observation_covariance,
+                jitter=0.0,
+            )
+        )
+
+    score0 = tf.zeros((parameter_dim,), dtype=tf.float64)
+    log_likelihood0 = tf.constant(0.0, dtype=tf.float64)
+    t0 = tf.constant(0, dtype=tf.int32)
+
+    def cond(t, *_state):
+        return t < n_timesteps
+
+    def body(
+        t,
+        mean,
+        dmean,
+        covariance_factor,
+        dcovariance_factor,
+        log_likelihood,
+        score,
+    ):
+        predicted_mean = transition_offset + _matvec(transition_matrix, mean)
+        dpredicted_mean = (
+            d_transition_offset
+            + tf.einsum("pij,j->pi", d_transition_matrix, mean)
+            + tf.einsum("ij,pj->pi", transition_matrix, dmean)
+        )
+
+        prediction_left = transition_matrix @ covariance_factor
+        prediction_stack = tf.concat(
+            (prediction_left, transition_covariance_factor),
+            axis=1,
+        )
+        dprediction_left = (
+            tf.einsum("pij,jk->pik", d_transition_matrix, covariance_factor)
+            + tf.einsum("ij,pjk->pik", transition_matrix, dcovariance_factor)
+        )
+        dprediction_stack = tf.concat(
+            (dprediction_left, dtransition_covariance_factor),
+            axis=2,
+        )
+        predicted_factor, dpredicted_factor, _ = (
+            stack_qr_lower_factor_first_derivatives(
+                prediction_stack,
+                dprediction_stack,
+            )
+        )
+        predicted_covariance, dpredicted_covariance = (
+            factor_covariance_first_derivatives(
+                predicted_factor,
+                dpredicted_factor,
+            )
+        )
+
+        innovation = y[t] - (
+            observation_offset + _matvec(observation_matrix, predicted_mean)
+        )
+        dinnovation = (
+            -d_observation_offset
+            - tf.einsum("pij,j->pi", d_observation_matrix, predicted_mean)
+            - tf.einsum("ij,pj->pi", observation_matrix, dpredicted_mean)
+        )
+
+        innovation_left = observation_matrix @ predicted_factor
+        innovation_stack = tf.concat(
+            (innovation_left, observation_covariance_factor),
+            axis=1,
+        )
+        dinnovation_left = (
+            tf.einsum("pij,jk->pik", d_observation_matrix, predicted_factor)
+            + tf.einsum("ij,pjk->pik", observation_matrix, dpredicted_factor)
+        )
+        dinnovation_stack = tf.concat(
+            (dinnovation_left, dobservation_covariance_factor),
+            axis=2,
+        )
+        innovation_factor, dinnovation_factor, _ = (
+            stack_qr_lower_factor_first_derivatives(
+                innovation_stack,
+                dinnovation_stack,
+            )
+        )
+        _, dS = factor_covariance_first_derivatives(
+            innovation_factor,
+            dinnovation_factor,
+        )
+        innovation_solve = factor_solve(innovation_factor, innovation)
+        innovation_precision = factor_solve(innovation_factor, obs_identity)
+
+        trace_terms = tf.einsum("ab,pba->p", innovation_precision, dS)
+        innovation_derivative_terms = tf.einsum(
+            "pi,i->p",
+            dinnovation,
+            innovation_solve,
+        )
+        quadratic_terms = tf.einsum(
+            "i,pij,j->p",
+            innovation_solve,
+            dS,
+            innovation_solve,
+        )
+        score = score - 0.5 * (
+            trace_terms + 2.0 * innovation_derivative_terms - quadratic_terms
+        )
+        dSinv = -tf.einsum(
+            "ab,pbc,cd->pad",
+            innovation_precision,
+            dS,
+            innovation_precision,
+        )
+
+        kalman_gain = (
+            predicted_covariance
+            @ tf.transpose(observation_matrix)
+            @ innovation_precision
+        )
+        dK = (
+            tf.einsum(
+                "pij,kj,kl->pil",
+                dpredicted_covariance,
+                observation_matrix,
+                innovation_precision,
+            )
+            + tf.einsum(
+                "ij,pkj,kl->pil",
+                predicted_covariance,
+                d_observation_matrix,
+                innovation_precision,
+            )
+            + tf.einsum(
+                "ij,kj,pkl->pil",
+                predicted_covariance,
+                observation_matrix,
+                dSinv,
+            )
+        )
+
+        joseph_left = state_identity - kalman_gain @ observation_matrix
+        d_joseph_left = (
+            -tf.einsum("pij,jk->pik", dK, observation_matrix)
+            - tf.einsum("ij,pjk->pik", kalman_gain, d_observation_matrix)
+        )
+        update_left = joseph_left @ predicted_factor
+        update_right = kalman_gain @ observation_update_covariance_factor
+        update_stack = tf.concat((update_left, update_right), axis=1)
+        dupdate_left = (
+            tf.einsum("pij,jk->pik", d_joseph_left, predicted_factor)
+            + tf.einsum("ij,pjk->pik", joseph_left, dpredicted_factor)
+        )
+        dupdate_right = (
+            tf.einsum("pij,jk->pik", dK, observation_covariance_factor)
+            + tf.einsum(
+                "ij,pjk->pik",
+                kalman_gain,
+                dobservation_update_covariance_factor,
+            )
+        )
+        dupdate_stack = tf.concat((dupdate_left, dupdate_right), axis=2)
+        covariance_factor, dcovariance_factor, _ = (
+            stack_qr_lower_factor_first_derivatives(
+                update_stack,
+                dupdate_stack,
+            )
+        )
+
+        mean = predicted_mean + _matvec(kalman_gain, innovation)
+        dmean = (
+            dpredicted_mean
+            + tf.einsum("pij,j->pi", dK, innovation)
+            + tf.einsum("ij,pj->pi", kalman_gain, dinnovation)
+        )
+
+        solve_innovation = tf.linalg.triangular_solve(
+            innovation_factor,
+            innovation[:, tf.newaxis],
+            lower=True,
+        )
+        mahalanobis = tf.reduce_sum(tf.square(solve_innovation))
+        log_det = 2.0 * tf.reduce_sum(
+            tf.math.log(tf.linalg.diag_part(innovation_factor))
+        )
+        contribution = -0.5 * (
+            tf.cast(obs_dim, tf.float64) * tf.math.log(two_pi)
+            + log_det
+            + mahalanobis
+        )
+        log_likelihood = log_likelihood + contribution
+        return (
+            t + 1,
+            mean,
+            dmean,
+            covariance_factor,
+            dcovariance_factor,
+            log_likelihood,
+            score,
+        )
+
+    (
+        _,
+        _mean,
+        _dmean,
+        _covariance_factor,
+        _dcovariance_factor,
+        log_likelihood,
+        score,
+    ) = tf.while_loop(
+        cond,
+        body,
+        (
+            t0,
+            mean0,
+            dmean0,
+            covariance_factor0,
+            dcovariance_factor0,
+            log_likelihood0,
+            score0,
+        ),
+        parallel_iterations=1,
+    )
+    return log_likelihood, score
+
+
+def tf_qr_linear_gaussian_score(
+    observations: tf.Tensor,
+    model: TFLinearGaussianStateSpace,
+    derivatives: TFLinearGaussianStateSpaceDerivatives,
+    *,
+    backend: Literal["tf_qr_sqrt_score"] = "tf_qr_sqrt_score",
+    observation_mask: tf.Tensor | None = None,
+    jitter: tf.Tensor | float = 0.0,
+    jitter_updates_filtered_covariance: bool = True,
+) -> TFFilterDerivativeResult:
+    """Return public QR/square-root linear Gaussian likelihood and score.
+
+    This score-only API is the public authority surface for graph-native HMC
+    value/score use. It uses a dynamic TensorFlow loop over time and does not
+    certify Hessian authority.
+    """
+
+    if backend != "tf_qr_sqrt_score":
+        raise ValueError(f"unknown TensorFlow QR score backend: {backend}")
+    mask = observation_mask if observation_mask is not None else model.observation_mask
+    if mask is not None:
+        raise ValueError("tf_qr_linear_gaussian_score supports dense observations only")
+    _require_time_invariant_score_inputs(model)
+    log_likelihood, score = tf_qr_sqrt_kalman_score(
+        observations=observations,
+        transition_offset=model.transition_offset,
+        transition_matrix=model.transition_matrix,
+        transition_covariance=model.transition_covariance,
+        observation_offset=model.observation_offset,
+        observation_matrix=model.observation_matrix,
+        observation_covariance=model.observation_covariance,
+        initial_state_mean=model.initial_mean,
+        initial_state_covariance=model.initial_covariance,
+        d_initial_state_mean=derivatives.d_initial_mean,
+        d_initial_state_covariance=derivatives.d_initial_covariance,
+        d_transition_offset=derivatives.d_transition_offset,
+        d_transition_matrix=derivatives.d_transition_matrix,
+        d_transition_covariance=derivatives.d_transition_covariance,
+        d_observation_offset=derivatives.d_observation_offset,
+        d_observation_matrix=derivatives.d_observation_matrix,
+        d_observation_covariance=derivatives.d_observation_covariance,
+        jitter=jitter,
+        jitter_updates_filtered_covariance=bool(jitter_updates_filtered_covariance),
+    )
+    return TFFilterDerivativeResult(
+        log_likelihood=log_likelihood,
+        score=score,
+        hessian=None,
+        metadata=_metadata(
+            filter_name="tf_qr_sqrt_score_dynamic_kalman",
+            model=model,
+            differentiability_status="analytic_score_no_hessian",
+        ),
+        diagnostics=_diagnostics(
+            backend=backend,
+            mask_convention="none",
+            jitter=jitter,
+        ),
+    )
+
+
 def tf_qr_linear_gaussian_score_hessian(
     observations: tf.Tensor,
     model: TFLinearGaussianStateSpace,
