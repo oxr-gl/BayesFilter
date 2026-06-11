@@ -4,6 +4,7 @@ import subprocess
 import sys
 
 import bayesfilter
+import bayesfilter.linear
 
 
 V1_PUBLIC_SYMBOLS = {
@@ -13,6 +14,7 @@ V1_PUBLIC_SYMBOLS = {
     "tf_kalman_log_likelihood",
     "tf_masked_kalman_log_likelihood",
     "tf_qr_linear_gaussian_log_likelihood",
+    "tf_qr_linear_gaussian_score",
     "tf_qr_sqrt_kalman_log_likelihood",
     "tf_qr_sqrt_masked_kalman_log_likelihood",
     "tf_qr_linear_gaussian_score_hessian",
@@ -135,6 +137,11 @@ def test_v1_public_api_symbols_are_top_level_importable() -> None:
 
     assert missing == []
     assert V1_PUBLIC_SYMBOLS.issubset(set(bayesfilter.__all__))
+
+
+def test_linear_public_score_symbol_is_subpackage_importable() -> None:
+    assert hasattr(bayesfilter.linear, "tf_qr_linear_gaussian_score")
+    assert "tf_qr_linear_gaussian_score" in bayesfilter.linear.__all__
 
 
 def test_common_inference_runtime_symbols_are_top_level_importable() -> None:

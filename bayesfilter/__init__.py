@@ -140,6 +140,7 @@ __all__ = [
     "tf_masked_kalman_filter",
     "tf_masked_kalman_log_likelihood",
     "tf_qr_linear_gaussian_log_likelihood",
+    "tf_qr_linear_gaussian_score",
     "tf_qr_linear_gaussian_score_hessian",
     "tf_qr_sqrt_kalman_filter",
     "tf_qr_sqrt_kalman_log_likelihood",
@@ -314,6 +315,9 @@ _EXPORT_MODULES = {
     "tf_masked_kalman_filter": "bayesfilter.linear.kalman_tf",
     "tf_masked_kalman_log_likelihood": "bayesfilter.linear.kalman_tf",
     "tf_qr_linear_gaussian_log_likelihood": "bayesfilter.linear.kalman_qr_tf",
+    "tf_qr_linear_gaussian_score": (
+        "bayesfilter.linear.kalman_qr_derivatives_tf"
+    ),
     "tf_qr_linear_gaussian_score_hessian": (
         "bayesfilter.linear.kalman_qr_derivatives_tf"
     ),

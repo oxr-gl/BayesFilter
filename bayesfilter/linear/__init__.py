@@ -12,6 +12,7 @@ __all__ = [
     "TFLinearValueBackend",
     "TFSVDLinearValueBackend",
     "tf_qr_linear_gaussian_log_likelihood",
+    "tf_qr_linear_gaussian_score",
     "tf_qr_linear_gaussian_score_hessian",
     "tf_qr_sqrt_kalman_filter",
     "tf_qr_sqrt_kalman_log_likelihood",
@@ -54,6 +55,9 @@ _EXPORT_MODULES = {
     "TFLinearValueBackend": "bayesfilter.linear.kalman_tf",
     "TFSVDLinearValueBackend": "bayesfilter.linear.kalman_svd_tf",
     "tf_qr_linear_gaussian_log_likelihood": "bayesfilter.linear.kalman_qr_tf",
+    "tf_qr_linear_gaussian_score": (
+        "bayesfilter.linear.kalman_qr_derivatives_tf"
+    ),
     "tf_qr_linear_gaussian_score_hessian": (
         "bayesfilter.linear.kalman_qr_derivatives_tf"
     ),
