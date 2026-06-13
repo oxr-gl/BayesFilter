@@ -835,6 +835,8 @@ def test_hmc_tuning_policy_labels_are_bounded_and_fixed_default_reproduces_curre
         "fixed_kernel_screen",
         "dual_averaging_step_size",
         "fixed_mass_dual_averaging",
+        "windowed_mass_adaptation",
+        "fixed_trajectory_tuning",
         "windowed_mass_adaptation_future",
         "manual_ladder_diagnostic",
     }
