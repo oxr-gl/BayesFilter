@@ -61,6 +61,8 @@ class PrecomputedMassArtifact:
     factor_orientation: str = "row_right_transpose"
     source: str = "precomputed_mass_artifact"
     eigen_summary: Mapping[str, Any] | None = None
+    precision_eigen_summary: Mapping[str, Any] | None = None
+    regularization_report: Mapping[str, Any] | None = None
     log_jacobian_convention: str = "constant_omitted"
     nonclaims: tuple[str, ...] = (
         "precomputed mass artifact only",
@@ -72,9 +74,9 @@ class PrecomputedMassArtifact:
     reconstruction_atol: float = 1.0e-10
 
     def __post_init__(self) -> None:
-        position = np.asarray(self.position, dtype=float)
-        covariance = np.asarray(self.covariance, dtype=float)
-        factor = np.asarray(self.factor, dtype=float)
+        position = np.asarray(self.position, dtype=float).copy()
+        covariance = np.asarray(self.covariance, dtype=float).copy()
+        factor = np.asarray(self.factor, dtype=float).copy()
         if position.ndim != 1:
             raise ValueError("precomputed mass position must be a one-dimensional vector")
         dim = int(position.shape[0])
@@ -130,9 +132,22 @@ class PrecomputedMassArtifact:
             raise ValueError("precomputed mass covariance eigenvalues must be finite")
         if not bool(eigen_summary["positive"]):
             raise ValueError("precomputed mass covariance must be positive definite")
+        precision_eigen_summary = (
+            None
+            if self.precision_eigen_summary is None
+            else _normalize_eigen_summary(self.precision_eigen_summary)
+        )
+        regularization_report = (
+            {}
+            if self.regularization_report is None
+            else dict(self.regularization_report)
+        )
         nonclaims = tuple(str(item) for item in self.nonclaims)
         if not nonclaims:
             raise ValueError("nonclaims must be non-empty")
+        position.setflags(write=False)
+        covariance.setflags(write=False)
+        factor.setflags(write=False)
         object.__setattr__(self, "position", position)
         object.__setattr__(self, "covariance", covariance)
         object.__setattr__(self, "factor", factor)
@@ -143,6 +158,8 @@ class PrecomputedMassArtifact:
         object.__setattr__(self, "factor_orientation", orientation)
         object.__setattr__(self, "source", source)
         object.__setattr__(self, "eigen_summary", eigen_summary)
+        object.__setattr__(self, "precision_eigen_summary", precision_eigen_summary)
+        object.__setattr__(self, "regularization_report", regularization_report)
         object.__setattr__(self, "log_jacobian_convention", convention)
         object.__setattr__(self, "nonclaims", nonclaims)
         object.__setattr__(self, "reconstruction_rtol", float(self.reconstruction_rtol))
@@ -190,12 +207,18 @@ class PrecomputedMassArtifact:
         matrix_used_for_square_root: str = "covariance_from_negative_hessian",
         source: str = "negative_hessian",
         jitter: float = 1.0e-9,
+        eigenvalue_floor: float | None = None,
+        max_condition_number: float | None = None,
+        dense: bool = True,
         **kwargs: Any,
     ) -> "PrecomputedMassArtifact":
         mass = covariance_from_negative_hessian(
             negative_hessian,
             source=covariance_source,
             jitter=jitter,
+            eigenvalue_floor=eigenvalue_floor,
+            max_condition_number=max_condition_number,
+            dense=dense,
         )
         factor = whitening_from_covariance(mass.covariance, jitter=0.0)
         return cls(
@@ -207,6 +230,9 @@ class PrecomputedMassArtifact:
             covariance_source=mass.source,
             matrix_used_for_square_root=matrix_used_for_square_root,
             source=source,
+            eigen_summary=mass.covariance_eigen_summary,
+            precision_eigen_summary=mass.precision_eigen_summary,
+            regularization_report=mass.regularization_report,
             **kwargs,
         )
 
@@ -249,6 +275,8 @@ class PrecomputedMassArtifact:
             "factor_orientation": self.factor_orientation,
             "source": self.source,
             "eigen_summary": self.eigen_summary,
+            "precision_eigen_summary": self.precision_eigen_summary,
+            "regularization_report": self.regularization_report,
             "log_jacobian_convention": self.log_jacobian_convention,
             "nonclaims": self.nonclaims,
         }
@@ -427,6 +455,16 @@ class FullChainHMCConfig:
                 )
             tuning_policy = normalize_hmc_tuning_policy(self.tuning_policy)
             require_executable_tuning_policy(tuning_policy)
+            if tuning_policy.uses_windowed_mass_adaptation:
+                raise ValueError(
+                    "windowed mass adaptation is executable only through the "
+                    "Phase 4 windowed diagnostic runner, not run_full_chain_tfp_hmc"
+                )
+            if tuning_policy.uses_dual_averaging and tuning_policy.label != "fixed_mass_dual_averaging":
+                raise ValueError(
+                    "dual-averaging HMC execution requires fixed_mass_dual_averaging "
+                    "in this phase"
+                )
         if (
             tuning_policy.num_adaptation_steps > 0
             and tuning_policy.num_adaptation_steps > self.num_burnin_steps
@@ -563,7 +601,10 @@ def run_full_chain_tfp_hmc(
         "adaptation_policy": config.adaptation_policy,
         "tuning_policy": config.tuning_policy.payload(),
         "adaptation_policy_source": config.tuning_policy.source,
-        "trace_unavailability": _trace_unavailability(config.trace_policy),
+        "trace_unavailability": _trace_unavailability(
+            config.trace_policy,
+            trace if isinstance(trace, Mapping) else None,
+        ),
         "value_score_authority": capability.value_score_authority,
         "target_scope": capability.target_scope,
         "requested_target_scope": config.target_scope,
@@ -776,7 +817,8 @@ def _make_tfp_target_log_prob_fn(
                 value, score = adapter.log_prob_and_grad(x)
 
                 def grad(dy: Any) -> Any:
-                    return tf.cast(dy, score.dtype) * score
+                    upstream = _broadcast_upstream_gradient_to_score(dy, score)
+                    return upstream * score
 
                 return value, grad
 
@@ -784,6 +826,57 @@ def _make_tfp_target_log_prob_fn(
 
         return target_log_prob
     return _make_hmc_target_log_prob_fn(adapter)
+
+
+def _broadcast_upstream_gradient_to_score(dy: Any, score: Any) -> Any:
+    """Broadcast target upstream gradients over trailing parameter axes only."""
+
+    import tensorflow as tf
+
+    score_tensor = tf.convert_to_tensor(score)
+    upstream = tf.cast(dy, score_tensor.dtype)
+    upstream_shape = upstream.shape
+    score_shape = score_tensor.shape
+    if upstream_shape.rank is not None and score_shape.rank is not None:
+        if upstream_shape.rank > score_shape.rank:
+            raise ValueError("target upstream gradient rank exceeds score rank")
+        for idx, dim in enumerate(upstream_shape.as_list()):
+            score_dim = score_shape[idx]
+            if dim is not None and score_dim is not None and int(dim) != int(score_dim):
+                raise ValueError(
+                    "target upstream gradient leading dimensions must match score"
+                )
+        if upstream_shape.rank == score_shape.rank:
+            return upstream
+        return tf.reshape(
+            upstream,
+            tf.concat(
+                [
+                    tf.shape(upstream),
+                    tf.ones([score_shape.rank - upstream_shape.rank], dtype=tf.int32),
+                ],
+                axis=0,
+            ),
+        )
+    rank_delta = tf.rank(score_tensor) - tf.rank(upstream)
+    with tf.control_dependencies(
+        [
+            tf.debugging.assert_greater_equal(
+                rank_delta,
+                0,
+                message="target upstream gradient rank exceeds score rank",
+            ),
+            tf.debugging.assert_equal(
+                tf.shape(upstream),
+                tf.shape(score_tensor)[: tf.rank(upstream)],
+                message="target upstream gradient leading dimensions must match score",
+            ),
+        ]
+    ):
+        return tf.reshape(
+            upstream,
+            tf.concat([tf.shape(upstream), tf.ones([rank_delta], dtype=tf.int32)], axis=0),
+        )
 
 
 def _build_sample_chain_runner(
@@ -821,16 +914,18 @@ def _trace_fn_for_config(config: FullChainHMCConfig) -> Callable[[Any, Any], Map
 
 
 def _standard_trace_fn(_state: Any, kernel_results: Any) -> Mapping[str, Any]:
-    return {
+    trace = {
         "is_accepted": kernel_results.is_accepted,
         "log_accept_ratio": kernel_results.log_accept_ratio,
         "target_log_prob": kernel_results.accepted_results.target_log_prob,
     }
+    trace.update(_native_divergence_trace(kernel_results))
+    return trace
 
 
 def _adaptive_standard_trace_fn(_state: Any, kernel_results: Any) -> Mapping[str, Any]:
     inner_results = kernel_results.inner_results
-    return {
+    trace = {
         "is_accepted": inner_results.is_accepted,
         "log_accept_ratio": inner_results.log_accept_ratio,
         "target_log_prob": inner_results.accepted_results.target_log_prob,
@@ -838,6 +933,51 @@ def _adaptive_standard_trace_fn(_state: Any, kernel_results: Any) -> Mapping[str
         "target_accept_prob": kernel_results.target_accept_prob,
         "num_adaptation_steps": kernel_results.num_adaptation_steps,
     }
+    trace.update(_native_divergence_trace(inner_results))
+    return trace
+
+
+def _native_divergence_trace(kernel_results: Any) -> Mapping[str, Any]:
+    """Expose only native boolean divergence fields from kernel results."""
+
+    divergence = _extract_native_divergence_tensor(kernel_results)
+    if divergence is None:
+        return {}
+    return {"divergence": divergence}
+
+
+def _extract_native_divergence_tensor(kernel_results: Any) -> Any | None:
+    """Return a native divergence tensor, never an energy/log-accept proxy."""
+
+    import tensorflow as tf
+
+    result_objects = (
+        kernel_results,
+        getattr(kernel_results, "proposed_results", None),
+        getattr(kernel_results, "accepted_results", None),
+    )
+    field_names = (
+        "is_divergent",
+        "has_divergence",
+        "divergence",
+        "divergences",
+    )
+    for result_object in result_objects:
+        if result_object is None:
+            continue
+        for field_name in field_names:
+            if not hasattr(result_object, field_name):
+                continue
+            value = getattr(result_object, field_name)
+            if value is None:
+                continue
+            try:
+                tensor = tf.convert_to_tensor(value)
+            except (TypeError, ValueError):
+                continue
+            if tensor.dtype == tf.bool:
+                return tensor
+    return None
 
 
 def _reduced_trace_fn(_state: Any, _kernel_results: Any) -> Mapping[str, Any]:
@@ -846,14 +986,26 @@ def _reduced_trace_fn(_state: Any, _kernel_results: Any) -> Mapping[str, Any]:
     return {"trace_collected": tf.constant(True)}
 
 
-def _trace_unavailability(trace_policy: str) -> Mapping[str, str]:
+def _trace_unavailability(
+    trace_policy: str,
+    trace: Mapping[str, Any] | None = None,
+) -> Mapping[str, str]:
     if trace_policy == "standard":
+        if trace is not None and "divergence" not in trace:
+            return {
+                "divergence": (
+                    "native boolean divergence field not exposed by "
+                    "TensorFlow Probability HMC kernel results"
+                ),
+            }
         return {}
-    return {
+    unavailable = {
         "is_accepted": "reduced trace policy",
         "log_accept_ratio": "reduced trace policy",
         "target_log_prob": "reduced trace policy",
+        "divergence": "reduced trace policy",
     }
+    return unavailable
 
 
 def _full_chain_hmc_diagnostics(
@@ -874,6 +1026,7 @@ def _full_chain_hmc_diagnostics(
         "trace_policy": trace_policy,
         "divergence_status": "unavailable",
         "divergence_count": None,
+        "divergence_source": None,
         "nonclaims": (
             "finite tiny-chain diagnostics only",
             "no sampler convergence claim",
@@ -885,6 +1038,13 @@ def _full_chain_hmc_diagnostics(
         )
     else:
         diagnostics["acceptance_rate"] = None
+    if "divergence" in trace:
+        divergence = tf.convert_to_tensor(trace["divergence"], dtype=tf.bool)
+        diagnostics["divergence_status"] = "available"
+        diagnostics["divergence_count"] = tf.reduce_sum(
+            tf.cast(divergence, tf.int32)
+        )
+        diagnostics["divergence_source"] = "native_boolean_tfp_kernel_result"
     if "target_log_prob" in trace:
         diagnostics["min_target_log_prob"] = tf.reduce_min(trace["target_log_prob"])
         diagnostics["max_target_log_prob"] = tf.reduce_max(trace["target_log_prob"])
