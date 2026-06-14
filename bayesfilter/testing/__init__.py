@@ -1,5 +1,12 @@
 """Testing fixtures for BayesFilter contracts."""
 
+from bayesfilter.testing.fixed_sgqf_diagnostics_tf import (
+    FixedSGQFBranchSummary,
+    FixedSGQFDiagnosticSnapshot,
+    fixed_sgqf_branch_summary,
+    fixed_sgqf_diagnostic_snapshot,
+    fixed_sgqf_failure_label,
+)
 from bayesfilter.testing.nonlinear_models_tf import (
     DenseProjectionStep,
     dense_gaussian_projection_step,
@@ -41,6 +48,8 @@ from bayesfilter.testing.tf_svd_cut_autodiff_oracle import (
 
 __all__ = [
     "DenseProjectionStep",
+    "FixedSGQFBranchSummary",
+    "FixedSGQFDiagnosticSnapshot",
     "NonlinearSigmaPointBranchSummary",
     "NonlinearSigmaPointDiagnosticSnapshot",
     "ModelBNonlinearSVDTarget",
@@ -50,6 +59,9 @@ __all__ = [
     "TFNonlinearSigmaPointBackend",
     "dense_gaussian_projection_step",
     "dense_projection_first_step",
+    "fixed_sgqf_branch_summary",
+    "fixed_sgqf_diagnostic_snapshot",
+    "fixed_sgqf_failure_label",
     "make_affine_gaussian_structural_oracle_tf",
     "make_nonlinear_accumulation_first_derivatives_tf",
     "make_nonlinear_accumulation_model_tf",

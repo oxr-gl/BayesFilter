@@ -1,0 +1,289 @@
+{
+  "schema_version": "filter_bench.gradient_semantics.v1",
+  "metadata_date": "2026-06-10",
+  "phase": "FILTER_BENCH_P6",
+  "status": "PASS_FILTER_BENCH_P6_GRADIENT_SEMANTICS",
+  "target_registry": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-target-registry-2026-06-10.json",
+  "adapter_schema": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-adapter-schema-2026-06-10.json",
+  "reference_oracles": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-reference-oracles-2026-06-10.json",
+  "deterministic_filter_coverage": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-deterministic-filter-coverage-2026-06-10.json",
+  "dpf_filter_coverage": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-dpf-filter-coverage-2026-06-10.json",
+  "purpose": "Machine-readable gradient semantics for P8 value/gradient matrices. This artifact decides when a gradient error may be numeric and when it must remain a status-only cell.",
+  "required_statuses_from_subplan": [
+    "valid_exact_or_reference_gradient",
+    "valid_autodiff_gradient",
+    "valid_analytic_gradient",
+    "fixed_branch_gradient_diagnostic",
+    "resampling_gradient_not_valid",
+    "branch_veto_gradient_not_valid",
+    "reference_gradient_unavailable",
+    "nonfinite_gradient",
+    "adapter_failed"
+  ],
+  "normalized_status_contracts": {
+    "valid_exact_or_reference_gradient": {
+      "gradient_error_may_be_reported": true,
+      "requires_reference_gradient": true,
+      "matrix_gradient_error_policy": "numeric_error_against_reference",
+      "nonclaims": ["does not by itself imply low error"]
+    },
+    "valid_autodiff_gradient": {
+      "gradient_error_may_be_reported": true,
+      "requires_reference_gradient": true,
+      "matrix_gradient_error_policy": "numeric_error_against_reference",
+      "nonclaims": ["autodiff finiteness is not correctness"]
+    },
+    "valid_analytic_gradient": {
+      "gradient_error_may_be_reported": true,
+      "requires_reference_gradient": true,
+      "matrix_gradient_error_policy": "numeric_error_against_reference",
+      "nonclaims": ["analytic availability is not an error threshold"]
+    },
+    "fixed_branch_gradient_diagnostic": {
+      "gradient_error_may_be_reported": false,
+      "requires_reference_gradient": false,
+      "matrix_gradient_error_policy": "null_with_status",
+      "nonclaims": ["fixed-branch DPF gradients are diagnostic only in P6"]
+    },
+    "resampling_gradient_not_valid": {
+      "gradient_error_may_be_reported": false,
+      "requires_reference_gradient": false,
+      "matrix_gradient_error_policy": "null_with_status",
+      "nonclaims": ["stochastic resampling gradients are not benchmark gradients"]
+    },
+    "branch_veto_gradient_not_valid": {
+      "gradient_error_may_be_reported": false,
+      "requires_reference_gradient": false,
+      "matrix_gradient_error_policy": "null_with_status",
+      "nonclaims": ["branch-veto diagnostics can explain but not pass a gradient cell"]
+    },
+    "reference_gradient_unavailable": {
+      "gradient_error_may_be_reported": false,
+      "requires_reference_gradient": false,
+      "matrix_gradient_error_policy": "null_with_status",
+      "nonclaims": ["value-only rows remain value-only"]
+    },
+    "algorithm_gradient_not_exposed": {
+      "gradient_error_may_be_reported": false,
+      "requires_reference_gradient": false,
+      "matrix_gradient_error_policy": "null_with_status",
+      "nonclaims": ["missing algorithm gradients are not zero-error gradients"]
+    },
+    "no_theta_gradient_dim0": {
+      "gradient_error_may_be_reported": false,
+      "requires_reference_gradient": false,
+      "matrix_gradient_error_policy": "null_with_status",
+      "nonclaims": ["valid only for declared theta_dimension zero rows"]
+    },
+    "nonfinite_gradient": {
+      "gradient_error_may_be_reported": false,
+      "requires_reference_gradient": false,
+      "matrix_gradient_error_policy": "null_with_status",
+      "nonclaims": ["nonfinite gradients are veto/status findings"]
+    },
+    "adapter_failed": {
+      "gradient_error_may_be_reported": false,
+      "requires_reference_gradient": false,
+      "matrix_gradient_error_policy": "null_with_status",
+      "nonclaims": ["adapter failure is engineering status, not scientific evidence"]
+    },
+    "adapter_required": {
+      "gradient_error_may_be_reported": false,
+      "requires_reference_gradient": false,
+      "matrix_gradient_error_policy": "null_with_status"
+    },
+    "unsupported_by_target": {
+      "gradient_error_may_be_reported": false,
+      "requires_reference_gradient": false,
+      "matrix_gradient_error_policy": "null_with_status"
+    },
+    "blocked_value_route": {
+      "gradient_error_may_be_reported": false,
+      "requires_reference_gradient": false,
+      "matrix_gradient_error_policy": "null_with_status"
+    },
+    "diagnostic_only_not_promotion": {
+      "gradient_error_may_be_reported": false,
+      "requires_reference_gradient": false,
+      "matrix_gradient_error_policy": "null_with_status"
+    },
+    "historical_only_not_evidence": {
+      "gradient_error_may_be_reported": false,
+      "requires_reference_gradient": false,
+      "matrix_gradient_error_policy": "null_with_status"
+    },
+    "scout_only_not_truth": {
+      "gradient_error_may_be_reported": false,
+      "requires_reference_gradient": false,
+      "matrix_gradient_error_policy": "null_with_status"
+    }
+  },
+  "reference_gradient_policy_rules": {
+    "reference_gradient_available": {
+      "row_gradient_error_eligible": true,
+      "benchmarkable_value_gradient_requires_this_policy": true,
+      "missing_reference_blocks_gradient_benchmark": true
+    },
+    "reference_gradient_unavailable_but_value_benchmarkable": {
+      "row_gradient_error_eligible": false,
+      "value_error_may_still_be_reported": true,
+      "allowed_normalized_statuses": [
+        "reference_gradient_unavailable",
+        "algorithm_gradient_not_exposed",
+        "no_theta_gradient_dim0"
+      ]
+    },
+    "reference_gradient_missing_blocks_gradient_benchmark": {
+      "row_gradient_error_eligible": false,
+      "value_error_may_still_be_reported": false,
+      "allowed_normalized_statuses": ["reference_gradient_unavailable"]
+    },
+    "blocked_value_route": {
+      "row_gradient_error_eligible": false,
+      "value_error_may_still_be_reported": false,
+      "allowed_normalized_statuses": ["blocked_value_route"]
+    }
+  },
+  "coverage_cell_status_rules": {
+    "deterministic": {
+      "READY_VALUE_GRADIENT": {
+        "normalized_status": "valid_autodiff_gradient",
+        "allowed_raw_gradient_statuses": ["VALID"],
+        "gradient_error_may_be_reported": true,
+        "requires_reference_gradient": true,
+        "matrix_gradient_error_policy": "numeric_error_against_reference"
+      },
+      "READY_SURROGATE_VALUE_GRADIENT": {
+        "normalized_status": "valid_autodiff_gradient",
+        "allowed_raw_gradient_statuses": ["VALID"],
+        "gradient_error_may_be_reported": true,
+        "requires_reference_gradient": true,
+        "matrix_gradient_error_policy": "numeric_error_against_declared_surrogate_reference"
+      },
+      "READY_VALUE_ONLY": {
+        "normalized_status": "algorithm_gradient_not_exposed",
+        "allowed_raw_gradient_statuses": ["GRADIENT_NOT_EXPOSED", "NO_THETA_GRADIENT_DIM0"],
+        "gradient_error_may_be_reported": false,
+        "requires_reference_gradient": false,
+        "matrix_gradient_error_policy": "null_with_status"
+      },
+      "READY_DIAGNOSTIC_ONLY": {
+        "normalized_status": "diagnostic_only_not_promotion",
+        "allowed_raw_gradient_statuses": ["VALID", "GRADIENT_NOT_EXPOSED", "NO_THETA_GRADIENT_DIM0"],
+        "gradient_error_may_be_reported": false,
+        "requires_reference_gradient": false,
+        "matrix_gradient_error_policy": "null_with_status"
+      },
+      "SCOUT_ONLY_NOT_TRUTH": {
+        "normalized_status": "scout_only_not_truth",
+        "allowed_raw_gradient_statuses": ["NOT_RUN"],
+        "gradient_error_may_be_reported": false,
+        "requires_reference_gradient": false,
+        "matrix_gradient_error_policy": "null_with_status"
+      },
+      "ADAPTER_REQUIRED_WITH_REASON": {
+        "normalized_status": "adapter_required",
+        "allowed_raw_gradient_statuses": ["NOT_RUN"],
+        "gradient_error_may_be_reported": false,
+        "requires_reference_gradient": false,
+        "matrix_gradient_error_policy": "null_with_status"
+      },
+      "UNSUPPORTED_WITH_REASON": {
+        "normalized_status": "unsupported_by_target",
+        "allowed_raw_gradient_statuses": ["UNSUPPORTED_BY_TARGET"],
+        "gradient_error_may_be_reported": false,
+        "requires_reference_gradient": false,
+        "matrix_gradient_error_policy": "null_with_status"
+      },
+      "BLOCKED_VALUE_ROUTE": {
+        "normalized_status": "blocked_value_route",
+        "allowed_raw_gradient_statuses": ["BLOCKED_VALUE_ROUTE"],
+        "gradient_error_may_be_reported": false,
+        "requires_reference_gradient": false,
+        "matrix_gradient_error_policy": "null_with_status"
+      }
+    },
+    "dpf": {
+      "READY_VALUE_WITH_STOCHASTIC_GRADIENT_STATUS": {
+        "normalized_status": "resampling_gradient_not_valid",
+        "allowed_raw_gradient_statuses": ["RESAMPLING_GRADIENT_NOT_VALID"],
+        "required_reason_codes": ["RESAMPLING_GRADIENT_NOT_VALID"],
+        "gradient_error_may_be_reported": false,
+        "requires_reference_gradient": false,
+        "matrix_gradient_error_policy": "null_with_status"
+      },
+      "READY_FIXED_BRANCH_DIAGNOSTIC": {
+        "normalized_status": "fixed_branch_gradient_diagnostic",
+        "allowed_raw_gradient_statuses": ["FIXED_BRANCH_GRADIENT_DIAGNOSTIC"],
+        "required_reason_codes": ["FIXED_BRANCH_GRADIENT_DIAGNOSTIC"],
+        "gradient_error_may_be_reported": false,
+        "requires_reference_gradient": false,
+        "matrix_gradient_error_policy": "null_with_status"
+      },
+      "READY_DIAGNOSTIC_ONLY": {
+        "normalized_status": "diagnostic_only_not_promotion",
+        "allowed_raw_gradient_statuses": ["NOT_RUN"],
+        "gradient_error_may_be_reported": false,
+        "requires_reference_gradient": false,
+        "matrix_gradient_error_policy": "null_with_status"
+      },
+      "ADAPTER_REQUIRED_WITH_REASON": {
+        "normalized_status": "adapter_required",
+        "allowed_raw_gradient_statuses": ["NOT_RUN"],
+        "gradient_error_may_be_reported": false,
+        "requires_reference_gradient": false,
+        "matrix_gradient_error_policy": "null_with_status"
+      },
+      "BLOCKED_VALUE_ROUTE": {
+        "normalized_status": "blocked_value_route",
+        "allowed_raw_gradient_statuses": ["BLOCKED_VALUE_ROUTE"],
+        "gradient_error_may_be_reported": false,
+        "requires_reference_gradient": false,
+        "matrix_gradient_error_policy": "null_with_status"
+      },
+      "HISTORICAL_ONLY_NOT_EVIDENCE": {
+        "normalized_status": "historical_only_not_evidence",
+        "allowed_raw_gradient_statuses": ["HISTORICAL_ONLY_NOT_EVIDENCE"],
+        "gradient_error_may_be_reported": false,
+        "requires_reference_gradient": false,
+        "matrix_gradient_error_policy": "null_with_status"
+      }
+    }
+  },
+  "matrix_emission_rules": {
+    "gradient_error_definition": "normed error between algorithm gradient and row reference gradient with absolute and scale-aware relative fields.",
+    "numeric_gradient_error_required_fields": [
+      "gradient_error_abs",
+      "gradient_error_rel",
+      "algorithm_gradient_norm",
+      "reference_gradient_norm",
+      "gradient_dimension"
+    ],
+    "status_only_required_fields": [
+      "gradient_error_abs",
+      "gradient_error_rel",
+      "gradient_status",
+      "reason_codes",
+      "diagnostics"
+    ],
+    "status_only_null_fields": ["gradient_error_abs", "gradient_error_rel"],
+    "zero_fill_gradient_error_for_noneligible_cells": false,
+    "missing_reference_gradient_may_pass_benchmarkable_value_gradient": false,
+    "finite_gradient_check_is_explanatory_only": true,
+    "fixed_branch_gradient_check_is_explanatory_only": true
+  },
+  "veto_diagnostics": [
+    "DPF resampling gradient emitted as VALID",
+    "fixed-branch DPF diagnostic emitted as certified gradient",
+    "GRADIENT_NOT_EXPOSED emitted as zero error",
+    "reference_gradient_unavailable used to pass benchmarkable_value_gradient row",
+    "branch-veto or nonfinite gradient emitted as pass"
+  ],
+  "nonclaims": [
+    "P6 does not rank filters",
+    "P6 does not set numerical error thresholds",
+    "P6 does not certify DPF gradients",
+    "P6 does not run the full benchmark matrix",
+    "P6 does not claim HMC, GPU, or Bayesian-estimation readiness"
+  ]
+}

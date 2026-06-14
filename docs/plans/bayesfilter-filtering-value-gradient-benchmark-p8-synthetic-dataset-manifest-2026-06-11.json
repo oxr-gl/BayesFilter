@@ -1,0 +1,691 @@
+{
+  "schema_version": "filter_bench.p8_synthetic_datasets.v1",
+  "metadata_date": "2026-06-11",
+  "phase": "FILTER_BENCH_P8_B2_SYNTHETIC_DATASETS",
+  "status": "PASS_P8_B2_SYNTHETIC_DATASET_MANIFEST_READY_WITH_NUMERIC_EVALUATORS_PENDING",
+  "numeric_benchmark_status": "BLOCK_P8_NUMERIC_BENCHMARK_NOT_YET_RUN",
+  "purpose": "Generate reproducible synthetic dataset manifests for P8 source-paper rows whose truth/test point and source generator are available.",
+  "source_artifacts": {
+    "blocker_status": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8-blocker-closure-status-2026-06-11.json",
+    "source_scope_contract": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-source-paper-scope-contract-2026-06-11.json"
+  },
+  "source_scope_row_ids": [
+    "benchmark_lgssm_exact_oracle_m3_T50",
+    "zhao_cui_sv_actual_nongaussian_T1000",
+    "zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000",
+    "zhao_cui_spatial_sir_austria_j9_T20",
+    "zhao_cui_predator_prey_T20",
+    "zhao_cui_generalized_sv_synthetic_from_estimated_values"
+  ],
+  "dataset_records": [
+    {
+      "model_row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+      "dataset_status": "generated",
+      "blocker_token": null,
+      "reason": null,
+      "horizon": 50,
+      "seed": 81100,
+      "observation_summary": {
+        "shape": [
+          50,
+          3
+        ],
+        "dtype": "float64",
+        "sha256": "8aa2e8102ef25d6accf5d30b9c341621af26fce151ac85133c5a0a6a44671e17",
+        "mean": 0.021581541140790785,
+        "stddev": 0.6474685712197151,
+        "min": -1.6225568687095255,
+        "max": 1.9321220930743537,
+        "all_finite": true
+      },
+      "state_summary": {
+        "shape": [
+          50,
+          3
+        ],
+        "dtype": "float64",
+        "sha256": "4bae686bae8278b9531a108fdaa1aa99589bd94434df7f97c1dfbe499e3c481b",
+        "mean": 0.023916157976371265,
+        "stddev": 0.415776918449231,
+        "min": -1.4924721409470778,
+        "max": 1.013267799543775,
+        "all_finite": true
+      },
+      "truth_physical": {
+        "phi": [
+          0.72,
+          0.55,
+          0.35
+        ],
+        "q_scale": 0.35,
+        "r_scale": 0.45
+      },
+      "truth_theta_coordinate": "physical_benchmark_exact_oracle",
+      "truth_theta": [
+        0.72,
+        0.55,
+        0.35,
+        0.35,
+        0.45
+      ],
+      "model_manifest": {
+        "family": "LinearGaussianSSM",
+        "initial_mean": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "initial_covariance": [
+          [
+            0.254360465116279,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.17562724014336914,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.13960113960113957
+          ]
+        ],
+        "transition_matrix": [
+          [
+            0.72,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.55,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.35
+          ]
+        ],
+        "transition_covariance": [
+          [
+            0.12249999999999998,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.12249999999999998,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.12249999999999998
+          ]
+        ],
+        "transition_offset": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "observation_matrix": [
+          [
+            1.0,
+            0.25,
+            -0.15
+          ],
+          [
+            0.2,
+            1.1,
+            0.3
+          ],
+          [
+            -0.1,
+            0.35,
+            0.9
+          ]
+        ],
+        "observation_covariance": [
+          [
+            0.2025,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.2025,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.2025
+          ]
+        ],
+        "observation_offset": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "benchmark_policy": "explicit identifiable exact-oracle LGSSM; not a Zhao-Cui MATLAB rng(0) reproduction",
+        "identifiability_diagnostics": {
+          "observation_matrix_rank": 3,
+          "transition_spectral_radius": 0.72
+        }
+      },
+      "nonclaims": [
+        "not a filter performance result",
+        "not a ranking",
+        "not a Zhao-Cui MATLAB C reproduction"
+      ]
+    },
+    {
+      "model_row_id": "zhao_cui_sv_actual_nongaussian_T1000",
+      "dataset_status": "generated",
+      "blocker_token": null,
+      "reason": null,
+      "horizon": 1000,
+      "seed": 81101,
+      "observation_summary": {
+        "shape": [
+          1000,
+          1
+        ],
+        "dtype": "float64",
+        "sha256": "5e2423149e4f59eb588ccc7f16ec6d9ee984ccc4710a3ae07a3dbcf5c37db748",
+        "mean": -0.016664233094913185,
+        "stddev": 0.6828614132399085,
+        "min": -10.349092066311352,
+        "max": 4.3015047514641465,
+        "all_finite": true
+      },
+      "state_summary": {
+        "shape": [
+          1000,
+          1
+        ],
+        "dtype": "float64",
+        "sha256": "338b3ba4ce18fe6ef758c216a679f0537729d032e2ae5ff795ed8ecbe1fed453",
+        "mean": 0.009957798879183787,
+        "stddev": 1.2271556939084332,
+        "min": -3.909070339391356,
+        "max": 4.612958065212034,
+        "all_finite": true
+      },
+      "truth_physical": {
+        "gamma": 0.6,
+        "beta": 0.4,
+        "sigma": 1.0
+      },
+      "truth_theta_coordinate": "synthetic_unconstrained",
+      "truth_theta": [
+        0.2533471031357997,
+        -0.916290731874155
+      ],
+      "model_manifest": {
+        "family": "StochasticVolatilitySSM",
+        "sigma": 1.0,
+        "parameterization": "synthetic_unconstrained",
+        "parameter_transform": "theta_prime=(Phi^{-1}(gamma), log(beta)); X_prime_t=X_t",
+        "source_equations": [
+          "eq:p27-sv1",
+          "eq:p27-sv2",
+          "eq:p27-sv3",
+          "eq:p27-sv5a"
+        ],
+        "dimension_convention": "synthetic row includes x_0:x_T; joint dimension is 2+(T+1)"
+      },
+      "nonclaims": [
+        "not a filter performance result",
+        "not a ranking"
+      ]
+    },
+    {
+      "model_row_id": "zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000",
+      "dataset_status": "generated",
+      "blocker_token": null,
+      "reason": null,
+      "source_model_row_id": "zhao_cui_sv_actual_nongaussian_T1000",
+      "transform": "log(y_t^2 + offset)",
+      "transform_offset": 1e-08,
+      "horizon": 1000,
+      "seed": 81101,
+      "observation_summary": {
+        "shape": [
+          1000,
+          1
+        ],
+        "dtype": "float64",
+        "sha256": "891bbf642b948e793a70ee2c8b37002d1b784a1802d359e5304c7fdb57d75cf4",
+        "mean": -3.1418773080332367,
+        "stddev": 2.5618932054909043,
+        "min": -16.585508920325854,
+        "max": 4.673797585696927,
+        "all_finite": true
+      },
+      "state_summary": {
+        "shape": [
+          1000,
+          1
+        ],
+        "dtype": "float64",
+        "sha256": "338b3ba4ce18fe6ef758c216a679f0537729d032e2ae5ff795ed8ecbe1fed453",
+        "mean": 0.009957798879183787,
+        "stddev": 1.2271556939084332,
+        "min": -3.909070339391356,
+        "max": 4.612958065212034,
+        "all_finite": true
+      },
+      "truth_physical": {
+        "gamma": 0.6,
+        "beta": 0.4,
+        "sigma": 1.0
+      },
+      "truth_theta_coordinate": "synthetic_unconstrained",
+      "truth_theta": [
+        0.2533471031357997,
+        -0.916290731874155
+      ],
+      "nonclaims": [
+        "not exact native SV likelihood",
+        "surrogate observation target"
+      ]
+    },
+    {
+      "model_row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+      "dataset_status": "generated",
+      "blocker_token": null,
+      "reason": null,
+      "horizon": 20,
+      "seed": 81103,
+      "observation_summary": {
+        "shape": [
+          20,
+          9
+        ],
+        "dtype": "float64",
+        "sha256": "cb72b8ebb705c0f791e6f5edace8b296b7da46e5236a9824a1d5a30a261572e5",
+        "mean": 64.26918068449397,
+        "stddev": 46.08794701876618,
+        "min": -9.48213043607645,
+        "max": 153.56603185550966,
+        "all_finite": true
+      },
+      "state_summary": {
+        "shape": [
+          20,
+          18
+        ],
+        "dtype": "float64",
+        "sha256": "855dce8c00dd169a27415c4434056e4e68cd2caefd406e3f0213b42c63e608de",
+        "mean": 126.04677281906716,
+        "stddev": 137.63477271893709,
+        "min": 3.9117526095101818,
+        "max": 497.0357264761165,
+        "all_finite": true
+      },
+      "truth_physical": {
+        "kappa": [
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1
+        ],
+        "nu": [
+          18.0,
+          18.0,
+          18.0,
+          18.0,
+          18.0,
+          18.0,
+          18.0,
+          18.0,
+          18.0
+        ]
+      },
+      "truth_theta_coordinate": "no_free_theta",
+      "truth_theta": [],
+      "model_manifest": {
+        "family": "SpatialSIRSSM",
+        "source_equations": [
+          "eq:p27-sir1",
+          "eq:p27-sir2",
+          "eq:p27-sir3",
+          "eq:p27-sir4",
+          "eq:p27-sir5",
+          "eq:p27-sir6",
+          "eq:p27-sir7",
+          "eq:p27-sir8a",
+          "eq:p27-sir8b",
+          "eq:p27-sir8c",
+          "eq:p27-sir9",
+          "eq:p27-sir10",
+          "eq:p27-sir11",
+          "eq:p27-sir13"
+        ],
+        "compartments": 9,
+        "state_dimension": 18,
+        "observation_dimension": 9,
+        "dimension_convention": "state is (S_1,I_1,...,S_J,I_J) in R^{2J}; R is eliminated",
+        "observation_convention": "infectious coordinates only",
+        "neighbor_sets": [
+          [
+            1
+          ],
+          [
+            0,
+            2,
+            3
+          ],
+          [
+            1,
+            3,
+            4,
+            5
+          ],
+          [
+            1,
+            2,
+            4
+          ],
+          [
+            2,
+            3,
+            5,
+            6,
+            8
+          ],
+          [
+            2,
+            4,
+            6
+          ],
+          [
+            4,
+            5,
+            7,
+            8
+          ],
+          [
+            6
+          ],
+          [
+            4,
+            6
+          ]
+        ],
+        "delta": 0.02,
+        "rk4_internal_step": 0.005,
+        "rk4_variant": "zhao_cui_sir_step",
+        "rk4_substeps": 4,
+        "domain_policy": "diagnose_negative_after_noise",
+        "process_noise_policy": "clip_susceptible_after_noise",
+        "what_is_not_claimed": [
+          "production_tt_sirt_sir_filtering",
+          "paper_scale_j9_accuracy",
+          "rank_ladder_evidence",
+          "high_dimensional_scalability",
+          "hmc_or_dsge_readiness"
+        ]
+      },
+      "nonclaims": [
+        "not a filter performance result",
+        "not a ranking"
+      ],
+      "domain_diagnostics": {
+        "domain_policy": "diagnose_negative_after_noise",
+        "min_state": 3.9117526095101818,
+        "has_negative_state": false
+      }
+    },
+    {
+      "model_row_id": "zhao_cui_predator_prey_T20",
+      "dataset_status": "generated",
+      "blocker_token": null,
+      "reason": null,
+      "horizon": 20,
+      "seed": 81104,
+      "observation_summary": {
+        "shape": [
+          20,
+          2
+        ],
+        "dtype": "float64",
+        "sha256": "dc63294b6e77913aef0c92796dd2d3c7a1721a766f976fcc392cd02a70754387",
+        "mean": 54.92266755966982,
+        "stddev": 54.43407000776854,
+        "min": -6.161846456898129,
+        "max": 119.80438851473963,
+        "all_finite": true
+      },
+      "state_summary": {
+        "shape": [
+          20,
+          2
+        ],
+        "dtype": "float64",
+        "sha256": "ebd1caca85d589bfa61801e92b112b7a8e0b9d5504763cdb67b82100422f7da2",
+        "mean": 54.505683835063095,
+        "stddev": 54.80523526029145,
+        "min": -5.746782703440688,
+        "max": 118.25145075341324,
+        "all_finite": true
+      },
+      "truth_physical": {
+        "r": 0.6,
+        "K": 114.0,
+        "a": 25.0,
+        "s": 0.3,
+        "u": 0.5,
+        "v": 0.5
+      },
+      "truth_theta_coordinate": "physical",
+      "truth_theta": [
+        0.6,
+        114.0,
+        25.0,
+        0.3,
+        0.5,
+        0.5
+      ],
+      "model_manifest": {
+        "family": "PredatorPreySSM",
+        "source_equations": [
+          "eq:p27-pp1",
+          "eq:p27-pp2",
+          "eq:p27-pp3",
+          "eq:p27-pp4",
+          "eq:p27-pp5",
+          "eq:p27-pp5a",
+          "eq:p27-pp5b",
+          "eq:p27-pp5c",
+          "eq:p27-pp5d",
+          "eq:p27-pp6",
+          "eq:p27-pp7",
+          "eq:p27-pp8"
+        ],
+        "state_dimension": 2,
+        "observation_dimension": 2,
+        "parameter_dimension": 6,
+        "dimension_convention": "state is (P,Q); parameter is (r,K,a,s,u,v)",
+        "parameter_box": {
+          "r": [
+            0.1,
+            1.1
+          ],
+          "K": [
+            110.0,
+            130.0
+          ],
+          "a": [
+            20.0,
+            30.0
+          ],
+          "s": [
+            0.1,
+            1.1
+          ],
+          "u": [
+            0.0,
+            1.0
+          ],
+          "v": [
+            0.0,
+            1.0
+          ]
+        },
+        "initial_mean": [
+          50.0,
+          5.0
+        ],
+        "delta": 2.0,
+        "rk4_internal_step": 0.1,
+        "rk4_substeps": 20,
+        "domain_policy": "diagnose_negative_after_noise",
+        "what_is_not_claimed": [
+          "nonlinear_preconditioning_usefulness",
+          "matched_linear_nonlinear_comparison_success",
+          "paper_scale_predator_prey_result",
+          "adaptive_matlab_behavior",
+          "high_dimensional_scalability"
+        ]
+      },
+      "nonclaims": [
+        "not a filter performance result",
+        "not a ranking"
+      ],
+      "domain_diagnostics": {
+        "domain_policy": "diagnose_negative_after_noise",
+        "min_state": -5.746782703440688,
+        "has_negative_state": true
+      }
+    },
+    {
+      "model_row_id": "zhao_cui_generalized_sv_synthetic_from_estimated_values",
+      "dataset_status": "generated",
+      "blocker_token": null,
+      "reason": null,
+      "horizon": 1008,
+      "seed": 81105,
+      "observation_summary": {
+        "shape": [
+          1008,
+          1
+        ],
+        "dtype": "float64",
+        "sha256": "c990947b16d5ef108870fcb716836166a41b1fe31503b9cb5e0cd0459d4a53f2",
+        "mean": 0.010268641317545358,
+        "stddev": 1.0098939524994113,
+        "min": -3.4189759119573555,
+        "max": 3.6424716238694717,
+        "all_finite": true
+      },
+      "state_summary": {
+        "shape": [
+          1008,
+          1
+        ],
+        "dtype": "float64",
+        "sha256": "2a976493f58cc839667f8f4c892e92853dc232f5fe02fc617dad202b300ee358",
+        "mean": 0.15324624283601654,
+        "stddev": 1.9321074929792903,
+        "min": -5.096489475736014,
+        "max": 6.288129486247104,
+        "all_finite": true
+      },
+      "truth_physical": {
+        "gamma": 0.8604651162790697,
+        "tau_or_sigma": 0.12533141373155002,
+        "mu_or_log_beta_center_coordinate": 0.0,
+        "phi": 0.0,
+        "a": 0.0,
+        "delta": 0.0,
+        "nu1": "inf",
+        "nu2": "inf"
+      },
+      "truth_theta_coordinate": "source_route_active_transformed_prior_mean",
+      "truth_theta": [
+        1.0824113944610982,
+        -2.076793740349318,
+        0.0
+      ],
+      "model_manifest": {
+        "family": "ZhaoCuiSVModelsGeneralizedSVPriorMeanSynthetic",
+        "source_route": "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/svmodels",
+        "paper_anchor": "Zhao-Cui Section 6.2 S&P 500 prior distribution",
+        "state_dimension": 1,
+        "observation_dimension": 1,
+        "horizon": 1008,
+        "active_estimated_parameters": [
+          "gamma",
+          "tau",
+          "mu"
+        ],
+        "fixed_context": {
+          "phi": 0.0,
+          "a": 0.0,
+          "delta": 0.0,
+          "nu1": "inf",
+          "nu2": "inf"
+        },
+        "prior_mean_convention": "finite-coordinate prior center: E[(gamma+1)/2], E[sigma], and zero center for log(beta)/sigma or source mu/tau coordinate",
+        "paper_priors": {
+          "(gamma+1)/2": "Beta(20, 1.5)",
+          "sigma_squared": "IG(1, 0.005)",
+          "log_beta_given_sigma": "Normal(0, sigma^2 / 0.8)"
+        },
+        "simulation_equations": {
+          "initial_state": "x0 ~ Normal(0, 1 / (1 - gamma^2)) in source-route scaled coordinates",
+          "transition": "x_t = mu + gamma * (x_{t-1} - mu) + Normal(0, 1)",
+          "variance": "v_t = exp(tau * x_t) because delta=0",
+          "observation": "y_t = sqrt(v_t) * Normal(0, 1) because nu2=inf"
+        },
+        "coordinate_caveat": "The paper writes log(beta)/sigma as the third transformed coordinate; the mirrored svmodels code names the third active coordinate mu. The prior-center value is zero under both labels.",
+        "what_is_not_claimed": [
+          "not a posterior estimate from SP500 returns",
+          "not a direct SP500 benchmark-data row",
+          "not a claim that E[sigma^2] or ordinary E[beta] is finite",
+          "not evaluator correctness evidence",
+          "not filter performance evidence"
+        ]
+      },
+      "nonclaims": [
+        "not a filter performance result",
+        "not a ranking",
+        "not a posterior estimate from SP500 returns",
+        "not a direct SP500 benchmark-data row",
+        "not an ordinary finite-mean claim for sigma_squared_or_beta"
+      ]
+    }
+  ],
+  "dataset_status_counts": {
+    "generated": 6
+  },
+  "ready_for_numeric_benchmark": false,
+  "reason_not_ready": "Evaluator/adapter, horizon, seed, and reviewed numeric table phases remain incomplete.",
+  "benchmark_guardrails": {
+    "p44_rows_promoted": false,
+    "author_defaults_as_generalized_sv_truth_allowed": false,
+    "sp500_returns_as_benchmark_observations_allowed": false,
+    "zhao_cui_lgssm_matlab_C_claim_allowed": false,
+    "old_ledh_pfpf_ot_current_evidence_allowed": false,
+    "old_sir_local_operator_route_allowed": false,
+    "dpf_ranking_before_mc_se_allowed": false,
+    "protocol_gate_counts_as_numeric_benchmark_allowed": false
+  },
+  "nonclaims": [
+    "not a numeric benchmark result",
+    "not a filter ranking",
+    "not evaluator correctness evidence",
+    "not generalized-SV evaluator correctness evidence",
+    "not SIR d=18 source-route validation success"
+  ]
+}

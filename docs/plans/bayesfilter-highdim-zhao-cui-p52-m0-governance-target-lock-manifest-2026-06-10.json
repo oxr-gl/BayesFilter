@@ -1,0 +1,151 @@
+{
+  "schema_version": "p52.governance_target_lock.v1",
+  "metadata_date": "2026-06-10",
+  "phase": "P52-M0",
+  "status": "PASS_P52_M0_GOVERNANCE_TARGET_LOCK",
+  "target_id": "rank_calibrated_factorized_spatial_sir",
+  "source_blocker": {
+    "id": "spatial_sir_production_route_architecture",
+    "token": "BLOCKED_M4B_ROUTE_ARCHITECTURE",
+    "source_manifest": "docs/plans/bayesfilter-highdim-zhao-cui-p51-m3-spatial-sir-production-route-manifest-2026-06-09.json",
+    "blocked_route": "all-axes retained-grid route with grid_points^2 pairwise transition evaluations",
+    "replacement_target": "fixed-rank factorized or streamed transition application under a memory-bounded deterministic approximation"
+  },
+  "source_artifacts": [
+    "docs/plans/bayesfilter-highdim-zhao-cui-p52-rank-calibrated-spatial-sir-master-program-2026-06-10.md",
+    "docs/plans/bayesfilter-highdim-zhao-cui-p52-m0-governance-target-lock-subplan-2026-06-10.md",
+    "docs/plans/bayesfilter-highdim-zhao-cui-p51-m3-spatial-sir-production-route-manifest-2026-06-09.json",
+    "docs/plans/bayesfilter-highdim-zhao-cui-p51-m3-spatial-sir-production-route-result-2026-06-09.md",
+    "docs/plans/bayesfilter-highdim-zhao-cui-p52-visible-gated-execution-runbook-2026-06-10.md"
+  ],
+  "role_contract": {
+    "supervisor_executor": "Codex",
+    "reviewer": "Claude Code read-only",
+    "claude_may_execute_or_edit": false,
+    "detached_execution_allowed": false
+  },
+  "allowed_evidence_classes": [
+    {
+      "class": "correctness_reference",
+      "allowed_claim": "same-target value or gradient correctness within declared tolerance",
+      "required_support": "exact, dense, or reviewed same-target reference"
+    },
+    {
+      "class": "rank_self_convergence",
+      "allowed_claim": "fixed-route rank self-convergence against a strictly higher feasible rank",
+      "required_support": "same target, same route, only rank cap increased, replay metadata matched"
+    },
+    {
+      "class": "scout_baseline",
+      "allowed_claim": "centering, scaling, covariance, and sanity diagnostics only",
+      "required_support": "UKF or block/local UKF manifest labeled scout_not_truth"
+    },
+    {
+      "class": "memory_preflight",
+      "allowed_claim": "memory and rank feasibility forecast only",
+      "required_support": "rank-budget manifest with r_max, R_eff source, and cap fields"
+    },
+    {
+      "class": "scaling_stress",
+      "allowed_claim": "bounded performance or stability stress under declared cap",
+      "required_support": "d=18 prerequisites, memory preflight, and explicit non-correctness label"
+    }
+  ],
+  "dimension_policy": [
+    {
+      "dimension": 18,
+      "sites": 9,
+      "role": "first production-like calibration target after route repair",
+      "maximum_first_claim": "filtering_calibration_candidate"
+    },
+    {
+      "dimension": 50,
+      "sites": 25,
+      "role": "first reasonable full filtering stress maximum",
+      "maximum_first_claim": "scaling_stress_or_rank_self_convergence"
+    },
+    {
+      "dimension": 100,
+      "sites": 50,
+      "role": "scout and memory preflight by default",
+      "maximum_first_claim": "ukf_scout_and_memory_preflight"
+    }
+  ],
+  "rank_policy": {
+    "candidate_ranks": [2, 4, 8, 16, 32],
+    "allow_rank_adaptation_inside_hmc_likelihood": false,
+    "memory_cap_gb": 32,
+    "algorithm_cap_gb": 16,
+    "single_step_workspace_cap_gb": 8,
+    "requires_r_max_before_execution": true,
+    "requires_R_eff_source": true
+  },
+  "forbidden_claims": [
+    "production spatial SIR readiness from lower-rung diagnostics",
+    "UKF correctness oracle",
+    "d=100 filtering correctness from scout or preflight evidence",
+    "HMC readiness from finite values or finite gradients",
+    "GPU readiness from CPU-only runs",
+    "adaptive TT/SIRT source-faithful filtering inside HMC",
+    "S&P 500 reproduction",
+    "dense all-pairs route as production path"
+  ],
+  "required_phase_tokens": {
+    "P52-M0": [
+      "PASS_P52_M0_GOVERNANCE_TARGET_LOCK",
+      "BLOCK_P52_M0_GOVERNANCE_TARGET_LOCK"
+    ],
+    "P52-M1": [
+      "PASS_P52_M1_P30_LATEX_RANK_CALIBRATION",
+      "BLOCK_P52_M1_P30_LATEX_RANK_CALIBRATION"
+    ],
+    "P52-M2": [
+      "PASS_P52_M2_MEMORY_RANK_CEILING",
+      "BLOCK_P52_M2_MEMORY_RANK_CEILING"
+    ],
+    "P52-M3": [
+      "PASS_P52_M3_UKF_SCOUTING",
+      "BLOCK_P52_M3_UKF_SCOUTING"
+    ],
+    "P52-M4": [
+      "PASS_P52_M4_FACTORIZED_TRANSITION_ROUTE",
+      "BLOCK_P52_M4_FACTORIZED_TRANSITION_ROUTE"
+    ],
+    "P52-M5": [
+      "PASS_P52_M5_RANK_SELECTION_IMPLEMENTATION",
+      "BLOCK_P52_M5_RANK_SELECTION_IMPLEMENTATION"
+    ],
+    "P52-M6": [
+      "PASS_P52_M6_SPATIAL_SIR_D18",
+      "BLOCK_P52_M6_SPATIAL_SIR_D18"
+    ],
+    "P52-M7": [
+      "PASS_P52_M7_SPATIAL_SIR_D50_D100",
+      "BLOCK_P52_M7_SPATIAL_SIR_D50_D100"
+    ],
+    "P52-M8": [
+      "PASS_P52_M8_INTEGRATION_CLOSEOUT",
+      "BLOCK_P52_M8_INTEGRATION_CLOSEOUT"
+    ]
+  },
+  "human_required_stop_conditions": [
+    "project-direction decision not already in the reviewed plan",
+    "package installation, network fetch, credentials, or environment setup",
+    "destructive git or filesystem action",
+    "changing pass/fail criteria after seeing results",
+    "changing default policy",
+    "modifying unrelated dirty user work",
+    "interpreting GPU/special hardware results without trusted-context evidence",
+    "continuing after Claude and Codex do not converge after five review rounds"
+  ],
+  "nonclaims": [
+    "no implementation completed by M0",
+    "no filtering correctness",
+    "no production spatial SIR readiness",
+    "no HMC readiness",
+    "no GPU readiness",
+    "no d=100 filtering correctness",
+    "no source-faithful adaptive TT/SIRT filtering",
+    "no S&P 500 reproduction"
+  ]
+}

@@ -45,7 +45,12 @@ Current authority:
 
 - `docs/plans/bayesfilter-student-dpf-baseline-master-program-2026-05-10.md`;
 - `docs/plans/bayesfilter-student-dpf-baseline-clean-room-controlled-baseline-spec-2026-05-13.md`;
-- `docs/plans/bayesfilter-student-dpf-baseline-mp5-clean-room-implementation-plan-2026-05-13.md`.
+- `docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-plan-2026-05-27.md`;
+- `docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-plan-audit-2026-05-27.md`;
+- `experiments/controlled_dpf_baseline/reports/controlled-dpf-baseline-smoke-result.md`;
+- `experiments/controlled_dpf_baseline/reports/controlled-dpf-baseline-fixed-grid-result.md`;
+- `experiments/controlled_dpf_baseline/reports/controlled-dpf-baseline-comparison-audit.md`;
+- `experiments/controlled_dpf_baseline/reports/controlled-dpf-baseline-final-archive-result.md`.
 
 Planned structure:
 

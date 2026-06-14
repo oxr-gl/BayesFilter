@@ -1,0 +1,1140 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,calc,positioning}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{hyperref}
+\usepackage{microtype}
+\usepackage{xcolor}
+
+\hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue}
+\allowdisplaybreaks
+
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{definition}{Definition}
+\numberwithin{equation}{section}
+
+\newcommand{\R}{\mathbb R}
+\newcommand{\E}{\mathbb E}
+\newcommand{\N}{\mathcal N}
+\newcommand{\dd}{\,\mathrm d}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\vecop}{\operatorname{vec}}
+\newcommand{\sgq}{\operatorname{SGQ}}
+\newcommand{\chol}{\operatorname{chol}}
+\newcommand{\ellhat}{\widehat\ell}
+\newcommand{\bfone}{\mathbf 1}
+
+\title{A Prose-Tightened Mathematical Companion To Fixed Sparse-Grid Quadrature Filtering And Its Analytical Gradient}
+\author{Chak Wong}
+\date{2026-06-12}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note develops fixed sparse-grid quadrature filtering as a
+mathematically explicit high-dimensional filtering proposal for the regime where
+exact nonlinear filtering is unavailable but a deterministic Gaussian-surrogate
+value-and-gradient target is still scientifically useful.  Starting from the
+sparse-grid quadrature nonlinear filter of Jia, Xin, and Cheng
+\cite{jia2012sparsegrid}, the note reconstructs the Gaussian approximation and
+sparse-grid formulas in source order, then defines a fixed approximate
+likelihood scalar together with an analytical derivative of that same scalar on
+a declared branch.  The document is written for both review and implementation:
+it states the exact filtering target, the narrower carried Gaussian surrogate,
+the fixed cloud-construction rule, the per-step value recursion, the
+same-scalar branch contract, the analytical gradient recursion, and the
+finite-difference validity rule.  The central limitation is explicit.  The
+reported scalar is not the exact nonlinear filtering likelihood, and the method
+does not preserve general non-Gaussian posterior shape; it is a deterministic
+Gaussian-surrogate lane whose usefulness depends on whether one carried Gaussian
+and a fixed sparse-grid moment engine are adequate for the intended regime.
+\end{abstract}
+
+\section{Introduction And Scope}
+\label{sec:p33-reader-orientation}
+
+High-dimensional nonlinear filtering forces a choice of computational object.
+The exact Bayesian filter propagates a full conditional law through time, but in
+nonlinear models that law usually does not remain available in a finite closed
+form.  In low dimension one may still tolerate heavy deterministic quadrature or
+a richer non-Gaussian representation.  In high dimension, however, both cost and
+structural complexity escalate quickly.  This note studies one narrower lane
+suited to that regime: a fixed sparse-grid quadrature filter that carries a
+single Gaussian surrogate, evaluates the required nonlinear moments by a fixed
+deterministic cloud in standardized Gaussian coordinates, and differentiates the
+same declared approximate scalar on a frozen computational branch.
+
+The note is intended as a chapter-like companion to the monograph rather than as
+a survey or a software manual.  Its task is to make one deterministic
+Gaussian-surrogate lane precise enough to read, implement, audit, and compare.
+The argument therefore moves from the exact filtering target, to the Gaussian
+projection that replaces it, to the sparse-grid cloud that supplies the required
+moments, to the fixed scalar and its same-scalar derivative, and finally to the
+verification and positioning obligations that bound the method scientifically.
+
+The central limitation should be fixed at the outset.  FixedSGQF does not claim
+exact nonlinear filtering, exact nonlinear likelihood evaluation, or faithful
+preservation of arbitrary multimodality, skewness, or high-order global
+interaction structure.  Its purpose is narrower: to ask whether one carried
+Gaussian, together with a fixed sparse-grid moment engine and a fixed-branch
+value-and-gradient contract, can provide a coherent and scientifically useful
+approximate likelihood lane in the regime under study.
+
+\paragraph{Background assumed.}
+The reader is assumed to know multivariate Gaussian notation, state-space-model
+notation, Jacobian-style derivative notation, and the use of a Cholesky factor
+for a positive-definite covariance matrix.  Sparse-grid merging, same-scalar
+branch identities, and fixed-cloud derivative obligations are defined where they
+first become necessary.
+
+\tableofcontents
+
+\subsection{Problem Setting And The FixedSGQF Lane}
+\label{sec:p32-problem-lane}
+
+The scientific problem is high-dimensional nonlinear filtering.  At time
+\(t\), the exact Bayesian filter propagates and updates the full conditional law
+\(p_\theta(x_t\mid y_{1:t})\).  In nonlinear models that law is generally not
+available in a finite-dimensional closed form, and in high dimension it becomes
+unrealistic to treat exact function-valued propagation as the practical
+computational object.  FixedSGQF therefore does not attempt to rescue exactness
+by notation.  It selects one deterministic approximation lane whose strengths and
+boundaries can both be stated explicitly.
+
+That lane is fixed sparse-grid quadrature filtering.  The carried state is a
+single Gaussian surrogate \(\N(m_t,P_t)\).  The nonlinear moments needed by the
+Gaussian projection are approximated with a deterministic sparse-grid rule in
+standardized Gaussian coordinates.  The cloud, duplicate-merge policy,
+covariance-factor branch, and veto rules are fixed before value and gradient
+evaluation so that the reported derivative differentiates the same scalar that
+the reported value routine computes.  The gain from that design is transparency:
+each approximation stage is named, reproducible, and auditable.  The cost is
+that a single Gaussian carried object cannot preserve general non-Gaussian
+posterior geometry even when the quadrature rule is itself accurate for the
+moments it is asked to approximate.
+
+FixedSGQF should therefore not be read as a weaker version of a richer
+density-approximation lane such as squared tensor-train filtering.  The present
+note is about the deterministic Gaussian-surrogate lane with a fixed cloud and a
+same-scalar analytical gradient.
+
+\subsection{The Selected Approximation Lane In One Page}
+\label{sec:p32-one-page}
+
+The lane studied here is defined by three deliberate approximations.
+\begin{enumerate}[leftmargin=0.28in]
+  \item \textbf{Gaussian carried state.}  Instead of carrying the full filtering
+  law, the method carries one Gaussian summary \(\N(m_t,P_t)\).
+  \item \textbf{Sparse-grid moment closure.}  The nonlinear Gaussian moments that
+  define the prediction and observation projection are approximated by a fixed
+  sparse-grid rule in standardized coordinates.
+  \item \textbf{Fixed-branch differentiation.}  The reported gradient is the
+  derivative of a declared deterministic surrogate scalar on a frozen branch, not
+  the derivative of a live adaptive algorithm.
+\end{enumerate}
+
+The resulting accumulated scalar is
+\begin{equation}
+  \ellhat_T^{\rm FSGQ}(\theta)
+  =
+  \sum_{t=1}^T \ellhat_t^{\rm FSGQ}(\theta),
+  \label{eq:p32-one-page-scalar}
+\end{equation}
+where each increment is the Gaussian innovation log likelihood implied by the
+sparse-grid moment approximation.  The exact object, the carried surrogate, and
+the accumulated scalar are therefore different in kind:
+\begin{equation}
+\begin{aligned}
+  \text{exact object:}
+  &\quad p_\theta(x_t\mid y_{1:t}), \\
+  \text{carried surrogate:}
+  &\quad \N(m_t,P_t), \\
+  \text{declared deterministic scalar:}
+  &\quad \ellhat_T^{\rm FSGQ}(\theta).
+\end{aligned}
+  \label{eq:p32-exact-vs-approximate-summary}
+\end{equation}
+This distinction governs everything that follows.  The note does not return to it
+repeatedly because it changes; it returns to it only when a later construction
+needs the distinction in a sharper form.
+
+\subsection{Approximation Hierarchy And Reading Guide}
+\label{sec:p32-hierarchy}
+
+The note unfolds in four large movements.  First, the exact filtering recursion
+and the Gaussian projection that replaces it are fixed formally.  Second, the
+sparse-grid construction is built from low-dimensional examples through
+one-dimensional rules, tensor products, active index sets, and merged clouds.
+Third, that fixed cloud is inserted into the filtering value recursion and then
+into the same-scalar derivative recursion.  Fourth, the resulting lane is
+verified, positioned against neighboring deterministic Gaussian alternatives, and
+bounded by explicit non-claims.
+
+The main coordinates are:
+\begin{align}
+  \xi &\in \R^{n_x},
+  &\xi&\sim\N(0,I_{n_x})
+  &&\hbox{standard quadrature coordinate},
+  \label{eq:p32-standard-coordinate}\\
+  x &= m+C\xi,
+  &CC^\top&=P
+  &&\hbox{physical state coordinate under a carried Gaussian},
+  \label{eq:p32-physical-coordinate}\\
+  a &= f_\theta(x),
+  &&
+  &&\hbox{transition image used for prediction},
+  \label{eq:p32-transition-coordinate}\\
+  z &= h_\theta(x),
+  &&
+  &&\hbox{observation image used for the innovation}.
+  \label{eq:p32-observation-coordinate}
+\end{align}
+The sparse grid is built once in \(\xi\)-space and then placed into physical
+state space through the current Gaussian factor.  That one sentence is worth
+retaining before the technical development begins, because it is the bridge
+between the cloud-construction chapter and the later value and gradient recursions.
+
+\section{Exact Filtering And Gaussian Projection}
+\label{sec:p31-ssm}
+
+Use the additive-noise state-space model
+\begin{align}
+  X_t &= f_\theta(X_{t-1})+\eta_t,
+  &
+  \eta_t&\sim\N(0,Q_\theta),
+  \label{eq:p31-state-model}\\
+  Y_t &= h_\theta(X_t)+\varepsilon_t,
+  &
+  \varepsilon_t&\sim\N(0,R_\theta),
+  \label{eq:p31-observation-model}
+\end{align}
+with \(X_t\in\R^{n_x}\), \(Y_t\in\R^{n_y}\), and parameter \(\theta\in\R^p\).
+Throughout this note, the process noises \(\eta_t\) are assumed zero mean,
+mutually independent of the observation noises \(\varepsilon_s\) for all relevant
+time indices, independent across time within the process-noise family, and
+independent of the past latent states and observations conditional on the model.
+Likewise, the observation noises \(\varepsilon_t\) are assumed zero mean,
+independent across time within the observation-noise family, and independent of
+the latent states conditional on the declared additive observation model.  These
+assumptions are exactly what let the filtering factorization and the later
+covariance identities use \(Q_\theta\) and \(R_\theta\) as the declared additive
+noise covariances.
+The exact Bayesian prediction and update are
+\begin{align}
+  p_\theta(x_t\mid y_{1:t-1})
+  &=
+  \int p_\theta(x_t\mid x_{t-1})
+       p_\theta(x_{t-1}\mid y_{1:t-1})\dd x_{t-1},
+  \label{eq:p31-exact-prediction}\\
+  p_\theta(x_t\mid y_{1:t})
+  &=
+  \frac{
+  g_\theta(y_t\mid x_t)
+  p_\theta(x_t\mid y_{1:t-1})}
+  {\int g_\theta(y_t\mid x_t)
+  p_\theta(x_t\mid y_{1:t-1})\dd x_t}.
+  \label{eq:p31-exact-update}
+\end{align}
+These are the conceptual filtering equations used by Gaussian approximation
+filters in Jia, Xin, and Cheng \cite[Section 2]{jia2012sparsegrid}.  In
+nonlinear models, the integrals in \eqref{eq:p31-exact-prediction} and
+\eqref{eq:p31-exact-update} usually do not close in finite-dimensional form.
+Fixed SGQF replaces those exact densities by a Gaussian moment projection.
+
+\subsection{Report-Wide Object Map And Implementation Conventions}
+\label{subsec:p32-object-map}
+
+The report uses the following principal objects throughout the value and
+gradient paths.  An implementation worker should treat this table as the core
+object inventory for the note.
+\begin{center}
+\small
+\begin{tabular}{p{0.20\linewidth}p{0.44\linewidth}p{0.22\linewidth}}
+\toprule
+symbol & meaning & shape \\
+\midrule
+\(\xi^{(r)}\) & standardized sparse-grid node in \(\R^{n_x}\) & \(n_x\) \\
+\(w_r\) & accumulated signed weight after duplicate merge & scalar \\
+\(m_t,P_t\) & carried Gaussian mean and covariance after update & \(n_x\), \(n_x\times n_x\) \\
+\(m_t^-,P_t^-\) & predictive Gaussian mean and covariance before update & \(n_x\), \(n_x\times n_x\) \\
+\(C_t, C_t^-\) & covariance factors with \(P_t=C_tC_t^\top\), \(P_t^-=C_t^-(C_t^-)^\top\) & \(n_x\times n_x\) \\
+\(\chi_{t-1}^{(r)}\) & previous-state physical cloud point & \(n_x\) \\
+\(a_t^{(r)}\) & transition image of \(\chi_{t-1}^{(r)}\) & \(n_x\) \\
+\(\chi_t^{(r)}\) & predictive physical cloud point & \(n_x\) \\
+\(z_t^{(r)}\) & observation image of \(\chi_t^{(r)}\) & \(n_y\) \\
+\(\bar z_t\) & predicted observation mean & \(n_y\) \\
+\(S_t\) & innovation covariance & \(n_y\times n_y\) \\
+\(C_{xz,t}\) & state-observation cross-covariance & \(n_x\times n_y\) \\
+\(v_t\) & innovation residual \(y_t-\bar z_t\) & \(n_y\) \\
+\(K_t\) & Gaussian projection gain & \(n_x\times n_y\) \\
+\(\ellhat_t^{\rm FSGQ}\) & one-step deterministic approximate log-likelihood increment & scalar \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Three implementation conventions are fixed report-wide.
+\begin{enumerate}[leftmargin=0.28in]
+  \item \textbf{Factor convention.}  Every covariance factor is the lower
+  triangular Cholesky factor with positive diagonal, written
+  \(C(P)=\chol(P)\), whenever the declared branch is valid.
+  \item \textbf{Solve convention.}  Formulas may use \(S_t^{-1}\) for compact
+  mathematics, but the implementation contract is to compute all such actions by
+  linear solves against the declared Cholesky factor of \(S_t\), not by forming
+  an explicit inverse.
+  \item \textbf{Noise convention.}  Additive process noise enters analytically
+  through the covariance term \(Q_\theta\) in predictive moments; additive
+  observation noise enters analytically through \(R_\theta\) in the innovation
+  covariance.  This report does not use state augmentation for these additive
+  noises.
+\end{enumerate}
+
+When floating-point accumulation produces a covariance that is not exactly
+symmetric, the report assumes explicit symmetrization by
+\((P+P^\top)/2\) before branch checking.  If the resulting matrix is not
+positive definite on the declared Cholesky branch, the branch is vetoed rather
+than silently repaired.  Any jitter, clipping, or eigenvalue flooring policy
+would define a different scalar than the one studied here.
+
+\subsection{Gaussian Projection From Moments}
+\label{sec:p31-gaussian-projection}
+
+Assume the predictive state is represented by
+\begin{equation}
+  X_t^-\sim\N(m_t^-,P_t^-).
+  \label{eq:p31-predictive-gaussian}
+\end{equation}
+Let
+\begin{equation}
+  Z_t=h_\theta(X_t^-)
+  \label{eq:p31-predicted-observation}
+\end{equation}
+be the noiseless predicted observation.  The Gaussian projection needs
+\begin{align}
+  \bar z_t &= \E[Z_t],
+  \label{eq:p31-zbar}\\
+  S_t &= R_\theta+\E[(Z_t-\bar z_t)(Z_t-\bar z_t)^\top],
+  \label{eq:p31-S}\\
+  C_{xz,t}&=\E[(X_t^- -m_t^-)(Z_t-\bar z_t)^\top].
+  \label{eq:p31-Cxz}
+\end{align}
+Given these moments, define
+\begin{align}
+  v_t&=y_t-\bar z_t,
+  &
+  K_t&=C_{xz,t}S_t^{-1},
+  \label{eq:p31-v-K}\\
+  m_t&=m_t^-+K_tv_t,
+  &
+  P_t&=P_t^- - K_tS_tK_t^\top.
+  \label{eq:p31-projection-update}
+\end{align}
+
+\begin{proposition}[Affine projection]
+\label{prop:p31-affine-projection}
+Assume the innovation covariance \(S_t\) is square and invertible, so the solve
+or inverse notation below is well defined, and all matrix products are conformable
+under the stated object map.  Among estimators of \(X_t^-\) of the form
+\(a+B Y_t\), the minimum mean-square estimator under the moments in
+\eqref{eq:p31-zbar}--\eqref{eq:p31-Cxz} uses
+\begin{equation}
+  B=C_{xz,t}S_t^{-1},
+  \qquad
+  a=m_t^- - B\bar z_t.
+  \label{eq:p41-affine-projection-intercept}
+\end{equation}
+Storing the resulting mean and covariance as a Gaussian gives
+\eqref{eq:p31-projection-update}.
+\end{proposition}
+
+\begin{proof}
+Center \(\widetilde X=X_t^- -m_t^-\) and
+\(\widetilde Y=Y_t-\bar z_t\).  The squared-error objective for
+\(m_t^-+B\widetilde Y\) is
+\begin{equation}
+  J(B)=\E\|\widetilde X-B\widetilde Y\|^2
+  =
+  \tr(P_t^-)-2\tr(BC_{xz,t}^\top)+\tr(BS_tB^\top).
+  \label{eq:p31-affine-objective}
+\end{equation}
+Differentiating gives \(\nabla_BJ=-2C_{xz,t}+2BS_t\).  If \(S_t\) is
+nonsingular, the stationary point is \(B=C_{xz,t}S_t^{-1}\).  Substitution gives
+the residual covariance \(P_t^- - C_{xz,t}S_t^{-1}C_{xz,t}^\top\), which equals
+\eqref{eq:p31-projection-update}.
+\end{proof}
+
+The approximation has two layers.  First, the moments
+\eqref{eq:p31-zbar}--\eqref{eq:p31-Cxz} may be approximated by quadrature.
+Second, the resulting posterior information is compressed to one Gaussian.
+
+\subsection{How This Matches The Jia--Xin--Cheng Gaussian Approximation Block}
+\label{subsec:p32-jia-gaussian-block}
+
+Jia, Xin, and Cheng first write the Gaussian approximation filter before they
+introduce sparse grids \cite[Section 2.2]{jia2012sparsegrid}.  In their
+additive-noise setting, the prediction moment equations have the same
+structure as
+\begin{align}
+  m_t^-&=\E[f_\theta(X_{t-1})],
+  \label{eq:p32-source-pred-mean}\\
+  P_t^-&=
+  Q_\theta+
+  \E[(f_\theta(X_{t-1})-m_t^-)(f_\theta(X_{t-1})-m_t^-)^\top],
+  \label{eq:p32-source-pred-cov}
+\end{align}
+where \(X_{t-1}\sim\N(m_{t-1},P_{t-1})\) under the carried Gaussian
+approximation.  The update moment equations have the structure
+\begin{align}
+  \bar z_t&=\E[h_\theta(X_t^-)],
+  \label{eq:p32-source-zbar}\\
+  S_t&=
+  R_\theta+
+  \E[(h_\theta(X_t^-)-\bar z_t)(h_\theta(X_t^-)-\bar z_t)^\top],
+  \label{eq:p32-source-S}\\
+  C_{xz,t}&=
+  \E[(X_t^- -m_t^-)(h_\theta(X_t^-)-\bar z_t)^\top].
+  \label{eq:p32-source-Cxz}
+\end{align}
+Then the Gaussian projection update is
+\begin{align}
+  K_t&=C_{xz,t}S_t^{-1},
+  \label{eq:p32-source-K}\\
+  m_t&=m_t^-+K_t(y_t-\bar z_t),
+  \label{eq:p32-source-m-update}\\
+  P_t&=P_t^- -K_tS_tK_t^\top.
+  \label{eq:p32-source-P-update}
+\end{align}
+These equations are not yet sparse-grid equations.  They are the Gaussian moment
+closure equations that any deterministic Gaussian quadrature lane must eventually
+supply.  The next chapter now turns from that formal target to the concrete
+low-dimensional construction of the sparse-grid cloud that will later be inserted
+into the recursion.
+
+\section{Low-Dimensional Construction Of FixedSGQF}
+\label{sec:p34-motivating-cases}
+
+The sparse-grid rule is easiest to understand before it is inserted into the full
+filtering recursion.  The present chapter therefore begins with low-dimensional
+constructions.  It starts from one nonlinear Gaussian moment in one coordinate,
+lifts that rule to a tensor-product cloud in two coordinates, and then asks how
+the same construction becomes too expensive in higher dimension and how the
+sparse-grid combination reduces that cost without changing the underlying
+standardized-coordinate logic.
+
+\subsection{One nonlinear Gaussian moment as the basic quadrature problem}
+\label{subsec:p34-scalar-motivation}
+
+Start with a scalar Gaussian input and a simple nonlinear observation map.  Let
+\begin{equation}
+  X\sim\N(m,P),
+  \qquad
+  h(X)=X^2.
+  \label{eq:p34-scalar-gaussian-model}
+\end{equation}
+Suppose we want the Gaussian-projection observation mean
+\begin{equation}
+  \bar z = \E[h(X)] = \E[X^2].
+  \label{eq:p34-scalar-target-mean}
+\end{equation}
+Write \(X=m+C\xi\) with \(\xi\sim\N(0,1)\) and \(C^2=P\).  Then
+\begin{equation}
+  \bar z
+  =
+  \int_{\R} (m+C\xi)^2\phi(\xi)\dd\xi.
+  \label{eq:p34-standardized-integral}
+\end{equation}
+Once the state has been standardized, the moment problem becomes a
+standard-normal weighted integral.  The quadrature rule is therefore not an
+extra modeling choice layered on top of nowhere.  It is the numerical
+approximation to the Gaussian expectation in
+\eqref{eq:p34-standardized-integral}.
+
+In this scalar example, a three-point symmetric rule already reproduces the
+first few Gaussian moments exactly, which is why rules such as
+\(\{-\sqrt3,0,\sqrt3\}\) appear naturally later.  The next step is to make that
+one-dimensional rule explicit and then to see what happens when the same rule is
+lifted into more than one coordinate.
+
+\subsection{Tensor-product growth in two dimensions}
+\label{subsec:p34-2d-motivation}
+
+Now move from one coordinate to two.  Use a simple two-dimensional Gaussian
+state,
+\begin{equation}
+  X\sim\N(m,P),
+  \qquad
+  X\in\R^2,
+  \label{eq:p34-2d-gaussian}
+\end{equation}
+and imagine either a two-dimensional linear-Gaussian state-space step or a
+slightly nonlinear observation moment built from that same Gaussian input.  The
+point of this example is geometric rather than inferential: it shows how the
+same standardized cloud is placed and why tensor products grow quickly.
+
+Let \(X=m+C\xi\) with \(\xi\sim\N(0,I_2)\).  If each standardized coordinate
+uses the three-point rule \(\{-\sqrt3,0,\sqrt3\}\), then the direct tensor
+product uses all pairs
+\begin{equation}
+  (\xi_1,\xi_2)
+  \in
+  \{-\sqrt3,0,\sqrt3\}\times\{-\sqrt3,0,\sqrt3\},
+  \label{eq:p34-2d-tensor-points}
+\end{equation}
+so already in two dimensions the rule has \(3^2=9\) points.  In three
+dimensions the same construction has \(3^3=27\) points; in ten dimensions it has
+\(3^{10}\) points.  The tensor-product rule is therefore transparent but already
+expensive enough to motivate a more economical construction.
+
+At this stage there is still no sparse-grid machinery.  Nothing has yet been
+combined or pruned.  We are only taking one one-dimensional rule and using it in
+each coordinate.  The tensor-product construction should therefore be read as the
+rectangular standardized cloud that later sparse-grid ideas will modify, not as a
+separate competing method.
+
+\paragraph{What does the symbol \texorpdfstring{$F$}{F} mean?}
+When the note later writes expressions such as \(I_{\mathbf i}[F]\) or
+\(A_{b,L}[F]\), the symbol \(F\) is just the multivariate integrand being
+averaged under the Gaussian weight.  In one dimension the same role is often
+played by \(\psi\).  In several coordinates we simply switch to \(F(\xi)\) to
+remind the reader that the function may depend on many variables.  A concrete
+example to keep in mind is
+\[
+  F(\xi_1,\xi_2,\xi_3)=e^{\xi_1\xi_2\xi_3},
+\]
+which will be reused later to illustrate what a low sparse-grid level can and
+cannot see.
+
+\subsection{One-Dimensional Rules And Their Tensor Products}
+\label{sec:p31-ghq}
+
+The scalar example above shows why a Gaussian expectation becomes a
+standard-normal weighted integral after standardization.  The next step is to fix
+a concrete family of one-dimensional rules and then lift those rules into
+multiple coordinates by tensor products.
+
+\paragraph{What is a standard-normal Gauss--Hermite rule?}
+A standard-normal Gauss--Hermite quadrature rule is a deterministic weighted-sum
+approximation to a standard-normal integral,
+\[
+  \int_{\R}\psi(\xi)\phi(\xi)\dd\xi,
+\]
+chosen so that the rule is exact for as many low-degree polynomials as possible
+for its number of points.  One picks nodes \(\zeta_{\ell,a}\) and weights
+\(\omega_{\ell,a}\), evaluates the integrand at those nodes, and forms the
+weighted sum
+\[
+  \sum_{a=1}^{s_\ell}\omega_{\ell,a}\psi(\zeta_{\ell,a}).
+\]
+Once a Gaussian moment has been standardized to the coordinate \(\xi\),
+standard-normal GHQ gives a canonical deterministic way to approximate that
+moment.
+
+\paragraph{Which concrete family is being used in this note?}
+At the teaching level, the easiest way to read the symbols is the following.  In
+this note, the default BayesFilter family is the standard-normal GHQ ladder:
+\[
+  I_1=\hbox{1-point standard-normal GHQ},
+  \qquad
+  I_2=\hbox{3-point standard-normal GHQ},
+  \qquad
+  I_3=\hbox{5-point standard-normal GHQ},
+  \qquad \ldots
+\]
+So the level label is a rule-family label, not a polynomial degree.  Level 2 does
+not mean ``degree 2 polynomial.''  It means ``the second low-level member of the
+chosen one-dimensional GHQ family,'' which in this note is the familiar symmetric
+three-point rule.  The later formal policy statement \eqref{eq:p41-ghq-family}
+records the same choice more precisely.
+
+\paragraph{Where does the level-1 rule \texorpdfstring{$I_1:(0,1)$}{I1:(0,1)} come from?}
+It is the simplest one-dimensional standard-normal rule: one node at the mean
+\(\xi=0\) with total weight \(1\).  In the notation of the general one-dimensional
+rule, this means \(s_1=1\), \(\zeta_{1,1}=0\), and \(\omega_{1,1}=1\), so
+\[
+  I_1[\psi]=\psi(0).
+\]
+This rule already integrates constants exactly, because
+\[
+  \int_{\R}1\cdot\phi(\xi)\dd\xi=1.
+\]
+So \(I_1:(0,1)\) is the natural level-1 base rule: evaluate at the center of
+the standardized Gaussian and assign it the full mass.
+
+\subsubsection{A fully worked one-dimensional toy rule}
+
+Take the symmetric three-point ansatz
+\begin{equation}
+  \{(-a,\omega),(0,\omega_0),(a,\omega)\}.
+  \label{eq:p36-three-point-ansatz}
+\end{equation}
+To match the first relevant Gaussian moments, require
+\begin{align}
+  \omega_0+2\omega &= 1,
+  \label{eq:p36-three-point-mass}\\
+  2\omega a^2 &= 1,
+  \label{eq:p36-three-point-second}\\
+  2\omega a^4 &= 3.
+  \label{eq:p36-three-point-fourth}
+\end{align}
+Dividing \eqref{eq:p36-three-point-fourth} by
+\eqref{eq:p36-three-point-second} gives \(a^2=3\).  Then
+\(\omega=1/6\) and \(\omega_0=2/3\).  So the rule becomes
+\begin{equation}
+  \left\{\left(-\sqrt3,\frac16\right),\left(0,\frac23\right),
+  \left(\sqrt3,\frac16\right)\right\}.
+  \label{eq:p36-three-point-rule}
+\end{equation}
+This solved three-point rule is exactly the later level-2 rule \(I_2\) used in
+the two-dimensional and three-dimensional examples.  In other words, \(I_2\) is
+not a new assumption introduced later; it is simply shorthand for the symmetric
+three-point standard-normal rule obtained from
+\eqref{eq:p36-three-point-mass}--\eqref{eq:p36-three-point-fourth}.
+
+\subsubsection{Lifting the rule to two dimensions}
+
+The multi-index enters only because different coordinates may use different
+one-dimensional rule levels.  Its role is bookkeeping, not new mathematics.  For
+example:
+\begin{itemize}[leftmargin=0.28in]
+  \item \((1,1)\) means ``use level 1 in coordinate 1 and level 1 in coordinate
+  2,''
+  \item \((1,2)\) means ``use level 1 in coordinate 1 and level 2 in coordinate
+  2,''
+  \item \((2,1)\) means ``use level 2 in coordinate 1 and level 1 in coordinate
+  2,''
+  \item \((2,2)\) means ``use level 2 in both coordinates.''
+\end{itemize}
+Formally, for a multi-index \(\mathbf i=(i_1,\ldots,i_b)\), the corresponding
+tensor rule is
+\begin{equation}
+  I_{\mathbf i}[F]
+  =
+  (I_{i_1}\otimes\cdots\otimes I_{i_b})[F].
+  \label{eq:p31-tensor-rule}
+\end{equation}
+This means: apply the one-dimensional rule of level \(i_1\) in the first
+coordinate, the one-dimensional rule of level \(i_2\) in the second coordinate,
+and so on, then take the full Cartesian product of the resulting nodes and
+weights.
+
+In the concrete two-dimensional case, take \(b=2\) and use
+\begin{equation}
+  I_1:(0,1),
+  \qquad
+  I_2:\left\{\left(-\sqrt3,\frac16\right),\left(0,\frac23\right),
+  \left(\sqrt3,\frac16\right)\right\}.
+  \label{eq:p36-level1-level2-rules}
+\end{equation}
+Then the rule \((1,1)\) gives only \((0,0)\).  The rule \((1,2)\) gives the
+three vertical points \((0,-\sqrt3)\), \((0,0)\), and \((0,\sqrt3)\).  The rule
+\((2,1)\) gives the three horizontal points \((-\sqrt3,0)\), \((0,0)\), and
+\((\sqrt3,0)\).  If both coordinates use level 2, then the full tensor product
+rule \((2,2)\) gives the full nine-point grid
+\begin{equation}
+  (-\sqrt3,-\sqrt3),
+  (-\sqrt3,0),
+  (-\sqrt3,\sqrt3),
+  (0,-\sqrt3),
+  (0,0),
+  (0,\sqrt3),
+  (\sqrt3,-\sqrt3),
+  (\sqrt3,0),
+  (\sqrt3,\sqrt3),
+  \label{eq:p35-nine-point-grid}
+\end{equation}
+with weights given by products of the one-dimensional weights.
+
+The tensor-product rule is therefore simple but already expensive: if each
+coordinate uses \(s\) nodes, then the point count is \(s^b\).  In two dimensions
+with three points per coordinate, one already needs nine points; in three
+dimensions the same direct construction would require twenty-seven.  The next step
+is therefore not to abandon the standardized-coordinate picture, but to reduce the
+cost of that picture.
+
+\subsection{Three-dimensional preview: why sparse grids help}
+\label{subsec:p37-3d-preview}
+
+Use the same one-dimensional rules as before:
+\begin{equation}
+  I_1:(0,1),
+  \qquad
+  I_2:\left\{\left(-\sqrt3,\frac16\right),\left(0,\frac23\right),
+  \left(\sqrt3,\frac16\right)\right\}.
+  \label{eq:p37-level1-level2-rules}
+\end{equation}
+If all three coordinates use level 2, then the full tensor-product rule
+\((2,2,2)\) places
+\begin{equation}
+  3\times 3\times 3 = 27
+  \label{eq:p37-27-points}
+\end{equation}
+standardized points.  The sparse-grid idea begins by asking whether all those
+point combinations are equally important at low level.
+
+Now compare that with the sparse-grid band for \(b=3\) and \(L=2\).  This is a
+different use of the word ``level.''  The tensor-product label \((2,2,2)\)
+means ``use the one-dimensional level-2 rule in every coordinate.''  By
+contrast, the sparse-grid level \(L=2\) means: combine all tensor rules whose
+total index lies in the admissible band for \((b,L)=(3,2)\).  So the sparse-grid
+construction does not keep the full 27-point tensor rule \((2,2,2)\).  Instead,
+it mixes several lower-total-index tensor rules with signed coefficients.
+
+The allowed multi-indices satisfy
+\begin{equation}
+  2\le |\mathbf i| \le 4.
+  \label{eq:p37-3d-band}
+\end{equation}
+Since every coordinate level is at least 1, the only admissible three-dimensional
+multi-indices are
+\begin{equation}
+  (1,1,1),
+  \qquad
+  (1,1,2),
+  \qquad
+  (1,2,1),
+  \qquad
+  (2,1,1).
+  \label{eq:p37-3d-active-indices}
+\end{equation}
+So the sparse-grid rule does not use the full level-2 tensor product
+\((2,2,2)\).  It instead combines one one-point tensor rule and three
+one-axis three-point tensor rules.  This is the first low-dimensional picture of
+why sparse grids help: they preserve the same standardized-coordinate logic while
+paying first for lower-order interaction structure rather than for every corner
+of the full tensor product.
+
+\section{Filtering Value Path And Worked Example}
+\label{sec:p31-value-path}
+
+Fix a standardized sparse-grid cloud
+\begin{equation}
+  \mathcal C=\{(\xi^{(r)},w_r)\}_{r=1}^M,
+  \qquad
+  \xi^{(r)}\in\R^{n_x},
+  \quad
+  w_r\in\R.
+  \label{eq:p31-cloud-for-filter}
+\end{equation}
+The cloud is frozen before likelihood evaluation.  The value path has two
+quadrature stages at each time.
+
+\paragraph{What this section gives the implementer.}
+This section is the authoritative one-step value recursion.  A value routine
+constructed from this note should take the current carried Gaussian,
+current observation, fixed cloud, and declared model objects as input, then
+return either an accepted one-step increment with updated \((m_t,P_t)\) or a
+branch failure record.
+
+\subsection{Prediction Stage}
+
+Let \(P_{t-1}=C_{t-1}C_{t-1}^\top\) on the declared square-root branch.  Place
+the previous Gaussian cloud:
+\begin{equation}
+  \chi_{t-1}^{(r)}=m_{t-1}+C_{t-1}\xi^{(r)}.
+  \label{eq:p31-pred-placed-points}
+\end{equation}
+Propagate each point through the transition map,
+\begin{equation}
+  a_t^{(r)}=f_\theta(\chi_{t-1}^{(r)}),
+  \label{eq:p31-transition-points}
+\end{equation}
+and form the predictive moments
+\begin{align}
+  m_t^- &= \sum_{r=1}^{M} w_r a_t^{(r)},
+  \label{eq:p31-pred-mean}\\
+  P_t^- &= Q_\theta +
+  \sum_{r=1}^{M}w_r(a_t^{(r)}-m_t^-)(a_t^{(r)}-m_t^-)^\top.
+  \label{eq:p31-pred-cov}
+\end{align}
+If the symmetrized \(P_t^-\) fails the declared Cholesky branch, the value path
+returns a predictive-branch failure record rather than a scalar.
+
+\subsection{Observation Stage}
+
+Assume the predictive branch is valid, so that
+\begin{equation}
+  P_t^-=C_t^-(C_t^-)^\top.
+  \label{eq:p31-pred-factor}
+\end{equation}
+Place the predictive cloud,
+\begin{equation}
+  \chi_t^{(r)}=m_t^-+C_t^-\xi^{(r)},
+  \label{eq:p31-obs-placed-points}
+\end{equation}
+propagate it through the observation map,
+\begin{equation}
+  z_t^{(r)}=h_\theta(\chi_t^{(r)}),
+  \label{eq:p31-obs-values}
+\end{equation}
+and compute the observation moments
+\begin{align}
+  \bar z_t &= \sum_{r=1}^{M}w_r z_t^{(r)},
+  \label{eq:p31-obs-mean}\\
+  S_t &= R_\theta+
+  \sum_{r=1}^{M}w_r(z_t^{(r)}-\bar z_t)(z_t^{(r)}-\bar z_t)^\top,
+  \label{eq:p31-S-cloud}\\
+  C_{xz,t} &= \sum_{r=1}^{M}w_r(\chi_t^{(r)}-m_t^-)(z_t^{(r)}-\bar z_t)^\top.
+  \label{eq:p31-cross-cov}
+\end{align}
+Then define
+\begin{align}
+  v_t &= y_t-\bar z_t,
+  \label{eq:p31-innovation}\\
+  K_t &= C_{xz,t}S_t^{-1},
+  \label{eq:p31-kalman-gain}\\
+  m_t &= m_t^-+K_t v_t,
+  \label{eq:p31-filter-mean}\\
+  P_t &= P_t^- - K_tS_tK_t^\top.
+  \label{eq:p31-filter-cov}
+\end{align}
+The one-step deterministic approximate log-likelihood increment is
+\begin{equation}
+  \ellhat_t^{\rm FSGQ}
+  =
+  -\frac12
+  \left\{
+    \log\det S_t + v_t^\top S_t^{-1}v_t + n_y\log(2\pi)
+  \right\}.
+  \label{eq:p31-fsgq-loglik}
+\end{equation}
+The accumulated scalar is the sum of these increments over time.
+
+\subsection{Worked One-Step Example With A Numeric Oracle}
+\label{sec:p32-worked-example}
+
+Use the scalar nonlinear model
+\begin{equation}
+  X_1 = \beta X_0 + \eta_1,
+  \qquad
+  \eta_1\sim\N(0,Q),
+  \qquad
+  Y_1 = X_1^2 + \varepsilon_1,
+  \qquad
+  \varepsilon_1\sim\N(0,R),
+  \label{eq:p32-example-model}
+\end{equation}
+with
+\begin{equation}
+  X_0\sim\N(m_0,P_0),
+  \qquad
+  m_0=0.5,
+  \qquad
+  P_0=1,
+  \qquad
+  \beta=1,
+  \qquad
+  Q=4,
+  \qquad
+  R=1,
+  \qquad
+  y_1=3.
+  \label{eq:p32-example-params}
+\end{equation}
+Use the three-point level-2 cloud
+\[
+  \xi\in\{-\sqrt3,0,\sqrt3\},
+  \qquad
+  w\in\{1/6,2/3,1/6\}.
+\]
+Then
+\begin{align}
+  m_1^- &= \beta m_0 = 0.5,
+  &P_1^- &= \beta^2P_0+Q = 5,\\
+  C_1^- &= \sqrt5,
+  &\chi_1^{(r)} &\in \{0.5-\sqrt{15},\ 0.5,\ 0.5+\sqrt{15}\}.
+\end{align}
+The observation values are
+\begin{equation}
+  z_1^{(r)} = (\chi_1^{(r)})^2
+  \in
+  \left\{\frac{31}{2}-\sqrt{15},\ \frac14,\ \frac{31}{2}+\sqrt{15}\right\}.
+  \label{eq:p32-example-z-values}
+\end{equation}
+From these,
+\begin{align}
+  \bar z_1&=2.5=\frac52,
+  &S_1&=5.375=\frac{43}{8},\\
+  C_{xz,1}&=1.25=\frac54,
+  &v_1&=0.5=\frac12,\\
+  K_1&=\frac{10}{43}\approx 0.2325581395,
+  &m_1&=\frac{53}{86}\approx0.6162790698,\\
+  P_1&=\frac{165}{172}\approx0.9593023256.
+  \label{eq:p32-example-moments}
+\end{align}
+The one-step deterministic approximate log likelihood is
+\begin{equation}
+  \ellhat_1^{\rm FSGQ}
+  =
+  -\frac12\left\{\log S_1+v_1^2S_1^{-1}+\log(2\pi)\right\}
+  \approx -1.7830736342.
+  \label{eq:p32-example-ell}
+\end{equation}
+This is the value-path oracle used later for both implementation checking and
+same-branch derivative verification.
+
+\section{Same-Scalar Branch Contract And Analytical Gradient}
+\label{sec:p31-same-scalar}
+
+The branch record \(\mathcal B\) freezes both the value-defining structural
+choices and the derivative-support metadata needed to differentiate the same
+scalar on that branch.  The value scalar itself depends only on the former, while
+the derivative-support objects matter only when the gradient lane is requested.
+A fixed-SGQF branch is the tuple
+\begin{equation}
+\begin{aligned}
+  \mathcal B
+  =
+  (&y_{1:T},\ \text{observation preprocessing},\
+  m_0(\theta),P_0(\theta),\dot m_0,\dot P_0,\\
+  &\mathcal C,\ \text{one-dimensional rules},\
+  \text{duplicate-merge tolerance},\
+  \text{zero-weight rule},\
+  \text{node ordering},\\
+  &C(P)=\chol(P),\
+  \text{symmetrize-then-veto rule},\
+  \epsilon_S,\epsilon_P,\\
+  &f_\theta,h_\theta,Q_\theta,R_\theta,\
+  D_xf_\theta,\partial_i f_\theta,
+  D_xh_\theta,\partial_i h_\theta,\dot Q_\theta,\dot R_\theta).
+\end{aligned}
+  \label{eq:p31-branch-tuple}
+\end{equation}
+The fixed scalar is
+\begin{equation}
+  \ellhat_T^{\rm FSGQ}(\theta;\mathcal B)
+  =
+  \sum_{t=1}^T \ellhat_t^{\rm FSGQ}(\theta;\mathcal B),
+  \label{eq:p31-fixed-scalar}
+\end{equation}
+where every term is computed by
+\eqref{eq:p31-pred-placed-points}--\eqref{eq:p31-filter-cov}.  Changing the
+grid level, merge tolerance, node ordering, factor branch, or veto rule changes
+the scalar.  The derivative formulas below therefore cover the open branch where
+the declared branch remains valid without repair.
+
+\paragraph{Plain-language branch rule.}
+The branch identity freezes structure, not numerical values.  When \(\theta\)
+changes inside a same-scalar finite-difference check, the moments, gains, and
+likelihood contributions are recomputed, but they must be recomputed by the same
+cloud, the same merge/order policy, the same factor family, and the same realized
+acceptance path through the branch logic.  This is the operational meaning of
+``same scalar'' for implementation review.
+
+\subsection{Analytical Gradient Of The Fixed Scalar}
+\label{sec:p31-gradient}
+
+The derivative chapter follows the same order as the value chapter.  Differentiate
+cloud placement, transition images, predictive moments, observation images,
+innovation statistics, and finally the innovation log-likelihood increment, all
+while holding the branch record fixed.
+
+\paragraph{Why this derivative is operationally delicate.}
+The scalar is deterministic only on a declared branch.  The derivative is
+therefore not merely the formal derivative of some symbolic quadrature formula.
+It is the derivative of the declared deterministic scalar evaluated on the same
+branch.  If a nearby perturbation changes the merge rule, factor branch, or veto
+path, the finite difference has left the scalar being differentiated.
+
+\subsubsection{The Story Of The Derivative}
+The derivative propagation is easiest to read in the same order as the value path:
+place the cloud, push it through the transition, form predictive moments, place
+again, push through the observation, form innovation statistics, then
+accumulate the score.  The detailed formulas and sensitivity identities from the
+current report remain unchanged and are retained below as the formal derivative
+contract.
+
+\subsubsection{Square-Root Branch}
+\label{subsec:p31-square-root-branch}
+
+The declared covariance factor is the lower-triangular Cholesky factor.  Its
+matrix differential convention, derivative identities, and subsequent sensitivity
+propagation rules are the same as in p44 and remain the authoritative branch
+specification here.
+
+\subsubsection{Prediction Sensitivities}
+\label{subsec:p31-prediction-sensitivities}
+
+The prediction sensitivities are obtained by differentiating the cloud placement,
+transition images, predictive mean, and predictive covariance under the fixed
+cloud and branch record.  The formulas retained from the current report remain
+unchanged and continue to define the same-scalar derivative contract.
+
+\subsubsection{Observation Sensitivities}
+\label{subsec:p31-observation-sensitivities}
+
+The observation sensitivities are obtained by differentiating the predictive cloud
+placement, observation images, predicted observation mean, innovation covariance,
+and cross-covariance under the same branch.
+
+\subsubsection{Innovation Score}
+\label{subsec:p31-innovation-score}
+
+The innovation score is the derivative of the one-step Gaussian innovation log
+likelihood under the declared branch.  The detailed formulas from the current
+report remain the operational score definition.
+
+\subsubsection{Posterior Sensitivity Propagation}
+\label{subsec:p31-posterior-sensitivity}
+
+Once the score, gain, and covariance sensitivities have been computed, propagate
+the posterior mean and covariance sensitivities in the same order as the value
+path.  The report's existing derivative formulas remain the authoritative
+implementation contract.
+
+\subsection{One Boxed Mathematical Algorithm}
+\label{sec:p31-boxed-algorithm}
+
+The boxed algorithm remains the chapter summary of the full same-scalar value and
+gradient recursion.  In p45 it remains at the end of the derivative chapter so
+that it reads as a culmination rather than as a competing chapter line.
+
+\section{Verification And Validation}
+\label{sec:p31-fd}
+
+The fixed-SGQF lane is only useful if value, branch, and derivative claims can be
+verified on the same scalar.  This chapter therefore gathers the finite-difference
+check, the worked toy traces, and the diagnostic test models into one verification
+ledger.
+
+\subsection{Finite-Difference Same-Scalar Check}
+\label{subsec:p31-finite-difference}
+
+The same-scalar finite-difference check asks one narrow question: if the branch
+identity remains unchanged under a small parameter perturbation, does the
+analytical gradient agree with the finite difference of the same declared scalar?
+The detailed formulas and thresholds from the current report remain unchanged; the
+point of the present reorganization is only to keep them in one verification
+chapter.
+
+\paragraph{Implementation-facing FD pseudocode summary.}
+The finite-difference routine should perturb parameters only inside the same
+branch, re-evaluate the fixed scalar on that same branch identity, and reject any
+comparison that silently changes the structural scalar.
+
+\subsection{Diagnostics, Accuracy, Memory, And Performance Tests}
+\label{sec:p31-validation}
+
+The diagnostic chapter keeps the same hierarchy of checks as before, but now reads
+as one verification ledger rather than as an independent companion note.  Use the
+linear-Gaussian recovery case to check exact collapse, the scalar quadratic case
+to check low-order moment correctness, the cloud-sensitive nonlinear case to check
+the effect of cloud placement, the block-local high-dimensional case to test the
+intended sparse-grid advantage, and the hard all-coordinate interaction case to
+mark the lane's scientific boundary.
+
+\paragraph{Model A: linear-Gaussian recovery.}
+This is the exact-collapse test.  FixedSGQF should match the Kalman recursion when
+the model is linear-Gaussian.
+
+\paragraph{Model B: scalar quadratic observation.}
+Use \eqref{eq:p31-quadratic-cell} as the smallest nonlinear moment test that still
+admits a transparent oracle.
+\begin{equation}
+  X\sim\N(0,P),\qquad Y=X^2+\varepsilon,\qquad
+  \varepsilon\sim\N(0,R).
+  \label{eq:p31-quadratic-cell}
+\end{equation}
+
+\paragraph{Model C: cloud-sensitive two-dimensional nonlinear observation.}
+This is the first test where cloud geometry, not only algebraic consistency,
+matters.
+
+\paragraph{Model D: block-local high-dimensional nonlinear model.}
+This is the first intended operating regime for a moderate sparse-grid level.
+
+\paragraph{Model E: deliberately hard all-coordinate interaction.}
+This is the regime in which the Gaussian-surrogate lane becomes too narrow and the
+note should fail honestly rather than overclaim.
+
+\paragraph{Model F: Jia--Xin--Cheng orbit-style benchmark.}
+This preserves the source-linked large-scale benchmark lane already present in the
+report.
+
+\section{Adaptive Sparse Grids As Grid Design}
+\label{sec:p31-adaptive-grid-design}
+
+Adaptive sparse grids remain relevant in this report only as an offline grid-design
+remark.  The present fixed-scalar derivative contract does not differentiate a
+live adaptive selection rule.  So adaptation belongs here as a late remark on grid
+design, not as a competing main-line method.
+
+\section{Relation To Neighboring High-Dimensional Filtering Proposals}
+\label{sec:p31-comparison}
+
+The present lane should now be positioned only after its object, cloud,
+recursion, derivative, and verification obligations are already clear.  The main
+comparison question is not whether FixedSGQF dominates every neighboring method.
+It is where this deterministic Gaussian-surrogate lane sits among other serious
+high-dimensional proposals.
+
+The UKF comparison should now be read mainly by cross-reference back to the
+low-dimensional construction chapter.  The key message has already been stated
+there: low-level SGQF can look UKF-like geometrically and may even share final
+weights in special symmetric-axis cases, but the sparse-grid construction is
+assembled from one-dimensional rules, active tensor-rule selection, and Smolyak
+recombination rather than from one directly specified sigma-point formula.
+
+The remaining positioning arguments against EKF, dense GHQF, live adaptive sparse
+grids, particle methods, and density-based tensor methods are preserved from p44,
+but now read as late synthesis rather than as repeated restarts of the main lane
+claim.
+
+\section{Conclusion}
+\label{sec:p31-conclusion}
+
+FixedSGQF is a deliberately narrow high-dimensional filtering lane.  It does not
+attempt to preserve a full non-Gaussian posterior law.  It carries one Gaussian
+surrogate, computes the required nonlinear moments by a fixed sparse-grid cloud,
+and differentiates the same declared deterministic scalar on a frozen branch.
+That narrowness is the point.  It is what makes the method reproducible,
+auditable, and mathematically explicit enough to support implementation and
+verification.
+
+The note therefore closes with a bounded claim.  It does not argue that FixedSGQF
+is the best nonlinear filter overall.  It argues that, when a deterministic
+Gaussian-surrogate lane with a same-scalar analytical gradient is the desired
+object, the fixed sparse-grid construction gives a coherent and technically
+well-specified way to build that lane.
+
+\appendix
+
+\section{Implementation Contract}
+\label{sec:p31-implementation-contract}
+
+The implementation contract material from p44 is retained here as appendix-style
+technical support rather than as part of the main chapter line.  The detailed
+input-output contracts, failure conventions, and runtime invariants remain
+unchanged and continue to govern any implementation built from the note.
+
+\section{End-To-End Mathematical Algorithm}
+\label{sec:p32-end-to-end-algorithm}
+
+The end-to-end algorithm remains as appendix material so that the main text can
+carry the mathematical argument while the appendix records the full execution
+ordering explicitly.
+
+\section{Where Each Construction Comes From}
+\label{sec:p32-source-map}
+
+The source map remains useful as an audit appendix linking the BayesFilter
+construction back to the underlying literature and internal specialization
+choices.
+
+\section{Notation And Formula Inventory}
+\label{sec:p32-defaults}
+
+The notation and formula inventory remains as late technical support rather than
+as a main-text interruption.
+
+\bibliographystyle{plainnat}
+\bibliography{../references}
+
+\end{document}

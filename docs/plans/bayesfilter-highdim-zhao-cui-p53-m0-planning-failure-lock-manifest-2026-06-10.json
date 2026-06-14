@@ -1,0 +1,122 @@
+{
+  "schema_version": "p53.planning_failure_lock.v1",
+  "metadata_date": "2026-06-10",
+  "phase": "P53-M0",
+  "status": "PASS_P53_M0_PLANNING_FAILURE_LOCK",
+  "program": "P53-factorized-spatial-sir-transition-repair",
+  "source_failure": {
+    "program": "P52-rank-calibrated-factorized-spatial-sir",
+    "stop_token": "BLOCK_P52_FACTORIZED_TRANSITION_ROUTE",
+    "stop_handoff": "docs/plans/bayesfilter-highdim-zhao-cui-p52-visible-stop-handoff-2026-06-10.md",
+    "blocker_result": "docs/plans/bayesfilter-highdim-zhao-cui-p52-m4-factorized-transition-route-result-2026-06-10.md",
+    "planning_error": "P52 placed a route contract gate where route design, implementation, and lower-rung tie-out prerequisites were required."
+  },
+  "evidence_classes": [
+    {
+      "class": "route_design",
+      "phase": "P53-M1",
+      "allowed_claim": "route equations, route class, memory model, and P30 documentation boundary"
+    },
+    {
+      "class": "lower_rung_dense_equivalent_implementation",
+      "phase": "P53-M2",
+      "allowed_claim": "executable TensorFlow lower-rung route and metadata only"
+    },
+    {
+      "class": "lower_rung_dense_tieout",
+      "phase": "P53-M3",
+      "allowed_claim": "tiny-grid dense equivalence only"
+    },
+    {
+      "class": "scaling_route_choice_derivation",
+      "phase": "P53-M4A",
+      "allowed_claim": "chosen local-neighborhood or TT-MPO route with equations, approximation status, replay identity, and route-width metadata"
+    },
+    {
+      "class": "scaling_route_implementation",
+      "phase": "P53-M4B",
+      "allowed_claim": "TensorFlow implementation of the M4A-selected scaling route"
+    },
+    {
+      "class": "scaling_route_tieout",
+      "phase": "P53-M4C",
+      "allowed_claim": "lower-rung tie-out for the M4B scaling route"
+    },
+    {
+      "class": "scaling_route_admission",
+      "phase": "P53-M4D",
+      "allowed_claim": "final scaling-route admission token for rank/scaling phases"
+    },
+    {
+      "class": "rank_selection",
+      "phase": "P53-M5",
+      "allowed_claim": "fixed rank selection using scaling-route metadata"
+    },
+    {
+      "class": "d18_filtering_stress",
+      "phase": "P53-M6",
+      "allowed_claim": "d=18 calibration or explicit blocker under scaling route"
+    },
+    {
+      "class": "d50_d100_scaling_policy",
+      "phase": "P53-M7",
+      "allowed_claim": "dimension-specific stress, scout, preflight, or blocker claim"
+    },
+    {
+      "class": "closeout",
+      "phase": "P53-M8",
+      "allowed_claim": "phase-status reconciliation and nonclaims"
+    }
+  ],
+  "dependency_dag": {
+    "P53-M0": [],
+    "P53-M1": ["P53-M0"],
+    "P53-M2": ["P53-M1"],
+    "P53-M3": ["P53-M2"],
+    "P53-M4A": ["P53-M1", "P53-M2", "P53-M3"],
+    "P53-M4B": ["P53-M4A"],
+    "P53-M4C": ["P53-M4B"],
+    "P53-M4D": ["P53-M4C"],
+    "P53-M5": ["P53-M4D"],
+    "P53-M6": ["P53-M4D", "P53-M5"],
+    "P53-M7": ["P53-M4D", "P53-M6"],
+    "P53-M8": ["P53-M0", "P53-M1", "P53-M2", "P53-M3", "P53-M4D", "P53-M5", "P53-M6", "P53-M7"]
+  },
+  "required_gate_tokens": {
+    "P53-M0": ["PASS_P53_M0_PLANNING_FAILURE_LOCK", "BLOCK_P53_M0_PLANNING_FAILURE_LOCK"],
+    "P53-M1": ["PASS_P53_M1_ROUTE_DESIGN_MATH", "BLOCK_P53_M1_ROUTE_DESIGN_MATH"],
+    "P53-M2": ["PASS_P53_M2_ROUTE_IMPLEMENTATION", "BLOCK_P53_M2_ROUTE_IMPLEMENTATION"],
+    "P53-M3": ["PASS_P53_M3_LOWER_RUNG_DENSE_TIEOUT", "BLOCK_P53_M3_LOWER_RUNG_DENSE_TIEOUT"],
+    "P53-M4A": ["PASS_P53_M4A_SCALING_ROUTE_DERIVATION", "BLOCK_P53_M4A_SCALING_ROUTE_DERIVATION"],
+    "P53-M4B": ["PASS_P53_M4B_SCALING_ROUTE_IMPLEMENTATION", "BLOCK_P53_M4B_SCALING_ROUTE_IMPLEMENTATION"],
+    "P53-M4C": ["PASS_P53_M4C_SCALING_ROUTE_TIEOUT", "BLOCK_P53_M4C_SCALING_ROUTE_TIEOUT"],
+    "P53-M4D": ["PASS_P53_M4D_SCALING_ROUTE_ADMISSION", "BLOCK_P53_M4D_SCALING_ROUTE_ADMISSION"],
+    "P53-M5": ["PASS_P53_M5_RANK_SELECTION_INTEGRATION", "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"],
+    "P53-M6": ["PASS_P53_M6_SPATIAL_SIR_D18", "BLOCK_P53_M6_SPATIAL_SIR_D18"],
+    "P53-M7": ["PASS_P53_M7_SPATIAL_SIR_D50_D100", "BLOCK_P53_M7_SPATIAL_SIR_D50_D100"],
+    "P53-M8": ["PASS_P53_M8_INTEGRATION_CLOSEOUT", "BLOCK_P53_M8_INTEGRATION_CLOSEOUT"]
+  },
+  "hard_rules": {
+    "contract_only_cannot_pass_implementation": true,
+    "lower_rung_dense_equivalent_cannot_unlock_rank_or_scaling": true,
+    "rank_selection_requires_m4d_scaling_route_admission": true,
+    "d18_requires_m4d_scaling_route_admission": true,
+    "d50_d100_requires_m4d_scaling_route_admission": true,
+    "m4a_derivation_required_before_m4b_implementation": true,
+    "m4b_implementation_required_before_m4c_tieout": true,
+    "m4c_tieout_required_before_m4d_admission": true,
+    "claude_read_only": true,
+    "codex_supervisor_executor": true,
+    "detached_execution_allowed": false
+  },
+  "nonclaims": [
+    "no route implementation completed by M0",
+    "no lower-rung dense tie-out completed by M0",
+    "no scaling-route readiness",
+    "no rank selection",
+    "no spatial SIR d=18 filtering",
+    "no d=50 or d=100 filtering correctness",
+    "no HMC readiness",
+    "no GPU readiness"
+  ]
+}

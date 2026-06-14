@@ -1,0 +1,1002 @@
+{
+  "schema_version": "filter_bench.p8_blocker_fix_gates.v1",
+  "metadata_date": "2026-06-11",
+  "phase": "FILTER_BENCH_P8_BLOCKER_FIX_GATES",
+  "status": "PASS_P8_BLOCKER_FIX_GATES_SOURCE_ROWS_READY_NUMERIC_PENDING",
+  "numeric_benchmark_status": "BLOCK_P8_NUMERIC_BENCHMARK_NOT_YET_RUN",
+  "purpose": "Close the local status/protocol gaps for P8-B3, P8-B4, and P8-B5 without promoting protocol artifacts to numeric benchmark results.",
+  "source_artifacts": {
+    "execution_plan": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8-blocker-fix-execution-plan-2026-06-11.md",
+    "source_scope_contract": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-source-paper-scope-contract-2026-06-11.json",
+    "p8_dataset_manifest": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8-synthetic-dataset-manifest-2026-06-11.json",
+    "generalized_sv_spec": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-generalized-sv-testing-spec-2026-06-11.json",
+    "p58_sir_blocker_ledger": "docs/plans/bayesfilter-highdim-zhao-cui-p58-m9-source-route-pipeline-blocker-ledger-2026-06-11.md",
+    "p59_9a_result": "docs/plans/bayesfilter-highdim-zhao-cui-p59-9a-author-sir-36d-target-fit-result-2026-06-11.md",
+    "p59_9b_result": "docs/plans/bayesfilter-highdim-zhao-cui-p59-9b-source-route-step-spec-assembly-result-2026-06-11.md",
+    "p59_9c_result": "docs/plans/bayesfilter-highdim-zhao-cui-p59-9c-preconditioned-route-integration-result-2026-06-11.md",
+    "p59_9d_result": "docs/plans/bayesfilter-highdim-zhao-cui-p59-9d-runner-manifest-path-result-2026-06-11.md",
+    "p59_9e_result": "docs/plans/bayesfilter-highdim-zhao-cui-p59-9e-validation-ladder-result-2026-06-11.md"
+  },
+  "role_contract": {
+    "supervisor_and_executor": "Codex in this dialogue",
+    "reviewer": "Claude Code read-only",
+    "detached_codex_agent_allowed": false
+  },
+  "phase_gate_statuses": {
+    "P8-B3": {
+      "status": "protocol_ready_numeric_pending",
+      "token": "PASS_P8_B3_HORIZON_PROTOCOL_READY_NUMERIC_PENDING",
+      "numeric_horizon_calibration_run": false
+    },
+    "P8-B4": {
+      "status": "protocol_ready_numeric_pending",
+      "token": "PASS_P8_B4_STOCHASTIC_PROTOCOL_READY_NUMERIC_PENDING",
+      "numeric_seed_ladder_run": false
+    },
+    "P8-B5": {
+      "status": "adapter_status_matrix_ready_numeric_pending",
+      "token": "PASS_P8_B5_ADAPTER_STATUS_MATRIX_READY_NUMERIC_PENDING",
+      "numeric_evaluator_run": false,
+      "expected_adapter_cells": 42,
+      "actual_adapter_cells": 42
+    },
+    "hard_source_blocks": {
+      "status": "source_rows_ready_execution_only_sir_generalized_sv_prior_mean_ready",
+      "token": "PASS_P8_SOURCE_BLOCKS_REFRESHED_NO_ROW_LEVEL_HARD_BLOCKS"
+    }
+  },
+  "horizon_protocol": {
+    "status": "PASS_P8_B3_HORIZON_PROTOCOL_READY_NUMERIC_PENDING",
+    "rows": [
+      {
+        "model_row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+        "source_horizon": 50,
+        "dataset_status": "generated",
+        "horizon_gate_status": "exact_oracle_horizon_locked_numeric_calibration_pending",
+        "blocker_token": null,
+        "long_run_variance_estimators": [
+          "HAC_Newey_West",
+          "batch_means"
+        ],
+        "numeric_horizon_calibration_run": false,
+        "interpretation": "protocol_gate_only_not_numeric_horizon_calibration"
+      },
+      {
+        "model_row_id": "zhao_cui_sv_actual_nongaussian_T1000",
+        "source_horizon": 1000,
+        "dataset_status": "generated",
+        "horizon_gate_status": "source_horizon_locked_numeric_calibration_pending",
+        "blocker_token": null,
+        "long_run_variance_estimators": [
+          "HAC_Newey_West",
+          "batch_means"
+        ],
+        "numeric_horizon_calibration_run": false,
+        "interpretation": "protocol_gate_only_not_numeric_horizon_calibration"
+      },
+      {
+        "model_row_id": "zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000",
+        "source_horizon": 1000,
+        "dataset_status": "generated",
+        "horizon_gate_status": "source_horizon_locked_numeric_calibration_pending",
+        "blocker_token": null,
+        "long_run_variance_estimators": [
+          "HAC_Newey_West",
+          "batch_means"
+        ],
+        "numeric_horizon_calibration_run": false,
+        "interpretation": "protocol_gate_only_not_numeric_horizon_calibration"
+      },
+      {
+        "model_row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+        "source_horizon": 20,
+        "dataset_status": "generated",
+        "horizon_gate_status": "source_horizon_locked_source_route_execution_only_ready_numeric_pending",
+        "blocker_token": null,
+        "long_run_variance_estimators": [
+          "HAC_Newey_West",
+          "batch_means"
+        ],
+        "numeric_horizon_calibration_run": false,
+        "interpretation": "protocol_gate_only_not_numeric_horizon_calibration"
+      },
+      {
+        "model_row_id": "zhao_cui_predator_prey_T20",
+        "source_horizon": 20,
+        "dataset_status": "generated",
+        "horizon_gate_status": "source_horizon_locked_numeric_calibration_pending",
+        "blocker_token": null,
+        "long_run_variance_estimators": [
+          "HAC_Newey_West",
+          "batch_means"
+        ],
+        "numeric_horizon_calibration_run": false,
+        "interpretation": "protocol_gate_only_not_numeric_horizon_calibration"
+      },
+      {
+        "model_row_id": "zhao_cui_generalized_sv_synthetic_from_estimated_values",
+        "source_horizon": 1008,
+        "dataset_status": "generated",
+        "horizon_gate_status": "source_prior_mean_horizon_locked_numeric_calibration_pending",
+        "blocker_token": null,
+        "long_run_variance_estimators": [
+          "HAC_Newey_West",
+          "batch_means"
+        ],
+        "numeric_horizon_calibration_run": false,
+        "interpretation": "protocol_gate_only_not_numeric_horizon_calibration"
+      }
+    ],
+    "long_run_variance_estimators": [
+      "HAC_Newey_West",
+      "batch_means"
+    ],
+    "numeric_calibration_required_before_benchmark_closeout": true,
+    "nonclaim": "source horizons and variance-estimator policy are not measured horizon adequacy"
+  },
+  "stochastic_seed_protocol": {
+    "status": "PASS_P8_B4_STOCHASTIC_PROTOCOL_READY_NUMERIC_PENDING",
+    "rows": [
+      {
+        "algorithm_id": "bootstrap_dpf_current",
+        "model_row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+        "dataset_status": "generated",
+        "stochastic_gate_status": "seed_protocol_ready_numeric_pending",
+        "blocker_token": null,
+        "seed_ladder": [
+          4,
+          8,
+          16,
+          32
+        ],
+        "required_diagnostics": [
+          "data_standard_error",
+          "particle_mc_standard_error",
+          "mc_se_to_data_se_ratio",
+          "effective_sample_size",
+          "resampling_count",
+          "degeneracy_flags"
+        ],
+        "ranking_enabled": false,
+        "ranking_rule": "ranking_enabled_only_after_MC_SE_le_0p25_data_SE",
+        "numeric_seed_ladder_run": false
+      },
+      {
+        "algorithm_id": "bootstrap_dpf_current",
+        "model_row_id": "zhao_cui_sv_actual_nongaussian_T1000",
+        "dataset_status": "generated",
+        "stochastic_gate_status": "seed_protocol_ready_numeric_pending",
+        "blocker_token": null,
+        "seed_ladder": [
+          4,
+          8,
+          16,
+          32
+        ],
+        "required_diagnostics": [
+          "data_standard_error",
+          "particle_mc_standard_error",
+          "mc_se_to_data_se_ratio",
+          "effective_sample_size",
+          "resampling_count",
+          "degeneracy_flags"
+        ],
+        "ranking_enabled": false,
+        "ranking_rule": "ranking_enabled_only_after_MC_SE_le_0p25_data_SE",
+        "numeric_seed_ladder_run": false
+      },
+      {
+        "algorithm_id": "bootstrap_dpf_current",
+        "model_row_id": "zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000",
+        "dataset_status": "generated",
+        "stochastic_gate_status": "seed_protocol_ready_numeric_pending",
+        "blocker_token": null,
+        "seed_ladder": [
+          4,
+          8,
+          16,
+          32
+        ],
+        "required_diagnostics": [
+          "data_standard_error",
+          "particle_mc_standard_error",
+          "mc_se_to_data_se_ratio",
+          "effective_sample_size",
+          "resampling_count",
+          "degeneracy_flags"
+        ],
+        "ranking_enabled": false,
+        "ranking_rule": "ranking_enabled_only_after_MC_SE_le_0p25_data_SE",
+        "numeric_seed_ladder_run": false
+      },
+      {
+        "algorithm_id": "bootstrap_dpf_current",
+        "model_row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+        "dataset_status": "generated",
+        "stochastic_gate_status": "seed_protocol_ready_numeric_pending",
+        "blocker_token": null,
+        "seed_ladder": [
+          4,
+          8,
+          16,
+          32
+        ],
+        "required_diagnostics": [
+          "data_standard_error",
+          "particle_mc_standard_error",
+          "mc_se_to_data_se_ratio",
+          "effective_sample_size",
+          "resampling_count",
+          "degeneracy_flags"
+        ],
+        "ranking_enabled": false,
+        "ranking_rule": "ranking_enabled_only_after_MC_SE_le_0p25_data_SE",
+        "numeric_seed_ladder_run": false
+      },
+      {
+        "algorithm_id": "bootstrap_dpf_current",
+        "model_row_id": "zhao_cui_predator_prey_T20",
+        "dataset_status": "generated",
+        "stochastic_gate_status": "seed_protocol_ready_numeric_pending",
+        "blocker_token": null,
+        "seed_ladder": [
+          4,
+          8,
+          16,
+          32
+        ],
+        "required_diagnostics": [
+          "data_standard_error",
+          "particle_mc_standard_error",
+          "mc_se_to_data_se_ratio",
+          "effective_sample_size",
+          "resampling_count",
+          "degeneracy_flags"
+        ],
+        "ranking_enabled": false,
+        "ranking_rule": "ranking_enabled_only_after_MC_SE_le_0p25_data_SE",
+        "numeric_seed_ladder_run": false
+      },
+      {
+        "algorithm_id": "bootstrap_dpf_current",
+        "model_row_id": "zhao_cui_generalized_sv_synthetic_from_estimated_values",
+        "dataset_status": "generated",
+        "stochastic_gate_status": "seed_protocol_ready_numeric_pending",
+        "blocker_token": null,
+        "seed_ladder": [
+          4,
+          8,
+          16,
+          32
+        ],
+        "required_diagnostics": [
+          "data_standard_error",
+          "particle_mc_standard_error",
+          "mc_se_to_data_se_ratio",
+          "effective_sample_size",
+          "resampling_count",
+          "degeneracy_flags"
+        ],
+        "ranking_enabled": false,
+        "ranking_rule": "ranking_enabled_only_after_MC_SE_le_0p25_data_SE",
+        "numeric_seed_ladder_run": false
+      },
+      {
+        "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+        "model_row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+        "dataset_status": "generated",
+        "stochastic_gate_status": "seed_protocol_ready_numeric_pending",
+        "blocker_token": null,
+        "seed_ladder": [
+          4,
+          8,
+          16,
+          32
+        ],
+        "required_diagnostics": [
+          "data_standard_error",
+          "particle_mc_standard_error",
+          "mc_se_to_data_se_ratio",
+          "effective_sample_size",
+          "resampling_count",
+          "degeneracy_flags"
+        ],
+        "ranking_enabled": false,
+        "ranking_rule": "ranking_enabled_only_after_MC_SE_le_0p25_data_SE",
+        "numeric_seed_ladder_run": false
+      },
+      {
+        "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+        "model_row_id": "zhao_cui_sv_actual_nongaussian_T1000",
+        "dataset_status": "generated",
+        "stochastic_gate_status": "seed_protocol_ready_numeric_pending",
+        "blocker_token": null,
+        "seed_ladder": [
+          4,
+          8,
+          16,
+          32
+        ],
+        "required_diagnostics": [
+          "data_standard_error",
+          "particle_mc_standard_error",
+          "mc_se_to_data_se_ratio",
+          "effective_sample_size",
+          "resampling_count",
+          "degeneracy_flags"
+        ],
+        "ranking_enabled": false,
+        "ranking_rule": "ranking_enabled_only_after_MC_SE_le_0p25_data_SE",
+        "numeric_seed_ladder_run": false
+      },
+      {
+        "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+        "model_row_id": "zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000",
+        "dataset_status": "generated",
+        "stochastic_gate_status": "seed_protocol_ready_numeric_pending",
+        "blocker_token": null,
+        "seed_ladder": [
+          4,
+          8,
+          16,
+          32
+        ],
+        "required_diagnostics": [
+          "data_standard_error",
+          "particle_mc_standard_error",
+          "mc_se_to_data_se_ratio",
+          "effective_sample_size",
+          "resampling_count",
+          "degeneracy_flags"
+        ],
+        "ranking_enabled": false,
+        "ranking_rule": "ranking_enabled_only_after_MC_SE_le_0p25_data_SE",
+        "numeric_seed_ladder_run": false
+      },
+      {
+        "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+        "model_row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+        "dataset_status": "generated",
+        "stochastic_gate_status": "seed_protocol_ready_numeric_pending",
+        "blocker_token": null,
+        "seed_ladder": [
+          4,
+          8,
+          16,
+          32
+        ],
+        "required_diagnostics": [
+          "data_standard_error",
+          "particle_mc_standard_error",
+          "mc_se_to_data_se_ratio",
+          "effective_sample_size",
+          "resampling_count",
+          "degeneracy_flags"
+        ],
+        "ranking_enabled": false,
+        "ranking_rule": "ranking_enabled_only_after_MC_SE_le_0p25_data_SE",
+        "numeric_seed_ladder_run": false
+      },
+      {
+        "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+        "model_row_id": "zhao_cui_predator_prey_T20",
+        "dataset_status": "generated",
+        "stochastic_gate_status": "seed_protocol_ready_numeric_pending",
+        "blocker_token": null,
+        "seed_ladder": [
+          4,
+          8,
+          16,
+          32
+        ],
+        "required_diagnostics": [
+          "data_standard_error",
+          "particle_mc_standard_error",
+          "mc_se_to_data_se_ratio",
+          "effective_sample_size",
+          "resampling_count",
+          "degeneracy_flags"
+        ],
+        "ranking_enabled": false,
+        "ranking_rule": "ranking_enabled_only_after_MC_SE_le_0p25_data_SE",
+        "numeric_seed_ladder_run": false
+      },
+      {
+        "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+        "model_row_id": "zhao_cui_generalized_sv_synthetic_from_estimated_values",
+        "dataset_status": "generated",
+        "stochastic_gate_status": "seed_protocol_ready_numeric_pending",
+        "blocker_token": null,
+        "seed_ladder": [
+          4,
+          8,
+          16,
+          32
+        ],
+        "required_diagnostics": [
+          "data_standard_error",
+          "particle_mc_standard_error",
+          "mc_se_to_data_se_ratio",
+          "effective_sample_size",
+          "resampling_count",
+          "degeneracy_flags"
+        ],
+        "ranking_enabled": false,
+        "ranking_rule": "ranking_enabled_only_after_MC_SE_le_0p25_data_SE",
+        "numeric_seed_ladder_run": false
+      }
+    ],
+    "seed_ladder": [
+      4,
+      8,
+      16,
+      32
+    ],
+    "promotion_rule": "MC_SE <= 0.25 * data_SE before ranking small differences",
+    "ranking_enabled": false,
+    "numeric_seed_ladder_required_before_dpf_ranking": true
+  },
+  "adapter_status_matrix": {
+    "status": "PASS_P8_B5_ADAPTER_STATUS_MATRIX_READY_NUMERIC_PENDING",
+    "rows": [
+      {
+        "algorithm_id": "kalman_exact_or_mixture_enumeration",
+        "model_row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+        "dataset_status": "generated",
+        "numeric_execution_status": "pending_numeric_execution",
+        "target_contract_status": "exact_lgssm_only",
+        "value_adapter_status": "exact_lgssm_protocol_ready_numeric_pending",
+        "score_adapter_status": "exact_lgssm_score_protocol_ready_numeric_pending",
+        "hessian_adapter_status": "exact_lgssm_hessian_protocol_ready_numeric_pending",
+        "not_available_reason": ""
+      },
+      {
+        "algorithm_id": "kalman_exact_or_mixture_enumeration",
+        "model_row_id": "zhao_cui_sv_actual_nongaussian_T1000",
+        "dataset_status": "generated",
+        "numeric_execution_status": "blocked_or_not_applicable_with_reason",
+        "target_contract_status": "structured_not_applicable",
+        "value_adapter_status": "not_applicable_outside_lgssm_or_declared_mixture_surrogate",
+        "score_adapter_status": "not_applicable_outside_lgssm_or_declared_mixture_surrogate",
+        "hessian_adapter_status": "not_applicable_outside_lgssm_or_declared_mixture_surrogate",
+        "not_available_reason": "KALMAN_REMOVED_OUTSIDE_LGSSM_OR_DECLARED_MIXTURE"
+      },
+      {
+        "algorithm_id": "kalman_exact_or_mixture_enumeration",
+        "model_row_id": "zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000",
+        "dataset_status": "generated",
+        "numeric_execution_status": "pending_numeric_execution",
+        "target_contract_status": "declared_gaussian_mixture_surrogate_only",
+        "value_adapter_status": "mixture_enumeration_protocol_ready_numeric_pending",
+        "score_adapter_status": "score_protocol_pending_mixture_surrogate",
+        "hessian_adapter_status": "hessian_not_exposed_numeric_pending",
+        "not_available_reason": ""
+      },
+      {
+        "algorithm_id": "kalman_exact_or_mixture_enumeration",
+        "model_row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+        "dataset_status": "generated",
+        "numeric_execution_status": "blocked_or_not_applicable_with_reason",
+        "target_contract_status": "structured_not_applicable",
+        "value_adapter_status": "not_applicable_outside_lgssm_or_declared_mixture_surrogate",
+        "score_adapter_status": "not_applicable_outside_lgssm_or_declared_mixture_surrogate",
+        "hessian_adapter_status": "not_applicable_outside_lgssm_or_declared_mixture_surrogate",
+        "not_available_reason": "KALMAN_REMOVED_OUTSIDE_LGSSM_OR_DECLARED_MIXTURE"
+      },
+      {
+        "algorithm_id": "kalman_exact_or_mixture_enumeration",
+        "model_row_id": "zhao_cui_predator_prey_T20",
+        "dataset_status": "generated",
+        "numeric_execution_status": "blocked_or_not_applicable_with_reason",
+        "target_contract_status": "structured_not_applicable",
+        "value_adapter_status": "not_applicable_outside_lgssm_or_declared_mixture_surrogate",
+        "score_adapter_status": "not_applicable_outside_lgssm_or_declared_mixture_surrogate",
+        "hessian_adapter_status": "not_applicable_outside_lgssm_or_declared_mixture_surrogate",
+        "not_available_reason": "KALMAN_REMOVED_OUTSIDE_LGSSM_OR_DECLARED_MIXTURE"
+      },
+      {
+        "algorithm_id": "kalman_exact_or_mixture_enumeration",
+        "model_row_id": "zhao_cui_generalized_sv_synthetic_from_estimated_values",
+        "dataset_status": "generated",
+        "numeric_execution_status": "blocked_or_not_applicable_with_reason",
+        "target_contract_status": "structured_not_applicable",
+        "value_adapter_status": "not_applicable_outside_lgssm_or_declared_mixture_surrogate",
+        "score_adapter_status": "not_applicable_outside_lgssm_or_declared_mixture_surrogate",
+        "hessian_adapter_status": "not_applicable_outside_lgssm_or_declared_mixture_surrogate",
+        "not_available_reason": "KALMAN_REMOVED_OUTSIDE_LGSSM_OR_DECLARED_MIXTURE"
+      },
+      {
+        "algorithm_id": "ukf",
+        "model_row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+        "dataset_status": "generated",
+        "numeric_execution_status": "pending_numeric_execution",
+        "target_contract_status": "target_compatible",
+        "value_adapter_status": "protocol_ready_numeric_evaluator_pending",
+        "score_adapter_status": "score_protocol_ready_numeric_evaluator_pending",
+        "hessian_adapter_status": "hessian_not_exposed_numeric_pending",
+        "not_available_reason": ""
+      },
+      {
+        "algorithm_id": "ukf",
+        "model_row_id": "zhao_cui_sv_actual_nongaussian_T1000",
+        "dataset_status": "generated",
+        "numeric_execution_status": "pending_numeric_execution",
+        "target_contract_status": "target_compatible",
+        "value_adapter_status": "protocol_ready_numeric_evaluator_pending",
+        "score_adapter_status": "score_protocol_ready_numeric_evaluator_pending",
+        "hessian_adapter_status": "hessian_not_exposed_numeric_pending",
+        "not_available_reason": ""
+      },
+      {
+        "algorithm_id": "ukf",
+        "model_row_id": "zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000",
+        "dataset_status": "generated",
+        "numeric_execution_status": "pending_numeric_execution",
+        "target_contract_status": "target_compatible",
+        "value_adapter_status": "protocol_ready_numeric_evaluator_pending",
+        "score_adapter_status": "score_protocol_ready_numeric_evaluator_pending",
+        "hessian_adapter_status": "hessian_not_exposed_numeric_pending",
+        "not_available_reason": ""
+      },
+      {
+        "algorithm_id": "ukf",
+        "model_row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+        "dataset_status": "generated",
+        "numeric_execution_status": "pending_numeric_execution",
+        "target_contract_status": "target_compatible",
+        "value_adapter_status": "protocol_ready_numeric_evaluator_pending",
+        "score_adapter_status": "not_applicable_no_free_theta",
+        "hessian_adapter_status": "not_applicable_no_free_theta",
+        "not_available_reason": ""
+      },
+      {
+        "algorithm_id": "ukf",
+        "model_row_id": "zhao_cui_predator_prey_T20",
+        "dataset_status": "generated",
+        "numeric_execution_status": "pending_numeric_execution",
+        "target_contract_status": "target_compatible",
+        "value_adapter_status": "protocol_ready_numeric_evaluator_pending",
+        "score_adapter_status": "score_protocol_ready_numeric_evaluator_pending",
+        "hessian_adapter_status": "hessian_not_exposed_numeric_pending",
+        "not_available_reason": ""
+      },
+      {
+        "algorithm_id": "ukf",
+        "model_row_id": "zhao_cui_generalized_sv_synthetic_from_estimated_values",
+        "dataset_status": "generated",
+        "numeric_execution_status": "pending_numeric_execution",
+        "target_contract_status": "target_compatible",
+        "value_adapter_status": "protocol_ready_numeric_evaluator_pending",
+        "score_adapter_status": "score_protocol_ready_numeric_evaluator_pending",
+        "hessian_adapter_status": "hessian_not_exposed_numeric_pending",
+        "not_available_reason": ""
+      },
+      {
+        "algorithm_id": "svd_sigma_point",
+        "model_row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+        "dataset_status": "generated",
+        "numeric_execution_status": "pending_numeric_execution",
+        "target_contract_status": "target_compatible",
+        "value_adapter_status": "protocol_ready_numeric_evaluator_pending",
+        "score_adapter_status": "score_protocol_ready_numeric_evaluator_pending",
+        "hessian_adapter_status": "hessian_not_exposed_numeric_pending",
+        "not_available_reason": ""
+      },
+      {
+        "algorithm_id": "svd_sigma_point",
+        "model_row_id": "zhao_cui_sv_actual_nongaussian_T1000",
+        "dataset_status": "generated",
+        "numeric_execution_status": "pending_numeric_execution",
+        "target_contract_status": "target_compatible",
+        "value_adapter_status": "protocol_ready_numeric_evaluator_pending",
+        "score_adapter_status": "score_protocol_ready_numeric_evaluator_pending",
+        "hessian_adapter_status": "hessian_not_exposed_numeric_pending",
+        "not_available_reason": ""
+      },
+      {
+        "algorithm_id": "svd_sigma_point",
+        "model_row_id": "zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000",
+        "dataset_status": "generated",
+        "numeric_execution_status": "pending_numeric_execution",
+        "target_contract_status": "target_compatible",
+        "value_adapter_status": "protocol_ready_numeric_evaluator_pending",
+        "score_adapter_status": "score_protocol_ready_numeric_evaluator_pending",
+        "hessian_adapter_status": "hessian_not_exposed_numeric_pending",
+        "not_available_reason": ""
+      },
+      {
+        "algorithm_id": "svd_sigma_point",
+        "model_row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+        "dataset_status": "generated",
+        "numeric_execution_status": "pending_numeric_execution",
+        "target_contract_status": "target_compatible",
+        "value_adapter_status": "protocol_ready_numeric_evaluator_pending",
+        "score_adapter_status": "not_applicable_no_free_theta",
+        "hessian_adapter_status": "not_applicable_no_free_theta",
+        "not_available_reason": ""
+      },
+      {
+        "algorithm_id": "svd_sigma_point",
+        "model_row_id": "zhao_cui_predator_prey_T20",
+        "dataset_status": "generated",
+        "numeric_execution_status": "pending_numeric_execution",
+        "target_contract_status": "target_compatible",
+        "value_adapter_status": "protocol_ready_numeric_evaluator_pending",
+        "score_adapter_status": "score_protocol_ready_numeric_evaluator_pending",
+        "hessian_adapter_status": "hessian_not_exposed_numeric_pending",
+        "not_available_reason": ""
+      },
+      {
+        "algorithm_id": "svd_sigma_point",
+        "model_row_id": "zhao_cui_generalized_sv_synthetic_from_estimated_values",
+        "dataset_status": "generated",
+        "numeric_execution_status": "pending_numeric_execution",
+        "target_contract_status": "target_compatible",
+        "value_adapter_status": "protocol_ready_numeric_evaluator_pending",
+        "score_adapter_status": "score_protocol_ready_numeric_evaluator_pending",
+        "hessian_adapter_status": "hessian_not_exposed_numeric_pending",
+        "not_available_reason": ""
+      },
+      {
+        "algorithm_id": "cut4",
+        "model_row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+        "dataset_status": "generated",
+        "numeric_execution_status": "pending_numeric_execution",
+        "target_contract_status": "target_compatible",
+        "value_adapter_status": "protocol_ready_numeric_evaluator_pending",
+        "score_adapter_status": "score_protocol_ready_numeric_evaluator_pending",
+        "hessian_adapter_status": "hessian_not_exposed_numeric_pending",
+        "not_available_reason": ""
+      },
+      {
+        "algorithm_id": "cut4",
+        "model_row_id": "zhao_cui_sv_actual_nongaussian_T1000",
+        "dataset_status": "generated",
+        "numeric_execution_status": "pending_numeric_execution",
+        "target_contract_status": "target_compatible",
+        "value_adapter_status": "protocol_ready_numeric_evaluator_pending",
+        "score_adapter_status": "score_protocol_ready_numeric_evaluator_pending",
+        "hessian_adapter_status": "hessian_not_exposed_numeric_pending",
+        "not_available_reason": ""
+      },
+      {
+        "algorithm_id": "cut4",
+        "model_row_id": "zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000",
+        "dataset_status": "generated",
+        "numeric_execution_status": "pending_numeric_execution",
+        "target_contract_status": "target_compatible",
+        "value_adapter_status": "protocol_ready_numeric_evaluator_pending",
+        "score_adapter_status": "score_protocol_ready_numeric_evaluator_pending",
+        "hessian_adapter_status": "hessian_not_exposed_numeric_pending",
+        "not_available_reason": ""
+      },
+      {
+        "algorithm_id": "cut4",
+        "model_row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+        "dataset_status": "generated",
+        "numeric_execution_status": "pending_numeric_execution",
+        "target_contract_status": "target_compatible",
+        "value_adapter_status": "protocol_ready_numeric_evaluator_pending",
+        "score_adapter_status": "not_applicable_no_free_theta",
+        "hessian_adapter_status": "not_applicable_no_free_theta",
+        "not_available_reason": ""
+      },
+      {
+        "algorithm_id": "cut4",
+        "model_row_id": "zhao_cui_predator_prey_T20",
+        "dataset_status": "generated",
+        "numeric_execution_status": "pending_numeric_execution",
+        "target_contract_status": "target_compatible",
+        "value_adapter_status": "protocol_ready_numeric_evaluator_pending",
+        "score_adapter_status": "score_protocol_ready_numeric_evaluator_pending",
+        "hessian_adapter_status": "hessian_not_exposed_numeric_pending",
+        "not_available_reason": ""
+      },
+      {
+        "algorithm_id": "cut4",
+        "model_row_id": "zhao_cui_generalized_sv_synthetic_from_estimated_values",
+        "dataset_status": "generated",
+        "numeric_execution_status": "pending_numeric_execution",
+        "target_contract_status": "target_compatible",
+        "value_adapter_status": "protocol_ready_numeric_evaluator_pending",
+        "score_adapter_status": "score_protocol_ready_numeric_evaluator_pending",
+        "hessian_adapter_status": "hessian_not_exposed_numeric_pending",
+        "not_available_reason": ""
+      },
+      {
+        "algorithm_id": "zhao_cui_scalar_or_multistate",
+        "model_row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+        "dataset_status": "generated",
+        "numeric_execution_status": "pending_numeric_execution",
+        "target_contract_status": "target_compatible",
+        "value_adapter_status": "protocol_ready_numeric_evaluator_pending",
+        "score_adapter_status": "score_protocol_ready_numeric_evaluator_pending",
+        "hessian_adapter_status": "hessian_not_exposed_numeric_pending",
+        "not_available_reason": ""
+      },
+      {
+        "algorithm_id": "zhao_cui_scalar_or_multistate",
+        "model_row_id": "zhao_cui_sv_actual_nongaussian_T1000",
+        "dataset_status": "generated",
+        "numeric_execution_status": "pending_numeric_execution",
+        "target_contract_status": "target_compatible",
+        "value_adapter_status": "protocol_ready_numeric_evaluator_pending",
+        "score_adapter_status": "score_protocol_ready_numeric_evaluator_pending",
+        "hessian_adapter_status": "hessian_not_exposed_numeric_pending",
+        "not_available_reason": ""
+      },
+      {
+        "algorithm_id": "zhao_cui_scalar_or_multistate",
+        "model_row_id": "zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000",
+        "dataset_status": "generated",
+        "numeric_execution_status": "pending_numeric_execution",
+        "target_contract_status": "target_compatible",
+        "value_adapter_status": "protocol_ready_numeric_evaluator_pending",
+        "score_adapter_status": "score_protocol_ready_numeric_evaluator_pending",
+        "hessian_adapter_status": "hessian_not_exposed_numeric_pending",
+        "not_available_reason": ""
+      },
+      {
+        "algorithm_id": "zhao_cui_scalar_or_multistate",
+        "model_row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+        "dataset_status": "generated",
+        "numeric_execution_status": "pending_numeric_execution",
+        "target_contract_status": "source_route_target_compatible_execution_only_ready",
+        "value_adapter_status": "source_route_execution_only_ready_numeric_evaluator_pending",
+        "score_adapter_status": "not_applicable_no_free_theta",
+        "hessian_adapter_status": "not_applicable_no_free_theta",
+        "not_available_reason": ""
+      },
+      {
+        "algorithm_id": "zhao_cui_scalar_or_multistate",
+        "model_row_id": "zhao_cui_predator_prey_T20",
+        "dataset_status": "generated",
+        "numeric_execution_status": "pending_numeric_execution",
+        "target_contract_status": "target_compatible",
+        "value_adapter_status": "protocol_ready_numeric_evaluator_pending",
+        "score_adapter_status": "score_protocol_ready_numeric_evaluator_pending",
+        "hessian_adapter_status": "hessian_not_exposed_numeric_pending",
+        "not_available_reason": ""
+      },
+      {
+        "algorithm_id": "zhao_cui_scalar_or_multistate",
+        "model_row_id": "zhao_cui_generalized_sv_synthetic_from_estimated_values",
+        "dataset_status": "generated",
+        "numeric_execution_status": "pending_numeric_execution",
+        "target_contract_status": "target_compatible",
+        "value_adapter_status": "protocol_ready_numeric_evaluator_pending",
+        "score_adapter_status": "score_protocol_ready_numeric_evaluator_pending",
+        "hessian_adapter_status": "hessian_not_exposed_numeric_pending",
+        "not_available_reason": ""
+      },
+      {
+        "algorithm_id": "bootstrap_dpf_current",
+        "model_row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+        "dataset_status": "generated",
+        "numeric_execution_status": "pending_numeric_execution",
+        "target_contract_status": "target_compatible",
+        "value_adapter_status": "protocol_ready_numeric_evaluator_pending",
+        "score_adapter_status": "not_certified_for_main_score_without_mc_and_fixed_branch_review",
+        "hessian_adapter_status": "hessian_not_exposed_numeric_pending",
+        "not_available_reason": ""
+      },
+      {
+        "algorithm_id": "bootstrap_dpf_current",
+        "model_row_id": "zhao_cui_sv_actual_nongaussian_T1000",
+        "dataset_status": "generated",
+        "numeric_execution_status": "pending_numeric_execution",
+        "target_contract_status": "target_compatible",
+        "value_adapter_status": "protocol_ready_numeric_evaluator_pending",
+        "score_adapter_status": "not_certified_for_main_score_without_mc_and_fixed_branch_review",
+        "hessian_adapter_status": "hessian_not_exposed_numeric_pending",
+        "not_available_reason": ""
+      },
+      {
+        "algorithm_id": "bootstrap_dpf_current",
+        "model_row_id": "zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000",
+        "dataset_status": "generated",
+        "numeric_execution_status": "pending_numeric_execution",
+        "target_contract_status": "target_compatible",
+        "value_adapter_status": "protocol_ready_numeric_evaluator_pending",
+        "score_adapter_status": "not_certified_for_main_score_without_mc_and_fixed_branch_review",
+        "hessian_adapter_status": "hessian_not_exposed_numeric_pending",
+        "not_available_reason": ""
+      },
+      {
+        "algorithm_id": "bootstrap_dpf_current",
+        "model_row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+        "dataset_status": "generated",
+        "numeric_execution_status": "pending_numeric_execution",
+        "target_contract_status": "target_compatible",
+        "value_adapter_status": "protocol_ready_numeric_evaluator_pending",
+        "score_adapter_status": "not_applicable_no_free_theta",
+        "hessian_adapter_status": "not_applicable_no_free_theta",
+        "not_available_reason": ""
+      },
+      {
+        "algorithm_id": "bootstrap_dpf_current",
+        "model_row_id": "zhao_cui_predator_prey_T20",
+        "dataset_status": "generated",
+        "numeric_execution_status": "pending_numeric_execution",
+        "target_contract_status": "target_compatible",
+        "value_adapter_status": "protocol_ready_numeric_evaluator_pending",
+        "score_adapter_status": "not_certified_for_main_score_without_mc_and_fixed_branch_review",
+        "hessian_adapter_status": "hessian_not_exposed_numeric_pending",
+        "not_available_reason": ""
+      },
+      {
+        "algorithm_id": "bootstrap_dpf_current",
+        "model_row_id": "zhao_cui_generalized_sv_synthetic_from_estimated_values",
+        "dataset_status": "generated",
+        "numeric_execution_status": "pending_numeric_execution",
+        "target_contract_status": "target_compatible",
+        "value_adapter_status": "protocol_ready_numeric_evaluator_pending",
+        "score_adapter_status": "not_certified_for_main_score_without_mc_and_fixed_branch_review",
+        "hessian_adapter_status": "hessian_not_exposed_numeric_pending",
+        "not_available_reason": ""
+      },
+      {
+        "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+        "model_row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+        "dataset_status": "generated",
+        "numeric_execution_status": "pending_numeric_execution",
+        "target_contract_status": "target_compatible",
+        "value_adapter_status": "protocol_ready_numeric_evaluator_pending",
+        "score_adapter_status": "not_certified_for_main_score_without_mc_and_fixed_branch_review",
+        "hessian_adapter_status": "hessian_not_exposed_numeric_pending",
+        "not_available_reason": ""
+      },
+      {
+        "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+        "model_row_id": "zhao_cui_sv_actual_nongaussian_T1000",
+        "dataset_status": "generated",
+        "numeric_execution_status": "pending_numeric_execution",
+        "target_contract_status": "target_compatible",
+        "value_adapter_status": "protocol_ready_numeric_evaluator_pending",
+        "score_adapter_status": "not_certified_for_main_score_without_mc_and_fixed_branch_review",
+        "hessian_adapter_status": "hessian_not_exposed_numeric_pending",
+        "not_available_reason": ""
+      },
+      {
+        "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+        "model_row_id": "zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000",
+        "dataset_status": "generated",
+        "numeric_execution_status": "pending_numeric_execution",
+        "target_contract_status": "target_compatible",
+        "value_adapter_status": "protocol_ready_numeric_evaluator_pending",
+        "score_adapter_status": "not_certified_for_main_score_without_mc_and_fixed_branch_review",
+        "hessian_adapter_status": "hessian_not_exposed_numeric_pending",
+        "not_available_reason": ""
+      },
+      {
+        "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+        "model_row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+        "dataset_status": "generated",
+        "numeric_execution_status": "pending_numeric_execution",
+        "target_contract_status": "target_compatible",
+        "value_adapter_status": "protocol_ready_numeric_evaluator_pending",
+        "score_adapter_status": "not_applicable_no_free_theta",
+        "hessian_adapter_status": "not_applicable_no_free_theta",
+        "not_available_reason": ""
+      },
+      {
+        "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+        "model_row_id": "zhao_cui_predator_prey_T20",
+        "dataset_status": "generated",
+        "numeric_execution_status": "pending_numeric_execution",
+        "target_contract_status": "target_compatible",
+        "value_adapter_status": "protocol_ready_numeric_evaluator_pending",
+        "score_adapter_status": "not_certified_for_main_score_without_mc_and_fixed_branch_review",
+        "hessian_adapter_status": "hessian_not_exposed_numeric_pending",
+        "not_available_reason": ""
+      },
+      {
+        "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+        "model_row_id": "zhao_cui_generalized_sv_synthetic_from_estimated_values",
+        "dataset_status": "generated",
+        "numeric_execution_status": "pending_numeric_execution",
+        "target_contract_status": "target_compatible",
+        "value_adapter_status": "protocol_ready_numeric_evaluator_pending",
+        "score_adapter_status": "not_certified_for_main_score_without_mc_and_fixed_branch_review",
+        "hessian_adapter_status": "hessian_not_exposed_numeric_pending",
+        "not_available_reason": ""
+      }
+    ],
+    "expected_cell_count": 42,
+    "actual_cell_count": 42,
+    "numeric_evaluator_required_before_value_or_score_tables": true
+  },
+  "row_level_hard_blocks": {},
+  "sir_d18_execution_only_status": {
+    "status": "PASS_P8_B6_SPATIAL_SIR_D18_EXECUTION_ONLY_RECOGNIZED",
+    "readiness": "source_route_execution_only_ready_numeric_pending",
+    "artifact_statuses": {
+      "P59-9a": {
+        "artifact": "docs/plans/bayesfilter-highdim-zhao-cui-p59-9a-author-sir-36d-target-fit-result-2026-06-11.md",
+        "required_token": "PASS_P59_9A_AUTHOR_SIR_36D_TARGET_FIT_PREP",
+        "passed": true
+      },
+      "P59-9b": {
+        "artifact": "docs/plans/bayesfilter-highdim-zhao-cui-p59-9b-source-route-step-spec-assembly-result-2026-06-11.md",
+        "required_token": "PASS_P59_9B_SOURCE_ROUTE_STEP_SPEC_ASSEMBLY",
+        "passed": true
+      },
+      "P59-9c": {
+        "artifact": "docs/plans/bayesfilter-highdim-zhao-cui-p59-9c-preconditioned-route-integration-result-2026-06-11.md",
+        "required_token": "PASS_P59_9C_PRECONDITIONED_ROUTE_INTEGRATION",
+        "passed": true
+      },
+      "P59-9d": {
+        "artifact": "docs/plans/bayesfilter-highdim-zhao-cui-p59-9d-runner-manifest-path-result-2026-06-11.md",
+        "required_token": "PASS_P59_9D_RUNNER_MANIFEST_PATH",
+        "passed": true
+      },
+      "P59-9e": {
+        "artifact": "docs/plans/bayesfilter-highdim-zhao-cui-p59-9e-validation-ladder-result-2026-06-11.md",
+        "required_token": "PASS_P59_9E_D18_EXECUTION_ONLY",
+        "passed": true
+      }
+    },
+    "missing_phases": [],
+    "nonclaims": [
+      "not d18 filtering accuracy evidence",
+      "not same-route rank convergence evidence",
+      "not same-target correctness evidence",
+      "not d50 or d100 scaling evidence",
+      "not HMC production readiness",
+      "not adaptive Zhao-Cui parity",
+      "not UKF correctness comparator evidence"
+    ]
+  },
+  "generalized_sv_prior_mean_status": {
+    "status": "PASS_GENERALIZED_SV_PRIOR_MEAN_TEST_CASE_READY_NUMERIC_EVALUATOR_PENDING",
+    "reason": "The Zhao-Cui S&P prior-mean synthetic test point is materialized; numeric evaluator execution remains pending.",
+    "forbidden_substitutes": [
+      "author_code_defaults_not_estimates",
+      "BayesFilter_native_generalized_sv_fixture",
+      "simple_SV_synthetic_truth_gamma_0p6_beta_0p4",
+      "SP500_returns_as_benchmark_observations",
+      "ordinary_mean_of_sigma_squared_or_beta_when_nonfinite"
+    ]
+  },
+  "promotion_guardrails": {
+    "p44_rows_promoted": false,
+    "author_defaults_as_generalized_sv_truth_allowed": false,
+    "sp500_returns_as_benchmark_observations_allowed": false,
+    "zhao_cui_lgssm_matlab_C_claim_allowed": false,
+    "old_ledh_pfpf_ot_current_evidence_allowed": false,
+    "old_sir_local_operator_route_allowed": false,
+    "dpf_ranking_before_mc_se_allowed": false,
+    "protocol_gate_counts_as_numeric_benchmark_allowed": false
+  },
+  "ready_for_numeric_benchmark": false,
+  "numeric_benchmark_blockers": [
+    "P8_B7_NUMERIC_EVALUATOR_RUN_NOT_EXECUTED"
+  ],
+  "decision_table": [
+    {
+      "decision": "pass_B3_B4_B5_protocol_and_status_gates",
+      "primary_criterion": "no silent holes in horizon, stochastic, and adapter gate artifacts",
+      "veto_diagnostics": "no source substitution or proxy numeric promotion",
+      "main_uncertainty": "actual numeric evaluator and MC-SE results are still absent",
+      "next_justified_action": "materialize hard source rows or execute numeric evaluators for nonblocked rows",
+      "not_concluded": "filter ranking or numeric performance"
+    },
+    {
+      "decision": "keep_full_p8_numeric_benchmark_blocked",
+      "primary_criterion": "numeric evaluator outputs remain incomplete",
+      "veto_diagnostics": "numeric_benchmark_status remains blocked",
+      "main_uncertainty": "generalized-SV evaluator execution, DPF MC-SE, and score/curvature provenance",
+      "next_justified_action": "P8-B7 numeric evaluator execution",
+      "not_concluded": "Bayesian-estimation readiness"
+    }
+  ],
+  "nonclaims": [
+    "not a numeric benchmark result",
+    "not a filter ranking",
+    "not DPF gradient certification",
+    "not generalized-SV evaluator correctness or performance evidence",
+    "not Zhao-Cui MATLAB LGSSM reproduction",
+    "not SIR d18 filtering accuracy or rank-convergence evidence"
+  ]
+}

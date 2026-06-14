@@ -1,0 +1,3554 @@
+{
+  "schema_version": "filter_bench.synthetic_truth_p8.v1",
+  "metadata_date": "2026-06-11",
+  "phase": "FILTER_BENCH_P8",
+  "status": "PASS_FILTER_BENCH_P8_SYNTHETIC_TRUTH_CONTRACT",
+  "numeric_benchmark_status": "BLOCK_FILTER_BENCH_P8_SYNTHETIC_TRUTH_NUMERIC_RUN_PENDING",
+  "purpose": "Synthetic-truth likelihood-geometry benchmark contract for the frozen filtering value/gradient roster.  This artifact freezes schemas and provenance before numeric execution.",
+  "supersedes": {
+    "old_p8_status_runner": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-gap-p8-runner-matrices-result-2026-06-10.md",
+    "reason": "The old P8 oracle-error matrix criterion was impossible for nonlinear models without exact references.  This P8 uses the reviewed synthetic-truth methodology."
+  },
+  "source_artifacts": {
+    "methodology_proposal": "docs/plans/bayesfilter-synthetic-truth-filter-benchmark-methodology-proposal-2026-06-11.md",
+    "subplan": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-gap-p8-synthetic-truth-runner-subplan-2026-06-11.md",
+    "target_registry": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-target-registry-2026-06-10.json",
+    "reference_oracles": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-reference-oracles-2026-06-10.json",
+    "gradient_semantics": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-gradient-semantics-2026-06-10.json",
+    "preflight_matrix": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-preflight-matrix-2026-06-10.json"
+  },
+  "frozen_roster": {
+    "algorithm_ids": [
+      "kalman_exact_or_mixture_enumeration",
+      "ukf",
+      "svd_sigma_point",
+      "cut4",
+      "zhao_cui_scalar_or_multistate",
+      "bootstrap_dpf_current",
+      "ledh_pfpf_alg1_ukf_current"
+    ],
+    "model_columns": [
+      "lgssm_exact_kalman_dim_1_2_3",
+      "p44_cubic_additive_gaussian_dim_1_2_3",
+      "p44_quadratic_observation_dim_1_2_3",
+      "p44_nonlinear_transition_h2_dim_1_2_3",
+      "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3",
+      "sv_exact_transformed_actual_nongaussian_dim_1_2_3",
+      "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3",
+      "native_generalized_sv_dense_lower_rung_dim_2",
+      "spatial_sir_lower_rung_j1_dim_2",
+      "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18",
+      "predator_prey_lower_rung_dim_2",
+      "predator_prey_production_tuned_h25_dim_2"
+    ],
+    "expected_cell_count": 84,
+    "historical_algorithm_ids_excluded_from_current_roster": [
+      "ledh_pfpf_ot_historical"
+    ]
+  },
+  "benchmark_scope": {
+    "contract_emission_complete": true,
+    "numeric_benchmark_execution_complete": false,
+    "performance_answer_complete": false,
+    "accepted_truth_draws_generated": false,
+    "synthetic_datasets_generated": false,
+    "horizon_calibration_complete": false,
+    "stochastic_seed_calibration_complete": false,
+    "p7_preflight_used_as_performance_evidence": false,
+    "smoke_fixtures_used_as_performance_evidence": false,
+    "old_ledh_pfpf_ot_current_evidence": false
+  },
+  "coordinate_contract": {
+    "canonical_coordinate_system": "phi_unconstrained_benchmark_coordinates",
+    "physical_parameter_transform": "theta = tau(phi)",
+    "score_chain_rule": "g_phi = J_tau(phi)^T g_theta",
+    "hessian_chain_rule": "H_phi = J_tau^T H_theta J_tau + sum_k g_theta,k Hessian_phi tau_k",
+    "partial_hessian_transform_policy": "partial transforms are diagnostic_only; missing full transform is not_available_transform_gap",
+    "allowed_score_derivative_provenance": [
+      "native_phi_autodiff",
+      "native_phi_analytic",
+      "physical_theta_chain_rule_converted_to_phi",
+      "fixed_branch_diagnostic_only",
+      "physical_theta_unconverted_diagnostic_only",
+      "algorithm_gradient_not_exposed",
+      "adapter_required_pending",
+      "unsupported_by_target",
+      "blocked_value_route",
+      "no_theta_gradient_dim0",
+      "not_available_transform_gap"
+    ],
+    "allowed_hessian_derivative_provenance_or_gap": [
+      "native_phi_hessian_autodiff",
+      "native_phi_hessian_analytic",
+      "full_chain_rule_hessian_transform",
+      "partial_transform_diagnostic_only",
+      "hessian_not_exposed",
+      "adapter_required_pending",
+      "unsupported_by_target",
+      "blocked_value_route",
+      "no_theta_gradient_dim0",
+      "not_available_transform_gap"
+    ],
+    "loglik_sign_convention": "average log likelihood; curvature reports lambda_min(-H)"
+  },
+  "truth_design_contract": {
+    "truth_prior_lanes": [
+      "core_prior",
+      "stress_prior"
+    ],
+    "truth_draw_manifest_status": "pending_calibration",
+    "accepted_draw_manifest_schema": [
+      "model_row_id",
+      "truth_draw_id",
+      "truth_prior_lane",
+      "phi_value",
+      "theta_value",
+      "transform_tau",
+      "acceptance_status",
+      "rejection_reason",
+      "stationarity_check",
+      "finite_simulation_check",
+      "seed"
+    ],
+    "data_generation_schema": [
+      "model_row_id",
+      "truth_draw_id",
+      "data_replicate_id",
+      "horizon",
+      "observations_artifact",
+      "data_seed"
+    ],
+    "horizon_calibration_ladder": {
+      "T": [
+        512,
+        1024,
+        2048,
+        4096,
+        8192
+      ],
+      "R": [
+        16,
+        32
+      ],
+      "long_run_variance_estimators": [
+        "HAC_Newey_West",
+        "batch_means"
+      ],
+      "status": "pending"
+    },
+    "stochastic_seed_ladder": {
+      "S": [
+        4,
+        8,
+        16,
+        32
+      ],
+      "mc_se_rule": "MC_SE <= 0.25 * data_SE before ranking small differences",
+      "status": "pending"
+    }
+  },
+  "tuple_level_crosswalk_contract": {
+    "status": "pending_accepted_truth_draws",
+    "required_fields": [
+      "model_row_id",
+      "truth_draw_id",
+      "algorithm_id",
+      "truth_prior_lane",
+      "accepted_draw_status",
+      "truth_coordinate_system",
+      "data_replicate_ids",
+      "filter_seed_ids",
+      "capability_status",
+      "score_coordinate_system",
+      "score_derivative_provenance",
+      "hessian_coordinate_system_or_reason",
+      "hessian_derivative_provenance_or_gap",
+      "diagnostic_only_reason",
+      "not_available_reason",
+      "branch_veto_status",
+      "failure_status",
+      "performance_table_admission_status"
+    ],
+    "performance_interpretation": "not_performance_evidence_until_tuple_rows_exist_and_numeric_evaluators_run"
+  },
+  "capability_crosswalk_columns": [
+    "algorithm_id",
+    "model_row_id",
+    "capability_status",
+    "score_coordinate_system",
+    "score_derivative_provenance",
+    "hessian_coordinate_system_or_reason",
+    "hessian_derivative_provenance_or_gap",
+    "diagnostic_only_reason",
+    "not_available_reason",
+    "current_performance_status"
+  ],
+  "capability_crosswalk_rows": [
+    {
+      "algorithm_id": "kalman_exact_or_mixture_enumeration",
+      "model_row_id": "lgssm_exact_kalman_dim_1_2_3",
+      "capability_status": "value_plus_score",
+      "score_coordinate_system": "canonical_phi",
+      "score_derivative_provenance": "native_phi_autodiff",
+      "hessian_coordinate_system_or_reason": "canonical_phi",
+      "hessian_derivative_provenance_or_gap": "native_phi_hessian_autodiff",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_VALUE_GRADIENT",
+      "raw_gradient_status": "VALID",
+      "normalized_gradient_status": "valid_autodiff_gradient",
+      "reason_codes": []
+    },
+    {
+      "algorithm_id": "kalman_exact_or_mixture_enumeration",
+      "model_row_id": "p44_cubic_additive_gaussian_dim_1_2_3",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "unsupported_by_target",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "unsupported_by_target",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE;UNSUPPORTED_WITH_REASON;unsupported_by_target",
+      "current_performance_status": "not_applicable_by_target",
+      "source_status": "UNSUPPORTED_WITH_REASON",
+      "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+      "normalized_gradient_status": "unsupported_by_target",
+      "reason_codes": [
+        "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+      ]
+    },
+    {
+      "algorithm_id": "kalman_exact_or_mixture_enumeration",
+      "model_row_id": "p44_quadratic_observation_dim_1_2_3",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "unsupported_by_target",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "unsupported_by_target",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE;UNSUPPORTED_WITH_REASON;unsupported_by_target",
+      "current_performance_status": "not_applicable_by_target",
+      "source_status": "UNSUPPORTED_WITH_REASON",
+      "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+      "normalized_gradient_status": "unsupported_by_target",
+      "reason_codes": [
+        "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+      ]
+    },
+    {
+      "algorithm_id": "kalman_exact_or_mixture_enumeration",
+      "model_row_id": "p44_nonlinear_transition_h2_dim_1_2_3",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "unsupported_by_target",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "unsupported_by_target",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE;UNSUPPORTED_WITH_REASON;unsupported_by_target",
+      "current_performance_status": "not_applicable_by_target",
+      "source_status": "UNSUPPORTED_WITH_REASON",
+      "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+      "normalized_gradient_status": "unsupported_by_target",
+      "reason_codes": [
+        "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+      ]
+    },
+    {
+      "algorithm_id": "kalman_exact_or_mixture_enumeration",
+      "model_row_id": "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "unsupported_by_target",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "unsupported_by_target",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE;UNSUPPORTED_WITH_REASON;unsupported_by_target",
+      "current_performance_status": "not_applicable_by_target",
+      "source_status": "UNSUPPORTED_WITH_REASON",
+      "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+      "normalized_gradient_status": "unsupported_by_target",
+      "reason_codes": [
+        "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+      ]
+    },
+    {
+      "algorithm_id": "kalman_exact_or_mixture_enumeration",
+      "model_row_id": "sv_exact_transformed_actual_nongaussian_dim_1_2_3",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "unsupported_by_target",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "unsupported_by_target",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE;UNSUPPORTED_WITH_REASON;unsupported_by_target",
+      "current_performance_status": "not_applicable_by_target",
+      "source_status": "UNSUPPORTED_WITH_REASON",
+      "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+      "normalized_gradient_status": "unsupported_by_target",
+      "reason_codes": [
+        "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+      ]
+    },
+    {
+      "algorithm_id": "kalman_exact_or_mixture_enumeration",
+      "model_row_id": "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3",
+      "capability_status": "value_plus_score",
+      "score_coordinate_system": "canonical_phi",
+      "score_derivative_provenance": "native_phi_autodiff",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "hessian_not_exposed",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_SURROGATE_VALUE_GRADIENT",
+      "raw_gradient_status": "VALID",
+      "normalized_gradient_status": "valid_autodiff_gradient",
+      "reason_codes": []
+    },
+    {
+      "algorithm_id": "kalman_exact_or_mixture_enumeration",
+      "model_row_id": "native_generalized_sv_dense_lower_rung_dim_2",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "unsupported_by_target",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "unsupported_by_target",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE;UNSUPPORTED_WITH_REASON;unsupported_by_target",
+      "current_performance_status": "not_applicable_by_target",
+      "source_status": "UNSUPPORTED_WITH_REASON",
+      "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+      "normalized_gradient_status": "unsupported_by_target",
+      "reason_codes": [
+        "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+      ]
+    },
+    {
+      "algorithm_id": "kalman_exact_or_mixture_enumeration",
+      "model_row_id": "spatial_sir_lower_rung_j1_dim_2",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "unsupported_by_target",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "unsupported_by_target",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE;UNSUPPORTED_WITH_REASON;unsupported_by_target",
+      "current_performance_status": "not_applicable_by_target",
+      "source_status": "UNSUPPORTED_WITH_REASON",
+      "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+      "normalized_gradient_status": "unsupported_by_target",
+      "reason_codes": [
+        "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+      ]
+    },
+    {
+      "algorithm_id": "kalman_exact_or_mixture_enumeration",
+      "model_row_id": "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "blocked_value_route",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "blocked_value_route",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "BLOCKED_VALUE_ROUTE;BLOCK_P53_M5_RANK_SELECTION_INTEGRATION;blocked_value_route",
+      "current_performance_status": "blocked_before_numeric_execution",
+      "source_status": "BLOCKED_VALUE_ROUTE",
+      "raw_gradient_status": "BLOCKED_VALUE_ROUTE",
+      "normalized_gradient_status": "blocked_value_route",
+      "reason_codes": [
+        "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+      ]
+    },
+    {
+      "algorithm_id": "kalman_exact_or_mixture_enumeration",
+      "model_row_id": "predator_prey_lower_rung_dim_2",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "unsupported_by_target",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "unsupported_by_target",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE;UNSUPPORTED_WITH_REASON;unsupported_by_target",
+      "current_performance_status": "not_applicable_by_target",
+      "source_status": "UNSUPPORTED_WITH_REASON",
+      "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+      "normalized_gradient_status": "unsupported_by_target",
+      "reason_codes": [
+        "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+      ]
+    },
+    {
+      "algorithm_id": "kalman_exact_or_mixture_enumeration",
+      "model_row_id": "predator_prey_production_tuned_h25_dim_2",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "unsupported_by_target",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "unsupported_by_target",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE;UNSUPPORTED_WITH_REASON;unsupported_by_target",
+      "current_performance_status": "not_applicable_by_target",
+      "source_status": "UNSUPPORTED_WITH_REASON",
+      "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+      "normalized_gradient_status": "unsupported_by_target",
+      "reason_codes": [
+        "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+      ]
+    },
+    {
+      "algorithm_id": "ukf",
+      "model_row_id": "lgssm_exact_kalman_dim_1_2_3",
+      "capability_status": "value_only",
+      "score_coordinate_system": "not_exposed",
+      "score_derivative_provenance": "algorithm_gradient_not_exposed",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "algorithm_gradient_not_exposed;hessian_not_exposed",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_VALUE_ONLY",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "reason_codes": [
+        "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+      ]
+    },
+    {
+      "algorithm_id": "ukf",
+      "model_row_id": "p44_cubic_additive_gaussian_dim_1_2_3",
+      "capability_status": "value_only",
+      "score_coordinate_system": "not_exposed",
+      "score_derivative_provenance": "algorithm_gradient_not_exposed",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "algorithm_gradient_not_exposed;hessian_not_exposed",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_VALUE_ONLY",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "reason_codes": [
+        "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+      ]
+    },
+    {
+      "algorithm_id": "ukf",
+      "model_row_id": "p44_quadratic_observation_dim_1_2_3",
+      "capability_status": "value_only",
+      "score_coordinate_system": "not_exposed",
+      "score_derivative_provenance": "algorithm_gradient_not_exposed",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "algorithm_gradient_not_exposed;hessian_not_exposed",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_VALUE_ONLY",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "reason_codes": [
+        "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+      ]
+    },
+    {
+      "algorithm_id": "ukf",
+      "model_row_id": "p44_nonlinear_transition_h2_dim_1_2_3",
+      "capability_status": "value_only",
+      "score_coordinate_system": "not_exposed",
+      "score_derivative_provenance": "algorithm_gradient_not_exposed",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "algorithm_gradient_not_exposed;hessian_not_exposed",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_VALUE_ONLY",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "reason_codes": [
+        "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+      ]
+    },
+    {
+      "algorithm_id": "ukf",
+      "model_row_id": "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3",
+      "capability_status": "diagnostic_derivative_only",
+      "score_coordinate_system": "not_exposed",
+      "score_derivative_provenance": "algorithm_gradient_not_exposed",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+      "diagnostic_only_reason": "READY_DIAGNOSTIC_ONLY;SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED",
+      "not_available_reason": "algorithm_gradient_not_exposed;hessian_not_exposed",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_DIAGNOSTIC_ONLY",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "diagnostic_only_not_promotion",
+      "reason_codes": [
+        "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+      ]
+    },
+    {
+      "algorithm_id": "ukf",
+      "model_row_id": "sv_exact_transformed_actual_nongaussian_dim_1_2_3",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "adapter_required_pending",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "reason_codes": [
+        "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+      ]
+    },
+    {
+      "algorithm_id": "ukf",
+      "model_row_id": "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "adapter_required_pending",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "reason_codes": [
+        "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+      ]
+    },
+    {
+      "algorithm_id": "ukf",
+      "model_row_id": "native_generalized_sv_dense_lower_rung_dim_2",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "adapter_required_pending",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "reason_codes": [
+        "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+      ]
+    },
+    {
+      "algorithm_id": "ukf",
+      "model_row_id": "spatial_sir_lower_rung_j1_dim_2",
+      "capability_status": "value_only",
+      "score_coordinate_system": "not_applicable_no_free_theta",
+      "score_derivative_provenance": "no_theta_gradient_dim0",
+      "hessian_coordinate_system_or_reason": "not_applicable_no_free_theta",
+      "hessian_derivative_provenance_or_gap": "no_theta_gradient_dim0",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "no_theta_gradient_dim0",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_VALUE_ONLY",
+      "raw_gradient_status": "NO_THETA_GRADIENT_DIM0",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "reason_codes": [
+        "NO_THETA_GRADIENT_DIM0"
+      ]
+    },
+    {
+      "algorithm_id": "ukf",
+      "model_row_id": "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18",
+      "capability_status": "diagnostic_derivative_only",
+      "score_coordinate_system": "not_exposed",
+      "score_derivative_provenance": "algorithm_gradient_not_exposed",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+      "diagnostic_only_reason": "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION;SCOUT_ONLY_NOT_TRUTH;UKF_SCOUT_NOT_TRUTH",
+      "not_available_reason": "algorithm_gradient_not_exposed;hessian_not_exposed",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "SCOUT_ONLY_NOT_TRUTH",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "scout_only_not_truth",
+      "reason_codes": [
+        "UKF_SCOUT_NOT_TRUTH",
+        "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+      ]
+    },
+    {
+      "algorithm_id": "ukf",
+      "model_row_id": "predator_prey_lower_rung_dim_2",
+      "capability_status": "value_only",
+      "score_coordinate_system": "not_exposed",
+      "score_derivative_provenance": "algorithm_gradient_not_exposed",
+      "hessian_coordinate_system_or_reason": "not_available_transform_gap",
+      "hessian_derivative_provenance_or_gap": "not_available_transform_gap",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "algorithm_gradient_not_exposed;not_available_transform_gap",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_VALUE_ONLY",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "reason_codes": [
+        "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+      ]
+    },
+    {
+      "algorithm_id": "ukf",
+      "model_row_id": "predator_prey_production_tuned_h25_dim_2",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "adapter_required_pending",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "ADAPTER_REQUIRED_PRODUCTION_TARGET;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "reason_codes": [
+        "ADAPTER_REQUIRED_PRODUCTION_TARGET"
+      ]
+    },
+    {
+      "algorithm_id": "svd_sigma_point",
+      "model_row_id": "lgssm_exact_kalman_dim_1_2_3",
+      "capability_status": "value_only",
+      "score_coordinate_system": "not_exposed",
+      "score_derivative_provenance": "algorithm_gradient_not_exposed",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "algorithm_gradient_not_exposed;hessian_not_exposed",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_VALUE_ONLY",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "reason_codes": [
+        "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+      ]
+    },
+    {
+      "algorithm_id": "svd_sigma_point",
+      "model_row_id": "p44_cubic_additive_gaussian_dim_1_2_3",
+      "capability_status": "value_only",
+      "score_coordinate_system": "not_exposed",
+      "score_derivative_provenance": "algorithm_gradient_not_exposed",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "algorithm_gradient_not_exposed;hessian_not_exposed",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_VALUE_ONLY",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "reason_codes": [
+        "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+      ]
+    },
+    {
+      "algorithm_id": "svd_sigma_point",
+      "model_row_id": "p44_quadratic_observation_dim_1_2_3",
+      "capability_status": "value_only",
+      "score_coordinate_system": "not_exposed",
+      "score_derivative_provenance": "algorithm_gradient_not_exposed",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "algorithm_gradient_not_exposed;hessian_not_exposed",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_VALUE_ONLY",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "reason_codes": [
+        "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+      ]
+    },
+    {
+      "algorithm_id": "svd_sigma_point",
+      "model_row_id": "p44_nonlinear_transition_h2_dim_1_2_3",
+      "capability_status": "value_only",
+      "score_coordinate_system": "not_exposed",
+      "score_derivative_provenance": "algorithm_gradient_not_exposed",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "algorithm_gradient_not_exposed;hessian_not_exposed",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_VALUE_ONLY",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "reason_codes": [
+        "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+      ]
+    },
+    {
+      "algorithm_id": "svd_sigma_point",
+      "model_row_id": "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3",
+      "capability_status": "diagnostic_derivative_only",
+      "score_coordinate_system": "not_exposed",
+      "score_derivative_provenance": "algorithm_gradient_not_exposed",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+      "diagnostic_only_reason": "READY_DIAGNOSTIC_ONLY;SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED",
+      "not_available_reason": "algorithm_gradient_not_exposed;hessian_not_exposed",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_DIAGNOSTIC_ONLY",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "diagnostic_only_not_promotion",
+      "reason_codes": [
+        "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+      ]
+    },
+    {
+      "algorithm_id": "svd_sigma_point",
+      "model_row_id": "sv_exact_transformed_actual_nongaussian_dim_1_2_3",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "adapter_required_pending",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "reason_codes": [
+        "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+      ]
+    },
+    {
+      "algorithm_id": "svd_sigma_point",
+      "model_row_id": "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "adapter_required_pending",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "reason_codes": [
+        "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+      ]
+    },
+    {
+      "algorithm_id": "svd_sigma_point",
+      "model_row_id": "native_generalized_sv_dense_lower_rung_dim_2",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "adapter_required_pending",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "reason_codes": [
+        "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+      ]
+    },
+    {
+      "algorithm_id": "svd_sigma_point",
+      "model_row_id": "spatial_sir_lower_rung_j1_dim_2",
+      "capability_status": "value_only",
+      "score_coordinate_system": "not_applicable_no_free_theta",
+      "score_derivative_provenance": "no_theta_gradient_dim0",
+      "hessian_coordinate_system_or_reason": "not_applicable_no_free_theta",
+      "hessian_derivative_provenance_or_gap": "no_theta_gradient_dim0",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "no_theta_gradient_dim0",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_VALUE_ONLY",
+      "raw_gradient_status": "NO_THETA_GRADIENT_DIM0",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "reason_codes": [
+        "NO_THETA_GRADIENT_DIM0"
+      ]
+    },
+    {
+      "algorithm_id": "svd_sigma_point",
+      "model_row_id": "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "blocked_value_route",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "blocked_value_route",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "BLOCKED_VALUE_ROUTE;BLOCK_P53_M5_RANK_SELECTION_INTEGRATION;blocked_value_route",
+      "current_performance_status": "blocked_before_numeric_execution",
+      "source_status": "BLOCKED_VALUE_ROUTE",
+      "raw_gradient_status": "BLOCKED_VALUE_ROUTE",
+      "normalized_gradient_status": "blocked_value_route",
+      "reason_codes": [
+        "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+      ]
+    },
+    {
+      "algorithm_id": "svd_sigma_point",
+      "model_row_id": "predator_prey_lower_rung_dim_2",
+      "capability_status": "value_only",
+      "score_coordinate_system": "not_exposed",
+      "score_derivative_provenance": "algorithm_gradient_not_exposed",
+      "hessian_coordinate_system_or_reason": "not_available_transform_gap",
+      "hessian_derivative_provenance_or_gap": "not_available_transform_gap",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "algorithm_gradient_not_exposed;not_available_transform_gap",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_VALUE_ONLY",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "reason_codes": [
+        "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+      ]
+    },
+    {
+      "algorithm_id": "svd_sigma_point",
+      "model_row_id": "predator_prey_production_tuned_h25_dim_2",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "adapter_required_pending",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "ADAPTER_REQUIRED_PRODUCTION_TARGET;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "reason_codes": [
+        "ADAPTER_REQUIRED_PRODUCTION_TARGET"
+      ]
+    },
+    {
+      "algorithm_id": "cut4",
+      "model_row_id": "lgssm_exact_kalman_dim_1_2_3",
+      "capability_status": "value_only",
+      "score_coordinate_system": "not_exposed",
+      "score_derivative_provenance": "algorithm_gradient_not_exposed",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "algorithm_gradient_not_exposed;hessian_not_exposed",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_VALUE_ONLY",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "reason_codes": [
+        "CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+      ]
+    },
+    {
+      "algorithm_id": "cut4",
+      "model_row_id": "p44_cubic_additive_gaussian_dim_1_2_3",
+      "capability_status": "value_only",
+      "score_coordinate_system": "not_exposed",
+      "score_derivative_provenance": "algorithm_gradient_not_exposed",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "algorithm_gradient_not_exposed;hessian_not_exposed",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_VALUE_ONLY",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "reason_codes": [
+        "CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+      ]
+    },
+    {
+      "algorithm_id": "cut4",
+      "model_row_id": "p44_quadratic_observation_dim_1_2_3",
+      "capability_status": "value_only",
+      "score_coordinate_system": "not_exposed",
+      "score_derivative_provenance": "algorithm_gradient_not_exposed",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "algorithm_gradient_not_exposed;hessian_not_exposed",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_VALUE_ONLY",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "reason_codes": [
+        "CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+      ]
+    },
+    {
+      "algorithm_id": "cut4",
+      "model_row_id": "p44_nonlinear_transition_h2_dim_1_2_3",
+      "capability_status": "value_only",
+      "score_coordinate_system": "not_exposed",
+      "score_derivative_provenance": "algorithm_gradient_not_exposed",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "algorithm_gradient_not_exposed;hessian_not_exposed",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_VALUE_ONLY",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "reason_codes": [
+        "CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+      ]
+    },
+    {
+      "algorithm_id": "cut4",
+      "model_row_id": "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3",
+      "capability_status": "diagnostic_derivative_only",
+      "score_coordinate_system": "not_exposed",
+      "score_derivative_provenance": "algorithm_gradient_not_exposed",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+      "diagnostic_only_reason": "CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED;READY_DIAGNOSTIC_ONLY",
+      "not_available_reason": "algorithm_gradient_not_exposed;hessian_not_exposed",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_DIAGNOSTIC_ONLY",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "diagnostic_only_not_promotion",
+      "reason_codes": [
+        "CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+      ]
+    },
+    {
+      "algorithm_id": "cut4",
+      "model_row_id": "sv_exact_transformed_actual_nongaussian_dim_1_2_3",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "unsupported_by_target",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "unsupported_by_target",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET;UNSUPPORTED_WITH_REASON;unsupported_by_target",
+      "current_performance_status": "not_applicable_by_target",
+      "source_status": "UNSUPPORTED_WITH_REASON",
+      "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+      "normalized_gradient_status": "unsupported_by_target",
+      "reason_codes": [
+        "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+      ]
+    },
+    {
+      "algorithm_id": "cut4",
+      "model_row_id": "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3",
+      "capability_status": "value_plus_score",
+      "score_coordinate_system": "canonical_phi",
+      "score_derivative_provenance": "native_phi_autodiff",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "hessian_not_exposed",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_SURROGATE_VALUE_GRADIENT",
+      "raw_gradient_status": "VALID",
+      "normalized_gradient_status": "valid_autodiff_gradient",
+      "reason_codes": []
+    },
+    {
+      "algorithm_id": "cut4",
+      "model_row_id": "native_generalized_sv_dense_lower_rung_dim_2",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "unsupported_by_target",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "unsupported_by_target",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "NO_CUT4_SAME_TARGET_NATIVE_GENERALIZED_SV;UNSUPPORTED_WITH_REASON;unsupported_by_target",
+      "current_performance_status": "not_applicable_by_target",
+      "source_status": "UNSUPPORTED_WITH_REASON",
+      "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+      "normalized_gradient_status": "unsupported_by_target",
+      "reason_codes": [
+        "NO_CUT4_SAME_TARGET_NATIVE_GENERALIZED_SV"
+      ]
+    },
+    {
+      "algorithm_id": "cut4",
+      "model_row_id": "spatial_sir_lower_rung_j1_dim_2",
+      "capability_status": "value_only",
+      "score_coordinate_system": "not_applicable_no_free_theta",
+      "score_derivative_provenance": "no_theta_gradient_dim0",
+      "hessian_coordinate_system_or_reason": "not_applicable_no_free_theta",
+      "hessian_derivative_provenance_or_gap": "no_theta_gradient_dim0",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "no_theta_gradient_dim0",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_VALUE_ONLY",
+      "raw_gradient_status": "NO_THETA_GRADIENT_DIM0",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "reason_codes": [
+        "NO_THETA_GRADIENT_DIM0"
+      ]
+    },
+    {
+      "algorithm_id": "cut4",
+      "model_row_id": "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "blocked_value_route",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "blocked_value_route",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "BLOCKED_VALUE_ROUTE;BLOCK_P53_M5_RANK_SELECTION_INTEGRATION;blocked_value_route",
+      "current_performance_status": "blocked_before_numeric_execution",
+      "source_status": "BLOCKED_VALUE_ROUTE",
+      "raw_gradient_status": "BLOCKED_VALUE_ROUTE",
+      "normalized_gradient_status": "blocked_value_route",
+      "reason_codes": [
+        "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+      ]
+    },
+    {
+      "algorithm_id": "cut4",
+      "model_row_id": "predator_prey_lower_rung_dim_2",
+      "capability_status": "value_only",
+      "score_coordinate_system": "not_exposed",
+      "score_derivative_provenance": "algorithm_gradient_not_exposed",
+      "hessian_coordinate_system_or_reason": "not_available_transform_gap",
+      "hessian_derivative_provenance_or_gap": "not_available_transform_gap",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "algorithm_gradient_not_exposed;not_available_transform_gap",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_VALUE_ONLY",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "reason_codes": [
+        "CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+      ]
+    },
+    {
+      "algorithm_id": "cut4",
+      "model_row_id": "predator_prey_production_tuned_h25_dim_2",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "adapter_required_pending",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "ADAPTER_REQUIRED_PRODUCTION_TARGET;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "reason_codes": [
+        "ADAPTER_REQUIRED_PRODUCTION_TARGET"
+      ]
+    },
+    {
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "model_row_id": "lgssm_exact_kalman_dim_1_2_3",
+      "capability_status": "diagnostic_derivative_only",
+      "score_coordinate_system": "not_exposed",
+      "score_derivative_provenance": "algorithm_gradient_not_exposed",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+      "diagnostic_only_reason": "READY_DIAGNOSTIC_ONLY;ZHAOCUI_LGSSM_DIAGNOSTIC_NOT_ORACLE",
+      "not_available_reason": "algorithm_gradient_not_exposed;hessian_not_exposed",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_DIAGNOSTIC_ONLY",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "diagnostic_only_not_promotion",
+      "reason_codes": [
+        "ZHAOCUI_LGSSM_DIAGNOSTIC_NOT_ORACLE"
+      ]
+    },
+    {
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "model_row_id": "p44_cubic_additive_gaussian_dim_1_2_3",
+      "capability_status": "value_plus_score",
+      "score_coordinate_system": "canonical_phi",
+      "score_derivative_provenance": "native_phi_autodiff",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "hessian_not_exposed",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_VALUE_GRADIENT",
+      "raw_gradient_status": "VALID",
+      "normalized_gradient_status": "valid_autodiff_gradient",
+      "reason_codes": []
+    },
+    {
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "model_row_id": "p44_quadratic_observation_dim_1_2_3",
+      "capability_status": "value_plus_score",
+      "score_coordinate_system": "canonical_phi",
+      "score_derivative_provenance": "native_phi_autodiff",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "hessian_not_exposed",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_VALUE_GRADIENT",
+      "raw_gradient_status": "VALID",
+      "normalized_gradient_status": "valid_autodiff_gradient",
+      "reason_codes": []
+    },
+    {
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "model_row_id": "p44_nonlinear_transition_h2_dim_1_2_3",
+      "capability_status": "value_plus_score",
+      "score_coordinate_system": "canonical_phi",
+      "score_derivative_provenance": "native_phi_autodiff",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "hessian_not_exposed",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_VALUE_GRADIENT",
+      "raw_gradient_status": "VALID",
+      "normalized_gradient_status": "valid_autodiff_gradient",
+      "reason_codes": []
+    },
+    {
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "model_row_id": "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "unsupported_by_target",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "unsupported_by_target",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "UNSUPPORTED_WITH_REASON;ZHAOCUI_H4_SCALAR_HELPER_NONCLAIM;unsupported_by_target",
+      "current_performance_status": "not_applicable_by_target",
+      "source_status": "UNSUPPORTED_WITH_REASON",
+      "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+      "normalized_gradient_status": "unsupported_by_target",
+      "reason_codes": [
+        "ZHAOCUI_H4_SCALAR_HELPER_NONCLAIM"
+      ]
+    },
+    {
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "model_row_id": "sv_exact_transformed_actual_nongaussian_dim_1_2_3",
+      "capability_status": "value_plus_score",
+      "score_coordinate_system": "canonical_phi",
+      "score_derivative_provenance": "native_phi_autodiff",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "hessian_not_exposed",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_VALUE_GRADIENT",
+      "raw_gradient_status": "VALID",
+      "normalized_gradient_status": "valid_autodiff_gradient",
+      "reason_codes": []
+    },
+    {
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "model_row_id": "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3",
+      "capability_status": "value_plus_score",
+      "score_coordinate_system": "canonical_phi",
+      "score_derivative_provenance": "native_phi_autodiff",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "hessian_not_exposed",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_SURROGATE_VALUE_GRADIENT",
+      "raw_gradient_status": "VALID",
+      "normalized_gradient_status": "valid_autodiff_gradient",
+      "reason_codes": []
+    },
+    {
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "model_row_id": "native_generalized_sv_dense_lower_rung_dim_2",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "unsupported_by_target",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "unsupported_by_target",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "NO_ZHAOCUI_NATIVE_GENERALIZED_SV_ROUTE;UNSUPPORTED_WITH_REASON;unsupported_by_target",
+      "current_performance_status": "not_applicable_by_target",
+      "source_status": "UNSUPPORTED_WITH_REASON",
+      "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+      "normalized_gradient_status": "unsupported_by_target",
+      "reason_codes": [
+        "NO_ZHAOCUI_NATIVE_GENERALIZED_SV_ROUTE"
+      ]
+    },
+    {
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "model_row_id": "spatial_sir_lower_rung_j1_dim_2",
+      "capability_status": "value_only",
+      "score_coordinate_system": "not_applicable_no_free_theta",
+      "score_derivative_provenance": "no_theta_gradient_dim0",
+      "hessian_coordinate_system_or_reason": "not_applicable_no_free_theta",
+      "hessian_derivative_provenance_or_gap": "no_theta_gradient_dim0",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "no_theta_gradient_dim0",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_VALUE_ONLY",
+      "raw_gradient_status": "NO_THETA_GRADIENT_DIM0",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "reason_codes": [
+        "NO_THETA_GRADIENT_DIM0"
+      ]
+    },
+    {
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "model_row_id": "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "blocked_value_route",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "blocked_value_route",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "BLOCKED_VALUE_ROUTE;BLOCK_P53_M5_RANK_SELECTION_INTEGRATION;blocked_value_route",
+      "current_performance_status": "blocked_before_numeric_execution",
+      "source_status": "BLOCKED_VALUE_ROUTE",
+      "raw_gradient_status": "BLOCKED_VALUE_ROUTE",
+      "normalized_gradient_status": "blocked_value_route",
+      "reason_codes": [
+        "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+      ]
+    },
+    {
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "model_row_id": "predator_prey_lower_rung_dim_2",
+      "capability_status": "value_only",
+      "score_coordinate_system": "not_exposed",
+      "score_derivative_provenance": "algorithm_gradient_not_exposed",
+      "hessian_coordinate_system_or_reason": "not_available_transform_gap",
+      "hessian_derivative_provenance_or_gap": "not_available_transform_gap",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "algorithm_gradient_not_exposed;not_available_transform_gap",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_VALUE_ONLY",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "reason_codes": [
+        "REFERENCE_GRADIENT_NOT_AVAILABLE"
+      ]
+    },
+    {
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "model_row_id": "predator_prey_production_tuned_h25_dim_2",
+      "capability_status": "value_only",
+      "score_coordinate_system": "not_exposed",
+      "score_derivative_provenance": "algorithm_gradient_not_exposed",
+      "hessian_coordinate_system_or_reason": "not_available_transform_gap",
+      "hessian_derivative_provenance_or_gap": "not_available_transform_gap",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "algorithm_gradient_not_exposed;not_available_transform_gap",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_VALUE_ONLY",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "reason_codes": [
+        "REFERENCE_GRADIENT_NOT_AVAILABLE"
+      ]
+    },
+    {
+      "algorithm_id": "bootstrap_dpf_current",
+      "model_row_id": "lgssm_exact_kalman_dim_1_2_3",
+      "capability_status": "value_only",
+      "score_coordinate_system": "not_exposed",
+      "score_derivative_provenance": "algorithm_gradient_not_exposed",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+      "diagnostic_only_reason": "resampling_gradient_not_valid",
+      "not_available_reason": "algorithm_gradient_not_exposed;hessian_not_exposed",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_VALUE_WITH_STOCHASTIC_GRADIENT_STATUS",
+      "raw_gradient_status": "RESAMPLING_GRADIENT_NOT_VALID",
+      "normalized_gradient_status": "resampling_gradient_not_valid",
+      "reason_codes": [
+        "STOCHASTIC_GRADIENT_DIAGNOSTIC",
+        "RESAMPLING_GRADIENT_NOT_VALID"
+      ]
+    },
+    {
+      "algorithm_id": "bootstrap_dpf_current",
+      "model_row_id": "p44_cubic_additive_gaussian_dim_1_2_3",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "adapter_required_pending",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "reason_codes": [
+        "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+      ]
+    },
+    {
+      "algorithm_id": "bootstrap_dpf_current",
+      "model_row_id": "p44_quadratic_observation_dim_1_2_3",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "adapter_required_pending",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "reason_codes": [
+        "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+      ]
+    },
+    {
+      "algorithm_id": "bootstrap_dpf_current",
+      "model_row_id": "p44_nonlinear_transition_h2_dim_1_2_3",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "adapter_required_pending",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "reason_codes": [
+        "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+      ]
+    },
+    {
+      "algorithm_id": "bootstrap_dpf_current",
+      "model_row_id": "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "adapter_required_pending",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "reason_codes": [
+        "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+      ]
+    },
+    {
+      "algorithm_id": "bootstrap_dpf_current",
+      "model_row_id": "sv_exact_transformed_actual_nongaussian_dim_1_2_3",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "adapter_required_pending",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "reason_codes": [
+        "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+      ]
+    },
+    {
+      "algorithm_id": "bootstrap_dpf_current",
+      "model_row_id": "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "adapter_required_pending",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "reason_codes": [
+        "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+      ]
+    },
+    {
+      "algorithm_id": "bootstrap_dpf_current",
+      "model_row_id": "native_generalized_sv_dense_lower_rung_dim_2",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "adapter_required_pending",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "reason_codes": [
+        "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+      ]
+    },
+    {
+      "algorithm_id": "bootstrap_dpf_current",
+      "model_row_id": "spatial_sir_lower_rung_j1_dim_2",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "adapter_required_pending",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "reason_codes": [
+        "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+      ]
+    },
+    {
+      "algorithm_id": "bootstrap_dpf_current",
+      "model_row_id": "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "blocked_value_route",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "blocked_value_route",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "BLOCKED_VALUE_ROUTE;BLOCK_P53_M5_RANK_SELECTION_INTEGRATION;blocked_value_route",
+      "current_performance_status": "blocked_before_numeric_execution",
+      "source_status": "BLOCKED_VALUE_ROUTE",
+      "raw_gradient_status": "BLOCKED_VALUE_ROUTE",
+      "normalized_gradient_status": "blocked_value_route",
+      "reason_codes": [
+        "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+      ]
+    },
+    {
+      "algorithm_id": "bootstrap_dpf_current",
+      "model_row_id": "predator_prey_lower_rung_dim_2",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "adapter_required_pending",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "reason_codes": [
+        "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+      ]
+    },
+    {
+      "algorithm_id": "bootstrap_dpf_current",
+      "model_row_id": "predator_prey_production_tuned_h25_dim_2",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "adapter_required_pending",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "reason_codes": [
+        "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+      ]
+    },
+    {
+      "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+      "model_row_id": "lgssm_exact_kalman_dim_1_2_3",
+      "capability_status": "diagnostic_derivative_only",
+      "score_coordinate_system": "fixed_branch_diagnostic_not_main_score",
+      "score_derivative_provenance": "fixed_branch_diagnostic_only",
+      "hessian_coordinate_system_or_reason": "diagnostic_only_not_main_curvature",
+      "hessian_derivative_provenance_or_gap": "partial_transform_diagnostic_only",
+      "diagnostic_only_reason": "FIXED_BRANCH_GRADIENT_DIAGNOSTIC;PREVIOUS_LEDHPFPF_OT_EVIDENCE_QUARANTINED;READY_FIXED_BRANCH_DIAGNOSTIC;fixed_branch_diagnostic_only;partial_hessian_transform_not_main_curvature",
+      "not_available_reason": "",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_FIXED_BRANCH_DIAGNOSTIC",
+      "raw_gradient_status": "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+      "normalized_gradient_status": "fixed_branch_gradient_diagnostic",
+      "reason_codes": [
+        "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+        "PREVIOUS_LEDHPFPF_OT_EVIDENCE_QUARANTINED"
+      ]
+    },
+    {
+      "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+      "model_row_id": "p44_cubic_additive_gaussian_dim_1_2_3",
+      "capability_status": "diagnostic_derivative_only",
+      "score_coordinate_system": "fixed_branch_diagnostic_not_main_score",
+      "score_derivative_provenance": "fixed_branch_diagnostic_only",
+      "hessian_coordinate_system_or_reason": "diagnostic_only_not_main_curvature",
+      "hessian_derivative_provenance_or_gap": "partial_transform_diagnostic_only",
+      "diagnostic_only_reason": "FIXED_BRANCH_GRADIENT_DIAGNOSTIC;PREVIOUS_LEDHPFPF_OT_EVIDENCE_QUARANTINED;READY_FIXED_BRANCH_DIAGNOSTIC;fixed_branch_diagnostic_only;partial_hessian_transform_not_main_curvature",
+      "not_available_reason": "",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_FIXED_BRANCH_DIAGNOSTIC",
+      "raw_gradient_status": "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+      "normalized_gradient_status": "fixed_branch_gradient_diagnostic",
+      "reason_codes": [
+        "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+        "PREVIOUS_LEDHPFPF_OT_EVIDENCE_QUARANTINED"
+      ]
+    },
+    {
+      "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+      "model_row_id": "p44_quadratic_observation_dim_1_2_3",
+      "capability_status": "diagnostic_derivative_only",
+      "score_coordinate_system": "fixed_branch_diagnostic_not_main_score",
+      "score_derivative_provenance": "fixed_branch_diagnostic_only",
+      "hessian_coordinate_system_or_reason": "diagnostic_only_not_main_curvature",
+      "hessian_derivative_provenance_or_gap": "partial_transform_diagnostic_only",
+      "diagnostic_only_reason": "FIXED_BRANCH_GRADIENT_DIAGNOSTIC;PREVIOUS_LEDHPFPF_OT_EVIDENCE_QUARANTINED;READY_FIXED_BRANCH_DIAGNOSTIC;fixed_branch_diagnostic_only;partial_hessian_transform_not_main_curvature",
+      "not_available_reason": "",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_FIXED_BRANCH_DIAGNOSTIC",
+      "raw_gradient_status": "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+      "normalized_gradient_status": "fixed_branch_gradient_diagnostic",
+      "reason_codes": [
+        "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+        "PREVIOUS_LEDHPFPF_OT_EVIDENCE_QUARANTINED"
+      ]
+    },
+    {
+      "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+      "model_row_id": "p44_nonlinear_transition_h2_dim_1_2_3",
+      "capability_status": "diagnostic_derivative_only",
+      "score_coordinate_system": "fixed_branch_diagnostic_not_main_score",
+      "score_derivative_provenance": "fixed_branch_diagnostic_only",
+      "hessian_coordinate_system_or_reason": "diagnostic_only_not_main_curvature",
+      "hessian_derivative_provenance_or_gap": "partial_transform_diagnostic_only",
+      "diagnostic_only_reason": "FIXED_BRANCH_GRADIENT_DIAGNOSTIC;PREVIOUS_LEDHPFPF_OT_EVIDENCE_QUARANTINED;READY_FIXED_BRANCH_DIAGNOSTIC;fixed_branch_diagnostic_only;partial_hessian_transform_not_main_curvature",
+      "not_available_reason": "",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_FIXED_BRANCH_DIAGNOSTIC",
+      "raw_gradient_status": "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+      "normalized_gradient_status": "fixed_branch_gradient_diagnostic",
+      "reason_codes": [
+        "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+        "PREVIOUS_LEDHPFPF_OT_EVIDENCE_QUARANTINED"
+      ]
+    },
+    {
+      "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+      "model_row_id": "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3",
+      "capability_status": "diagnostic_derivative_only",
+      "score_coordinate_system": "not_exposed",
+      "score_derivative_provenance": "algorithm_gradient_not_exposed",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+      "diagnostic_only_reason": "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS;DIAGNOSTIC_ROW_NOT_PROMOTION;READY_DIAGNOSTIC_ONLY",
+      "not_available_reason": "algorithm_gradient_not_exposed;hessian_not_exposed",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "READY_DIAGNOSTIC_ONLY",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "diagnostic_only_not_promotion",
+      "reason_codes": [
+        "DIAGNOSTIC_ROW_NOT_PROMOTION",
+        "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+      ]
+    },
+    {
+      "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+      "model_row_id": "sv_exact_transformed_actual_nongaussian_dim_1_2_3",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "adapter_required_pending",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "reason_codes": [
+        "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+      ]
+    },
+    {
+      "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+      "model_row_id": "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "adapter_required_pending",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "reason_codes": [
+        "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+      ]
+    },
+    {
+      "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+      "model_row_id": "native_generalized_sv_dense_lower_rung_dim_2",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "adapter_required_pending",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "reason_codes": [
+        "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+      ]
+    },
+    {
+      "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+      "model_row_id": "spatial_sir_lower_rung_j1_dim_2",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "adapter_required_pending",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "reason_codes": [
+        "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+      ]
+    },
+    {
+      "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+      "model_row_id": "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "blocked_value_route",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "blocked_value_route",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "BLOCKED_VALUE_ROUTE;BLOCK_P53_M5_RANK_SELECTION_INTEGRATION;blocked_value_route",
+      "current_performance_status": "blocked_before_numeric_execution",
+      "source_status": "BLOCKED_VALUE_ROUTE",
+      "raw_gradient_status": "BLOCKED_VALUE_ROUTE",
+      "normalized_gradient_status": "blocked_value_route",
+      "reason_codes": [
+        "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+      ]
+    },
+    {
+      "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+      "model_row_id": "predator_prey_lower_rung_dim_2",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "adapter_required_pending",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "reason_codes": [
+        "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+      ]
+    },
+    {
+      "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+      "model_row_id": "predator_prey_production_tuned_h25_dim_2",
+      "capability_status": "not_available_with_reason",
+      "score_coordinate_system": "not_available",
+      "score_derivative_provenance": "adapter_required_pending",
+      "hessian_coordinate_system_or_reason": "not_available",
+      "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+      "diagnostic_only_reason": "",
+      "not_available_reason": "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+      "current_performance_status": "pending_numeric_execution",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "reason_codes": [
+        "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+      ]
+    }
+  ],
+  "capability_crosswalk": {
+    "kalman_exact_or_mixture_enumeration": {
+      "lgssm_exact_kalman_dim_1_2_3": {
+        "algorithm_id": "kalman_exact_or_mixture_enumeration",
+        "model_row_id": "lgssm_exact_kalman_dim_1_2_3",
+        "capability_status": "value_plus_score",
+        "score_coordinate_system": "canonical_phi",
+        "score_derivative_provenance": "native_phi_autodiff",
+        "hessian_coordinate_system_or_reason": "canonical_phi",
+        "hessian_derivative_provenance_or_gap": "native_phi_hessian_autodiff",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_VALUE_GRADIENT",
+        "raw_gradient_status": "VALID",
+        "normalized_gradient_status": "valid_autodiff_gradient",
+        "reason_codes": []
+      },
+      "p44_cubic_additive_gaussian_dim_1_2_3": {
+        "algorithm_id": "kalman_exact_or_mixture_enumeration",
+        "model_row_id": "p44_cubic_additive_gaussian_dim_1_2_3",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "unsupported_by_target",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "unsupported_by_target",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE;UNSUPPORTED_WITH_REASON;unsupported_by_target",
+        "current_performance_status": "not_applicable_by_target",
+        "source_status": "UNSUPPORTED_WITH_REASON",
+        "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+        "normalized_gradient_status": "unsupported_by_target",
+        "reason_codes": [
+          "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+        ]
+      },
+      "p44_quadratic_observation_dim_1_2_3": {
+        "algorithm_id": "kalman_exact_or_mixture_enumeration",
+        "model_row_id": "p44_quadratic_observation_dim_1_2_3",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "unsupported_by_target",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "unsupported_by_target",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE;UNSUPPORTED_WITH_REASON;unsupported_by_target",
+        "current_performance_status": "not_applicable_by_target",
+        "source_status": "UNSUPPORTED_WITH_REASON",
+        "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+        "normalized_gradient_status": "unsupported_by_target",
+        "reason_codes": [
+          "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+        ]
+      },
+      "p44_nonlinear_transition_h2_dim_1_2_3": {
+        "algorithm_id": "kalman_exact_or_mixture_enumeration",
+        "model_row_id": "p44_nonlinear_transition_h2_dim_1_2_3",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "unsupported_by_target",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "unsupported_by_target",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE;UNSUPPORTED_WITH_REASON;unsupported_by_target",
+        "current_performance_status": "not_applicable_by_target",
+        "source_status": "UNSUPPORTED_WITH_REASON",
+        "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+        "normalized_gradient_status": "unsupported_by_target",
+        "reason_codes": [
+          "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+        ]
+      },
+      "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3": {
+        "algorithm_id": "kalman_exact_or_mixture_enumeration",
+        "model_row_id": "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "unsupported_by_target",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "unsupported_by_target",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE;UNSUPPORTED_WITH_REASON;unsupported_by_target",
+        "current_performance_status": "not_applicable_by_target",
+        "source_status": "UNSUPPORTED_WITH_REASON",
+        "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+        "normalized_gradient_status": "unsupported_by_target",
+        "reason_codes": [
+          "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+        ]
+      },
+      "sv_exact_transformed_actual_nongaussian_dim_1_2_3": {
+        "algorithm_id": "kalman_exact_or_mixture_enumeration",
+        "model_row_id": "sv_exact_transformed_actual_nongaussian_dim_1_2_3",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "unsupported_by_target",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "unsupported_by_target",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE;UNSUPPORTED_WITH_REASON;unsupported_by_target",
+        "current_performance_status": "not_applicable_by_target",
+        "source_status": "UNSUPPORTED_WITH_REASON",
+        "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+        "normalized_gradient_status": "unsupported_by_target",
+        "reason_codes": [
+          "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+        ]
+      },
+      "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3": {
+        "algorithm_id": "kalman_exact_or_mixture_enumeration",
+        "model_row_id": "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3",
+        "capability_status": "value_plus_score",
+        "score_coordinate_system": "canonical_phi",
+        "score_derivative_provenance": "native_phi_autodiff",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "hessian_not_exposed",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_SURROGATE_VALUE_GRADIENT",
+        "raw_gradient_status": "VALID",
+        "normalized_gradient_status": "valid_autodiff_gradient",
+        "reason_codes": []
+      },
+      "native_generalized_sv_dense_lower_rung_dim_2": {
+        "algorithm_id": "kalman_exact_or_mixture_enumeration",
+        "model_row_id": "native_generalized_sv_dense_lower_rung_dim_2",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "unsupported_by_target",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "unsupported_by_target",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE;UNSUPPORTED_WITH_REASON;unsupported_by_target",
+        "current_performance_status": "not_applicable_by_target",
+        "source_status": "UNSUPPORTED_WITH_REASON",
+        "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+        "normalized_gradient_status": "unsupported_by_target",
+        "reason_codes": [
+          "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+        ]
+      },
+      "spatial_sir_lower_rung_j1_dim_2": {
+        "algorithm_id": "kalman_exact_or_mixture_enumeration",
+        "model_row_id": "spatial_sir_lower_rung_j1_dim_2",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "unsupported_by_target",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "unsupported_by_target",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE;UNSUPPORTED_WITH_REASON;unsupported_by_target",
+        "current_performance_status": "not_applicable_by_target",
+        "source_status": "UNSUPPORTED_WITH_REASON",
+        "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+        "normalized_gradient_status": "unsupported_by_target",
+        "reason_codes": [
+          "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+        ]
+      },
+      "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18": {
+        "algorithm_id": "kalman_exact_or_mixture_enumeration",
+        "model_row_id": "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "blocked_value_route",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "blocked_value_route",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "BLOCKED_VALUE_ROUTE;BLOCK_P53_M5_RANK_SELECTION_INTEGRATION;blocked_value_route",
+        "current_performance_status": "blocked_before_numeric_execution",
+        "source_status": "BLOCKED_VALUE_ROUTE",
+        "raw_gradient_status": "BLOCKED_VALUE_ROUTE",
+        "normalized_gradient_status": "blocked_value_route",
+        "reason_codes": [
+          "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+        ]
+      },
+      "predator_prey_lower_rung_dim_2": {
+        "algorithm_id": "kalman_exact_or_mixture_enumeration",
+        "model_row_id": "predator_prey_lower_rung_dim_2",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "unsupported_by_target",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "unsupported_by_target",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE;UNSUPPORTED_WITH_REASON;unsupported_by_target",
+        "current_performance_status": "not_applicable_by_target",
+        "source_status": "UNSUPPORTED_WITH_REASON",
+        "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+        "normalized_gradient_status": "unsupported_by_target",
+        "reason_codes": [
+          "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+        ]
+      },
+      "predator_prey_production_tuned_h25_dim_2": {
+        "algorithm_id": "kalman_exact_or_mixture_enumeration",
+        "model_row_id": "predator_prey_production_tuned_h25_dim_2",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "unsupported_by_target",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "unsupported_by_target",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE;UNSUPPORTED_WITH_REASON;unsupported_by_target",
+        "current_performance_status": "not_applicable_by_target",
+        "source_status": "UNSUPPORTED_WITH_REASON",
+        "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+        "normalized_gradient_status": "unsupported_by_target",
+        "reason_codes": [
+          "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+        ]
+      }
+    },
+    "ukf": {
+      "lgssm_exact_kalman_dim_1_2_3": {
+        "algorithm_id": "ukf",
+        "model_row_id": "lgssm_exact_kalman_dim_1_2_3",
+        "capability_status": "value_only",
+        "score_coordinate_system": "not_exposed",
+        "score_derivative_provenance": "algorithm_gradient_not_exposed",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "algorithm_gradient_not_exposed;hessian_not_exposed",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_VALUE_ONLY",
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "reason_codes": [
+          "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ]
+      },
+      "p44_cubic_additive_gaussian_dim_1_2_3": {
+        "algorithm_id": "ukf",
+        "model_row_id": "p44_cubic_additive_gaussian_dim_1_2_3",
+        "capability_status": "value_only",
+        "score_coordinate_system": "not_exposed",
+        "score_derivative_provenance": "algorithm_gradient_not_exposed",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "algorithm_gradient_not_exposed;hessian_not_exposed",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_VALUE_ONLY",
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "reason_codes": [
+          "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ]
+      },
+      "p44_quadratic_observation_dim_1_2_3": {
+        "algorithm_id": "ukf",
+        "model_row_id": "p44_quadratic_observation_dim_1_2_3",
+        "capability_status": "value_only",
+        "score_coordinate_system": "not_exposed",
+        "score_derivative_provenance": "algorithm_gradient_not_exposed",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "algorithm_gradient_not_exposed;hessian_not_exposed",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_VALUE_ONLY",
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "reason_codes": [
+          "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ]
+      },
+      "p44_nonlinear_transition_h2_dim_1_2_3": {
+        "algorithm_id": "ukf",
+        "model_row_id": "p44_nonlinear_transition_h2_dim_1_2_3",
+        "capability_status": "value_only",
+        "score_coordinate_system": "not_exposed",
+        "score_derivative_provenance": "algorithm_gradient_not_exposed",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "algorithm_gradient_not_exposed;hessian_not_exposed",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_VALUE_ONLY",
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "reason_codes": [
+          "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ]
+      },
+      "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3": {
+        "algorithm_id": "ukf",
+        "model_row_id": "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3",
+        "capability_status": "diagnostic_derivative_only",
+        "score_coordinate_system": "not_exposed",
+        "score_derivative_provenance": "algorithm_gradient_not_exposed",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+        "diagnostic_only_reason": "READY_DIAGNOSTIC_ONLY;SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED",
+        "not_available_reason": "algorithm_gradient_not_exposed;hessian_not_exposed",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_DIAGNOSTIC_ONLY",
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "diagnostic_only_not_promotion",
+        "reason_codes": [
+          "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ]
+      },
+      "sv_exact_transformed_actual_nongaussian_dim_1_2_3": {
+        "algorithm_id": "ukf",
+        "model_row_id": "sv_exact_transformed_actual_nongaussian_dim_1_2_3",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "adapter_required_pending",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ]
+      },
+      "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3": {
+        "algorithm_id": "ukf",
+        "model_row_id": "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "adapter_required_pending",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ]
+      },
+      "native_generalized_sv_dense_lower_rung_dim_2": {
+        "algorithm_id": "ukf",
+        "model_row_id": "native_generalized_sv_dense_lower_rung_dim_2",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "adapter_required_pending",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ]
+      },
+      "spatial_sir_lower_rung_j1_dim_2": {
+        "algorithm_id": "ukf",
+        "model_row_id": "spatial_sir_lower_rung_j1_dim_2",
+        "capability_status": "value_only",
+        "score_coordinate_system": "not_applicable_no_free_theta",
+        "score_derivative_provenance": "no_theta_gradient_dim0",
+        "hessian_coordinate_system_or_reason": "not_applicable_no_free_theta",
+        "hessian_derivative_provenance_or_gap": "no_theta_gradient_dim0",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "no_theta_gradient_dim0",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_VALUE_ONLY",
+        "raw_gradient_status": "NO_THETA_GRADIENT_DIM0",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "reason_codes": [
+          "NO_THETA_GRADIENT_DIM0"
+        ]
+      },
+      "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18": {
+        "algorithm_id": "ukf",
+        "model_row_id": "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18",
+        "capability_status": "diagnostic_derivative_only",
+        "score_coordinate_system": "not_exposed",
+        "score_derivative_provenance": "algorithm_gradient_not_exposed",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+        "diagnostic_only_reason": "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION;SCOUT_ONLY_NOT_TRUTH;UKF_SCOUT_NOT_TRUTH",
+        "not_available_reason": "algorithm_gradient_not_exposed;hessian_not_exposed",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "SCOUT_ONLY_NOT_TRUTH",
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "scout_only_not_truth",
+        "reason_codes": [
+          "UKF_SCOUT_NOT_TRUTH",
+          "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+        ]
+      },
+      "predator_prey_lower_rung_dim_2": {
+        "algorithm_id": "ukf",
+        "model_row_id": "predator_prey_lower_rung_dim_2",
+        "capability_status": "value_only",
+        "score_coordinate_system": "not_exposed",
+        "score_derivative_provenance": "algorithm_gradient_not_exposed",
+        "hessian_coordinate_system_or_reason": "not_available_transform_gap",
+        "hessian_derivative_provenance_or_gap": "not_available_transform_gap",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "algorithm_gradient_not_exposed;not_available_transform_gap",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_VALUE_ONLY",
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "reason_codes": [
+          "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ]
+      },
+      "predator_prey_production_tuned_h25_dim_2": {
+        "algorithm_id": "ukf",
+        "model_row_id": "predator_prey_production_tuned_h25_dim_2",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "adapter_required_pending",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "ADAPTER_REQUIRED_PRODUCTION_TARGET;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_PRODUCTION_TARGET"
+        ]
+      }
+    },
+    "svd_sigma_point": {
+      "lgssm_exact_kalman_dim_1_2_3": {
+        "algorithm_id": "svd_sigma_point",
+        "model_row_id": "lgssm_exact_kalman_dim_1_2_3",
+        "capability_status": "value_only",
+        "score_coordinate_system": "not_exposed",
+        "score_derivative_provenance": "algorithm_gradient_not_exposed",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "algorithm_gradient_not_exposed;hessian_not_exposed",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_VALUE_ONLY",
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "reason_codes": [
+          "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ]
+      },
+      "p44_cubic_additive_gaussian_dim_1_2_3": {
+        "algorithm_id": "svd_sigma_point",
+        "model_row_id": "p44_cubic_additive_gaussian_dim_1_2_3",
+        "capability_status": "value_only",
+        "score_coordinate_system": "not_exposed",
+        "score_derivative_provenance": "algorithm_gradient_not_exposed",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "algorithm_gradient_not_exposed;hessian_not_exposed",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_VALUE_ONLY",
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "reason_codes": [
+          "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ]
+      },
+      "p44_quadratic_observation_dim_1_2_3": {
+        "algorithm_id": "svd_sigma_point",
+        "model_row_id": "p44_quadratic_observation_dim_1_2_3",
+        "capability_status": "value_only",
+        "score_coordinate_system": "not_exposed",
+        "score_derivative_provenance": "algorithm_gradient_not_exposed",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "algorithm_gradient_not_exposed;hessian_not_exposed",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_VALUE_ONLY",
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "reason_codes": [
+          "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ]
+      },
+      "p44_nonlinear_transition_h2_dim_1_2_3": {
+        "algorithm_id": "svd_sigma_point",
+        "model_row_id": "p44_nonlinear_transition_h2_dim_1_2_3",
+        "capability_status": "value_only",
+        "score_coordinate_system": "not_exposed",
+        "score_derivative_provenance": "algorithm_gradient_not_exposed",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "algorithm_gradient_not_exposed;hessian_not_exposed",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_VALUE_ONLY",
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "reason_codes": [
+          "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ]
+      },
+      "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3": {
+        "algorithm_id": "svd_sigma_point",
+        "model_row_id": "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3",
+        "capability_status": "diagnostic_derivative_only",
+        "score_coordinate_system": "not_exposed",
+        "score_derivative_provenance": "algorithm_gradient_not_exposed",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+        "diagnostic_only_reason": "READY_DIAGNOSTIC_ONLY;SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED",
+        "not_available_reason": "algorithm_gradient_not_exposed;hessian_not_exposed",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_DIAGNOSTIC_ONLY",
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "diagnostic_only_not_promotion",
+        "reason_codes": [
+          "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ]
+      },
+      "sv_exact_transformed_actual_nongaussian_dim_1_2_3": {
+        "algorithm_id": "svd_sigma_point",
+        "model_row_id": "sv_exact_transformed_actual_nongaussian_dim_1_2_3",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "adapter_required_pending",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ]
+      },
+      "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3": {
+        "algorithm_id": "svd_sigma_point",
+        "model_row_id": "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "adapter_required_pending",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ]
+      },
+      "native_generalized_sv_dense_lower_rung_dim_2": {
+        "algorithm_id": "svd_sigma_point",
+        "model_row_id": "native_generalized_sv_dense_lower_rung_dim_2",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "adapter_required_pending",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ]
+      },
+      "spatial_sir_lower_rung_j1_dim_2": {
+        "algorithm_id": "svd_sigma_point",
+        "model_row_id": "spatial_sir_lower_rung_j1_dim_2",
+        "capability_status": "value_only",
+        "score_coordinate_system": "not_applicable_no_free_theta",
+        "score_derivative_provenance": "no_theta_gradient_dim0",
+        "hessian_coordinate_system_or_reason": "not_applicable_no_free_theta",
+        "hessian_derivative_provenance_or_gap": "no_theta_gradient_dim0",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "no_theta_gradient_dim0",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_VALUE_ONLY",
+        "raw_gradient_status": "NO_THETA_GRADIENT_DIM0",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "reason_codes": [
+          "NO_THETA_GRADIENT_DIM0"
+        ]
+      },
+      "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18": {
+        "algorithm_id": "svd_sigma_point",
+        "model_row_id": "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "blocked_value_route",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "blocked_value_route",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "BLOCKED_VALUE_ROUTE;BLOCK_P53_M5_RANK_SELECTION_INTEGRATION;blocked_value_route",
+        "current_performance_status": "blocked_before_numeric_execution",
+        "source_status": "BLOCKED_VALUE_ROUTE",
+        "raw_gradient_status": "BLOCKED_VALUE_ROUTE",
+        "normalized_gradient_status": "blocked_value_route",
+        "reason_codes": [
+          "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+        ]
+      },
+      "predator_prey_lower_rung_dim_2": {
+        "algorithm_id": "svd_sigma_point",
+        "model_row_id": "predator_prey_lower_rung_dim_2",
+        "capability_status": "value_only",
+        "score_coordinate_system": "not_exposed",
+        "score_derivative_provenance": "algorithm_gradient_not_exposed",
+        "hessian_coordinate_system_or_reason": "not_available_transform_gap",
+        "hessian_derivative_provenance_or_gap": "not_available_transform_gap",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "algorithm_gradient_not_exposed;not_available_transform_gap",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_VALUE_ONLY",
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "reason_codes": [
+          "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ]
+      },
+      "predator_prey_production_tuned_h25_dim_2": {
+        "algorithm_id": "svd_sigma_point",
+        "model_row_id": "predator_prey_production_tuned_h25_dim_2",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "adapter_required_pending",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "ADAPTER_REQUIRED_PRODUCTION_TARGET;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_PRODUCTION_TARGET"
+        ]
+      }
+    },
+    "cut4": {
+      "lgssm_exact_kalman_dim_1_2_3": {
+        "algorithm_id": "cut4",
+        "model_row_id": "lgssm_exact_kalman_dim_1_2_3",
+        "capability_status": "value_only",
+        "score_coordinate_system": "not_exposed",
+        "score_derivative_provenance": "algorithm_gradient_not_exposed",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "algorithm_gradient_not_exposed;hessian_not_exposed",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_VALUE_ONLY",
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "reason_codes": [
+          "CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ]
+      },
+      "p44_cubic_additive_gaussian_dim_1_2_3": {
+        "algorithm_id": "cut4",
+        "model_row_id": "p44_cubic_additive_gaussian_dim_1_2_3",
+        "capability_status": "value_only",
+        "score_coordinate_system": "not_exposed",
+        "score_derivative_provenance": "algorithm_gradient_not_exposed",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "algorithm_gradient_not_exposed;hessian_not_exposed",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_VALUE_ONLY",
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "reason_codes": [
+          "CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ]
+      },
+      "p44_quadratic_observation_dim_1_2_3": {
+        "algorithm_id": "cut4",
+        "model_row_id": "p44_quadratic_observation_dim_1_2_3",
+        "capability_status": "value_only",
+        "score_coordinate_system": "not_exposed",
+        "score_derivative_provenance": "algorithm_gradient_not_exposed",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "algorithm_gradient_not_exposed;hessian_not_exposed",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_VALUE_ONLY",
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "reason_codes": [
+          "CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ]
+      },
+      "p44_nonlinear_transition_h2_dim_1_2_3": {
+        "algorithm_id": "cut4",
+        "model_row_id": "p44_nonlinear_transition_h2_dim_1_2_3",
+        "capability_status": "value_only",
+        "score_coordinate_system": "not_exposed",
+        "score_derivative_provenance": "algorithm_gradient_not_exposed",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "algorithm_gradient_not_exposed;hessian_not_exposed",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_VALUE_ONLY",
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "reason_codes": [
+          "CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ]
+      },
+      "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3": {
+        "algorithm_id": "cut4",
+        "model_row_id": "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3",
+        "capability_status": "diagnostic_derivative_only",
+        "score_coordinate_system": "not_exposed",
+        "score_derivative_provenance": "algorithm_gradient_not_exposed",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+        "diagnostic_only_reason": "CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED;READY_DIAGNOSTIC_ONLY",
+        "not_available_reason": "algorithm_gradient_not_exposed;hessian_not_exposed",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_DIAGNOSTIC_ONLY",
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "diagnostic_only_not_promotion",
+        "reason_codes": [
+          "CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ]
+      },
+      "sv_exact_transformed_actual_nongaussian_dim_1_2_3": {
+        "algorithm_id": "cut4",
+        "model_row_id": "sv_exact_transformed_actual_nongaussian_dim_1_2_3",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "unsupported_by_target",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "unsupported_by_target",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET;UNSUPPORTED_WITH_REASON;unsupported_by_target",
+        "current_performance_status": "not_applicable_by_target",
+        "source_status": "UNSUPPORTED_WITH_REASON",
+        "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+        "normalized_gradient_status": "unsupported_by_target",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ]
+      },
+      "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3": {
+        "algorithm_id": "cut4",
+        "model_row_id": "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3",
+        "capability_status": "value_plus_score",
+        "score_coordinate_system": "canonical_phi",
+        "score_derivative_provenance": "native_phi_autodiff",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "hessian_not_exposed",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_SURROGATE_VALUE_GRADIENT",
+        "raw_gradient_status": "VALID",
+        "normalized_gradient_status": "valid_autodiff_gradient",
+        "reason_codes": []
+      },
+      "native_generalized_sv_dense_lower_rung_dim_2": {
+        "algorithm_id": "cut4",
+        "model_row_id": "native_generalized_sv_dense_lower_rung_dim_2",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "unsupported_by_target",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "unsupported_by_target",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "NO_CUT4_SAME_TARGET_NATIVE_GENERALIZED_SV;UNSUPPORTED_WITH_REASON;unsupported_by_target",
+        "current_performance_status": "not_applicable_by_target",
+        "source_status": "UNSUPPORTED_WITH_REASON",
+        "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+        "normalized_gradient_status": "unsupported_by_target",
+        "reason_codes": [
+          "NO_CUT4_SAME_TARGET_NATIVE_GENERALIZED_SV"
+        ]
+      },
+      "spatial_sir_lower_rung_j1_dim_2": {
+        "algorithm_id": "cut4",
+        "model_row_id": "spatial_sir_lower_rung_j1_dim_2",
+        "capability_status": "value_only",
+        "score_coordinate_system": "not_applicable_no_free_theta",
+        "score_derivative_provenance": "no_theta_gradient_dim0",
+        "hessian_coordinate_system_or_reason": "not_applicable_no_free_theta",
+        "hessian_derivative_provenance_or_gap": "no_theta_gradient_dim0",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "no_theta_gradient_dim0",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_VALUE_ONLY",
+        "raw_gradient_status": "NO_THETA_GRADIENT_DIM0",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "reason_codes": [
+          "NO_THETA_GRADIENT_DIM0"
+        ]
+      },
+      "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18": {
+        "algorithm_id": "cut4",
+        "model_row_id": "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "blocked_value_route",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "blocked_value_route",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "BLOCKED_VALUE_ROUTE;BLOCK_P53_M5_RANK_SELECTION_INTEGRATION;blocked_value_route",
+        "current_performance_status": "blocked_before_numeric_execution",
+        "source_status": "BLOCKED_VALUE_ROUTE",
+        "raw_gradient_status": "BLOCKED_VALUE_ROUTE",
+        "normalized_gradient_status": "blocked_value_route",
+        "reason_codes": [
+          "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+        ]
+      },
+      "predator_prey_lower_rung_dim_2": {
+        "algorithm_id": "cut4",
+        "model_row_id": "predator_prey_lower_rung_dim_2",
+        "capability_status": "value_only",
+        "score_coordinate_system": "not_exposed",
+        "score_derivative_provenance": "algorithm_gradient_not_exposed",
+        "hessian_coordinate_system_or_reason": "not_available_transform_gap",
+        "hessian_derivative_provenance_or_gap": "not_available_transform_gap",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "algorithm_gradient_not_exposed;not_available_transform_gap",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_VALUE_ONLY",
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "reason_codes": [
+          "CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ]
+      },
+      "predator_prey_production_tuned_h25_dim_2": {
+        "algorithm_id": "cut4",
+        "model_row_id": "predator_prey_production_tuned_h25_dim_2",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "adapter_required_pending",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "ADAPTER_REQUIRED_PRODUCTION_TARGET;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_PRODUCTION_TARGET"
+        ]
+      }
+    },
+    "zhao_cui_scalar_or_multistate": {
+      "lgssm_exact_kalman_dim_1_2_3": {
+        "algorithm_id": "zhao_cui_scalar_or_multistate",
+        "model_row_id": "lgssm_exact_kalman_dim_1_2_3",
+        "capability_status": "diagnostic_derivative_only",
+        "score_coordinate_system": "not_exposed",
+        "score_derivative_provenance": "algorithm_gradient_not_exposed",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+        "diagnostic_only_reason": "READY_DIAGNOSTIC_ONLY;ZHAOCUI_LGSSM_DIAGNOSTIC_NOT_ORACLE",
+        "not_available_reason": "algorithm_gradient_not_exposed;hessian_not_exposed",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_DIAGNOSTIC_ONLY",
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "diagnostic_only_not_promotion",
+        "reason_codes": [
+          "ZHAOCUI_LGSSM_DIAGNOSTIC_NOT_ORACLE"
+        ]
+      },
+      "p44_cubic_additive_gaussian_dim_1_2_3": {
+        "algorithm_id": "zhao_cui_scalar_or_multistate",
+        "model_row_id": "p44_cubic_additive_gaussian_dim_1_2_3",
+        "capability_status": "value_plus_score",
+        "score_coordinate_system": "canonical_phi",
+        "score_derivative_provenance": "native_phi_autodiff",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "hessian_not_exposed",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_VALUE_GRADIENT",
+        "raw_gradient_status": "VALID",
+        "normalized_gradient_status": "valid_autodiff_gradient",
+        "reason_codes": []
+      },
+      "p44_quadratic_observation_dim_1_2_3": {
+        "algorithm_id": "zhao_cui_scalar_or_multistate",
+        "model_row_id": "p44_quadratic_observation_dim_1_2_3",
+        "capability_status": "value_plus_score",
+        "score_coordinate_system": "canonical_phi",
+        "score_derivative_provenance": "native_phi_autodiff",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "hessian_not_exposed",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_VALUE_GRADIENT",
+        "raw_gradient_status": "VALID",
+        "normalized_gradient_status": "valid_autodiff_gradient",
+        "reason_codes": []
+      },
+      "p44_nonlinear_transition_h2_dim_1_2_3": {
+        "algorithm_id": "zhao_cui_scalar_or_multistate",
+        "model_row_id": "p44_nonlinear_transition_h2_dim_1_2_3",
+        "capability_status": "value_plus_score",
+        "score_coordinate_system": "canonical_phi",
+        "score_derivative_provenance": "native_phi_autodiff",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "hessian_not_exposed",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_VALUE_GRADIENT",
+        "raw_gradient_status": "VALID",
+        "normalized_gradient_status": "valid_autodiff_gradient",
+        "reason_codes": []
+      },
+      "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3": {
+        "algorithm_id": "zhao_cui_scalar_or_multistate",
+        "model_row_id": "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "unsupported_by_target",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "unsupported_by_target",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "UNSUPPORTED_WITH_REASON;ZHAOCUI_H4_SCALAR_HELPER_NONCLAIM;unsupported_by_target",
+        "current_performance_status": "not_applicable_by_target",
+        "source_status": "UNSUPPORTED_WITH_REASON",
+        "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+        "normalized_gradient_status": "unsupported_by_target",
+        "reason_codes": [
+          "ZHAOCUI_H4_SCALAR_HELPER_NONCLAIM"
+        ]
+      },
+      "sv_exact_transformed_actual_nongaussian_dim_1_2_3": {
+        "algorithm_id": "zhao_cui_scalar_or_multistate",
+        "model_row_id": "sv_exact_transformed_actual_nongaussian_dim_1_2_3",
+        "capability_status": "value_plus_score",
+        "score_coordinate_system": "canonical_phi",
+        "score_derivative_provenance": "native_phi_autodiff",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "hessian_not_exposed",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_VALUE_GRADIENT",
+        "raw_gradient_status": "VALID",
+        "normalized_gradient_status": "valid_autodiff_gradient",
+        "reason_codes": []
+      },
+      "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3": {
+        "algorithm_id": "zhao_cui_scalar_or_multistate",
+        "model_row_id": "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3",
+        "capability_status": "value_plus_score",
+        "score_coordinate_system": "canonical_phi",
+        "score_derivative_provenance": "native_phi_autodiff",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "hessian_not_exposed",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_SURROGATE_VALUE_GRADIENT",
+        "raw_gradient_status": "VALID",
+        "normalized_gradient_status": "valid_autodiff_gradient",
+        "reason_codes": []
+      },
+      "native_generalized_sv_dense_lower_rung_dim_2": {
+        "algorithm_id": "zhao_cui_scalar_or_multistate",
+        "model_row_id": "native_generalized_sv_dense_lower_rung_dim_2",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "unsupported_by_target",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "unsupported_by_target",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "NO_ZHAOCUI_NATIVE_GENERALIZED_SV_ROUTE;UNSUPPORTED_WITH_REASON;unsupported_by_target",
+        "current_performance_status": "not_applicable_by_target",
+        "source_status": "UNSUPPORTED_WITH_REASON",
+        "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+        "normalized_gradient_status": "unsupported_by_target",
+        "reason_codes": [
+          "NO_ZHAOCUI_NATIVE_GENERALIZED_SV_ROUTE"
+        ]
+      },
+      "spatial_sir_lower_rung_j1_dim_2": {
+        "algorithm_id": "zhao_cui_scalar_or_multistate",
+        "model_row_id": "spatial_sir_lower_rung_j1_dim_2",
+        "capability_status": "value_only",
+        "score_coordinate_system": "not_applicable_no_free_theta",
+        "score_derivative_provenance": "no_theta_gradient_dim0",
+        "hessian_coordinate_system_or_reason": "not_applicable_no_free_theta",
+        "hessian_derivative_provenance_or_gap": "no_theta_gradient_dim0",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "no_theta_gradient_dim0",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_VALUE_ONLY",
+        "raw_gradient_status": "NO_THETA_GRADIENT_DIM0",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "reason_codes": [
+          "NO_THETA_GRADIENT_DIM0"
+        ]
+      },
+      "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18": {
+        "algorithm_id": "zhao_cui_scalar_or_multistate",
+        "model_row_id": "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "blocked_value_route",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "blocked_value_route",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "BLOCKED_VALUE_ROUTE;BLOCK_P53_M5_RANK_SELECTION_INTEGRATION;blocked_value_route",
+        "current_performance_status": "blocked_before_numeric_execution",
+        "source_status": "BLOCKED_VALUE_ROUTE",
+        "raw_gradient_status": "BLOCKED_VALUE_ROUTE",
+        "normalized_gradient_status": "blocked_value_route",
+        "reason_codes": [
+          "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+        ]
+      },
+      "predator_prey_lower_rung_dim_2": {
+        "algorithm_id": "zhao_cui_scalar_or_multistate",
+        "model_row_id": "predator_prey_lower_rung_dim_2",
+        "capability_status": "value_only",
+        "score_coordinate_system": "not_exposed",
+        "score_derivative_provenance": "algorithm_gradient_not_exposed",
+        "hessian_coordinate_system_or_reason": "not_available_transform_gap",
+        "hessian_derivative_provenance_or_gap": "not_available_transform_gap",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "algorithm_gradient_not_exposed;not_available_transform_gap",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_VALUE_ONLY",
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "reason_codes": [
+          "REFERENCE_GRADIENT_NOT_AVAILABLE"
+        ]
+      },
+      "predator_prey_production_tuned_h25_dim_2": {
+        "algorithm_id": "zhao_cui_scalar_or_multistate",
+        "model_row_id": "predator_prey_production_tuned_h25_dim_2",
+        "capability_status": "value_only",
+        "score_coordinate_system": "not_exposed",
+        "score_derivative_provenance": "algorithm_gradient_not_exposed",
+        "hessian_coordinate_system_or_reason": "not_available_transform_gap",
+        "hessian_derivative_provenance_or_gap": "not_available_transform_gap",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "algorithm_gradient_not_exposed;not_available_transform_gap",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_VALUE_ONLY",
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "reason_codes": [
+          "REFERENCE_GRADIENT_NOT_AVAILABLE"
+        ]
+      }
+    },
+    "bootstrap_dpf_current": {
+      "lgssm_exact_kalman_dim_1_2_3": {
+        "algorithm_id": "bootstrap_dpf_current",
+        "model_row_id": "lgssm_exact_kalman_dim_1_2_3",
+        "capability_status": "value_only",
+        "score_coordinate_system": "not_exposed",
+        "score_derivative_provenance": "algorithm_gradient_not_exposed",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+        "diagnostic_only_reason": "resampling_gradient_not_valid",
+        "not_available_reason": "algorithm_gradient_not_exposed;hessian_not_exposed",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_VALUE_WITH_STOCHASTIC_GRADIENT_STATUS",
+        "raw_gradient_status": "RESAMPLING_GRADIENT_NOT_VALID",
+        "normalized_gradient_status": "resampling_gradient_not_valid",
+        "reason_codes": [
+          "STOCHASTIC_GRADIENT_DIAGNOSTIC",
+          "RESAMPLING_GRADIENT_NOT_VALID"
+        ]
+      },
+      "p44_cubic_additive_gaussian_dim_1_2_3": {
+        "algorithm_id": "bootstrap_dpf_current",
+        "model_row_id": "p44_cubic_additive_gaussian_dim_1_2_3",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "adapter_required_pending",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+        ]
+      },
+      "p44_quadratic_observation_dim_1_2_3": {
+        "algorithm_id": "bootstrap_dpf_current",
+        "model_row_id": "p44_quadratic_observation_dim_1_2_3",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "adapter_required_pending",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+        ]
+      },
+      "p44_nonlinear_transition_h2_dim_1_2_3": {
+        "algorithm_id": "bootstrap_dpf_current",
+        "model_row_id": "p44_nonlinear_transition_h2_dim_1_2_3",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "adapter_required_pending",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+        ]
+      },
+      "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3": {
+        "algorithm_id": "bootstrap_dpf_current",
+        "model_row_id": "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "adapter_required_pending",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+        ]
+      },
+      "sv_exact_transformed_actual_nongaussian_dim_1_2_3": {
+        "algorithm_id": "bootstrap_dpf_current",
+        "model_row_id": "sv_exact_transformed_actual_nongaussian_dim_1_2_3",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "adapter_required_pending",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+        ]
+      },
+      "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3": {
+        "algorithm_id": "bootstrap_dpf_current",
+        "model_row_id": "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "adapter_required_pending",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+        ]
+      },
+      "native_generalized_sv_dense_lower_rung_dim_2": {
+        "algorithm_id": "bootstrap_dpf_current",
+        "model_row_id": "native_generalized_sv_dense_lower_rung_dim_2",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "adapter_required_pending",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+        ]
+      },
+      "spatial_sir_lower_rung_j1_dim_2": {
+        "algorithm_id": "bootstrap_dpf_current",
+        "model_row_id": "spatial_sir_lower_rung_j1_dim_2",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "adapter_required_pending",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+        ]
+      },
+      "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18": {
+        "algorithm_id": "bootstrap_dpf_current",
+        "model_row_id": "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "blocked_value_route",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "blocked_value_route",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "BLOCKED_VALUE_ROUTE;BLOCK_P53_M5_RANK_SELECTION_INTEGRATION;blocked_value_route",
+        "current_performance_status": "blocked_before_numeric_execution",
+        "source_status": "BLOCKED_VALUE_ROUTE",
+        "raw_gradient_status": "BLOCKED_VALUE_ROUTE",
+        "normalized_gradient_status": "blocked_value_route",
+        "reason_codes": [
+          "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+        ]
+      },
+      "predator_prey_lower_rung_dim_2": {
+        "algorithm_id": "bootstrap_dpf_current",
+        "model_row_id": "predator_prey_lower_rung_dim_2",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "adapter_required_pending",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+        ]
+      },
+      "predator_prey_production_tuned_h25_dim_2": {
+        "algorithm_id": "bootstrap_dpf_current",
+        "model_row_id": "predator_prey_production_tuned_h25_dim_2",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "adapter_required_pending",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+        ]
+      }
+    },
+    "ledh_pfpf_alg1_ukf_current": {
+      "lgssm_exact_kalman_dim_1_2_3": {
+        "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+        "model_row_id": "lgssm_exact_kalman_dim_1_2_3",
+        "capability_status": "diagnostic_derivative_only",
+        "score_coordinate_system": "fixed_branch_diagnostic_not_main_score",
+        "score_derivative_provenance": "fixed_branch_diagnostic_only",
+        "hessian_coordinate_system_or_reason": "diagnostic_only_not_main_curvature",
+        "hessian_derivative_provenance_or_gap": "partial_transform_diagnostic_only",
+        "diagnostic_only_reason": "FIXED_BRANCH_GRADIENT_DIAGNOSTIC;PREVIOUS_LEDHPFPF_OT_EVIDENCE_QUARANTINED;READY_FIXED_BRANCH_DIAGNOSTIC;fixed_branch_diagnostic_only;partial_hessian_transform_not_main_curvature",
+        "not_available_reason": "",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_FIXED_BRANCH_DIAGNOSTIC",
+        "raw_gradient_status": "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+        "normalized_gradient_status": "fixed_branch_gradient_diagnostic",
+        "reason_codes": [
+          "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+          "PREVIOUS_LEDHPFPF_OT_EVIDENCE_QUARANTINED"
+        ]
+      },
+      "p44_cubic_additive_gaussian_dim_1_2_3": {
+        "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+        "model_row_id": "p44_cubic_additive_gaussian_dim_1_2_3",
+        "capability_status": "diagnostic_derivative_only",
+        "score_coordinate_system": "fixed_branch_diagnostic_not_main_score",
+        "score_derivative_provenance": "fixed_branch_diagnostic_only",
+        "hessian_coordinate_system_or_reason": "diagnostic_only_not_main_curvature",
+        "hessian_derivative_provenance_or_gap": "partial_transform_diagnostic_only",
+        "diagnostic_only_reason": "FIXED_BRANCH_GRADIENT_DIAGNOSTIC;PREVIOUS_LEDHPFPF_OT_EVIDENCE_QUARANTINED;READY_FIXED_BRANCH_DIAGNOSTIC;fixed_branch_diagnostic_only;partial_hessian_transform_not_main_curvature",
+        "not_available_reason": "",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_FIXED_BRANCH_DIAGNOSTIC",
+        "raw_gradient_status": "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+        "normalized_gradient_status": "fixed_branch_gradient_diagnostic",
+        "reason_codes": [
+          "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+          "PREVIOUS_LEDHPFPF_OT_EVIDENCE_QUARANTINED"
+        ]
+      },
+      "p44_quadratic_observation_dim_1_2_3": {
+        "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+        "model_row_id": "p44_quadratic_observation_dim_1_2_3",
+        "capability_status": "diagnostic_derivative_only",
+        "score_coordinate_system": "fixed_branch_diagnostic_not_main_score",
+        "score_derivative_provenance": "fixed_branch_diagnostic_only",
+        "hessian_coordinate_system_or_reason": "diagnostic_only_not_main_curvature",
+        "hessian_derivative_provenance_or_gap": "partial_transform_diagnostic_only",
+        "diagnostic_only_reason": "FIXED_BRANCH_GRADIENT_DIAGNOSTIC;PREVIOUS_LEDHPFPF_OT_EVIDENCE_QUARANTINED;READY_FIXED_BRANCH_DIAGNOSTIC;fixed_branch_diagnostic_only;partial_hessian_transform_not_main_curvature",
+        "not_available_reason": "",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_FIXED_BRANCH_DIAGNOSTIC",
+        "raw_gradient_status": "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+        "normalized_gradient_status": "fixed_branch_gradient_diagnostic",
+        "reason_codes": [
+          "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+          "PREVIOUS_LEDHPFPF_OT_EVIDENCE_QUARANTINED"
+        ]
+      },
+      "p44_nonlinear_transition_h2_dim_1_2_3": {
+        "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+        "model_row_id": "p44_nonlinear_transition_h2_dim_1_2_3",
+        "capability_status": "diagnostic_derivative_only",
+        "score_coordinate_system": "fixed_branch_diagnostic_not_main_score",
+        "score_derivative_provenance": "fixed_branch_diagnostic_only",
+        "hessian_coordinate_system_or_reason": "diagnostic_only_not_main_curvature",
+        "hessian_derivative_provenance_or_gap": "partial_transform_diagnostic_only",
+        "diagnostic_only_reason": "FIXED_BRANCH_GRADIENT_DIAGNOSTIC;PREVIOUS_LEDHPFPF_OT_EVIDENCE_QUARANTINED;READY_FIXED_BRANCH_DIAGNOSTIC;fixed_branch_diagnostic_only;partial_hessian_transform_not_main_curvature",
+        "not_available_reason": "",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_FIXED_BRANCH_DIAGNOSTIC",
+        "raw_gradient_status": "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+        "normalized_gradient_status": "fixed_branch_gradient_diagnostic",
+        "reason_codes": [
+          "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+          "PREVIOUS_LEDHPFPF_OT_EVIDENCE_QUARANTINED"
+        ]
+      },
+      "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3": {
+        "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+        "model_row_id": "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3",
+        "capability_status": "diagnostic_derivative_only",
+        "score_coordinate_system": "not_exposed",
+        "score_derivative_provenance": "algorithm_gradient_not_exposed",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "hessian_not_exposed",
+        "diagnostic_only_reason": "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS;DIAGNOSTIC_ROW_NOT_PROMOTION;READY_DIAGNOSTIC_ONLY",
+        "not_available_reason": "algorithm_gradient_not_exposed;hessian_not_exposed",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "READY_DIAGNOSTIC_ONLY",
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "diagnostic_only_not_promotion",
+        "reason_codes": [
+          "DIAGNOSTIC_ROW_NOT_PROMOTION",
+          "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+        ]
+      },
+      "sv_exact_transformed_actual_nongaussian_dim_1_2_3": {
+        "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+        "model_row_id": "sv_exact_transformed_actual_nongaussian_dim_1_2_3",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "adapter_required_pending",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ]
+      },
+      "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3": {
+        "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+        "model_row_id": "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "adapter_required_pending",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ]
+      },
+      "native_generalized_sv_dense_lower_rung_dim_2": {
+        "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+        "model_row_id": "native_generalized_sv_dense_lower_rung_dim_2",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "adapter_required_pending",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ]
+      },
+      "spatial_sir_lower_rung_j1_dim_2": {
+        "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+        "model_row_id": "spatial_sir_lower_rung_j1_dim_2",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "adapter_required_pending",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ]
+      },
+      "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18": {
+        "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+        "model_row_id": "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "blocked_value_route",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "blocked_value_route",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "BLOCKED_VALUE_ROUTE;BLOCK_P53_M5_RANK_SELECTION_INTEGRATION;blocked_value_route",
+        "current_performance_status": "blocked_before_numeric_execution",
+        "source_status": "BLOCKED_VALUE_ROUTE",
+        "raw_gradient_status": "BLOCKED_VALUE_ROUTE",
+        "normalized_gradient_status": "blocked_value_route",
+        "reason_codes": [
+          "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+        ]
+      },
+      "predator_prey_lower_rung_dim_2": {
+        "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+        "model_row_id": "predator_prey_lower_rung_dim_2",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "adapter_required_pending",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ]
+      },
+      "predator_prey_production_tuned_h25_dim_2": {
+        "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+        "model_row_id": "predator_prey_production_tuned_h25_dim_2",
+        "capability_status": "not_available_with_reason",
+        "score_coordinate_system": "not_available",
+        "score_derivative_provenance": "adapter_required_pending",
+        "hessian_coordinate_system_or_reason": "not_available",
+        "hessian_derivative_provenance_or_gap": "adapter_required_pending",
+        "diagnostic_only_reason": "",
+        "not_available_reason": "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET;ADAPTER_REQUIRED_WITH_REASON;adapter_required_pending",
+        "current_performance_status": "pending_numeric_execution",
+        "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ]
+      }
+    }
+  },
+  "benchmark_table_schemas": {
+    "value": {
+      "rows": "algorithm_id",
+      "columns": "model_row_id",
+      "cell_fields": [
+        "mean_average_log_likelihood",
+        "standard_error",
+        "confidence_interval",
+        "failure_rate",
+        "nan_rate",
+        "current_performance_status"
+      ],
+      "numeric_status": "pending_accepted_truth_draws_and_reviewed_evaluators"
+    },
+    "score": {
+      "rows": "algorithm_id",
+      "columns": "model_row_id",
+      "cell_fields": [
+        "mean_score_norm",
+        "max_score_component",
+        "min_score_component",
+        "max_standardized_component",
+        "score_coordinate_system",
+        "score_derivative_provenance",
+        "failure_rate"
+      ],
+      "numeric_status": "pending_accepted_truth_draws_and_reviewed_evaluators"
+    },
+    "componentwise_score": {
+      "rows": "algorithm_id x model_row_id x truth_draw_id x parameter_coordinate",
+      "fields": [
+        "algorithm_id",
+        "model_row_id",
+        "truth_draw_id",
+        "parameter_coordinate",
+        "signed_mean_score",
+        "standard_error",
+        "confidence_interval_low",
+        "confidence_interval_high",
+        "standardized_mean",
+        "score_coordinate_system",
+        "score_derivative_provenance",
+        "performance_table_admission_status"
+      ],
+      "mandatory": true,
+      "numeric_status": "schema_frozen_numeric_pending"
+    },
+    "curvature": {
+      "rows": "algorithm_id",
+      "columns": "model_row_id",
+      "cell_fields": [
+        "replicate_level_lambda_min_negative_hessian_mean",
+        "replicate_level_lambda_min_negative_hessian_median",
+        "replicate_level_lambda_min_negative_hessian_quantiles",
+        "positive_definite_fraction",
+        "sign_convention",
+        "hessian_derivative_provenance_or_gap"
+      ],
+      "primary_curvature_object": "replicate_level_lambda_min(-H)",
+      "numeric_status": "pending_full_hessian_coordinate_contract"
+    },
+    "stochastic_filter_uncertainty": {
+      "rows": "dpf_algorithm_id",
+      "columns": "model_row_id",
+      "cell_fields": [
+        "data_standard_error",
+        "particle_mc_standard_error",
+        "mc_se_to_data_se_ratio",
+        "seed_ladder_status",
+        "particle_count",
+        "effective_sample_size",
+        "resampling_count",
+        "degeneracy_flags"
+      ],
+      "ranking_rule": "do_not_rank_small_differences_when_mc_noise_dominant",
+      "numeric_status": "pending_stochastic_seed_calibration"
+    },
+    "lgssm_exact_reference": {
+      "rows": "algorithm_id",
+      "columns": "lgssm_exact_kalman_dim_1_2_3",
+      "cell_fields": [
+        "exact_average_loglik_error",
+        "exact_score_error_norm",
+        "exact_hessian_error_norm",
+        "reference_route"
+      ],
+      "numeric_status": "pending_reviewed_evaluator_outputs"
+    }
+  },
+  "algorithm_specific_contracts": {
+    "kalman_exact_or_mixture_enumeration": {
+      "stochastic_filter": false,
+      "filter_seed_ladder_required": false,
+      "mc_uncertainty_required_before_ranking": false,
+      "required_diagnostics": [
+        "failure_rate",
+        "nan_rate",
+        "branch_veto_rate"
+      ],
+      "gradient_policy": "use_crosswalk_score_provenance"
+    },
+    "ukf": {
+      "stochastic_filter": false,
+      "filter_seed_ladder_required": false,
+      "mc_uncertainty_required_before_ranking": false,
+      "required_diagnostics": [
+        "failure_rate",
+        "nan_rate",
+        "branch_veto_rate"
+      ],
+      "gradient_policy": "use_crosswalk_score_provenance"
+    },
+    "svd_sigma_point": {
+      "stochastic_filter": false,
+      "filter_seed_ladder_required": false,
+      "mc_uncertainty_required_before_ranking": false,
+      "required_diagnostics": [
+        "failure_rate",
+        "nan_rate",
+        "branch_veto_rate"
+      ],
+      "gradient_policy": "use_crosswalk_score_provenance"
+    },
+    "cut4": {
+      "stochastic_filter": false,
+      "filter_seed_ladder_required": false,
+      "mc_uncertainty_required_before_ranking": false,
+      "required_diagnostics": [
+        "failure_rate",
+        "nan_rate",
+        "branch_veto_rate"
+      ],
+      "gradient_policy": "use_crosswalk_score_provenance"
+    },
+    "zhao_cui_scalar_or_multistate": {
+      "stochastic_filter": false,
+      "filter_seed_ladder_required": false,
+      "mc_uncertainty_required_before_ranking": false,
+      "required_diagnostics": [
+        "failure_rate",
+        "nan_rate",
+        "branch_veto_rate"
+      ],
+      "gradient_policy": "use_crosswalk_score_provenance"
+    },
+    "bootstrap_dpf_current": {
+      "stochastic_filter": true,
+      "filter_seed_ladder_required": true,
+      "mc_uncertainty_required_before_ranking": true,
+      "required_diagnostics": [
+        "data_se",
+        "particle_mc_se",
+        "seed_ladder_status",
+        "effective_sample_size",
+        "resampling_count",
+        "degeneracy_flags"
+      ],
+      "gradient_policy": "not_certified_for_main_score_without_separate_review"
+    },
+    "ledh_pfpf_alg1_ukf_current": {
+      "stochastic_filter": true,
+      "filter_seed_ladder_required": true,
+      "mc_uncertainty_required_before_ranking": true,
+      "required_diagnostics": [
+        "data_se",
+        "particle_mc_se",
+        "seed_ladder_status",
+        "effective_sample_size",
+        "resampling_count",
+        "degeneracy_flags"
+      ],
+      "gradient_policy": "not_certified_for_main_score_without_separate_review"
+    }
+  },
+  "row_reference_summary": {
+    "lgssm_exact_kalman_dim_1_2_3": {
+      "reference_type": "exact",
+      "benchmark_class": "benchmarkable_value_gradient",
+      "reference_value_policy": "reference_value_available",
+      "reference_gradient_policy": "reference_gradient_available",
+      "theta_dimension_policy": "fixed_4"
+    },
+    "p44_cubic_additive_gaussian_dim_1_2_3": {
+      "reference_type": "dense_numerical",
+      "benchmark_class": "benchmarkable_value_gradient",
+      "reference_value_policy": "reference_value_available",
+      "reference_gradient_policy": "reference_gradient_available",
+      "theta_dimension_policy": "fixed_5"
+    },
+    "p44_quadratic_observation_dim_1_2_3": {
+      "reference_type": "dense_numerical",
+      "benchmark_class": "benchmarkable_value_gradient",
+      "reference_value_policy": "reference_value_available",
+      "reference_gradient_policy": "reference_gradient_available",
+      "theta_dimension_policy": "fixed_4"
+    },
+    "p44_nonlinear_transition_h2_dim_1_2_3": {
+      "reference_type": "dense_numerical",
+      "benchmark_class": "benchmarkable_value_gradient",
+      "reference_value_policy": "reference_value_available",
+      "reference_gradient_policy": "reference_gradient_available",
+      "theta_dimension_policy": "fixed_5"
+    },
+    "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3": {
+      "reference_type": "diagnostic",
+      "benchmark_class": "diagnostic_only",
+      "reference_value_policy": "diagnostic_reference_value_available",
+      "reference_gradient_policy": "reference_gradient_available",
+      "theta_dimension_policy": "fixed_5"
+    },
+    "sv_exact_transformed_actual_nongaussian_dim_1_2_3": {
+      "reference_type": "transformed_actual_nongaussian",
+      "benchmark_class": "benchmarkable_value_gradient",
+      "reference_value_policy": "reference_value_available",
+      "reference_gradient_policy": "reference_gradient_available",
+      "theta_dimension_policy": "2_times_active_dim"
+    },
+    "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3": {
+      "reference_type": "gaussian_mixture_surrogate",
+      "benchmark_class": "surrogate_approximation_lane",
+      "reference_value_policy": "surrogate_reference_value_available",
+      "reference_gradient_policy": "reference_gradient_available",
+      "theta_dimension_policy": "2_times_active_dim"
+    },
+    "native_generalized_sv_dense_lower_rung_dim_2": {
+      "reference_type": "dense_numerical",
+      "benchmark_class": "benchmarkable_value_gradient",
+      "reference_value_policy": "reference_value_available",
+      "reference_gradient_policy": "reference_gradient_available",
+      "theta_dimension_policy": "fixed_5"
+    },
+    "spatial_sir_lower_rung_j1_dim_2": {
+      "reference_type": "dense_numerical",
+      "benchmark_class": "benchmarkable_value_only",
+      "reference_value_policy": "reference_value_available",
+      "reference_gradient_policy": "reference_gradient_unavailable_but_value_benchmarkable",
+      "theta_dimension_policy": "fixed_0_no_theta"
+    },
+    "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18": {
+      "reference_type": "blocked_only",
+      "benchmark_class": "blocked_only",
+      "reference_value_policy": "blocked_value_route",
+      "reference_gradient_policy": "blocked_value_route",
+      "theta_dimension_policy": "fixed_0_value_route_blocked"
+    },
+    "predator_prey_lower_rung_dim_2": {
+      "reference_type": "dense_numerical",
+      "benchmark_class": "benchmarkable_value_only",
+      "reference_value_policy": "reference_value_available",
+      "reference_gradient_policy": "reference_gradient_unavailable_but_value_benchmarkable",
+      "theta_dimension_policy": "fixed_6_physical_theta_reference_gradient_not_certified"
+    },
+    "predator_prey_production_tuned_h25_dim_2": {
+      "reference_type": "dense_numerical",
+      "benchmark_class": "benchmarkable_value_only",
+      "reference_value_policy": "reference_value_available",
+      "reference_gradient_policy": "reference_gradient_unavailable_but_value_benchmarkable",
+      "theta_dimension_policy": "fixed_6_physical_theta_reference_gradient_not_certified"
+    }
+  },
+  "historical_only_records": [
+    {
+      "algorithm_id": "ledh_pfpf_ot_historical",
+      "current_evidence": false,
+      "reason_codes": [
+        "HISTORICAL_LEDHPFPF_OT_SUPERSEDED"
+      ],
+      "admission_policy": "excluded_from_current_performance_tables"
+    }
+  ],
+  "decision_table": [
+    {
+      "decision": "pass_revised_p8_contract_gate",
+      "primary_criterion": "synthetic-truth contract emitted for all frozen cells with provenance and no proxy performance claims",
+      "veto_diagnostics": "no veto fired for contract emission",
+      "main_uncertainty": "numeric benchmark execution remains pending",
+      "next_justified_action": "generate accepted truth draws, calibrate horizons/seeds, then run reviewed evaluators",
+      "not_concluded": "filter ranking, full numeric value/score/curvature performance, DPF gradient certification, Bayesian-estimation readiness"
+    },
+    {
+      "decision": "block_full_numeric_p8_performance_closeout",
+      "primary_criterion": "accepted truth draws and reviewed numeric evaluator outputs are absent",
+      "veto_diagnostics": "numeric-run-pending block active",
+      "main_uncertainty": "which evaluator cells will become numeric after calibration and adapter repair",
+      "next_justified_action": "write the next execution plan for truth-draw generation and numeric evaluator implementation",
+      "not_concluded": "that any algorithm is better or worse on the benchmark ladder"
+    }
+  ],
+  "run_manifest": {
+    "git_commit": "dirty worktree; P8 synthetic-truth contract artifacts uncommitted",
+    "dirty_state_summary": "dirty worktree preserved; unrelated changes not reverted",
+    "command": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp python scripts/filtering_value_gradient_benchmark_emit_synthetic_truth.py",
+    "environment": "local Python environment",
+    "conda_env": "N/A",
+    "cpu_gpu_status": "CPU-only metadata/schema emission; no GPU conclusion",
+    "dtype": "manifest-level only; per-row dtype lives in P1 registry",
+    "seeds": "No new random draws generated in this contract phase",
+    "plan_file": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-gap-p8-synthetic-truth-runner-subplan-2026-06-11.md",
+    "result_file": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-gap-p8-synthetic-truth-runner-result-2026-06-11.md",
+    "output_json": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8-synthetic-truth-contract-2026-06-11.json",
+    "capability_crosswalk_csv": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8-synthetic-truth-capability-crosswalk-2026-06-11.csv",
+    "capability_crosswalk_markdown": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8-synthetic-truth-capability-crosswalk-2026-06-11.md"
+  },
+  "post_run_red_team_note": {
+    "strongest_alternative_explanation": "A contract artifact can look like progress while still leaving the numeric benchmark unrun.",
+    "what_would_overturn_numeric_block": "Accepted truth draws, synthetic datasets, horizon and seed calibration, and reviewed evaluator outputs for reportable cells.",
+    "weakest_part_of_evidence": "No likelihood, score, curvature, or stochastic uncertainty measurements are produced in this phase."
+  },
+  "semantics_source_summary": {
+    "schema_version": "filter_bench.gradient_semantics.v1",
+    "status": "PASS_FILTER_BENCH_P6_GRADIENT_SEMANTICS",
+    "matrix_emission_rules": {
+      "gradient_error_definition": "normed error between algorithm gradient and row reference gradient with absolute and scale-aware relative fields.",
+      "numeric_gradient_error_required_fields": [
+        "gradient_error_abs",
+        "gradient_error_rel",
+        "algorithm_gradient_norm",
+        "reference_gradient_norm",
+        "gradient_dimension"
+      ],
+      "status_only_required_fields": [
+        "gradient_error_abs",
+        "gradient_error_rel",
+        "gradient_status",
+        "reason_codes",
+        "diagnostics"
+      ],
+      "status_only_null_fields": [
+        "gradient_error_abs",
+        "gradient_error_rel"
+      ],
+      "zero_fill_gradient_error_for_noneligible_cells": false,
+      "missing_reference_gradient_may_pass_benchmarkable_value_gradient": false,
+      "finite_gradient_check_is_explanatory_only": true,
+      "fixed_branch_gradient_check_is_explanatory_only": true
+    }
+  },
+  "nonclaims": [
+    "not a filter ranking",
+    "not a full numeric benchmark result",
+    "not evidence that nonlinear approximate likelihoods are exact",
+    "not a DPF gradient certification",
+    "not HMC, GPU, or Bayesian-estimation readiness"
+  ]
+}

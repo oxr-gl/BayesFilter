@@ -1,0 +1,118 @@
+{
+  "schema_version": "p51.hmc_tier2_leapfrog.v1",
+  "metadata_date": "2026-06-09",
+  "phase": "P51-M5",
+  "status": "PASS_P51_M5_HMC_TIER2_LEAPFROG",
+  "source_p50_tier": "TIER_2_HAMILTONIAN_LEAPFROG",
+  "source_artifacts": [
+    "docs/plans/bayesfilter-highdim-zhao-cui-p51-m5-hmc-tier2-leapfrog-subplan-2026-06-09.md",
+    "docs/plans/bayesfilter-highdim-zhao-cui-p50-hmc-readiness-tier-manifest-2026-06-09.json",
+    "docs/plans/bayesfilter-highdim-zhao-cui-p50-m5-sv-generalized-sv-ladder-manifest-2026-06-09.json",
+    "docs/plans/bayesfilter-highdim-zhao-cui-p51-m1-stable-score-api-manifest-2026-06-09.json"
+  ],
+  "strict_sv_baseline_row": "exact_transformed_sv_zhaocui_vs_dense_dim_1_2_3",
+  "diagnostic_scope": "fixed identity-mass leapfrog energy and reversibility diagnostics",
+  "cpu_gpu_scope": "CPU-only; GPU readiness not evaluated",
+  "target_set": [
+    {
+      "target_id": "p51_m5_quadratic_harness_fixture",
+      "target_role": "diagnostic_harness_fixture_only",
+      "evidence_class": "lower_rung",
+      "value_route": "analytic deterministic quadratic through stable highdim score API semantics",
+      "theta": [0.1, -0.2],
+      "momentum": [0.03, -0.04],
+      "mass_matrix": "identity",
+      "step_sizes": [0.05, 0.025],
+      "num_steps": 5,
+      "tolerances": {
+        "energy_error_abs_lt": 0.001,
+        "reversibility_position_inf_lt": 1e-12,
+        "reversibility_momentum_inf_lt": 1e-12
+      },
+      "metrics": [
+        {
+          "step_size": 0.05,
+          "num_steps": 5,
+          "energy_error_abs": 0.000010141782735784144,
+          "reversibility_position_inf": 0.0,
+          "reversibility_momentum_inf": 0.000000000000000020816681711721685,
+          "score_norm": 0.570087712549569
+        },
+        {
+          "step_size": 0.025,
+          "num_steps": 5,
+          "energy_error_abs": 0.0000009039070347494071,
+          "reversibility_position_inf": 0.0,
+          "reversibility_momentum_inf": 0.0,
+          "score_norm": 0.570087712549569
+        }
+      ],
+      "decision": "PASS_TIER2_LEAPFROG_DIAGNOSTIC",
+      "nonclaims": [
+        "quadratic harness is not model evidence",
+        "no SV HMC readiness"
+      ]
+    },
+    {
+      "target_id": "p51_m5_exact_transformed_sv_dim1_dense_reference",
+      "target_role": "strict_p50_sv_dim1_model_target",
+      "evidence_class": "lower_rung",
+      "value_route": "exact transformed SV dense reference, z_t=log(y_t^2), order 401 radius 8",
+      "theta_parameterization": "theta=(Phi^{-1}(gamma), log(beta))",
+      "theta": [0.2533471031357997, -0.916290731874155],
+      "momentum": [0.02, -0.015],
+      "mass_matrix": "identity",
+      "observations": [[0.12], [-0.07]],
+      "step_sizes": [0.005, 0.0025],
+      "num_steps": 4,
+      "tolerances": {
+        "energy_error_abs_lt": 0.05,
+        "reversibility_position_inf_lt": 1e-10,
+        "reversibility_momentum_inf_lt": 1e-10
+      },
+      "metrics": [
+        {
+          "step_size": 0.005,
+          "num_steps": 4,
+          "energy_error_abs": 0.000000005899774890849585,
+          "reversibility_position_inf": 0.0,
+          "reversibility_momentum_inf": 0.000000000000000003469446951953614,
+          "score_norm": 1.4887841634705286
+        },
+        {
+          "step_size": 0.0025,
+          "num_steps": 4,
+          "energy_error_abs": 0.0000000005946008130308655,
+          "reversibility_position_inf": 0.0,
+          "reversibility_momentum_inf": 0.000000000000000001734723475976807,
+          "score_norm": 1.4887841634705286
+        }
+      ],
+      "decision": "PASS_TIER2_LEAPFROG_DIAGNOSTIC",
+      "nonclaims": [
+        "dim-1 diagnostic only",
+        "no short-chain sampler health",
+        "no production SV readiness"
+      ]
+    }
+  ],
+  "promotion_boundary": {
+    "finite_gradient_is_not_tier2": true,
+    "quadratic_harness_is_not_model_evidence": true,
+    "tier2_is_not_hmc_ready_without_tier3": true,
+    "cpu_only_is_not_gpu_readiness": true,
+    "strict_sv_dim1_does_not_cover_all_p50_sv_rows": true
+  },
+  "tokens_emitted": [
+    "PASS_P51_M5_HMC_TIER2_LEAPFROG"
+  ],
+  "nonclaims": [
+    "no short-chain sampler health",
+    "no production HMC readiness",
+    "no GPU readiness",
+    "no model production readiness",
+    "no broad HMC convergence",
+    "no source-faithful adaptive TT/SIRT filtering",
+    "no S&P 500 reproduction"
+  ]
+}

@@ -39,6 +39,252 @@ Use this order before changing code or tuning numerical parameters:
 This order prevents a common error: making a numerically smooth path smoother
 without first proving that it is the intended path.
 
+\section{Proposal log-probability autodiff topology}
+\label{sec:bf-dpf-proposal-logprob-ad-topology}
+
+The most expensive debugging lesson in the FilterFlow/BayesFilter comparison
+was not a floating-point tolerance issue and not a seed issue.  It was an
+autodiff-topology issue in the adapted proposal log probability.  The forward
+numbers can be exactly right while the derivative is wrong if the proposal
+sample and the proposal log probability are wired through the same distribution
+object in the computation graph.
+
+Write
+\[
+  f_\theta(x_t\mid x_{t-1})
+  \quad\text{and}\quad
+  g_\theta(y_t\mid x_t)
+\]
+for the transition and observation densities.  For an adapted proposal
+\[
+  q_\theta(x_t\mid x_{t-1},y_t),
+\]
+the one-step log-weight update corresponding to
+\eqref{eq:bf-pf-sis-recursion} is
+\begin{equation}
+\label{eq:bf-dpf-adapted-proposal-log-weight}
+  \log \tilde w_t^{(i)}
+  =
+  \log w_{t-1}^{(i)}
+  + \log f_\theta(x_t^{(i)}\mid x_{t-1}^{(i)})
+  + \log g_\theta(y_t\mid x_t^{(i)})
+  - \log q_\theta(x_t^{(i)}\mid x_{t-1}^{(i)},y_t).
+\end{equation}
+The last term is not the log probability of a random-number-generation event.
+It is the density of the realized particle value under the declared proposal
+law.
+
+In the linear-Gaussian adapted-proposal case used by the row-173 debug trace,
+the optimal proposal satisfies
+\begin{equation}
+\label{eq:bf-dpf-optimal-proposal-identity}
+  q_\theta(x_t\mid x_{t-1},y_t)
+  =
+  p_\theta(x_t\mid x_{t-1},y_t)
+  =
+  \frac{
+    f_\theta(x_t\mid x_{t-1})g_\theta(y_t\mid x_t)
+  }{
+    p_\theta(y_t\mid x_{t-1})
+  } .
+\end{equation}
+Substituting \eqref{eq:bf-dpf-optimal-proposal-identity} into the signed
+increment in \eqref{eq:bf-dpf-adapted-proposal-log-weight} gives
+\begin{align}
+\label{eq:bf-dpf-optimal-proposal-cancellation}
+ &\log f_\theta(x_t\mid x_{t-1})
+  + \log g_\theta(y_t\mid x_t)
+  - \log q_\theta(x_t\mid x_{t-1},y_t) \nonumber\\
+ &\hspace{1cm}
+  =
+  \log p_\theta(y_t\mid x_{t-1}).
+\end{align}
+Thus, when the proposal is the exact adapted proposal, the signed increment is
+independent of the realized value $x_t$ after cancellation.  Equivalently,
+\[
+  \frac{\partial}{\partial x_t}
+  \left[
+    \log f_\theta(x_t\mid x_{t-1})
+    + \log g_\theta(y_t\mid x_t)
+    - \log q_\theta(x_t\mid x_{t-1},y_t)
+  \right]
+  =0 .
+\]
+This zero derivative is a cancellation of three density derivatives.  It is not
+obtained by making the proposal-density derivative vanish.
+
+The correct implementation topology therefore has two conceptual steps:
+\begin{enumerate}[label=(\roman*)]
+  \item sample the proposed particle from the proposal law;
+  \item evaluate the proposal density at the realized particle as an ordinary
+    density argument.
+\end{enumerate}
+In pseudocode:
+\begin{verbatim}
+sample_dist = make_proposal_dist(previous_state, observation)
+proposed_particles = sample_dist.sample(seed)
+
+density_dist = make_proposal_dist(previous_state, observation)
+proposal_ll = density_dist.log_prob(proposed_particles)
+\end{verbatim}
+The second distribution has the same numerical parameters as the first, but it
+is a fresh density-evaluation node.  Equivalently, one may call a helper such
+as \texttt{optimal\_proposal\_log\_prob(...)} that rebuilds the proposal mean
+and covariance before applying \texttt{log\_prob}.  This is the topology used
+by FilterFlow's executable contract: \texttt{propose} first returns a state
+whose \texttt{particles} field contains the sampled particles, and
+\texttt{loglikelihood(proposed\_state, state, observation)} then recomputes
+the proposal distribution and evaluates its density at
+\texttt{proposed\_state.particles}.
+
+The tempting but wrong topology is
+\begin{verbatim}
+proposal_dist = make_proposal_dist(previous_state, observation)
+proposed_particles = proposal_dist.sample(seed)
+proposal_ll = proposal_dist.log_prob(proposed_particles)
+\end{verbatim}
+This can be value-correct: the scalar value of \texttt{proposal\_ll} may match
+the fresh-density value exactly.  But the derivative can be wrong because the
+autodiff graph is no longer the graph of the mathematical density function
+$x_t\mapsto \log q_\theta(x_t\mid x_{t-1},y_t)$.  The proposed particle is now
+also the reparameterized sample produced by the same distribution node.  In the
+row-173 trace, that wiring made the BayesFilter VJP
+\[
+  \frac{\partial}{\partial x_t}\log q_\theta(x_t\mid x_{t-1},y_t)
+\]
+with unit upstream equal to zero, while FilterFlow's density-at-realized-particle
+route gave a maximum absolute VJP of
+\[
+  26.075772828701865 .
+\]
+The forward proposal log-probability values still agreed.  The value agreement
+therefore hid the bug.
+
+The downstream effect was exactly the cancellation failure predicted by
+\eqref{eq:bf-dpf-optimal-proposal-cancellation}.  With the naive wiring,
+BayesFilter's unit-upstream VJP of
+\[
+  \log f_\theta+\log g_\theta-\log q_\theta
+\]
+with respect to the proposed particles had maximum absolute discrepancy
+\[
+  26.075772828710043 ,
+\]
+and the normalized previous-log-weight carry VJP had discrepancy
+\[
+  7.930673258915529 .
+\]
+After evaluating the proposal log probability through a freshly recomputed
+proposal density, the proposal-log-probability VJP matched FilterFlow exactly
+in that probe, the signed-sum discrepancy fell to about
+\[
+  1.49\times 10^{-11},
+\]
+and the normalized carry discrepancy fell to about
+\[
+  1.45\times 10^{-11}.
+\]
+These numbers are row-specific evidence for the FilterFlow/BayesFilter
+comparison; the general rule is the topology rule above.
+
+The audit implication is strict.  A DPF implementation may pass value replay,
+seed replay, particle replay, and proposal-log-probability value replay while
+still failing the derivative contract.  Every adapted-proposal implementation
+that is used for gradient comparison must therefore check the proposal
+log-probability VJP as a density evaluation at the realized particle, not only
+the scalar log-probability value.
+
+\section{BayesFilter/FilterFlow deterministic tie-out contract}
+\label{sec:bf-dpf-bf-filterflow-deterministic-tieout}
+
+The production BayesFilter/FilterFlow comparison is a same-object
+implementation tie-out, not an oracle test.  The only statement it supports is
+conditional:
+
+\begin{quote}
+Under the frozen V2 deterministic comparison contract, BayesFilter and the
+executable local FilterFlow-side adapters match on the declared density,
+filter-path, fixed-ancestor, and fixed-branch AD-gradient surfaces.
+\end{quote}
+
+The contract freezes the objects that would otherwise make a particle filter
+comparison ambiguous:
+\begin{enumerate}[label=(\roman*)]
+  \item the model row and physical parameter vector;
+  \item density probes for initial, transition, and observation log densities;
+  \item initial particles, observations, and additive transition innovations;
+  \item the scalar, namely the sum of predictive log normalizers for the path
+    comparisons;
+  \item branch schedules: no resampling for one path test, and fixed ancestor
+    indices for the branch-replay path test;
+  \item the gradient scalar and physical knobs for the fixed-branch AD-gradient
+    comparison.
+\end{enumerate}
+The comparison deliberately avoids random-number-generator equality.  When an
+ancestor schedule is needed, it is treated as data.  Both sides receive the same
+schedule and replay the same branch.
+
+The V2 production suite contains six rows:
+\[
+\begin{gathered}
+\texttt{lgssm\_2d\_h25\_rich},\quad
+\texttt{sv\_1d\_h18\_rich},\quad
+\texttt{range\_bearing\_4d\_h20\_rich},\\
+\texttt{structural\_ar1\_quadratic\_h16},\quad
+\texttt{spatial\_sir\_j3\_rk4},\quad
+\texttt{predator\_prey\_rk4}.
+\end{gathered}
+\]
+The closed V2 run on 2026-06-07 reported:
+\begin{itemize}
+  \item density tie-out: all six rows matched, with maximum absolute delta
+    \(0\);
+  \item deterministic no-resampling path tie-out: all six rows matched, with
+    maximum absolute delta \(0\);
+  \item deterministic fixed-ancestor path tie-out: all six rows matched, with
+    maximum absolute delta \(0\), and the expected one resampling event was
+    replayed on each executed row;
+  \item fixed-branch AD-gradient tie-out: all five executable gradient rows
+    matched on scalar and AD-gradient values, with maximum scalar delta \(0\)
+    and maximum AD-gradient delta \(0\).
+\end{itemize}
+The spatial SIR row was not promoted to the gradient comparison.  It remains a
+gradient-contract block under the frozen manifest, not a failure and not a
+success.
+
+Finite differences are diagnostic-only in this contract.  They are useful for
+finding gross scalar/gradient wiring mistakes, but they are not stable enough
+to be a gate for the DPF comparison.  In the V2 gradient artifact the
+range-bearing same-implementation finite-difference diagnostic had maximum
+reported discrepancy about
+\[
+  1.16\times 10^{-4},
+\]
+while the BayesFilter and FilterFlow AD gradients still matched exactly under
+the fixed-branch scalar.  This is recorded as a numerical diagnostic, not as a
+promotion criterion and not as a veto.
+
+Two robustness diagnostics sit below the production V2 gate:
+\begin{itemize}
+  \item a seeded fixed-ancestor diagnostic generated three frozen ancestor
+    schedules and replayed them across all six V2 rows.  All \(18\) executed
+    rows matched with maximum absolute delta \(0\).  This is branch-robustness
+    evidence only; it is not a stochastic-resampling distribution claim;
+  \item a controlled one-dimensional LGSSM horizon ladder compared \(T=2\) and
+    \(T=4\).  Both scenarios had implementation agreement.  The \(T=4\)
+    scenario retained a forward residual veto in the older Sinkhorn residual
+    diagnostic, so the ladder is explanatory and does not change the V2
+    production conclusion.
+\end{itemize}
+
+The non-claims are part of the contract.  The BayesFilter/FilterFlow tie-out
+does not prove filter correctness, does not prove that either implementation is
+mathematically correct, does not validate stochastic resampling distributions,
+does not validate gradients through random or discrete ancestor selection, and
+does not compare to student implementations, TT/SIRT, dense quadrature, paper
+tables, GPU behavior, HMC behavior, DSGE behavior, scalability, deployment, or
+production readiness.
+
 \section{Equation-to-test matrix}
 \label{sec:bf-dpf-debug-equation-test-matrix}
 

@@ -1,0 +1,27 @@
+metadata_date: 2026-05-30
+artifact_type: third_party_audit_snapshot
+production_code: false
+upstream:
+  repository: https://github.com/DeepTransport/tensor-ssm-paper-demo
+  commit: 80034dccb99eb1d86284a1839b4a12067d13b9da
+  paper: Zhao and Cui, Tensor-Train Methods for Sequential State and Parameter Learning in State-Space Models, JMLR 2024
+local_paths:
+  source_snapshot: third_party/audit/zhao_cui_tensor_ssm_p10/source
+  octave_patch: third_party/audit/zhao_cui_tensor_ssm_p10/octave_compatibility.patch
+  smoke_script: third_party/audit/zhao_cui_tensor_ssm_p10/source/octave_compat/p10_octave_kalman_smoke.m
+license_boundary:
+  upstream_license_files:
+    - source/LICENSE.md
+    - source/COPYING
+    - source/COPYING.LESSER
+  note: Non-production audit artifact; do not import into production bayesfilter without separate license and clean-room decision.
+smoke:
+  command: timeout 60s octave-cli --quiet --no-gui third_party/audit/zhao_cui_tensor_ssm_p10/source/octave_compat/p10_octave_kalman_smoke.m
+  expected_marker: P10_OCTAVE_SMOKE_DONE
+what_is_not_concluded:
+  - no production readiness
+  - no posterior accuracy
+  - no full paper replication
+  - no HMC readiness
+  - no analytical-gradient implementation
+  - no default method recommendation

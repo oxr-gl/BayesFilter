@@ -1,0 +1,144 @@
+{
+  "artifact_id": "dpf_common_model_suite_v2_governance_schema_2026-06-07",
+  "phase": "P0",
+  "created_date": "2026-06-07",
+  "status": "GOVERNANCE_SCHEMA_DRAFT",
+  "program": "DPF common model suite v2 production",
+  "parent_plan": "docs/plans/bayesfilter-dpf-common-model-suite-v2-production-master-plan-2026-06-07.md",
+  "execution_plan": "docs/plans/bayesfilter-dpf-common-model-suite-v2-production-overnight-gated-execution-plan-2026-06-07.md",
+  "declared_v2_model_ids_exact": [
+    "lgssm_2d_h25_rich",
+    "sv_1d_h18_rich",
+    "range_bearing_4d_h20_rich",
+    "structural_ar1_quadratic_h16",
+    "spatial_sir_j3_rk4",
+    "predator_prey_rk4"
+  ],
+  "row_count_gate": {
+    "required_count": 6,
+    "required_ids": [
+      "lgssm_2d_h25_rich",
+      "sv_1d_h18_rich",
+      "range_bearing_4d_h20_rich",
+      "structural_ar1_quadratic_h16",
+      "spatial_sir_j3_rk4",
+      "predator_prey_rk4"
+    ],
+    "missing_or_extra_ids_are_material_blockers": true
+  },
+  "blocked_state_taxonomy": [
+    "MATCHED",
+    "EXPLAINED_MISMATCH",
+    "INTERFACE_BLOCKED",
+    "CONTRACT_BLOCKED",
+    "SCIENTIFIC_CONTRACT_BLOCKED"
+  ],
+  "pre_run_classification_statuses": [
+    "READY_FOR_P2",
+    "INTERFACE_BLOCKED",
+    "CONTRACT_BLOCKED",
+    "SCIENTIFIC_CONTRACT_BLOCKED"
+  ],
+  "required_model_row_fields": [
+    "model_id",
+    "family",
+    "source_surface",
+    "successor_or_retirement_relation",
+    "dtype",
+    "theta",
+    "parameters",
+    "density_probes",
+    "path_contract",
+    "fixed_ancestor_contract",
+    "gradient_contract",
+    "tolerances",
+    "checksums",
+    "non_claims"
+  ],
+  "required_path_contract_fields": [
+    "horizon",
+    "num_particles",
+    "initial_particles",
+    "transition_innovations",
+    "observations",
+    "scalar_definition",
+    "cpu_only_policy",
+    "contract_checksum"
+  ],
+  "required_gradient_contract_fields": [
+    "gradient_knob_names",
+    "parameter_values",
+    "parameterization",
+    "finite_difference_step",
+    "included_knobs",
+    "excluded_knobs",
+    "exclusion_reasons",
+    "contract_checksum"
+  ],
+  "required_sir_adapter_semantics": [
+    "state_coordinate_convention",
+    "infectious_only_observation_route",
+    "domain_policy",
+    "rk4_delta",
+    "rk4_internal_step",
+    "rk4_substep_count",
+    "neighbor_sets",
+    "graph_semantics",
+    "process_covariance",
+    "observation_covariance",
+    "initial_covariance",
+    "gradient_inclusion_or_exclusion_reason"
+  ],
+  "required_predator_prey_adapter_semantics": [
+    "state_coordinate_convention",
+    "direct_noisy_state_observation_route",
+    "domain_policy",
+    "rk4_delta",
+    "rk4_internal_step",
+    "rk4_substep_count",
+    "parameter_box",
+    "chosen_physical_parameterization",
+    "process_covariance",
+    "observation_covariance",
+    "initial_covariance",
+    "gradient_inclusion_or_exclusion_reason_by_knob"
+  ],
+  "v2_execution_preflight_vetoes": [
+    "old_three_row_common_model_specs_used_as_v2_source",
+    "old_dpf_common_2026_06_06_artifact_name_written_by_v2_runner",
+    "missing_pre_run_row_classification_table",
+    "sir_or_predator_prey_adapter_semantics_uncertified_before_execution",
+    "primary_veto_explanatory_fields_not_separated",
+    "student_command_or_derived_metric_before_separate_student_execution_plan",
+    "localsource_filterflow_mutation_need",
+    "cpu_only_tensorflow_import_without_cuda_visible_devices_minus_one"
+  ],
+  "phase_artifact_required_fields": [
+    "primary_criterion_fields",
+    "veto_diagnostics",
+    "explanatory_only_fields",
+    "review_round",
+    "open_material_blockers",
+    "repair_amendment_required",
+    "next_allowed_action"
+  ],
+  "retirement_semantics": {
+    "retired_modules": [
+      "experiments/dpf_implementation/tf_tfp/fixtures/lgssm_tf.py",
+      "experiments/dpf_implementation/tf_tfp/fixtures/stochastic_volatility_tf.py",
+      "experiments/dpf_implementation/tf_tfp/fixtures/range_bearing_tf.py"
+    ],
+    "retirement_meaning": "no production v2 runner imports these modules after P6; legacy/reference/nonproduction imports may remain if inventoried",
+    "physical_deletion_requires_reviewed_cleanup_amendment": true
+  },
+  "non_claims": [
+    "no v2 model value claim in P0",
+    "no BF/FF density or path agreement claim in P0",
+    "no gradient claim in P0",
+    "no filtering correctness proof",
+    "no student implementation claim",
+    "no TT/SIRT correctness claim",
+    "no paper-scale reproduction claim",
+    "no GPU/HMC/DSGE/readiness claim"
+  ]
+}

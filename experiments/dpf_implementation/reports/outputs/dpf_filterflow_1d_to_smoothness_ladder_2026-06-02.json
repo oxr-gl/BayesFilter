@@ -1,0 +1,1528 @@
+{
+  "answer_scope": "This run localizes the first evidence-bearing failure within the executed R1/R2 scalar-state prefix. It does not answer the full smoothness-alignment question because R3-R8 are blocked after the R2 veto.",
+  "created_at_utc": "2026-06-01T21:38:01Z",
+  "decision": "one_d_to_smoothness_ladder_protocol_blocked_inspection_only",
+  "downstream_use": "blocked until the plan is accepted in a reviewed loop or the human explicitly authorizes this inspection-only artifact as sufficient",
+  "filterflow_fingerprint_final": {
+    "branch_ref_exists": true,
+    "branch_string_status": "descriptive_only",
+    "diff_digest": "02c0d85ed6d4fb8cd4b866fe0265f51ff0fdd8ec8fec5358250c468792c0ebb3",
+    "head_commit": "5d8300ba247c4c17e1a301a22560c24fd0670bfe",
+    "package_manifest_digest": "51fe9cee75a907b7fe54709b2ebbbc48470a8e6291967dbb10bebf00ebef7a86",
+    "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+    "provenance_note": "Comparator identity is HEAD commit plus local-diff/status fingerprint; branch string is descriptive only.",
+    "python_version": "Python 3.11.14",
+    "status": "current_local_patched_checkout",
+    "status_branch": "## bayesfilter-py311-compat\n M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+    "status_short": "M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+    "symbolic_head": "bayesfilter-py311-compat"
+  },
+  "filterflow_fingerprint_initial": {
+    "branch_ref_exists": true,
+    "branch_string_status": "descriptive_only",
+    "diff_digest": "02c0d85ed6d4fb8cd4b866fe0265f51ff0fdd8ec8fec5358250c468792c0ebb3",
+    "head_commit": "5d8300ba247c4c17e1a301a22560c24fd0670bfe",
+    "package_manifest_digest": "51fe9cee75a907b7fe54709b2ebbbc48470a8e6291967dbb10bebf00ebef7a86",
+    "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+    "provenance_note": "Comparator identity is HEAD commit plus local-diff/status fingerprint; branch string is descriptive only.",
+    "python_version": "Python 3.11.14",
+    "status": "current_local_patched_checkout",
+    "status_branch": "## bayesfilter-py311-compat\n M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+    "status_short": "M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+    "symbolic_head": "bayesfilter-py311-compat"
+  },
+  "first_blocked_rung": "R3_1d_particle_count_ladder",
+  "first_failing_rung": "R2_1d_horizon_ladder",
+  "json_path": "experiments/dpf_implementation/reports/outputs/dpf_filterflow_1d_to_smoothness_ladder_2026-06-02.json",
+  "non_implications": [
+    "No production readiness is concluded.",
+    "No public API readiness is concluded.",
+    "No posterior correctness is concluded.",
+    "No HMC readiness is concluded.",
+    "No general nonlinear-SSM validity is concluded.",
+    "No DSGE/NAWM validation is concluded.",
+    "No banking/model-risk claim is concluded.",
+    "No monograph claim is concluded.",
+    "No gradient correctness beyond this fixed 1D scalar fixture is concluded."
+  ],
+  "path_boundary_manifest": {
+    "dsge_nawm_code_used": false,
+    "filterflow_source_mutated": false,
+    "highdim_lane_used_or_edited": false,
+    "monograph_chapters_used_or_edited": false,
+    "production_bayesfilter_code_used": false,
+    "student_or_vendored_code_used_as_authority": false,
+    "tests_code_used": false
+  },
+  "plan_path": "docs/plans/bayesfilter-dpf-1d-to-smoothness-lgssm-continuation-ladder-plan-2026-06-02.md",
+  "plan_review_status": "REJECT_patched_for_user_inspection_after_round_5",
+  "protocol_status": "blocked_inspection_only_nonaccepted_plan",
+  "question": "Within the executed bounded scalar-prefix of the 1D-to-smoothness ladder, which rung first fails?",
+  "reference_policy": {
+    "authoritative_identity": "HEAD commit plus local-diff/status fingerprint",
+    "branch_string_status": "descriptive_only",
+    "canonical_executable_reference": "current local patched .localsource/filterflow",
+    "filterflow_source_mutation": "runner does not mutate filterflow source",
+    "fixed_target_sinkhorn": "not used"
+  },
+  "report_path": "experiments/dpf_implementation/reports/dpf-filterflow-1d-to-smoothness-ladder-2026-06-02.md",
+  "reproducibility_digest": "d7162ee1ac8d2c92104d76e2f8266ff8cc15e4ad6d87605155b2b8447401c992",
+  "result_path": "docs/plans/bayesfilter-dpf-1d-to-smoothness-lgssm-continuation-ladder-result-2026-06-02.md",
+  "review_loop_path": "docs/plans/bayesfilter-dpf-1d-to-smoothness-lgssm-continuation-ladder-review-loop-2026-06-02.md",
+  "run_manifest": {
+    "branch": "main",
+    "command": "CUDA_VISIBLE_DEVICES=-1 python -m experiments.dpf_implementation.tf_tfp.runners.run_filterflow_1d_to_smoothness_ladder_tf",
+    "commit": "7ccb9c39883471c2d5ec2891cbf33b9ed436bada",
+    "cpu_only": true,
+    "cuda_visible_devices": "-1",
+    "dirty_state_summary": "M docs/plans/bayesfilter-student-dpf-baseline-master-program-2026-05-10.md\n M docs/plans/bayesfilter-student-dpf-baseline-reset-memo-2026-05-09.md\n M experiments/controlled_dpf_baseline/README.md\n?? .cache/\n?? .local_sources/\n?? .localenv/\n?? .localsource/\n?? AGENTS.md\n?? CLAUDE.md\n?? docs/plans/bayesfilter-dpf-1d-lgssm-horizon-ladder-plan-2026-06-01.md\n?? docs/plans/bayesfilter-dpf-1d-lgssm-horizon-ladder-result-2026-06-01.md\n?? docs/plans/bayesfilter-dpf-1d-lgssm-step-gradient-comparison-plan-2026-06-01.md\n?? docs/plans/bayesfilter-dpf-1d-lgssm-step-gradient-comparison-result-2026-06-01.md\n?? docs/plans/bayesfilter-dpf-1d-lgssm-step-gradient-comparison-review-loop-2026-06-01.md\n?? docs/plans/bayesfilter-dpf-1d-to-smoothness-lgssm-continuation-ladder-plan-2026-06-02.md\n?? docs/plans/bayesfilter-dpf-1d-to-smoothness-lgssm-continuation-ladder-result-2026-06-02.md\n?? docs/plans/bayesfilter-dpf-1d-to-smoothness-lgssm-continuation-ladder-review-loop-2026-06-02.md\n?? docs/plans/bayesfilter-dpf-annealed-transport-reference-alignment-plan-2026-05-31.md\n?? docs/plans/bayesfilter-dpf-annealed-transport-reference-alignment-result-2026-05-31.md\n?? docs/plans/bayesfilter-dpf-annealed-transport-reference-alignment-review-loop-2026-05-31.md\n?? docs/plans/bayesfilter-dpf-annealed-transport-remaining-gaps-closure-plan-2026-06-01.md\n?? docs/plans/bayesfilter-dpf-annealed-transport-remaining-gaps-closure-result-2026-06-01.md\n?? docs/plans/bayesfilter-dpf-annealed-transport-remaining-gaps-closure-review-loop-2026-06-01.md\n?? docs/plans/bayesfilter-dpf-filterflow-final-gaps-closure-plan-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-final-gaps-closure-result-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-full-comparison-plan-2026-05-31.md\n?? docs/plans/bayesfilter-dpf-filterflow-full-comparison-result-2026-05-31.md\n?? docs/plans/bayesfilter-dpf-filterflow-gap-closure-plan-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-gap-closure-program-plan-2026-05-31.md\n?? docs/plans/bayesfilter-dpf-filterflow-gap-closure-program-result-2026-05-31.md\n?? docs/plans/bayesfilter-dpf-filterflow-gap-closure-result-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-legacy-env-reproduction-plan-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-legacy-env-reproduction-result-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-lgssm-cross-implementation-audit-plan-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-lgssm-cross-implementation-audit-result-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-lgssm-matched-cross-audit-plan-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-lgssm-matched-cross-audit-result-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-py311-compat-plan-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-py311-compat-result-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-transport-component-audit-plan-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-transport-component-audit-result-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0-citation-coverage-register-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0-claim-extraction-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0-claim-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0-implementation-obligations-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0a-doc-patch-register-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0a-student-doc-crosswalk-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0a-student-doc-crosswalk-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0a-student-doc-crosswalk-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf1-classical-pf-baseline-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf1-classical-pf-spec-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf1-reference-test-contract-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf1-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf1-student-comparison-context-register-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf2-bias-proxy-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf2-component-spec-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf2-deferred-neural-path-register-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf2-differentiable-resampling-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf2-resampling-test-contract-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf2-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf3-excluded-flow-risk-register-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf3-flow-pfpf-spec-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf3-kernel-pff-exclusion-check-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf3-particle-flow-pfpf-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf3-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf4-differentiable-objective-gradient-contract-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf4-downstream-evidence-requirements-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf4-gradient-contract-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf4-objective-classification-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf4-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf5-benchmark-ladder-matrix-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf5-cpu-gpu-runtime-policy-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf5-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf5-seed-uncertainty-policy-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf5-validation-harness-benchmark-ladder-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf5-validation-harness-spec-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf6-production-boundary-api-review-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf6-production-boundary-decision-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf6-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf7-final-audit-implementation-handoff-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-final-audit-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-handoff-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-master-program-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-sv-test-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-master-program-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p0-scope-default-architecture-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p0-scope-default-architecture-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p1-ledh-math-contract-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p1-ledh-math-contract-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p10-final-audit-handoff-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p10-final-audit-handoff-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p2-affine-lgssm-edh-parity-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p2-affine-lgssm-edh-parity-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p3-nonlinear-local-linearization-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p3-nonlinear-local-linearization-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p4-pfpf-correction-logdet-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p4-pfpf-correction-logdet-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p5-tf-tfp-ledh-flow-implementation-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p5-tf-tfp-ledh-flow-implementation-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p6-integrated-ledh-pfpf-ot-runner-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p6-integrated-ledh-pfpf-ot-runner-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p7-gradient-tape-contract-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p7-gradient-tape-contract-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p8-lgssm-validation-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p8-lgssm-validation-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p9-range-bearing-validation-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p9-range-bearing-validation-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-ladder-master-program-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p0-scope-and-estimation-criteria-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p0-scope-and-estimation-criteria-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p1-lgssm-multiseed-regression-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p1-lgssm-multiseed-regression-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p2-range-bearing-stress-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p2-range-bearing-stress-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p3-cut4-differentiable-comparator-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p3-cut4-differentiable-comparator-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p4-stochastic-volatility-gradient-mle-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p4-stochastic-volatility-gradient-mle-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p5-structural-ar1-quadratic-completion-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p5-structural-ar1-quadratic-completion-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p6-particle-count-seed-ladder-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p6-particle-count-seed-ladder-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p7-final-audit-handoff-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p7-final-audit-handoff-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ot-backend-governance-correction-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-backend-governance-correction-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-master-program-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p0-scope-and-contract-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p0-scope-and-contract-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p1-lgssm-fixture-and-kalman-reference-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p1-lgssm-fixture-and-kalman-reference-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p2-range-bearing-ukf-reference-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p2-range-bearing-ukf-reference-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p3-finite-sinkhorn-resampler-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p3-finite-sinkhorn-resampler-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p4-integrated-dpf-runner-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p4-integrated-dpf-runner-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p5-gradient-contract-and-finite-difference-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p5-gradient-contract-and-finite-difference-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p6-lgssm-validation-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p6-lgssm-validation-result-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p7-range-bearing-validation-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p7-range-bearing-validation-result-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p8-final-audit-and-handoff-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p8-final-audit-and-handoff-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-resampling-math-source-audit-plan-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-ot-resampling-math-source-audit-result-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-master-program-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p0-scope-import-gate-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p0-scope-import-gate-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p1-lgssm-fixture-kalman-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p1-lgssm-fixture-kalman-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p2-range-bearing-ukf-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p2-range-bearing-ukf-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p3-sinkhorn-resampler-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p3-sinkhorn-resampler-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p4-integrated-dpf-runner-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p4-integrated-dpf-runner-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p5-gradient-tape-contract-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p5-gradient-tape-contract-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p6-lgssm-validation-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p6-lgssm-validation-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p7-range-bearing-validation-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p7-range-bearing-validation-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p8-final-audit-handoff-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p8-final-audit-handoff-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-rewrite-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-structural-ar1-linear-mle-test-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-structural-ar1-linear-mle-test-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-structural-ssm-interface-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-structural-ssm-interface-result-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-claude-review-ledger-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-code-audit-ledger-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-code-audit-promotion-plan-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-filtering-scalar-ledger-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-gradient-feasibility-ledger-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-mathdevmcp-ledger-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-octave-compatibility-plan-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-octave-compatibility-result-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-paper-code-crosswalk-ledger-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-reproducibility-ledger-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p11-zhao-cui-tt-analytical-derivative-note-2026-05-30.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p11-zhao-cui-tt-analytical-derivative-note-2026-05-30.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p11-zhao-cui-tt-analytical-derivative-plan-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p11-zhao-cui-tt-analytical-derivative-result-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p11-zhao-cui-tt-claude-review-ledger-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p11-zhao-cui-tt-derivation-ledger-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p11-zhao-cui-tt-mathdevmcp-ledger-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-claim-support-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-claude-review-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-coverage-and-omission-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-mathdevmcp-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-proposition-proof-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-self-contained-proof-expansion-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-self-contained-proof-expansion-note-2026-05-31.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-self-contained-proof-expansion-note-2026-05-31.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-self-contained-proof-expansion-plan-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-self-contained-proof-expansion-result-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-source-anchor-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-source-support-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-claude-review-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-discrepancy-report-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-human-readable-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-human-readable-note-2026-05-31.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-human-readable-note-2026-05-31.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-human-readable-plan-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-human-readable-result-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-mathdevmcp-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-proposition-humanization-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-reader-comprehension-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-source-support-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-claude-review-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-discrepancy-report-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-gradient-teaching-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-mathdevmcp-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-pedagogical-math-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-pedagogical-math-note-2026-05-31.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-pedagogical-math-note-2026-05-31.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-pedagogical-math-plan-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-pedagogical-math-result-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-reader-panel-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-source-support-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-algorithm-choices-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-backward-snowball-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-citation-venue-metadata-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-claim-support-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-claude-review-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-discrepancy-report-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-fixed-branch-minimal-example-2026-05-31.py\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-forward-snowball-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-gradient-derivation-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-implementable-fixed-branch-spec-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-implementable-fixed-branch-spec-note-2026-05-31.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-implementable-fixed-branch-spec-note-2026-05-31.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-implementable-fixed-branch-spec-plan-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-implementable-fixed-branch-spec-result-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-mathdevmcp-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-omitted-paper-risk-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-reference-example-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-source-support-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-annotated-reconstruction-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-annotated-reconstruction-note-2026-06-01.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-annotated-reconstruction-note-2026-06-01.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-annotated-reconstruction-plan-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-annotated-reconstruction-result-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-backward-snowball-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-bayesfilter-translation-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-citation-venue-metadata-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-claim-support-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-claude-review-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-code-crosswalk-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-discrepancy-report-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-equation-by-equation-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-fixed-branch-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-forward-snowball-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-gradient-derivation-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-mathdevmcp-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-omitted-paper-risk-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-source-support-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-claude-review-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-discrepancy-report-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-fixed-branch-derivative-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-full-annotated-reconstruction-note-2026-06-01.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-full-annotated-reconstruction-note-2026-06-01.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-full-equation-inventory-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-full-equation-reconstruction-plan-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-full-equation-reconstruction-result-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-mathdevmcp-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-section1-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-section2-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-section3-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-section5-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-source-support-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-backward-snowball-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-citation-venue-metadata-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-claim-support-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-claude-review-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-discrepancy-report-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-eight-issue-control-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-equation-count-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-fixed-branch-gradient-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-forward-snowball-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-omitted-paper-risk-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-section1-source-unit-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-section2-source-unit-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-section3-source-unit-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-section5-source-unit-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-source-support-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-true-annotated-companion-note-2026-06-01.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-true-annotated-companion-note-2026-06-01.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-true-annotation-inventory-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-true-annotation-plan-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-true-annotation-result-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p19-zhao-cui-chair-readable-gradient-note-2026-06-01.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p19-zhao-cui-chair-readable-gradient-note-2026-06-01.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p19-zhao-cui-chair-readable-gradient-plan-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p19-zhao-cui-chair-readable-gradient-result-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p19-zhao-cui-claude-review-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p19-zhao-cui-discrepancy-report-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p19-zhao-cui-finite-difference-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p19-zhao-cui-fixed-branch-scalar-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p19-zhao-cui-gradient-equation-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p19-zhao-cui-gradient-teaching-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p19-zhao-cui-mathdevmcp-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p20-zhao-cui-claude-review-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p20-zhao-cui-discrepancy-report-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p20-zhao-cui-equation-and-size-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p20-zhao-cui-integrated-companion-gradient-note-2026-06-01.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p20-zhao-cui-integrated-companion-gradient-note-2026-06-01.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p20-zhao-cui-integrated-companion-gradient-plan-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p20-zhao-cui-integrated-companion-gradient-result-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p20-zhao-cui-merge-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p21-zhao-cui-chair-guide-reference-implementation-claude-review-ledger-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p21-zhao-cui-chair-guide-reference-implementation-note-2026-06-02.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p21-zhao-cui-chair-guide-reference-implementation-note-2026-06-02.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p21-zhao-cui-chair-guide-reference-implementation-plan-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p21-zhao-cui-chair-guide-reference-implementation-result-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p21-zhao-cui-chair-teachability-ledger-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p21-zhao-cui-discrepancy-report-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p21-zhao-cui-equation-to-specification-ledger-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p21-zhao-cui-finite-difference-protocol-ledger-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p21-zhao-cui-fixed-branch-implementation-ready-spec-ledger-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p21-zhao-cui-full-algorithm-gap-register-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p21-zhao-cui-implementation-readiness-ledger-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p22-zhao-cui-claude-review-ledger-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p22-zhao-cui-discrepancy-report-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p22-zhao-cui-implementation-specification-ledger-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p22-zhao-cui-integrated-readable-companion-note-2026-06-02.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p22-zhao-cui-integrated-readable-companion-note-2026-06-02.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p22-zhao-cui-integrated-readable-companion-plan-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p22-zhao-cui-integrated-readable-companion-result-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p22-zhao-cui-integration-ledger-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p22-zhao-cui-readable-orientation-ledger-2026-06-02.md\n?? docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-plan-2026-05-27.md\n?? docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-plan-audit-2026-05-27.md\n?? docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-result-2026-05-27.md\n?? docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-review-2026-05-27.md\n?? experiments/controlled_dpf_baseline/reports/controlled-dpf-baseline-final-archive-result.md\n?? experiments/dpf_implementation/\n?? third_party/",
+    "gpu_devices_visible": [],
+    "package_versions": {
+      "tensorflow": "2.19.1",
+      "tensorflow_probability": "0.25.0"
+    },
+    "pre_import_cuda_visible_devices": "-1",
+    "python_version": "3.11.14",
+    "wall_time_seconds": 171.83719414519146
+  },
+  "rung_ledger": [
+    {
+      "blocker_reason": null,
+      "comparator_fingerprint_after": {
+        "branch_ref_exists": true,
+        "branch_string_status": "descriptive_only",
+        "diff_digest": "02c0d85ed6d4fb8cd4b866fe0265f51ff0fdd8ec8fec5358250c468792c0ebb3",
+        "head_commit": "5d8300ba247c4c17e1a301a22560c24fd0670bfe",
+        "package_manifest_digest": "51fe9cee75a907b7fe54709b2ebbbc48470a8e6291967dbb10bebf00ebef7a86",
+        "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+        "provenance_note": "Comparator identity is HEAD commit plus local-diff/status fingerprint; branch string is descriptive only.",
+        "python_version": "Python 3.11.14",
+        "status": "current_local_patched_checkout",
+        "status_branch": "## bayesfilter-py311-compat\n M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+        "status_short": "M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+        "symbolic_head": "bayesfilter-py311-compat"
+      },
+      "comparator_fingerprint_before": {
+        "branch_ref_exists": true,
+        "branch_string_status": "descriptive_only",
+        "diff_digest": "02c0d85ed6d4fb8cd4b866fe0265f51ff0fdd8ec8fec5358250c468792c0ebb3",
+        "head_commit": "5d8300ba247c4c17e1a301a22560c24fd0670bfe",
+        "package_manifest_digest": "51fe9cee75a907b7fe54709b2ebbbc48470a8e6291967dbb10bebf00ebef7a86",
+        "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+        "provenance_note": "Comparator identity is HEAD commit plus local-diff/status fingerprint; branch string is descriptive only.",
+        "python_version": "Python 3.11.14",
+        "status": "current_local_patched_checkout",
+        "status_branch": "## bayesfilter-py311-compat\n M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+        "status_short": "M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+        "symbolic_head": "bayesfilter-py311-compat"
+      },
+      "evidence_bearing": true,
+      "explanatory_diagnostics": {
+        "known_prior_T4_row_residual": 0.0005233019270021178,
+        "sweep_contract": "threshold in {1e-6,1e-7,1e-8}; max_iterations in {200,500,1000}"
+      },
+      "failure_observed_directly": false,
+      "filterflow_cpu_only_manifest": {
+        "cuda_visible_devices": "-1",
+        "gpu_devices_visible": [],
+        "pre_import_cuda_visible_devices": "-1"
+      },
+      "first_blocked_rung": null,
+      "first_failing_rung": null,
+      "fixed_variables": {
+        "epsilon": 0.25,
+        "horizon": 4,
+        "num_particles": 4,
+        "observations": [
+          0.05,
+          -0.1,
+          0.08,
+          -0.04
+        ],
+        "scaling": 0.9,
+        "scenario_id": "T4_extension",
+        "theta": 0.7,
+        "transition_noises": [
+          [
+            0.0,
+            0.1,
+            -0.2,
+            0.3
+          ],
+          [
+            0.2,
+            -0.1,
+            0.0,
+            -0.3
+          ],
+          [
+            -0.1,
+            0.0,
+            0.25,
+            -0.15
+          ],
+          [
+            0.15,
+            -0.25,
+            0.05,
+            0.1
+          ]
+        ]
+      },
+      "inherited_blocker": null,
+      "parent_cpu_only_manifest": {
+        "cuda_visible_devices": "-1",
+        "gpu_devices_visible": [],
+        "pre_import_cuda_visible_devices": "-1"
+      },
+      "primary_metrics": {
+        "cell_summaries": [
+          {
+            "bayesfilter_status": "executed",
+            "cell_status": "veto",
+            "comparator_fingerprint_after": {
+              "branch_ref_exists": true,
+              "branch_string_status": "descriptive_only",
+              "diff_digest": "02c0d85ed6d4fb8cd4b866fe0265f51ff0fdd8ec8fec5358250c468792c0ebb3",
+              "head_commit": "5d8300ba247c4c17e1a301a22560c24fd0670bfe",
+              "package_manifest_digest": "51fe9cee75a907b7fe54709b2ebbbc48470a8e6291967dbb10bebf00ebef7a86",
+              "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+              "provenance_note": "Comparator identity is HEAD commit plus local-diff/status fingerprint; branch string is descriptive only.",
+              "python_version": "Python 3.11.14",
+              "status": "current_local_patched_checkout",
+              "status_branch": "## bayesfilter-py311-compat\n M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+              "status_short": "M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+              "symbolic_head": "bayesfilter-py311-compat"
+            },
+            "comparator_fingerprint_before": {
+              "branch_ref_exists": true,
+              "branch_string_status": "descriptive_only",
+              "diff_digest": "02c0d85ed6d4fb8cd4b866fe0265f51ff0fdd8ec8fec5358250c468792c0ebb3",
+              "head_commit": "5d8300ba247c4c17e1a301a22560c24fd0670bfe",
+              "package_manifest_digest": "51fe9cee75a907b7fe54709b2ebbbc48470a8e6291967dbb10bebf00ebef7a86",
+              "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+              "provenance_note": "Comparator identity is HEAD commit plus local-diff/status fingerprint; branch string is descriptive only.",
+              "python_version": "Python 3.11.14",
+              "status": "current_local_patched_checkout",
+              "status_branch": "## bayesfilter-py311-compat\n M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+              "status_short": "M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+              "symbolic_head": "bayesfilter-py311-compat"
+            },
+            "comparison_status": "compared",
+            "convergence_threshold": 1e-06,
+            "explanatory_diagnostics": {
+              "bayesfilter_finite_difference_gradient": -1.9368130259955763,
+              "bayesfilter_gradient_tape": -2.4471359617699653,
+              "filterflow_finite_difference_gradient": -1.9371509552001953,
+              "filterflow_gradient_tape": -2.2461719512939453,
+              "gradient_promotion": "not_concluded"
+            },
+            "filterflow_command": "CUDA_VISIBLE_DEVICES=-1 PYTHONPATH=.localsource/filterflow /home/chakwong/BayesFilter/.localenv/filterflow-py311/bin/python -c <1D continuation cell script>",
+            "filterflow_cpu_only_manifest": {
+              "cuda_visible_devices": "-1",
+              "gpu_devices_visible": [],
+              "pre_import_cuda_visible_devices": "-1"
+            },
+            "filterflow_status": "executed",
+            "max_iterations": 200,
+            "primary_metrics": {
+              "absolute_residuals_within_tolerance": false,
+              "bayesfilter_max_column_residual": 4.440892098500626e-16,
+              "bayesfilter_max_row_residual": 0.0005233019270021178,
+              "bayesfilter_scalar": 1.2977620902498526,
+              "filterflow_max_column_residual": 2.384185791015625e-07,
+              "filterflow_max_row_residual": 0.0005233287811279297,
+              "filterflow_scalar": 1.2977619171142578,
+              "ledger_within_tolerance": true,
+              "max_absolute_column_residual": 2.384185791015625e-07,
+              "max_absolute_row_residual": 0.0005233287811279297,
+              "scalar_delta": 1.731355947498514e-07,
+              "scalar_within_tolerance": true,
+              "trigger_match": true
+            },
+            "scenario": {
+              "horizon": 4,
+              "scenario_id": "T4_extension"
+            },
+            "veto_diagnostics": {
+              "absolute_residuals_within_tolerance": false,
+              "filterflow_blocker": null,
+              "finite_bayesfilter_scalar": true,
+              "finite_filterflow_scalar": true,
+              "ledger_within_tolerance": true,
+              "scalar_within_tolerance": true,
+              "trigger_match": true
+            }
+          },
+          {
+            "bayesfilter_status": "executed",
+            "cell_status": "veto",
+            "comparator_fingerprint_after": {
+              "branch_ref_exists": true,
+              "branch_string_status": "descriptive_only",
+              "diff_digest": "02c0d85ed6d4fb8cd4b866fe0265f51ff0fdd8ec8fec5358250c468792c0ebb3",
+              "head_commit": "5d8300ba247c4c17e1a301a22560c24fd0670bfe",
+              "package_manifest_digest": "51fe9cee75a907b7fe54709b2ebbbc48470a8e6291967dbb10bebf00ebef7a86",
+              "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+              "provenance_note": "Comparator identity is HEAD commit plus local-diff/status fingerprint; branch string is descriptive only.",
+              "python_version": "Python 3.11.14",
+              "status": "current_local_patched_checkout",
+              "status_branch": "## bayesfilter-py311-compat\n M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+              "status_short": "M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+              "symbolic_head": "bayesfilter-py311-compat"
+            },
+            "comparator_fingerprint_before": {
+              "branch_ref_exists": true,
+              "branch_string_status": "descriptive_only",
+              "diff_digest": "02c0d85ed6d4fb8cd4b866fe0265f51ff0fdd8ec8fec5358250c468792c0ebb3",
+              "head_commit": "5d8300ba247c4c17e1a301a22560c24fd0670bfe",
+              "package_manifest_digest": "51fe9cee75a907b7fe54709b2ebbbc48470a8e6291967dbb10bebf00ebef7a86",
+              "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+              "provenance_note": "Comparator identity is HEAD commit plus local-diff/status fingerprint; branch string is descriptive only.",
+              "python_version": "Python 3.11.14",
+              "status": "current_local_patched_checkout",
+              "status_branch": "## bayesfilter-py311-compat\n M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+              "status_short": "M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+              "symbolic_head": "bayesfilter-py311-compat"
+            },
+            "comparison_status": "compared",
+            "convergence_threshold": 1e-07,
+            "explanatory_diagnostics": {
+              "bayesfilter_finite_difference_gradient": -1.9368126776897476,
+              "bayesfilter_gradient_tape": -2.447141084060507,
+              "filterflow_finite_difference_gradient": -1.9371509552001953,
+              "filterflow_gradient_tape": -2.246178388595581,
+              "gradient_promotion": "not_concluded"
+            },
+            "filterflow_command": "CUDA_VISIBLE_DEVICES=-1 PYTHONPATH=.localsource/filterflow /home/chakwong/BayesFilter/.localenv/filterflow-py311/bin/python -c <1D continuation cell script>",
+            "filterflow_cpu_only_manifest": {
+              "cuda_visible_devices": "-1",
+              "gpu_devices_visible": [],
+              "pre_import_cuda_visible_devices": "-1"
+            },
+            "filterflow_status": "executed",
+            "max_iterations": 200,
+            "primary_metrics": {
+              "absolute_residuals_within_tolerance": false,
+              "bayesfilter_max_column_residual": 4.440892098500626e-16,
+              "bayesfilter_max_row_residual": 0.0005232588315606801,
+              "bayesfilter_scalar": 1.2977622043731758,
+              "filterflow_max_column_residual": 1.1920928955078125e-07,
+              "filterflow_max_row_residual": 0.0005230903625488281,
+              "filterflow_scalar": 1.2977620363235474,
+              "ledger_within_tolerance": true,
+              "max_absolute_column_residual": 1.1920928955078125e-07,
+              "max_absolute_row_residual": 0.0005232588315606801,
+              "scalar_delta": 1.680496284350852e-07,
+              "scalar_within_tolerance": true,
+              "trigger_match": true
+            },
+            "scenario": {
+              "horizon": 4,
+              "scenario_id": "T4_extension"
+            },
+            "veto_diagnostics": {
+              "absolute_residuals_within_tolerance": false,
+              "filterflow_blocker": null,
+              "finite_bayesfilter_scalar": true,
+              "finite_filterflow_scalar": true,
+              "ledger_within_tolerance": true,
+              "scalar_within_tolerance": true,
+              "trigger_match": true
+            }
+          },
+          {
+            "bayesfilter_status": "executed",
+            "cell_status": "veto",
+            "comparator_fingerprint_after": {
+              "branch_ref_exists": true,
+              "branch_string_status": "descriptive_only",
+              "diff_digest": "02c0d85ed6d4fb8cd4b866fe0265f51ff0fdd8ec8fec5358250c468792c0ebb3",
+              "head_commit": "5d8300ba247c4c17e1a301a22560c24fd0670bfe",
+              "package_manifest_digest": "51fe9cee75a907b7fe54709b2ebbbc48470a8e6291967dbb10bebf00ebef7a86",
+              "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+              "provenance_note": "Comparator identity is HEAD commit plus local-diff/status fingerprint; branch string is descriptive only.",
+              "python_version": "Python 3.11.14",
+              "status": "current_local_patched_checkout",
+              "status_branch": "## bayesfilter-py311-compat\n M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+              "status_short": "M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+              "symbolic_head": "bayesfilter-py311-compat"
+            },
+            "comparator_fingerprint_before": {
+              "branch_ref_exists": true,
+              "branch_string_status": "descriptive_only",
+              "diff_digest": "02c0d85ed6d4fb8cd4b866fe0265f51ff0fdd8ec8fec5358250c468792c0ebb3",
+              "head_commit": "5d8300ba247c4c17e1a301a22560c24fd0670bfe",
+              "package_manifest_digest": "51fe9cee75a907b7fe54709b2ebbbc48470a8e6291967dbb10bebf00ebef7a86",
+              "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+              "provenance_note": "Comparator identity is HEAD commit plus local-diff/status fingerprint; branch string is descriptive only.",
+              "python_version": "Python 3.11.14",
+              "status": "current_local_patched_checkout",
+              "status_branch": "## bayesfilter-py311-compat\n M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+              "status_short": "M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+              "symbolic_head": "bayesfilter-py311-compat"
+            },
+            "comparison_status": "compared",
+            "convergence_threshold": 1e-08,
+            "explanatory_diagnostics": {
+              "bayesfilter_finite_difference_gradient": -1.936812633187568,
+              "bayesfilter_gradient_tape": -2.4471417042966066,
+              "filterflow_finite_difference_gradient": -1.9377470016479492,
+              "filterflow_gradient_tape": -2.2461791038513184,
+              "gradient_promotion": "not_concluded"
+            },
+            "filterflow_command": "CUDA_VISIBLE_DEVICES=-1 PYTHONPATH=.localsource/filterflow /home/chakwong/BayesFilter/.localenv/filterflow-py311/bin/python -c <1D continuation cell script>",
+            "filterflow_cpu_only_manifest": {
+              "cuda_visible_devices": "-1",
+              "gpu_devices_visible": [],
+              "pre_import_cuda_visible_devices": "-1"
+            },
+            "filterflow_status": "executed",
+            "max_iterations": 200,
+            "primary_metrics": {
+              "absolute_residuals_within_tolerance": false,
+              "bayesfilter_max_column_residual": 4.440892098500626e-16,
+              "bayesfilter_max_row_residual": 0.0005232536132360188,
+              "bayesfilter_scalar": 1.2977622181924673,
+              "filterflow_max_column_residual": 2.384185791015625e-07,
+              "filterflow_max_row_residual": 0.0005233287811279297,
+              "filterflow_scalar": 1.297762155532837,
+              "ledger_within_tolerance": true,
+              "max_absolute_column_residual": 2.384185791015625e-07,
+              "max_absolute_row_residual": 0.0005233287811279297,
+              "scalar_delta": 6.265963037321853e-08,
+              "scalar_within_tolerance": true,
+              "trigger_match": true
+            },
+            "scenario": {
+              "horizon": 4,
+              "scenario_id": "T4_extension"
+            },
+            "veto_diagnostics": {
+              "absolute_residuals_within_tolerance": false,
+              "filterflow_blocker": null,
+              "finite_bayesfilter_scalar": true,
+              "finite_filterflow_scalar": true,
+              "ledger_within_tolerance": true,
+              "scalar_within_tolerance": true,
+              "trigger_match": true
+            }
+          },
+          {
+            "bayesfilter_status": "executed",
+            "cell_status": "pass",
+            "comparator_fingerprint_after": {
+              "branch_ref_exists": true,
+              "branch_string_status": "descriptive_only",
+              "diff_digest": "02c0d85ed6d4fb8cd4b866fe0265f51ff0fdd8ec8fec5358250c468792c0ebb3",
+              "head_commit": "5d8300ba247c4c17e1a301a22560c24fd0670bfe",
+              "package_manifest_digest": "51fe9cee75a907b7fe54709b2ebbbc48470a8e6291967dbb10bebf00ebef7a86",
+              "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+              "provenance_note": "Comparator identity is HEAD commit plus local-diff/status fingerprint; branch string is descriptive only.",
+              "python_version": "Python 3.11.14",
+              "status": "current_local_patched_checkout",
+              "status_branch": "## bayesfilter-py311-compat\n M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+              "status_short": "M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+              "symbolic_head": "bayesfilter-py311-compat"
+            },
+            "comparator_fingerprint_before": {
+              "branch_ref_exists": true,
+              "branch_string_status": "descriptive_only",
+              "diff_digest": "02c0d85ed6d4fb8cd4b866fe0265f51ff0fdd8ec8fec5358250c468792c0ebb3",
+              "head_commit": "5d8300ba247c4c17e1a301a22560c24fd0670bfe",
+              "package_manifest_digest": "51fe9cee75a907b7fe54709b2ebbbc48470a8e6291967dbb10bebf00ebef7a86",
+              "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+              "provenance_note": "Comparator identity is HEAD commit plus local-diff/status fingerprint; branch string is descriptive only.",
+              "python_version": "Python 3.11.14",
+              "status": "current_local_patched_checkout",
+              "status_branch": "## bayesfilter-py311-compat\n M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+              "status_short": "M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+              "symbolic_head": "bayesfilter-py311-compat"
+            },
+            "comparison_status": "compared",
+            "convergence_threshold": 1e-06,
+            "explanatory_diagnostics": {
+              "bayesfilter_finite_difference_gradient": -1.9375573807578483,
+              "bayesfilter_gradient_tape": -2.4471730796246223,
+              "filterflow_finite_difference_gradient": -1.9383430480957031,
+              "filterflow_gradient_tape": -2.246048927307129,
+              "gradient_promotion": "not_concluded"
+            },
+            "filterflow_command": "CUDA_VISIBLE_DEVICES=-1 PYTHONPATH=.localsource/filterflow /home/chakwong/BayesFilter/.localenv/filterflow-py311/bin/python -c <1D continuation cell script>",
+            "filterflow_cpu_only_manifest": {
+              "cuda_visible_devices": "-1",
+              "gpu_devices_visible": [],
+              "pre_import_cuda_visible_devices": "-1"
+            },
+            "filterflow_status": "executed",
+            "max_iterations": 500,
+            "primary_metrics": {
+              "absolute_residuals_within_tolerance": true,
+              "bayesfilter_max_column_residual": 4.440892098500626e-16,
+              "bayesfilter_max_row_residual": 1.4204764579250906e-05,
+              "bayesfilter_scalar": 1.297769129483926,
+              "filterflow_max_column_residual": 1.1920928955078125e-07,
+              "filterflow_max_row_residual": 1.4185905456542969e-05,
+              "filterflow_scalar": 1.2977690696716309,
+              "ledger_within_tolerance": true,
+              "max_absolute_column_residual": 1.1920928955078125e-07,
+              "max_absolute_row_residual": 1.4204764579250906e-05,
+              "scalar_delta": 5.981229511675679e-08,
+              "scalar_within_tolerance": true,
+              "trigger_match": true
+            },
+            "scenario": {
+              "horizon": 4,
+              "scenario_id": "T4_extension"
+            },
+            "veto_diagnostics": {
+              "absolute_residuals_within_tolerance": true,
+              "filterflow_blocker": null,
+              "finite_bayesfilter_scalar": true,
+              "finite_filterflow_scalar": true,
+              "ledger_within_tolerance": true,
+              "scalar_within_tolerance": true,
+              "trigger_match": true
+            }
+          },
+          {
+            "bayesfilter_status": "executed",
+            "cell_status": "pass",
+            "comparator_fingerprint_after": {
+              "branch_ref_exists": true,
+              "branch_string_status": "descriptive_only",
+              "diff_digest": "02c0d85ed6d4fb8cd4b866fe0265f51ff0fdd8ec8fec5358250c468792c0ebb3",
+              "head_commit": "5d8300ba247c4c17e1a301a22560c24fd0670bfe",
+              "package_manifest_digest": "51fe9cee75a907b7fe54709b2ebbbc48470a8e6291967dbb10bebf00ebef7a86",
+              "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+              "provenance_note": "Comparator identity is HEAD commit plus local-diff/status fingerprint; branch string is descriptive only.",
+              "python_version": "Python 3.11.14",
+              "status": "current_local_patched_checkout",
+              "status_branch": "## bayesfilter-py311-compat\n M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+              "status_short": "M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+              "symbolic_head": "bayesfilter-py311-compat"
+            },
+            "comparator_fingerprint_before": {
+              "branch_ref_exists": true,
+              "branch_string_status": "descriptive_only",
+              "diff_digest": "02c0d85ed6d4fb8cd4b866fe0265f51ff0fdd8ec8fec5358250c468792c0ebb3",
+              "head_commit": "5d8300ba247c4c17e1a301a22560c24fd0670bfe",
+              "package_manifest_digest": "51fe9cee75a907b7fe54709b2ebbbc48470a8e6291967dbb10bebf00ebef7a86",
+              "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+              "provenance_note": "Comparator identity is HEAD commit plus local-diff/status fingerprint; branch string is descriptive only.",
+              "python_version": "Python 3.11.14",
+              "status": "current_local_patched_checkout",
+              "status_branch": "## bayesfilter-py311-compat\n M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+              "status_short": "M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+              "symbolic_head": "bayesfilter-py311-compat"
+            },
+            "comparison_status": "compared",
+            "convergence_threshold": 1e-07,
+            "explanatory_diagnostics": {
+              "bayesfilter_finite_difference_gradient": -1.9374275711370181,
+              "bayesfilter_gradient_tape": -2.447183043875783,
+              "filterflow_finite_difference_gradient": -1.9377470016479492,
+              "filterflow_gradient_tape": -2.246058702468872,
+              "gradient_promotion": "not_concluded"
+            },
+            "filterflow_command": "CUDA_VISIBLE_DEVICES=-1 PYTHONPATH=.localsource/filterflow /home/chakwong/BayesFilter/.localenv/filterflow-py311/bin/python -c <1D continuation cell script>",
+            "filterflow_cpu_only_manifest": {
+              "cuda_visible_devices": "-1",
+              "gpu_devices_visible": [],
+              "pre_import_cuda_visible_devices": "-1"
+            },
+            "filterflow_status": "executed",
+            "max_iterations": 500,
+            "primary_metrics": {
+              "absolute_residuals_within_tolerance": true,
+              "bayesfilter_max_column_residual": 4.440892098500626e-16,
+              "bayesfilter_max_row_residual": 1.4281668403448577e-06,
+              "bayesfilter_scalar": 1.297769840024542,
+              "filterflow_max_column_residual": 1.1920928955078125e-07,
+              "filterflow_max_row_residual": 1.430511474609375e-06,
+              "filterflow_scalar": 1.2977699041366577,
+              "ledger_within_tolerance": true,
+              "max_absolute_column_residual": 1.1920928955078125e-07,
+              "max_absolute_row_residual": 1.430511474609375e-06,
+              "scalar_delta": 6.411211561641039e-08,
+              "scalar_within_tolerance": true,
+              "trigger_match": true
+            },
+            "scenario": {
+              "horizon": 4,
+              "scenario_id": "T4_extension"
+            },
+            "veto_diagnostics": {
+              "absolute_residuals_within_tolerance": true,
+              "filterflow_blocker": null,
+              "finite_bayesfilter_scalar": true,
+              "finite_filterflow_scalar": true,
+              "ledger_within_tolerance": true,
+              "scalar_within_tolerance": true,
+              "trigger_match": true
+            }
+          },
+          {
+            "bayesfilter_status": "executed",
+            "cell_status": "pass",
+            "comparator_fingerprint_after": {
+              "branch_ref_exists": true,
+              "branch_string_status": "descriptive_only",
+              "diff_digest": "02c0d85ed6d4fb8cd4b866fe0265f51ff0fdd8ec8fec5358250c468792c0ebb3",
+              "head_commit": "5d8300ba247c4c17e1a301a22560c24fd0670bfe",
+              "package_manifest_digest": "51fe9cee75a907b7fe54709b2ebbbc48470a8e6291967dbb10bebf00ebef7a86",
+              "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+              "provenance_note": "Comparator identity is HEAD commit plus local-diff/status fingerprint; branch string is descriptive only.",
+              "python_version": "Python 3.11.14",
+              "status": "current_local_patched_checkout",
+              "status_branch": "## bayesfilter-py311-compat\n M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+              "status_short": "M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+              "symbolic_head": "bayesfilter-py311-compat"
+            },
+            "comparator_fingerprint_before": {
+              "branch_ref_exists": true,
+              "branch_string_status": "descriptive_only",
+              "diff_digest": "02c0d85ed6d4fb8cd4b866fe0265f51ff0fdd8ec8fec5358250c468792c0ebb3",
+              "head_commit": "5d8300ba247c4c17e1a301a22560c24fd0670bfe",
+              "package_manifest_digest": "51fe9cee75a907b7fe54709b2ebbbc48470a8e6291967dbb10bebf00ebef7a86",
+              "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+              "provenance_note": "Comparator identity is HEAD commit plus local-diff/status fingerprint; branch string is descriptive only.",
+              "python_version": "Python 3.11.14",
+              "status": "current_local_patched_checkout",
+              "status_branch": "## bayesfilter-py311-compat\n M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+              "status_short": "M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+              "symbolic_head": "bayesfilter-py311-compat"
+            },
+            "comparison_status": "compared",
+            "convergence_threshold": 1e-08,
+            "explanatory_diagnostics": {
+              "bayesfilter_finite_difference_gradient": -1.9374297627416937,
+              "bayesfilter_gradient_tape": -2.447184137457463,
+              "filterflow_finite_difference_gradient": -1.9383430480957031,
+              "filterflow_gradient_tape": -2.2460591793060303,
+              "gradient_promotion": "not_concluded"
+            },
+            "filterflow_command": "CUDA_VISIBLE_DEVICES=-1 PYTHONPATH=.localsource/filterflow /home/chakwong/BayesFilter/.localenv/filterflow-py311/bin/python -c <1D continuation cell script>",
+            "filterflow_cpu_only_manifest": {
+              "cuda_visible_devices": "-1",
+              "gpu_devices_visible": [],
+              "pre_import_cuda_visible_devices": "-1"
+            },
+            "filterflow_status": "executed",
+            "max_iterations": 500,
+            "primary_metrics": {
+              "absolute_residuals_within_tolerance": true,
+              "bayesfilter_max_column_residual": 4.440892098500626e-16,
+              "bayesfilter_max_row_residual": 1.4361799216544568e-07,
+              "bayesfilter_scalar": 1.297769912357856,
+              "filterflow_max_column_residual": 2.384185791015625e-07,
+              "filterflow_max_row_residual": 4.76837158203125e-07,
+              "filterflow_scalar": 1.2977699041366577,
+              "ledger_within_tolerance": true,
+              "max_absolute_column_residual": 2.384185791015625e-07,
+              "max_absolute_row_residual": 4.76837158203125e-07,
+              "scalar_delta": 8.221198388724815e-09,
+              "scalar_within_tolerance": true,
+              "trigger_match": true
+            },
+            "scenario": {
+              "horizon": 4,
+              "scenario_id": "T4_extension"
+            },
+            "veto_diagnostics": {
+              "absolute_residuals_within_tolerance": true,
+              "filterflow_blocker": null,
+              "finite_bayesfilter_scalar": true,
+              "finite_filterflow_scalar": true,
+              "ledger_within_tolerance": true,
+              "scalar_within_tolerance": true,
+              "trigger_match": true
+            }
+          },
+          {
+            "bayesfilter_status": "executed",
+            "cell_status": "pass",
+            "comparator_fingerprint_after": {
+              "branch_ref_exists": true,
+              "branch_string_status": "descriptive_only",
+              "diff_digest": "02c0d85ed6d4fb8cd4b866fe0265f51ff0fdd8ec8fec5358250c468792c0ebb3",
+              "head_commit": "5d8300ba247c4c17e1a301a22560c24fd0670bfe",
+              "package_manifest_digest": "51fe9cee75a907b7fe54709b2ebbbc48470a8e6291967dbb10bebf00ebef7a86",
+              "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+              "provenance_note": "Comparator identity is HEAD commit plus local-diff/status fingerprint; branch string is descriptive only.",
+              "python_version": "Python 3.11.14",
+              "status": "current_local_patched_checkout",
+              "status_branch": "## bayesfilter-py311-compat\n M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+              "status_short": "M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+              "symbolic_head": "bayesfilter-py311-compat"
+            },
+            "comparator_fingerprint_before": {
+              "branch_ref_exists": true,
+              "branch_string_status": "descriptive_only",
+              "diff_digest": "02c0d85ed6d4fb8cd4b866fe0265f51ff0fdd8ec8fec5358250c468792c0ebb3",
+              "head_commit": "5d8300ba247c4c17e1a301a22560c24fd0670bfe",
+              "package_manifest_digest": "51fe9cee75a907b7fe54709b2ebbbc48470a8e6291967dbb10bebf00ebef7a86",
+              "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+              "provenance_note": "Comparator identity is HEAD commit plus local-diff/status fingerprint; branch string is descriptive only.",
+              "python_version": "Python 3.11.14",
+              "status": "current_local_patched_checkout",
+              "status_branch": "## bayesfilter-py311-compat\n M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+              "status_short": "M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+              "symbolic_head": "bayesfilter-py311-compat"
+            },
+            "comparison_status": "compared",
+            "convergence_threshold": 1e-06,
+            "explanatory_diagnostics": {
+              "bayesfilter_finite_difference_gradient": -1.9375573807578483,
+              "bayesfilter_gradient_tape": -2.4471730796246223,
+              "filterflow_finite_difference_gradient": -1.9383430480957031,
+              "filterflow_gradient_tape": -2.246048927307129,
+              "gradient_promotion": "not_concluded"
+            },
+            "filterflow_command": "CUDA_VISIBLE_DEVICES=-1 PYTHONPATH=.localsource/filterflow /home/chakwong/BayesFilter/.localenv/filterflow-py311/bin/python -c <1D continuation cell script>",
+            "filterflow_cpu_only_manifest": {
+              "cuda_visible_devices": "-1",
+              "gpu_devices_visible": [],
+              "pre_import_cuda_visible_devices": "-1"
+            },
+            "filterflow_status": "executed",
+            "max_iterations": 1000,
+            "primary_metrics": {
+              "absolute_residuals_within_tolerance": true,
+              "bayesfilter_max_column_residual": 4.440892098500626e-16,
+              "bayesfilter_max_row_residual": 1.4204764579250906e-05,
+              "bayesfilter_scalar": 1.297769129483926,
+              "filterflow_max_column_residual": 1.1920928955078125e-07,
+              "filterflow_max_row_residual": 1.4185905456542969e-05,
+              "filterflow_scalar": 1.2977690696716309,
+              "ledger_within_tolerance": true,
+              "max_absolute_column_residual": 1.1920928955078125e-07,
+              "max_absolute_row_residual": 1.4204764579250906e-05,
+              "scalar_delta": 5.981229511675679e-08,
+              "scalar_within_tolerance": true,
+              "trigger_match": true
+            },
+            "scenario": {
+              "horizon": 4,
+              "scenario_id": "T4_extension"
+            },
+            "veto_diagnostics": {
+              "absolute_residuals_within_tolerance": true,
+              "filterflow_blocker": null,
+              "finite_bayesfilter_scalar": true,
+              "finite_filterflow_scalar": true,
+              "ledger_within_tolerance": true,
+              "scalar_within_tolerance": true,
+              "trigger_match": true
+            }
+          },
+          {
+            "bayesfilter_status": "executed",
+            "cell_status": "pass",
+            "comparator_fingerprint_after": {
+              "branch_ref_exists": true,
+              "branch_string_status": "descriptive_only",
+              "diff_digest": "02c0d85ed6d4fb8cd4b866fe0265f51ff0fdd8ec8fec5358250c468792c0ebb3",
+              "head_commit": "5d8300ba247c4c17e1a301a22560c24fd0670bfe",
+              "package_manifest_digest": "51fe9cee75a907b7fe54709b2ebbbc48470a8e6291967dbb10bebf00ebef7a86",
+              "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+              "provenance_note": "Comparator identity is HEAD commit plus local-diff/status fingerprint; branch string is descriptive only.",
+              "python_version": "Python 3.11.14",
+              "status": "current_local_patched_checkout",
+              "status_branch": "## bayesfilter-py311-compat\n M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+              "status_short": "M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+              "symbolic_head": "bayesfilter-py311-compat"
+            },
+            "comparator_fingerprint_before": {
+              "branch_ref_exists": true,
+              "branch_string_status": "descriptive_only",
+              "diff_digest": "02c0d85ed6d4fb8cd4b866fe0265f51ff0fdd8ec8fec5358250c468792c0ebb3",
+              "head_commit": "5d8300ba247c4c17e1a301a22560c24fd0670bfe",
+              "package_manifest_digest": "51fe9cee75a907b7fe54709b2ebbbc48470a8e6291967dbb10bebf00ebef7a86",
+              "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+              "provenance_note": "Comparator identity is HEAD commit plus local-diff/status fingerprint; branch string is descriptive only.",
+              "python_version": "Python 3.11.14",
+              "status": "current_local_patched_checkout",
+              "status_branch": "## bayesfilter-py311-compat\n M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+              "status_short": "M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+              "symbolic_head": "bayesfilter-py311-compat"
+            },
+            "comparison_status": "compared",
+            "convergence_threshold": 1e-07,
+            "explanatory_diagnostics": {
+              "bayesfilter_finite_difference_gradient": -1.9374275711370181,
+              "bayesfilter_gradient_tape": -2.447183043875783,
+              "filterflow_finite_difference_gradient": -1.9377470016479492,
+              "filterflow_gradient_tape": -2.246058702468872,
+              "gradient_promotion": "not_concluded"
+            },
+            "filterflow_command": "CUDA_VISIBLE_DEVICES=-1 PYTHONPATH=.localsource/filterflow /home/chakwong/BayesFilter/.localenv/filterflow-py311/bin/python -c <1D continuation cell script>",
+            "filterflow_cpu_only_manifest": {
+              "cuda_visible_devices": "-1",
+              "gpu_devices_visible": [],
+              "pre_import_cuda_visible_devices": "-1"
+            },
+            "filterflow_status": "executed",
+            "max_iterations": 1000,
+            "primary_metrics": {
+              "absolute_residuals_within_tolerance": true,
+              "bayesfilter_max_column_residual": 4.440892098500626e-16,
+              "bayesfilter_max_row_residual": 1.4281668403448577e-06,
+              "bayesfilter_scalar": 1.297769840024542,
+              "filterflow_max_column_residual": 1.1920928955078125e-07,
+              "filterflow_max_row_residual": 1.430511474609375e-06,
+              "filterflow_scalar": 1.2977699041366577,
+              "ledger_within_tolerance": true,
+              "max_absolute_column_residual": 1.1920928955078125e-07,
+              "max_absolute_row_residual": 1.430511474609375e-06,
+              "scalar_delta": 6.411211561641039e-08,
+              "scalar_within_tolerance": true,
+              "trigger_match": true
+            },
+            "scenario": {
+              "horizon": 4,
+              "scenario_id": "T4_extension"
+            },
+            "veto_diagnostics": {
+              "absolute_residuals_within_tolerance": true,
+              "filterflow_blocker": null,
+              "finite_bayesfilter_scalar": true,
+              "finite_filterflow_scalar": true,
+              "ledger_within_tolerance": true,
+              "scalar_within_tolerance": true,
+              "trigger_match": true
+            }
+          },
+          {
+            "bayesfilter_status": "executed",
+            "cell_status": "pass",
+            "comparator_fingerprint_after": {
+              "branch_ref_exists": true,
+              "branch_string_status": "descriptive_only",
+              "diff_digest": "02c0d85ed6d4fb8cd4b866fe0265f51ff0fdd8ec8fec5358250c468792c0ebb3",
+              "head_commit": "5d8300ba247c4c17e1a301a22560c24fd0670bfe",
+              "package_manifest_digest": "51fe9cee75a907b7fe54709b2ebbbc48470a8e6291967dbb10bebf00ebef7a86",
+              "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+              "provenance_note": "Comparator identity is HEAD commit plus local-diff/status fingerprint; branch string is descriptive only.",
+              "python_version": "Python 3.11.14",
+              "status": "current_local_patched_checkout",
+              "status_branch": "## bayesfilter-py311-compat\n M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+              "status_short": "M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+              "symbolic_head": "bayesfilter-py311-compat"
+            },
+            "comparator_fingerprint_before": {
+              "branch_ref_exists": true,
+              "branch_string_status": "descriptive_only",
+              "diff_digest": "02c0d85ed6d4fb8cd4b866fe0265f51ff0fdd8ec8fec5358250c468792c0ebb3",
+              "head_commit": "5d8300ba247c4c17e1a301a22560c24fd0670bfe",
+              "package_manifest_digest": "51fe9cee75a907b7fe54709b2ebbbc48470a8e6291967dbb10bebf00ebef7a86",
+              "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+              "provenance_note": "Comparator identity is HEAD commit plus local-diff/status fingerprint; branch string is descriptive only.",
+              "python_version": "Python 3.11.14",
+              "status": "current_local_patched_checkout",
+              "status_branch": "## bayesfilter-py311-compat\n M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+              "status_short": "M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+              "symbolic_head": "bayesfilter-py311-compat"
+            },
+            "comparison_status": "compared",
+            "convergence_threshold": 1e-08,
+            "explanatory_diagnostics": {
+              "bayesfilter_finite_difference_gradient": -1.9374300298435898,
+              "bayesfilter_gradient_tape": -2.4471841377292245,
+              "filterflow_finite_difference_gradient": -1.9383430480957031,
+              "filterflow_gradient_tape": -2.2460591793060303,
+              "gradient_promotion": "not_concluded"
+            },
+            "filterflow_command": "CUDA_VISIBLE_DEVICES=-1 PYTHONPATH=.localsource/filterflow /home/chakwong/BayesFilter/.localenv/filterflow-py311/bin/python -c <1D continuation cell script>",
+            "filterflow_cpu_only_manifest": {
+              "cuda_visible_devices": "-1",
+              "gpu_devices_visible": [],
+              "pre_import_cuda_visible_devices": "-1"
+            },
+            "filterflow_status": "executed",
+            "max_iterations": 1000,
+            "primary_metrics": {
+              "absolute_residuals_within_tolerance": true,
+              "bayesfilter_max_column_residual": 4.440892098500626e-16,
+              "bayesfilter_max_row_residual": 1.3974400236982376e-07,
+              "bayesfilter_scalar": 1.297769912410482,
+              "filterflow_max_column_residual": 2.384185791015625e-07,
+              "filterflow_max_row_residual": 4.76837158203125e-07,
+              "filterflow_scalar": 1.2977699041366577,
+              "ledger_within_tolerance": true,
+              "max_absolute_column_residual": 2.384185791015625e-07,
+              "max_absolute_row_residual": 4.76837158203125e-07,
+              "scalar_delta": 8.273824292359677e-09,
+              "scalar_within_tolerance": true,
+              "trigger_match": true
+            },
+            "scenario": {
+              "horizon": 4,
+              "scenario_id": "T4_extension"
+            },
+            "veto_diagnostics": {
+              "absolute_residuals_within_tolerance": true,
+              "filterflow_blocker": null,
+              "finite_bayesfilter_scalar": true,
+              "finite_filterflow_scalar": true,
+              "ledger_within_tolerance": true,
+              "scalar_within_tolerance": true,
+              "trigger_match": true
+            }
+          }
+        ],
+        "evaluated_cell_count": 9,
+        "max_absolute_column_residual": 2.384185791015625e-07,
+        "max_absolute_row_residual": 0.0005233287811279297,
+        "passing_cell_count": 6,
+        "selected_r1_cell": {
+          "convergence_threshold": 1e-06,
+          "max_absolute_column_residual": 1.1920928955078125e-07,
+          "max_absolute_row_residual": 1.4204764579250906e-05,
+          "max_iterations": 500
+        }
+      },
+      "rung": "R1_T4_residual_ladder",
+      "status": "pass",
+      "varied_variables": {
+        "convergence_threshold": [
+          1e-06,
+          1e-07,
+          1e-08
+        ],
+        "max_iterations": [
+          200,
+          500,
+          1000
+        ]
+      },
+      "veto_diagnostics": {
+        "r2_unblocked": true,
+        "residual_tolerance": 0.0001
+      }
+    },
+    {
+      "blocker_reason": "blocked_by_R2_horizon_32_veto",
+      "comparator_fingerprint_after": {
+        "branch_ref_exists": true,
+        "branch_string_status": "descriptive_only",
+        "diff_digest": "02c0d85ed6d4fb8cd4b866fe0265f51ff0fdd8ec8fec5358250c468792c0ebb3",
+        "head_commit": "5d8300ba247c4c17e1a301a22560c24fd0670bfe",
+        "package_manifest_digest": "51fe9cee75a907b7fe54709b2ebbbc48470a8e6291967dbb10bebf00ebef7a86",
+        "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+        "provenance_note": "Comparator identity is HEAD commit plus local-diff/status fingerprint; branch string is descriptive only.",
+        "python_version": "Python 3.11.14",
+        "status": "current_local_patched_checkout",
+        "status_branch": "## bayesfilter-py311-compat\n M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+        "status_short": "M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+        "symbolic_head": "bayesfilter-py311-compat"
+      },
+      "comparator_fingerprint_before": {
+        "branch_ref_exists": true,
+        "branch_string_status": "descriptive_only",
+        "diff_digest": "02c0d85ed6d4fb8cd4b866fe0265f51ff0fdd8ec8fec5358250c468792c0ebb3",
+        "head_commit": "5d8300ba247c4c17e1a301a22560c24fd0670bfe",
+        "package_manifest_digest": "51fe9cee75a907b7fe54709b2ebbbc48470a8e6291967dbb10bebf00ebef7a86",
+        "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+        "provenance_note": "Comparator identity is HEAD commit plus local-diff/status fingerprint; branch string is descriptive only.",
+        "python_version": "Python 3.11.14",
+        "status": "current_local_patched_checkout",
+        "status_branch": "## bayesfilter-py311-compat\n M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+        "status_short": "M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+        "symbolic_head": "bayesfilter-py311-compat"
+      },
+      "evidence_bearing": true,
+      "explanatory_diagnostics": {
+        "generated_fixture": "tf_stateless_normal_fixed_seed",
+        "note": "R2 is reached only if R1 selects a passing residual setting."
+      },
+      "failure_observed_directly": true,
+      "filterflow_cpu_only_manifest": {
+        "cuda_visible_devices": "-1",
+        "gpu_devices_visible": [],
+        "pre_import_cuda_visible_devices": "-1"
+      },
+      "first_blocked_rung": null,
+      "first_failing_rung": "R2_1d_horizon_ladder",
+      "fixed_variables": {
+        "epsilon": 0.25,
+        "num_particles": 4,
+        "scaling": 0.9,
+        "selected_r1_cell": {
+          "convergence_threshold": 1e-06,
+          "max_absolute_column_residual": 1.1920928955078125e-07,
+          "max_absolute_row_residual": 1.4204764579250906e-05,
+          "max_iterations": 500
+        },
+        "theta": 0.7
+      },
+      "inherited_blocker": null,
+      "parent_cpu_only_manifest": {
+        "cuda_visible_devices": "-1",
+        "gpu_devices_visible": [],
+        "pre_import_cuda_visible_devices": "-1"
+      },
+      "primary_metrics": {
+        "cell_summaries": [
+          {
+            "bayesfilter_status": "executed",
+            "cell_status": "pass",
+            "comparison_status": "compared",
+            "convergence_threshold": 1e-06,
+            "explanatory_diagnostics": {
+              "bayesfilter_finite_difference_gradient": -1.177687120070825,
+              "bayesfilter_gradient_tape": 0.994957901676633,
+              "filterflow_finite_difference_gradient": -1.1786818504333496,
+              "filterflow_gradient_tape": -0.09377634525299072,
+              "gradient_promotion": "not_concluded"
+            },
+            "filterflow_command": "CUDA_VISIBLE_DEVICES=-1 PYTHONPATH=.localsource/filterflow /home/chakwong/BayesFilter/.localenv/filterflow-py311/bin/python -c <1D continuation cell script>",
+            "filterflow_cpu_only_manifest": {
+              "cuda_visible_devices": "-1",
+              "gpu_devices_visible": [],
+              "pre_import_cuda_visible_devices": "-1"
+            },
+            "filterflow_status": "executed",
+            "max_iterations": 500,
+            "primary_metrics": {
+              "absolute_residuals_within_tolerance": true,
+              "bayesfilter_max_column_residual": 4.440892098500626e-16,
+              "bayesfilter_max_row_residual": 3.858330841066682e-05,
+              "bayesfilter_scalar": -0.678767820621069,
+              "filterflow_max_column_residual": 2.384185791015625e-07,
+              "filterflow_max_row_residual": 3.8623809814453125e-05,
+              "filterflow_scalar": -0.6787679195404053,
+              "ledger_within_tolerance": true,
+              "max_absolute_column_residual": 2.384185791015625e-07,
+              "max_absolute_row_residual": 3.8623809814453125e-05,
+              "scalar_delta": 9.8919336277703e-08,
+              "scalar_within_tolerance": true,
+              "trigger_match": true
+            },
+            "scenario": {
+              "horizon": 4,
+              "scenario_id": "generated_T4"
+            },
+            "veto_diagnostics": {
+              "absolute_residuals_within_tolerance": true,
+              "filterflow_blocker": null,
+              "finite_bayesfilter_scalar": true,
+              "finite_filterflow_scalar": true,
+              "ledger_within_tolerance": true,
+              "scalar_within_tolerance": true,
+              "trigger_match": true
+            }
+          },
+          {
+            "bayesfilter_status": "executed",
+            "cell_status": "pass",
+            "comparison_status": "compared",
+            "convergence_threshold": 1e-06,
+            "explanatory_diagnostics": {
+              "bayesfilter_finite_difference_gradient": -0.6567680774449691,
+              "bayesfilter_gradient_tape": -1.0560253712155616,
+              "filterflow_finite_difference_gradient": -0.6568431854248047,
+              "filterflow_gradient_tape": -1.1461809873580933,
+              "gradient_promotion": "not_concluded"
+            },
+            "filterflow_command": "CUDA_VISIBLE_DEVICES=-1 PYTHONPATH=.localsource/filterflow /home/chakwong/BayesFilter/.localenv/filterflow-py311/bin/python -c <1D continuation cell script>",
+            "filterflow_cpu_only_manifest": {
+              "cuda_visible_devices": "-1",
+              "gpu_devices_visible": [],
+              "pre_import_cuda_visible_devices": "-1"
+            },
+            "filterflow_status": "executed",
+            "max_iterations": 500,
+            "primary_metrics": {
+              "absolute_residuals_within_tolerance": true,
+              "bayesfilter_max_column_residual": 4.440892098500626e-16,
+              "bayesfilter_max_row_residual": 3.974393986760916e-05,
+              "bayesfilter_scalar": 2.6711910666528245,
+              "filterflow_max_column_residual": 1.1920928955078125e-07,
+              "filterflow_max_row_residual": 3.9696693420410156e-05,
+              "filterflow_scalar": 2.6711909770965576,
+              "ledger_within_tolerance": true,
+              "max_absolute_column_residual": 1.1920928955078125e-07,
+              "max_absolute_row_residual": 3.974393986760916e-05,
+              "scalar_delta": 8.955626684681306e-08,
+              "scalar_within_tolerance": true,
+              "trigger_match": true
+            },
+            "scenario": {
+              "horizon": 8,
+              "scenario_id": "generated_T8"
+            },
+            "veto_diagnostics": {
+              "absolute_residuals_within_tolerance": true,
+              "filterflow_blocker": null,
+              "finite_bayesfilter_scalar": true,
+              "finite_filterflow_scalar": true,
+              "ledger_within_tolerance": true,
+              "scalar_within_tolerance": true,
+              "trigger_match": true
+            }
+          },
+          {
+            "bayesfilter_status": "executed",
+            "cell_status": "pass",
+            "comparison_status": "compared",
+            "convergence_threshold": 1e-06,
+            "explanatory_diagnostics": {
+              "bayesfilter_finite_difference_gradient": -4.70432256243658,
+              "bayesfilter_gradient_tape": -8.912183740715058,
+              "filterflow_finite_difference_gradient": -4.700422286987305,
+              "filterflow_gradient_tape": -16.11032485961914,
+              "gradient_promotion": "not_concluded"
+            },
+            "filterflow_command": "CUDA_VISIBLE_DEVICES=-1 PYTHONPATH=.localsource/filterflow /home/chakwong/BayesFilter/.localenv/filterflow-py311/bin/python -c <1D continuation cell script>",
+            "filterflow_cpu_only_manifest": {
+              "cuda_visible_devices": "-1",
+              "gpu_devices_visible": [],
+              "pre_import_cuda_visible_devices": "-1"
+            },
+            "filterflow_status": "executed",
+            "max_iterations": 500,
+            "primary_metrics": {
+              "absolute_residuals_within_tolerance": true,
+              "bayesfilter_max_column_residual": 4.440892098500626e-16,
+              "bayesfilter_max_row_residual": 1.3420703364963593e-05,
+              "bayesfilter_scalar": 1.700923192237744,
+              "filterflow_max_column_residual": 2.384185791015625e-07,
+              "filterflow_max_row_residual": 1.341104507446289e-05,
+              "filterflow_scalar": 1.7009224891662598,
+              "ledger_within_tolerance": true,
+              "max_absolute_column_residual": 2.384185791015625e-07,
+              "max_absolute_row_residual": 1.3420703364963593e-05,
+              "scalar_delta": 7.030714841427255e-07,
+              "scalar_within_tolerance": true,
+              "trigger_match": true
+            },
+            "scenario": {
+              "horizon": 16,
+              "scenario_id": "generated_T16"
+            },
+            "veto_diagnostics": {
+              "absolute_residuals_within_tolerance": true,
+              "filterflow_blocker": null,
+              "finite_bayesfilter_scalar": true,
+              "finite_filterflow_scalar": true,
+              "ledger_within_tolerance": true,
+              "scalar_within_tolerance": true,
+              "trigger_match": true
+            }
+          },
+          {
+            "bayesfilter_status": "executed",
+            "cell_status": "veto",
+            "comparison_status": "compared",
+            "convergence_threshold": 1e-06,
+            "explanatory_diagnostics": {
+              "bayesfilter_finite_difference_gradient": -8.920029687256026,
+              "bayesfilter_gradient_tape": -5.9341656593135585,
+              "filterflow_finite_difference_gradient": -8.919239044189453,
+              "filterflow_gradient_tape": 0.9346641302108765,
+              "gradient_promotion": "not_concluded"
+            },
+            "filterflow_command": "CUDA_VISIBLE_DEVICES=-1 PYTHONPATH=.localsource/filterflow /home/chakwong/BayesFilter/.localenv/filterflow-py311/bin/python -c <1D continuation cell script>",
+            "filterflow_cpu_only_manifest": {
+              "cuda_visible_devices": "-1",
+              "gpu_devices_visible": [],
+              "pre_import_cuda_visible_devices": "-1"
+            },
+            "filterflow_status": "executed",
+            "max_iterations": 500,
+            "primary_metrics": {
+              "absolute_residuals_within_tolerance": false,
+              "bayesfilter_max_column_residual": 4.440892098500626e-16,
+              "bayesfilter_max_row_residual": 0.0009653550196917493,
+              "bayesfilter_scalar": 6.9935334497502195,
+              "filterflow_max_column_residual": 2.384185791015625e-07,
+              "filterflow_max_row_residual": 0.000965416431427002,
+              "filterflow_scalar": 6.993533134460449,
+              "ledger_within_tolerance": true,
+              "max_absolute_column_residual": 2.384185791015625e-07,
+              "max_absolute_row_residual": 0.000965416431427002,
+              "scalar_delta": 3.152897702918267e-07,
+              "scalar_within_tolerance": true,
+              "trigger_match": true
+            },
+            "scenario": {
+              "horizon": 32,
+              "scenario_id": "generated_T32"
+            },
+            "veto_diagnostics": {
+              "absolute_residuals_within_tolerance": false,
+              "filterflow_blocker": null,
+              "finite_bayesfilter_scalar": true,
+              "finite_filterflow_scalar": true,
+              "ledger_within_tolerance": true,
+              "scalar_within_tolerance": true,
+              "trigger_match": true
+            }
+          }
+        ],
+        "evaluated_horizons": [
+          4,
+          8,
+          16,
+          32
+        ],
+        "max_absolute_column_residual": 2.384185791015625e-07,
+        "max_absolute_row_residual": 0.000965416431427002
+      },
+      "rung": "R2_1d_horizon_ladder",
+      "status": "veto",
+      "varied_variables": {
+        "horizon": [
+          4,
+          8,
+          16,
+          32,
+          100
+        ]
+      },
+      "veto_diagnostics": {
+        "residual_tolerance": 0.0001
+      }
+    },
+    {
+      "blocker_reason": "blocked_by_R2_horizon_32_veto",
+      "comparator_fingerprint_after": {
+        "branch_ref_exists": true,
+        "branch_string_status": "descriptive_only",
+        "diff_digest": "02c0d85ed6d4fb8cd4b866fe0265f51ff0fdd8ec8fec5358250c468792c0ebb3",
+        "head_commit": "5d8300ba247c4c17e1a301a22560c24fd0670bfe",
+        "package_manifest_digest": "51fe9cee75a907b7fe54709b2ebbbc48470a8e6291967dbb10bebf00ebef7a86",
+        "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+        "provenance_note": "Comparator identity is HEAD commit plus local-diff/status fingerprint; branch string is descriptive only.",
+        "python_version": "Python 3.11.14",
+        "status": "current_local_patched_checkout",
+        "status_branch": "## bayesfilter-py311-compat\n M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+        "status_short": "M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+        "symbolic_head": "bayesfilter-py311-compat"
+      },
+      "comparator_fingerprint_before": {
+        "branch_ref_exists": true,
+        "branch_string_status": "descriptive_only",
+        "diff_digest": "02c0d85ed6d4fb8cd4b866fe0265f51ff0fdd8ec8fec5358250c468792c0ebb3",
+        "head_commit": "5d8300ba247c4c17e1a301a22560c24fd0670bfe",
+        "package_manifest_digest": "51fe9cee75a907b7fe54709b2ebbbc48470a8e6291967dbb10bebf00ebef7a86",
+        "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+        "provenance_note": "Comparator identity is HEAD commit plus local-diff/status fingerprint; branch string is descriptive only.",
+        "python_version": "Python 3.11.14",
+        "status": "current_local_patched_checkout",
+        "status_branch": "## bayesfilter-py311-compat\n M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+        "status_short": "M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+        "symbolic_head": "bayesfilter-py311-compat"
+      },
+      "evidence_bearing": false,
+      "explanatory_diagnostics": {
+        "blocked_rung_interpretation": "This rung was not evidence-bearing; the first failing rung is reported separately."
+      },
+      "failure_observed_directly": false,
+      "filterflow_cpu_only_manifest": null,
+      "first_blocked_rung": "R3_1d_particle_count_ladder",
+      "first_failing_rung": "R2_1d_horizon_ladder",
+      "fixed_variables": {},
+      "inherited_blocker": "blocked_by_R2_horizon_32_veto",
+      "parent_cpu_only_manifest": {
+        "cuda_visible_devices": "-1",
+        "gpu_devices_visible": [],
+        "pre_import_cuda_visible_devices": "-1"
+      },
+      "primary_metrics": {},
+      "rung": "R3_1d_particle_count_ladder",
+      "status": "blocked",
+      "varied_variables": {},
+      "veto_diagnostics": {
+        "blocked_before_execution": true
+      }
+    },
+    {
+      "blocker_reason": "blocked_by_R2_horizon_32_veto",
+      "comparator_fingerprint_after": {
+        "branch_ref_exists": true,
+        "branch_string_status": "descriptive_only",
+        "diff_digest": "02c0d85ed6d4fb8cd4b866fe0265f51ff0fdd8ec8fec5358250c468792c0ebb3",
+        "head_commit": "5d8300ba247c4c17e1a301a22560c24fd0670bfe",
+        "package_manifest_digest": "51fe9cee75a907b7fe54709b2ebbbc48470a8e6291967dbb10bebf00ebef7a86",
+        "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+        "provenance_note": "Comparator identity is HEAD commit plus local-diff/status fingerprint; branch string is descriptive only.",
+        "python_version": "Python 3.11.14",
+        "status": "current_local_patched_checkout",
+        "status_branch": "## bayesfilter-py311-compat\n M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+        "status_short": "M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+        "symbolic_head": "bayesfilter-py311-compat"
+      },
+      "comparator_fingerprint_before": {
+        "branch_ref_exists": true,
+        "branch_string_status": "descriptive_only",
+        "diff_digest": "02c0d85ed6d4fb8cd4b866fe0265f51ff0fdd8ec8fec5358250c468792c0ebb3",
+        "head_commit": "5d8300ba247c4c17e1a301a22560c24fd0670bfe",
+        "package_manifest_digest": "51fe9cee75a907b7fe54709b2ebbbc48470a8e6291967dbb10bebf00ebef7a86",
+        "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+        "provenance_note": "Comparator identity is HEAD commit plus local-diff/status fingerprint; branch string is descriptive only.",
+        "python_version": "Python 3.11.14",
+        "status": "current_local_patched_checkout",
+        "status_branch": "## bayesfilter-py311-compat\n M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+        "status_short": "M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+        "symbolic_head": "bayesfilter-py311-compat"
+      },
+      "evidence_bearing": false,
+      "explanatory_diagnostics": {
+        "blocked_rung_interpretation": "This rung was not evidence-bearing; the first failing rung is reported separately."
+      },
+      "failure_observed_directly": false,
+      "filterflow_cpu_only_manifest": null,
+      "first_blocked_rung": "R3_1d_particle_count_ladder",
+      "first_failing_rung": "R2_1d_horizon_ladder",
+      "fixed_variables": {},
+      "inherited_blocker": "blocked_by_R2_horizon_32_veto",
+      "parent_cpu_only_manifest": {
+        "cuda_visible_devices": "-1",
+        "gpu_devices_visible": [],
+        "pre_import_cuda_visible_devices": "-1"
+      },
+      "primary_metrics": {},
+      "rung": "R4_1d_random_stream_alignment",
+      "status": "blocked",
+      "varied_variables": {},
+      "veto_diagnostics": {
+        "blocked_before_execution": true
+      }
+    },
+    {
+      "blocker_reason": "blocked_by_R2_horizon_32_veto",
+      "comparator_fingerprint_after": {
+        "branch_ref_exists": true,
+        "branch_string_status": "descriptive_only",
+        "diff_digest": "02c0d85ed6d4fb8cd4b866fe0265f51ff0fdd8ec8fec5358250c468792c0ebb3",
+        "head_commit": "5d8300ba247c4c17e1a301a22560c24fd0670bfe",
+        "package_manifest_digest": "51fe9cee75a907b7fe54709b2ebbbc48470a8e6291967dbb10bebf00ebef7a86",
+        "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+        "provenance_note": "Comparator identity is HEAD commit plus local-diff/status fingerprint; branch string is descriptive only.",
+        "python_version": "Python 3.11.14",
+        "status": "current_local_patched_checkout",
+        "status_branch": "## bayesfilter-py311-compat\n M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+        "status_short": "M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+        "symbolic_head": "bayesfilter-py311-compat"
+      },
+      "comparator_fingerprint_before": {
+        "branch_ref_exists": true,
+        "branch_string_status": "descriptive_only",
+        "diff_digest": "02c0d85ed6d4fb8cd4b866fe0265f51ff0fdd8ec8fec5358250c468792c0ebb3",
+        "head_commit": "5d8300ba247c4c17e1a301a22560c24fd0670bfe",
+        "package_manifest_digest": "51fe9cee75a907b7fe54709b2ebbbc48470a8e6291967dbb10bebf00ebef7a86",
+        "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+        "provenance_note": "Comparator identity is HEAD commit plus local-diff/status fingerprint; branch string is descriptive only.",
+        "python_version": "Python 3.11.14",
+        "status": "current_local_patched_checkout",
+        "status_branch": "## bayesfilter-py311-compat\n M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+        "status_short": "M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+        "symbolic_head": "bayesfilter-py311-compat"
+      },
+      "evidence_bearing": false,
+      "explanatory_diagnostics": {
+        "blocked_rung_interpretation": "This rung was not evidence-bearing; the first failing rung is reported separately."
+      },
+      "failure_observed_directly": false,
+      "filterflow_cpu_only_manifest": null,
+      "first_blocked_rung": "R3_1d_particle_count_ladder",
+      "first_failing_rung": "R2_1d_horizon_ladder",
+      "fixed_variables": {},
+      "inherited_blocker": "blocked_by_R2_horizon_32_veto",
+      "parent_cpu_only_manifest": {
+        "cuda_visible_devices": "-1",
+        "gpu_devices_visible": [],
+        "pre_import_cuda_visible_devices": "-1"
+      },
+      "primary_metrics": {},
+      "rung": "R5_1d_resampling_policy_match",
+      "status": "blocked",
+      "varied_variables": {},
+      "veto_diagnostics": {
+        "blocked_before_execution": true
+      }
+    },
+    {
+      "blocker_reason": "blocked_by_R2_horizon_32_veto",
+      "comparator_fingerprint_after": {
+        "branch_ref_exists": true,
+        "branch_string_status": "descriptive_only",
+        "diff_digest": "02c0d85ed6d4fb8cd4b866fe0265f51ff0fdd8ec8fec5358250c468792c0ebb3",
+        "head_commit": "5d8300ba247c4c17e1a301a22560c24fd0670bfe",
+        "package_manifest_digest": "51fe9cee75a907b7fe54709b2ebbbc48470a8e6291967dbb10bebf00ebef7a86",
+        "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+        "provenance_note": "Comparator identity is HEAD commit plus local-diff/status fingerprint; branch string is descriptive only.",
+        "python_version": "Python 3.11.14",
+        "status": "current_local_patched_checkout",
+        "status_branch": "## bayesfilter-py311-compat\n M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+        "status_short": "M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+        "symbolic_head": "bayesfilter-py311-compat"
+      },
+      "comparator_fingerprint_before": {
+        "branch_ref_exists": true,
+        "branch_string_status": "descriptive_only",
+        "diff_digest": "02c0d85ed6d4fb8cd4b866fe0265f51ff0fdd8ec8fec5358250c468792c0ebb3",
+        "head_commit": "5d8300ba247c4c17e1a301a22560c24fd0670bfe",
+        "package_manifest_digest": "51fe9cee75a907b7fe54709b2ebbbc48470a8e6291967dbb10bebf00ebef7a86",
+        "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+        "provenance_note": "Comparator identity is HEAD commit plus local-diff/status fingerprint; branch string is descriptive only.",
+        "python_version": "Python 3.11.14",
+        "status": "current_local_patched_checkout",
+        "status_branch": "## bayesfilter-py311-compat\n M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+        "status_short": "M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+        "symbolic_head": "bayesfilter-py311-compat"
+      },
+      "evidence_bearing": false,
+      "explanatory_diagnostics": {
+        "blocked_rung_interpretation": "This rung was not evidence-bearing; the first failing rung is reported separately."
+      },
+      "failure_observed_directly": false,
+      "filterflow_cpu_only_manifest": null,
+      "first_blocked_rung": "R3_1d_particle_count_ladder",
+      "first_failing_rung": "R2_1d_horizon_ladder",
+      "fixed_variables": {},
+      "inherited_blocker": "blocked_by_R2_horizon_32_veto",
+      "parent_cpu_only_manifest": {
+        "cuda_visible_devices": "-1",
+        "gpu_devices_visible": [],
+        "pre_import_cuda_visible_devices": "-1"
+      },
+      "primary_metrics": {},
+      "rung": "R6_1d_parameter_grid_surface",
+      "status": "blocked",
+      "varied_variables": {},
+      "veto_diagnostics": {
+        "blocked_before_execution": true
+      }
+    },
+    {
+      "blocker_reason": "blocked_by_R2_horizon_32_veto",
+      "comparator_fingerprint_after": {
+        "branch_ref_exists": true,
+        "branch_string_status": "descriptive_only",
+        "diff_digest": "02c0d85ed6d4fb8cd4b866fe0265f51ff0fdd8ec8fec5358250c468792c0ebb3",
+        "head_commit": "5d8300ba247c4c17e1a301a22560c24fd0670bfe",
+        "package_manifest_digest": "51fe9cee75a907b7fe54709b2ebbbc48470a8e6291967dbb10bebf00ebef7a86",
+        "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+        "provenance_note": "Comparator identity is HEAD commit plus local-diff/status fingerprint; branch string is descriptive only.",
+        "python_version": "Python 3.11.14",
+        "status": "current_local_patched_checkout",
+        "status_branch": "## bayesfilter-py311-compat\n M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+        "status_short": "M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+        "symbolic_head": "bayesfilter-py311-compat"
+      },
+      "comparator_fingerprint_before": {
+        "branch_ref_exists": true,
+        "branch_string_status": "descriptive_only",
+        "diff_digest": "02c0d85ed6d4fb8cd4b866fe0265f51ff0fdd8ec8fec5358250c468792c0ebb3",
+        "head_commit": "5d8300ba247c4c17e1a301a22560c24fd0670bfe",
+        "package_manifest_digest": "51fe9cee75a907b7fe54709b2ebbbc48470a8e6291967dbb10bebf00ebef7a86",
+        "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+        "provenance_note": "Comparator identity is HEAD commit plus local-diff/status fingerprint; branch string is descriptive only.",
+        "python_version": "Python 3.11.14",
+        "status": "current_local_patched_checkout",
+        "status_branch": "## bayesfilter-py311-compat\n M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+        "status_short": "M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+        "symbolic_head": "bayesfilter-py311-compat"
+      },
+      "evidence_bearing": false,
+      "explanatory_diagnostics": {
+        "blocked_rung_interpretation": "This rung was not evidence-bearing; the first failing rung is reported separately."
+      },
+      "failure_observed_directly": false,
+      "filterflow_cpu_only_manifest": null,
+      "first_blocked_rung": "R3_1d_particle_count_ladder",
+      "first_failing_rung": "R2_1d_horizon_ladder",
+      "fixed_variables": {},
+      "inherited_blocker": "blocked_by_R2_horizon_32_veto",
+      "parent_cpu_only_manifest": {
+        "cuda_visible_devices": "-1",
+        "gpu_devices_visible": [],
+        "pre_import_cuda_visible_devices": "-1"
+      },
+      "primary_metrics": {},
+      "rung": "R7_1d_smoothness_scalar_contract",
+      "status": "blocked",
+      "varied_variables": {},
+      "veto_diagnostics": {
+        "blocked_before_execution": true
+      }
+    },
+    {
+      "blocker_reason": "blocked_by_R2_horizon_32_veto",
+      "comparator_fingerprint_after": {
+        "branch_ref_exists": true,
+        "branch_string_status": "descriptive_only",
+        "diff_digest": "02c0d85ed6d4fb8cd4b866fe0265f51ff0fdd8ec8fec5358250c468792c0ebb3",
+        "head_commit": "5d8300ba247c4c17e1a301a22560c24fd0670bfe",
+        "package_manifest_digest": "51fe9cee75a907b7fe54709b2ebbbc48470a8e6291967dbb10bebf00ebef7a86",
+        "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+        "provenance_note": "Comparator identity is HEAD commit plus local-diff/status fingerprint; branch string is descriptive only.",
+        "python_version": "Python 3.11.14",
+        "status": "current_local_patched_checkout",
+        "status_branch": "## bayesfilter-py311-compat\n M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+        "status_short": "M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+        "symbolic_head": "bayesfilter-py311-compat"
+      },
+      "comparator_fingerprint_before": {
+        "branch_ref_exists": true,
+        "branch_string_status": "descriptive_only",
+        "diff_digest": "02c0d85ed6d4fb8cd4b866fe0265f51ff0fdd8ec8fec5358250c468792c0ebb3",
+        "head_commit": "5d8300ba247c4c17e1a301a22560c24fd0670bfe",
+        "package_manifest_digest": "51fe9cee75a907b7fe54709b2ebbbc48470a8e6291967dbb10bebf00ebef7a86",
+        "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+        "provenance_note": "Comparator identity is HEAD commit plus local-diff/status fingerprint; branch string is descriptive only.",
+        "python_version": "Python 3.11.14",
+        "status": "current_local_patched_checkout",
+        "status_branch": "## bayesfilter-py311-compat\n M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+        "status_short": "M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+        "symbolic_head": "bayesfilter-py311-compat"
+      },
+      "evidence_bearing": false,
+      "explanatory_diagnostics": {
+        "blocked_rung_interpretation": "This rung was not evidence-bearing; the first failing rung is reported separately."
+      },
+      "failure_observed_directly": false,
+      "filterflow_cpu_only_manifest": null,
+      "first_blocked_rung": "R3_1d_particle_count_ladder",
+      "first_failing_rung": "R2_1d_horizon_ladder",
+      "fixed_variables": {},
+      "inherited_blocker": "blocked_by_R2_horizon_32_veto",
+      "parent_cpu_only_manifest": {
+        "cuda_visible_devices": "-1",
+        "gpu_devices_visible": [],
+        "pre_import_cuda_visible_devices": "-1"
+      },
+      "primary_metrics": {},
+      "rung": "R8_2d_constant_velocity_bridge",
+      "status": "blocked",
+      "varied_variables": {},
+      "veto_diagnostics": {
+        "blocked_before_execution": true
+      }
+    }
+  ],
+  "selected_inherited_setting": {
+    "convergence_threshold": 1e-06,
+    "max_absolute_column_residual": 1.1920928955078125e-07,
+    "max_absolute_row_residual": 1.4204764579250906e-05,
+    "max_iterations": 500
+  },
+  "technical_observation_decision": "one_d_to_smoothness_ladder_R2_veto",
+  "tolerances": {
+    "column_residual": 0.0001,
+    "gradient_abs": 0.001,
+    "gradient_rel": 0.01,
+    "normalized_log_weights": 5e-05,
+    "observation_log_likelihoods": 5e-05,
+    "per_step_log_normalizer": 5e-05,
+    "post_transport_particles": 5e-05,
+    "predicted_particles": 5e-05,
+    "row_residual": 0.0001,
+    "total_scalar": 5e-05,
+    "transport_cost_matrix": 5e-05,
+    "transport_matrix": 5e-05
+  }
+}

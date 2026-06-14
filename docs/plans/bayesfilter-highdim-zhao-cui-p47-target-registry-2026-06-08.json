@@ -1,0 +1,355 @@
+{
+  "schema_version": "p47.target_registry.v1",
+  "phase": "P47-M0",
+  "metadata_date": "2026-06-08",
+  "purpose": "Executable governance registry for remaining Zhao-Cui filtering completion after P45/P46, excluding S&P 500 real-data reproduction.",
+  "s_and_p_500_reproduction_in_scope": false,
+  "allowed_m1_route_labels": [
+    "adaptive route candidate",
+    "documented-deviation fixed-design substitute"
+  ],
+  "m1_route_decision": "documented-deviation fixed-design substitute",
+  "m1_route_decision_source": "P46 bounded multistate fixed-design TT adapter passed; no adaptive MATLAB TT-cross/SIRT reproduction evidence exists.",
+  "required_fields": [
+    "target_id",
+    "phase_gate",
+    "model_family",
+    "evidence_class",
+    "target_identity",
+    "state_law",
+    "observation_law",
+    "parameterization",
+    "reference_route",
+    "cut4_route",
+    "zhao_cui_route",
+    "m1_route_label",
+    "claim_class",
+    "blocker_class",
+    "same_target_comparison_authorized",
+    "prerequisite_tokens",
+    "pass_tokens",
+    "forbidden_tokens",
+    "nonclaims"
+  ],
+  "api_hmc_dependency_classes": {
+    "generalized_sv_lower_rung": {
+      "evidence_class": "lower_rung_value_gradient_equality",
+      "upstream_tokens": [
+        "PASS_P47_M3_GENERALIZED_SV_EQUALITY"
+      ],
+      "p42_required_tiers": [
+        "TIER_1_LOCAL_VALUE_AND_DIRECTIONAL_SCORE"
+      ],
+      "allowed_claim": "lower-rung API/HMC diagnostics for generalized SV only"
+    },
+    "spatial_sir_lower_rung": {
+      "evidence_class": "lower_rung_reference_equality",
+      "upstream_tokens": [
+        "PASS_P47_M4_SPATIAL_SIR_REFERENCE_EQUALITY"
+      ],
+      "p42_required_tiers": [
+        "TIER_1_LOCAL_VALUE_AND_DIRECTIONAL_SCORE"
+      ],
+      "allowed_claim": "lower-rung API/HMC diagnostics for spatial SIR only"
+    },
+    "spatial_sir_production": {
+      "evidence_class": "production_filtering",
+      "upstream_tokens": [
+        "PASS_P47_M4_SPATIAL_SIR_PRODUCTION_FILTERING"
+      ],
+      "p42_required_tiers": [
+        "TIER_1_LOCAL_VALUE_AND_DIRECTIONAL_SCORE",
+        "TIER_2_STATISTICAL_SCALE",
+        "TIER_3_HAMILTONIAN_LEAPFROG_FOR_HMC"
+      ],
+      "allowed_claim": "production API/HMC diagnostics for spatial SIR"
+    },
+    "predator_prey_lower_rung": {
+      "evidence_class": "lower_rung_reference_filtering",
+      "upstream_tokens": [
+        "PASS_P47_M5_PREDATOR_PREY_REFERENCE_FILTERING"
+      ],
+      "p42_required_tiers": [
+        "TIER_1_LOCAL_VALUE_AND_DIRECTIONAL_SCORE"
+      ],
+      "allowed_claim": "lower-rung API/HMC diagnostics for predator-prey only"
+    },
+    "predator_prey_production": {
+      "evidence_class": "production_filtering",
+      "upstream_tokens": [
+        "PASS_P47_M5_PREDATOR_PREY_PRODUCTION_FILTERING"
+      ],
+      "p42_required_tiers": [
+        "TIER_1_LOCAL_VALUE_AND_DIRECTIONAL_SCORE",
+        "TIER_2_STATISTICAL_SCALE",
+        "TIER_3_HAMILTONIAN_LEAPFROG_FOR_HMC"
+      ],
+      "allowed_claim": "production API/HMC diagnostics for predator-prey"
+    }
+  },
+  "rows": [
+    {
+      "target_id": "adaptive_tt_sirt_route_label",
+      "phase_gate": "P47-M1",
+      "model_family": "zhao_cui_route_governance",
+      "evidence_class": "route_label_governance",
+      "target_identity": "Route-label decision for later Zhao-Cui rows; not a matched-target filtering reproduction claim.",
+      "state_law": "N/A: route-governance row.",
+      "observation_law": "N/A: route-governance row.",
+      "parameterization": "N/A: route-governance row.",
+      "reference_route": "P30 equations and audited MATLAB behavior as reference material only.",
+      "cut4_route": "N/A: route-governance row.",
+      "zhao_cui_route": "Either clean-room adaptive route candidate or documented-deviation fixed-design substitute.",
+            "m1_route_label": "documented-deviation fixed-design substitute",
+      "claim_class": "ROUTE_LABEL_ONLY",
+      "blocker_class": "NO_ADAPTIVE_REPRODUCTION_CLAIM_WITHOUT_LATER_MATCHED_TARGET_EVIDENCE",
+      "same_target_comparison_authorized": false,
+      "prerequisite_tokens": [
+        "PASS_P47_M0_GOVERNANCE"
+      ],
+      "pass_tokens": [
+        "PASS_P47_M1_ADAPTIVE_ROUTE"
+      ],
+      "forbidden_tokens": [
+        "PASS_ADAPTIVE_MATLAB_TT_CROSS_SIRT_REPRODUCTION"
+      ],
+      "nonclaims": [
+        "adaptive route candidate is not adaptive MATLAB TT-cross/SIRT reproduction",
+        "no filtering correctness claim",
+        "no HMC readiness"
+      ]
+    },
+    {
+      "target_id": "paper_scale_readiness_synthetic_model_suite",
+      "phase_gate": "P47-M2",
+      "model_family": "synthetic_model_suite",
+      "evidence_class": "paper_scale_readiness_feasibility",
+      "target_identity": "Synthetic or model-suite paper-scale readiness manifest, explicitly excluding S&P 500 real-data reproduction.",
+      "state_law": "Declared by each eligible downstream model row.",
+      "observation_law": "Declared by each eligible downstream model row.",
+      "parameterization": "Declared by each eligible downstream model row.",
+      "reference_route": "Lower-rung exact, dense/refined, Kalman, or reviewed closure guardrail required before a candidate row is eligible.",
+      "cut4_route": "Only if the downstream target is declared compatible with CUT4 assumptions.",
+            "zhao_cui_route": "Documented-deviation fixed-design substitute; must carry M1 route label and branch policy.",
+            "m1_route_label": "documented-deviation fixed-design substitute",
+      "claim_class": "FEASIBILITY_ONLY_NO_CORRECTNESS_PROMOTION",
+      "blocker_class": "BLOCKED_FOR_CORRECTNESS_WITHOUT_MODEL_SPECIFIC_REFERENCE_GATE",
+      "same_target_comparison_authorized": false,
+      "prerequisite_tokens": [
+        "PASS_P47_M0_GOVERNANCE",
+        "PASS_P47_M1_ADAPTIVE_ROUTE"
+      ],
+      "pass_tokens": [
+        "PASS_P47_M2_PAPER_SCALE_READINESS"
+      ],
+      "forbidden_tokens": [
+        "PASS_P47_M4_SPATIAL_SIR_PRODUCTION_FILTERING",
+        "PASS_P47_M5_PREDATOR_PREY_PRODUCTION_FILTERING",
+        "PASS_P47_M6_SCORE_HMC_READINESS"
+      ],
+      "nonclaims": [
+        "no S&P 500 reproduction",
+        "finite paper-scale output is not correctness",
+        "no production filtering claim"
+      ]
+    },
+    {
+      "target_id": "generalized_sv_same_target_equality",
+      "phase_gate": "P47-M3",
+      "model_family": "generalized_stochastic_volatility",
+      "evidence_class": "lower_rung_value_gradient_equality",
+      "target_identity": "Declared generalized SV target: native, transformed exact, KSC mixture, or separately reviewed approximation.",
+      "state_law": "Declared by the M3 target note; native two-state rows require s_t and h_t laws.",
+      "observation_law": "Declared by the M3 target note with Jacobian terms for transformed targets.",
+      "parameterization": "Same unconstrained parameterization across CUT4, Zhao-Cui, and reference routes.",
+      "reference_route": "Exact, dense/refined, Kalman, or separately reviewed generalized-SV reference route.",
+      "cut4_route": "Authorized only when the declared target is compatible with CUT4 assumptions.",
+            "zhao_cui_route": "Documented-deviation fixed-design substitute using the P46/P47 retained-grid route with M1 route label and fixed branch policy.",
+            "m1_route_label": "documented-deviation fixed-design substitute",
+      "claim_class": "SAME_TARGET_VALUE_GRADIENT_GATE",
+      "blocker_class": "BLOCKED_UNTIL_TARGET_REFERENCE_AND_ZHAOCUI_ROUTE_PASS",
+      "same_target_comparison_authorized": true,
+      "prerequisite_tokens": [
+        "PASS_P47_M0_GOVERNANCE",
+        "PASS_P47_M1_ADAPTIVE_ROUTE"
+      ],
+      "pass_tokens": [
+        "PASS_P47_M3_GENERALIZED_SV_EQUALITY"
+      ],
+      "forbidden_tokens": [
+        "PASS_P47_M6_SCORE_HMC_READINESS"
+      ],
+      "nonclaims": [
+        "no native generalized-SV claim from transformed diagnostic alone",
+        "no HMC readiness from value agreement alone",
+        "no S&P 500 reproduction"
+      ]
+    },
+    {
+      "target_id": "spatial_sir_reference_equality",
+      "phase_gate": "P47-M4a",
+      "model_family": "spatial_sir",
+      "evidence_class": "lower_rung_reference_equality",
+      "target_identity": "Declared spatial SIR target, usually additive-Gaussian closure unless a native route is separately reviewed.",
+      "state_law": "Small-J SIR transition and domain policy declared in M4.",
+      "observation_law": "Declared observation law; infectious-coordinate Gaussian closure if using CUT4.",
+      "parameterization": "Same unconstrained parameterization across reference, CUT4, and Zhao-Cui routes.",
+      "reference_route": "Small-J dense/refined reference with observed and unobserved state accuracy.",
+      "cut4_route": "Only on declared additive-Gaussian closure target.",
+            "zhao_cui_route": "Documented-deviation fixed-design substitute using the P46/P47 multistate retained-grid route with M1 route label.",
+            "m1_route_label": "documented-deviation fixed-design substitute",
+      "claim_class": "LOWER_RUNG_REFERENCE_EQUALITY_ONLY",
+      "blocker_class": "BLOCKED_PRODUCTION_WITHOUT_M2_AND_PRODUCTION_ROW",
+      "same_target_comparison_authorized": true,
+      "prerequisite_tokens": [
+        "PASS_P47_M0_GOVERNANCE",
+        "PASS_P47_M1_ADAPTIVE_ROUTE"
+      ],
+      "pass_tokens": [
+        "PASS_P47_M4_SPATIAL_SIR_REFERENCE_EQUALITY"
+      ],
+      "forbidden_tokens": [
+        "PASS_P47_M4_SPATIAL_SIR_PRODUCTION_FILTERING"
+      ],
+      "nonclaims": [
+        "lower-rung equality is not production filtering",
+        "closure likelihood is not native SIR correctness",
+        "no S&P 500 reproduction"
+      ]
+    },
+    {
+      "target_id": "spatial_sir_production_filtering",
+      "phase_gate": "P47-M4b",
+      "model_family": "spatial_sir",
+      "evidence_class": "production_filtering",
+      "target_identity": "Production- or near-paper-scale spatial SIR filtering row preserving the declared M4 target.",
+      "state_law": "Same target family as the passed M4a row, with production-scale dimensions and resource caps.",
+      "observation_law": "Same target family as the passed M4a row.",
+      "parameterization": "Same parameterization and route label as the lower-rung row unless a reviewed amendment changes it.",
+      "reference_route": "M4a lower-rung reference/equality gate plus production guardrails.",
+      "cut4_route": "Optional and only if the production target remains CUT4-compatible.",
+            "zhao_cui_route": "Documented-deviation fixed-design substitute using a production or near-paper-scale retained-grid route with M1 route label.",
+            "m1_route_label": "documented-deviation fixed-design substitute",
+      "claim_class": "PRODUCTION_FILTERING_REQUIRES_M2_AND_M4A",
+      "blocker_class": "BLOCKED_UNTIL_M2_AND_M4A_PASS",
+      "same_target_comparison_authorized": false,
+      "prerequisite_tokens": [
+        "PASS_P47_M0_GOVERNANCE",
+        "PASS_P47_M1_ADAPTIVE_ROUTE",
+        "PASS_P47_M2_PAPER_SCALE_READINESS",
+        "PASS_P47_M4_SPATIAL_SIR_REFERENCE_EQUALITY"
+      ],
+      "pass_tokens": [
+        "PASS_P47_M4_SPATIAL_SIR_PRODUCTION_FILTERING"
+      ],
+      "forbidden_tokens": [
+        "PASS_P47_M6_SCORE_HMC_READINESS"
+      ],
+      "nonclaims": [
+        "finite production manifest alone is not correctness",
+        "production token requires a production or near-paper-scale row",
+        "no native SIR claim unless native target is separately reviewed"
+      ]
+    },
+    {
+      "target_id": "predator_prey_reference_filtering",
+      "phase_gate": "P47-M5a",
+      "model_family": "predator_prey",
+      "evidence_class": "lower_rung_reference_filtering",
+      "target_identity": "Declared predator-prey target, usually additive-Gaussian RK closure unless a native route is separately reviewed.",
+      "state_law": "Small dense/refined predator-prey transition and domain policy declared in M5.",
+      "observation_law": "Declared observation law, with additive-Gaussian closure if using CUT4.",
+      "parameterization": "Same unconstrained parameterization across reference, CUT4, and Zhao-Cui routes.",
+      "reference_route": "Small dense/refined reference with downstream filtering value/state-quality metrics.",
+      "cut4_route": "Only on declared additive-Gaussian closure target.",
+            "zhao_cui_route": "Documented-deviation fixed-design substitute using the P46/P47 multistate retained-grid route with M1 route label.",
+            "m1_route_label": "documented-deviation fixed-design substitute",
+      "claim_class": "LOWER_RUNG_REFERENCE_FILTERING_ONLY",
+      "blocker_class": "BLOCKED_PRODUCTION_WITHOUT_M2_AND_PRODUCTION_ROW",
+      "same_target_comparison_authorized": true,
+      "prerequisite_tokens": [
+        "PASS_P47_M0_GOVERNANCE",
+        "PASS_P47_M1_ADAPTIVE_ROUTE"
+      ],
+      "pass_tokens": [
+        "PASS_P47_M5_PREDATOR_PREY_REFERENCE_FILTERING"
+      ],
+      "forbidden_tokens": [
+        "PASS_P47_M5_PREDATOR_PREY_PRODUCTION_FILTERING"
+      ],
+      "nonclaims": [
+        "proposal/preconditioner metrics alone are explanatory",
+        "lower-rung filtering is not production filtering",
+        "no native predator-prey claim unless native target is separately reviewed"
+      ]
+    },
+    {
+      "target_id": "predator_prey_production_filtering",
+      "phase_gate": "P47-M5b",
+      "model_family": "predator_prey",
+      "evidence_class": "production_filtering",
+      "target_identity": "Production- or near-paper-scale predator-prey filtering row preserving the declared M5 target.",
+      "state_law": "Same target family as the passed M5a row, with production-scale dimensions and resource caps.",
+      "observation_law": "Same target family as the passed M5a row.",
+      "parameterization": "Same parameterization and route label as the lower-rung row unless a reviewed amendment changes it.",
+      "reference_route": "M5a lower-rung reference-filtering gate plus production guardrails.",
+      "cut4_route": "Optional and only if the production target remains CUT4-compatible.",
+            "zhao_cui_route": "Documented-deviation fixed-design substitute using a production or near-paper-scale retained-grid route with M1 route label.",
+            "m1_route_label": "documented-deviation fixed-design substitute",
+      "claim_class": "PRODUCTION_FILTERING_REQUIRES_M2_AND_M5A",
+      "blocker_class": "BLOCKED_UNTIL_M2_AND_M5A_PASS",
+      "same_target_comparison_authorized": false,
+      "prerequisite_tokens": [
+        "PASS_P47_M0_GOVERNANCE",
+        "PASS_P47_M1_ADAPTIVE_ROUTE",
+        "PASS_P47_M2_PAPER_SCALE_READINESS",
+        "PASS_P47_M5_PREDATOR_PREY_REFERENCE_FILTERING"
+      ],
+      "pass_tokens": [
+        "PASS_P47_M5_PREDATOR_PREY_PRODUCTION_FILTERING"
+      ],
+      "forbidden_tokens": [
+        "PASS_P47_M6_SCORE_HMC_READINESS"
+      ],
+      "nonclaims": [
+        "finite production manifest alone is not correctness",
+        "production token requires a production or near-paper-scale row",
+        "no native predator-prey claim unless native target is separately reviewed"
+      ]
+    },
+    {
+      "target_id": "score_api_hmc_readiness_by_evidence_class",
+      "phase_gate": "P47-M6",
+      "model_family": "score_api_hmc",
+      "evidence_class": "api_hmc_readiness",
+      "target_identity": "Stable score API and HMC-readiness table, labeled lower-rung or production for each target row.",
+      "state_law": "Inherited from each promoted target row.",
+      "observation_law": "Inherited from each promoted target row.",
+      "parameterization": "Same unconstrained parameterization as the corresponding value/gradient or filtering-quality row.",
+      "reference_route": "P42 Tier 1/2/3 checks for each promoted target.",
+      "cut4_route": "Only if the target's upstream row used a same-target CUT4 route.",
+            "zhao_cui_route": "Documented-deviation fixed-design substitute using a frozen-branch retained-grid route with M1 label and deterministic replay.",
+            "m1_route_label": "documented-deviation fixed-design substitute",
+      "claim_class": "API_HMC_BY_EVIDENCE_CLASS",
+      "blocker_class": "BLOCKED_UNTIL_PER_TARGET_UPSTREAM_TOKEN_AND_P42_EVIDENCE",
+      "same_target_comparison_authorized": false,
+      "prerequisite_tokens": [
+        "PASS_P47_M0_GOVERNANCE",
+        "PASS_P47_M1_ADAPTIVE_ROUTE",
+        "PER_TARGET_UPSTREAM_TOKEN_REQUIRED",
+        "P42_TIER_EVIDENCE_REQUIRED"
+      ],
+      "pass_tokens": [
+        "PASS_P47_M6_SCORE_HMC_READINESS"
+      ],
+      "forbidden_tokens": [
+        "PASS_PRODUCTION_HMC_FROM_LOWER_RUNG_ONLY"
+      ],
+      "nonclaims": [
+        "API pass is separate from HMC readiness",
+        "lower-rung tokens support only lower-rung API/HMC diagnostics",
+        "production API/HMC readiness requires corresponding production filtering token"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,104 @@
+{
+  "schema_version": "p50.sv_generalized_sv_ladder.v1",
+  "metadata_date": "2026-06-09",
+  "phase": "P50-M5",
+  "calibration_contract": "docs/plans/bayesfilter-highdim-zhao-cui-p50-value-gradient-calibration-rules-2026-06-09.json",
+  "rows": [
+    {
+      "row_id": "ksc_sv_cut4_vs_kalman_dim_1_2_3",
+      "model_family": "independent_panel_transformed_sv_ksc_gaussian_mixture",
+      "dimensions": [1, 2, 3],
+      "target_identity": "factorized coordinatewise transformed SV finite Gaussian mixture",
+      "candidate": "CUT4 mixture filter",
+      "reference": "Kalman enumeration over KSC mixture components",
+      "m4_class": "PASS_SAME_TARGET_VALUE_AND_GRADIENT",
+      "evidence_tests": [
+        "tests/highdim/test_p43_sv_value_gradient_cut4_zhaocui.py::test_p43_ksc_cut4_matches_kalman_value_and_diagnostic_score",
+        "tests/highdim/test_p47_generalized_sv_equality.py::test_p47_m3_cut4_matches_kalman_on_same_ksc_mixture_target_value_and_score"
+      ],
+      "nonclaims": [
+        "not exact native SV likelihood",
+        "not native generalized SV/CNS estimator",
+        "no HMC readiness",
+        "no production SV readiness"
+      ]
+    },
+    {
+      "row_id": "ksc_sv_zhaocui_vs_dense_dim_1_2_3",
+      "model_family": "independent_panel_transformed_sv_ksc_gaussian_mixture",
+      "dimensions": [1, 2, 3],
+      "target_identity": "factorized coordinatewise transformed SV finite Gaussian mixture",
+      "candidate": "factorized scalar fixed-design Zhao-Cui TT substitute",
+      "reference": "dense scalar mixture reference summed by coordinate",
+      "m4_class": "PASS_GRADIENT_LOCAL_DIAGNOSTIC",
+      "m4_promotion_boundary": "existing KSC Zhao-Cui-vs-dense tests use fit-tolerance-scale gates looser than P50-M4 default promoted same-target gates",
+      "evidence_tests": [
+        "tests/highdim/test_p47_generalized_sv_equality.py::test_p47_m3_zhaocui_matches_dense_on_same_ksc_mixture_target_value_and_score",
+        "tests/highdim/test_p47_generalized_sv_equality.py::test_p47_m3_cut4_and_zhaocui_direct_gap_is_bounded_on_ksc_target"
+      ],
+      "nonclaims": [
+        "not exact native SV likelihood",
+        "not adaptive MATLAB TT-cross/SIRT reproduction",
+        "not coupled multivariate Zhao-Cui TT",
+        "no high-dimensional scalability claim",
+        "no HMC readiness"
+      ]
+    },
+    {
+      "row_id": "exact_transformed_sv_zhaocui_vs_dense_dim_1_2_3",
+      "model_family": "independent_panel_exact_transformed_sv",
+      "dimensions": [1, 2, 3],
+      "target_identity": "z_t=log(y_t^2), exact log-chi-square observation noise",
+      "candidate": "factorized scalar fixed-design Zhao-Cui TT substitute",
+      "reference": "dense exact transformed SV reference",
+      "m4_class": "PASS_SAME_TARGET_VALUE_AND_GRADIENT",
+      "evidence_tests": [
+        "tests/highdim/test_p43_sv_value_gradient_cut4_zhaocui.py::test_p43_exact_transformed_zhaocui_matches_dense_value_and_diagnostic_score",
+        "tests/highdim/test_p41_exact_transformed_sv_zhaocui_ladder.py::test_p41_exact_transformed_zhaocui_factorized_tt_matches_dense"
+      ],
+      "nonclaims": [
+        "not KSC Gaussian mixture approximation",
+        "not coupled multivariate Zhao-Cui TT",
+        "no generalized SV/CNS estimator",
+        "no HMC readiness"
+      ]
+    },
+    {
+      "row_id": "generalized_sv_native_same_target",
+      "model_family": "generalized_sv_raw_observation",
+      "dimensions": [2],
+      "target_identity": "y_t = beta s_t + exp(h_t/2) epsilon_t with state (s_t, h_t)",
+      "candidate": "diagnostic transformed-residual CUT4 probe",
+      "reference": "none adequate for native same-target value and gradient equality",
+      "m4_class": "BLOCKED_REFERENCE_MISSING",
+      "evidence_tests": [
+        "tests/highdim/test_p44_generalized_sv_target.py",
+        "tests/highdim/test_p45_generalized_sv_comparison_blocker.py"
+      ],
+      "blocker_reason": "native generalized SV same-target value/gradient equality lacks an approved exact/dense or reviewed reference; moment-matched Kalman and transformed-residual CUT4 are diagnostic approximations only",
+      "nonclaims": [
+        "no native generalized SV same-target equality",
+        "moment-matched Kalman is diagnostic only",
+        "transformed-residual CUT4 is diagnostic only",
+        "no HMC readiness",
+        "no production generalized SV readiness"
+      ]
+    }
+  ],
+  "phase_decision": {
+    "status": "PASS_WITH_SCOPED_GENERALIZED_SV_NATIVE_BLOCKER",
+    "reason": "dim 1/2/3 strict same-target value-gradient passes are established for CUT4-vs-Kalman on the KSC target and Zhao-Cui-vs-dense on the exact transformed SV target; KSC Zhao-Cui-vs-dense is retained as local diagnostic evidence because its existing tolerances are looser than P50-M4 promoted gates; native generalized SV same-target equality is documented as blocked rather than overclaimed"
+  },
+  "explicit_non_goals": [
+    "adaptive TT/SIRT source-faithful filtering",
+    "S&P 500 reproduction"
+  ],
+  "nonclaims": [
+    "no HMC readiness",
+    "no production SV readiness",
+    "no production generalized SV readiness",
+    "no smoothing support",
+    "no source-faithful adaptive TT/SIRT filtering",
+    "no S&P 500 reproduction"
+  ]
+}

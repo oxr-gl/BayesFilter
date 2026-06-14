@@ -1,0 +1,48 @@
+{
+  "schema_version": "p52.factorized_transition_route.v1",
+  "phase": "P52-M4",
+  "status": "BLOCK_P52_FACTORIZED_TRANSITION_ROUTE",
+  "current_route": {
+    "route_id": "current_multistate_retained_grid",
+    "transition_interface": "multistate_grid_pairwise_transition",
+    "materializes_dense_pairs": true,
+    "blocked_functions": [
+      "multistate_nonlinear_transition_adjacent_target_batch",
+      "_multistate_pairwise_transition_between_grids_log_density"
+    ],
+    "blocked_operations": [
+      "tf.repeat(current, repeats=previous_count, axis=0)",
+      "tf.tile(previous, [current_count, 1])"
+    ],
+    "blocker": "BLOCK_P52_FACTORIZED_ROUTE_IMPLEMENTATION_MISSING"
+  },
+  "required_contract": {
+    "route_id": "required_spatial_sir_factorized_transition_route",
+    "transition_interface": "tt_mpo_factorized_contraction",
+    "materializes_dense_pairs": false,
+    "deterministic_replay": true,
+    "differentiable_backend": "tensorflow",
+    "exposes_reff_bound": false,
+    "effective_transition_rank_multiplier": null,
+    "memory_metadata_available": false,
+    "status": "BLOCK_P52_FACTORIZED_ROUTE_IMPLEMENTATION_MISSING",
+    "blocker": "route interface specified but no implemented TensorFlow factorized transition application with R_eff and memory metadata exists yet",
+    "claim_class": "route_contract_not_filtering_correctness",
+    "nonclaims": [
+      "no filtering correctness",
+      "no production spatial SIR readiness",
+      "no HMC readiness"
+    ]
+  },
+  "repair_required": "implement streamed/local or TT-MPO factorized TensorFlow transition application before d=18 spatial SIR filtering can run",
+  "tokens_emitted": [
+    "BLOCK_P52_FACTORIZED_TRANSITION_ROUTE"
+  ],
+  "nonclaims": [
+    "no factorized route implementation",
+    "no d=18 spatial SIR filtering",
+    "no filtering correctness",
+    "no production spatial SIR readiness",
+    "no HMC readiness"
+  ]
+}

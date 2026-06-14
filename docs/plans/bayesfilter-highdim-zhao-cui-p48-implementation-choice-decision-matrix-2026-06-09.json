@@ -1,0 +1,292 @@
+{
+  "metadata_date": "2026-06-09",
+  "program": "P48-source-code-discrepancy-and-rewrite",
+  "status": "EXECUTED_STATIC_AUDIT",
+  "nonclaims": [
+    "P48 does not complete a BayesFilter rewrite.",
+    "P48 does not claim adaptive Zhao-Cui source-route equivalence for current BayesFilter code.",
+    "P48 does not claim paper-scale SIR or predator-prey production readiness.",
+    "P48 does not claim adaptive TT/SIRT differentiability for HMC.",
+    "P48 does not treat analytical-gradient necessity as permission to label an ad hoc replacement source-faithful."
+  ],
+  "decisions": [
+    {
+      "id": "D01",
+      "topic": "TT fitting route",
+      "source_anchor": "third_party/audit/zhao_cui_tensor_ssm_p10/source/deep-tensor.dev/src/@TTFun/cross.m:8-29,81-169; tensor-ssm-paper-demo/eg3_sir/mainscript.m:48-55",
+      "bayesfilter_anchor": "bayesfilter/highdim/fitting.py:1-37,182-292,333-434,555-626",
+      "difference": "Adaptive TT cross/ALS with random enrichment and rank truncation versus deterministic fixed-rank weighted ridge ALS on declared designs.",
+      "severity": "critical",
+      "decision": "split_lanes",
+      "winner_for_filtering": "source",
+      "winner_for_hmc_gradient": "bayesfilter",
+      "next_action": "Implement clean-room adaptive TT/SIRT filtering lane; preserve fixed branch as deterministic gradient lane.",
+      "required_tests": [
+        "low-dimensional analytic TT-cross density approximation",
+        "linear-Gaussian filtering against Kalman",
+        "SIR and predator-prey small ladders after route rewrite"
+      ],
+      "nonclaims": [
+        "Current fixed-rank ALS is not source-route equivalent."
+      ]
+    },
+    {
+      "id": "D02",
+      "topic": "Retained representation",
+      "source_anchor": "models/full_sol.m:13-18,33-43,105-129; models/pre_sol.m:10-13,205-213,241-260",
+      "bayesfilter_anchor": "bayesfilter/highdim/filtering.py:186-231,346-518,775-1214,2359-2602",
+      "difference": "Source retains SIRT/TTSIRT transport objects, affine maps, samples, and weights; BayesFilter retains all-axes dense/TT grid payloads.",
+      "severity": "critical",
+      "decision": "source_wins",
+      "winner_for_filtering": "source",
+      "winner_for_hmc_gradient": "bayesfilter_fixed_branch_only",
+      "next_action": "Rewrite filtering lane around retained transport/density objects rather than tensor-product grids.",
+      "required_tests": [
+        "retained-object replay and normalizer tests",
+        "ESS/resampling invariants",
+        "grid-free propagation scale smoke"
+      ],
+      "nonclaims": [
+        "All-axes retained grid is not a paper-scale SIR route."
+      ]
+    },
+    {
+      "id": "D03",
+      "topic": "Transition propagation",
+      "source_anchor": "models/full_sol.m:21-66; models/pre_sol.m:17-103",
+      "bayesfilter_anchor": "bayesfilter/highdim/filtering.py:2201-2348,2628-2673; docs/plans/bayesfilter-highdim-zhao-cui-p47-m4b-m5b-production-repair-execution-result-2026-06-09.md",
+      "difference": "Sample/ESS-driven propagation and reapproximation versus pairwise transition density between retained grids.",
+      "severity": "critical",
+      "decision": "source_wins",
+      "winner_for_filtering": "source",
+      "winner_for_hmc_gradient": "bayesfilter_fixed_branch_only",
+      "next_action": "Do not retry high-dimensional M4b with pairwise all-grid propagation; implement source-faithful proposal/reapproximation first.",
+      "required_tests": [
+        "pairwise-grid preflight remains a blocker",
+        "source-faithful sample route low-dimensional tieout",
+        "J=3,5,9 SIR complexity ladder"
+      ],
+      "nonclaims": [
+        "Finite tiny-grid results do not imply production scalability."
+      ]
+    },
+    {
+      "id": "D04",
+      "topic": "ESS and particle correction",
+      "source_anchor": "models/full_sol.m:21-43,49-66; models/pre_sol.m:17-31,35-103,245-256",
+      "bayesfilter_anchor": "bayesfilter/highdim/filtering.py fixed-branch value paths; bayesfilter/highdim/fitting.py residual and holdout gates",
+      "difference": "Source uses particle correction, ESS, resampling, and enhanced sampling; BayesFilter uses deterministic quadrature/fitting diagnostics.",
+      "severity": "high",
+      "decision": "source_wins",
+      "winner_for_filtering": "source",
+      "winner_for_hmc_gradient": "bayesfilter_fixed_branch_only",
+      "next_action": "Add ESS/correction mechanics to source-faithful lane.",
+      "required_tests": [
+        "ESS collapse recovery smoke",
+        "proposal correction unbiasedness sanity check",
+        "multi-seed variance calibration"
+      ],
+      "nonclaims": [
+        "BayesFilter residual gates are not ESS substitutes."
+      ]
+    },
+    {
+      "id": "D05",
+      "topic": "Coordinate maps and recentering",
+      "source_anchor": "models/full_sol.m:63-98; models/pre_sol.m:103-213",
+      "bayesfilter_anchor": "bayesfilter/highdim/filtering.py coordinate-window configs; bayesfilter/highdim/transport.py",
+      "difference": "Sample-derived affine maps and preconditioner compositions versus declared fixed windows and grid CDF helpers.",
+      "severity": "high",
+      "decision": "split_lanes",
+      "winner_for_filtering": "source",
+      "winner_for_hmc_gradient": "bayesfilter",
+      "next_action": "Implement source-style recentering in filtering lane; keep fixed declared windows in gradient lane.",
+      "required_tests": [
+        "affine recentering moment check",
+        "Jacobian/normalizer accounting check",
+        "coordinate-window sensitivity ladder"
+      ],
+      "nonclaims": [
+        "A fixed coordinate window is not equivalent to sample-derived recentering."
+      ]
+    },
+    {
+      "id": "D06",
+      "topic": "Preconditioned source algorithm",
+      "source_anchor": "models/pre_sol.m:1-14,33-213,241-260,276-394",
+      "bayesfilter_anchor": "bayesfilter/highdim/models.py diagnostics; P47 M5b artifacts",
+      "difference": "Source implements preconditioner/residual SIRT variants; BayesFilter has diagnostics and bounded fixtures but not the full preconditioned solver.",
+      "severity": "critical",
+      "decision": "source_wins",
+      "winner_for_filtering": "source",
+      "winner_for_hmc_gradient": "undecided",
+      "next_action": "Prioritize clean-room preconditioned lane for predator-prey repair.",
+      "required_tests": [
+        "preconditioner target equality checks",
+        "residual-target normalizer checks",
+        "predator-prey horizon ladder"
+      ],
+      "nonclaims": [
+        "P47 M5b failure is not evidence against the source preconditioned algorithm."
+      ]
+    },
+    {
+      "id": "D07",
+      "topic": "Smoothing/backward conditionals",
+      "source_anchor": "models/full_sol.m:139-205; models/pre_sol.m:276-394",
+      "bayesfilter_anchor": "bayesfilter/highdim/transport.py; bayesfilter/highdim/squared_tt.py",
+      "difference": "Source includes smoothing via conditional/inverse transports and weights; BayesFilter highdim route does not implement the full smoother.",
+      "severity": "medium",
+      "decision": "documentation_only",
+      "winner_for_filtering": "not_applicable",
+      "winner_for_hmc_gradient": "not_applicable",
+      "next_action": "Exclude smoothing claims until a dedicated smoother plan exists.",
+      "required_tests": [
+        "backward conditional map round-trip",
+        "smoothing marginal reference checks"
+      ],
+      "nonclaims": [
+        "Filtering likelihood tests do not validate smoothing."
+      ]
+    },
+    {
+      "id": "D08",
+      "topic": "Squared density normalizer and marginalization",
+      "source_anchor": "@TTSIRT/marginalise.m:1-85",
+      "bayesfilter_anchor": "bayesfilter/highdim/squared_tt.py:183-283",
+      "difference": "Source has TTSIRT marginal recursion and z accounting; BayesFilter has validated helpers with explicit limitations for integrated axes.",
+      "severity": "medium_high",
+      "decision": "test_required",
+      "winner_for_filtering": "undecided",
+      "winner_for_hmc_gradient": "undecided",
+      "next_action": "Run analytic density and low-dimensional marginal/conditional tests before promoting generic marginalization.",
+      "required_tests": [
+        "Gaussian squared-density normalizer",
+        "low-dimensional marginal density comparison",
+        "conditional CDF normalization and monotonicity"
+      ],
+      "nonclaims": [
+        "Current helper limitations are not proof that the source route is unavailable."
+      ]
+    },
+    {
+      "id": "D09",
+      "topic": "Differentiability and HMC",
+      "source_anchor": "adaptive random enrichment, ESS resampling, SVD rank truncation in source route",
+      "bayesfilter_anchor": "bayesfilter/highdim/fitting.py branch manifests; P42/P43 gradient validation rules",
+      "difference": "Source route is adaptive and random; BayesFilter fixed branch is deterministic and replayable. This supports a separate gradient-bearing lane, not a claim of source fidelity.",
+      "severity": "critical",
+      "decision": "split_lanes",
+      "winner_for_filtering": "source",
+      "winner_for_hmc_gradient": "bayesfilter",
+      "next_action": "Keep HMC experiments on fixed branch unless a separate differentiable adaptive-route design is approved; label changed routes as gradient-bearing adaptations, not source-faithful Zhao-Cui.",
+      "required_tests": [
+        "value-gradient fixed-branch tieouts",
+        "branch replay invariance",
+        "multi-seed likelihood variance calibration"
+      ],
+      "nonclaims": [
+        "Adaptive source route is not declared globally differentiable.",
+        "Analytical-gradient necessity does not make an ad hoc route source-faithful."
+      ]
+    },
+    {
+      "id": "D10",
+      "topic": "Spatial SIR model contract",
+      "source_anchor": "tensor-ssm-paper-demo/eg3_sir/mainscript.m:12-55",
+      "bayesfilter_anchor": "docs/plans/bayesfilter-highdim-zhao-cui-p47-m4b-m5b-production-repair-execution-result-2026-06-09.md; bayesfilter/highdim/models.py",
+      "difference": "Source paper-scale SIR uses adaptive/random TT/SIRT with samples; BayesFilter M4b attempted all-grid multistate retained propagation.",
+      "severity": "critical",
+      "decision": "source_wins",
+      "winner_for_filtering": "source",
+      "winner_for_hmc_gradient": "not_applicable",
+      "next_action": "Rebuild route before M4b production retry.",
+      "required_tests": [
+        "J=1 source-faithful smoke",
+        "J=3 comparison ladder",
+        "J=9 preflight without pairwise grid explosion"
+      ],
+      "nonclaims": [
+        "M4b is blocked by BayesFilter route architecture, not by the source paper route."
+      ]
+    },
+    {
+      "id": "D11",
+      "topic": "Predator-prey model contract",
+      "source_anchor": "tensor-ssm-paper-demo/eg4_predatorprey/mainscript.m:64-77; models/pre_sol.m",
+      "bayesfilter_anchor": "docs/plans/bayesfilter-highdim-zhao-cui-p47-m4b-m5b-production-repair-execution-result-2026-06-09.md; bayesfilter/highdim/models.py",
+      "difference": "Source has bounded and preconditioned adaptive solvers; BayesFilter fixed-design candidate failed production accuracy/tuning tolerances.",
+      "severity": "critical",
+      "decision": "test_required",
+      "winner_for_filtering": "source_probable",
+      "winner_for_hmc_gradient": "bayesfilter_fixed_branch_only",
+      "next_action": "Implement preconditioned clean-room lane and compare to existing fixed branch on matched small targets.",
+      "required_tests": [
+        "horizon ladder",
+        "preconditioner ablation",
+        "moment and log-likelihood tolerance with Monte Carlo uncertainty"
+      ],
+      "nonclaims": [
+        "P47 M5b does not disprove Zhao-Cui predator-prey performance."
+      ]
+    },
+    {
+      "id": "D12",
+      "topic": "SV and generalized SV",
+      "source_anchor": "tensor-ssm-paper-demo/eg2_sv; P39-P43 plans",
+      "bayesfilter_anchor": "bayesfilter/highdim/models.py; tests/highdim/test_p40_sv_kalman_cut4_zhaocui.py; tests/highdim/test_p43_sv_value_gradient_cut4_zhaocui.py",
+      "difference": "SV has useful transformed/Kalman/mixture comparators, but those are calibration tests and do not prove high-dimensional source-route scalability.",
+      "severity": "medium_high",
+      "decision": "test_required",
+      "winner_for_filtering": "undecided",
+      "winner_for_hmc_gradient": "bayesfilter_fixed_branch_calibration",
+      "next_action": "Use SV as a calibration ladder for values and gradients, not as a proxy production proof.",
+      "required_tests": [
+        "dim 1,2,3 SV Kalman/CUT4/Zhao-Cui ladder",
+        "exact transformed z_t likelihood where applicable",
+        "generalized SV target equality checks"
+      ],
+      "nonclaims": [
+        "SV success does not imply SIR or predator-prey production readiness."
+      ]
+    },
+    {
+      "id": "D13",
+      "topic": "License and backend",
+      "source_anchor": "P10/P34 license findings",
+      "bayesfilter_anchor": "AGENTS.md; bayesfilter/highdim/*",
+      "difference": "MATLAB LGPL/GPL-family source is a reference input; BayesFilter production code defaults to TensorFlow/TFP.",
+      "severity": "critical",
+      "decision": "bayesfilter_wins",
+      "winner_for_filtering": "bayesfilter_policy",
+      "winner_for_hmc_gradient": "bayesfilter_policy",
+      "next_action": "Use clean-room rewrite only.",
+      "required_tests": [
+        "static backend audit",
+        "license boundary review"
+      ],
+      "nonclaims": [
+        "No permission to copy MATLAB implementation into production modules."
+      ]
+    },
+    {
+      "id": "D14",
+      "topic": "Diagnostics and governance",
+      "source_anchor": "P34 notes examples are scripts, not production tests",
+      "bayesfilter_anchor": "P30-P47 artifacts and tests",
+      "difference": "BayesFilter has stronger governance but some claims risk conflating source audit with implementation equivalence.",
+      "severity": "high",
+      "decision": "split_lanes",
+      "winner_for_filtering": "source_for_algorithmic_route",
+      "winner_for_hmc_gradient": "bayesfilter_for_governance",
+      "next_action": "Patch result language and make future pass tokens route-specific.",
+      "required_tests": [
+        "claim-support audit",
+        "route-specific pass-token review"
+      ],
+      "nonclaims": [
+        "A governance pass token is not an algorithmic equivalence proof."
+      ]
+    }
+  ]
+}

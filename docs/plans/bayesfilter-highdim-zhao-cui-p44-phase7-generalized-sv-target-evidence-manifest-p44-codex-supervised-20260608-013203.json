@@ -1,0 +1,89 @@
+{
+  "schema_version": "p44.phase_evidence.v1",
+  "run_id": "p44-codex-supervised-20260608-013203",
+  "phase": "P44-M7",
+  "pass_token": "PASS_P44_M7_CODE_GOVERNANCE",
+  "status": "PASS_P44_M7_CODE_GOVERNANCE",
+  "artifact_paths": {
+    "result_note": "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase7-generalized-sv-target-result-2026-06-07.md",
+    "claude_review_ledger": "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase7-generalized-sv-target-claude-review-ledger-2026-06-07.md",
+    "evidence_manifest": "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase7-generalized-sv-target-evidence-manifest-p44-codex-supervised-20260608-013203.json",
+    "target_definition": "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase7-generalized-sv-target-definition-2026-06-08.md",
+    "test_file": "tests/highdim/test_p44_generalized_sv_target.py"
+  },
+  "evidence_chain": {
+    "PHASE_PLAN_CONFIRMED": true,
+    "SKEPTICAL_AUDIT_RECORDED": true,
+    "CLAUDE_PLAN_OR_REPAIR_REVIEW_PASS": true,
+    "IMPLEMENTED": true,
+    "LOCAL_EVIDENCE_RUN": true,
+    "EVIDENCE_AUDIT_RECORDED": true,
+    "RESULT_NOTE_WRITTEN": true,
+    "CLAUDE_CODE_GOVERNANCE_PASS": true,
+    "TRACEABILITY_UPDATED_OR_NONCLAIM_RECORDED": true,
+    "PHASE_PASS": true
+  },
+  "evidence_contract": {
+    "question": "Can we define a shared target for CUT4 and Zhao--Cui that preserves the generalized SV likelihood rather than only a transformed-residual diagnostic?",
+    "baseline_or_comparator": "The target-definition table is the governing artifact. Tiny CUT4 transformed-residual and moment-matched Kalman checks are diagnostic only. No matched generalized-SV Zhao--Cui equality target exists in this phase.",
+    "primary_promotion_criterion": "The target-definition table fills all required fields; exact native, transformed-residual, Gaussian-mixture, and moment-matched routes are distinguished; the decision remains P42 Class D diagnostic only; finite diagnostics stay within dims<=3, T<=2, CPU-only, and CUT4 augmented dimension<=6; no same-target value/gradient equality test is run.",
+    "veto_diagnostics": [
+      "transformed residual described as exact native likelihood",
+      "Gaussian mixture approximation described as exact",
+      "s_t and h_t independence assumptions used after observation coupling without disclosure",
+      "no Jacobian/transform accounting",
+      "same-target generalized-SV value/gradient equality row run before a reviewed native/reference route exists"
+    ],
+    "explanatory_only_diagnostics": [
+      "TensorFlow warning logs",
+      "wall time",
+      "CUT4 point count",
+      "CUT4 polynomial degree",
+      "transformed-residual diagnostic value and score",
+      "moment-matched diagnostic finite value"
+    ],
+    "artifact_preserving_result": "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase7-generalized-sv-target-result-2026-06-07.md plus docs/plans/bayesfilter-highdim-zhao-cui-p44-phase7-generalized-sv-target-definition-2026-06-08.md, docs/plans/bayesfilter-highdim-zhao-cui-p44-phase7-generalized-sv-target-evidence-manifest-p44-codex-supervised-20260608-013203.json, and docs/plans/logs/p44-codex-supervised-20260608-013203-P44-M7-command0.log",
+    "nonclaims": [
+      "no exact native generalized-SV likelihood",
+      "no transformed-residual exactness",
+      "no Gaussian-mixture exactness",
+      "no CUT4-vs-Zhao--Cui equality",
+      "no paper-scale Chib--Nardari--Shephard reproduction",
+      "no HMC readiness",
+      "no score API readiness"
+    ]
+  },
+  "commands": [
+    {
+      "purpose": "Run focused P44-M7 generalized-SV target-definition and diagnostic-only evidence.",
+      "command": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp pytest -q -s tests/highdim/test_p44_generalized_sv_target.py",
+      "exit_code": 0,
+      "log_path": "docs/plans/logs/p44-codex-supervised-20260608-013203-P44-M7-command0.log"
+    },
+    {
+      "purpose": "Compile highdim package and the focused M7 test file.",
+      "command": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp python -m compileall -q bayesfilter/highdim tests/highdim/test_p44_generalized_sv_target.py",
+      "exit_code": 0,
+      "log_path": "docs/plans/logs/p44-codex-supervised-20260608-013203-P44-M7-command1.log"
+    }
+  ],
+  "diagnostics": {
+    "veto_status": "NONCLAIM_RECORDED",
+    "summary": "Local M7 evidence completes the target table and preserves generalized SV as P42 Class D diagnostic only. Focused pytest reports 4 passed. CUT4 transformed-residual diagnostic value is -3.560288e+00 and score is -2.456627e+00. Moment-matched Kalman is explicitly non-exact, and the scalar Zhao--Cui route rejects the two-state generalized-SV diagnostic model."
+  },
+  "review_loops": {
+    "claude_code_governance": {
+      "iterations": 1,
+      "verdict": "PASS_P44_M7_CODE_GOVERNANCE"
+    },
+    "repair": {
+      "iterations": 0,
+      "verdict": "NOT_NEEDED"
+    }
+  },
+  "long_run_controls": {
+    "long_run_used": false,
+    "resource_caps": "No long run; target table plus tiny CPU-only diagnostic checks only.",
+    "pre_mortem": "N/A"
+  }
+}

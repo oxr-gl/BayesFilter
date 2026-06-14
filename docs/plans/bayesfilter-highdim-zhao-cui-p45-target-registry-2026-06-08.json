@@ -1,0 +1,222 @@
+{
+  "schema_version": "p45.target_registry.v1",
+  "phase": "P45-M0",
+  "metadata_date": "2026-06-08",
+  "purpose": "Executable target governance registry for generalized SV, spatial SIR, and predator-prey before P45 comparison phases run.",
+  "governing_sources": [
+    "docs/plans/bayesfilter-highdim-zhao-cui-p45-generalized-sv-sir-predator-prey-comparison-master-program-2026-06-08.md",
+    "docs/plans/bayesfilter-highdim-zhao-cui-p45-phase0-target-governance-subplan-2026-06-08.md",
+    "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase7-generalized-sv-target-definition-2026-06-08.md",
+    "docs/plans/bayesfilter-highdim-zhao-cui-p42-gradient-likelihood-validation-rules-2026-06-07.md"
+  ],
+  "required_fields": [
+    "target_id",
+    "model_family",
+    "target_identity",
+    "state_law",
+    "observation_law",
+    "parameterization",
+    "parameter_vector",
+    "transformation_jacobian_terms",
+    "reference_route",
+    "cut4_route",
+    "zhao_cui_route",
+    "dimension_panel_convention",
+    "claim_class",
+    "blocker_class",
+    "same_target_comparison_authorized",
+    "route_statuses",
+    "nonclaims"
+  ],
+  "rows": [
+    {
+      "target_id": "generalized_sv_native_raw_observation",
+      "model_family": "generalized_stochastic_volatility",
+      "target_identity": "Native raw-observation generalized SV likelihood y_t | s_t,h_t,beta ~ N(beta s_t, exp(h_t)).",
+      "state_law": "Independent prior AR(1) laws for s_t and h_t in the current fixture; the observation posterior couples them.",
+      "observation_law": "y_t = beta s_t + exp(h_t / 2) epsilon_t with epsilon_t standard Gaussian.",
+      "parameterization": "P45 starts from fixed state-law parameters and an unconstrained log_beta coordinate; expanded state-law parameters require a later row amendment.",
+      "parameter_vector": "theta = (log_beta) for the tiny native fixture; no gradient claim for state-law parameters in M0.",
+      "transformation_jacobian_terms": "None for direct raw-y density evaluation; transformed routes must use separate rows.",
+      "reference_route": "Blocked until a reviewed native dense/refined two-state reference is implemented under resource caps.",
+      "cut4_route": "Blocked for native equality until a state-dependent observation-variance CUT4 target is implemented or a reviewed equivalent structural target is declared.",
+      "zhao_cui_route": "Blocked by current scalar nonlinear fixed-design TT route; state_dim == 2 is not supported.",
+      "dimension_panel_convention": "One series has latent state (s_t,h_t); panel counts 1,2,3 must be labeled factorized unless a coupled route is separately reviewed.",
+      "claim_class": "BLOCKED_NATIVE_SAME_TARGET",
+      "blocker_class": "BLOCKED_REFERENCE_CUT4_AND_ZHAOCUI_ROUTES",
+      "same_target_comparison_authorized": false,
+      "route_statuses": {
+        "reference": "blocked_native_dense_reference_missing",
+        "cut4": "blocked_native_state_dependent_observation_variance_route_missing",
+        "zhao_cui": "blocked_current_scalar_nonlinear_route_requires_state_dim_1"
+      },
+      "nonclaims": [
+        "no native generalized-SV CUT4--Zhao-Cui equality claim",
+        "no HMC readiness",
+        "no production score API readiness"
+      ]
+    },
+    {
+      "target_id": "generalized_sv_transformed_residual_diagnostic",
+      "model_family": "generalized_stochastic_volatility",
+      "target_identity": "Transformed-residual diagnostic based on log((y_t - beta s_t)^2) - h_t.",
+      "state_law": "Same fixed independent prior AR(1) laws for s_t and h_t as the P44 diagnostic fixture.",
+      "observation_law": "Diagnostic transformed residual with a small numerical square floor; not the native raw-y likelihood.",
+      "parameterization": "theta = (log_beta) with fixed state-law parameters.",
+      "parameter_vector": "Same log_beta coordinate as the P44-M7 finite diagnostic.",
+      "transformation_jacobian_terms": "Exact transformation is blocked because the residual transform depends on latent s_t; any exact route must account for conditioning and Jacobian terms.",
+      "reference_route": "Finite diagnostic only; not a native exact or dense generalized-SV reference.",
+      "cut4_route": "Available only as P44-M7 transformed-residual finite diagnostic.",
+      "zhao_cui_route": "Blocked for equality by current scalar nonlinear fixed-design TT route for state_dim == 2.",
+      "dimension_panel_convention": "One series has latent state (s_t,h_t); panel expansions are factorized diagnostics unless reviewed otherwise.",
+      "claim_class": "DIAGNOSTIC_ONLY_NO_EQUALITY_CLAIM",
+      "blocker_class": "TRANSFORMATION_CONDITIONING_AND_ZHAOCUI_ROUTE_BLOCKED",
+      "same_target_comparison_authorized": false,
+      "route_statuses": {
+        "reference": "diagnostic_only_not_exact_native_reference",
+        "cut4": "available_diagnostic_only",
+        "zhao_cui": "blocked_current_scalar_nonlinear_route_requires_state_dim_1"
+      },
+      "nonclaims": [
+        "transformed residual is not exact native generalized SV",
+        "finite CUT4 value and score are diagnostic only",
+        "no CUT4--Zhao-Cui equality claim"
+      ]
+    },
+    {
+      "target_id": "generalized_sv_gaussian_mixture_or_moment_matched_approximation",
+      "model_family": "generalized_stochastic_volatility",
+      "target_identity": "Gaussian-mixture or moment-matched approximation for transformed or raw generalized-SV observations.",
+      "state_law": "Fixed independent prior AR(1) laws for s_t and h_t unless a later phase adds parameterized state-law rows.",
+      "observation_law": "Approximation route only; generalized residual y_t - beta s_t remains state-dependent.",
+      "parameterization": "theta = (log_beta) initially; mixture parameters are fixed governance data, not fitted by P45-M0.",
+      "parameter_vector": "Same log_beta coordinate for any tiny approximation diagnostic.",
+      "transformation_jacobian_terms": "Mixture and moment-matched rows must state whether they approximate log chi-square residuals, raw conditional variance, or another declared target; no exact native Jacobian claim.",
+      "reference_route": "Blocked as exact generalized-SV reference; KSC-style exact transformed reference exists only for simple scalar SV without beta s_t residual shift.",
+      "cut4_route": "Potential approximation diagnostic, not exact native generalized-SV equality evidence.",
+      "zhao_cui_route": "Blocked for generalized two-state equality by current scalar nonlinear fixed-design TT route.",
+      "dimension_panel_convention": "Panel counts 1,2,3 are factorized approximation diagnostics unless a coupled route is reviewed.",
+      "claim_class": "APPROXIMATION_ONLY_NO_NATIVE_EXACT_CLAIM",
+      "blocker_class": "BLOCKED_EXACT_GENERALIZED_SV_REFERENCE_AND_ZHAOCUI_ROUTE",
+      "same_target_comparison_authorized": false,
+      "route_statuses": {
+        "reference": "blocked_exact_generalized_sv_reference_missing",
+        "cut4": "candidate_approximation_only",
+        "zhao_cui": "blocked_current_scalar_nonlinear_route_requires_state_dim_1"
+      },
+      "nonclaims": [
+        "Gaussian mixture is not exact native generalized SV",
+        "moment-matched Kalman is diagnostic only",
+        "no paper-scale Chib-Nardari-Shephard reproduction"
+      ]
+    },
+    {
+      "target_id": "spatial_sir_additive_gaussian_closure",
+      "model_family": "spatial_sir",
+      "target_identity": "Clean-room additive-Gaussian spatial-SIR closure with state (S_1,I_1,...,S_J,I_J) and infectious-coordinate observations.",
+      "state_law": "P44-M5 closure transition with Gaussian process noise around the SIR mean map.",
+      "observation_law": "Gaussian observation noise on infectious coordinates only.",
+      "parameterization": "Tiny closure parameters start from initial-state shifts and log process/observation scales; native epidemiological parameters are not promoted in M0.",
+      "parameter_vector": "theta = (initial_S_shift, initial_I_shift, log_process_scale, log_observation_scale) for J=1 diagnostic closure.",
+      "transformation_jacobian_terms": "No transformation row; population/domain diagnostics must record negative-state policy.",
+      "reference_route": "Pending dense/refined closure reference before same-target promotion.",
+      "cut4_route": "Available as P44-M5 finite closure diagnostic.",
+      "zhao_cui_route": "Blocked by current scalar nonlinear dense/fixed-design TT path for state_dim == 2J.",
+      "dimension_panel_convention": "J=1 first; J=2,3 are factorized/replicated panels unless a coupled multistate TT route is implemented and reviewed.",
+      "claim_class": "BLOCKED_CLOSURE_SAME_TARGET_PENDING_M1_AND_REFERENCE",
+      "blocker_class": "BLOCKED_MULTISTATE_ZHAOCUI_AND_DENSE_REFERENCE",
+      "same_target_comparison_authorized": false,
+      "route_statuses": {
+        "reference": "pending_dense_refined_closure_reference",
+        "cut4": "available_diagnostic_only",
+        "zhao_cui": "blocked_current_scalar_nonlinear_route_requires_state_dim_1"
+      },
+      "nonclaims": [
+        "closure likelihood is not native SIR filtering correctness",
+        "no production TT/SIRT SIR claim",
+        "no CUT4--Zhao-Cui equality claim until M1 and dense reference pass"
+      ]
+    },
+    {
+      "target_id": "spatial_sir_native_or_nongaussian_route",
+      "model_family": "spatial_sir",
+      "target_identity": "Native or non-Gaussian spatial-SIR likelihood route, if later proposed.",
+      "state_law": "Unspecified native stochastic epidemic transition; not implemented by current P44/P45 code.",
+      "observation_law": "Unspecified native/non-Gaussian observation law; not implemented by current P44/P45 code.",
+      "parameterization": "Blocked pending scientific target definition.",
+      "parameter_vector": "Blocked pending native route definition.",
+      "transformation_jacobian_terms": "Blocked pending native/non-Gaussian target definition.",
+      "reference_route": "Blocked; no exact, dense, particle, or reviewed native reference route is approved in M0.",
+      "cut4_route": "Blocked; current CUT4 evidence is only for additive-Gaussian diagnostic closure.",
+      "zhao_cui_route": "Blocked; no native non-Gaussian Zhao--Cui route is implemented.",
+      "dimension_panel_convention": "Not authorized for J=1,2,3 comparison until a separate target-definition amendment passes review.",
+      "claim_class": "BLOCKED_NATIVE_ROUTE_UNSPECIFIED",
+      "blocker_class": "BLOCKED_NATIVE_TARGET_REFERENCE_AND_IMPLEMENTATION",
+      "same_target_comparison_authorized": false,
+      "route_statuses": {
+        "reference": "blocked_native_reference_missing",
+        "cut4": "blocked_native_cut4_target_missing",
+        "zhao_cui": "blocked_native_zhaocui_target_missing"
+      },
+      "nonclaims": [
+        "no native SIR likelihood correctness",
+        "no non-Gaussian SIR filtering comparison",
+        "no paper-scale spatial epidemic validation"
+      ]
+    },
+    {
+      "target_id": "predator_prey_additive_gaussian_rk4_closure",
+      "model_family": "predator_prey",
+      "target_identity": "Tiny additive-Gaussian RK4 predator-prey closure with state (prey,predator).",
+      "state_law": "P44-M6 RK4 transition mean plus Gaussian process noise.",
+      "observation_law": "Gaussian observation noise on prey and predator coordinates.",
+      "parameterization": "Physical parameter vector (r,K,a,s,u,v) from the fixture; no unconstrained transform is promoted by M0.",
+      "parameter_vector": "theta = (r,K,a,s,u,v) for the tiny closure fixture; any unconstrained transform must be declared before score comparison.",
+      "transformation_jacobian_terms": "No observation transform; ODE/RK4 convention and positivity diagnostics must stay fixed across methods.",
+      "reference_route": "Pending dense/refined closure reference before same-target promotion.",
+      "cut4_route": "Available as P44-M6 finite closure diagnostic.",
+      "zhao_cui_route": "Blocked by current scalar nonlinear dense/fixed-design TT path for state_dim == 2.",
+      "dimension_panel_convention": "Two-state target first; replicated panels are factorized unless a coupled multistate TT route is implemented and reviewed.",
+      "claim_class": "BLOCKED_CLOSURE_SAME_TARGET_PENDING_M1_AND_REFERENCE",
+      "blocker_class": "BLOCKED_MULTISTATE_ZHAOCUI_AND_DENSE_REFERENCE",
+      "same_target_comparison_authorized": false,
+      "route_statuses": {
+        "reference": "pending_dense_refined_closure_reference",
+        "cut4": "available_diagnostic_only",
+        "zhao_cui": "blocked_current_scalar_nonlinear_route_requires_state_dim_1"
+      },
+      "nonclaims": [
+        "closure likelihood is not paper-scale predator-prey validation",
+        "no nonlinear preconditioning usefulness claim",
+        "no CUT4--Zhao-Cui equality claim until M1 and dense reference pass"
+      ]
+    },
+    {
+      "target_id": "predator_prey_native_or_nongaussian_route",
+      "model_family": "predator_prey",
+      "target_identity": "Native or non-Gaussian predator-prey route, if later proposed.",
+      "state_law": "Unspecified native/non-Gaussian predator-prey transition beyond the additive-Gaussian RK4 closure.",
+      "observation_law": "Unspecified native/non-Gaussian observation law beyond the additive-Gaussian closure.",
+      "parameterization": "Blocked pending scientific target definition.",
+      "parameter_vector": "Blocked pending native route definition.",
+      "transformation_jacobian_terms": "Blocked pending native/non-Gaussian target definition.",
+      "reference_route": "Blocked; no exact, dense, particle, or reviewed native reference route is approved in M0.",
+      "cut4_route": "Blocked; current CUT4 evidence is only for additive-Gaussian diagnostic closure.",
+      "zhao_cui_route": "Blocked; no native non-Gaussian Zhao--Cui route is implemented.",
+      "dimension_panel_convention": "Not authorized for comparison until a separate target-definition amendment passes review.",
+      "claim_class": "BLOCKED_NATIVE_ROUTE_UNSPECIFIED",
+      "blocker_class": "BLOCKED_NATIVE_TARGET_REFERENCE_AND_IMPLEMENTATION",
+      "same_target_comparison_authorized": false,
+      "route_statuses": {
+        "reference": "blocked_native_reference_missing",
+        "cut4": "blocked_native_cut4_target_missing",
+        "zhao_cui": "blocked_native_zhaocui_target_missing"
+      },
+      "nonclaims": [
+        "no native predator-prey likelihood correctness",
+        "no non-Gaussian predator-prey filtering comparison",
+        "no paper-scale predator-prey validation"
+      ]
+    }
+  ]
+}

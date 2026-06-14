@@ -1,0 +1,45 @@
+{
+  "decision": "governance_closed_wrong_model_gradient_gap_closed_gradient_agreement_blocked",
+  "governance_closure_status": "closed_for_inspection_by_claude_continuation_round_6",
+  "gradient_diagnostic_status": "same_model_gradient_wrong_model_gap_closed_gradient_agreement_not_concluded",
+  "same_model_summary": {
+    "row_count": 16,
+    "finite_rows": 16,
+    "bayesfilter_likelihood_rmse_vs_filterflow": 184345.80209129627,
+    "bayesfilter_likelihood_rmse_vs_kalman": 490562.36155074654,
+    "filterflow_likelihood_rmse_vs_kalman": 323943.654172315,
+    "bayesfilter_gradient_rmse_vs_filterflow": 2.537001953821507e145,
+    "bayesfilter_gradient_rmse_vs_kalman": 2.537001953821507e145,
+    "filterflow_gradient_rmse_vs_kalman": 144487904.88971964,
+    "bayesfilter_gradient_cosine_vs_filterflow": -0.014110786351377623,
+    "bayesfilter_gradient_cosine_vs_kalman": -0.06569613949112281,
+    "filterflow_gradient_cosine_vs_kalman": 0.8895568190836276,
+    "gradient_agreement_concluded": false,
+    "scalar_comparability_status": "open_blocking_for_gradient_agreement"
+  },
+  "closed_gaps": [
+    "prior Claude max-review governance bookkeeping block closed for inspection",
+    "wrong-model BayesFilter smoothness gradient harness replaced with same-model filterflow smoothness LGSSM"
+  ],
+  "open_or_controlled_gaps": [
+    "gradient agreement remains blocked by severe same-model magnitude/sign mismatch",
+    "scalar comparability remains open because same-model likelihood scales remain far apart",
+    "bit-identical filterflow transition-noise stream is not reconstructed",
+    "nonlinear ladder remains bounded diagnostic evidence only",
+    "patched filterflow is canonical executable reference for this lane, not pristine upstream",
+    "fixed-target Sinkhorn remains local comparator only"
+  ],
+  "plan_path": "docs/plans/bayesfilter-dpf-annealed-transport-remaining-gaps-closure-plan-2026-06-01.md",
+  "result_path": "docs/plans/bayesfilter-dpf-annealed-transport-remaining-gaps-closure-result-2026-06-01.md",
+  "next_action": "one-step annealed-transport component-gradient audit against exported filterflow transport internals",
+  "non_implications": [
+    "No gradient correctness.",
+    "No production readiness.",
+    "No public API readiness.",
+    "No posterior correctness.",
+    "No HMC readiness.",
+    "No general nonlinear-SSM validity.",
+    "No DSGE/NAWM validation.",
+    "No monograph claim."
+  ]
+}

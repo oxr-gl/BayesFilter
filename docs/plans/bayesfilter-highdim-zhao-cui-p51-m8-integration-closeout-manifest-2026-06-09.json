@@ -1,0 +1,163 @@
+{
+  "schema_version": "p51.integration_closeout.v1",
+  "metadata_date": "2026-06-09",
+  "program": "P51-hmc-gap-closure-after-p50",
+  "status": "PASS_P51_M8_INTEGRATION_CLOSEOUT",
+  "phase_statuses": [
+    {
+      "phase": "P51-M0",
+      "status": "PASS_P51_M0_GAP_SCOPE_PREFLIGHT",
+      "claim": "gap scope and non-goal governance passed",
+      "result_note": "docs/plans/bayesfilter-highdim-zhao-cui-p51-m0-gap-scope-preflight-result-2026-06-09.md",
+      "manifest": "docs/plans/bayesfilter-highdim-zhao-cui-p51-m0-gap-scope-preflight-manifest-2026-06-09.json"
+    },
+    {
+      "phase": "P51-M1",
+      "status": "PASS_P51_M1_STABLE_SCORE_API",
+      "claim": "stable bayesfilter.highdim score API contract passed; root public API remains blocked",
+      "result_note": "docs/plans/bayesfilter-highdim-zhao-cui-p51-m1-stable-score-api-result-2026-06-09.md",
+      "manifest": "docs/plans/bayesfilter-highdim-zhao-cui-p51-m1-stable-score-api-manifest-2026-06-09.json"
+    },
+    {
+      "phase": "P51-M2",
+      "status": "PASS_P51_M2_NATIVE_GENERALIZED_SV_REFERENCE",
+      "claim": "low-dimensional native generalized SV dense reference passed for value and gradient refinement",
+      "result_note": "docs/plans/bayesfilter-highdim-zhao-cui-p51-m2-native-generalized-sv-reference-result-2026-06-09.md",
+      "manifest": "docs/plans/bayesfilter-highdim-zhao-cui-p51-m2-native-generalized-sv-reference-manifest-2026-06-09.json"
+    },
+    {
+      "phase": "P51-M3",
+      "status": "PASS_P51_M3_SPATIAL_SIR_ROUTE_PREFLIGHT",
+      "claim": "spatial SIR production route preflight completed; production route remains blocked by architecture",
+      "result_note": "docs/plans/bayesfilter-highdim-zhao-cui-p51-m3-spatial-sir-production-route-result-2026-06-09.md",
+      "manifest": "docs/plans/bayesfilter-highdim-zhao-cui-p51-m3-spatial-sir-production-route-manifest-2026-06-09.json"
+    },
+    {
+      "phase": "P51-M4",
+      "status": "PASS_P51_M4_PREDATOR_PREY_PRODUCTION_TUNING",
+      "claim": "declared horizon-25 predator-prey production tuning row passed preserved P47/P50 tolerances",
+      "result_note": "docs/plans/bayesfilter-highdim-zhao-cui-p51-m4-predator-prey-production-tuning-result-2026-06-09.md",
+      "manifest": "docs/plans/bayesfilter-highdim-zhao-cui-p51-m4-predator-prey-production-tuning-manifest-2026-06-09.json"
+    },
+    {
+      "phase": "P51-M5",
+      "status": "PASS_P51_M5_HMC_TIER2_LEAPFROG",
+      "claim": "scoped Tier 2 leapfrog diagnostics passed for exact transformed SV dim-1 target",
+      "result_note": "docs/plans/bayesfilter-highdim-zhao-cui-p51-m5-hmc-tier2-leapfrog-result-2026-06-09.md",
+      "manifest": "docs/plans/bayesfilter-highdim-zhao-cui-p51-m5-hmc-tier2-leapfrog-manifest-2026-06-09.json"
+    },
+    {
+      "phase": "P51-M6",
+      "status": "BLOCK_P51_M6_HMC_TIER3_SHORT_CHAIN",
+      "claim": "same-target Tier 3 short-chain diagnostic blocked by posterior/reference veto",
+      "result_note": "docs/plans/bayesfilter-highdim-zhao-cui-p51-m6-hmc-tier3-short-chain-result-2026-06-09.md",
+      "manifest": "docs/plans/bayesfilter-highdim-zhao-cui-p51-m6-hmc-tier3-short-chain-manifest-2026-06-09.json"
+    },
+    {
+      "phase": "P51-M7",
+      "status": "PASS_P51_M7_SMOOTHING_FUTURE_TARGET",
+      "claim": "smoothing remains deferred as a future latent-path inference target",
+      "result_note": "docs/plans/bayesfilter-highdim-zhao-cui-p51-m7-smoothing-future-target-result-2026-06-09.md",
+      "manifest": "docs/plans/bayesfilter-highdim-zhao-cui-p51-m7-smoothing-future-target-manifest-2026-06-09.json"
+    },
+    {
+      "phase": "P51-M8",
+      "status": "PASS_P51_M8_INTEGRATION_CLOSEOUT",
+      "claim": "integration closeout reconciles P51 closures, blockers, non-goals, and nonclaims",
+      "result_note": "docs/plans/bayesfilter-highdim-zhao-cui-p51-m8-integration-closeout-result-2026-06-09.md",
+      "manifest": "self"
+    }
+  ],
+  "original_gap_dispositions": [
+    {
+      "id": "native_generalized_sv_same_target_reference",
+      "source_phase": "P50-M5",
+      "closing_phase": "P51-M2",
+      "p51_status": "closed_low_dim_dense_reference",
+      "boundary": "CUT4/Zhao-Cui native generalized SV equality and production generalized SV readiness remain unclaimed."
+    },
+    {
+      "id": "spatial_sir_production_route_architecture",
+      "source_phase": "P50-M6",
+      "closing_phase": "P51-M3",
+      "p51_status": "blocked_route_architecture",
+      "boundary": "Route preflight passed, but production spatial SIR remains blocked by all-axes retained-grid architecture."
+    },
+    {
+      "id": "predator_prey_production_accuracy_tuning",
+      "source_phase": "P50-M6",
+      "closing_phase": "P51-M4",
+      "p51_status": "closed_declared_horizon25_row",
+      "boundary": "Only the declared horizon-25 additive-Gaussian RK4 row is closed; no HMC or native non-Gaussian predator-prey claim is made."
+    },
+    {
+      "id": "hmc_tier2_tier3_sampler_evidence",
+      "source_phase": "P50-M7",
+      "closing_phase": "P51-M5/P51-M6",
+      "p51_status": "tier2_passed_tier3_blocked",
+      "boundary": "Tier 2 leapfrog passed for the scoped exact transformed SV dim-1 target; Tier 3 short-chain blocked, so HMC readiness is not established."
+    },
+    {
+      "id": "stable_top_level_score_api",
+      "source_phase": "P50-M7/P50-M9",
+      "closing_phase": "P51-M1",
+      "p51_status": "partially_closed_root_blocked",
+      "boundary": "Stable bayesfilter.highdim score API passed; root-level bayesfilter public score API remains BLOCKED_PUBLIC_API_DECISION."
+    },
+    {
+      "id": "smoother_if_latent_path_inference_becomes_target",
+      "source_phase": "P50-M8",
+      "closing_phase": "P51-M7",
+      "p51_status": "deferred_future_target",
+      "boundary": "Smoothing is deferred unless latent-path inference becomes a separate reviewed program."
+    }
+  ],
+  "remaining_blockers": [
+    {
+      "id": "spatial_sir_production_route_architecture",
+      "status": "BLOCKED_M4B_ROUTE_ARCHITECTURE",
+      "next_smallest_action": "design a streamed or factorized transition application that avoids materializing all grid-pair transitions"
+    },
+    {
+      "id": "hmc_tier3_short_chain_reference_sampler",
+      "status": "BLOCK_P51_M6_HMC_TIER3_SHORT_CHAIN",
+      "next_smallest_action": "construct an adequate posterior reference support and rerun same-target short-chain diagnostics without loosening criteria"
+    },
+    {
+      "id": "root_level_public_score_api_decision",
+      "status": "BLOCKED_PUBLIC_API_DECISION",
+      "next_smallest_action": "separate public API policy decision before exporting score API at root bayesfilter"
+    },
+    {
+      "id": "smoother_if_latent_path_inference_becomes_target",
+      "status": "DEFERRED_FUTURE_TARGET",
+      "next_smallest_action": "create a latent-path inference/smoothing master program if smoothing becomes a target"
+    }
+  ],
+  "supported_claims": [
+    "P51 preserves adaptive TT/SIRT source-faithful filtering and S&P 500 reproduction as non-goals, not gaps",
+    "bayesfilter.highdim has a stable subpackage score API contract; root-level bayesfilter public score API remains blocked",
+    "native generalized SV now has a low-dimensional dense same-target reference for value and gradient refinement",
+    "spatial SIR production route blocker is narrowed to a concrete route-architecture problem",
+    "predator-prey declared horizon-25 production tuning row passes preserved P47/P50 tolerances",
+    "HMC Tier 2 leapfrog diagnostics pass for a scoped exact transformed SV dim-1 target",
+    "HMC Tier 3 short-chain diagnostics are blocked on posterior/reference evidence, so HMC readiness is not established",
+    "smoothing remains a future latent-path target with enforced backward-field requirements"
+  ],
+  "explicit_non_goals_not_gaps": [
+    "adaptive TT/SIRT source-faithful filtering",
+    "S&P 500 reproduction"
+  ],
+  "nonclaims": [
+    "no HMC readiness",
+    "no production HMC readiness",
+    "no production generalized SV readiness",
+    "no production spatial SIR readiness",
+    "no broad sampler convergence",
+    "no stable root-level bayesfilter score API",
+    "no smoothing support",
+    "no latent-path posterior inference",
+    "no source-faithful adaptive TT/SIRT filtering",
+    "no S&P 500 reproduction"
+  ]
+}

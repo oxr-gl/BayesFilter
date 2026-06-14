@@ -1,0 +1,186 @@
+{
+  "metadata_date": "2026-06-07",
+  "visible_execution_timestamp": "2026-06-08T02:15:50+08:00",
+  "phase": "P1",
+  "execution_route": "VISIBLE_IN_DIALOGUE",
+  "status": "PASS_P1_ARCHITECTURE_READY_FOR_P2",
+  "decision": "PASS_P1_ARCHITECTURE_READY_FOR_P2",
+  "required_v2_model_ids": [
+    "lgssm_2d_h25_rich",
+    "sv_1d_h18_rich",
+    "range_bearing_4d_h20_rich",
+    "structural_ar1_quadratic_h16",
+    "spatial_sir_j3_rk4",
+    "predator_prey_rk4"
+  ],
+  "surfaces": [
+    "bootstrap_ot_bayesfilter",
+    "bootstrap_ot_filterflow_adapter",
+    "ledh_pfpf_ot_bayesfilter",
+    "ledh_pfpf_ot_filterflow_adapter"
+  ],
+  "adapter_semantics": {
+    "bootstrap_ot": {
+      "proposal": "transition_model",
+      "filterflow_proposal_route": "BootstrapProposalModel over BayesFilter-owned V2 TransitionModelBase adapter",
+      "log_density_route": "transition_log_density + observation_log_density; proposal_log_density equals transition_log_density",
+      "ot_route": "FilterFlow RegularisedTransform semantics mirrored by annealed_transport_resample_tf",
+      "gradient_route": "fixed-branch AD through deterministic value path and OT under frozen trigger masks"
+    },
+    "ledh_pfpf_ot": {
+      "proposal": "transition proposal followed by local affine LEDH map",
+      "pre_flow_density": "transition_prior_q0",
+      "forward_log_det": "frozen local-affine log absolute determinant from ledh_flow_batch_tf",
+      "pfpf_correction": "previous_log_weight + target_transition + target_observation - pre_flow_log_density + forward_log_det",
+      "filterflow_support": "BayesFilter-owned adapter-hosted support; not native FilterFlow LEDH",
+      "ot_route": "FilterFlow-style annealed regularized transport after PF-PF correction",
+      "gradient_route": "fixed-branch AD through LEDH flow, PF-PF correction, and deterministic OT under frozen branch masks"
+    }
+  },
+  "source_surfaces": {
+    "bayesfilter_bootstrap_ot": "experiments/dpf_implementation/tf_tfp/filters/dpf_ot_tf.py",
+    "bayesfilter_ledh_pfpf_ot": "experiments/dpf_implementation/tf_tfp/filters/ledh_pfpf_ot_tf.py",
+    "bayesfilter_ledh_flow": "experiments/dpf_implementation/tf_tfp/flows/ledh_tf.py",
+    "bayesfilter_annealed_transport": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+    "v2_fixture": "experiments/dpf_implementation/tf_tfp/fixtures/common_model_suite_tf.py",
+    "filterflow_state": ".localsource/filterflow/filterflow/base.py",
+    "filterflow_smc": ".localsource/filterflow/filterflow/smc.py",
+    "filterflow_proposal_base": ".localsource/filterflow/filterflow/proposal/base.py",
+    "filterflow_bootstrap_proposal": ".localsource/filterflow/filterflow/proposal/bootstrap.py",
+    "filterflow_transition_base": ".localsource/filterflow/filterflow/transition/base.py",
+    "filterflow_observation_base": ".localsource/filterflow/filterflow/observation/base.py",
+    "filterflow_regularised_transform": ".localsource/filterflow/filterflow/resampling/differentiable/biased.py",
+    "filterflow_transport": ".localsource/filterflow/filterflow/resampling/differentiable/regularized_transport/plan.py"
+  },
+  "model_contract_notes": {
+    "lgssm_2d_h25_rich": {
+      "state_convention": "2D linear Gaussian state",
+      "observation_route": "linear Gaussian observation",
+      "special_requirement": "preserve A/C/Q/R/m0/P0 semantics"
+    },
+    "sv_1d_h18_rich": {
+      "state_convention": "1D latent log-volatility",
+      "observation_route": "stochastic-volatility observation density",
+      "special_requirement": "preserve AR(1) mu/phi/sigma route"
+    },
+    "range_bearing_4d_h20_rich": {
+      "state_convention": "4D constant-velocity state",
+      "observation_route": "range/bearing with angle wrap",
+      "special_requirement": "preserve bearing wrap and R covariance"
+    },
+    "structural_ar1_quadratic_h16": {
+      "state_convention": "state (m,k) with deterministic k completion",
+      "observation_route": "scalar structural observation",
+      "special_requirement": "preserve singular completion density on m and deterministic k update"
+    },
+    "spatial_sir_j3_rk4": {
+      "state_convention": "state (S_1,I_1,S_2,I_2,S_3,I_3)",
+      "observation_route": "infectious-only observation",
+      "special_requirement": "preserve RK4 step, neighbor coupling, domain policy, and no P7 physical gradient knob currently included"
+    },
+    "predator_prey_rk4": {
+      "state_convention": "state (prey,predator)",
+      "observation_route": "direct noisy-state observation",
+      "special_requirement": "preserve RK4 step, domain policy, and theta=(r,K,a,s,u,v) parameterization"
+    }
+  },
+  "architecture_matrix": [
+    {
+      "model_id": "lgssm_2d_h25_rich",
+      "cells": {
+        "bootstrap_ot_bayesfilter": "ARCHITECTURE_READY_FOR_CONTRACT_FREEZE",
+        "bootstrap_ot_filterflow_adapter": "ARCHITECTURE_READY_FOR_CONTRACT_FREEZE",
+        "ledh_pfpf_ot_bayesfilter": "ARCHITECTURE_READY_FOR_CONTRACT_FREEZE",
+        "ledh_pfpf_ot_filterflow_adapter": "ARCHITECTURE_READY_FOR_CONTRACT_FREEZE"
+      }
+    },
+    {
+      "model_id": "sv_1d_h18_rich",
+      "cells": {
+        "bootstrap_ot_bayesfilter": "ARCHITECTURE_READY_FOR_CONTRACT_FREEZE",
+        "bootstrap_ot_filterflow_adapter": "ARCHITECTURE_READY_FOR_CONTRACT_FREEZE",
+        "ledh_pfpf_ot_bayesfilter": "ARCHITECTURE_READY_FOR_CONTRACT_FREEZE",
+        "ledh_pfpf_ot_filterflow_adapter": "ARCHITECTURE_READY_FOR_CONTRACT_FREEZE"
+      }
+    },
+    {
+      "model_id": "range_bearing_4d_h20_rich",
+      "cells": {
+        "bootstrap_ot_bayesfilter": "ARCHITECTURE_READY_FOR_CONTRACT_FREEZE",
+        "bootstrap_ot_filterflow_adapter": "ARCHITECTURE_READY_FOR_CONTRACT_FREEZE",
+        "ledh_pfpf_ot_bayesfilter": "ARCHITECTURE_READY_FOR_CONTRACT_FREEZE",
+        "ledh_pfpf_ot_filterflow_adapter": "ARCHITECTURE_READY_FOR_CONTRACT_FREEZE"
+      }
+    },
+    {
+      "model_id": "structural_ar1_quadratic_h16",
+      "cells": {
+        "bootstrap_ot_bayesfilter": "ARCHITECTURE_READY_FOR_CONTRACT_FREEZE",
+        "bootstrap_ot_filterflow_adapter": "ARCHITECTURE_READY_FOR_CONTRACT_FREEZE",
+        "ledh_pfpf_ot_bayesfilter": "ARCHITECTURE_READY_FOR_CONTRACT_FREEZE",
+        "ledh_pfpf_ot_filterflow_adapter": "ARCHITECTURE_READY_FOR_CONTRACT_FREEZE"
+      }
+    },
+    {
+      "model_id": "spatial_sir_j3_rk4",
+      "cells": {
+        "bootstrap_ot_bayesfilter": "ARCHITECTURE_READY_FOR_CONTRACT_FREEZE",
+        "bootstrap_ot_filterflow_adapter": "ARCHITECTURE_READY_FOR_CONTRACT_FREEZE",
+        "ledh_pfpf_ot_bayesfilter": "ARCHITECTURE_READY_FOR_CONTRACT_FREEZE",
+        "ledh_pfpf_ot_filterflow_adapter": "ARCHITECTURE_READY_FOR_CONTRACT_FREEZE"
+      }
+    },
+    {
+      "model_id": "predator_prey_rk4",
+      "cells": {
+        "bootstrap_ot_bayesfilter": "ARCHITECTURE_READY_FOR_CONTRACT_FREEZE",
+        "bootstrap_ot_filterflow_adapter": "ARCHITECTURE_READY_FOR_CONTRACT_FREEZE",
+        "ledh_pfpf_ot_bayesfilter": "ARCHITECTURE_READY_FOR_CONTRACT_FREEZE",
+        "ledh_pfpf_ot_filterflow_adapter": "ARCHITECTURE_READY_FOR_CONTRACT_FREEZE"
+      }
+    }
+  ],
+  "primary_criterion_status": {
+    "architecture_matrix_cells": 24,
+    "all_six_rows_included": "PASS",
+    "bootstrap_and_ledh_surfaces_separated": "PASS",
+    "filterflow_adapters_bayesfilter_owned": "PASS",
+    "filterflow_mutation_required": false,
+    "ledh_density_and_logdet_semantics_stated": "PASS",
+    "model_specific_conventions_recorded": "PASS",
+    "numerical_agreement_claimed": false
+  },
+  "veto_diagnostics": {
+    "planned_adapter_mutates_filterflow": "PASS",
+    "ledh_density_or_logdet_unstated": "PASS",
+    "filterflow_adapter_model_convention_mismatch_accepted": "PASS",
+    "missing_v2_row": "PASS",
+    "bootstrap_and_ledh_surfaces_conflated": "PASS"
+  },
+  "execution_diagnostics": {
+    "tensorflow_commands_run": false,
+    "gpu_commands_run": false,
+    "student_implementation_commands_run": false,
+    "numerical_values_or_gradients_computed": false
+  },
+  "artifacts": {
+    "json": "experiments/dpf_implementation/reports/outputs/dpf_v2_algorithm_full_comparison_p1_architecture_2026-06-07.json",
+    "markdown_report": "experiments/dpf_implementation/reports/dpf-v2-algorithm-full-comparison-p1-architecture-2026-06-07.md",
+    "result_ledger": "docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p1-architecture-result-2026-06-07.md"
+  },
+  "claude_readonly_review": {
+    "verdict": "VERDICT: AGREE",
+    "timestamp": "2026-06-08T02:26:36+08:00",
+    "outcome": "P1 architecture accepted for P2 precheck."
+  },
+  "next_allowed_action": "Begin P2 PRECHECK visibly in the current dialogue.",
+  "non_claims": [
+    "P1 does not establish any BayesFilter value match.",
+    "P1 does not establish any FilterFlow value match.",
+    "P1 does not establish any gradient match.",
+    "P1 does not establish filtering correctness.",
+    "P1 does not establish scientific correctness of bootstrap-OT or LEDH-PFPF-OT.",
+    "P1 does not make a student implementation claim.",
+    "P1 does not make a TT/SIRT, dense quadrature, paper-table, simulated-truth, GPU, HMC, DSGE, scalability, deployment, or production-readiness claim."
+  ]
+}

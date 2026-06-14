@@ -1,0 +1,60 @@
+{
+  "schema_version": "p50.smoothing_boundary.v1",
+  "phase": "P50-M8",
+  "status": "PASS_BOUNDARY_AND_GUARDS_NO_SMOOTHING_SUPPORT_CLAIM",
+  "question": "Is smoothing required for the P50 parameter-HMC deterministic filtering program, and if not, is the boundary explicit enough?",
+  "decision": {
+    "smoothing_required_for_p50_parameter_hmc": false,
+    "smoothing_status": "deferred",
+    "gate_status": "PASS_P50_M8_SMOOTHING_BOUNDARY",
+    "gate_meaning": "boundary_and_overclaim_guards_passed_no_smoothing_support_claim"
+  },
+  "baseline_artifacts": [
+    "docs/plans/bayesfilter-highdim-zhao-cui-p49-m6-smoothing-boundary-result-2026-06-09.md",
+    "bayesfilter/highdim/source_route.py",
+    "tests/highdim/test_p49_source_route_smoothing_boundary.py",
+    "docs/plans/bayesfilter-highdim-zhao-cui-p50-deterministic-filter-loop-contract-2026-06-09.md",
+    "docs/plans/bayesfilter-highdim-zhao-cui-p50-m7-hmc-readiness-tiers-result-2026-06-09.md"
+  ],
+  "required_backward_fields_for_any_future_smoother": [
+    "backward_conditional_maps",
+    "backward_weights",
+    "smoothing_marginal_checks"
+  ],
+  "filtering_tokens_not_smoothing_evidence": [
+    "PASS_P50_M0_SCOPE_CLAIM_GOVERNANCE",
+    "PASS_P50_M1_DETERMINISTIC_FILTER_LOOP_CONTRACT",
+    "PASS_P50_M2_ONE_STEP_VALUE_PATH",
+    "PASS_P50_M3_SEQUENTIAL_LIKELIHOOD_PATH",
+    "PASS_P50_M4_VALUE_GRADIENT_CALIBRATION",
+    "PASS_P50_M5_SV_GENERALIZED_SV_LADDER",
+    "PASS_P50_M6_SPATIAL_SIR_PREDATOR_PREY_LADDER",
+    "PASS_P50_M7_HMC_READINESS_TIERS"
+  ],
+  "dedicated_smoothing_tokens": [],
+  "promotion_rule": {
+    "filtering_likelihood_pass_is_not_smoothing_support": true,
+    "parameter_hmc_filtering_does_not_require_latent_path_smoothing": true,
+    "implemented_smoothing_requires_dedicated_smoother_token": true,
+    "implemented_smoothing_requires_backward_conditional_maps": true,
+    "implemented_smoothing_requires_backward_weights": true,
+    "implemented_smoothing_requires_smoothing_marginal_checks": true
+  },
+  "veto_conditions": [
+    "filtering pass token used as smoothing evidence",
+    "latent-path posterior claim made without backward conditional maps",
+    "smoothing support claimed without backward weights",
+    "deferred smoothing row carries a smoother pass token"
+  ],
+  "nonclaims": [
+    "no smoothing support",
+    "no latent-path posterior inference",
+    "no backward conditional map implementation",
+    "no backward weight implementation",
+    "no smoothing marginal accuracy",
+    "no smoother production readiness",
+    "no HMC readiness",
+    "no source-faithful adaptive TT/SIRT filtering",
+    "no S&P 500 reproduction"
+  ]
+}

@@ -13,9 +13,10 @@ Active master program:
 `docs/plans/bayesfilter-student-dpf-baseline-master-program-2026-05-10.md`.
 
 Current status:
-`student_dpf_baseline_program_complete_with_caveats`, with a completed
-post-MP8 future-work usability-gates revision and a proposed blocker-debug
-master program for the remaining blocked student-lane surfaces.
+`student_dpf_controlled_baseline_archive_complete` as of the 2026-05-27
+controlled-baseline closeout.  The MP5-MP8 program completed with caveats, the
+post-MP8 future-work usability-gates revision completed, and a blocker-debug
+master program remains proposed for optional blocked-surface follow-up.
 
 Most recent follow-up plan:
 `docs/plans/bayesfilter-student-dpf-baseline-blocker-debug-master-program-2026-05-15.md`.
@@ -24,11 +25,12 @@ Most recent follow-up result:
 `experiments/student_dpf_baselines/reports/student-dpf-baseline-future-work-usability-gates-result-2026-05-15.md`.
 
 Next justified action:
-audit the blocker-debug master program, then decide whether to execute its
-bounded DBG0-DBG6 gates.  This is optional student-lane follow-up for blocked
-or excluded surfaces only.  It must not reopen MP5-MP8 and must not delay a
-separate BayesFilter-owned clean-room implementation/specification plan for the
-families already classified as ready.
+none required to finish the archived student DPF experimental-baseline lane.
+Future student-DPF-adjacent work, including the proposed blocker-debug master
+program, must open or use a separate scoped plan and evidence contract.  It must
+not reopen MP5-MP8, promote student code, or delay a separate BayesFilter-owned
+clean-room implementation/specification plan for the families already
+classified as ready.
 
 Owned surfaces:
 - `experiments/student_dpf_baselines/`;
@@ -108,18 +110,15 @@ Known caveats:
 
 ## Next justified action
 
-Audit and then execute the student-lane clean-room implementation scaffold plan:
-`docs/plans/bayesfilter-student-dpf-baseline-mp5-clean-room-implementation-plan-2026-05-13.md`.
+No further action is required to finish this archived student DPF
+experimental-baseline lane.  The BayesFilter-owned controlled baseline completed
+MP5 smoke, MP6 fixed-grid execution, MP7 proxy comparison, MP8 final archive,
+the post-MP8 future-work usability gates, and the 2026-05-27 archive closeout.
 
-The implementation scaffold plan uses the clean-room controlled-baseline
-specification:
-`docs/plans/bayesfilter-student-dpf-baseline-clean-room-controlled-baseline-spec-2026-05-13.md`.
-
-Do not skip directly to full-grid execution.  MP5 must remain outside
-production `bayesfilter/`, outside monograph rebuild/enrichment files, and
-outside vendored student snapshots.  MP6 fixed-grid execution is justified only
-after MP5 exits with `mp5_ready_for_fixed_grid_execution` or
-`mp5_ready_with_caveats`.
+Future student-DPF-adjacent work must open a separate scoped plan and evidence
+contract.  It must remain outside production `bayesfilter/`, outside monograph
+rebuild/enrichment files unless separately reviewed, and outside vendored
+student snapshots.
 
 ## Execution log: gap-closure cycle started 2026-05-10
 
@@ -2753,3 +2752,96 @@ Interpretation:
 - each blocker has its own gate and must exit with a structured label;
 - a successful gate can create comparison-only evidence or a clean-room spec
   input, but cannot promote student code into production.
+
+## Execution log: controlled-baseline archive closeout 2026-05-27
+
+Controlling plan:
+`docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-plan-2026-05-27.md`.
+
+Skeptical audit:
+`docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-plan-audit-2026-05-27.md`.
+
+Final archive report:
+`experiments/controlled_dpf_baseline/reports/controlled-dpf-baseline-final-archive-result.md`.
+
+Closeout result:
+`docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-result-2026-05-27.md`.
+
+Post-execution review:
+`docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-review-2026-05-27.md`.
+
+### CL0: evidence reconciliation and stale-context repair
+
+Status: passed.
+
+The reset memo and master program previously stopped at the clean-room
+implementation-plan handoff.  The repository now contains later controlled
+baseline artifacts:
+
+- MP5 smoke result:
+  `experiments/controlled_dpf_baseline/reports/controlled-dpf-baseline-smoke-result.md`,
+  decision `mp5_smoke_ok`, with 1/1 planned record ok;
+- MP6 fixed-grid result:
+  `experiments/controlled_dpf_baseline/reports/controlled-dpf-baseline-fixed-grid-result.md`,
+  decision `mp6_fixed_grid_ok`, with 15/15 planned records ok;
+- MP7 comparison audit:
+  `experiments/controlled_dpf_baseline/reports/controlled-dpf-baseline-comparison-audit.md`,
+  decision `mp7_ready_for_final_archive`, with all three fixed-grid cells in the
+  same qualitative proxy regime as the frozen student aggregate summaries under
+  the fixed 2.0x rule.
+
+Interpretation:
+- the implementation-plan handoff is stale;
+- the correct current status is final controlled-baseline archive, not new
+  routine student-code execution.
+
+### CL1: README authority correction
+
+Status: passed.
+
+`experiments/controlled_dpf_baseline/README.md` previously cited
+`docs/plans/bayesfilter-student-dpf-baseline-mp5-clean-room-implementation-plan-2026-05-13.md`.
+That file is not present in the repository.  The closeout corrected the README
+authority list to cite existing artifacts instead: the master program,
+clean-room specification, closeout plan/audit, MP5 smoke result, MP6 fixed-grid
+result, MP7 comparison audit, and final archive report.
+
+Interpretation:
+- no missing plan artifact was invented;
+- the missing reference is recorded as a stale authority pointer corrected
+  during closeout.
+
+### CL2: final archive decision
+
+Status: passed.
+
+Decision:
+`student_dpf_controlled_baseline_archive_complete`.
+
+The archived evidence is sufficient for a quarantined experimental baseline:
+
+- provenance-recorded student snapshots remain comparison-only;
+- adapter/reference student-lane work completed through EDH/PFPF full-horizon
+  confirmation;
+- future-work usability gates completed with family decisions;
+- the BayesFilter-owned controlled baseline completed MP5 smoke, MP6 fixed grid,
+  and MP7 proxy comparison using no student implementation source;
+- all closeout edits remained in student-lane documentation and controlled
+  baseline reports.
+
+Persistent caveats:
+- proxy metrics are not correctness certificates;
+- student agreement is not a correctness certificate;
+- this archive does not validate production BayesFilter code, HMC readiness,
+  monograph claims, model-risk use, or banking use;
+- kernel PFF remains excluded from routine panels pending debug;
+- differentiable resampling and neural OT require component specs;
+- DPF and stochastic flow require clean-room specs;
+- dPFPF and neural resampling require debug gates;
+- future DPF/HMC/neural/OT work requires separate evidence contracts and plans.
+
+Next justified action:
+- no further action is required to finish this student DPF experimental-baseline
+  lane;
+- future work must open a separate scoped plan rather than extending this
+  archive.

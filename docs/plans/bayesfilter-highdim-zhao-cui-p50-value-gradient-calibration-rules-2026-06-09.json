@@ -1,0 +1,112 @@
+{
+  "schema_version": "p50.value_gradient_calibration.v1",
+  "metadata_date": "2026-06-09",
+  "phase": "P50-M4",
+  "status": "PREDECLARED_FOR_P50_M5_M6",
+  "threshold_source": "predeclared_before_p50_m5_m6_model_ladder_results",
+  "primary_question": "How should P50 compare deterministic HMC-facing filter values and gradients without overtrusting finite differences or likelihood variability?",
+  "value_metrics": [
+    "absolute_error",
+    "relative_error",
+    "per_step_error",
+    "paired_same_data_gap",
+    "likelihood_variability_normalized_gap"
+  ],
+  "gradient_metrics": [
+    "absolute_norm_error",
+    "relative_norm_error",
+    "directional_residuals",
+    "directional_scaled_residual",
+    "directional_cosine",
+    "componentwise_finite_check"
+  ],
+  "default_same_target_tolerances": {
+    "scope": "small_float64_same_target_exact_dense_kalman_cut4_or_reviewed_reference",
+    "value_abs_error_atol": 1e-6,
+    "value_rel_error_rtol": 1e-8,
+    "value_per_step_error_atol": 1e-7,
+    "gradient_norm_rel_error_rtol": 1e-5,
+    "directional_scaled_residual_rtol": 1e-5,
+    "directional_cosine_min": 0.999999
+  },
+  "acceptance_rule": {
+    "promoted_same_target_pass": "requires_value_metrics_and_gradient_metrics_and_all_veto_diagnostics",
+    "value_only_rule": "value_only_agreement_is_diagnostic_not_gradient_correctness",
+    "approximation_rule": "approximation_to_approximation_rows_are_diagnostic_unless_target_equality_is_derived_and_reviewed",
+    "threshold_change_rule": "thresholds_may_not_be_loosened_after_target_results_without_human_approved_blocker_revision"
+  },
+  "direction_policy": {
+    "minimum_direction_count": 5,
+    "required_direction_families": [
+      "coordinate_directions",
+      "mixed_positive_direction",
+      "mixed_alternating_direction"
+    ],
+    "reason": "norm agreement alone can miss HMC-relevant directional gradient errors"
+  },
+  "likelihood_variability_policy": {
+    "role": "explanatory_only_not_bias_excuse",
+    "required_reporting": [
+      "reference_replicate_mean",
+      "reference_replicate_standard_deviation",
+      "paired_same_data_algorithm_gap",
+      "gap_to_replicate_sd_ratio"
+    ],
+    "promotion_boundary": "cross_dataset_likelihood_variability_cannot_turn_a_failed_same_data_value_or_gradient_gate_into_a_pass"
+  },
+  "finite_difference_policy": {
+    "role": "diagnostic_only_not_sole_truth",
+    "minimum_step_count_for_stable_window": 4,
+    "required_method": "centered_difference_or_reviewed_higher_order_alternative",
+    "required_row_validity_checks": [
+      "finite_values",
+      "branch_identity_compatible",
+      "measure_compatible",
+      "complexity_gate_passed"
+    ],
+    "veto_boundary": "finite_differences_can_veto_only_when_the_window_is_stable_branch_compatible_finite_and_predeclared_inconsistent",
+    "inconclusive_boundary": "disagreement_without_a_stable_window_is_inconclusive_not_proof_autodiff_is_wrong"
+  },
+  "autodiff_policy": {
+    "role": "gradient_candidate_requiring_evidence",
+    "required_checks": [
+      "finite_value",
+      "finite_gradient",
+      "no_hidden_stop_gradient_or_unreviewed_clipping",
+      "deterministic_branch_replay_when_branch_fixed",
+      "paired_same_target_reference_for_promoted_claims"
+    ],
+    "long_high_dimensional_warning": "long horizons and high dimensions can amplify accumulation, conditioning, and smoothness errors even with autodiff"
+  },
+  "veto_diagnostics": [
+    "single_finite_difference_check_promoted_as_truth",
+    "value_only_agreement_promoted_to_gradient_correctness",
+    "threshold_chosen_after_seeing_target_results",
+    "likelihood_variability_used_to_excuse_systematic_same_data_bias",
+    "nonfinite_value_or_gradient",
+    "hidden_stochastic_or_adaptive_branch_in_gradient_path",
+    "unsupported_hmc_readiness_claim"
+  ],
+  "pass_classes": [
+    "PASS_SAME_TARGET_VALUE_AND_GRADIENT",
+    "PASS_VALUE_ONLY_DIAGNOSTIC",
+    "PASS_GRADIENT_LOCAL_DIAGNOSTIC",
+    "BLOCKED_REFERENCE_MISSING",
+    "FAIL_GRADIENT_DIRECTION",
+    "FAIL_NUMERICAL_VETO"
+  ],
+  "explicit_non_goals": [
+    "adaptive TT/SIRT source-faithful filtering",
+    "S&P 500 reproduction"
+  ],
+  "nonclaims": [
+    "no HMC readiness",
+    "no model-suite completion",
+    "no production readiness",
+    "no smoothing support",
+    "no source-faithful adaptive TT/SIRT filtering",
+    "no S&P 500 reproduction",
+    "finite differences are not sole gradient truth",
+    "likelihood variability does not excuse systematic same-data bias"
+  ]
+}

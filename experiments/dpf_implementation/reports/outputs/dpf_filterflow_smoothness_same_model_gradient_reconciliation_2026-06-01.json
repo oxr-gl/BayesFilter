@@ -1,0 +1,861 @@
+{
+  "caveat_ledger": [
+    {
+      "detail": "BayesFilter gradient harness now uses filterflow smoothness constant-velocity LGSSM.",
+      "id": "same_model_wrong_comparator_gap",
+      "status": "closed"
+    },
+    {
+      "detail": "Observations and initial particles are extracted, but BayesFilter transition noises use stateless common random numbers rather than filterflow internal split_seed draws.",
+      "id": "bit_identical_randomness",
+      "status": "open_controlled"
+    },
+    {
+      "detail": "Same-model scalar definitions are recorded, but likelihood scales remain far apart, including filterflow versus Kalman.",
+      "id": "scalar_comparability",
+      "status": "open_blocking_for_gradient_agreement"
+    },
+    {
+      "detail": "Finite same-model diagnostics are recorded; gradient agreement is not concluded.",
+      "id": "gradient_agreement",
+      "status": "same_model_finite_diagnostics_not_gradient_agreement"
+    },
+    {
+      "detail": "No production, posterior, HMC, or general nonlinear-SSM validity follows.",
+      "id": "scientific_validity",
+      "status": "bounded_diagnostic_only"
+    }
+  ],
+  "created_at_utc": "2026-05-31T20:05:34Z",
+  "decision": "same_model_gradient_wrong_model_gap_closed_gradient_agreement_not_concluded",
+  "decision_table": [
+    {
+      "decision": "close wrong-model gradient-harness gap",
+      "main_uncertainty": "bit-identical filterflow transition-noise stream not reconstructed",
+      "next_action": "derive or export exact filterflow random stream if gradient equality is required",
+      "not_concluded": "gradient correctness or scientific validity",
+      "primary_criterion_status": "same filterflow smoothness LGSSM used",
+      "veto_status": "pass"
+    }
+  ],
+  "filterflow_reference": {
+    "command": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=.cache/filterflow-mpl PYTHONPATH=.localsource/filterflow /home/chakwong/BayesFilter/.localenv/filterflow-py311/bin/python -c <same-model smoothness extraction>",
+    "numpy": "1.26.4",
+    "python": "3.11.14",
+    "status": "executed",
+    "tensorflow": "2.19.1"
+  },
+  "finite_difference_contract": {
+    "centered_difference_status": "not_used",
+    "diff_epsilon": 0.01,
+    "reference": "filterflow simple_linear_smoothness.get_surface_kf",
+    "scheme": "one_sided_forward_difference"
+  },
+  "model_contract": {
+    "batch_size": 1,
+    "convergence_threshold": 1e-06,
+    "epsilon": 0.25,
+    "horizon": 100,
+    "max_iter": 200,
+    "mesh_size": 4,
+    "model": "filterflow_simple_linear_smoothness_constant_velocity_lgssm",
+    "num_particles": 25,
+    "observation_covariance": [
+      [
+        0.01
+      ]
+    ],
+    "observation_matrix": [
+      [
+        1.0,
+        0.0
+      ]
+    ],
+    "resampling_threshold": "ESS <= 0.9999 N",
+    "scaling": 0.85,
+    "transition_covariance": [
+      [
+        0.3333333333333333,
+        0.5
+      ],
+      [
+        0.5,
+        1.0
+      ]
+    ],
+    "transition_matrix": "A(theta)=diag(theta_1, theta_2)+[[0,1],[0,0]]"
+  },
+  "non_implications": [
+    "No gradient agreement is concluded.",
+    "No production readiness is concluded.",
+    "No public API readiness is concluded.",
+    "No posterior correctness is concluded.",
+    "No HMC readiness is concluded.",
+    "No general nonlinear-SSM validity is concluded.",
+    "No DSGE/NAWM validation is concluded.",
+    "No monograph claim is concluded."
+  ],
+  "plan_path": "docs/plans/bayesfilter-dpf-annealed-transport-remaining-gaps-closure-plan-2026-06-01.md",
+  "question": "Same-model gradient reconciliation against executable filterflow smoothness.",
+  "randomness_contract": {
+    "bayesfilter_transition_noise_status": "stateless_common_random_numbers_surrogate",
+    "bit_identical_filterflow_noise": false,
+    "filterflow_randomness_status": "extracted_observations_and_initial_particles",
+    "interpretation": "This closes the prior wrong-model gradient harness gap, but does not prove bit-identical stochastic-gradient equality against filterflow internals."
+  },
+  "reproducibility_digest": "2fdc75e5e5a22c8ffdb4680c1e3a705b46c17a12ecc6f778dc5e25b40b5ca03d",
+  "rows": [
+    {
+      "bayesfilter_finite_gradient": true,
+      "bayesfilter_finite_value": true,
+      "bayesfilter_gradient_mean_log_likelihood": [
+        -2.473365410831637e+78,
+        -2.323246190797547e+78
+      ],
+      "bayesfilter_gradient_total_log_likelihood": [
+        -2.473365410831637e+78,
+        -2.323246190797547e+78
+      ],
+      "bayesfilter_mean_log_likelihood": -1959441.944245892,
+      "bayesfilter_minus_filterflow_likelihood": -700877.5692458921,
+      "bayesfilter_minus_kalman_likelihood": -1959220.8122031887,
+      "bayesfilter_per_time_mean_log_likelihood": -19594.419442458922,
+      "bayesfilter_total_log_likelihood": -1959441.944245892,
+      "filterflow_gradient": [
+        511231552.0,
+        487785088.0
+      ],
+      "filterflow_mean_log_likelihood": -1258564.375,
+      "filterflow_minus_kalman_likelihood": -1258343.2429572965,
+      "finite": true,
+      "gradient_delta_bayesfilter_filterflow": [
+        -2.473365410831637e+78,
+        -2.323246190797547e+78
+      ],
+      "gradient_delta_bayesfilter_kalman": [
+        -2.473365410831637e+78,
+        -2.323246190797547e+78
+      ],
+      "gradient_delta_filterflow_kalman": [
+        511228982.96222275,
+        487782588.75688106
+      ],
+      "kalman_forward_fd_gradient": [
+        2569.0377772680763,
+        2499.2431189341232
+      ],
+      "kalman_total_log_likelihood": -221.1320427033769,
+      "theta_1": 0.949999988079071,
+      "theta_2": 0.949999988079071
+    },
+    {
+      "bayesfilter_finite_gradient": true,
+      "bayesfilter_finite_value": true,
+      "bayesfilter_gradient_mean_log_likelihood": [
+        -1.0780058096207191e+87,
+        -7.3861564306936e+86
+      ],
+      "bayesfilter_gradient_total_log_likelihood": [
+        -1.0780058096207191e+87,
+        -7.3861564306936e+86
+      ],
+      "bayesfilter_mean_log_likelihood": -71465.30100268309,
+      "bayesfilter_minus_filterflow_likelihood": 38924.71462231691,
+      "bayesfilter_minus_kalman_likelihood": -71283.92766690452,
+      "bayesfilter_per_time_mean_log_likelihood": -714.6530100268309,
+      "bayesfilter_total_log_likelihood": -71465.30100268309,
+      "filterflow_gradient": [
+        124776680.0,
+        156939248.0
+      ],
+      "filterflow_mean_log_likelihood": -110390.015625,
+      "filterflow_minus_kalman_likelihood": -110208.64228922143,
+      "finite": true,
+      "gradient_delta_bayesfilter_filterflow": [
+        -1.0780058096207191e+87,
+        -7.3861564306936e+86
+      ],
+      "gradient_delta_bayesfilter_kalman": [
+        -1.0780058096207191e+87,
+        -7.3861564306936e+86
+      ],
+      "gradient_delta_filterflow_kalman": [
+        124775134.70656155,
+        156937325.1438576
+      ],
+      "kalman_forward_fd_gradient": [
+        1545.2934384510427,
+        1922.8561423926662
+      ],
+      "kalman_total_log_likelihood": -181.37333577856387,
+      "theta_1": 0.949999988079071,
+      "theta_2": 0.9666666388511658
+    },
+    {
+      "bayesfilter_finite_gradient": true,
+      "bayesfilter_finite_value": true,
+      "bayesfilter_gradient_mean_log_likelihood": [
+        -6.200295612010239e+84,
+        -4.325316140108458e+84
+      ],
+      "bayesfilter_gradient_total_log_likelihood": [
+        -6.200295612010239e+84,
+        -4.325316140108458e+84
+      ],
+      "bayesfilter_mean_log_likelihood": -17638.99794949069,
+      "bayesfilter_minus_filterflow_likelihood": 14524.205175509309,
+      "bayesfilter_minus_kalman_likelihood": -17487.678533045026,
+      "bayesfilter_per_time_mean_log_likelihood": -176.38997949490692,
+      "bayesfilter_total_log_likelihood": -17638.99794949069,
+      "filterflow_gradient": [
+        51880548.0,
+        92136952.0
+      ],
+      "filterflow_mean_log_likelihood": -32163.203125,
+      "filterflow_minus_kalman_likelihood": -32011.883708554335,
+      "finite": true,
+      "gradient_delta_bayesfilter_filterflow": [
+        -6.200295612010239e+84,
+        -4.325316140108458e+84
+      ],
+      "gradient_delta_bayesfilter_kalman": [
+        -6.200295612010239e+84,
+        -4.325316140108458e+84
+      ],
+      "gradient_delta_filterflow_kalman": [
+        51879779.92996352,
+        92135635.4147667
+      ],
+      "kalman_forward_fd_gradient": [
+        768.070036474694,
+        1316.5852333030869
+      ],
+      "kalman_total_log_likelihood": -151.31941644566433,
+      "theta_1": 0.949999988079071,
+      "theta_2": 0.9833333492279053
+    },
+    {
+      "bayesfilter_finite_gradient": true,
+      "bayesfilter_finite_value": true,
+      "bayesfilter_gradient_mean_log_likelihood": [
+        -5.157754570431002e+110,
+        -3.6919296699693655e+110
+      ],
+      "bayesfilter_gradient_total_log_likelihood": [
+        -5.157754570431002e+110,
+        -3.6919296699693655e+110
+      ],
+      "bayesfilter_mean_log_likelihood": -15359.178498102936,
+      "bayesfilter_minus_filterflow_likelihood": -9730.951447321686,
+      "bayesfilter_minus_kalman_likelihood": -15227.705543313285,
+      "bayesfilter_per_time_mean_log_likelihood": -153.59178498102935,
+      "bayesfilter_total_log_likelihood": -15359.178498102936,
+      "filterflow_gradient": [
+        4323619.0,
+        11968401.0
+      ],
+      "filterflow_mean_log_likelihood": -5628.22705078125,
+      "filterflow_minus_kalman_likelihood": -5496.754095991599,
+      "finite": true,
+      "gradient_delta_bayesfilter_filterflow": [
+        -5.157754570431002e+110,
+        -3.6919296699693655e+110
+      ],
+      "gradient_delta_bayesfilter_kalman": [
+        -5.157754570431002e+110,
+        -3.6919296699693655e+110
+      ],
+      "gradient_delta_filterflow_kalman": [
+        4323368.8394899005,
+        11967721.907697977
+      ],
+      "kalman_forward_fd_gradient": [
+        250.1605100994908,
+        679.0923020224752
+      ],
+      "kalman_total_log_likelihood": -131.47295478965134,
+      "theta_1": 0.949999988079071,
+      "theta_2": 1.0
+    },
+    {
+      "bayesfilter_finite_gradient": true,
+      "bayesfilter_finite_value": true,
+      "bayesfilter_gradient_mean_log_likelihood": [
+        -5.894268133854281e+81,
+        -4.182550159863993e+81
+      ],
+      "bayesfilter_gradient_total_log_likelihood": [
+        -5.894268133854281e+81,
+        -4.182550159863993e+81
+      ],
+      "bayesfilter_mean_log_likelihood": -57215.056852273774,
+      "bayesfilter_minus_filterflow_likelihood": 224531.94314772624,
+      "bayesfilter_minus_kalman_likelihood": -57034.60382769501,
+      "bayesfilter_per_time_mean_log_likelihood": -572.1505685227378,
+      "bayesfilter_total_log_likelihood": -57215.056852273774,
+      "filterflow_gradient": [
+        246191328.0,
+        181419712.0
+      ],
+      "filterflow_mean_log_likelihood": -281747.0,
+      "filterflow_minus_kalman_likelihood": -281566.54697542125,
+      "finite": true,
+      "gradient_delta_bayesfilter_filterflow": [
+        -5.894268133854281e+81,
+        -4.182550159863993e+81
+      ],
+      "gradient_delta_bayesfilter_kalman": [
+        -5.894268133854281e+81,
+        -4.182550159863993e+81
+      ],
+      "gradient_delta_filterflow_kalman": [
+        246189400.42164814,
+        181418231.86105174
+      ],
+      "kalman_forward_fd_gradient": [
+        1927.5783518539724,
+        1480.138948251195
+      ],
+      "kalman_total_log_likelihood": -180.4530245787623,
+      "theta_1": 0.9666666388511658,
+      "theta_2": 0.949999988079071
+    },
+    {
+      "bayesfilter_finite_gradient": true,
+      "bayesfilter_finite_value": true,
+      "bayesfilter_gradient_mean_log_likelihood": [
+        -1.5102101580465653e+111,
+        -1.0386354298725969e+111
+      ],
+      "bayesfilter_gradient_total_log_likelihood": [
+        -1.5102101580465653e+111,
+        -1.0386354298725969e+111
+      ],
+      "bayesfilter_mean_log_likelihood": -37950.09320370553,
+      "bayesfilter_minus_filterflow_likelihood": 6405.609921294468,
+      "bayesfilter_minus_kalman_likelihood": -37793.17608864673,
+      "bayesfilter_per_time_mean_log_likelihood": -379.5009320370553,
+      "bayesfilter_total_log_likelihood": -37950.09320370553,
+      "filterflow_gradient": [
+        86100128.0,
+        83258288.0
+      ],
+      "filterflow_mean_log_likelihood": -44355.703125,
+      "filterflow_minus_kalman_likelihood": -44198.7860099412,
+      "finite": true,
+      "gradient_delta_bayesfilter_filterflow": [
+        -1.5102101580465653e+111,
+        -1.0386354298725969e+111
+      ],
+      "gradient_delta_bayesfilter_kalman": [
+        -1.5102101580465653e+111,
+        -1.0386354298725969e+111
+      ],
+      "gradient_delta_filterflow_kalman": [
+        86098972.29243915,
+        83257152.43004605
+      ],
+      "kalman_forward_fd_gradient": [
+        1155.7075608492112,
+        1135.5699539452587
+      ],
+      "kalman_total_log_likelihood": -156.91711505879985,
+      "theta_1": 0.9666666388511658,
+      "theta_2": 0.9666666388511658
+    },
+    {
+      "bayesfilter_finite_gradient": true,
+      "bayesfilter_finite_value": true,
+      "bayesfilter_gradient_mean_log_likelihood": [
+        5.4207002710254274e+125,
+        3.785270079952311e+125
+      ],
+      "bayesfilter_gradient_total_log_likelihood": [
+        5.4207002710254274e+125,
+        3.785270079952311e+125
+      ],
+      "bayesfilter_mean_log_likelihood": -14191.195113752301,
+      "bayesfilter_minus_filterflow_likelihood": -7904.315719221051,
+      "bayesfilter_minus_kalman_likelihood": -14052.012378997148,
+      "bayesfilter_per_time_mean_log_likelihood": -141.911951137523,
+      "bayesfilter_total_log_likelihood": -14191.195113752301,
+      "filterflow_gradient": [
+        6389000.0,
+        8727360.0
+      ],
+      "filterflow_mean_log_likelihood": -6286.87939453125,
+      "filterflow_minus_kalman_likelihood": -6147.696659776097,
+      "finite": true,
+      "gradient_delta_bayesfilter_filterflow": [
+        5.4207002710254274e+125,
+        3.785270079952311e+125
+      ],
+      "gradient_delta_bayesfilter_kalman": [
+        5.4207002710254274e+125,
+        3.785270079952311e+125
+      ],
+      "gradient_delta_filterflow_kalman": [
+        6388431.26742993,
+        8726586.841001015
+      ],
+      "kalman_forward_fd_gradient": [
+        568.7325700697954,
+        773.1589989850534
+      ],
+      "kalman_total_log_likelihood": -139.18273475515386,
+      "theta_1": 0.9666666388511658,
+      "theta_2": 0.9833333492279053
+    },
+    {
+      "bayesfilter_finite_gradient": true,
+      "bayesfilter_finite_value": true,
+      "bayesfilter_gradient_mean_log_likelihood": [
+        2.3096256743949706e+133,
+        1.6298149969840055e+133
+      ],
+      "bayesfilter_gradient_total_log_likelihood": [
+        2.3096256743949706e+133,
+        1.6298149969840055e+133
+      ],
+      "bayesfilter_mean_log_likelihood": -12195.030231169207,
+      "bayesfilter_minus_filterflow_likelihood": -3684.0702702317067,
+      "bayesfilter_minus_kalman_likelihood": -12067.48023389756,
+      "bayesfilter_per_time_mean_log_likelihood": -121.95030231169207,
+      "bayesfilter_total_log_likelihood": -12195.030231169207,
+      "filterflow_gradient": [
+        4033042.0,
+        8912569.0
+      ],
+      "filterflow_mean_log_likelihood": -8510.9599609375,
+      "filterflow_minus_kalman_likelihood": -8383.409963665854,
+      "finite": true,
+      "gradient_delta_bayesfilter_filterflow": [
+        2.3096256743949706e+133,
+        1.6298149969840055e+133
+      ],
+      "gradient_delta_bayesfilter_kalman": [
+        2.3096256743949706e+133,
+        1.6298149969840055e+133
+      ],
+      "gradient_delta_filterflow_kalman": [
+        4032865.751272423,
+        8912176.89281175
+      ],
+      "kalman_forward_fd_gradient": [
+        176.2487275766489,
+        392.1071882516898
+      ],
+      "kalman_total_log_likelihood": -127.54999727164642,
+      "theta_1": 0.9666666388511658,
+      "theta_2": 1.0
+    },
+    {
+      "bayesfilter_finite_gradient": true,
+      "bayesfilter_finite_value": true,
+      "bayesfilter_gradient_mean_log_likelihood": [
+        -3.442301329265356e+107,
+        -2.4389844627687536e+107
+      ],
+      "bayesfilter_gradient_total_log_likelihood": [
+        -3.442301329265356e+107,
+        -2.4389844627687536e+107
+      ],
+      "bayesfilter_mean_log_likelihood": -14976.1403526067,
+      "bayesfilter_minus_filterflow_likelihood": 7778.000272393299,
+      "bayesfilter_minus_kalman_likelihood": -14825.675621186521,
+      "bayesfilter_per_time_mean_log_likelihood": -149.761403526067,
+      "bayesfilter_total_log_likelihood": -14976.1403526067,
+      "filterflow_gradient": [
+        76424176.0,
+        40527560.0
+      ],
+      "filterflow_mean_log_likelihood": -22754.140625,
+      "filterflow_minus_kalman_likelihood": -22603.67589357982,
+      "finite": true,
+      "gradient_delta_bayesfilter_filterflow": [
+        -3.442301329265356e+107,
+        -2.4389844627687536e+107
+      ],
+      "gradient_delta_bayesfilter_kalman": [
+        -3.442301329265356e+107,
+        -2.4389844627687536e+107
+      ],
+      "gradient_delta_filterflow_kalman": [
+        76422889.83293837,
+        40526835.0629283
+      ],
+      "kalman_forward_fd_gradient": [
+        1286.167061626196,
+        724.9370717005803
+      ],
+      "kalman_total_log_likelihood": -150.4647314201802,
+      "theta_1": 0.9833333492279053,
+      "theta_2": 0.949999988079071
+    },
+    {
+      "bayesfilter_finite_gradient": true,
+      "bayesfilter_finite_value": true,
+      "bayesfilter_gradient_mean_log_likelihood": [
+        -2.8915338871077625e+127,
+        -1.9543300578021634e+127
+      ],
+      "bayesfilter_gradient_total_log_likelihood": [
+        -2.8915338871077625e+127,
+        -1.9543300578021634e+127
+      ],
+      "bayesfilter_mean_log_likelihood": -11553.525501963322,
+      "bayesfilter_minus_filterflow_likelihood": -3996.6207168070723,
+      "bayesfilter_minus_kalman_likelihood": -11414.571677242884,
+      "bayesfilter_per_time_mean_log_likelihood": -115.53525501963323,
+      "bayesfilter_total_log_likelihood": -11553.525501963322,
+      "filterflow_gradient": [
+        20916636.0,
+        14628821.0
+      ],
+      "filterflow_mean_log_likelihood": -7556.90478515625,
+      "filterflow_minus_kalman_likelihood": -7417.950960435811,
+      "finite": true,
+      "gradient_delta_bayesfilter_filterflow": [
+        -2.8915338871077625e+127,
+        -1.9543300578021634e+127
+      ],
+      "gradient_delta_bayesfilter_kalman": [
+        -2.8915338871077625e+127,
+        -1.9543300578021634e+127
+      ],
+      "gradient_delta_filterflow_kalman": [
+        20915869.846906852,
+        14628269.81221894
+      ],
+      "kalman_forward_fd_gradient": [
+        766.1530931462835,
+        551.1877810600964
+      ],
+      "kalman_total_log_likelihood": -138.95382472043875,
+      "theta_1": 0.9833333492279053,
+      "theta_2": 0.9666666388511658
+    },
+    {
+      "bayesfilter_finite_gradient": true,
+      "bayesfilter_finite_value": true,
+      "bayesfilter_gradient_mean_log_likelihood": [
+        1.5497962058247162e+107,
+        1.0598411711993303e+107
+      ],
+      "bayesfilter_gradient_total_log_likelihood": [
+        1.5497962058247162e+107,
+        1.0598411711993303e+107
+      ],
+      "bayesfilter_mean_log_likelihood": -16313.799551542174,
+      "bayesfilter_minus_filterflow_likelihood": -6837.3620515421735,
+      "bayesfilter_minus_kalman_likelihood": -16183.43129916229,
+      "bayesfilter_per_time_mean_log_likelihood": -163.13799551542172,
+      "bayesfilter_total_log_likelihood": -16313.799551542174,
+      "filterflow_gradient": [
+        10217683.0,
+        10054836.0
+      ],
+      "filterflow_mean_log_likelihood": -9476.4375,
+      "filterflow_minus_kalman_likelihood": -9346.069247620117,
+      "finite": true,
+      "gradient_delta_bayesfilter_filterflow": [
+        1.5497962058247162e+107,
+        1.0598411711993303e+107
+      ],
+      "gradient_delta_bayesfilter_kalman": [
+        1.5497962058247162e+107,
+        1.0598411711993303e+107
+      ],
+      "gradient_delta_filterflow_kalman": [
+        10217313.586604677,
+        10054467.529698642
+      ],
+      "kalman_forward_fd_gradient": [
+        369.413395323555,
+        368.4703013585505
+      ],
+      "kalman_total_log_likelihood": -130.36825237988313,
+      "theta_1": 0.9833333492279053,
+      "theta_2": 0.9833333492279053
+    },
+    {
+      "bayesfilter_finite_gradient": true,
+      "bayesfilter_finite_value": true,
+      "bayesfilter_gradient_mean_log_likelihood": [
+        4.587864422888946e+136,
+        -2.5458119806863092e+135
+      ],
+      "bayesfilter_gradient_total_log_likelihood": [
+        4.587864422888946e+136,
+        -2.5458119806863092e+135
+      ],
+      "bayesfilter_mean_log_likelihood": -12778.397943650582,
+      "bayesfilter_minus_filterflow_likelihood": -2010.7700139630815,
+      "bayesfilter_minus_kalman_likelihood": -12653.539080754661,
+      "bayesfilter_per_time_mean_log_likelihood": -127.78397943650582,
+      "bayesfilter_total_log_likelihood": -12778.397943650582,
+      "filterflow_gradient": [
+        6702688.5,
+        10415565.0
+      ],
+      "filterflow_mean_log_likelihood": -10767.6279296875,
+      "filterflow_minus_kalman_likelihood": -10642.76906679158,
+      "finite": true,
+      "gradient_delta_bayesfilter_filterflow": [
+        4.587864422888946e+136,
+        -2.5458119806863092e+135
+      ],
+      "gradient_delta_bayesfilter_kalman": [
+        4.587864422888946e+136,
+        -2.5458119806863092e+135
+      ],
+      "gradient_delta_filterflow_kalman": [
+        6702586.153892684,
+        10415388.616922477
+      ],
+      "kalman_forward_fd_gradient": [
+        102.34610731645546,
+        176.3830775233032
+      ],
+      "kalman_total_log_likelihood": -124.85886289592098,
+      "theta_1": 0.9833333492279053,
+      "theta_2": 1.0
+    },
+    {
+      "bayesfilter_finite_gradient": true,
+      "bayesfilter_finite_value": true,
+      "bayesfilter_gradient_mean_log_likelihood": [
+        1.701123055359888e+130,
+        1.119052620288609e+130
+      ],
+      "bayesfilter_gradient_total_log_likelihood": [
+        1.701123055359888e+130,
+        1.119052620288609e+130
+      ],
+      "bayesfilter_mean_log_likelihood": -11329.307778737773,
+      "bayesfilter_minus_filterflow_likelihood": -3644.5045560815233,
+      "bayesfilter_minus_kalman_likelihood": -11198.141245110764,
+      "bayesfilter_per_time_mean_log_likelihood": -113.29307778737774,
+      "bayesfilter_total_log_likelihood": -11329.307778737773,
+      "filterflow_gradient": [
+        21536600.0,
+        7194700.5
+      ],
+      "filterflow_mean_log_likelihood": -7684.80322265625,
+      "filterflow_minus_kalman_likelihood": -7553.636689029242,
+      "finite": true,
+      "gradient_delta_bayesfilter_filterflow": [
+        1.701123055359888e+130,
+        1.119052620288609e+130
+      ],
+      "gradient_delta_bayesfilter_kalman": [
+        1.701123055359888e+130,
+        1.119052620288609e+130
+      ],
+      "gradient_delta_filterflow_kalman": [
+        21535955.190426286,
+        7194466.875552988
+      ],
+      "kalman_forward_fd_gradient": [
+        644.809573713448,
+        233.62444701192544
+      ],
+      "kalman_total_log_likelihood": -131.16653362700833,
+      "theta_1": 1.0,
+      "theta_2": 0.949999988079071
+    },
+    {
+      "bayesfilter_finite_gradient": true,
+      "bayesfilter_finite_value": true,
+      "bayesfilter_gradient_mean_log_likelihood": [
+        -1.0956654993744133e+146,
+        -7.22600260981704e+145
+      ],
+      "bayesfilter_gradient_total_log_likelihood": [
+        -1.0956654993744133e+146,
+        -7.22600260981704e+145
+      ],
+      "bayesfilter_mean_log_likelihood": -10834.780805498358,
+      "bayesfilter_minus_filterflow_likelihood": -1775.773969560858,
+      "bayesfilter_minus_kalman_likelihood": -10707.297761170443,
+      "bayesfilter_per_time_mean_log_likelihood": -108.34780805498357,
+      "bayesfilter_total_log_likelihood": -10834.780805498358,
+      "filterflow_gradient": [
+        10376217.0,
+        4434099.0
+      ],
+      "filterflow_mean_log_likelihood": -9059.0068359375,
+      "filterflow_minus_kalman_likelihood": -8931.523791609585,
+      "finite": true,
+      "gradient_delta_bayesfilter_filterflow": [
+        -1.0956654993744133e+146,
+        -7.22600260981704e+145
+      ],
+      "gradient_delta_bayesfilter_kalman": [
+        -1.0956654993744133e+146,
+        -7.22600260981704e+145
+      ],
+      "gradient_delta_filterflow_kalman": [
+        10375840.366520114,
+        4433929.300869521
+      ],
+      "kalman_forward_fd_gradient": [
+        376.6334798857855,
+        169.69913047944374
+      ],
+      "kalman_total_log_likelihood": -127.48304432791443,
+      "theta_1": 1.0,
+      "theta_2": 0.9666666388511658
+    },
+    {
+      "bayesfilter_finite_gradient": true,
+      "bayesfilter_finite_value": true,
+      "bayesfilter_gradient_mean_log_likelihood": [
+        -6.306055187544285e+143,
+        -6.205086757247768e+143
+      ],
+      "bayesfilter_gradient_total_log_likelihood": [
+        -6.306055187544285e+143,
+        -6.205086757247768e+143
+      ],
+      "bayesfilter_mean_log_likelihood": -10638.139635432402,
+      "bayesfilter_minus_filterflow_likelihood": -514.1025260574024,
+      "bayesfilter_minus_kalman_likelihood": -10513.263920958078,
+      "bayesfilter_per_time_mean_log_likelihood": -106.38139635432402,
+      "bayesfilter_total_log_likelihood": -10638.139635432402,
+      "filterflow_gradient": [
+        -938866.75,
+        -774169.8125
+      ],
+      "filterflow_mean_log_likelihood": -10124.037109375,
+      "filterflow_minus_kalman_likelihood": -9999.161394900675,
+      "finite": true,
+      "gradient_delta_bayesfilter_filterflow": [
+        -6.306055187544285e+143,
+        -6.205086757247768e+143
+      ],
+      "gradient_delta_bayesfilter_kalman": [
+        -6.306055187544285e+143,
+        -6.205086757247768e+143
+      ],
+      "gradient_delta_filterflow_kalman": [
+        -939036.8642817223,
+        -774272.324024242
+      ],
+      "kalman_forward_fd_gradient": [
+        170.1142817223328,
+        102.51152424200001
+      ],
+      "kalman_total_log_likelihood": -124.87571447432502,
+      "theta_1": 1.0,
+      "theta_2": 0.9833333492279053
+    },
+    {
+      "bayesfilter_finite_gradient": true,
+      "bayesfilter_finite_value": true,
+      "bayesfilter_gradient_mean_log_likelihood": [
+        -4.373003757448875e+145,
+        -3.8170321014055354e+145
+      ],
+      "bayesfilter_gradient_total_log_likelihood": [
+        -4.373003757448875e+145,
+        -3.8170321014055354e+145
+      ],
+      "bayesfilter_mean_log_likelihood": -10638.277196949804,
+      "bayesfilter_minus_filterflow_likelihood": -2865.7571774185544,
+      "bayesfilter_minus_kalman_likelihood": -10514.877783590946,
+      "bayesfilter_per_time_mean_log_likelihood": -106.38277196949804,
+      "bayesfilter_total_log_likelihood": -10638.277196949804,
+      "filterflow_gradient": [
+        2399754.25,
+        2464189.25
+      ],
+      "filterflow_mean_log_likelihood": -7772.52001953125,
+      "filterflow_minus_kalman_likelihood": -7649.120606172391,
+      "finite": true,
+      "gradient_delta_bayesfilter_filterflow": [
+        -4.373003757448875e+145,
+        -3.8170321014055354e+145
+      ],
+      "gradient_delta_bayesfilter_kalman": [
+        -4.373003757448875e+145,
+        -3.8170321014055354e+145
+      ],
+      "gradient_delta_filterflow_kalman": [
+        2399725.796689817,
+        2464157.3344403375
+      ],
+      "kalman_forward_fd_gradient": [
+        28.453310182872826,
+        31.915559662591875
+      ],
+      "kalman_total_log_likelihood": -123.39941335885908,
+      "theta_1": 1.0,
+      "theta_2": 1.0
+    }
+  ],
+  "run_manifest": {
+    "branch": "main",
+    "command": "CUDA_VISIBLE_DEVICES=-1 python -m experiments.dpf_implementation.tf_tfp.runners.run_filterflow_smoothness_same_model_gradient_reconciliation_tf",
+    "commit": "7ccb9c39883471c2d5ec2891cbf33b9ed436bada",
+    "cpu_only": true,
+    "cuda_visible_devices": "-1",
+    "dirty_state_summary": "M docs/plans/bayesfilter-student-dpf-baseline-master-program-2026-05-10.md\n M docs/plans/bayesfilter-student-dpf-baseline-reset-memo-2026-05-09.md\n M experiments/controlled_dpf_baseline/README.md\n?? .cache/\n?? .local_sources/\n?? .localenv/\n?? .localsource/\n?? AGENTS.md\n?? CLAUDE.md\n?? docs/plans/bayesfilter-dpf-annealed-transport-reference-alignment-plan-2026-05-31.md\n?? docs/plans/bayesfilter-dpf-annealed-transport-reference-alignment-result-2026-05-31.md\n?? docs/plans/bayesfilter-dpf-annealed-transport-reference-alignment-review-loop-2026-05-31.md\n?? docs/plans/bayesfilter-dpf-annealed-transport-remaining-gaps-closure-plan-2026-06-01.md\n?? docs/plans/bayesfilter-dpf-annealed-transport-remaining-gaps-closure-result-2026-06-01.md\n?? docs/plans/bayesfilter-dpf-annealed-transport-remaining-gaps-closure-review-loop-2026-06-01.md\n?? docs/plans/bayesfilter-dpf-filterflow-final-gaps-closure-plan-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-final-gaps-closure-result-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-full-comparison-plan-2026-05-31.md\n?? docs/plans/bayesfilter-dpf-filterflow-full-comparison-result-2026-05-31.md\n?? docs/plans/bayesfilter-dpf-filterflow-gap-closure-plan-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-gap-closure-program-plan-2026-05-31.md\n?? docs/plans/bayesfilter-dpf-filterflow-gap-closure-program-result-2026-05-31.md\n?? docs/plans/bayesfilter-dpf-filterflow-gap-closure-result-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-legacy-env-reproduction-plan-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-legacy-env-reproduction-result-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-lgssm-cross-implementation-audit-plan-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-lgssm-cross-implementation-audit-result-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-lgssm-matched-cross-audit-plan-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-lgssm-matched-cross-audit-result-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-py311-compat-plan-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-py311-compat-result-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-transport-component-audit-plan-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-transport-component-audit-result-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0-citation-coverage-register-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0-claim-extraction-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0-claim-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0-implementation-obligations-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0a-doc-patch-register-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0a-student-doc-crosswalk-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0a-student-doc-crosswalk-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0a-student-doc-crosswalk-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf1-classical-pf-baseline-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf1-classical-pf-spec-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf1-reference-test-contract-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf1-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf1-student-comparison-context-register-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf2-bias-proxy-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf2-component-spec-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf2-deferred-neural-path-register-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf2-differentiable-resampling-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf2-resampling-test-contract-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf2-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf3-excluded-flow-risk-register-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf3-flow-pfpf-spec-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf3-kernel-pff-exclusion-check-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf3-particle-flow-pfpf-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf3-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf4-differentiable-objective-gradient-contract-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf4-downstream-evidence-requirements-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf4-gradient-contract-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf4-objective-classification-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf4-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf5-benchmark-ladder-matrix-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf5-cpu-gpu-runtime-policy-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf5-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf5-seed-uncertainty-policy-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf5-validation-harness-benchmark-ladder-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf5-validation-harness-spec-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf6-production-boundary-api-review-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf6-production-boundary-decision-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf6-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf7-final-audit-implementation-handoff-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-final-audit-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-handoff-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-master-program-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-sv-test-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-master-program-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p0-scope-default-architecture-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p0-scope-default-architecture-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p1-ledh-math-contract-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p1-ledh-math-contract-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p10-final-audit-handoff-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p10-final-audit-handoff-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p2-affine-lgssm-edh-parity-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p2-affine-lgssm-edh-parity-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p3-nonlinear-local-linearization-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p3-nonlinear-local-linearization-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p4-pfpf-correction-logdet-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p4-pfpf-correction-logdet-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p5-tf-tfp-ledh-flow-implementation-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p5-tf-tfp-ledh-flow-implementation-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p6-integrated-ledh-pfpf-ot-runner-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p6-integrated-ledh-pfpf-ot-runner-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p7-gradient-tape-contract-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p7-gradient-tape-contract-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p8-lgssm-validation-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p8-lgssm-validation-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p9-range-bearing-validation-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p9-range-bearing-validation-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-ladder-master-program-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p0-scope-and-estimation-criteria-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p0-scope-and-estimation-criteria-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p1-lgssm-multiseed-regression-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p1-lgssm-multiseed-regression-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p2-range-bearing-stress-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p2-range-bearing-stress-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p3-cut4-differentiable-comparator-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p3-cut4-differentiable-comparator-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p4-stochastic-volatility-gradient-mle-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p4-stochastic-volatility-gradient-mle-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p5-structural-ar1-quadratic-completion-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p5-structural-ar1-quadratic-completion-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p6-particle-count-seed-ladder-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p6-particle-count-seed-ladder-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p7-final-audit-handoff-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p7-final-audit-handoff-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ot-backend-governance-correction-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-backend-governance-correction-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-master-program-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p0-scope-and-contract-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p0-scope-and-contract-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p1-lgssm-fixture-and-kalman-reference-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p1-lgssm-fixture-and-kalman-reference-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p2-range-bearing-ukf-reference-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p2-range-bearing-ukf-reference-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p3-finite-sinkhorn-resampler-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p3-finite-sinkhorn-resampler-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p4-integrated-dpf-runner-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p4-integrated-dpf-runner-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p5-gradient-contract-and-finite-difference-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p5-gradient-contract-and-finite-difference-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p6-lgssm-validation-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p6-lgssm-validation-result-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p7-range-bearing-validation-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p7-range-bearing-validation-result-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p8-final-audit-and-handoff-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p8-final-audit-and-handoff-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-resampling-math-source-audit-plan-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-ot-resampling-math-source-audit-result-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-master-program-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p0-scope-import-gate-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p0-scope-import-gate-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p1-lgssm-fixture-kalman-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p1-lgssm-fixture-kalman-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p2-range-bearing-ukf-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p2-range-bearing-ukf-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p3-sinkhorn-resampler-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p3-sinkhorn-resampler-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p4-integrated-dpf-runner-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p4-integrated-dpf-runner-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p5-gradient-tape-contract-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p5-gradient-tape-contract-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p6-lgssm-validation-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p6-lgssm-validation-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p7-range-bearing-validation-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p7-range-bearing-validation-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p8-final-audit-handoff-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p8-final-audit-handoff-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-rewrite-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-structural-ar1-linear-mle-test-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-structural-ar1-linear-mle-test-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-structural-ssm-interface-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-structural-ssm-interface-result-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-claude-review-ledger-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-code-audit-ledger-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-code-audit-promotion-plan-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-filtering-scalar-ledger-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-gradient-feasibility-ledger-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-mathdevmcp-ledger-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-octave-compatibility-plan-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-octave-compatibility-result-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-paper-code-crosswalk-ledger-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-reproducibility-ledger-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p11-zhao-cui-tt-analytical-derivative-note-2026-05-30.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p11-zhao-cui-tt-analytical-derivative-note-2026-05-30.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p11-zhao-cui-tt-analytical-derivative-plan-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p11-zhao-cui-tt-analytical-derivative-result-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p11-zhao-cui-tt-claude-review-ledger-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p11-zhao-cui-tt-derivation-ledger-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p11-zhao-cui-tt-mathdevmcp-ledger-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-claim-support-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-claude-review-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-coverage-and-omission-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-mathdevmcp-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-proposition-proof-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-self-contained-proof-expansion-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-self-contained-proof-expansion-note-2026-05-31.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-self-contained-proof-expansion-note-2026-05-31.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-self-contained-proof-expansion-plan-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-self-contained-proof-expansion-result-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-source-anchor-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-source-support-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-claude-review-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-discrepancy-report-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-human-readable-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-human-readable-note-2026-05-31.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-human-readable-note-2026-05-31.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-human-readable-plan-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-human-readable-result-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-mathdevmcp-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-proposition-humanization-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-reader-comprehension-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-source-support-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-claude-review-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-discrepancy-report-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-gradient-teaching-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-mathdevmcp-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-pedagogical-math-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-pedagogical-math-note-2026-05-31.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-pedagogical-math-note-2026-05-31.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-pedagogical-math-plan-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-pedagogical-math-result-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-reader-panel-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-source-support-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-algorithm-choices-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-backward-snowball-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-citation-venue-metadata-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-claim-support-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-claude-review-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-discrepancy-report-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-fixed-branch-minimal-example-2026-05-31.py\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-forward-snowball-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-gradient-derivation-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-implementable-fixed-branch-spec-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-implementable-fixed-branch-spec-note-2026-05-31.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-implementable-fixed-branch-spec-note-2026-05-31.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-implementable-fixed-branch-spec-plan-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-implementable-fixed-branch-spec-result-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-mathdevmcp-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-omitted-paper-risk-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-reference-example-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-source-support-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-annotated-reconstruction-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-annotated-reconstruction-note-2026-06-01.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-annotated-reconstruction-note-2026-06-01.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-annotated-reconstruction-plan-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-annotated-reconstruction-result-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-backward-snowball-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-bayesfilter-translation-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-citation-venue-metadata-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-claim-support-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-claude-review-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-code-crosswalk-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-discrepancy-report-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-equation-by-equation-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-fixed-branch-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-forward-snowball-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-gradient-derivation-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-mathdevmcp-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-omitted-paper-risk-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-source-support-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-claude-review-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-discrepancy-report-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-fixed-branch-derivative-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-full-annotated-reconstruction-note-2026-06-01.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-full-annotated-reconstruction-note-2026-06-01.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-full-equation-inventory-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-full-equation-reconstruction-plan-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-full-equation-reconstruction-result-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-mathdevmcp-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-section1-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-section2-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-section3-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-section5-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-source-support-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-backward-snowball-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-citation-venue-metadata-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-claim-support-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-claude-review-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-eight-issue-control-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-equation-count-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-fixed-branch-gradient-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-forward-snowball-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-omitted-paper-risk-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-section1-source-unit-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-section2-source-unit-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-section3-source-unit-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-section5-source-unit-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-source-support-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-true-annotated-companion-note-2026-06-01.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-true-annotated-companion-note-2026-06-01.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-true-annotation-inventory-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-true-annotation-plan-2026-06-01.md\n?? docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-plan-2026-05-27.md\n?? docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-plan-audit-2026-05-27.md\n?? docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-result-2026-05-27.md\n?? docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-review-2026-05-27.md\n?? experiments/controlled_dpf_baseline/reports/controlled-dpf-baseline-final-archive-result.md\n?? experiments/dpf_implementation/\n?? third_party/",
+    "gpu_devices_visible": [],
+    "package_versions": {
+      "tensorflow": "2.19.1",
+      "tensorflow_probability": "0.25.0"
+    },
+    "pre_import_cuda_visible_devices": "-1",
+    "python_version": "3.11.14",
+    "wall_time_seconds": 152.4720821918454
+  },
+  "scalar_contract": {
+    "bayesfilter_scalar": "tf.reduce_mean(log_likelihoods), batch_size=1",
+    "filterflow_first_scalar": -1258564.375,
+    "filterflow_scalar": "tf.reduce_mean(final_state.log_likelihoods), batch_size=1",
+    "kalman_first_scalar": -221.1320427033769,
+    "kalman_scalar": "total Kalman log likelihood from get_surface_kf",
+    "normalization_note": "batch_size=1 makes mean and total equal; per-time values are explanatory only",
+    "status": "same_model_scalar_definitions_recorded"
+  },
+  "seed_contract": {
+    "data_seed": 123,
+    "filter_seed": 1234,
+    "initial_particles_checksum": -0.020055056884302758,
+    "initial_particles_shape": [
+      1,
+      25,
+      2
+    ],
+    "observation_checksum": 24302.800384521484,
+    "observations_shape": [
+      100,
+      1
+    ],
+    "status": "recorded"
+  },
+  "summary": {
+    "bayesfilter_gradient_cosine_vs_filterflow": -0.014110786351377623,
+    "bayesfilter_gradient_cosine_vs_kalman": -0.06569613949112281,
+    "bayesfilter_gradient_norm": 1.4351450283445662e+146,
+    "bayesfilter_gradient_rmse_vs_filterflow": 2.537001953821507e+145,
+    "bayesfilter_gradient_rmse_vs_kalman": 2.537001953821507e+145,
+    "bayesfilter_gradient_sign_agreement_vs_filterflow": 0.34375,
+    "bayesfilter_gradient_sign_agreement_vs_kalman": 0.28125,
+    "bayesfilter_likelihood_rmse_vs_filterflow": 184345.80209129627,
+    "bayesfilter_likelihood_rmse_vs_kalman": 490562.36155074654,
+    "filterflow_gradient_cosine_vs_kalman": 0.8895568190836276,
+    "filterflow_gradient_norm": 817352317.6343408,
+    "filterflow_gradient_rmse_vs_kalman": 144487904.88971964,
+    "filterflow_gradient_sign_agreement_vs_kalman": 0.9375,
+    "filterflow_likelihood_rmse_vs_kalman": 323943.654172315,
+    "finite_rows": 16,
+    "gradient_agreement_concluded": false,
+    "gradient_claim_status": "same_model_finite_diagnostics_not_gradient_agreement",
+    "kalman_gradient_norm": 5956.745084331147,
+    "row_count": 16,
+    "same_model_gap_closed": true,
+    "scalar_comparability_status": "open_blocking_for_gradient_agreement"
+  }
+}

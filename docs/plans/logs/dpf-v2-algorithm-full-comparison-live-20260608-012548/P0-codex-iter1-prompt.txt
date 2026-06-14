@@ -1,0 +1,39 @@
+You are Codex supervising the live-workspace DPF V2 full algorithm BF/FilterFlow comparison phase P0: governance and artifact contract.
+
+Run id: dpf-v2-algorithm-full-comparison-live-20260608-012548
+
+Execution plan:
+docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-live-gated-execution-plan-2026-06-07.md
+
+Phase subplan:
+docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p0-governance-subplan-2026-06-07.md
+
+Required phase pass token:
+PASS_P0_READY_FOR_P1
+
+Core rules:
+- Execute the phase end to end in the live workspace; do not stop at a plan.
+- Begin by recording a local skeptical phase audit against the phase evidence contract.
+- Use CPU-only TensorFlow commands: set CUDA_VISIBLE_DEVICES=-1 before TensorFlow import.
+- Do not mutate .localsource/filterflow.
+- Do not run student implementation commands or derive student metrics.
+- Do not treat BayesFilter, FilterFlow, students, TT, dense quadrature, paper tables, or simulated truth as an oracle.
+- Do not relax tolerances, fixtures, branch masks, scalar definitions, OT settings, or gradient knobs after seeing results without a reviewed amendment.
+- Finite differences are diagnostic-only and cannot promote gradient agreement.
+- Preserve all six V2 rows in order.
+- Write JSON, markdown/report, docs/plans result ledger, command logs, and /home/chakwong/BayesFilter/docs/plans/logs/dpf-v2-algorithm-full-comparison-live-20260608-012548/P0-command-manifest.json.
+- The result ledger and command manifest must include run_id: `dpf-v2-algorithm-full-comparison-live-20260608-012548`.
+- The result ledger latest status must be `PASS_P0_READY_FOR_P1`, except P8 may close as `BLOCKED_WITH_REVIEWED_CLASSIFICATION` if a blocker is reviewed and classified.
+- Do not invoke Claude yourself. The live shell supervisor invokes Claude as a separate read-only reviewer after your phase worker returns.
+- If this is a repair iteration, write a repair amendment before changing code unless the blocker is only missing metadata/artifact formatting.
+- Stop only for true human intervention, forbidden .localsource/filterflow mutation need, contract weakening, or five review iterations without PASS.
+
+Protected tracked dirty files are listed in:
+/home/chakwong/BayesFilter/docs/plans/logs/dpf-v2-algorithm-full-comparison-live-20260608-012548/prelaunch-dirty-tracked.txt
+Do not modify them.
+
+Run logs for this phase should be written under:
+/home/chakwong/BayesFilter/docs/plans/logs/dpf-v2-algorithm-full-comparison-live-20260608-012548
+
+Previous blocker context, if any:
+

@@ -1,0 +1,123 @@
+{
+  "schema_version": "p53.scaling_route_derivation.v1",
+  "phase": "P53-M4A",
+  "status": "PASS_P53_M4A_SCALING_ROUTE_DERIVATION",
+  "selected_route": {
+    "route_id": "p53_spatial_sir_local_neighborhood_contraction",
+    "route_class": "scaling_route",
+    "selected_design": "local-neighborhood sparse transition contraction",
+    "rejected_designs": [
+      {
+        "design": "TT-MPO factorized transition contraction",
+        "reason": "not selected for the immediate repair because it requires a separate operator-compression design before implementation"
+      }
+    ],
+    "not_a_relabel_of": "p53_lower_rung_streaming_dense_equivalent",
+    "implementation_phase": "P53-M4B",
+    "tieout_phase": "P53-M4C",
+    "admission_phase": "P53-M4D"
+  },
+  "applicability": {
+    "model": "SpatialSIRSSM",
+    "state_order": "(S_1,I_1,...,S_J,I_J)",
+    "exact_when": [
+      "process covariance is diagonal",
+      "neighborhood mask contains every previous-state coordinate on which each RK4 transition-mean coordinate depends",
+      "no neighborhood truncation is used"
+    ],
+    "blocks_when": [
+      "process covariance is non-diagonal and no separate reviewed covariance-factorization route is supplied",
+      "dependency mask is truncated for memory without declaring approximation status",
+      "route-width bound exceeds the configured memory cap"
+    ],
+    "approximation_status": "exact local contraction under diagonal covariance and full reachability-mask conditions; otherwise block before implementation or declare a separate approximation plan"
+  },
+  "derivation": {
+    "transition_factorization": "log K_theta(x,z)=sum_a log Normal(x_a; Phi_a(z_N_a), sigma_a^2) for diagonal process covariance",
+    "neighborhood_definition": "N_a is the coordinate reachability set obtained by composing the SpatialSIRSSM one-step RK4 dependency graph for rk4_substeps steps",
+    "contraction_target": "sum over previous retained-grid coordinates using local factors and TT retained density without enumerating all current-previous global pairs",
+    "gradient_variables": [
+      "theta when present",
+      "current physical points",
+      "previous physical points through transition_mean",
+      "route metadata is non-differentiable replay state"
+    ]
+  },
+  "metadata_contract": {
+    "route_width_bound_name": "R_eff",
+    "route_width_bound_formula": "max_a q^(|N_a|) times local TT-rank contraction factors, reported conservatively from basis order q and max dependency-neighborhood size",
+    "memory_forecast_formula": "O(d * q^w * r_left * r_right) local workspace plus retained TT cores, where w=max_a |N_a|",
+    "required_fields": [
+      "route_id",
+      "route_class",
+      "selected_design",
+      "rk4_substeps",
+      "dependency_neighborhoods",
+      "max_dependency_width",
+      "R_eff",
+      "memory_forecast_bytes",
+      "replay_identity",
+      "covariance_scope"
+    ],
+    "required_replay_identity_fields": [
+      "route_id",
+      "route_class",
+      "selected_design",
+      "rk4_substeps",
+      "dependency_neighborhoods",
+      "basis_order",
+      "tt_rank_metadata",
+      "R_eff",
+      "memory_forecast_bytes",
+      "covariance_scope",
+      "dtype",
+      "branch_id"
+    ]
+  },
+  "tieout_contract": {
+    "dimensions": [
+      {
+        "compartments": 1,
+        "state_dim": 2
+      },
+      {
+        "compartments": 2,
+        "state_dim": 4
+      },
+      {
+        "compartments": 3,
+        "state_dim": 6
+      }
+    ],
+    "baseline": "dense retained-grid route; P53 C_low predictive update is admissible only as a computational proxy because P53-M3 already tied C_low to the dense route",
+    "predictive_log_density_atol": 1e-08,
+    "one_step_log_increment_atol": 1e-08,
+    "gradient_atol": 1e-06,
+    "metadata_checks": [
+      "route_id stable",
+      "route_class is scaling_route",
+      "R_eff finite and positive",
+      "memory forecast finite and below configured cap for the tie-out fixture",
+      "no dense all-pairs global pair enumeration"
+    ]
+  },
+  "tokens_emitted": [
+    "PASS_P53_M4A_SCALING_ROUTE_DERIVATION"
+  ],
+  "forbidden_tokens": [
+    "PASS_P53_M4B_SCALING_ROUTE_IMPLEMENTATION",
+    "PASS_P53_M4C_SCALING_ROUTE_TIEOUT",
+    "PASS_P53_M4D_SCALING_ROUTE_ADMISSION",
+    "PASS_P53_M5_RANK_SELECTION_INTEGRATION"
+  ],
+  "nonclaims": [
+    "no scaling-route implementation yet",
+    "no scaling-route lower-rung tie-out yet",
+    "no scaling-route admission yet",
+    "no rank-selection readiness",
+    "no d=18 spatial SIR readiness",
+    "no d=50 or d=100 spatial SIR readiness",
+    "no HMC readiness",
+    "no GPU readiness"
+  ]
+}

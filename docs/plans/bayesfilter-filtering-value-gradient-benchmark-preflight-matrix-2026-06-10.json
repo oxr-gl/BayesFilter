@@ -1,0 +1,3954 @@
+{
+  "schema_version": "filter_bench.preflight_matrix.v1",
+  "metadata_date": "2026-06-10",
+  "phase": "FILTER_BENCH_P7",
+  "status": "PASS_FILTER_BENCH_P7_PREFLIGHT_MATRIX",
+  "target_registry": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-target-registry-2026-06-10.json",
+  "gradient_semantics": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-gradient-semantics-2026-06-10.json",
+  "deterministic_filter_coverage": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-deterministic-filter-coverage-2026-06-10.json",
+  "dpf_filter_coverage": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-dpf-filter-coverage-2026-06-10.json",
+  "purpose": "P7 frozen all-filter/all-model preflight matrix. Cells are wiring/status evidence only and are not benchmark performance evidence.",
+  "frozen_roster": {
+    "algorithm_ids": [
+      "kalman_exact_or_mixture_enumeration",
+      "ukf",
+      "svd_sigma_point",
+      "cut4",
+      "zhao_cui_scalar_or_multistate",
+      "bootstrap_dpf_current",
+      "ledh_pfpf_alg1_ukf_current"
+    ],
+    "model_columns": [
+      "lgssm_exact_kalman_dim_1_2_3",
+      "p44_cubic_additive_gaussian_dim_1_2_3",
+      "p44_quadratic_observation_dim_1_2_3",
+      "p44_nonlinear_transition_h2_dim_1_2_3",
+      "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3",
+      "sv_exact_transformed_actual_nongaussian_dim_1_2_3",
+      "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3",
+      "native_generalized_sv_dense_lower_rung_dim_2",
+      "spatial_sir_lower_rung_j1_dim_2",
+      "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18",
+      "predator_prey_lower_rung_dim_2",
+      "predator_prey_production_tuned_h25_dim_2"
+    ],
+    "expected_cell_count": 84,
+    "historical_algorithm_ids_excluded_from_current_roster": [
+      "ledh_pfpf_ot_historical"
+    ]
+  },
+  "preflight_scope": {
+    "execution_mode": "coverage_manifest_expansion_with_available_smoke_payloads",
+    "cpu_gpu_status": "CPU-only validation; no GPU conclusion",
+    "preflight_values_are_performance_evidence": false,
+    "stochastic_preflight_values_are_rankable": false,
+    "no_silent_holes_policy": "every algorithm/model pair must have a structured cell and reason code"
+  },
+  "run_manifest": {
+    "git_commit": "dirty worktree; P7 generated artifact uncommitted",
+    "command": "Generated from P1/P4/P5/P6 reviewed manifests using local Python json expansion; validation command is pytest on P7 focused tests.",
+    "environment": "local Python environment",
+    "cpu_gpu_status": "CPU-only; CUDA_VISIBLE_DEVICES=-1 planned for tests",
+    "dtype": "manifest-level only; per-row dtype lives in P1 registry",
+    "seeds": "N/A for coverage expansion; smoke payload seeds retained per smoke_payload when present",
+    "plan_file": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-gap-p7-preflight-matrix-subplan-2026-06-10.md",
+    "result_file": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-gap-p7-preflight-matrix-result-2026-06-10.md",
+    "registry_artifact": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-target-registry-2026-06-10.json",
+    "preflight_output_path": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-preflight-matrix-2026-06-10.json"
+  },
+  "preflight_cells": [
+    {
+      "algorithm_id": "kalman_exact_or_mixture_enumeration",
+      "registry_row_id": "lgssm_exact_kalman_dim_1_2_3",
+      "source_kind": "deterministic",
+      "source_status": "READY_VALUE_GRADIENT",
+      "cell_kind": "smoke_fixture_available",
+      "value_status": "VALID",
+      "raw_gradient_status": "VALID",
+      "normalized_gradient_status": "valid_autodiff_gradient",
+      "p8_gradient_error_eligible": true,
+      "p8_gradient_error_policy": "numeric_error_against_reference",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "NONE"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p44_lgssm_exact_baseline.py::test_p44_m1_cut4_and_zhaocui_artifact_lane_match_kalman_value_and_score_dims_1_2_3"
+      ],
+      "smoke_payload": {
+        "artifact_path": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-deterministic-filter-smoke-payloads-2026-06-10.json",
+        "value_status": "VALID",
+        "gradient_status": "VALID",
+        "runtime_seconds": 0.004,
+        "random_seed": null,
+        "reason_codes": [
+          "NONE"
+        ]
+      },
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "kalman_exact_or_mixture_enumeration",
+      "registry_row_id": "p44_cubic_additive_gaussian_dim_1_2_3",
+      "source_kind": "deterministic",
+      "source_status": "UNSUPPORTED_WITH_REASON",
+      "cell_kind": "structured_reason_code_without_run",
+      "value_status": "UNSUPPORTED_BY_TARGET",
+      "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+      "normalized_gradient_status": "unsupported_by_target",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_filtering_value_gradient_benchmark_reference_oracles.py::test_filter_bench_reference_oracles_keep_sv_actual_and_surrogate_distinct"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "kalman_exact_or_mixture_enumeration",
+      "registry_row_id": "p44_quadratic_observation_dim_1_2_3",
+      "source_kind": "deterministic",
+      "source_status": "UNSUPPORTED_WITH_REASON",
+      "cell_kind": "structured_reason_code_without_run",
+      "value_status": "UNSUPPORTED_BY_TARGET",
+      "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+      "normalized_gradient_status": "unsupported_by_target",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_filtering_value_gradient_benchmark_reference_oracles.py::test_filter_bench_reference_oracles_keep_sv_actual_and_surrogate_distinct"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "kalman_exact_or_mixture_enumeration",
+      "registry_row_id": "p44_nonlinear_transition_h2_dim_1_2_3",
+      "source_kind": "deterministic",
+      "source_status": "UNSUPPORTED_WITH_REASON",
+      "cell_kind": "structured_reason_code_without_run",
+      "value_status": "UNSUPPORTED_BY_TARGET",
+      "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+      "normalized_gradient_status": "unsupported_by_target",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_filtering_value_gradient_benchmark_reference_oracles.py::test_filter_bench_reference_oracles_keep_sv_actual_and_surrogate_distinct"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "kalman_exact_or_mixture_enumeration",
+      "registry_row_id": "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3",
+      "source_kind": "deterministic",
+      "source_status": "UNSUPPORTED_WITH_REASON",
+      "cell_kind": "structured_reason_code_without_run",
+      "value_status": "UNSUPPORTED_BY_TARGET",
+      "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+      "normalized_gradient_status": "unsupported_by_target",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_filtering_value_gradient_benchmark_reference_oracles.py::test_filter_bench_reference_oracles_keep_sv_actual_and_surrogate_distinct"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "kalman_exact_or_mixture_enumeration",
+      "registry_row_id": "sv_exact_transformed_actual_nongaussian_dim_1_2_3",
+      "source_kind": "deterministic",
+      "source_status": "UNSUPPORTED_WITH_REASON",
+      "cell_kind": "structured_reason_code_without_run",
+      "value_status": "UNSUPPORTED_BY_TARGET",
+      "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+      "normalized_gradient_status": "unsupported_by_target",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_filtering_value_gradient_benchmark_reference_oracles.py::test_filter_bench_reference_oracles_keep_sv_actual_and_surrogate_distinct"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "kalman_exact_or_mixture_enumeration",
+      "registry_row_id": "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3",
+      "source_kind": "deterministic",
+      "source_status": "READY_SURROGATE_VALUE_GRADIENT",
+      "cell_kind": "structured_status_from_coverage",
+      "value_status": "VALID",
+      "raw_gradient_status": "VALID",
+      "normalized_gradient_status": "valid_autodiff_gradient",
+      "p8_gradient_error_eligible": true,
+      "p8_gradient_error_policy": "numeric_error_against_declared_surrogate_reference",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "NONE"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p43_sv_value_gradient_cut4_zhaocui.py::test_p43_ksc_cut4_matches_kalman_value_and_diagnostic_score"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "kalman_exact_or_mixture_enumeration",
+      "registry_row_id": "native_generalized_sv_dense_lower_rung_dim_2",
+      "source_kind": "deterministic",
+      "source_status": "UNSUPPORTED_WITH_REASON",
+      "cell_kind": "structured_reason_code_without_run",
+      "value_status": "UNSUPPORTED_BY_TARGET",
+      "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+      "normalized_gradient_status": "unsupported_by_target",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_filtering_value_gradient_benchmark_reference_oracles.py::test_filter_bench_reference_oracles_keep_sv_actual_and_surrogate_distinct"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "kalman_exact_or_mixture_enumeration",
+      "registry_row_id": "spatial_sir_lower_rung_j1_dim_2",
+      "source_kind": "deterministic",
+      "source_status": "UNSUPPORTED_WITH_REASON",
+      "cell_kind": "structured_reason_code_without_run",
+      "value_status": "UNSUPPORTED_BY_TARGET",
+      "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+      "normalized_gradient_status": "unsupported_by_target",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_filtering_value_gradient_benchmark_reference_oracles.py::test_filter_bench_reference_oracles_keep_sv_actual_and_surrogate_distinct"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "kalman_exact_or_mixture_enumeration",
+      "registry_row_id": "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18",
+      "source_kind": "deterministic",
+      "source_status": "BLOCKED_VALUE_ROUTE",
+      "cell_kind": "blocked_or_scout_status",
+      "value_status": "BLOCKED_VALUE_ROUTE",
+      "raw_gradient_status": "BLOCKED_VALUE_ROUTE",
+      "normalized_gradient_status": "blocked_value_route",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p53_m5_rank_selection_integration.py::test_p53_m5_result_manifest_preserves_blocker_and_forbids_downstream_tokens"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "kalman_exact_or_mixture_enumeration",
+      "registry_row_id": "predator_prey_lower_rung_dim_2",
+      "source_kind": "deterministic",
+      "source_status": "UNSUPPORTED_WITH_REASON",
+      "cell_kind": "structured_reason_code_without_run",
+      "value_status": "UNSUPPORTED_BY_TARGET",
+      "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+      "normalized_gradient_status": "unsupported_by_target",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_filtering_value_gradient_benchmark_reference_oracles.py::test_filter_bench_reference_oracles_keep_sv_actual_and_surrogate_distinct"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "kalman_exact_or_mixture_enumeration",
+      "registry_row_id": "predator_prey_production_tuned_h25_dim_2",
+      "source_kind": "deterministic",
+      "source_status": "UNSUPPORTED_WITH_REASON",
+      "cell_kind": "structured_reason_code_without_run",
+      "value_status": "UNSUPPORTED_BY_TARGET",
+      "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+      "normalized_gradient_status": "unsupported_by_target",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_filtering_value_gradient_benchmark_reference_oracles.py::test_filter_bench_reference_oracles_keep_sv_actual_and_surrogate_distinct"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "ukf",
+      "registry_row_id": "lgssm_exact_kalman_dim_1_2_3",
+      "source_kind": "deterministic",
+      "source_status": "READY_VALUE_ONLY",
+      "cell_kind": "structured_status_from_coverage",
+      "value_status": "VALID",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/test_nonlinear_sigma_point_values_tf.py",
+        "tests/highdim/test_p47_spatial_sir_filtering.py::test_p47_m4_cut4_closure_is_same_target_value_diagnostic_not_state_promotion",
+        "tests/highdim/test_p47_predator_prey_filtering.py::test_p47_m5_cut4_closure_is_same_target_value_diagnostic_not_state_promotion"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "ukf",
+      "registry_row_id": "p44_cubic_additive_gaussian_dim_1_2_3",
+      "source_kind": "deterministic",
+      "source_status": "READY_VALUE_ONLY",
+      "cell_kind": "smoke_fixture_available",
+      "value_status": "VALID",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/test_nonlinear_sigma_point_values_tf.py",
+        "tests/highdim/test_p47_spatial_sir_filtering.py::test_p47_m4_cut4_closure_is_same_target_value_diagnostic_not_state_promotion",
+        "tests/highdim/test_p47_predator_prey_filtering.py::test_p47_m5_cut4_closure_is_same_target_value_diagnostic_not_state_promotion"
+      ],
+      "smoke_payload": {
+        "artifact_path": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-deterministic-filter-smoke-payloads-2026-06-10.json",
+        "value_status": "VALID",
+        "gradient_status": "GRADIENT_NOT_EXPOSED",
+        "runtime_seconds": 0.019,
+        "random_seed": null,
+        "reason_codes": [
+          "GRADIENT_NOT_EXPOSED"
+        ]
+      },
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "ukf",
+      "registry_row_id": "p44_quadratic_observation_dim_1_2_3",
+      "source_kind": "deterministic",
+      "source_status": "READY_VALUE_ONLY",
+      "cell_kind": "structured_status_from_coverage",
+      "value_status": "VALID",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/test_nonlinear_sigma_point_values_tf.py",
+        "tests/highdim/test_p47_spatial_sir_filtering.py::test_p47_m4_cut4_closure_is_same_target_value_diagnostic_not_state_promotion",
+        "tests/highdim/test_p47_predator_prey_filtering.py::test_p47_m5_cut4_closure_is_same_target_value_diagnostic_not_state_promotion"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "ukf",
+      "registry_row_id": "p44_nonlinear_transition_h2_dim_1_2_3",
+      "source_kind": "deterministic",
+      "source_status": "READY_VALUE_ONLY",
+      "cell_kind": "structured_status_from_coverage",
+      "value_status": "VALID",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/test_nonlinear_sigma_point_values_tf.py",
+        "tests/highdim/test_p47_spatial_sir_filtering.py::test_p47_m4_cut4_closure_is_same_target_value_diagnostic_not_state_promotion",
+        "tests/highdim/test_p47_predator_prey_filtering.py::test_p47_m5_cut4_closure_is_same_target_value_diagnostic_not_state_promotion"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "ukf",
+      "registry_row_id": "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3",
+      "source_kind": "deterministic",
+      "source_status": "READY_DIAGNOSTIC_ONLY",
+      "cell_kind": "diagnostic_only_status",
+      "value_status": "VALID",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "diagnostic_only_not_promotion",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p44_nonlinear_transition.py::test_p44_m4_cut4_horizon_4_error_accumulation_is_bounded_dims_1_2_3"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "ukf",
+      "registry_row_id": "sv_exact_transformed_actual_nongaussian_dim_1_2_3",
+      "source_kind": "deterministic",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "cell_kind": "structured_reason_code_without_run",
+      "value_status": "NOT_RUN",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p51_native_generalized_sv_reference.py::test_p51_m2_native_dense_reference_has_raw_observation_identity_and_moments"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "ukf",
+      "registry_row_id": "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3",
+      "source_kind": "deterministic",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "cell_kind": "structured_reason_code_without_run",
+      "value_status": "NOT_RUN",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p51_native_generalized_sv_reference.py::test_p51_m2_native_dense_reference_has_raw_observation_identity_and_moments"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "ukf",
+      "registry_row_id": "native_generalized_sv_dense_lower_rung_dim_2",
+      "source_kind": "deterministic",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "cell_kind": "structured_reason_code_without_run",
+      "value_status": "NOT_RUN",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p51_native_generalized_sv_reference.py::test_p51_m2_native_dense_reference_has_raw_observation_identity_and_moments"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "ukf",
+      "registry_row_id": "spatial_sir_lower_rung_j1_dim_2",
+      "source_kind": "deterministic",
+      "source_status": "READY_VALUE_ONLY",
+      "cell_kind": "structured_status_from_coverage",
+      "value_status": "VALID",
+      "raw_gradient_status": "NO_THETA_GRADIENT_DIM0",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "NO_THETA_GRADIENT_DIM0"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p47_spatial_sir_filtering.py::test_p47_m4_cut4_closure_is_same_target_value_diagnostic_not_state_promotion"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "ukf",
+      "registry_row_id": "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18",
+      "source_kind": "deterministic",
+      "source_status": "SCOUT_ONLY_NOT_TRUTH",
+      "cell_kind": "blocked_or_scout_status",
+      "value_status": "NOT_RUN",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "scout_only_not_truth",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "UKF_SCOUT_NOT_TRUTH",
+        "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p52_ukf_scout.py::test_p52_ukf_scout_manifest_for_dimensions_and_nonclaims",
+        "tests/highdim/test_p53_m5_rank_selection_integration.py::test_p53_m5_result_manifest_preserves_blocker_and_forbids_downstream_tokens"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "ukf",
+      "registry_row_id": "predator_prey_lower_rung_dim_2",
+      "source_kind": "deterministic",
+      "source_status": "READY_VALUE_ONLY",
+      "cell_kind": "structured_status_from_coverage",
+      "value_status": "VALID",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/test_nonlinear_sigma_point_values_tf.py",
+        "tests/highdim/test_p47_spatial_sir_filtering.py::test_p47_m4_cut4_closure_is_same_target_value_diagnostic_not_state_promotion",
+        "tests/highdim/test_p47_predator_prey_filtering.py::test_p47_m5_cut4_closure_is_same_target_value_diagnostic_not_state_promotion"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "ukf",
+      "registry_row_id": "predator_prey_production_tuned_h25_dim_2",
+      "source_kind": "deterministic",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "cell_kind": "structured_reason_code_without_run",
+      "value_status": "NOT_RUN",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "ADAPTER_REQUIRED_PRODUCTION_TARGET"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p51_predator_prey_production_tuning.py::test_p51_m4_result_emits_token_once_and_promoted_candidate_is_visible"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "svd_sigma_point",
+      "registry_row_id": "lgssm_exact_kalman_dim_1_2_3",
+      "source_kind": "deterministic",
+      "source_status": "READY_VALUE_ONLY",
+      "cell_kind": "structured_status_from_coverage",
+      "value_status": "VALID",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/test_nonlinear_sigma_point_values_tf.py",
+        "tests/test_structural_svd_sigma_point_tf.py",
+        "tests/highdim/test_p47_spatial_sir_filtering.py::test_p47_m4_cut4_closure_is_same_target_value_diagnostic_not_state_promotion",
+        "tests/highdim/test_p47_predator_prey_filtering.py::test_p47_m5_cut4_closure_is_same_target_value_diagnostic_not_state_promotion"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "svd_sigma_point",
+      "registry_row_id": "p44_cubic_additive_gaussian_dim_1_2_3",
+      "source_kind": "deterministic",
+      "source_status": "READY_VALUE_ONLY",
+      "cell_kind": "structured_status_from_coverage",
+      "value_status": "VALID",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/test_nonlinear_sigma_point_values_tf.py",
+        "tests/test_structural_svd_sigma_point_tf.py",
+        "tests/highdim/test_p47_spatial_sir_filtering.py::test_p47_m4_cut4_closure_is_same_target_value_diagnostic_not_state_promotion",
+        "tests/highdim/test_p47_predator_prey_filtering.py::test_p47_m5_cut4_closure_is_same_target_value_diagnostic_not_state_promotion"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "svd_sigma_point",
+      "registry_row_id": "p44_quadratic_observation_dim_1_2_3",
+      "source_kind": "deterministic",
+      "source_status": "READY_VALUE_ONLY",
+      "cell_kind": "smoke_fixture_available",
+      "value_status": "VALID",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/test_nonlinear_sigma_point_values_tf.py",
+        "tests/test_structural_svd_sigma_point_tf.py",
+        "tests/highdim/test_p47_spatial_sir_filtering.py::test_p47_m4_cut4_closure_is_same_target_value_diagnostic_not_state_promotion",
+        "tests/highdim/test_p47_predator_prey_filtering.py::test_p47_m5_cut4_closure_is_same_target_value_diagnostic_not_state_promotion"
+      ],
+      "smoke_payload": {
+        "artifact_path": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-deterministic-filter-smoke-payloads-2026-06-10.json",
+        "value_status": "VALID",
+        "gradient_status": "GRADIENT_NOT_EXPOSED",
+        "runtime_seconds": 0.018,
+        "random_seed": null,
+        "reason_codes": [
+          "GRADIENT_NOT_EXPOSED"
+        ]
+      },
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "svd_sigma_point",
+      "registry_row_id": "p44_nonlinear_transition_h2_dim_1_2_3",
+      "source_kind": "deterministic",
+      "source_status": "READY_VALUE_ONLY",
+      "cell_kind": "structured_status_from_coverage",
+      "value_status": "VALID",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/test_nonlinear_sigma_point_values_tf.py",
+        "tests/test_structural_svd_sigma_point_tf.py",
+        "tests/highdim/test_p47_spatial_sir_filtering.py::test_p47_m4_cut4_closure_is_same_target_value_diagnostic_not_state_promotion",
+        "tests/highdim/test_p47_predator_prey_filtering.py::test_p47_m5_cut4_closure_is_same_target_value_diagnostic_not_state_promotion"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "svd_sigma_point",
+      "registry_row_id": "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3",
+      "source_kind": "deterministic",
+      "source_status": "READY_DIAGNOSTIC_ONLY",
+      "cell_kind": "diagnostic_only_status",
+      "value_status": "VALID",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "diagnostic_only_not_promotion",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p44_nonlinear_transition.py::test_p44_m4_cut4_horizon_4_error_accumulation_is_bounded_dims_1_2_3"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "svd_sigma_point",
+      "registry_row_id": "sv_exact_transformed_actual_nongaussian_dim_1_2_3",
+      "source_kind": "deterministic",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "cell_kind": "structured_reason_code_without_run",
+      "value_status": "NOT_RUN",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p51_native_generalized_sv_reference.py::test_p51_m2_native_dense_reference_has_raw_observation_identity_and_moments"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "svd_sigma_point",
+      "registry_row_id": "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3",
+      "source_kind": "deterministic",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "cell_kind": "structured_reason_code_without_run",
+      "value_status": "NOT_RUN",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p51_native_generalized_sv_reference.py::test_p51_m2_native_dense_reference_has_raw_observation_identity_and_moments"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "svd_sigma_point",
+      "registry_row_id": "native_generalized_sv_dense_lower_rung_dim_2",
+      "source_kind": "deterministic",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "cell_kind": "structured_reason_code_without_run",
+      "value_status": "NOT_RUN",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p51_native_generalized_sv_reference.py::test_p51_m2_native_dense_reference_has_raw_observation_identity_and_moments"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "svd_sigma_point",
+      "registry_row_id": "spatial_sir_lower_rung_j1_dim_2",
+      "source_kind": "deterministic",
+      "source_status": "READY_VALUE_ONLY",
+      "cell_kind": "structured_status_from_coverage",
+      "value_status": "VALID",
+      "raw_gradient_status": "NO_THETA_GRADIENT_DIM0",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "NO_THETA_GRADIENT_DIM0"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p47_spatial_sir_filtering.py::test_p47_m4_cut4_closure_is_same_target_value_diagnostic_not_state_promotion"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "svd_sigma_point",
+      "registry_row_id": "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18",
+      "source_kind": "deterministic",
+      "source_status": "BLOCKED_VALUE_ROUTE",
+      "cell_kind": "blocked_or_scout_status",
+      "value_status": "BLOCKED_VALUE_ROUTE",
+      "raw_gradient_status": "BLOCKED_VALUE_ROUTE",
+      "normalized_gradient_status": "blocked_value_route",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p53_m5_rank_selection_integration.py::test_p53_m5_result_manifest_preserves_blocker_and_forbids_downstream_tokens"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "svd_sigma_point",
+      "registry_row_id": "predator_prey_lower_rung_dim_2",
+      "source_kind": "deterministic",
+      "source_status": "READY_VALUE_ONLY",
+      "cell_kind": "structured_status_from_coverage",
+      "value_status": "VALID",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/test_nonlinear_sigma_point_values_tf.py",
+        "tests/test_structural_svd_sigma_point_tf.py",
+        "tests/highdim/test_p47_spatial_sir_filtering.py::test_p47_m4_cut4_closure_is_same_target_value_diagnostic_not_state_promotion",
+        "tests/highdim/test_p47_predator_prey_filtering.py::test_p47_m5_cut4_closure_is_same_target_value_diagnostic_not_state_promotion"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "svd_sigma_point",
+      "registry_row_id": "predator_prey_production_tuned_h25_dim_2",
+      "source_kind": "deterministic",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "cell_kind": "structured_reason_code_without_run",
+      "value_status": "NOT_RUN",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "ADAPTER_REQUIRED_PRODUCTION_TARGET"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p51_predator_prey_production_tuning.py::test_p51_m4_result_emits_token_once_and_promoted_candidate_is_visible"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "cut4",
+      "registry_row_id": "lgssm_exact_kalman_dim_1_2_3",
+      "source_kind": "deterministic",
+      "source_status": "READY_VALUE_ONLY",
+      "cell_kind": "structured_status_from_coverage",
+      "value_status": "VALID",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p44_cubic_additive_gaussian.py::test_p44_m2_cut4_and_zhaocui_match_dense_statistically_for_value_and_score_dims_1_2_3",
+        "tests/highdim/test_p44_quadratic_observation.py::test_p44_m3_cut4_records_stress_gap_and_zhaocui_matches_dense_dims_1_2_3",
+        "tests/highdim/test_p44_nonlinear_transition.py::test_p44_m4_cut4_and_zhaocui_match_dense_horizon_2_dims_1_2_3",
+        "tests/highdim/test_p47_spatial_sir_filtering.py::test_p47_m4_cut4_closure_is_same_target_value_diagnostic_not_state_promotion",
+        "tests/highdim/test_p47_predator_prey_filtering.py::test_p47_m5_cut4_closure_is_same_target_value_diagnostic_not_state_promotion"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "cut4",
+      "registry_row_id": "p44_cubic_additive_gaussian_dim_1_2_3",
+      "source_kind": "deterministic",
+      "source_status": "READY_VALUE_ONLY",
+      "cell_kind": "structured_status_from_coverage",
+      "value_status": "VALID",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p44_cubic_additive_gaussian.py::test_p44_m2_cut4_and_zhaocui_match_dense_statistically_for_value_and_score_dims_1_2_3",
+        "tests/highdim/test_p44_quadratic_observation.py::test_p44_m3_cut4_records_stress_gap_and_zhaocui_matches_dense_dims_1_2_3",
+        "tests/highdim/test_p44_nonlinear_transition.py::test_p44_m4_cut4_and_zhaocui_match_dense_horizon_2_dims_1_2_3",
+        "tests/highdim/test_p47_spatial_sir_filtering.py::test_p47_m4_cut4_closure_is_same_target_value_diagnostic_not_state_promotion",
+        "tests/highdim/test_p47_predator_prey_filtering.py::test_p47_m5_cut4_closure_is_same_target_value_diagnostic_not_state_promotion"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "cut4",
+      "registry_row_id": "p44_quadratic_observation_dim_1_2_3",
+      "source_kind": "deterministic",
+      "source_status": "READY_VALUE_ONLY",
+      "cell_kind": "structured_status_from_coverage",
+      "value_status": "VALID",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p44_cubic_additive_gaussian.py::test_p44_m2_cut4_and_zhaocui_match_dense_statistically_for_value_and_score_dims_1_2_3",
+        "tests/highdim/test_p44_quadratic_observation.py::test_p44_m3_cut4_records_stress_gap_and_zhaocui_matches_dense_dims_1_2_3",
+        "tests/highdim/test_p44_nonlinear_transition.py::test_p44_m4_cut4_and_zhaocui_match_dense_horizon_2_dims_1_2_3",
+        "tests/highdim/test_p47_spatial_sir_filtering.py::test_p47_m4_cut4_closure_is_same_target_value_diagnostic_not_state_promotion",
+        "tests/highdim/test_p47_predator_prey_filtering.py::test_p47_m5_cut4_closure_is_same_target_value_diagnostic_not_state_promotion"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "cut4",
+      "registry_row_id": "p44_nonlinear_transition_h2_dim_1_2_3",
+      "source_kind": "deterministic",
+      "source_status": "READY_VALUE_ONLY",
+      "cell_kind": "smoke_fixture_available",
+      "value_status": "VALID",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p44_cubic_additive_gaussian.py::test_p44_m2_cut4_and_zhaocui_match_dense_statistically_for_value_and_score_dims_1_2_3",
+        "tests/highdim/test_p44_quadratic_observation.py::test_p44_m3_cut4_records_stress_gap_and_zhaocui_matches_dense_dims_1_2_3",
+        "tests/highdim/test_p44_nonlinear_transition.py::test_p44_m4_cut4_and_zhaocui_match_dense_horizon_2_dims_1_2_3",
+        "tests/highdim/test_p47_spatial_sir_filtering.py::test_p47_m4_cut4_closure_is_same_target_value_diagnostic_not_state_promotion",
+        "tests/highdim/test_p47_predator_prey_filtering.py::test_p47_m5_cut4_closure_is_same_target_value_diagnostic_not_state_promotion"
+      ],
+      "smoke_payload": {
+        "artifact_path": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-deterministic-filter-smoke-payloads-2026-06-10.json",
+        "value_status": "VALID",
+        "gradient_status": "GRADIENT_NOT_EXPOSED",
+        "runtime_seconds": 0.027,
+        "random_seed": null,
+        "reason_codes": [
+          "GRADIENT_NOT_EXPOSED"
+        ]
+      },
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "cut4",
+      "registry_row_id": "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3",
+      "source_kind": "deterministic",
+      "source_status": "READY_DIAGNOSTIC_ONLY",
+      "cell_kind": "diagnostic_only_status",
+      "value_status": "VALID",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "diagnostic_only_not_promotion",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p44_nonlinear_transition.py::test_p44_m4_cut4_horizon_4_error_accumulation_is_bounded_dims_1_2_3"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "cut4",
+      "registry_row_id": "sv_exact_transformed_actual_nongaussian_dim_1_2_3",
+      "source_kind": "deterministic",
+      "source_status": "UNSUPPORTED_WITH_REASON",
+      "cell_kind": "structured_reason_code_without_run",
+      "value_status": "UNSUPPORTED_BY_TARGET",
+      "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+      "normalized_gradient_status": "unsupported_by_target",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p43_sv_value_gradient_cut4_zhaocui.py::test_p43_ksc_mixture_gradient_gap_to_exact_transformed_is_approximation_only"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "cut4",
+      "registry_row_id": "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3",
+      "source_kind": "deterministic",
+      "source_status": "READY_SURROGATE_VALUE_GRADIENT",
+      "cell_kind": "structured_status_from_coverage",
+      "value_status": "VALID",
+      "raw_gradient_status": "VALID",
+      "normalized_gradient_status": "valid_autodiff_gradient",
+      "p8_gradient_error_eligible": true,
+      "p8_gradient_error_policy": "numeric_error_against_declared_surrogate_reference",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "NONE"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p43_sv_value_gradient_cut4_zhaocui.py::test_p43_ksc_cut4_matches_kalman_value_and_diagnostic_score"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "cut4",
+      "registry_row_id": "native_generalized_sv_dense_lower_rung_dim_2",
+      "source_kind": "deterministic",
+      "source_status": "UNSUPPORTED_WITH_REASON",
+      "cell_kind": "structured_reason_code_without_run",
+      "value_status": "UNSUPPORTED_BY_TARGET",
+      "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+      "normalized_gradient_status": "unsupported_by_target",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "NO_CUT4_SAME_TARGET_NATIVE_GENERALIZED_SV"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p51_native_generalized_sv_reference.py::test_p51_m2_result_emits_token_once_and_nonclaims_are_visible"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "cut4",
+      "registry_row_id": "spatial_sir_lower_rung_j1_dim_2",
+      "source_kind": "deterministic",
+      "source_status": "READY_VALUE_ONLY",
+      "cell_kind": "structured_status_from_coverage",
+      "value_status": "VALID",
+      "raw_gradient_status": "NO_THETA_GRADIENT_DIM0",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "NO_THETA_GRADIENT_DIM0"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p47_spatial_sir_filtering.py::test_p47_m4_cut4_closure_is_same_target_value_diagnostic_not_state_promotion"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "cut4",
+      "registry_row_id": "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18",
+      "source_kind": "deterministic",
+      "source_status": "BLOCKED_VALUE_ROUTE",
+      "cell_kind": "blocked_or_scout_status",
+      "value_status": "BLOCKED_VALUE_ROUTE",
+      "raw_gradient_status": "BLOCKED_VALUE_ROUTE",
+      "normalized_gradient_status": "blocked_value_route",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p53_m5_rank_selection_integration.py::test_p53_m5_result_manifest_preserves_blocker_and_forbids_downstream_tokens"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "cut4",
+      "registry_row_id": "predator_prey_lower_rung_dim_2",
+      "source_kind": "deterministic",
+      "source_status": "READY_VALUE_ONLY",
+      "cell_kind": "structured_status_from_coverage",
+      "value_status": "VALID",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p44_cubic_additive_gaussian.py::test_p44_m2_cut4_and_zhaocui_match_dense_statistically_for_value_and_score_dims_1_2_3",
+        "tests/highdim/test_p44_quadratic_observation.py::test_p44_m3_cut4_records_stress_gap_and_zhaocui_matches_dense_dims_1_2_3",
+        "tests/highdim/test_p44_nonlinear_transition.py::test_p44_m4_cut4_and_zhaocui_match_dense_horizon_2_dims_1_2_3",
+        "tests/highdim/test_p47_spatial_sir_filtering.py::test_p47_m4_cut4_closure_is_same_target_value_diagnostic_not_state_promotion",
+        "tests/highdim/test_p47_predator_prey_filtering.py::test_p47_m5_cut4_closure_is_same_target_value_diagnostic_not_state_promotion"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "cut4",
+      "registry_row_id": "predator_prey_production_tuned_h25_dim_2",
+      "source_kind": "deterministic",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "cell_kind": "structured_reason_code_without_run",
+      "value_status": "NOT_RUN",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "ADAPTER_REQUIRED_PRODUCTION_TARGET"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p51_predator_prey_production_tuning.py::test_p51_m4_result_emits_token_once_and_promoted_candidate_is_visible"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "registry_row_id": "lgssm_exact_kalman_dim_1_2_3",
+      "source_kind": "deterministic",
+      "source_status": "READY_DIAGNOSTIC_ONLY",
+      "cell_kind": "diagnostic_only_status",
+      "value_status": "VALID",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "diagnostic_only_not_promotion",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "ZHAOCUI_LGSSM_DIAGNOSTIC_NOT_ORACLE"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p44_lgssm_exact_baseline.py::test_p44_m1_scalar_tt_propagation_gap_is_not_promoted"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "registry_row_id": "p44_cubic_additive_gaussian_dim_1_2_3",
+      "source_kind": "deterministic",
+      "source_status": "READY_VALUE_GRADIENT",
+      "cell_kind": "structured_status_from_coverage",
+      "value_status": "VALID",
+      "raw_gradient_status": "VALID",
+      "normalized_gradient_status": "valid_autodiff_gradient",
+      "p8_gradient_error_eligible": true,
+      "p8_gradient_error_policy": "numeric_error_against_reference",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "NONE"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p44_cubic_additive_gaussian.py::test_p44_m2_cut4_and_zhaocui_match_dense_statistically_for_value_and_score_dims_1_2_3",
+        "tests/highdim/test_p44_quadratic_observation.py::test_p44_m3_cut4_records_stress_gap_and_zhaocui_matches_dense_dims_1_2_3",
+        "tests/highdim/test_p44_nonlinear_transition.py::test_p44_m4_cut4_and_zhaocui_match_dense_horizon_2_dims_1_2_3",
+        "tests/highdim/test_p43_sv_value_gradient_cut4_zhaocui.py::test_p43_exact_transformed_zhaocui_matches_dense_value_and_diagnostic_score"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "registry_row_id": "p44_quadratic_observation_dim_1_2_3",
+      "source_kind": "deterministic",
+      "source_status": "READY_VALUE_GRADIENT",
+      "cell_kind": "structured_status_from_coverage",
+      "value_status": "VALID",
+      "raw_gradient_status": "VALID",
+      "normalized_gradient_status": "valid_autodiff_gradient",
+      "p8_gradient_error_eligible": true,
+      "p8_gradient_error_policy": "numeric_error_against_reference",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "NONE"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p44_cubic_additive_gaussian.py::test_p44_m2_cut4_and_zhaocui_match_dense_statistically_for_value_and_score_dims_1_2_3",
+        "tests/highdim/test_p44_quadratic_observation.py::test_p44_m3_cut4_records_stress_gap_and_zhaocui_matches_dense_dims_1_2_3",
+        "tests/highdim/test_p44_nonlinear_transition.py::test_p44_m4_cut4_and_zhaocui_match_dense_horizon_2_dims_1_2_3",
+        "tests/highdim/test_p43_sv_value_gradient_cut4_zhaocui.py::test_p43_exact_transformed_zhaocui_matches_dense_value_and_diagnostic_score"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "registry_row_id": "p44_nonlinear_transition_h2_dim_1_2_3",
+      "source_kind": "deterministic",
+      "source_status": "READY_VALUE_GRADIENT",
+      "cell_kind": "structured_status_from_coverage",
+      "value_status": "VALID",
+      "raw_gradient_status": "VALID",
+      "normalized_gradient_status": "valid_autodiff_gradient",
+      "p8_gradient_error_eligible": true,
+      "p8_gradient_error_policy": "numeric_error_against_reference",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "NONE"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p44_cubic_additive_gaussian.py::test_p44_m2_cut4_and_zhaocui_match_dense_statistically_for_value_and_score_dims_1_2_3",
+        "tests/highdim/test_p44_quadratic_observation.py::test_p44_m3_cut4_records_stress_gap_and_zhaocui_matches_dense_dims_1_2_3",
+        "tests/highdim/test_p44_nonlinear_transition.py::test_p44_m4_cut4_and_zhaocui_match_dense_horizon_2_dims_1_2_3",
+        "tests/highdim/test_p43_sv_value_gradient_cut4_zhaocui.py::test_p43_exact_transformed_zhaocui_matches_dense_value_and_diagnostic_score"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "registry_row_id": "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3",
+      "source_kind": "deterministic",
+      "source_status": "UNSUPPORTED_WITH_REASON",
+      "cell_kind": "structured_reason_code_without_run",
+      "value_status": "UNSUPPORTED_BY_TARGET",
+      "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+      "normalized_gradient_status": "unsupported_by_target",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "ZHAOCUI_H4_SCALAR_HELPER_NONCLAIM"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p44_nonlinear_transition.py::test_p44_m4_zhaocui_horizon_4_is_explicit_nonclaim_for_current_scalar_helper"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "registry_row_id": "sv_exact_transformed_actual_nongaussian_dim_1_2_3",
+      "source_kind": "deterministic",
+      "source_status": "READY_VALUE_GRADIENT",
+      "cell_kind": "smoke_fixture_available",
+      "value_status": "VALID",
+      "raw_gradient_status": "VALID",
+      "normalized_gradient_status": "valid_autodiff_gradient",
+      "p8_gradient_error_eligible": true,
+      "p8_gradient_error_policy": "numeric_error_against_reference",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "NONE"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p44_cubic_additive_gaussian.py::test_p44_m2_cut4_and_zhaocui_match_dense_statistically_for_value_and_score_dims_1_2_3",
+        "tests/highdim/test_p44_quadratic_observation.py::test_p44_m3_cut4_records_stress_gap_and_zhaocui_matches_dense_dims_1_2_3",
+        "tests/highdim/test_p44_nonlinear_transition.py::test_p44_m4_cut4_and_zhaocui_match_dense_horizon_2_dims_1_2_3",
+        "tests/highdim/test_p43_sv_value_gradient_cut4_zhaocui.py::test_p43_exact_transformed_zhaocui_matches_dense_value_and_diagnostic_score"
+      ],
+      "smoke_payload": {
+        "artifact_path": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-deterministic-filter-smoke-payloads-2026-06-10.json",
+        "value_status": "VALID",
+        "gradient_status": "VALID",
+        "runtime_seconds": 0.067,
+        "random_seed": null,
+        "reason_codes": [
+          "NONE"
+        ]
+      },
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "registry_row_id": "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3",
+      "source_kind": "deterministic",
+      "source_status": "READY_SURROGATE_VALUE_GRADIENT",
+      "cell_kind": "structured_status_from_coverage",
+      "value_status": "VALID",
+      "raw_gradient_status": "VALID",
+      "normalized_gradient_status": "valid_autodiff_gradient",
+      "p8_gradient_error_eligible": true,
+      "p8_gradient_error_policy": "numeric_error_against_declared_surrogate_reference",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "NONE"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p47_generalized_sv_equality.py::test_p47_m3_zhaocui_matches_dense_on_same_ksc_mixture_target_value_and_score"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "registry_row_id": "native_generalized_sv_dense_lower_rung_dim_2",
+      "source_kind": "deterministic",
+      "source_status": "UNSUPPORTED_WITH_REASON",
+      "cell_kind": "structured_reason_code_without_run",
+      "value_status": "UNSUPPORTED_BY_TARGET",
+      "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+      "normalized_gradient_status": "unsupported_by_target",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "NO_ZHAOCUI_NATIVE_GENERALIZED_SV_ROUTE"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p51_native_generalized_sv_reference.py::test_p51_m2_result_emits_token_once_and_nonclaims_are_visible"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "registry_row_id": "spatial_sir_lower_rung_j1_dim_2",
+      "source_kind": "deterministic",
+      "source_status": "READY_VALUE_ONLY",
+      "cell_kind": "structured_status_from_coverage",
+      "value_status": "VALID",
+      "raw_gradient_status": "NO_THETA_GRADIENT_DIM0",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "NO_THETA_GRADIENT_DIM0"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p47_spatial_sir_filtering.py::test_p47_m4_zhaocui_matches_dense_reference_value_and_state_moments"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "registry_row_id": "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18",
+      "source_kind": "deterministic",
+      "source_status": "BLOCKED_VALUE_ROUTE",
+      "cell_kind": "blocked_or_scout_status",
+      "value_status": "BLOCKED_VALUE_ROUTE",
+      "raw_gradient_status": "BLOCKED_VALUE_ROUTE",
+      "normalized_gradient_status": "blocked_value_route",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p53_m5_rank_selection_integration.py::test_p53_m5_result_manifest_preserves_blocker_and_forbids_downstream_tokens"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "registry_row_id": "predator_prey_lower_rung_dim_2",
+      "source_kind": "deterministic",
+      "source_status": "READY_VALUE_ONLY",
+      "cell_kind": "structured_status_from_coverage",
+      "value_status": "VALID",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "REFERENCE_GRADIENT_NOT_AVAILABLE"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p47_predator_prey_filtering.py::test_p47_m5_zhaocui_matches_dense_reference_value_and_state_moments",
+        "tests/highdim/test_p51_predator_prey_production_tuning.py::test_p51_m4_result_emits_token_once_and_promoted_candidate_is_visible"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "registry_row_id": "predator_prey_production_tuned_h25_dim_2",
+      "source_kind": "deterministic",
+      "source_status": "READY_VALUE_ONLY",
+      "cell_kind": "structured_status_from_coverage",
+      "value_status": "VALID",
+      "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+      "normalized_gradient_status": "algorithm_gradient_not_exposed",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "REFERENCE_GRADIENT_NOT_AVAILABLE"
+      ],
+      "diagnostics_required": [],
+      "evidence_tests": [
+        "tests/highdim/test_p47_predator_prey_filtering.py::test_p47_m5_zhaocui_matches_dense_reference_value_and_state_moments",
+        "tests/highdim/test_p51_predator_prey_production_tuning.py::test_p51_m4_result_emits_token_once_and_promoted_candidate_is_visible"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "bootstrap_dpf_current",
+      "registry_row_id": "lgssm_exact_kalman_dim_1_2_3",
+      "source_kind": "dpf",
+      "source_status": "READY_VALUE_WITH_STOCHASTIC_GRADIENT_STATUS",
+      "cell_kind": "smoke_fixture_available",
+      "value_status": "VALID",
+      "raw_gradient_status": "RESAMPLING_GRADIENT_NOT_VALID",
+      "normalized_gradient_status": "resampling_gradient_not_valid",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "STOCHASTIC_GRADIENT_DIAGNOSTIC",
+        "RESAMPLING_GRADIENT_NOT_VALID"
+      ],
+      "diagnostics_required": [
+        "seed_list",
+        "particle_count",
+        "mc_standard_error",
+        "effective_sample_size_min",
+        "resampling_count"
+      ],
+      "evidence_tests": [
+        "tests/highdim/test_filtering_value_gradient_benchmark_adapter_schema.py::test_filter_bench_adapter_fixture_keeps_dpf_current_and_historical_distinct",
+        "tests/highdim/test_filtering_value_gradient_benchmark_dpf_filters.py::test_filter_bench_dpf_current_route_implementations_are_guarded"
+      ],
+      "smoke_payload": {
+        "artifact_path": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-dpf-filter-smoke-payloads-2026-06-10.json",
+        "value_status": "VALID",
+        "gradient_status": "RESAMPLING_GRADIENT_NOT_VALID",
+        "runtime_seconds": 0.034,
+        "random_seed": 101,
+        "reason_codes": [
+          "RESAMPLING_GRADIENT_NOT_VALID"
+        ]
+      },
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "bootstrap_dpf_current",
+      "registry_row_id": "p44_cubic_additive_gaussian_dim_1_2_3",
+      "source_kind": "dpf",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "cell_kind": "structured_reason_code_without_run",
+      "value_status": "NOT_RUN",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+      ],
+      "diagnostics_required": [
+        "missing_callback_bundle",
+        "same_target_reference_binding"
+      ],
+      "evidence_tests": [
+        "tests/highdim/test_filtering_value_gradient_benchmark_dpf_filters.py::test_filter_bench_dpf_coverage_has_full_current_algorithm_by_target_matrix"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "bootstrap_dpf_current",
+      "registry_row_id": "p44_quadratic_observation_dim_1_2_3",
+      "source_kind": "dpf",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "cell_kind": "structured_reason_code_without_run",
+      "value_status": "NOT_RUN",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+      ],
+      "diagnostics_required": [
+        "missing_callback_bundle",
+        "same_target_reference_binding"
+      ],
+      "evidence_tests": [
+        "tests/highdim/test_filtering_value_gradient_benchmark_dpf_filters.py::test_filter_bench_dpf_coverage_has_full_current_algorithm_by_target_matrix"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "bootstrap_dpf_current",
+      "registry_row_id": "p44_nonlinear_transition_h2_dim_1_2_3",
+      "source_kind": "dpf",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "cell_kind": "structured_reason_code_without_run",
+      "value_status": "NOT_RUN",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+      ],
+      "diagnostics_required": [
+        "missing_callback_bundle",
+        "same_target_reference_binding"
+      ],
+      "evidence_tests": [
+        "tests/highdim/test_filtering_value_gradient_benchmark_dpf_filters.py::test_filter_bench_dpf_coverage_has_full_current_algorithm_by_target_matrix"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "bootstrap_dpf_current",
+      "registry_row_id": "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3",
+      "source_kind": "dpf",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "cell_kind": "structured_reason_code_without_run",
+      "value_status": "NOT_RUN",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+      ],
+      "diagnostics_required": [
+        "missing_callback_bundle",
+        "same_target_reference_binding"
+      ],
+      "evidence_tests": [
+        "tests/highdim/test_filtering_value_gradient_benchmark_dpf_filters.py::test_filter_bench_dpf_coverage_has_full_current_algorithm_by_target_matrix"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "bootstrap_dpf_current",
+      "registry_row_id": "sv_exact_transformed_actual_nongaussian_dim_1_2_3",
+      "source_kind": "dpf",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "cell_kind": "structured_reason_code_without_run",
+      "value_status": "NOT_RUN",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+      ],
+      "diagnostics_required": [
+        "missing_callback_bundle",
+        "same_target_reference_binding"
+      ],
+      "evidence_tests": [
+        "tests/highdim/test_filtering_value_gradient_benchmark_dpf_filters.py::test_filter_bench_dpf_coverage_has_full_current_algorithm_by_target_matrix"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "bootstrap_dpf_current",
+      "registry_row_id": "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3",
+      "source_kind": "dpf",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "cell_kind": "structured_reason_code_without_run",
+      "value_status": "NOT_RUN",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+      ],
+      "diagnostics_required": [
+        "missing_callback_bundle",
+        "same_target_reference_binding"
+      ],
+      "evidence_tests": [
+        "tests/highdim/test_filtering_value_gradient_benchmark_dpf_filters.py::test_filter_bench_dpf_coverage_has_full_current_algorithm_by_target_matrix"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "bootstrap_dpf_current",
+      "registry_row_id": "native_generalized_sv_dense_lower_rung_dim_2",
+      "source_kind": "dpf",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "cell_kind": "structured_reason_code_without_run",
+      "value_status": "NOT_RUN",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+      ],
+      "diagnostics_required": [
+        "missing_callback_bundle",
+        "same_target_reference_binding"
+      ],
+      "evidence_tests": [
+        "tests/highdim/test_filtering_value_gradient_benchmark_dpf_filters.py::test_filter_bench_dpf_coverage_has_full_current_algorithm_by_target_matrix"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "bootstrap_dpf_current",
+      "registry_row_id": "spatial_sir_lower_rung_j1_dim_2",
+      "source_kind": "dpf",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "cell_kind": "structured_reason_code_without_run",
+      "value_status": "NOT_RUN",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+      ],
+      "diagnostics_required": [
+        "missing_callback_bundle",
+        "same_target_reference_binding"
+      ],
+      "evidence_tests": [
+        "tests/highdim/test_filtering_value_gradient_benchmark_dpf_filters.py::test_filter_bench_dpf_coverage_has_full_current_algorithm_by_target_matrix"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "bootstrap_dpf_current",
+      "registry_row_id": "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18",
+      "source_kind": "dpf",
+      "source_status": "BLOCKED_VALUE_ROUTE",
+      "cell_kind": "blocked_or_scout_status",
+      "value_status": "BLOCKED_VALUE_ROUTE",
+      "raw_gradient_status": "BLOCKED_VALUE_ROUTE",
+      "normalized_gradient_status": "blocked_value_route",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+      ],
+      "diagnostics_required": [
+        "blocked_token"
+      ],
+      "evidence_tests": [
+        "tests/highdim/test_p53_m5_rank_selection_integration.py::test_p53_m5_result_manifest_preserves_blocker_and_forbids_downstream_tokens"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "bootstrap_dpf_current",
+      "registry_row_id": "predator_prey_lower_rung_dim_2",
+      "source_kind": "dpf",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "cell_kind": "structured_reason_code_without_run",
+      "value_status": "NOT_RUN",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+      ],
+      "diagnostics_required": [
+        "missing_callback_bundle",
+        "same_target_reference_binding"
+      ],
+      "evidence_tests": [
+        "tests/highdim/test_filtering_value_gradient_benchmark_dpf_filters.py::test_filter_bench_dpf_coverage_has_full_current_algorithm_by_target_matrix"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "bootstrap_dpf_current",
+      "registry_row_id": "predator_prey_production_tuned_h25_dim_2",
+      "source_kind": "dpf",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "cell_kind": "structured_reason_code_without_run",
+      "value_status": "NOT_RUN",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+      ],
+      "diagnostics_required": [
+        "missing_callback_bundle",
+        "same_target_reference_binding"
+      ],
+      "evidence_tests": [
+        "tests/highdim/test_filtering_value_gradient_benchmark_dpf_filters.py::test_filter_bench_dpf_coverage_has_full_current_algorithm_by_target_matrix"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+      "registry_row_id": "lgssm_exact_kalman_dim_1_2_3",
+      "source_kind": "dpf",
+      "source_status": "READY_FIXED_BRANCH_DIAGNOSTIC",
+      "cell_kind": "structured_status_from_coverage",
+      "value_status": "VALID",
+      "raw_gradient_status": "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+      "normalized_gradient_status": "fixed_branch_gradient_diagnostic",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+        "PREVIOUS_LEDHPFPF_OT_EVIDENCE_QUARANTINED"
+      ],
+      "diagnostics_required": [
+        "seed_list",
+        "particle_count",
+        "mc_standard_error",
+        "effective_sample_size_min",
+        "resampling_route",
+        "route_identifiers"
+      ],
+      "evidence_tests": [
+        "tests/test_ledh_pfpf_alg1_ukf_tf.py::test_small_filter_run_is_finite_and_records_route_identifiers",
+        "tests/test_ledh_pfpf_alg1_ukf_tf.py::test_fixed_branch_gradient_smoke_for_no_resampling_path",
+        "tests/test_ledh_pfpf_alg1_ukf_tf.py::test_route_identifier_rejects_old_ledh_pfpf_ot_claim"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+      "registry_row_id": "p44_cubic_additive_gaussian_dim_1_2_3",
+      "source_kind": "dpf",
+      "source_status": "READY_FIXED_BRANCH_DIAGNOSTIC",
+      "cell_kind": "smoke_fixture_available",
+      "value_status": "VALID",
+      "raw_gradient_status": "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+      "normalized_gradient_status": "fixed_branch_gradient_diagnostic",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+        "PREVIOUS_LEDHPFPF_OT_EVIDENCE_QUARANTINED"
+      ],
+      "diagnostics_required": [
+        "seed_list",
+        "particle_count",
+        "mc_standard_error",
+        "effective_sample_size_min",
+        "resampling_route",
+        "route_identifiers"
+      ],
+      "evidence_tests": [
+        "tests/test_ledh_pfpf_alg1_ukf_tf.py::test_small_filter_run_is_finite_and_records_route_identifiers",
+        "tests/test_ledh_pfpf_alg1_ukf_tf.py::test_fixed_branch_gradient_smoke_for_no_resampling_path",
+        "tests/test_ledh_pfpf_alg1_ukf_tf.py::test_route_identifier_rejects_old_ledh_pfpf_ot_claim"
+      ],
+      "smoke_payload": {
+        "artifact_path": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-dpf-filter-smoke-payloads-2026-06-10.json",
+        "value_status": "VALID",
+        "gradient_status": "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+        "runtime_seconds": 0.052,
+        "random_seed": 101,
+        "reason_codes": [
+          "FIXED_BRANCH_GRADIENT_DIAGNOSTIC"
+        ]
+      },
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+      "registry_row_id": "p44_quadratic_observation_dim_1_2_3",
+      "source_kind": "dpf",
+      "source_status": "READY_FIXED_BRANCH_DIAGNOSTIC",
+      "cell_kind": "structured_status_from_coverage",
+      "value_status": "VALID",
+      "raw_gradient_status": "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+      "normalized_gradient_status": "fixed_branch_gradient_diagnostic",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+        "PREVIOUS_LEDHPFPF_OT_EVIDENCE_QUARANTINED"
+      ],
+      "diagnostics_required": [
+        "seed_list",
+        "particle_count",
+        "mc_standard_error",
+        "effective_sample_size_min",
+        "resampling_route",
+        "route_identifiers"
+      ],
+      "evidence_tests": [
+        "tests/test_ledh_pfpf_alg1_ukf_tf.py::test_small_filter_run_is_finite_and_records_route_identifiers",
+        "tests/test_ledh_pfpf_alg1_ukf_tf.py::test_fixed_branch_gradient_smoke_for_no_resampling_path",
+        "tests/test_ledh_pfpf_alg1_ukf_tf.py::test_route_identifier_rejects_old_ledh_pfpf_ot_claim"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+      "registry_row_id": "p44_nonlinear_transition_h2_dim_1_2_3",
+      "source_kind": "dpf",
+      "source_status": "READY_FIXED_BRANCH_DIAGNOSTIC",
+      "cell_kind": "structured_status_from_coverage",
+      "value_status": "VALID",
+      "raw_gradient_status": "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+      "normalized_gradient_status": "fixed_branch_gradient_diagnostic",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+        "PREVIOUS_LEDHPFPF_OT_EVIDENCE_QUARANTINED"
+      ],
+      "diagnostics_required": [
+        "seed_list",
+        "particle_count",
+        "mc_standard_error",
+        "effective_sample_size_min",
+        "resampling_route",
+        "route_identifiers"
+      ],
+      "evidence_tests": [
+        "tests/test_ledh_pfpf_alg1_ukf_tf.py::test_small_filter_run_is_finite_and_records_route_identifiers",
+        "tests/test_ledh_pfpf_alg1_ukf_tf.py::test_fixed_branch_gradient_smoke_for_no_resampling_path",
+        "tests/test_ledh_pfpf_alg1_ukf_tf.py::test_route_identifier_rejects_old_ledh_pfpf_ot_claim"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+      "registry_row_id": "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3",
+      "source_kind": "dpf",
+      "source_status": "READY_DIAGNOSTIC_ONLY",
+      "cell_kind": "diagnostic_only_status",
+      "value_status": "NOT_RUN",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "diagnostic_only_not_promotion",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "DIAGNOSTIC_ROW_NOT_PROMOTION",
+        "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+      ],
+      "diagnostics_required": [
+        "diagnostic_only_scope",
+        "missing_horizon4_algorithm1_callback_bundle"
+      ],
+      "evidence_tests": [
+        "tests/highdim/test_filtering_value_gradient_benchmark_reference_oracles.py::test_filter_bench_reference_oracles_do_not_promote_approximate_filters_to_truth"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+      "registry_row_id": "sv_exact_transformed_actual_nongaussian_dim_1_2_3",
+      "source_kind": "dpf",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "cell_kind": "structured_reason_code_without_run",
+      "value_status": "NOT_RUN",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+      ],
+      "diagnostics_required": [
+        "missing_same_target_algorithm1_callback_bundle",
+        "same_target_reference_binding"
+      ],
+      "evidence_tests": [
+        "tests/highdim/test_filtering_value_gradient_benchmark_dpf_filters.py::test_filter_bench_dpf_coverage_has_full_current_algorithm_by_target_matrix"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+      "registry_row_id": "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3",
+      "source_kind": "dpf",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "cell_kind": "structured_reason_code_without_run",
+      "value_status": "NOT_RUN",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+      ],
+      "diagnostics_required": [
+        "missing_same_target_algorithm1_callback_bundle",
+        "same_target_reference_binding"
+      ],
+      "evidence_tests": [
+        "tests/highdim/test_filtering_value_gradient_benchmark_dpf_filters.py::test_filter_bench_dpf_coverage_has_full_current_algorithm_by_target_matrix"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+      "registry_row_id": "native_generalized_sv_dense_lower_rung_dim_2",
+      "source_kind": "dpf",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "cell_kind": "structured_reason_code_without_run",
+      "value_status": "NOT_RUN",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+      ],
+      "diagnostics_required": [
+        "missing_same_target_algorithm1_callback_bundle",
+        "same_target_reference_binding"
+      ],
+      "evidence_tests": [
+        "tests/highdim/test_filtering_value_gradient_benchmark_dpf_filters.py::test_filter_bench_dpf_coverage_has_full_current_algorithm_by_target_matrix"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+      "registry_row_id": "spatial_sir_lower_rung_j1_dim_2",
+      "source_kind": "dpf",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "cell_kind": "structured_reason_code_without_run",
+      "value_status": "NOT_RUN",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+      ],
+      "diagnostics_required": [
+        "missing_same_target_algorithm1_callback_bundle",
+        "same_target_reference_binding"
+      ],
+      "evidence_tests": [
+        "tests/highdim/test_filtering_value_gradient_benchmark_dpf_filters.py::test_filter_bench_dpf_coverage_has_full_current_algorithm_by_target_matrix"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+      "registry_row_id": "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18",
+      "source_kind": "dpf",
+      "source_status": "BLOCKED_VALUE_ROUTE",
+      "cell_kind": "blocked_or_scout_status",
+      "value_status": "BLOCKED_VALUE_ROUTE",
+      "raw_gradient_status": "BLOCKED_VALUE_ROUTE",
+      "normalized_gradient_status": "blocked_value_route",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+      ],
+      "diagnostics_required": [
+        "blocked_token"
+      ],
+      "evidence_tests": [
+        "tests/highdim/test_p53_m5_rank_selection_integration.py::test_p53_m5_result_manifest_preserves_blocker_and_forbids_downstream_tokens"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+      "registry_row_id": "predator_prey_lower_rung_dim_2",
+      "source_kind": "dpf",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "cell_kind": "structured_reason_code_without_run",
+      "value_status": "NOT_RUN",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+      ],
+      "diagnostics_required": [
+        "missing_same_target_algorithm1_callback_bundle",
+        "same_target_reference_binding"
+      ],
+      "evidence_tests": [
+        "tests/highdim/test_filtering_value_gradient_benchmark_dpf_filters.py::test_filter_bench_dpf_coverage_has_full_current_algorithm_by_target_matrix"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    },
+    {
+      "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+      "registry_row_id": "predator_prey_production_tuned_h25_dim_2",
+      "source_kind": "dpf",
+      "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+      "cell_kind": "structured_reason_code_without_run",
+      "value_status": "NOT_RUN",
+      "raw_gradient_status": "NOT_RUN",
+      "normalized_gradient_status": "adapter_required",
+      "p8_gradient_error_eligible": false,
+      "p8_gradient_error_policy": "null_with_status",
+      "preflight_value": null,
+      "preflight_gradient_error_abs": null,
+      "preflight_gradient_error_rel": null,
+      "reason_codes": [
+        "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+      ],
+      "diagnostics_required": [
+        "missing_same_target_algorithm1_callback_bundle",
+        "same_target_reference_binding"
+      ],
+      "evidence_tests": [
+        "tests/highdim/test_filtering_value_gradient_benchmark_dpf_filters.py::test_filter_bench_dpf_coverage_has_full_current_algorithm_by_target_matrix"
+      ],
+      "smoke_payload": null,
+      "performance_interpretation": "not_performance_evidence"
+    }
+  ],
+  "value_status_matrix": {
+    "kalman_exact_or_mixture_enumeration": {
+      "lgssm_exact_kalman_dim_1_2_3": {
+        "status": "VALID",
+        "cell_kind": "smoke_fixture_available",
+        "reason_codes": [
+          "NONE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_cubic_additive_gaussian_dim_1_2_3": {
+        "status": "UNSUPPORTED_BY_TARGET",
+        "cell_kind": "structured_reason_code_without_run",
+        "reason_codes": [
+          "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_quadratic_observation_dim_1_2_3": {
+        "status": "UNSUPPORTED_BY_TARGET",
+        "cell_kind": "structured_reason_code_without_run",
+        "reason_codes": [
+          "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_nonlinear_transition_h2_dim_1_2_3": {
+        "status": "UNSUPPORTED_BY_TARGET",
+        "cell_kind": "structured_reason_code_without_run",
+        "reason_codes": [
+          "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3": {
+        "status": "UNSUPPORTED_BY_TARGET",
+        "cell_kind": "structured_reason_code_without_run",
+        "reason_codes": [
+          "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "sv_exact_transformed_actual_nongaussian_dim_1_2_3": {
+        "status": "UNSUPPORTED_BY_TARGET",
+        "cell_kind": "structured_reason_code_without_run",
+        "reason_codes": [
+          "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3": {
+        "status": "VALID",
+        "cell_kind": "structured_status_from_coverage",
+        "reason_codes": [
+          "NONE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "native_generalized_sv_dense_lower_rung_dim_2": {
+        "status": "UNSUPPORTED_BY_TARGET",
+        "cell_kind": "structured_reason_code_without_run",
+        "reason_codes": [
+          "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "spatial_sir_lower_rung_j1_dim_2": {
+        "status": "UNSUPPORTED_BY_TARGET",
+        "cell_kind": "structured_reason_code_without_run",
+        "reason_codes": [
+          "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18": {
+        "status": "BLOCKED_VALUE_ROUTE",
+        "cell_kind": "blocked_or_scout_status",
+        "reason_codes": [
+          "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "predator_prey_lower_rung_dim_2": {
+        "status": "UNSUPPORTED_BY_TARGET",
+        "cell_kind": "structured_reason_code_without_run",
+        "reason_codes": [
+          "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "predator_prey_production_tuned_h25_dim_2": {
+        "status": "UNSUPPORTED_BY_TARGET",
+        "cell_kind": "structured_reason_code_without_run",
+        "reason_codes": [
+          "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      }
+    },
+    "ukf": {
+      "lgssm_exact_kalman_dim_1_2_3": {
+        "status": "VALID",
+        "cell_kind": "structured_status_from_coverage",
+        "reason_codes": [
+          "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_cubic_additive_gaussian_dim_1_2_3": {
+        "status": "VALID",
+        "cell_kind": "smoke_fixture_available",
+        "reason_codes": [
+          "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_quadratic_observation_dim_1_2_3": {
+        "status": "VALID",
+        "cell_kind": "structured_status_from_coverage",
+        "reason_codes": [
+          "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_nonlinear_transition_h2_dim_1_2_3": {
+        "status": "VALID",
+        "cell_kind": "structured_status_from_coverage",
+        "reason_codes": [
+          "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3": {
+        "status": "VALID",
+        "cell_kind": "diagnostic_only_status",
+        "reason_codes": [
+          "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "sv_exact_transformed_actual_nongaussian_dim_1_2_3": {
+        "status": "NOT_RUN",
+        "cell_kind": "structured_reason_code_without_run",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3": {
+        "status": "NOT_RUN",
+        "cell_kind": "structured_reason_code_without_run",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "native_generalized_sv_dense_lower_rung_dim_2": {
+        "status": "NOT_RUN",
+        "cell_kind": "structured_reason_code_without_run",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "spatial_sir_lower_rung_j1_dim_2": {
+        "status": "VALID",
+        "cell_kind": "structured_status_from_coverage",
+        "reason_codes": [
+          "NO_THETA_GRADIENT_DIM0"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18": {
+        "status": "NOT_RUN",
+        "cell_kind": "blocked_or_scout_status",
+        "reason_codes": [
+          "UKF_SCOUT_NOT_TRUTH",
+          "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "predator_prey_lower_rung_dim_2": {
+        "status": "VALID",
+        "cell_kind": "structured_status_from_coverage",
+        "reason_codes": [
+          "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "predator_prey_production_tuned_h25_dim_2": {
+        "status": "NOT_RUN",
+        "cell_kind": "structured_reason_code_without_run",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_PRODUCTION_TARGET"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      }
+    },
+    "svd_sigma_point": {
+      "lgssm_exact_kalman_dim_1_2_3": {
+        "status": "VALID",
+        "cell_kind": "structured_status_from_coverage",
+        "reason_codes": [
+          "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_cubic_additive_gaussian_dim_1_2_3": {
+        "status": "VALID",
+        "cell_kind": "structured_status_from_coverage",
+        "reason_codes": [
+          "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_quadratic_observation_dim_1_2_3": {
+        "status": "VALID",
+        "cell_kind": "smoke_fixture_available",
+        "reason_codes": [
+          "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_nonlinear_transition_h2_dim_1_2_3": {
+        "status": "VALID",
+        "cell_kind": "structured_status_from_coverage",
+        "reason_codes": [
+          "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3": {
+        "status": "VALID",
+        "cell_kind": "diagnostic_only_status",
+        "reason_codes": [
+          "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "sv_exact_transformed_actual_nongaussian_dim_1_2_3": {
+        "status": "NOT_RUN",
+        "cell_kind": "structured_reason_code_without_run",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3": {
+        "status": "NOT_RUN",
+        "cell_kind": "structured_reason_code_without_run",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "native_generalized_sv_dense_lower_rung_dim_2": {
+        "status": "NOT_RUN",
+        "cell_kind": "structured_reason_code_without_run",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "spatial_sir_lower_rung_j1_dim_2": {
+        "status": "VALID",
+        "cell_kind": "structured_status_from_coverage",
+        "reason_codes": [
+          "NO_THETA_GRADIENT_DIM0"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18": {
+        "status": "BLOCKED_VALUE_ROUTE",
+        "cell_kind": "blocked_or_scout_status",
+        "reason_codes": [
+          "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "predator_prey_lower_rung_dim_2": {
+        "status": "VALID",
+        "cell_kind": "structured_status_from_coverage",
+        "reason_codes": [
+          "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "predator_prey_production_tuned_h25_dim_2": {
+        "status": "NOT_RUN",
+        "cell_kind": "structured_reason_code_without_run",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_PRODUCTION_TARGET"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      }
+    },
+    "cut4": {
+      "lgssm_exact_kalman_dim_1_2_3": {
+        "status": "VALID",
+        "cell_kind": "structured_status_from_coverage",
+        "reason_codes": [
+          "CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_cubic_additive_gaussian_dim_1_2_3": {
+        "status": "VALID",
+        "cell_kind": "structured_status_from_coverage",
+        "reason_codes": [
+          "CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_quadratic_observation_dim_1_2_3": {
+        "status": "VALID",
+        "cell_kind": "structured_status_from_coverage",
+        "reason_codes": [
+          "CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_nonlinear_transition_h2_dim_1_2_3": {
+        "status": "VALID",
+        "cell_kind": "smoke_fixture_available",
+        "reason_codes": [
+          "CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3": {
+        "status": "VALID",
+        "cell_kind": "diagnostic_only_status",
+        "reason_codes": [
+          "CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "sv_exact_transformed_actual_nongaussian_dim_1_2_3": {
+        "status": "UNSUPPORTED_BY_TARGET",
+        "cell_kind": "structured_reason_code_without_run",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3": {
+        "status": "VALID",
+        "cell_kind": "structured_status_from_coverage",
+        "reason_codes": [
+          "NONE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "native_generalized_sv_dense_lower_rung_dim_2": {
+        "status": "UNSUPPORTED_BY_TARGET",
+        "cell_kind": "structured_reason_code_without_run",
+        "reason_codes": [
+          "NO_CUT4_SAME_TARGET_NATIVE_GENERALIZED_SV"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "spatial_sir_lower_rung_j1_dim_2": {
+        "status": "VALID",
+        "cell_kind": "structured_status_from_coverage",
+        "reason_codes": [
+          "NO_THETA_GRADIENT_DIM0"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18": {
+        "status": "BLOCKED_VALUE_ROUTE",
+        "cell_kind": "blocked_or_scout_status",
+        "reason_codes": [
+          "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "predator_prey_lower_rung_dim_2": {
+        "status": "VALID",
+        "cell_kind": "structured_status_from_coverage",
+        "reason_codes": [
+          "CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "predator_prey_production_tuned_h25_dim_2": {
+        "status": "NOT_RUN",
+        "cell_kind": "structured_reason_code_without_run",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_PRODUCTION_TARGET"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      }
+    },
+    "zhao_cui_scalar_or_multistate": {
+      "lgssm_exact_kalman_dim_1_2_3": {
+        "status": "VALID",
+        "cell_kind": "diagnostic_only_status",
+        "reason_codes": [
+          "ZHAOCUI_LGSSM_DIAGNOSTIC_NOT_ORACLE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_cubic_additive_gaussian_dim_1_2_3": {
+        "status": "VALID",
+        "cell_kind": "structured_status_from_coverage",
+        "reason_codes": [
+          "NONE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_quadratic_observation_dim_1_2_3": {
+        "status": "VALID",
+        "cell_kind": "structured_status_from_coverage",
+        "reason_codes": [
+          "NONE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_nonlinear_transition_h2_dim_1_2_3": {
+        "status": "VALID",
+        "cell_kind": "structured_status_from_coverage",
+        "reason_codes": [
+          "NONE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3": {
+        "status": "UNSUPPORTED_BY_TARGET",
+        "cell_kind": "structured_reason_code_without_run",
+        "reason_codes": [
+          "ZHAOCUI_H4_SCALAR_HELPER_NONCLAIM"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "sv_exact_transformed_actual_nongaussian_dim_1_2_3": {
+        "status": "VALID",
+        "cell_kind": "smoke_fixture_available",
+        "reason_codes": [
+          "NONE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3": {
+        "status": "VALID",
+        "cell_kind": "structured_status_from_coverage",
+        "reason_codes": [
+          "NONE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "native_generalized_sv_dense_lower_rung_dim_2": {
+        "status": "UNSUPPORTED_BY_TARGET",
+        "cell_kind": "structured_reason_code_without_run",
+        "reason_codes": [
+          "NO_ZHAOCUI_NATIVE_GENERALIZED_SV_ROUTE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "spatial_sir_lower_rung_j1_dim_2": {
+        "status": "VALID",
+        "cell_kind": "structured_status_from_coverage",
+        "reason_codes": [
+          "NO_THETA_GRADIENT_DIM0"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18": {
+        "status": "BLOCKED_VALUE_ROUTE",
+        "cell_kind": "blocked_or_scout_status",
+        "reason_codes": [
+          "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "predator_prey_lower_rung_dim_2": {
+        "status": "VALID",
+        "cell_kind": "structured_status_from_coverage",
+        "reason_codes": [
+          "REFERENCE_GRADIENT_NOT_AVAILABLE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "predator_prey_production_tuned_h25_dim_2": {
+        "status": "VALID",
+        "cell_kind": "structured_status_from_coverage",
+        "reason_codes": [
+          "REFERENCE_GRADIENT_NOT_AVAILABLE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      }
+    },
+    "bootstrap_dpf_current": {
+      "lgssm_exact_kalman_dim_1_2_3": {
+        "status": "VALID",
+        "cell_kind": "smoke_fixture_available",
+        "reason_codes": [
+          "STOCHASTIC_GRADIENT_DIAGNOSTIC",
+          "RESAMPLING_GRADIENT_NOT_VALID"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_cubic_additive_gaussian_dim_1_2_3": {
+        "status": "NOT_RUN",
+        "cell_kind": "structured_reason_code_without_run",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_quadratic_observation_dim_1_2_3": {
+        "status": "NOT_RUN",
+        "cell_kind": "structured_reason_code_without_run",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_nonlinear_transition_h2_dim_1_2_3": {
+        "status": "NOT_RUN",
+        "cell_kind": "structured_reason_code_without_run",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3": {
+        "status": "NOT_RUN",
+        "cell_kind": "structured_reason_code_without_run",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "sv_exact_transformed_actual_nongaussian_dim_1_2_3": {
+        "status": "NOT_RUN",
+        "cell_kind": "structured_reason_code_without_run",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3": {
+        "status": "NOT_RUN",
+        "cell_kind": "structured_reason_code_without_run",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "native_generalized_sv_dense_lower_rung_dim_2": {
+        "status": "NOT_RUN",
+        "cell_kind": "structured_reason_code_without_run",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "spatial_sir_lower_rung_j1_dim_2": {
+        "status": "NOT_RUN",
+        "cell_kind": "structured_reason_code_without_run",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18": {
+        "status": "BLOCKED_VALUE_ROUTE",
+        "cell_kind": "blocked_or_scout_status",
+        "reason_codes": [
+          "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "predator_prey_lower_rung_dim_2": {
+        "status": "NOT_RUN",
+        "cell_kind": "structured_reason_code_without_run",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "predator_prey_production_tuned_h25_dim_2": {
+        "status": "NOT_RUN",
+        "cell_kind": "structured_reason_code_without_run",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      }
+    },
+    "ledh_pfpf_alg1_ukf_current": {
+      "lgssm_exact_kalman_dim_1_2_3": {
+        "status": "VALID",
+        "cell_kind": "structured_status_from_coverage",
+        "reason_codes": [
+          "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+          "PREVIOUS_LEDHPFPF_OT_EVIDENCE_QUARANTINED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_cubic_additive_gaussian_dim_1_2_3": {
+        "status": "VALID",
+        "cell_kind": "smoke_fixture_available",
+        "reason_codes": [
+          "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+          "PREVIOUS_LEDHPFPF_OT_EVIDENCE_QUARANTINED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_quadratic_observation_dim_1_2_3": {
+        "status": "VALID",
+        "cell_kind": "structured_status_from_coverage",
+        "reason_codes": [
+          "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+          "PREVIOUS_LEDHPFPF_OT_EVIDENCE_QUARANTINED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_nonlinear_transition_h2_dim_1_2_3": {
+        "status": "VALID",
+        "cell_kind": "structured_status_from_coverage",
+        "reason_codes": [
+          "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+          "PREVIOUS_LEDHPFPF_OT_EVIDENCE_QUARANTINED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3": {
+        "status": "NOT_RUN",
+        "cell_kind": "diagnostic_only_status",
+        "reason_codes": [
+          "DIAGNOSTIC_ROW_NOT_PROMOTION",
+          "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "sv_exact_transformed_actual_nongaussian_dim_1_2_3": {
+        "status": "NOT_RUN",
+        "cell_kind": "structured_reason_code_without_run",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3": {
+        "status": "NOT_RUN",
+        "cell_kind": "structured_reason_code_without_run",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "native_generalized_sv_dense_lower_rung_dim_2": {
+        "status": "NOT_RUN",
+        "cell_kind": "structured_reason_code_without_run",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "spatial_sir_lower_rung_j1_dim_2": {
+        "status": "NOT_RUN",
+        "cell_kind": "structured_reason_code_without_run",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18": {
+        "status": "BLOCKED_VALUE_ROUTE",
+        "cell_kind": "blocked_or_scout_status",
+        "reason_codes": [
+          "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "predator_prey_lower_rung_dim_2": {
+        "status": "NOT_RUN",
+        "cell_kind": "structured_reason_code_without_run",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "predator_prey_production_tuned_h25_dim_2": {
+        "status": "NOT_RUN",
+        "cell_kind": "structured_reason_code_without_run",
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      }
+    }
+  },
+  "gradient_status_matrix": {
+    "kalman_exact_or_mixture_enumeration": {
+      "lgssm_exact_kalman_dim_1_2_3": {
+        "raw_gradient_status": "VALID",
+        "normalized_gradient_status": "valid_autodiff_gradient",
+        "p8_gradient_error_eligible": true,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "NONE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_cubic_additive_gaussian_dim_1_2_3": {
+        "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+        "normalized_gradient_status": "unsupported_by_target",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_quadratic_observation_dim_1_2_3": {
+        "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+        "normalized_gradient_status": "unsupported_by_target",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_nonlinear_transition_h2_dim_1_2_3": {
+        "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+        "normalized_gradient_status": "unsupported_by_target",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3": {
+        "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+        "normalized_gradient_status": "unsupported_by_target",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "sv_exact_transformed_actual_nongaussian_dim_1_2_3": {
+        "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+        "normalized_gradient_status": "unsupported_by_target",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3": {
+        "raw_gradient_status": "VALID",
+        "normalized_gradient_status": "valid_autodiff_gradient",
+        "p8_gradient_error_eligible": true,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "NONE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "native_generalized_sv_dense_lower_rung_dim_2": {
+        "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+        "normalized_gradient_status": "unsupported_by_target",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "spatial_sir_lower_rung_j1_dim_2": {
+        "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+        "normalized_gradient_status": "unsupported_by_target",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18": {
+        "raw_gradient_status": "BLOCKED_VALUE_ROUTE",
+        "normalized_gradient_status": "blocked_value_route",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "predator_prey_lower_rung_dim_2": {
+        "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+        "normalized_gradient_status": "unsupported_by_target",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "predator_prey_production_tuned_h25_dim_2": {
+        "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+        "normalized_gradient_status": "unsupported_by_target",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      }
+    },
+    "ukf": {
+      "lgssm_exact_kalman_dim_1_2_3": {
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_cubic_additive_gaussian_dim_1_2_3": {
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_quadratic_observation_dim_1_2_3": {
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_nonlinear_transition_h2_dim_1_2_3": {
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3": {
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "diagnostic_only_not_promotion",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "sv_exact_transformed_actual_nongaussian_dim_1_2_3": {
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3": {
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "native_generalized_sv_dense_lower_rung_dim_2": {
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "spatial_sir_lower_rung_j1_dim_2": {
+        "raw_gradient_status": "NO_THETA_GRADIENT_DIM0",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "NO_THETA_GRADIENT_DIM0"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18": {
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "scout_only_not_truth",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "UKF_SCOUT_NOT_TRUTH",
+          "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "predator_prey_lower_rung_dim_2": {
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "predator_prey_production_tuned_h25_dim_2": {
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "ADAPTER_REQUIRED_PRODUCTION_TARGET"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      }
+    },
+    "svd_sigma_point": {
+      "lgssm_exact_kalman_dim_1_2_3": {
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_cubic_additive_gaussian_dim_1_2_3": {
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_quadratic_observation_dim_1_2_3": {
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_nonlinear_transition_h2_dim_1_2_3": {
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3": {
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "diagnostic_only_not_promotion",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "sv_exact_transformed_actual_nongaussian_dim_1_2_3": {
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3": {
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "native_generalized_sv_dense_lower_rung_dim_2": {
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "spatial_sir_lower_rung_j1_dim_2": {
+        "raw_gradient_status": "NO_THETA_GRADIENT_DIM0",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "NO_THETA_GRADIENT_DIM0"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18": {
+        "raw_gradient_status": "BLOCKED_VALUE_ROUTE",
+        "normalized_gradient_status": "blocked_value_route",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "predator_prey_lower_rung_dim_2": {
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "predator_prey_production_tuned_h25_dim_2": {
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "ADAPTER_REQUIRED_PRODUCTION_TARGET"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      }
+    },
+    "cut4": {
+      "lgssm_exact_kalman_dim_1_2_3": {
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_cubic_additive_gaussian_dim_1_2_3": {
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_quadratic_observation_dim_1_2_3": {
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_nonlinear_transition_h2_dim_1_2_3": {
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3": {
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "diagnostic_only_not_promotion",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "sv_exact_transformed_actual_nongaussian_dim_1_2_3": {
+        "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+        "normalized_gradient_status": "unsupported_by_target",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3": {
+        "raw_gradient_status": "VALID",
+        "normalized_gradient_status": "valid_autodiff_gradient",
+        "p8_gradient_error_eligible": true,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "NONE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "native_generalized_sv_dense_lower_rung_dim_2": {
+        "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+        "normalized_gradient_status": "unsupported_by_target",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "NO_CUT4_SAME_TARGET_NATIVE_GENERALIZED_SV"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "spatial_sir_lower_rung_j1_dim_2": {
+        "raw_gradient_status": "NO_THETA_GRADIENT_DIM0",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "NO_THETA_GRADIENT_DIM0"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18": {
+        "raw_gradient_status": "BLOCKED_VALUE_ROUTE",
+        "normalized_gradient_status": "blocked_value_route",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "predator_prey_lower_rung_dim_2": {
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "predator_prey_production_tuned_h25_dim_2": {
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "ADAPTER_REQUIRED_PRODUCTION_TARGET"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      }
+    },
+    "zhao_cui_scalar_or_multistate": {
+      "lgssm_exact_kalman_dim_1_2_3": {
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "diagnostic_only_not_promotion",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "ZHAOCUI_LGSSM_DIAGNOSTIC_NOT_ORACLE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_cubic_additive_gaussian_dim_1_2_3": {
+        "raw_gradient_status": "VALID",
+        "normalized_gradient_status": "valid_autodiff_gradient",
+        "p8_gradient_error_eligible": true,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "NONE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_quadratic_observation_dim_1_2_3": {
+        "raw_gradient_status": "VALID",
+        "normalized_gradient_status": "valid_autodiff_gradient",
+        "p8_gradient_error_eligible": true,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "NONE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_nonlinear_transition_h2_dim_1_2_3": {
+        "raw_gradient_status": "VALID",
+        "normalized_gradient_status": "valid_autodiff_gradient",
+        "p8_gradient_error_eligible": true,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "NONE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3": {
+        "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+        "normalized_gradient_status": "unsupported_by_target",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "ZHAOCUI_H4_SCALAR_HELPER_NONCLAIM"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "sv_exact_transformed_actual_nongaussian_dim_1_2_3": {
+        "raw_gradient_status": "VALID",
+        "normalized_gradient_status": "valid_autodiff_gradient",
+        "p8_gradient_error_eligible": true,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "NONE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3": {
+        "raw_gradient_status": "VALID",
+        "normalized_gradient_status": "valid_autodiff_gradient",
+        "p8_gradient_error_eligible": true,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "NONE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "native_generalized_sv_dense_lower_rung_dim_2": {
+        "raw_gradient_status": "UNSUPPORTED_BY_TARGET",
+        "normalized_gradient_status": "unsupported_by_target",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "NO_ZHAOCUI_NATIVE_GENERALIZED_SV_ROUTE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "spatial_sir_lower_rung_j1_dim_2": {
+        "raw_gradient_status": "NO_THETA_GRADIENT_DIM0",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "NO_THETA_GRADIENT_DIM0"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18": {
+        "raw_gradient_status": "BLOCKED_VALUE_ROUTE",
+        "normalized_gradient_status": "blocked_value_route",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "predator_prey_lower_rung_dim_2": {
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "REFERENCE_GRADIENT_NOT_AVAILABLE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "predator_prey_production_tuned_h25_dim_2": {
+        "raw_gradient_status": "GRADIENT_NOT_EXPOSED",
+        "normalized_gradient_status": "algorithm_gradient_not_exposed",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "REFERENCE_GRADIENT_NOT_AVAILABLE"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      }
+    },
+    "bootstrap_dpf_current": {
+      "lgssm_exact_kalman_dim_1_2_3": {
+        "raw_gradient_status": "RESAMPLING_GRADIENT_NOT_VALID",
+        "normalized_gradient_status": "resampling_gradient_not_valid",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "STOCHASTIC_GRADIENT_DIAGNOSTIC",
+          "RESAMPLING_GRADIENT_NOT_VALID"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_cubic_additive_gaussian_dim_1_2_3": {
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_quadratic_observation_dim_1_2_3": {
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_nonlinear_transition_h2_dim_1_2_3": {
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3": {
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "sv_exact_transformed_actual_nongaussian_dim_1_2_3": {
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3": {
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "native_generalized_sv_dense_lower_rung_dim_2": {
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "spatial_sir_lower_rung_j1_dim_2": {
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18": {
+        "raw_gradient_status": "BLOCKED_VALUE_ROUTE",
+        "normalized_gradient_status": "blocked_value_route",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "predator_prey_lower_rung_dim_2": {
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "predator_prey_production_tuned_h25_dim_2": {
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      }
+    },
+    "ledh_pfpf_alg1_ukf_current": {
+      "lgssm_exact_kalman_dim_1_2_3": {
+        "raw_gradient_status": "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+        "normalized_gradient_status": "fixed_branch_gradient_diagnostic",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+          "PREVIOUS_LEDHPFPF_OT_EVIDENCE_QUARANTINED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_cubic_additive_gaussian_dim_1_2_3": {
+        "raw_gradient_status": "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+        "normalized_gradient_status": "fixed_branch_gradient_diagnostic",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+          "PREVIOUS_LEDHPFPF_OT_EVIDENCE_QUARANTINED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_quadratic_observation_dim_1_2_3": {
+        "raw_gradient_status": "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+        "normalized_gradient_status": "fixed_branch_gradient_diagnostic",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+          "PREVIOUS_LEDHPFPF_OT_EVIDENCE_QUARANTINED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_nonlinear_transition_h2_dim_1_2_3": {
+        "raw_gradient_status": "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+        "normalized_gradient_status": "fixed_branch_gradient_diagnostic",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+          "PREVIOUS_LEDHPFPF_OT_EVIDENCE_QUARANTINED"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3": {
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "diagnostic_only_not_promotion",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "DIAGNOSTIC_ROW_NOT_PROMOTION",
+          "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "sv_exact_transformed_actual_nongaussian_dim_1_2_3": {
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3": {
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "native_generalized_sv_dense_lower_rung_dim_2": {
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "spatial_sir_lower_rung_j1_dim_2": {
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18": {
+        "raw_gradient_status": "BLOCKED_VALUE_ROUTE",
+        "normalized_gradient_status": "blocked_value_route",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "predator_prey_lower_rung_dim_2": {
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "predator_prey_production_tuned_h25_dim_2": {
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "p8_gradient_error_eligible": false,
+        "preflight_gradient_error_abs": null,
+        "preflight_gradient_error_rel": null,
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      }
+    }
+  },
+  "nonclaims": [
+    "preflight values are not benchmark values",
+    "no filter ranking",
+    "no threshold decision",
+    "no DPF gradient certification",
+    "no HMC, GPU, or Bayesian-estimation readiness"
+  ]
+}

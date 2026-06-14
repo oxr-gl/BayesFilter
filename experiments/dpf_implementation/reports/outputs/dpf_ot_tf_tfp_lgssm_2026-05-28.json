@@ -1,0 +1,968 @@
+{
+  "backend": "tensorflow_tensorflow_probability",
+  "created_at_utc": "2026-05-28T15:48:41Z",
+  "decision": "DPF_OT_TF_TFP_LGSSM_PASSED",
+  "model_definition": {
+    "A": [
+      [
+        0.92,
+        0.18
+      ],
+      [
+        -0.04,
+        0.86
+      ]
+    ],
+    "C": [
+      [
+        1.0,
+        0.35
+      ]
+    ],
+    "P0": [
+      [
+        0.45,
+        0.04
+      ],
+      [
+        0.04,
+        0.32
+      ]
+    ],
+    "Q": [
+      [
+        0.08,
+        0.015
+      ],
+      [
+        0.015,
+        0.05
+      ]
+    ],
+    "R": [
+      [
+        0.18
+      ]
+    ],
+    "backend": "tensorflow_tensorflow_probability",
+    "fixture_generation_seed": 2026052801,
+    "horizon": 25,
+    "initial_distribution": "x_0 ~ Normal(m0, P0)",
+    "m0": [
+      0.25,
+      -0.15
+    ],
+    "model_checksum": "a2d074abc1ddc1417cca23e0bcce9d68f1ec2ad2db5f331ab4150c4644683f38",
+    "model_id": "lgssm_ot_tf_tfp_smoke",
+    "observation_checksum": "1ceacd15e87b61e2ee658d2c84cb5e15046faffb8e92cf0a24ff9eb431c1b3f0",
+    "observation_equation": "y_t = C x_t + r_t, r_t ~ Normal(0, R)",
+    "state_equation": "x_t = A x_{t-1} + q_t, q_t ~ Normal(0, Q)"
+  },
+  "non_implications": [
+    "No production readiness is concluded.",
+    "No public API readiness is concluded.",
+    "No HMC readiness is concluded.",
+    "No posterior correctness is concluded.",
+    "No learned or neural OT promotion is concluded.",
+    "No banking or model-risk claim is concluded.",
+    "No monograph claim is concluded without separate review."
+  ],
+  "num_particles": 96,
+  "primary_metrics": {
+    "max_ot_sinkhorn_residual": 4.3050919044940184e-08,
+    "median_bootstrap_abs_log_likelihood_delta_to_kalman": 0.10923174509147415,
+    "median_bootstrap_filtered_mean_rmse_to_kalman": 0.0404376903097443,
+    "median_ot_abs_log_likelihood_delta_to_kalman": 0.8277592299940579,
+    "median_ot_filtered_mean_rmse_to_kalman": 0.04777780918669452
+  },
+  "question": "TF/TFP LGSSM OT-DPF relaxed resampling smoke against Kalman reference",
+  "reference": {
+    "finite": true,
+    "log_likelihood": -17.140691749730298,
+    "reference_id": "kalman_lgssm_tf_exact_reference",
+    "reference_status": "exact Kalman reference for this LGSSM only"
+  },
+  "reproducibility_digest": "bcc42b55bb8a25442c52603cd858dc7437880b82becc41db3a48e68264205280",
+  "rows": [
+    {
+      "ess_by_time": [
+        63.528430070727715,
+        38.12445482086672,
+        76.47259289795505,
+        46.26216187340874,
+        82.45490407627625,
+        52.02820537233349,
+        32.79133508860713,
+        65.82933249399333,
+        49.449220542450796,
+        40.82150933965306,
+        80.56462391696641,
+        64.59040277014074,
+        55.59475441661677,
+        42.26584463303484,
+        62.134714882794995,
+        45.50789774669943,
+        81.82997340862713,
+        64.15770490359476,
+        48.10861147348148,
+        25.75240117732592,
+        82.45222121648152,
+        66.13777621079059,
+        53.377846240333874,
+        37.54144943270104,
+        74.84497459590487
+      ],
+      "filtered_mean_rmse_to_kalman": 0.03401270574891929,
+      "filtered_means": [
+        [
+          0.03352660636166041,
+          -0.18258885850735843
+        ],
+        [
+          0.38555297727262866,
+          0.021475737914966785
+        ],
+        [
+          0.5405914847490346,
+          0.06331127538804572
+        ],
+        [
+          0.08442304296677938,
+          -0.13305024139317842
+        ],
+        [
+          -0.005297805714058685,
+          -0.1497979696024744
+        ],
+        [
+          -0.24500296179667347,
+          -0.2729322920991342
+        ],
+        [
+          -0.5496305145305884,
+          -0.28036696183550813
+        ],
+        [
+          -0.7279903012264235,
+          -0.3844812794071651
+        ],
+        [
+          -0.7669933643443382,
+          -0.31183744717651146
+        ],
+        [
+          -0.6268499145910655,
+          -0.1727943816654494
+        ],
+        [
+          -0.6872114685426163,
+          -0.14959339078604722
+        ],
+        [
+          -0.7045730104378356,
+          -0.18580251553715363
+        ],
+        [
+          -0.592582582050563,
+          -0.07811698343663799
+        ],
+        [
+          -0.7577255035691528,
+          -0.1443334279813598
+        ],
+        [
+          -0.915163729975399,
+          -0.15082320012740164
+        ],
+        [
+          -0.5718626898243957,
+          0.11095085423877529
+        ],
+        [
+          -0.5417980040513022,
+          0.0952996805450561
+        ],
+        [
+          -0.6074861742558472,
+          0.021931888770293794
+        ],
+        [
+          -0.4570332559121104,
+          0.07257011217822795
+        ],
+        [
+          -0.10560747552995267,
+          0.2581092197266093
+        ],
+        [
+          -0.13945832312595122,
+          0.17906836786623148
+        ],
+        [
+          0.014322141861215488,
+          0.22104275792910227
+        ],
+        [
+          0.01704691872293438,
+          0.14082159640832137
+        ],
+        [
+          -0.1901583571252017,
+          -0.03938328506656443
+        ],
+        [
+          -0.33279653107315754,
+          -0.10646340631182469
+        ]
+      ],
+      "finite": true,
+      "log_likelihood_delta_to_kalman": 0.10923174509147415,
+      "log_likelihood_estimate": -17.031460004638824,
+      "max_sinkhorn_residual": 0.0,
+      "method_id": "bootstrap_multinomial_pf_tf",
+      "model_checksum": "a2d074abc1ddc1417cca23e0bcce9d68f1ec2ad2db5f331ab4150c4644683f38",
+      "num_particles": 96,
+      "observation_checksum": "1ceacd15e87b61e2ee658d2c84cb5e15046faffb8e92cf0a24ff9eb431c1b3f0",
+      "resampling_count": 8,
+      "seed": 111
+    },
+    {
+      "ess_by_time": [
+        63.528430070727715,
+        38.12445482086672,
+        78.90081258115816,
+        43.139523145601565,
+        90.04714724700831,
+        52.83927155513464,
+        26.43473566432655,
+        74.29347485662406,
+        59.86749500228607,
+        50.460602136587035,
+        44.53710991463575,
+        87.05643468163267,
+        76.3896282970548,
+        58.09131791082069,
+        36.86653865766467,
+        63.1031210941908,
+        51.68798228181721,
+        46.96399998477287,
+        85.98333114749218,
+        32.55111962907881,
+        89.7852978131022,
+        75.46491707082838,
+        61.83036183899872,
+        44.225401650912836,
+        79.65333510377016
+      ],
+      "filtered_mean_rmse_to_kalman": 0.046809420726169414,
+      "filtered_means": [
+        [
+          0.03352660636166041,
+          -0.18258885850735843
+        ],
+        [
+          0.38555297727262866,
+          0.021475737914966785
+        ],
+        [
+          0.5239827183519195,
+          0.05107748139272781
+        ],
+        [
+          0.10229174554671272,
+          -0.1221422980801298
+        ],
+        [
+          0.050748117225639974,
+          -0.13064690835950474
+        ],
+        [
+          -0.23136481986282414,
+          -0.2091502430059362
+        ],
+        [
+          -0.5922029547400334,
+          -0.26908723185226296
+        ],
+        [
+          -0.768842238997242,
+          -0.302647547440868
+        ],
+        [
+          -0.8073867184510934,
+          -0.21752058492411971
+        ],
+        [
+          -0.6575404715339889,
+          -0.08467748613669902
+        ],
+        [
+          -0.7074357767872419,
+          -0.11511447092914333
+        ],
+        [
+          -0.7293822035097117,
+          -0.1013083835403625
+        ],
+        [
+          -0.6210277832249566,
+          -0.01891203391543505
+        ],
+        [
+          -0.77791172162587,
+          -0.06009028920000534
+        ],
+        [
+          -0.8936463664150145,
+          -0.09272719159162673
+        ],
+        [
+          -0.6691992605996335,
+          0.04836504600980368
+        ],
+        [
+          -0.619361246842737,
+          0.07212929841708954
+        ],
+        [
+          -0.6575098714519614,
+          0.07495062019314243
+        ],
+        [
+          -0.5406519037144744,
+          0.13772025502647373
+        ],
+        [
+          -0.1587133055676639,
+          0.2995624377648916
+        ],
+        [
+          -0.13905249931000926,
+          0.21914815458035583
+        ],
+        [
+          0.023014162010939823,
+          0.22666471801125426
+        ],
+        [
+          0.0016622287604252679,
+          0.14174236740114068
+        ],
+        [
+          -0.16050403695908358,
+          0.00837593411995808
+        ],
+        [
+          -0.2903977438386549,
+          -0.05419690682217898
+        ]
+      ],
+      "finite": true,
+      "log_likelihood_delta_to_kalman": 0.9308447112739948,
+      "log_likelihood_estimate": -16.209847038456303,
+      "max_sinkhorn_residual": 4.3050919044940184e-08,
+      "method_id": "ot_dpf_finite_sinkhorn_relaxed_tf",
+      "model_checksum": "a2d074abc1ddc1417cca23e0bcce9d68f1ec2ad2db5f331ab4150c4644683f38",
+      "num_particles": 96,
+      "observation_checksum": "1ceacd15e87b61e2ee658d2c84cb5e15046faffb8e92cf0a24ff9eb431c1b3f0",
+      "resampling_count": 8,
+      "seed": 111
+    },
+    {
+      "ess_by_time": [
+        59.925846656095956,
+        37.55746339673798,
+        63.242736951651544,
+        35.33282484403856,
+        81.76059611466921,
+        49.1540116891018,
+        29.016209139720072,
+        66.98533396874863,
+        50.76642767554486,
+        42.43956917057515,
+        79.48883503085213,
+        58.41268080452718,
+        49.94529437594753,
+        34.41764907230142,
+        78.07994770382147,
+        57.315760579254736,
+        43.294375567019756,
+        80.02897366934707,
+        66.32565213321834,
+        35.386965967954474,
+        77.56983024878927,
+        62.307910297993736,
+        49.05447447421986,
+        37.95099030273867,
+        64.36606018982265
+      ],
+      "filtered_mean_rmse_to_kalman": 0.0404376903097443,
+      "filtered_means": [
+        [
+          0.06582211637860629,
+          -0.2144361652789892
+        ],
+        [
+          0.36543426310717536,
+          0.01959702232463834
+        ],
+        [
+          0.5309343908048162,
+          0.040300861662027135
+        ],
+        [
+          0.056098320564339804,
+          -0.19044067192963499
+        ],
+        [
+          -0.006652329145935198,
+          -0.19872572506226782
+        ],
+        [
+          -0.3071949373263859,
+          -0.28330031340519096
+        ],
+        [
+          -0.5470098864320383,
+          -0.3541117942977686
+        ],
+        [
+          -0.7263747481421261,
+          -0.3903643071473757
+        ],
+        [
+          -0.7978432630210591,
+          -0.3403457766728123
+        ],
+        [
+          -0.635042598197756,
+          -0.19660518515980355
+        ],
+        [
+          -0.5925901501009123,
+          -0.14484796513818615
+        ],
+        [
+          -0.626153102229241,
+          -0.22830261652566863
+        ],
+        [
+          -0.5902332111808428,
+          -0.11420081618632177
+        ],
+        [
+          -0.7857471086568197,
+          -0.20040298398061732
+        ],
+        [
+          -0.956532310879836,
+          -0.1571552156248382
+        ],
+        [
+          -0.6450013751904681,
+          -0.009819662222536371
+        ],
+        [
+          -0.5498425371514974,
+          0.00869488005762813
+        ],
+        [
+          -0.5772828145236341,
+          -0.03853176775890374
+        ],
+        [
+          -0.4537949692194271,
+          -0.0028060421494331368
+        ],
+        [
+          -0.16071115582412154,
+          0.2555216718169764
+        ],
+        [
+          -0.15692142418697652,
+          0.17340740139532718
+        ],
+        [
+          0.0030221234688353055,
+          0.21150174926767895
+        ],
+        [
+          0.028203602698694576,
+          0.17694107271187723
+        ],
+        [
+          -0.11219046472687197,
+          -0.008084372990882095
+        ],
+        [
+          -0.27667392757659237,
+          -0.05306389146835279
+        ]
+      ],
+      "finite": true,
+      "log_likelihood_delta_to_kalman": -0.5676978717941559,
+      "log_likelihood_estimate": -17.708389621524454,
+      "max_sinkhorn_residual": 0.0,
+      "method_id": "bootstrap_multinomial_pf_tf",
+      "model_checksum": "a2d074abc1ddc1417cca23e0bcce9d68f1ec2ad2db5f331ab4150c4644683f38",
+      "num_particles": 96,
+      "observation_checksum": "1ceacd15e87b61e2ee658d2c84cb5e15046faffb8e92cf0a24ff9eb431c1b3f0",
+      "resampling_count": 8,
+      "seed": 222
+    },
+    {
+      "ess_by_time": [
+        59.925846656095956,
+        37.55746339673798,
+        68.94918038437426,
+        40.567366228886826,
+        89.5812789473055,
+        52.014365611210735,
+        26.496007054244437,
+        73.20159533417805,
+        59.49144450437921,
+        52.45170873517179,
+        39.98082306622388,
+        79.03064168230414,
+        65.96673233995666,
+        41.32944492175874,
+        77.48882456459515,
+        62.679093736170664,
+        48.426401075502625,
+        41.56948546281303,
+        87.8220670673606,
+        36.72252566010861,
+        85.04776297109697,
+        71.75710779796488,
+        56.09709197280755,
+        40.31741307441232,
+        73.21794781815034
+      ],
+      "filtered_mean_rmse_to_kalman": 0.04777780918669452,
+      "filtered_means": [
+        [
+          0.06582211637860629,
+          -0.2144361652789892
+        ],
+        [
+          0.36543426310717536,
+          0.01959702232463834
+        ],
+        [
+          0.5207080674453802,
+          0.03816186890062509
+        ],
+        [
+          0.0621522492186682,
+          -0.15152517288377243
+        ],
+        [
+          0.021778291840984308,
+          -0.16650532800338874
+        ],
+        [
+          -0.26965641203582014,
+          -0.24142231826447041
+        ],
+        [
+          -0.5294881796781525,
+          -0.30271308676785436
+        ],
+        [
+          -0.6773427637950133,
+          -0.31706588972575844
+        ],
+        [
+          -0.7417129353059522,
+          -0.25803697501069767
+        ],
+        [
+          -0.583667500407238,
+          -0.1695487881529898
+        ],
+        [
+          -0.5786255015137389,
+          -0.14940544146704907
+        ],
+        [
+          -0.6169730595109955,
+          -0.18015208688128992
+        ],
+        [
+          -0.5789822072519859,
+          -0.07263528062198102
+        ],
+        [
+          -0.7837678647605834,
+          -0.15447334158602338
+        ],
+        [
+          -0.9253051251292433,
+          -0.1041339613379354
+        ],
+        [
+          -0.6609786588754,
+          0.042899208968177865
+        ],
+        [
+          -0.5914287049663788,
+          0.05140940234935541
+        ],
+        [
+          -0.597637489902398,
+          0.06754470915138844
+        ],
+        [
+          -0.4842203232079233,
+          0.0895876518283404
+        ],
+        [
+          -0.17192210718291057,
+          0.2866715079507418
+        ],
+        [
+          -0.1343096750578026,
+          0.21642399104381738
+        ],
+        [
+          0.011064857540546407,
+          0.24262890613389415
+        ],
+        [
+          0.0015325804970076984,
+          0.24496365493429784
+        ],
+        [
+          -0.2020530094919027,
+          0.07621362329693473
+        ],
+        [
+          -0.29818249014806075,
+          0.059188070567021495
+        ]
+      ],
+      "finite": true,
+      "log_likelihood_delta_to_kalman": 0.14003598780842808,
+      "log_likelihood_estimate": -17.00065576192187,
+      "max_sinkhorn_residual": 9.900418748709505e-10,
+      "method_id": "ot_dpf_finite_sinkhorn_relaxed_tf",
+      "model_checksum": "a2d074abc1ddc1417cca23e0bcce9d68f1ec2ad2db5f331ab4150c4644683f38",
+      "num_particles": 96,
+      "observation_checksum": "1ceacd15e87b61e2ee658d2c84cb5e15046faffb8e92cf0a24ff9eb431c1b3f0",
+      "resampling_count": 8,
+      "seed": 222
+    },
+    {
+      "ess_by_time": [
+        64.56704450529071,
+        40.00973925129157,
+        68.62756412447028,
+        44.17922279510381,
+        85.61037949323023,
+        53.91657421116045,
+        25.379583428811028,
+        68.1344340698787,
+        56.929379106103276,
+        49.20411437946509,
+        40.05294191440599,
+        76.65631249013771,
+        63.48744006743938,
+        40.50756550155062,
+        66.53259150537119,
+        57.39036071828234,
+        47.72368144093817,
+        77.18423248689989,
+        66.16177065211126,
+        29.71297116989466,
+        80.52561663514284,
+        67.18833502447494,
+        52.84848309747052,
+        34.747863423897584,
+        73.83876243444153
+      ],
+      "filtered_mean_rmse_to_kalman": 0.06791122342014856,
+      "filtered_means": [
+        [
+          0.06916948555583252,
+          -0.2739454973579311
+        ],
+        [
+          0.34240139091981586,
+          -0.06774454117898941
+        ],
+        [
+          0.4926765952481389,
+          0.07445631688166188
+        ],
+        [
+          0.11494761596331246,
+          -0.1366637541135043
+        ],
+        [
+          0.0206738736401201,
+          -0.15480665628902127
+        ],
+        [
+          -0.30623032887577206,
+          -0.18790890012145206
+        ],
+        [
+          -0.5416057780255139,
+          -0.2013927220475119
+        ],
+        [
+          -0.7617064477972699,
+          -0.20551903338202748
+        ],
+        [
+          -0.8142242009519215,
+          -0.16119651518949762
+        ],
+        [
+          -0.7219919508005661,
+          -0.02854168589784197
+        ],
+        [
+          -0.697935135860535,
+          -0.01368489981635199
+        ],
+        [
+          -0.6715317539109378,
+          -0.014478917479613364
+        ],
+        [
+          -0.6227429592666485,
+          0.0642323018149405
+        ],
+        [
+          -0.7607119273772184,
+          -0.03025079804053281
+        ],
+        [
+          -0.9247100091491534,
+          -0.07357387038510933
+        ],
+        [
+          -0.641593100326814,
+          0.012046260511995054
+        ],
+        [
+          -0.517672789293345,
+          0.019774924127410318
+        ],
+        [
+          -0.5461689408472759,
+          -0.033627936134712696
+        ],
+        [
+          -0.4851046429058318,
+          0.017178292401724166
+        ],
+        [
+          -0.06871488633070513,
+          0.279652436369351
+        ],
+        [
+          -0.047288470428436175,
+          0.19003510137124766
+        ],
+        [
+          0.05258081611138607,
+          0.15514854967775496
+        ],
+        [
+          0.032110166760978,
+          0.0763662486929549
+        ],
+        [
+          -0.13362636464935873,
+          -0.0569738648669581
+        ],
+        [
+          -0.2992771875741239,
+          -0.135325783826188
+        ]
+      ],
+      "finite": true,
+      "log_likelihood_delta_to_kalman": -0.10119728302248276,
+      "log_likelihood_estimate": -17.24188903275278,
+      "max_sinkhorn_residual": 0.0,
+      "method_id": "bootstrap_multinomial_pf_tf",
+      "model_checksum": "a2d074abc1ddc1417cca23e0bcce9d68f1ec2ad2db5f331ab4150c4644683f38",
+      "num_particles": 96,
+      "observation_checksum": "1ceacd15e87b61e2ee658d2c84cb5e15046faffb8e92cf0a24ff9eb431c1b3f0",
+      "resampling_count": 8,
+      "seed": 333
+    },
+    {
+      "ess_by_time": [
+        64.56704450529071,
+        40.00973925129157,
+        76.37986229542446,
+        47.777256040061154,
+        90.28632772711781,
+        56.98371073858494,
+        24.92819273486236,
+        74.53423225645662,
+        63.93755635215634,
+        48.99452024298006,
+        38.16951568379719,
+        83.35578596942607,
+        72.04052048778217,
+        43.759031834500824,
+        73.28311479770613,
+        59.16938867011545,
+        47.33576785618589,
+        84.71880114473849,
+        76.51600151451828,
+        37.67269704470455,
+        86.36002601579453,
+        72.28810691723419,
+        59.513411614596976,
+        42.699252774048944,
+        73.04075952997786
+      ],
+      "filtered_mean_rmse_to_kalman": 0.06353422088443746,
+      "filtered_means": [
+        [
+          0.06916948555583252,
+          -0.2739454973579311
+        ],
+        [
+          0.34240139091981586,
+          -0.06774454117898941
+        ],
+        [
+          0.4605088896020046,
+          -0.007733730533049601
+        ],
+        [
+          0.1305269423277014,
+          -0.15684756339824033
+        ],
+        [
+          0.024298045420303897,
+          -0.17489817942431735
+        ],
+        [
+          -0.2867113433084833,
+          -0.22799689632882042
+        ],
+        [
+          -0.5653403070772669,
+          -0.2874138289114327
+        ],
+        [
+          -0.7653239237060696,
+          -0.26494272358636867
+        ],
+        [
+          -0.836005279487706,
+          -0.1956737423159885
+        ],
+        [
+          -0.7167731280852505,
+          -0.0436069030493794
+        ],
+        [
+          -0.7106158129068219,
+          -0.06768044488082747
+        ],
+        [
+          -0.685674649072891,
+          -0.02617571997559127
+        ],
+        [
+          -0.6524760637212413,
+          0.08225418399123804
+        ],
+        [
+          -0.8333420946515373,
+          0.003112105332724763
+        ],
+        [
+          -0.9057977375358601,
+          -0.01742328342459861
+        ],
+        [
+          -0.630124983632318,
+          0.07356704834021412
+        ],
+        [
+          -0.5447384750682834,
+          0.06818094086574604
+        ],
+        [
+          -0.5538787983041007,
+          0.009020925193488015
+        ],
+        [
+          -0.4900053981267043,
+          0.03722755962741561
+        ],
+        [
+          -0.10952750792323421,
+          0.1776087261126042
+        ],
+        [
+          -0.1074310156627197,
+          0.10385456445183293
+        ],
+        [
+          0.0049595264208212395,
+          0.10137671592188546
+        ],
+        [
+          0.021661194679267002,
+          0.09495136772438306
+        ],
+        [
+          -0.09564672074463593,
+          0.010259081574846306
+        ],
+        [
+          -0.22472613841301647,
+          -0.03665686923197773
+        ]
+      ],
+      "finite": true,
+      "log_likelihood_delta_to_kalman": 0.8277592299940579,
+      "log_likelihood_estimate": -16.31293251973624,
+      "max_sinkhorn_residual": 2.1206378209015497e-08,
+      "method_id": "ot_dpf_finite_sinkhorn_relaxed_tf",
+      "model_checksum": "a2d074abc1ddc1417cca23e0bcce9d68f1ec2ad2db5f331ab4150c4644683f38",
+      "num_particles": 96,
+      "observation_checksum": "1ceacd15e87b61e2ee658d2c84cb5e15046faffb8e92cf0a24ff9eb431c1b3f0",
+      "resampling_count": 8,
+      "seed": 333
+    }
+  ],
+  "run_manifest": {
+    "branch": "main",
+    "command": "CUDA_VISIBLE_DEVICES=-1 python -m experiments.dpf_implementation.tf_tfp.runners.run_lgssm_ot_dpf_tf",
+    "commit": "1bf1f9d7492709182a84478f19bac1dac0d48050",
+    "cpu_only": true,
+    "cuda_visible_devices": "-1",
+    "dirty_state_summary": "M docs/main.pdf\n M docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-primary-source-ledger-2026-05-28.md\n M docs/plans/bayesfilter-student-dpf-baseline-master-program-2026-05-10.md\n M docs/plans/bayesfilter-student-dpf-baseline-reset-memo-2026-05-09.md\n M experiments/controlled_dpf_baseline/README.md\n?? .local_sources/\n?? AGENTS.md\n?? CLAUDE.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0-citation-coverage-register-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0-claim-extraction-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0-claim-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0-implementation-obligations-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0a-doc-patch-register-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0a-student-doc-crosswalk-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0a-student-doc-crosswalk-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0a-student-doc-crosswalk-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf1-classical-pf-baseline-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf1-classical-pf-spec-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf1-reference-test-contract-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf1-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf1-student-comparison-context-register-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf2-bias-proxy-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf2-component-spec-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf2-deferred-neural-path-register-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf2-differentiable-resampling-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf2-resampling-test-contract-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf2-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf3-excluded-flow-risk-register-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf3-flow-pfpf-spec-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf3-kernel-pff-exclusion-check-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf3-particle-flow-pfpf-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf3-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf4-differentiable-objective-gradient-contract-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf4-downstream-evidence-requirements-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf4-gradient-contract-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf4-objective-classification-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf4-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf5-benchmark-ladder-matrix-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf5-cpu-gpu-runtime-policy-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf5-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf5-seed-uncertainty-policy-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf5-validation-harness-benchmark-ladder-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf5-validation-harness-spec-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf6-production-boundary-api-review-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf6-production-boundary-decision-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf6-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf7-final-audit-implementation-handoff-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-final-audit-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-handoff-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-master-program-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-sv-test-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-backend-governance-correction-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-backend-governance-correction-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-master-program-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p0-scope-and-contract-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p0-scope-and-contract-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p1-lgssm-fixture-and-kalman-reference-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p1-lgssm-fixture-and-kalman-reference-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p2-range-bearing-ukf-reference-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p2-range-bearing-ukf-reference-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p3-finite-sinkhorn-resampler-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p3-finite-sinkhorn-resampler-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p4-integrated-dpf-runner-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p4-integrated-dpf-runner-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p5-gradient-contract-and-finite-difference-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p5-gradient-contract-and-finite-difference-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p6-lgssm-validation-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p6-lgssm-validation-result-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p7-range-bearing-validation-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p7-range-bearing-validation-result-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p8-final-audit-and-handoff-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p8-final-audit-and-handoff-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-master-program-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p0-scope-import-gate-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p0-scope-import-gate-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p1-lgssm-fixture-kalman-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p1-lgssm-fixture-kalman-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p2-range-bearing-ukf-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p2-range-bearing-ukf-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p3-sinkhorn-resampler-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p3-sinkhorn-resampler-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p4-integrated-dpf-runner-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p4-integrated-dpf-runner-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p5-gradient-tape-contract-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p5-gradient-tape-contract-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p6-lgssm-validation-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p6-lgssm-validation-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p7-range-bearing-validation-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p7-range-bearing-validation-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p8-final-audit-handoff-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-rewrite-plan-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1-source-intake-result-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1r-citation-venue-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1r-claim-support-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1r-literature-audit-redo-plan-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1r-literature-audit-redo-result-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1r-omission-risk-register-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1r-snowball-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1r-source-support-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1s-citation-venue-metadata-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1s-claim-support-closure-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1s-foundational-source-closure-plan-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1s-foundational-source-closure-result-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1s-omission-risk-adjudication-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1s-snowball-closure-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1s-source-closure-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1t-citation-venue-metadata-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1t-claim-support-closure-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1t-manual-pdf-source-closure-plan-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1t-manual-pdf-source-closure-result-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1t-omission-risk-update-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1t-source-closure-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-plan-2026-05-27.md\n?? docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-plan-audit-2026-05-27.md\n?? docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-result-2026-05-27.md\n?? docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-review-2026-05-27.md\n?? experiments/controlled_dpf_baseline/reports/controlled-dpf-baseline-final-archive-result.md\n?? experiments/dpf_implementation/",
+    "gpu_devices_visible": [],
+    "package_versions": {
+      "tensorflow": "2.19.1",
+      "tensorflow_probability": "0.25.0"
+    },
+    "pre_import_cuda_visible_devices": "-1",
+    "python_version": "3.11.14",
+    "wall_time_seconds": 1.8942391090095043
+  },
+  "seed_list": [
+    111,
+    222,
+    333
+  ],
+  "smoke_caps": {
+    "max_ot_sinkhorn_residual": 1e-05,
+    "median_bootstrap_abs_log_likelihood_delta_to_kalman": 5.0,
+    "median_bootstrap_filtered_mean_rmse_to_kalman": 0.5,
+    "median_ot_abs_log_likelihood_delta_to_kalman": 8.0,
+    "median_ot_filtered_mean_rmse_to_kalman": 0.75
+  }
+}

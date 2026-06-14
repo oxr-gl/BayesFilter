@@ -1,0 +1,127 @@
+{
+  "schema_version": "filter_bench.dpf_minimal_matrix.v1",
+  "metadata_date": "2026-06-10",
+  "phase": "FILTER_BENCH_P5",
+  "status": "PASS_FILTER_BENCH_P5_DPF_FILTERS",
+  "coverage_manifest": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-dpf-filter-coverage-2026-06-10.json",
+  "purpose": "Minimal P5 matrix proving that DPF value status, gradient status, adapter blockers, and historical supersession survive matrix emission before P7/P8.",
+  "algorithms": [
+    "bootstrap_dpf_current",
+    "ledh_pfpf_alg1_ukf_current"
+  ],
+  "model_columns": [
+    "lgssm_exact_kalman_dim_1_2_3",
+    "p44_cubic_additive_gaussian_dim_1_2_3",
+    "sv_exact_transformed_actual_nongaussian_dim_1_2_3",
+    "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18"
+  ],
+  "value_error_matrix": {
+    "bootstrap_dpf_current": {
+      "lgssm_exact_kalman_dim_1_2_3": {
+        "value_error": 0.18,
+        "status": "VALID_DIAGNOSTIC",
+        "mc_standard_error": 0.21,
+        "reason_codes": ["STOCHASTIC_GRADIENT_DIAGNOSTIC"]
+      },
+      "p44_cubic_additive_gaussian_dim_1_2_3": {
+        "value_error": null,
+        "status": "ADAPTER_REQUIRED_WITH_REASON",
+        "reason_codes": ["ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"]
+      },
+      "sv_exact_transformed_actual_nongaussian_dim_1_2_3": {
+        "value_error": null,
+        "status": "ADAPTER_REQUIRED_WITH_REASON",
+        "reason_codes": ["ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"]
+      },
+      "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18": {
+        "value_error": null,
+        "status": "BLOCKED_VALUE_ROUTE",
+        "reason_codes": ["BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"]
+      }
+    },
+    "ledh_pfpf_alg1_ukf_current": {
+      "lgssm_exact_kalman_dim_1_2_3": {
+        "value_error": 0.42,
+        "status": "VALID_DIAGNOSTIC",
+        "mc_standard_error": 0.21,
+        "reason_codes": ["FIXED_BRANCH_GRADIENT_DIAGNOSTIC"]
+      },
+      "p44_cubic_additive_gaussian_dim_1_2_3": {
+        "value_error": 0.014,
+        "status": "VALID_DIAGNOSTIC",
+        "mc_standard_error": 0.008,
+        "reason_codes": ["FIXED_BRANCH_GRADIENT_DIAGNOSTIC"]
+      },
+      "sv_exact_transformed_actual_nongaussian_dim_1_2_3": {
+        "value_error": null,
+        "status": "ADAPTER_REQUIRED_WITH_REASON",
+        "reason_codes": ["ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"]
+      },
+      "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18": {
+        "value_error": null,
+        "status": "BLOCKED_VALUE_ROUTE",
+        "reason_codes": ["BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"]
+      }
+    }
+  },
+  "gradient_status_matrix": {
+    "bootstrap_dpf_current": {
+      "lgssm_exact_kalman_dim_1_2_3": {
+        "gradient_error": null,
+        "gradient_status": "resampling_gradient_not_valid",
+        "reason_codes": ["RESAMPLING_GRADIENT_NOT_VALID"]
+      },
+      "p44_cubic_additive_gaussian_dim_1_2_3": {
+        "gradient_error": null,
+        "gradient_status": "adapter_required",
+        "reason_codes": ["ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"]
+      },
+      "sv_exact_transformed_actual_nongaussian_dim_1_2_3": {
+        "gradient_error": null,
+        "gradient_status": "adapter_required",
+        "reason_codes": ["ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"]
+      },
+      "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18": {
+        "gradient_error": null,
+        "gradient_status": "blocked_value_route",
+        "reason_codes": ["BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"]
+      }
+    },
+    "ledh_pfpf_alg1_ukf_current": {
+      "lgssm_exact_kalman_dim_1_2_3": {
+        "gradient_error": null,
+        "gradient_status": "fixed_branch_gradient_diagnostic",
+        "reason_codes": ["FIXED_BRANCH_GRADIENT_DIAGNOSTIC"]
+      },
+      "p44_cubic_additive_gaussian_dim_1_2_3": {
+        "gradient_error": null,
+        "gradient_status": "fixed_branch_gradient_diagnostic",
+        "reason_codes": ["FIXED_BRANCH_GRADIENT_DIAGNOSTIC"]
+      },
+      "sv_exact_transformed_actual_nongaussian_dim_1_2_3": {
+        "gradient_error": null,
+        "gradient_status": "adapter_required",
+        "reason_codes": ["ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"]
+      },
+      "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18": {
+        "gradient_error": null,
+        "gradient_status": "blocked_value_route",
+        "reason_codes": ["BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"]
+      }
+    }
+  },
+  "historical_only_records": [
+    {
+      "algorithm_id": "ledh_pfpf_ot_historical",
+      "matrix_status": "HISTORICAL_ONLY_NOT_EVIDENCE",
+      "current_evidence": false,
+      "reason_codes": ["HISTORICAL_LEDHPFPF_OT_SUPERSEDED"]
+    }
+  ],
+  "nonclaims": [
+    "minimal matrix is not P8 benchmark evidence",
+    "diagnostic value errors are fixture values only",
+    "gradient statuses are preserved, not certified",
+    "old LEDH-PFPF-OT is historical-only"
+  ]
+}

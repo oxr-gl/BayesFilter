@@ -1,0 +1,159 @@
+{
+  "schema_version": "p50.hmc_readiness_tiers.v1",
+  "metadata_date": "2026-06-09",
+  "phase": "P50-M7",
+  "tiers": [
+    {
+      "tier": "TIER_0_VALUE_PATH",
+      "question": "Is the deterministic value path finite, reproducible, and reference-checked for the declared target?",
+      "required_evidence": [
+        "finite log likelihood",
+        "deterministic replay when branch is fixed",
+        "declared value reference or scoped diagnostic status"
+      ],
+      "pass_status": "passed_for_m2_m3_and_scoped_m5_m6_rows",
+      "cannot_conclude": [
+        "gradient correctness",
+        "HMC readiness",
+        "production readiness"
+      ]
+    },
+    {
+      "tier": "TIER_1_LOCAL_VALUE_AND_GRADIENT",
+      "question": "Do local value and gradient diagnostics pass under the M4 calibration rules?",
+      "required_evidence": [
+        "finite gradient",
+        "same-target reference when promoted",
+        "gradient norm error",
+        "directional residuals",
+        "no value-only promotion"
+      ],
+      "pass_status": "passed_only_for_strict_m5_sv_rows_and_existing_p47_generalized_sv_score_diagnostic",
+      "blocked_status": "blocked_or_diagnostic_for_m6_nonlinear_rows",
+      "cannot_conclude": [
+        "leapfrog stability",
+        "sampler health",
+        "production HMC readiness"
+      ]
+    },
+    {
+      "tier": "TIER_2_HAMILTONIAN_LEAPFROG",
+      "question": "Does a deterministic Hamiltonian integrator preserve energy and remain reversible on the declared target?",
+      "required_evidence": [
+        "fixed mass matrix or adaptation contract",
+        "energy error bound",
+        "reversibility error bound",
+        "multiple step sizes",
+        "no hidden stochastic branch"
+      ],
+      "pass_status": "not_run",
+      "blocked_status": "blocked_not_requested_in_p50_m7",
+      "cannot_conclude": [
+        "leapfrog stability",
+        "HMC readiness"
+      ]
+    },
+    {
+      "tier": "TIER_3_SHORT_CHAIN_SAMPLER",
+      "question": "Do short HMC or NUTS chains have acceptable sampler diagnostics against an appropriate reference?",
+      "required_evidence": [
+        "declared prior and posterior target",
+        "divergence count",
+        "acceptance diagnostics",
+        "R-hat or effective sample diagnostics when applicable",
+        "posterior/reference agreement check",
+        "multi-seed or justified single-seed scope"
+      ],
+      "pass_status": "not_run",
+      "blocked_status": "blocked_not_requested_in_p50_m7",
+      "cannot_conclude": [
+        "sampler health",
+        "production HMC readiness"
+      ]
+    },
+    {
+      "tier": "TIER_4_PRODUCTION_HMC",
+      "question": "Is the target ready for production HMC workflows?",
+      "required_evidence": [
+        "TIER_0 through TIER_3 pass for the same target",
+        "production model-row pass where applicable",
+        "resource and reproducibility manifest",
+        "no unresolved numerical veto"
+      ],
+      "pass_status": "not_passed",
+      "blocked_status": "blocked_by_missing_tier2_tier3_and_production_rows",
+      "cannot_conclude": [
+        "production HMC readiness"
+      ]
+    }
+  ],
+  "rows": [
+    {
+      "row_id": "sv_strict_rows",
+      "targets": [
+        "KSC CUT4/Kalman dim 1/2/3",
+        "exact transformed SV Zhao-Cui/dense dim 1/2/3"
+      ],
+      "highest_supported_tier": "TIER_1_LOCAL_VALUE_AND_GRADIENT",
+      "hmc_readiness_status": "blocked_tier2_tier3_not_run",
+      "nonclaims": [
+        "no HMC readiness",
+        "no production SV readiness"
+      ]
+    },
+    {
+      "row_id": "generalized_sv_native",
+      "targets": [
+        "native generalized SV same-target"
+      ],
+      "highest_supported_tier": "TIER_0_VALUE_PATH_BLOCKED",
+      "hmc_readiness_status": "blocked_reference_missing",
+      "nonclaims": [
+        "no native generalized SV same-target equality",
+        "no HMC readiness"
+      ]
+    },
+    {
+      "row_id": "spatial_sir_predator_prey_lower_rung",
+      "targets": [
+        "spatial SIR lower-rung",
+        "predator-prey lower-rung"
+      ],
+      "highest_supported_tier": "TIER_0_VALUE_PATH",
+      "hmc_readiness_status": "blocked_uncertified_gradient_or_production_blocker",
+      "nonclaims": [
+        "no certified nonlinear-model gradient correctness",
+        "no HMC readiness",
+        "no production readiness"
+      ]
+    }
+  ],
+  "promotion_rule": {
+    "hmc_ready_requires": [
+      "TIER_0_VALUE_PATH",
+      "TIER_1_LOCAL_VALUE_AND_GRADIENT",
+      "TIER_2_HAMILTONIAN_LEAPFROG",
+      "TIER_3_SHORT_CHAIN_SAMPLER"
+    ],
+    "production_hmc_ready_requires": [
+      "TIER_4_PRODUCTION_HMC"
+    ],
+    "finite_gradient_is_not_hmc_ready": true,
+    "short_chain_without_veto_checks_is_not_hmc_ready": true,
+    "cpu_only_runs_make_no_gpu_claim": true
+  },
+  "phase_decision": {
+    "status": "PASS_TIER_DEFINITIONS_AND_GUARDS_NO_HMC_READY_PROMOTION",
+    "reason": "P50-M7 defines the HMC readiness ladder and preserves current rows as Tier 0/Tier 1 or blocked; Tier 2, Tier 3, and production HMC readiness are not run or passed"
+  },
+  "nonclaims": [
+    "no HMC readiness",
+    "no production HMC readiness",
+    "no sampler health claim",
+    "no leapfrog stability claim",
+    "no GPU readiness",
+    "no stable top-level score API",
+    "no source-faithful adaptive TT/SIRT filtering",
+    "no S&P 500 reproduction"
+  ]
+}

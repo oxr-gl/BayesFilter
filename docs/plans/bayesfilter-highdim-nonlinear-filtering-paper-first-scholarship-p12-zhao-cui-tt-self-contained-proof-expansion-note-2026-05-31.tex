@@ -1,0 +1,875 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,mathtools,amsthm}
+\usepackage{booktabs,longtable}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\TT}{\mathrm{TT}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\calX}{\mathcal{X}}
+\newcommand{\calR}{\mathcal{R}}
+\newcommand{\calB}{\mathcal{B}}
+\newcommand{\calM}{\mathcal{M}}
+\newcommand{\calF}{\mathcal{F}}
+\newcommand{\dotp}{\partial_i}
+
+\newtheorem{proposition}{Proposition}
+\newtheorem{corollary}{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{assumption}{Assumption}
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+
+\title{Self-Contained Fixed-Branch Proofs for Zhao--Cui Tensor-Train Sequential Filtering}
+\author{BayesFilter P12 Proof Expansion Note}
+\date{2026-05-31}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note expands the fixed-branch Zhao--Cui tensor-train derivative contract
+into a self-contained proof document.  It first derives the ordinary Bayesian
+filtering recursion, then explains the Zhao--Cui squared tensor-train
+construction in BayesFilter notation, and finally introduces a deterministic
+fixed-branch variant.  Two propositions are proved.  Proposition 1 proves that
+the fixed-branch squared-TT recursion defines a normalized nonnegative
+approximate Bayesian filter.  Proposition 2 proves that the analytical gradient
+is the exact derivative of the declared approximate scalar
+\[
+  \widehat\ell_T^{\TT}(\alpha)
+  =
+  \sum_{t=1}^T\{\log \widehat z_t(\alpha)-c_t(\alpha)\}.
+\]
+The proofs are for the declared fixed branch only.  They do not prove posterior
+accuracy, HMC convergence, or differentiability of the adaptive TT-cross,
+rank-changing, sample-changing companion code.
+\end{abstract}
+
+\section{Introduction And Reader Contract}
+
+The problem is sequential inference in a state-space model.  At each time
+\(t\), one wants a filtering density over the current state and unknown
+parameters after seeing data \(y_{1:t}\).  The exact density is usually not
+available in closed form.  Zhao and Cui propose to approximate the
+high-dimensional density that appears inside the filtering recursion by a
+tensor-train (TT) representation of a square-root density, then square that TT
+and add a small defensive term so the resulting approximation is nonnegative.
+The squared representation also gives marginal densities and conditional
+Knothe--Rosenblatt (KR) maps.
+
+This note separates three statements.
+
+\begin{enumerate}[leftmargin=*]
+\item The Zhao--Cui construction is a source-grounded high-dimensional
+sequential approximation strategy.  This is supported by their Algorithm 1,
+their squared-TT construction around their equation (13), Algorithm 2, and
+their discussion of the evidence normalizer in Section 4.1
+\cite{zhao-cui-2024}.
+\item The BayesFilter fixed-branch variant is a mathematically declared
+approximate filtering recursion.  The proof is a project derivation: it shows
+that the output densities are nonnegative and normalized.
+\item The fixed-branch analytical gradient differentiates the same approximate
+scalar that the fixed-branch recursion computes.  This is also a project
+derivation.  It requires fixed TT ranks, fixed interpolation or least-squares
+systems, fixed basis maps, fixed random/debug arrays, fixed rounding choices,
+fixed QR/SVD/Cholesky branches, and a declared rule for the stabilizing
+constant.
+\end{enumerate}
+
+The note does not prove that the approximation equals the exact posterior
+filter.  It proves correctness of the approximate recursion and correctness of
+the gradient for the declared approximate scalar.  Accuracy must be studied by
+approximation theory or numerical experiments.
+
+\section{State-Space Filtering From First Principles}
+
+Let \(x_t\in\calX_t\subseteq\R^{d_x}\) be the state at time \(t\), let
+\(\vartheta\in\Theta\subseteq\R^{d_\vartheta}\) be a static parameter, and let
+\(y_t\) be the observed datum.  A dominated state-space model specifies
+
+\[
+  p_0(x_0,\vartheta),\qquad
+  f_\alpha(x_t\mid x_{t-1},\vartheta),\qquad
+  g_\alpha(y_t\mid x_t,\vartheta),
+\]
+
+where \(\alpha\) denotes an external model parameter with respect to which a
+future likelihood-gradient calculation may differentiate.  The parameter
+\(\vartheta\) is a random coordinate in the filtering distribution; \(\alpha\)
+is the coordinate of the scalar derivative in this note.
+
+Assume that the filter at time \(t-1\) has density
+\[
+  p_{t-1}(x_{t-1},\vartheta\mid y_{1:t-1})
+\]
+with respect to \(\dd x_{t-1}\dd\vartheta\).  The prediction density is obtained
+by integrating over the previous state:
+\[
+  p(x_t,\vartheta\mid y_{1:t-1})
+  =
+  \int
+  f_\alpha(x_t\mid x_{t-1},\vartheta)
+  p_{t-1}(x_{t-1},\vartheta\mid y_{1:t-1})
+  \,\dd x_{t-1}.
+  \label{eq:p12-prediction}
+\]
+Bayes' rule then gives the unnormalized update
+\[
+  \tilde p_t(x_t,\vartheta)
+  =
+  g_\alpha(y_t\mid x_t,\vartheta)
+  p(x_t,\vartheta\mid y_{1:t-1}).
+\]
+Its integral
+\[
+  Z_t(\alpha)
+  =
+  \int
+  g_\alpha(y_t\mid x_t,\vartheta)
+  f_\alpha(x_t\mid x_{t-1},\vartheta)
+  p_{t-1}(x_{t-1},\vartheta\mid y_{1:t-1})
+  \,\dd x_{t-1}\dd x_t\dd\vartheta
+  \label{eq:p12-exact-evidence-increment}
+\]
+is the one-step evidence increment \(p_\alpha(y_t\mid y_{1:t-1})\).  The exact
+filter is therefore
+\[
+  p_t(x_t,\vartheta\mid y_{1:t})
+  =
+  \frac{
+  g_\alpha(y_t\mid x_t,\vartheta)
+  \int f_\alpha(x_t\mid x_{t-1},\vartheta)
+  p_{t-1}(x_{t-1},\vartheta\mid y_{1:t-1})\,\dd x_{t-1}
+  }
+  {Z_t(\alpha)}.
+  \label{eq:p12-exact-filter}
+\]
+
+It is often useful to keep the previous state inside the object being
+approximated.  Define
+\[
+  u_t=(x_t,\vartheta,x_{t-1})
+\]
+and
+\[
+  q_t(u_t;\alpha)
+  =
+  p_{t-1}(x_{t-1},\vartheta\mid y_{1:t-1})
+  f_\alpha(x_t\mid x_{t-1},\vartheta)
+  g_\alpha(y_t\mid x_t,\vartheta).
+  \label{eq:p12-exact-joint-q}
+\]
+Then \(Z_t(\alpha)=\int q_t(u_t;\alpha)\,\dd u_t\), and the exact filter is
+the marginal of the normalized joint density \(q_t/Z_t\) over the old state:
+\[
+  p_t(x_t,\vartheta\mid y_{1:t})
+  =
+  \int
+  \frac{q_t(x_t,\vartheta,x_{t-1};\alpha)}{Z_t(\alpha)}
+  \,\dd x_{t-1}.
+  \label{eq:p12-exact-filter-marginal}
+\]
+This is the mathematical reason Zhao--Cui approximate the nonseparable density
+over \((x_t,\vartheta,x_{t-1})\): once this joint object can be represented and
+integrated, filtering and evidence increments follow by normalization and
+marginalization.
+
+\section{Tensor Trains From First Principles}
+
+A tensor train is a separated representation of a high-dimensional function.
+Let \(r=(r_1,\ldots,r_D)\) and let \(\{b_{k,a}\}_{a=1}^{n_k}\) be basis
+functions for the \(k\)-th coordinate.  A scalar function \(\phi(r)\) has a
+functional TT representation if
+\[
+  \phi(r)
+  =
+  G_1(r_1)G_2(r_2)\cdots G_D(r_D),
+  \label{eq:p12-tt-evaluation}
+\]
+where
+\[
+  G_k(r_k)\in\R^{\rho_{k-1}\times\rho_k},\qquad
+  \rho_0=\rho_D=1.
+\]
+The integers \(\rho_k\) are TT ranks.  Each matrix-valued core can be expanded
+in the one-dimensional basis:
+\[
+  G_k(r_k)
+  =
+  \sum_{a=1}^{n_k} C_{k,a} b_{k,a}(r_k),
+  \qquad
+  C_{k,a}\in\R^{\rho_{k-1}\times\rho_k}.
+  \label{eq:p12-core-expansion}
+\]
+Evaluation of \(\phi(r)\) is a chain of matrix multiplications, rather than a
+full tensor-product sum over \(n_1\cdots n_D\) coefficients.
+
+If \(\nu=\nu_1\otimes\cdots\otimes\nu_D\) is the reference measure used by the
+basis, define one-dimensional mass matrices
+\[
+  M_k[a,b]
+  =
+  \int b_{k,a}(r_k)b_{k,b}(r_k)\,\dd\nu_k(r_k).
+  \label{eq:p12-mass-matrix}
+\]
+The integral of \(\phi^2\) is obtained by the backward contractions
+\[
+  R_D=1,\qquad
+  R_{k-1}
+  =
+  \sum_{a,b=1}^{n_k}
+  M_k[a,b]\,C_{k,a}R_kC_{k,b}^\top,
+  \qquad k=D,\ldots,1.
+  \label{eq:p12-mass-contraction}
+\]
+Then \(R_0=\int \phi(r)^2\,\dd\nu(r)\).  The contraction is exact for the
+declared TT cores and mass matrices; approximation enters through the
+construction of the cores, not through this algebraic contraction.
+
+\section{Zhao--Cui Sequential Squared-TT Algorithm}
+
+Zhao--Cui's Algorithm 1 constructs, at each time \(t\), a nonseparable density
+over \((x_t,\vartheta,x_{t-1})\), approximates it in TT form, integrates the
+approximation to get a normalizer, and marginalizes to obtain the next
+filtering object \cite{zhao-cui-2024}.  In their notation, the core density is
+the analogue of
+\[
+  q_t(x_t,\vartheta,x_{t-1})
+  =
+  \widehat\pi_{t-1}(x_{t-1},\vartheta\mid y_{1:t-1})
+  f(x_t\mid x_{t-1},\vartheta)
+  g(y_t\mid x_t,\vartheta).
+  \label{eq:p12-zc-q}
+\]
+The exact integral of \(q_t\) is the evidence increment for the exact filter if
+\(\widehat\pi_{t-1}\) is exact; with \(\widehat\pi_{t-1}\) approximate, it is
+the evidence increment for the declared approximate recursion.
+
+The squared-TT construction approximates the square root of an unnormalized
+nonnegative density by a TT:
+\[
+  \sqrt{q_t(u_t)}
+  \approx
+  \phi_t(u_t)
+  =
+  G_{t,1}(u_{t,1})\cdots G_{t,D}(u_{t,D}).
+\]
+Instead of using a sign-changing TT density directly, Zhao--Cui square the TT
+and add a defensive density:
+\[
+  \widehat q_t(u_t)
+  =
+  \phi_t(u_t)^2+\tau_t\lambda_t(u_t),
+  \qquad
+  \tau_t\ge0,\quad
+  \lambda_t\ge0,\quad
+  \int\lambda_t=1.
+  \label{eq:p12-squared-tt-density}
+\]
+The approximate normalizer is
+\[
+  \widehat Z_t
+  =
+  \int \widehat q_t(u_t)\,\dd u_t.
+  \label{eq:p12-squared-tt-normalizer}
+\]
+Zhao--Cui's Section 4.1 identifies the corresponding exact joint normalizer as
+evidence; their Algorithm 2 applies the squared-TT construction sequentially.
+The companion code follows the same scalar path:
+\texttt{models/full\_sol.m} updates
+\texttt{logmarginal\_likelihood} by \texttt{log(sirt.z)-const}, while
+\texttt{@TTSIRT/marginalise.m} sets
+\texttt{obj.z = obj.fun\_z + obj.tau}.
+
+The conditional KR transport is a sampling and conditioning mechanism built
+from marginal and conditional densities obtained by integrating the squared TT
+\cite{zhao-cui-2024,cui-dolgov-2022}.  For the two propositions below, the
+transport role is secondary: we need only the nonnegative squared-TT density,
+its normalizer, and the marginalization that produces the next filter.  The KR
+maps explain how the same approximation can also generate samples, smoothing
+paths, and conditional parameter/state draws.
+
+\paragraph{Published-style recursion.}
+At a high level, the Zhao--Cui-style squared-TT filtering recursion is:
+\begin{enumerate}[leftmargin=*]
+\item Start from a prior or previous approximate filter
+  \(\widehat p_{t-1}(x_{t-1},\vartheta)\).
+\item Form the unnormalized joint density \(q_t\) in
+  \eqref{eq:p12-zc-q}.
+\item Build a TT approximation \(\phi_t\approx\sqrt{q_t}\) using the selected
+  basis, variable ordering, TT-cross/ALS/rank policy, and coordinate maps.
+\item Define \(\widehat q_t=\phi_t^2+\tau_t\lambda_t\) and compute
+  \(\widehat Z_t=\int\widehat q_t\).
+\item Normalize and marginalize:
+  \[
+    \widehat p_t(x_t,\vartheta)
+    =
+    \int
+    \widehat q_t(x_t,\vartheta,x_{t-1})/\widehat Z_t
+    \,\dd x_{t-1}.
+  \]
+\item Use the marginal and conditional densities implied by the squared TT to
+  build conditional KR maps when sampling, smoothing, or parameter/state draws
+  are needed.
+\end{enumerate}
+
+The published and companion-code algorithms adapt many choices: cross or
+interpolation points, ranks, truncations, random/debug samples, stopping
+decisions, preconditioner branches, and QR/SVD signs or active subspaces.  Such
+adaptation is natural for filtering.  It is not a single globally smooth map
+from model parameter to likelihood scalar.  That is why the next section
+declares a fixed branch.
+
+\section{Fixed-Branch TT Filtering Variant}
+
+\begin{definition}[Fixed branch]
+A fixed branch consists of fixed state ordering, basis families, reference
+domains, interpolation or cross sets, TT ranks, local solve schedule, ALS sweep
+count, random/debug sample arrays, truncation decisions, QR/SVD/Cholesky signs
+and active ranks, defensive density \(\lambda_t\), defensive mass rule
+\(\tau_t\), coordinate maps, and the stabilizing constant rule \(c_t\).  Along
+this branch, each of these choices is treated as a declared smooth object or as
+a fixed numerical object.
+\end{definition}
+
+The stabilizing constant appears because the code approximates a shifted
+potential.  If \(V_{t,0}\) is an unshifted potential and
+\[
+  V_t(r;\alpha)=V_{t,0}(r;\alpha)-c_t(\alpha),
+\]
+then the shifted normalizer \(\widehat z_t\) corresponds to the original-scale
+increment \(\exp(-c_t)\widehat z_t\).  Thus the declared scalar is
+\[
+  \widehat\ell_T^{\TT}(\alpha)
+  =
+  \sum_{t=1}^T\{\log\widehat z_t(\alpha)-c_t(\alpha)\}.
+  \label{eq:p12-declared-scalar}
+\]
+If a future implementation freezes \(c_t\) numerically rather than
+differentiating the selected branch rule, it must name a different scalar.
+
+\paragraph{Fixed-branch recursion.}
+Given \(\widehat p_{t-1}^{\TT}\), the fixed-branch step is:
+\begin{enumerate}[leftmargin=*]
+\item form \(q_t\) from \(\widehat p_{t-1}^{\TT}\), \(f_\alpha\), and
+  \(g_\alpha\);
+\item apply the fixed coordinate/basis maps and stabilizing constant;
+\item solve the fixed TT-core construction problem, giving cores
+  \(G_{t,1},\ldots,G_{t,D}\);
+\item define \(\widehat q_t=\phi_t^2+\tau_t\lambda_t\) and
+  \(\widehat z_t=\int\widehat q_t\);
+\item normalize and marginalize to obtain
+  \(\widehat p_t^{\TT}\);
+\item store every branch object needed to reproduce the same scalar and its
+  derivative.
+\end{enumerate}
+The fixed branch is less adaptive than the research code.  Its purpose is not
+to improve filtering accuracy.  Its purpose is to define a deterministic
+approximate scalar and a same-scalar analytical gradient.
+
+\section{Proposition 1: Fixed-Branch TT Recursion Is A Normalized Approximate Filter}
+
+\begin{assumption}[Dominated fixed-branch recursion]
+For every \(t\), all state and parameter densities are dominated by fixed
+measures.  The previous approximate filter
+\(\widehat p_{t-1}^{\TT}\) is nonnegative and integrates to one.  The transition
+and observation densities \(f_\alpha\) and \(g_\alpha\) are nonnegative and
+measurable.  The fixed branch produces a measurable square-root approximation
+\(\phi_t\).  The defensive density satisfies \(\lambda_t\ge0\) and
+\(\int\lambda_t=1\).  The defensive mass satisfies \(\tau_t\ge0\).  Finally,
+\[
+  0<\widehat z_t(\alpha)
+  =
+  \int\{\phi_t(u_t;\alpha)^2+\tau_t(\alpha)\lambda_t(u_t)\}\,\dd u_t
+  <\infty.
+\]
+\end{assumption}
+
+\begin{proposition}[Fixed-branch squared-TT recursion defines a normalized approximate filter]
+Under the dominated fixed-branch recursion assumptions, define
+\[
+  q_t(u_t;\alpha)
+  =
+  \widehat p_{t-1}^{\TT}(x_{t-1},\vartheta;\alpha)
+  f_\alpha(x_t\mid x_{t-1},\vartheta)
+  g_\alpha(y_t\mid x_t,\vartheta),
+\]
+\[
+  \widehat q_t(u_t;\alpha)
+  =
+  \phi_t(u_t;\alpha)^2+\tau_t(\alpha)\lambda_t(u_t),
+  \qquad
+  \widehat\pi_t(u_t;\alpha)
+  =
+  \frac{\widehat q_t(u_t;\alpha)}{\widehat z_t(\alpha)},
+\]
+and
+\[
+  \widehat p_t^{\TT}(x_t,\vartheta;\alpha)
+  =
+  \int
+  \widehat\pi_t(x_t,\vartheta,x_{t-1};\alpha)
+  \,\dd x_{t-1}.
+  \label{eq:p12-fixed-filter-marginal}
+\]
+Then \(\widehat p_t^{\TT}\) is a nonnegative normalized density.  By induction
+from a normalized prior, the recursion defines a sequence of normalized
+approximate filtering densities.
+\end{proposition}
+
+\begin{proof}
+The function \(\phi_t^2\) is nonnegative pointwise, and
+\(\tau_t\lambda_t\) is nonnegative because \(\tau_t\ge0\) and
+\(\lambda_t\ge0\).  Hence \(\widehat q_t\ge0\).  By assumption,
+\(\widehat z_t=\int\widehat q_t\) is finite and strictly positive, so
+\(\widehat\pi_t=\widehat q_t/\widehat z_t\) is well defined and nonnegative.
+Moreover,
+\[
+  \int \widehat\pi_t(u_t;\alpha)\,\dd u_t
+  =
+  \frac{1}{\widehat z_t(\alpha)}
+  \int \widehat q_t(u_t;\alpha)\,\dd u_t
+  =
+  1.
+\]
+Now integrate the marginal in \eqref{eq:p12-fixed-filter-marginal}.  Tonelli's
+theorem applies to the nonnegative integrand, so
+\[
+\begin{aligned}
+  \int \widehat p_t^{\TT}(x_t,\vartheta;\alpha)\,\dd x_t\dd\vartheta
+  &=
+  \int\int
+  \widehat\pi_t(x_t,\vartheta,x_{t-1};\alpha)
+  \,\dd x_{t-1}\dd x_t\dd\vartheta\\
+  &=
+  \int\widehat\pi_t(u_t;\alpha)\,\dd u_t
+  =
+  1.
+\end{aligned}
+\]
+Thus the marginal is nonnegative and normalized.  The base case is the
+normalized prior.  If \(\widehat p_{t-1}^{\TT}\) is normalized, the argument
+above proves that \(\widehat p_t^{\TT}\) is normalized.  Induction over \(t\)
+therefore proves the claim.
+\end{proof}
+
+\begin{corollary}[Exactness only under zero approximation error]
+If, at every time \(t\), the fixed-branch squared-TT object satisfies
+\(\widehat q_t(u_t;\alpha)=q_t(u_t;\alpha)\) almost everywhere and no shifted
+constant changes the scale, then \(\widehat z_t=Z_t\) and the recursion
+recovers the exact Bayesian filtering recursion.  Otherwise it is a normalized
+approximate filtering recursion.
+\end{corollary}
+
+\begin{proof}
+If \(\widehat q_t=q_t\), then their integrals agree, so
+\(\widehat z_t=Z_t\).  The normalized joint density
+\(\widehat q_t/\widehat z_t\) equals \(q_t/Z_t\), and marginalizing out
+\(x_{t-1}\) gives the exact filter by \eqref{eq:p12-exact-filter-marginal}.
+If \(\widehat q_t\ne q_t\), Proposition 1 still proves normalization and
+nonnegativity, but it does not imply equality with the exact posterior.
+\end{proof}
+
+\section{Proposition 2: Same-Scalar Analytical Gradient}
+
+\begin{assumption}[Fixed-branch differentiability]
+The assumptions of Proposition 1 hold.  In addition, all branch choices are
+fixed.  Along that branch, the model densities, previous approximate filter,
+coordinate maps, basis maps, core coefficients, defensive mass
+\(\tau_t\), and stabilizing constant \(c_t\) are differentiable in the external
+parameter coordinate \(\alpha_i\).  Differentiation may be interchanged with
+the finite contractions and with the displayed integrals.  Fixed interpolation
+or least-squares systems used to construct TT cores are nonsingular, or a
+specific differentiable pseudoinverse branch is declared.  Each normalizer
+\(\widehat z_t\) is positive.
+\end{assumption}
+
+\begin{proposition}[Analytical gradient differentiates the declared fixed-branch approximate likelihood]
+Under the fixed-branch differentiability assumptions, the derivative of
+\[
+  \widehat\ell_T^{\TT}(\alpha)
+  =
+  \sum_{t=1}^T
+  \{\log\widehat z_t(\alpha)-c_t(\alpha)\}
+\]
+is
+\[
+  \partial_i\widehat\ell_T^{\TT}(\alpha)
+  =
+  \sum_{t=1}^T
+  \left[
+  \frac{\partial_i\widehat z_t(\alpha)}{\widehat z_t(\alpha)}
+  -
+  \partial_i c_t(\alpha)
+  \right],
+  \label{eq:p12-score-general}
+\]
+where
+\[
+  \partial_i\widehat z_t
+  =
+  2\int\phi_t(u;\alpha)\partial_i\phi_t(u;\alpha)\,\dd u
+  +
+  \partial_i\tau_t
+  \label{eq:p12-z-derivative-integral}
+\]
+when the defensive density \(\lambda_t\) is fixed and normalized.  If
+\(\lambda_t\) also depends on \(\alpha_i\), then the extra term
+\(\tau_t\int\partial_i\lambda_t\,\dd u\) appears; it vanishes for normalized
+fixed-support \(\lambda_t\) because \(\partial_i\int\lambda_t=0\).
+Moreover, when the TT cores are produced by the displayed fixed interpolation
+or fixed weighted least-squares equations, the core sensitivities are obtained
+by differentiating exactly those equations, and the recursion includes the
+previous-filter derivative in \eqref{eq:p12-prev-filter-derivative}.
+\end{proposition}
+
+\begin{proof}
+The scalar is a finite sum of differentiable terms on the fixed branch.  Since
+\(\widehat z_t>0\),
+\[
+  \partial_i\{\log\widehat z_t-c_t\}
+  =
+  \frac{\partial_i\widehat z_t}{\widehat z_t}
+  -
+  \partial_i c_t.
+\]
+Summing over \(t\) proves \eqref{eq:p12-score-general}.  Next,
+\[
+  \widehat z_t
+  =
+  \int \{\phi_t(u;\alpha)^2+\tau_t(\alpha)\lambda_t(u)\}\,\dd u.
+\]
+By the assumed interchange of differentiation and integration,
+\[
+  \partial_i\widehat z_t
+  =
+  \int 2\phi_t(u;\alpha)\partial_i\phi_t(u;\alpha)\,\dd u
+  +
+  \partial_i\tau_t\int\lambda_t(u)\,\dd u.
+\]
+Because \(\int\lambda_t=1\), this gives
+\eqref{eq:p12-z-derivative-integral}.
+
+It remains to derive \(\partial_i\phi_t\) from the same computation path.  If
+\[
+  \phi_t(u)=G_{t,1}(u_1)\cdots G_{t,D}(u_D),
+\]
+then repeated use of the product rule gives
+\[
+  \partial_i\phi_t(u)
+  =
+  \sum_{k=1}^D
+  G_{t,1}(u_1)\cdots
+  \partial_iG_{t,k}(u_k)\cdots
+  G_{t,D}(u_D).
+  \label{eq:p12-tt-product-rule}
+\]
+Write each core in a fixed basis:
+\[
+  G_{t,k}(u_k)
+  =
+  \sum_{a=1}^{n_k}C_{t,k,a}b_{k,a}(u_k).
+\]
+When the basis is fixed, the derivative of the core is obtained by replacing
+\(C_{t,k,a}\) with \(\partial_iC_{t,k,a}\).  This is not an
+extra approximation: it is the coordinate derivative of the same core
+expansion.
+
+Using the mass matrices \(M_k\) in \eqref{eq:p12-mass-matrix}, define
+\[
+  R_{t,D}=1,\qquad
+  R_{t,k-1}
+  =
+  \sum_{a,b=1}^{n_k}
+  M_k[a,b]\,C_{t,k,a}R_{t,k}C_{t,k,b}^\top.
+  \label{eq:p12-proof-contraction}
+\]
+Then the square part of the normalizer is \(R_{t,0}\), and the differentiated
+contraction is
+\[
+\begin{aligned}
+  \partial_i R_{t,k-1}
+  =
+  \sum_{a,b=1}^{n_k}M_k[a,b]\Big[
+  &(\partial_iC_{t,k,a})R_{t,k}C_{t,k,b}^\top
+  +C_{t,k,a}(\partial_iR_{t,k})C_{t,k,b}^\top\\
+  &+C_{t,k,a}R_{t,k}(\partial_iC_{t,k,b})^\top
+  \Big].
+  \label{eq:p12-contraction-derivative}
+\end{aligned}
+\]
+This is just the product rule applied to
+\(C_{t,k,a}R_{t,k}C_{t,k,b}^\top\), propagated backward from
+\(\partial_iR_{t,D}=0\).  Therefore the differentiated contraction is the
+derivative of the same direct mass-contraction value \(R_{t,0}\) used in the
+declared normalizer.
+
+Core sensitivities come from the fixed core-construction equations.  For an
+exact fixed interpolation equation
+\[
+  A_{t,k}(\alpha)g_{t,k}(\alpha)=b_{t,k}(\alpha),
+  \label{eq:p12-fixed-interpolation}
+\]
+differentiation gives
+\[
+  A_{t,k}\partial_i g_{t,k}
+  =
+  \partial_i b_{t,k}
+  -
+  (\partial_i A_{t,k})g_{t,k}.
+  \label{eq:p12-fixed-interpolation-derivative}
+\]
+because
+\[
+  \partial_i(A_{t,k}g_{t,k})
+  =
+  (\partial_iA_{t,k})g_{t,k}+A_{t,k}\partial_i g_{t,k}
+  =
+  \partial_i b_{t,k}.
+\]
+For a fixed weighted least-squares update
+\[
+  g_{t,k}
+  =
+  \arg\min_g
+  \|W_{t,k}^{1/2}(A_{t,k}g-b_{t,k})\|_2^2,
+\]
+with fixed \(W_{t,k}\) and full-rank
+\(N_{t,k}=A_{t,k}^\top W_{t,k}A_{t,k}\), the normal equations are
+\[
+  A_{t,k}^\top W_{t,k}A_{t,k}g_{t,k}
+  =
+  A_{t,k}^\top W_{t,k}b_{t,k}.
+\]
+Differentiating them gives
+\[
+\begin{aligned}
+  N_{t,k}\partial_i g_{t,k}
+  =
+  &(\partial_i A_{t,k})^\top W_{t,k}
+    (b_{t,k}-A_{t,k}g_{t,k})\\
+  &+
+  A_{t,k}^\top W_{t,k}
+  (\partial_i b_{t,k}-(\partial_iA_{t,k})g_{t,k}).
+  \label{eq:p12-ls-derivative}
+\end{aligned}
+\]
+The right hand side is computable from the fixed branch once the derivative of
+the target square-root evaluations is known.  It is also the derivative of the
+same least-squares update, because it is obtained by differentiating the
+normal equations that define that update.
+
+The target square-root evaluations depend recursively on the previous
+approximate filter.  From
+\[
+  q_t
+  =
+  \widehat p_{t-1}^{\TT}
+  f_\alpha
+  g_\alpha,
+\]
+where the arguments are those in \eqref{eq:p12-zc-q},
+\[
+  \partial_i\log q_t
+  =
+  \partial_i\log\widehat p_{t-1}^{\TT}
+  +
+  \partial_i\log f_\alpha
+  +
+  \partial_i\log g_\alpha.
+  \label{eq:p12-recursive-logq-derivative}
+\]
+If
+\[
+  \widehat p_{t-1}^{\TT}(v;\alpha)
+  =
+  a_{t-1}(v;\alpha)/\widehat z_{t-1}(\alpha),
+\]
+then
+\[
+  \partial_i\log\widehat p_{t-1}^{\TT}(v;\alpha)
+  =
+  \frac{\partial_i a_{t-1}(v;\alpha)}{a_{t-1}(v;\alpha)}
+  -
+  \frac{\partial_i\widehat z_{t-1}(\alpha)}
+       {\widehat z_{t-1}(\alpha)}.
+  \label{eq:p12-prev-filter-derivative}
+\]
+The numerator \(a_{t-1}\) is a marginal contraction of the previous squared-TT
+object.  To see the derivative explicitly, write the previous marginal
+numerator as
+\[
+  a_{t-1}(v;\alpha)
+  =
+  \int
+  \{\phi_{t-1}(v,w;\alpha)^2
+  +\tau_{t-1}(\alpha)\lambda_{t-1}(v,w)\}
+  \,\dd w,
+  \label{eq:p12-prev-marginal-numerator}
+\]
+where \(w\) denotes the coordinates eliminated from the previous joint
+approximation.  Under the same fixed-branch differentiation assumptions,
+\[
+  \partial_i a_{t-1}(v;\alpha)
+  =
+  2\int
+  \phi_{t-1}(v,w;\alpha)
+  \partial_i\phi_{t-1}(v,w;\alpha)
+  \,\dd w
+  +
+  \partial_i\tau_{t-1}(\alpha)
+  \int\lambda_{t-1}(v,w)\,\dd w,
+  \label{eq:p12-prev-marginal-derivative}
+\]
+with the corresponding \(\partial_i\lambda_{t-1}\) term if the defensive
+density itself is parameter-dependent.  In TT coordinates,
+\eqref{eq:p12-prev-marginal-derivative} is evaluated by the same marginal
+contraction used for \(a_{t-1}\), except that one core at a time is replaced
+by its differentiated core, exactly as in
+\eqref{eq:p12-tt-product-rule} and
+\eqref{eq:p12-contraction-derivative}.  Thus the derivative is recursive in
+time in the same way that the filtering density is recursive.
+
+Combining \eqref{eq:p12-score-general},
+\eqref{eq:p12-contraction-derivative}, and
+\eqref{eq:p12-prev-filter-derivative}, the direct mass-contraction version of
+the same-scalar score is
+\[
+  \boxed{
+  \partial_i\widehat\ell_T^{\TT}
+  =
+  \sum_{t=1}^T
+  \left[
+  \frac{\partial_iR_{t,0}+\partial_i\tau_t}
+       {R_{t,0}+\tau_t}
+  -
+  \partial_i c_t
+  \right].
+  }
+  \label{eq:p12-final-score}
+\]
+This is a full analytical gradient for the declared fixed-branch value path,
+provided the selected core-construction branch and all previous-filter
+contractions are differentiated by the displayed equations.
+\end{proof}
+
+\begin{corollary}[Adaptive code is not globally differentiated by this proof]
+If TT-cross pivots, ranks, random/debug samples, truncation decisions,
+preconditioner branches, QR/SVD active subspaces, selected minimizers for
+\(c_t\), or reapproximation triggers change with \(\alpha\), the formulas above
+remain derivatives of the frozen local branch only.  They are not a global
+ordinary derivative of the adaptive companion code.
+\end{corollary}
+
+\begin{proof}
+The proof of Proposition 2 assumes fixed differentiable equations.  A changed
+pivot set, rank, sample array, truncation, or selected minimizer changes the
+equations defining the scalar.  The derivative of one branch is therefore not
+the derivative of a single globally smooth map across branch changes.
+\end{proof}
+
+\section{Implementation Checklist}
+
+A future BayesFilter implementation of the fixed-branch variant must specify:
+\begin{longtable}{@{}p{0.29\linewidth}p{0.61\linewidth}@{}}
+\toprule
+Object & Required specification \\
+\midrule
+\endhead
+Filtering model & \(p_0\), \(f_\alpha\), \(g_\alpha\), dimensions of
+\(x_t\), \(\vartheta\), and \(u_t=(x_t,\vartheta,x_{t-1})\). \\
+Approximation branch & Fixed basis, domains, ordering, ranks, interpolation
+or least-squares equations, local solve schedule, and all sample arrays. \\
+Approximate density & \(\phi_t^2+\tau_t\lambda_t\), with \(\lambda_t\)
+normalized and \(\widehat z_t>0\). \\
+Filtering output & Normalized joint \(\widehat\pi_t\) and marginal
+\(\widehat p_t^{\TT}(x_t,\vartheta)\). \\
+Scalar & Exactly \(\sum_t\{\log\widehat z_t-c_t\}\), or a renamed scalar if
+\(c_t\) or the normalizer path changes. \\
+Derivative & Core sensitivities, previous-filter sensitivities,
+\(\partial_iR_{t,0}\), \(\partial_i\tau_t\), and \(\partial_i c_t\). \\
+Diagnostics & Branch stability under finite differences, positive finite
+normalizers, rank stability, and same-scalar value-gradient parity. \\
+\bottomrule
+\end{longtable}
+
+\section{Finite-Difference Parity Required Before HMC Use}
+
+For each parameter coordinate \(\alpha_i\), a future implementation should
+check that the value path and derivative path are identical.  With branch
+objects frozen,
+\[
+  \frac{\widehat\ell_T^{\TT}(\alpha+h e_i)
+        -\widehat\ell_T^{\TT}(\alpha-h e_i)}{2h}
+  \approx
+  \partial_i\widehat\ell_T^{\TT}(\alpha).
+\]
+If the finite-difference calls change rank, pivot, sample, sign, truncation, or
+selected constant branches, the check should report branch instability rather
+than treating the gradient as an HMC-ready object.
+
+\section{Source And Code Anchors}
+
+The source anchors used here are deliberately narrow.
+
+\begin{itemize}[leftmargin=*]
+\item Zhao--Cui equations (1)--(3): state-space transition, observation, and
+  parameter notation \cite{zhao-cui-2024}.
+\item Zhao--Cui equations (9)--(12) and Algorithm 1: recursive posterior
+  update, nonseparable sequential density
+  \(q_t(x_t,\theta,x_{t-1})\), TT approximation, and normalizer construction
+  \cite{zhao-cui-2024}.
+\item Zhao--Cui equation (13) and Lemma 1 vicinity: squared-TT defensive
+  approximation \(\widehat\pi=\phi^2+\tau\lambda\) and its normalizer
+  \cite{zhao-cui-2024}.
+\item Zhao--Cui Proposition 2: marginal density construction from a normalized
+  squared-TT approximation \cite{zhao-cui-2024}.
+\item Zhao--Cui Algorithm 2: sequential estimation using squared-TT
+  approximations \cite{zhao-cui-2024}.
+\item Zhao--Cui Section 4.1: exact joint normalizer
+  \(z_t=\int\pi_t(x_t,\theta,x_{t-1}\mid y_{1:t})\,dx_t\,d\theta\,dx_{t-1}\)
+  is the evidence \(p(y_{1:t})\), and the algorithm approximates \(q_t\)
+  because the exact recursion is not directly evaluable \cite{zhao-cui-2024}.
+\item Zhao--Cui Proposition 4: conditional KR maps from the squared-TT
+  marginal/conditional construction \cite{zhao-cui-2024}.
+\item Cui--Dolgov Sections 2.2--2.4 and Section 3: inverse Rosenblatt
+  transport, functional TT representation, TT-based inverse Rosenblatt
+  construction, and squared inverse Rosenblatt transport substrate used to
+  interpret conditional KR maps \cite{cui-dolgov-2022}.
+\item Companion code snapshot:
+  \texttt{models/full\_sol.m} updates the scalar by
+  \texttt{log(sirt.z)-const}, and
+  \texttt{deep-tensor.dev/src/@TTSIRT/marginalise.m} sets
+  \texttt{obj.z = obj.fun\_z + obj.tau}.
+\end{itemize}
+
+\section{What Is Not Proved}
+
+This note does not prove posterior accuracy of the TT approximation, global
+differentiability of adaptive TT-cross/rank-changing code, HMC convergence,
+production readiness, GPU/XLA readiness, or a default-method recommendation.
+It proves two narrower statements: normalized approximate filtering for a
+declared fixed branch, and exact same-scalar differentiation for that declared
+branch.
+
+\begin{thebibliography}{9}
+\bibitem{zhao-cui-2024}
+Zhao, Y. and Cui, T. (2024).
+\newblock Tensor-train methods for sequential state and parameter learning in
+state-space models.
+\newblock \emph{Journal of Machine Learning Research}, 25(244):1--51.
+
+\bibitem{cui-dolgov-2022}
+Cui, T. and Dolgov, S. (2022).
+\newblock Deep composition of tensor-trains using squared inverse Rosenblatt
+transports.
+\newblock \emph{Foundations of Computational Mathematics}, 22:1863--1922.
+\newblock DOI: 10.1007/s10208-021-09537-5.
+\end{thebibliography}
+
+\end{document}

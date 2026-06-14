@@ -1,0 +1,564 @@
+{
+  "schema_version": "filter_bench.target_registry.v1",
+  "metadata_date": "2026-06-10",
+  "phase": "FILTER_BENCH_P1",
+  "status": "PASS_FILTER_BENCH_P1_TARGET_REGISTRY",
+  "purpose": "Frozen target-row registry for the filtering value/gradient benchmark gap-closure runbook.  This registry fixes model identity, observations, theta, dimensions, horizon, reference type, value scalar, gradient parameterization, and admission policy before algorithm benchmarking.",
+  "governing_artifacts": [
+    "docs/plans/bayesfilter-filtering-value-gradient-benchmark-gap-closure-master-program-2026-06-10.md",
+    "docs/plans/bayesfilter-filtering-value-gradient-benchmark-gap-p0-contract-result-2026-06-10.md",
+    "docs/plans/bayesfilter-filtering-value-gradient-benchmark-gap-p1-target-registry-subplan-2026-06-10.md",
+    "docs/plans/bayesfilter-highdim-zhao-cui-p50-value-gradient-calibration-rules-2026-06-09.json",
+    "docs/plans/bayesfilter-highdim-zhao-cui-p51-m2-native-generalized-sv-reference-manifest-2026-06-09.json",
+    "docs/plans/bayesfilter-highdim-zhao-cui-p51-m3-spatial-sir-production-route-manifest-2026-06-09.json",
+    "docs/plans/bayesfilter-highdim-zhao-cui-p51-m4-predator-prey-production-tuning-manifest-2026-06-09.json",
+    "docs/plans/bayesfilter-highdim-zhao-cui-p53-m4d-scaling-route-admission-manifest-2026-06-10.json",
+    "docs/plans/bayesfilter-highdim-zhao-cui-p53-m5-rank-selection-integration-manifest-2026-06-10.json"
+  ],
+  "reference_type_vocabulary": [
+    "exact",
+    "dense_numerical",
+    "transformed_actual_nongaussian",
+    "gaussian_mixture_surrogate",
+    "diagnostic",
+    "blocked_only"
+  ],
+  "row_class_vocabulary": [
+    "exact_oracle",
+    "same_target_dense_reference",
+    "surrogate_target",
+    "lower_rung_reference",
+    "production_candidate",
+    "diagnostic_only",
+    "blocked_current_scope"
+  ],
+  "value_scalar_definition": "log marginal likelihood/log predictive evidence over the row's fixed observations and theta.",
+  "gradient_error_definition": "gradient of the row value scalar with respect to the row's declared unconstrained theta; invalid, disconnected, nonfinite, stochastic, or intentionally unavailable gradients must be reported as cell status rather than hidden.",
+  "cell_applicability_policy": {
+    "exactness_scope": "Exact same-target status is a row/cell attribute.  Exactness is required only for LGSSM exact rows or rows that explicitly declare an exact or dense numerical same-target reference.",
+    "approximate_filters": "UKF, SVD sigma-point, CUT4, Zhao-Cui, bootstrap DPF, and source-faithful Algorithm 1 UKF LEDH-PFPF are benchmarkable on non-Gaussian rows when the cell reports the declared reference type and approximation status.",
+    "kalman_policy": "Kalman is a benchmark row only for LGSSM exact rows or declared Gaussian-mixture surrogate enumeration rows.",
+    "zhao_cui_policy": "Use the scalar or multistate route appropriate to the row.  The old scalar-only helper blocker is historical context and cannot suppress rows where the multistate route or a factorized scalar panel route is the declared current path.",
+    "dpf_policy": "Historical LEDH-PFPF-OT is superseded and forbidden as current evidence.  Current DPF rows must use bootstrap DPF or source-faithful Algorithm 1 UKF LEDH-PFPF; invalid gradients are findings, so gradient status must be reported even when invalid.",
+    "blocked_scope_policy": "Rows with blocked_only reference type are retained to prevent silent benchmark holes, but they cannot be promoted into value/gradient performance tables until the named prerequisite blocker is resolved."
+  },
+  "historical_supersession": [
+    {
+      "artifact": "docs/plans/bayesfilter-highdim-zhao-cui-p45-target-registry-2026-06-08.json",
+      "stale_text": "blocked_current_scalar_nonlinear_route_requires_state_dim_1",
+      "current_disposition": "historical_or_superseded_not_current_admission_logic",
+      "replacement_rule": "P46 multistate routes and factorized scalar panel routes must be considered before declaring Zhao-Cui unavailable."
+    },
+    {
+      "artifact": "experiments/dpf_implementation/reports/outputs/dpf_v2_ledh_pfpf_ot_values_2026-06-07.json",
+      "stale_text": "LEDH-PFPF-OT",
+      "current_disposition": "historical_only_not_algorithm1_evidence",
+      "replacement_rule": "Use source-faithful Algorithm 1 UKF LEDH-PFPF no-resampling/current route for the DPF LEDH row."
+    }
+  ],
+  "algorithm_roster_for_later_phases": [
+    "kalman_exact_or_mixture_enumeration",
+    "ukf",
+    "svd_sigma_point",
+    "cut4",
+    "zhao_cui_scalar_or_multistate",
+    "bootstrap_dpf_current",
+    "ledh_pfpf_alg1_ukf_current",
+    "optional_resampling_enabled_dpf_with_explicit_gradient_status"
+  ],
+  "required_row_ids": [
+    "lgssm_exact_kalman_dim_1_2_3",
+    "p44_cubic_additive_gaussian_dim_1_2_3",
+    "p44_quadratic_observation_dim_1_2_3",
+    "p44_nonlinear_transition_h2_dim_1_2_3",
+    "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3",
+    "sv_exact_transformed_actual_nongaussian_dim_1_2_3",
+    "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3",
+    "native_generalized_sv_dense_lower_rung_dim_2",
+    "spatial_sir_lower_rung_j1_dim_2",
+    "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18",
+    "predator_prey_lower_rung_dim_2",
+    "predator_prey_production_tuned_h25_dim_2"
+  ],
+  "rows": [
+    {
+      "row_id": "lgssm_exact_kalman_dim_1_2_3",
+      "model_family": "linear_gaussian_state_space",
+      "row_class": "exact_oracle",
+      "reference_type": "exact",
+      "target_identity": "P44-M1 diagonal independent LGSSM with exact Kalman/QR reference.",
+      "state_dim": [1, 2, 3],
+      "observation_dim": [1, 2, 3],
+      "horizon": 3,
+      "dtype": "float64",
+      "observations": {
+        "kind": "fixed_fixture_matrix_prefix_by_dimension",
+        "values_full_dim3": [[0.10, -0.04, 0.06], [-0.03, 0.08, -0.02], [0.05, -0.01, 0.07]]
+      },
+      "theta": {
+        "parameterization": "(rho_raw, log_transition_variance_base, log_observation_variance_base, raw_initial_mean_scale)",
+        "value": [0.25, "log(0.18)", "log(0.12)", 0.04],
+        "dimension": 4
+      },
+      "value_scalar": "log marginal likelihood under LinearGaussianSSM over the fixed observations.",
+      "gradient_parameterization": "TensorFlow autodiff with respect to the four unconstrained theta coordinates.",
+      "gradient_metadata": {
+        "status": "available_reference_gradient",
+        "theta_coordinates": ["rho_raw", "log_transition_variance_base", "log_observation_variance_base", "raw_initial_mean_scale"],
+        "theta_dimension": 4,
+        "coordinate_type": "unconstrained",
+        "backend": "tensorflow_autodiff"
+      },
+      "reference_route": {
+        "label": "exact_kalman",
+        "implementation_hint": "highdim.FixedBranchSquaredTTFilter with fit_config=None on LinearGaussianSSM",
+        "evidence_tests": ["tests/highdim/test_p44_lgssm_exact_baseline.py"]
+      },
+      "current_admission": "benchmark_admitted",
+      "nonclaims": ["no nonlinear-model conclusion", "no HMC readiness"]
+    },
+    {
+      "row_id": "p44_cubic_additive_gaussian_dim_1_2_3",
+      "model_family": "cubic_additive_gaussian_observation",
+      "row_class": "same_target_dense_reference",
+      "reference_type": "dense_numerical",
+      "target_identity": "P44-M2 factorized diagonal transition with additive Gaussian cubic observation y_t = x_t + c x_t^3 + epsilon_t.",
+      "state_dim": [1, 2, 3],
+      "observation_dim": [1, 2, 3],
+      "horizon": 2,
+      "dtype": "float64",
+      "observations": {
+        "kind": "fixed_fixture_matrix_prefix_by_dimension",
+        "values_full_dim3": [[0.10, -0.04, 0.07], [-0.02, 0.06, -0.05]]
+      },
+      "theta": {
+        "parameterization": "(rho_raw, log_q, log_r, raw_initial_mean, cubic_raw)",
+        "value": [0.25, "log(0.14)", "log(0.10)", 0.04, 0.35],
+        "dimension": 5
+      },
+      "value_scalar": "sum of factorized scalar dense log marginal likelihoods across active dimensions.",
+      "gradient_parameterization": "TensorFlow autodiff with respect to all five unconstrained theta coordinates.",
+      "gradient_metadata": {
+        "status": "available_dense_reference_gradient",
+        "theta_coordinates": ["rho_raw", "log_q", "log_r", "raw_initial_mean", "cubic_raw"],
+        "theta_dimension": 5,
+        "coordinate_type": "unconstrained",
+        "backend": "tensorflow_autodiff"
+      },
+      "reference_route": {
+        "label": "dense_factorized_legendre_reference",
+        "implementation_hint": "tests/highdim/test_p44_cubic_additive_gaussian.py::_dense_panel_value order 241",
+        "evidence_tests": ["tests/highdim/test_p44_cubic_additive_gaussian.py"]
+      },
+      "current_admission": "benchmark_admitted",
+      "nonclaims": ["dense numerical reference is not a closed-form exact proof", "no HMC readiness"]
+    },
+    {
+      "row_id": "p44_quadratic_observation_dim_1_2_3",
+      "model_family": "quadratic_observation_additive_gaussian",
+      "row_class": "same_target_dense_reference",
+      "reference_type": "dense_numerical",
+      "target_identity": "P44-M3 factorized diagonal transition with additive Gaussian quadratic observation y_t = x_t^2 + epsilon_t.",
+      "state_dim": [1, 2, 3],
+      "observation_dim": [1, 2, 3],
+      "horizon": 2,
+      "dtype": "float64",
+      "observations": {
+        "kind": "fixed_fixture_matrix_prefix_by_dimension",
+        "values_full_dim3": [[0.16, 0.11, 0.20], [0.09, 0.18, 0.13]]
+      },
+      "theta": {
+        "parameterization": "(rho_raw, log_q, log_r, raw_initial_mean)",
+        "value": [0.18, "log(0.13)", "log(0.09)", 0.02],
+        "dimension": 4
+      },
+      "value_scalar": "sum of factorized scalar dense log marginal likelihoods across active dimensions.",
+      "gradient_parameterization": "TensorFlow autodiff with respect to all four unconstrained theta coordinates.",
+      "gradient_metadata": {
+        "status": "available_dense_reference_gradient",
+        "theta_coordinates": ["rho_raw", "log_q", "log_r", "raw_initial_mean"],
+        "theta_dimension": 4,
+        "coordinate_type": "unconstrained",
+        "backend": "tensorflow_autodiff"
+      },
+      "reference_route": {
+        "label": "dense_factorized_legendre_reference",
+        "implementation_hint": "tests/highdim/test_p44_quadratic_observation.py::_dense_panel_value order 281",
+        "evidence_tests": ["tests/highdim/test_p44_quadratic_observation.py"]
+      },
+      "current_admission": "benchmark_admitted",
+      "nonclaims": ["quadratic symmetry stress row, not an exact closed-form oracle", "no HMC readiness"]
+    },
+    {
+      "row_id": "p44_nonlinear_transition_h2_dim_1_2_3",
+      "model_family": "nonlinear_transition_additive_gaussian_observation",
+      "row_class": "same_target_dense_reference",
+      "reference_type": "dense_numerical",
+      "target_identity": "P44-M4 factorized nonlinear transition x_t = rho x_{t-1} + c tanh(x_{t-1}) + eta_t with additive Gaussian identity observation.",
+      "state_dim": [1, 2, 3],
+      "observation_dim": [1, 2, 3],
+      "horizon": 2,
+      "dtype": "float64",
+      "observations": {
+        "kind": "fixed_fixture_matrix_prefix_by_dimension",
+        "values_full_dim3": [[0.08, -0.03, 0.06], [-0.02, 0.05, -0.04]]
+      },
+      "theta": {
+        "parameterization": "(rho_raw, log_q, log_r, raw_initial_mean, nonlin_raw)",
+        "value": [0.22, "log(0.12)", "log(0.09)", 0.03, 0.40],
+        "dimension": 5
+      },
+      "value_scalar": "sum of factorized scalar dense log marginal likelihoods across active dimensions.",
+      "gradient_parameterization": "TensorFlow autodiff with respect to all five unconstrained theta coordinates.",
+      "gradient_metadata": {
+        "status": "available_dense_reference_gradient",
+        "theta_coordinates": ["rho_raw", "log_q", "log_r", "raw_initial_mean", "nonlin_raw"],
+        "theta_dimension": 5,
+        "coordinate_type": "unconstrained",
+        "backend": "tensorflow_autodiff"
+      },
+      "reference_route": {
+        "label": "dense_factorized_legendre_reference",
+        "implementation_hint": "tests/highdim/test_p44_nonlinear_transition.py::_dense_panel_value horizon 2 order 241",
+        "evidence_tests": ["tests/highdim/test_p44_nonlinear_transition.py"]
+      },
+      "current_admission": "benchmark_admitted",
+      "nonclaims": ["dense numerical reference is not a paper-scale nonlinear transition claim", "no HMC readiness"]
+    },
+    {
+      "row_id": "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3",
+      "model_family": "nonlinear_transition_additive_gaussian_observation",
+      "row_class": "diagnostic_only",
+      "reference_type": "diagnostic",
+      "target_identity": "P44-M4 horizon-4 extension for CUT4 error accumulation against dense numerical reference; Zhao-Cui scalar helper horizon-4 is explicitly a nonclaim.",
+      "state_dim": [1, 2, 3],
+      "observation_dim": [1, 2, 3],
+      "horizon": 4,
+      "dtype": "float64",
+      "observations": {
+        "kind": "fixed_fixture_matrix_prefix_by_dimension",
+        "values_full_dim3": [[0.08, -0.03, 0.06], [-0.02, 0.05, -0.04], [0.04, -0.01, 0.03], [0.01, 0.02, -0.02]]
+      },
+      "theta": {
+        "parameterization": "(rho_raw, log_q, log_r, raw_initial_mean, nonlin_raw)",
+        "value": [0.22, "log(0.12)", "log(0.09)", 0.03, 0.40],
+        "dimension": 5
+      },
+      "value_scalar": "horizon-4 dense numerical log marginal likelihood for diagnostic accumulation checks.",
+      "gradient_parameterization": "TensorFlow autodiff with respect to all five unconstrained theta coordinates for algorithms that support the horizon.",
+      "gradient_metadata": {
+        "status": "diagnostic_gradient_if_algorithm_supports_horizon",
+        "theta_coordinates": ["rho_raw", "log_q", "log_r", "raw_initial_mean", "nonlin_raw"],
+        "theta_dimension": 5,
+        "coordinate_type": "unconstrained",
+        "backend": "tensorflow_autodiff",
+        "reason": "diagnostic horizon-4 extension, not a promoted Zhao-Cui horizon-4 row"
+      },
+      "reference_route": {
+        "label": "dense_factorized_legendre_reference_diagnostic",
+        "implementation_hint": "tests/highdim/test_p44_nonlinear_transition.py::_dense_panel_value horizon 4 order 241",
+        "evidence_tests": ["tests/highdim/test_p44_nonlinear_transition.py::test_p44_m4_cut4_horizon_4_error_accumulation_is_bounded_dims_1_2_3"]
+      },
+      "current_admission": "diagnostic_benchmark_admitted_with_reason_codes",
+      "nonclaims": ["not a Zhao-Cui horizon-4 promotion", "no production nonlinear transition claim", "no HMC readiness"]
+    },
+    {
+      "row_id": "sv_exact_transformed_actual_nongaussian_dim_1_2_3",
+      "model_family": "independent_panel_exact_transformed_stochastic_volatility",
+      "row_class": "same_target_dense_reference",
+      "reference_type": "transformed_actual_nongaussian",
+      "target_identity": "z_t = log(y_t^2), exact log-chi-square observation noise, factorized independent panels.",
+      "state_dim": [1, 2, 3],
+      "observation_dim": [1, 2, 3],
+      "horizon": 2,
+      "dtype": "float64",
+      "observations": {
+        "kind": "fixed_fixture_matrix_prefix_by_dimension",
+        "values_full_dim3": [[0.12, -0.08, 0.05], [-0.07, 0.11, -0.04]]
+      },
+      "theta": {
+        "parameterization": "reshape pairs (probit_gamma, log_beta) per dimension; sigma is fixed fixture data",
+        "physical_gamma": [0.60, 0.52, 0.47],
+        "physical_beta": [0.40, 0.35, 0.45],
+        "fixed_sigma": [1.00, 0.85, 0.75],
+        "dimension": "2 * active_dim"
+      },
+      "value_scalar": "exact transformed SV dense log marginal likelihood summed by active dimension.",
+      "gradient_parameterization": "TensorFlow autodiff with respect to active (probit_gamma, log_beta) theta coordinates.",
+      "gradient_metadata": {
+        "status": "available_dense_reference_gradient",
+        "theta_coordinates_by_dimension": ["probit_gamma_j", "log_beta_j"],
+        "theta_dimension": "2 * active_dim",
+        "coordinate_type": "unconstrained",
+        "backend": "tensorflow_autodiff"
+      },
+      "reference_route": {
+        "label": "dense_exact_transformed_sv_reference",
+        "implementation_hint": "highdim.exact_transformed_sv_independent_panel_dense_reference order 401 radius 8.0",
+        "evidence_tests": ["tests/highdim/test_p43_sv_value_gradient_cut4_zhaocui.py::test_p43_exact_transformed_zhaocui_matches_dense_value_and_diagnostic_score"]
+      },
+      "current_admission": "benchmark_admitted",
+      "nonclaims": ["not KSC Gaussian mixture surrogate", "not native generalized SV", "no HMC readiness"]
+    },
+    {
+      "row_id": "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3",
+      "model_family": "independent_panel_transformed_sv_ksc_gaussian_mixture",
+      "row_class": "surrogate_target",
+      "reference_type": "gaussian_mixture_surrogate",
+      "target_identity": "factorized coordinatewise transformed SV finite Gaussian-mixture surrogate with Kalman enumeration over mixture components.",
+      "state_dim": [1, 2, 3],
+      "observation_dim": [1, 2, 3],
+      "horizon": 2,
+      "dtype": "float64",
+      "observations": {
+        "kind": "fixed_fixture_matrix_prefix_by_dimension",
+        "values_full_dim3": [[0.12, -0.08, 0.05], [-0.07, 0.11, -0.04]]
+      },
+      "theta": {
+        "parameterization": "reshape pairs (probit_gamma, log_beta) per dimension; sigma and mixture table are fixed fixture data",
+        "physical_gamma": [0.60, 0.52, 0.47],
+        "physical_beta": [0.40, 0.35, 0.45],
+        "fixed_sigma": [1.00, 0.85, 0.75],
+        "dimension": "2 * active_dim"
+      },
+      "value_scalar": "KSC Gaussian-mixture surrogate log marginal likelihood summed by active dimension.",
+      "gradient_parameterization": "TensorFlow autodiff with respect to active (probit_gamma, log_beta) theta coordinates.",
+      "gradient_metadata": {
+        "status": "available_surrogate_reference_gradient",
+        "theta_coordinates_by_dimension": ["probit_gamma_j", "log_beta_j"],
+        "theta_dimension": "2 * active_dim",
+        "coordinate_type": "unconstrained",
+        "backend": "tensorflow_autodiff",
+        "target_scope": "KSC Gaussian-mixture surrogate only"
+      },
+      "reference_route": {
+        "label": "kalman_mixture_enumeration",
+        "implementation_hint": "highdim.independent_panel_sv_mixture_kalman_filter",
+        "evidence_tests": ["tests/highdim/test_p43_sv_value_gradient_cut4_zhaocui.py::test_p43_ksc_cut4_matches_kalman_value_and_diagnostic_score"]
+      },
+      "current_admission": "benchmark_admitted_as_surrogate_target",
+      "nonclaims": ["not exact native SV likelihood", "not exact transformed actual non-Gaussian target", "no HMC readiness"]
+    },
+    {
+      "row_id": "native_generalized_sv_dense_lower_rung_dim_2",
+      "model_family": "native_generalized_stochastic_volatility",
+      "row_class": "lower_rung_reference",
+      "reference_type": "dense_numerical",
+      "target_identity": "raw observation native generalized SV, y_t = beta s_t + exp(h_t/2) epsilon_t, state (s_t,h_t).",
+      "state_dim": 2,
+      "observation_dim": 1,
+      "horizon": 2,
+      "dtype": "float64",
+      "observations": {
+        "kind": "fixed_fixture_matrix",
+        "values": [[0.18], [-0.08]]
+      },
+      "theta": {
+        "parameterization": "(atanh(rho_s), atanh(rho_h), log(sigma_s), log(sigma_h), log(beta))",
+        "physical_values": {"rho_s": 0.25, "rho_h": 0.55, "sigma_s": 0.70, "sigma_h": 0.45, "beta": 0.35},
+        "dimension": 5
+      },
+      "value_scalar": "dense tensor-product Legendre native raw-observation log marginal likelihood.",
+      "gradient_parameterization": "TensorFlow autodiff through native dense reference with respect to five unconstrained theta coordinates.",
+      "gradient_metadata": {
+        "status": "available_lower_rung_dense_reference_gradient",
+        "theta_coordinates": ["atanh_rho_s", "atanh_rho_h", "log_sigma_s", "log_sigma_h", "log_beta"],
+        "theta_dimension": 5,
+        "coordinate_type": "unconstrained",
+        "backend": "tensorflow_autodiff"
+      },
+      "reference_route": {
+        "label": "dense_native_generalized_sv_raw_observation",
+        "implementation_hint": "highdim.native_generalized_sv_dense_reference order 25 radius_s=3.5 radius_h=3.5",
+        "evidence_tests": ["tests/highdim/test_p51_native_generalized_sv_reference.py"]
+      },
+      "current_admission": "lower_rung_benchmark_admitted",
+      "historical_blocker_disposition": "P50 BLOCKED_REFERENCE_MISSING superseded for low-dimensional dense native reference by PASS_P51_M2_NATIVE_GENERALIZED_SV_REFERENCE; CUT4/Zhao-Cui same-target equality remains not evaluated.",
+      "nonclaims": ["no CUT4 same-target equality", "no Zhao-Cui same-target equality", "no production generalized SV readiness", "no HMC readiness"]
+    },
+    {
+      "row_id": "spatial_sir_lower_rung_j1_dim_2",
+      "model_family": "spatial_sir_additive_gaussian_closure",
+      "row_class": "lower_rung_reference",
+      "reference_type": "dense_numerical",
+      "target_identity": "J=1 additive-Gaussian lower-rung spatial SIR closure with state (S_1,I_1).",
+      "state_dim": 2,
+      "observation_dim": 1,
+      "horizon": 2,
+      "dtype": "float64",
+      "observations": {
+        "kind": "fixed_fixture_matrix",
+        "values": [[14.10], [11.85]]
+      },
+      "theta": {
+        "parameterization": "empty theta; P30 spatial SIR closure has fixed kappa, nu, initial mean, covariances, and graph",
+        "value": [],
+        "dimension": 0,
+        "fixed_model_parameters": {
+          "compartments": 1,
+          "kappa": [0.1],
+          "nu": [18.0],
+          "initial_mean": [486.0, 14.0],
+          "delta": 0.02,
+          "rk4_internal_step": 0.005,
+          "process_covariance": "identity_2x2",
+          "observation_covariance": "100 * identity_1x1",
+          "initial_covariance": "identity_2x2",
+          "neighbor_sets": [[]]
+        }
+      },
+      "value_scalar": "dense tensor-product grid reference log marginal likelihood on the same coordinate map.",
+      "gradient_parameterization": "No theta-gradient coordinate exists for this fixed-parameter lower-rung row; gradient cells must use status NO_THETA_GRADIENT_DIM0 rather than N/A.",
+      "gradient_metadata": {
+        "status": "no_theta_gradient_dim0",
+        "theta_coordinates": [],
+        "theta_dimension": 0,
+        "coordinate_type": "fixed_model_no_free_theta",
+        "backend": "not_applicable",
+        "cell_status_required": "NO_THETA_GRADIENT_DIM0"
+      },
+      "reference_route": {
+        "label": "dense_tensor_product_grid_lower_rung",
+        "implementation_hint": "P47 spatial SIR lower-rung dense reference",
+        "evidence_tests": ["tests/highdim/test_p47_spatial_sir_filtering.py::test_p47_m4_zhaocui_matches_dense_reference_value_and_state_moments"]
+      },
+      "current_admission": "value_benchmark_admitted_gradient_status_must_be_reported",
+      "nonclaims": ["no certified gradient correctness", "not production spatial SIR filtering", "no HMC readiness"]
+    },
+    {
+      "row_id": "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18",
+      "model_family": "spatial_sir_additive_gaussian_closure",
+      "row_class": "blocked_current_scope",
+      "reference_type": "blocked_only",
+      "target_identity": "near-paper d=18 spatial SIR additive-Gaussian production route under the admitted P53 local-neighborhood scaling-route design.",
+      "state_dim": 18,
+      "observation_dim": 9,
+      "horizon": 25,
+      "dtype": "float64",
+      "observations": {
+        "kind": "deterministic_nominal_path_blocked_before_filtering",
+        "construction": "p30_spatial_sir_fixture_model(9); start at initial_mean; observations are infectious components before each deterministic transition_mean step; no observation noise",
+        "values": [[14.0, 13.0, 12.0, 11.0, 10.0, 9.0, 8.0, 7.0, 6.0], [25.37492950569894, 23.652196037234898, 21.901447549030046, 20.13956271947002, 18.366526552595975, 16.582238002174154, 14.786594817101637, 12.97958247197602, 11.179005176987454], [43.83005446761716, 41.12940158919016, 38.32358780409025, 35.46344780764606, 32.54806708174193, 29.5759562939697, 26.54557335890353, 23.4559242763968, 20.366771154324756], [70.10965359030587, 66.48546235209119, 62.60294181892145, 58.555866518319064, 54.336453224117435, 49.93465391777261, 45.33964825175633, 40.54188073500687, 35.674985701304216], [100.61969469489523, 96.78003621876081, 92.4924724191683, 87.86620379289138, 82.86938433761122, 77.46252514911218, 71.60055983593527, 65.23690858345599, 58.583927116180554], [126.76823693801607, 123.88692340247765, 120.47981889383605, 116.60940245525067, 112.20357476305759, 107.17059500717772, 101.39787581942062, 94.7544552735461, 87.45207904951015], [140.13858763273976, 139.00516772072262, 137.48709066983315, 135.56184107058402, 133.13454397677822, 130.07893055932476, 126.22751798165902, 121.36384859583002, 115.56730654511995], [138.5999425896878, 139.12947335741106, 139.54981996973743, 139.76716257437482, 139.70587454463325, 139.26124620798132, 138.2827772526252, 136.55448357708227, 133.9735492731613], [126.04709074793769, 127.62895254039879, 129.3555849931348, 131.0948734755986, 132.8134863891167, 134.46475191197263, 135.97242131837646, 137.2074597593941, 137.93656062368842], [108.07878247330967, 110.08931477622178, 112.40104011123138, 114.8692607339033, 117.4979287988544, 120.2951910082222, 123.26192772195903, 126.37163246220962, 129.3261977500766], [89.03432041805411, 91.0563776098072, 93.44235447501529, 96.050174637537, 98.90547207253981, 102.05005509644695, 105.53505324510455, 109.40456898762558, 113.33724289335308], [71.38370898285426, 73.20359978474056, 75.38796902365333, 77.8055682117456, 80.49025442179165, 83.49768172282552, 86.90129108113354, 90.7780585186549, 94.80792407975855], [56.18213189039136, 57.72111935662123, 59.592290934195326, 61.6791718954714, 64.01567998104673, 66.65865161475082, 69.68515769889031, 73.1790025276778, 76.83745688710698], [43.65431535812633, 44.907139611479884, 46.446603355306046, 48.17229521580074, 50.11430339035841, 52.32423709605217, 54.87299922655647, 57.837549390744584, 60.942678399411605], [33.615605151797666, 34.61074586084217, 35.844872571772214, 37.23329837827501, 38.80098350158702, 40.59187683890799, 42.666770543258444, 45.09039755179137, 47.620349563252496], [25.719657188973596, 26.497230456690836, 27.469570605700774, 28.56645646263727, 29.807754036000347, 31.229462988118268, 32.881552870601126, 34.815673334486114, 36.82362581145657], [19.58749330520496, 20.188231920969343, 20.94522394617541, 21.801018325692635, 22.77099648316225, 23.883917916215836, 25.179759667043434, 26.698318637697888, 28.264337256321944], [14.867216933648454, 15.327662346470849, 15.912067624782413, 16.573930606806428, 17.324931164552183, 18.18766130379853, 19.193527222696286, 20.372439449538852, 21.57922041811388], [11.256622240197668, 11.607542189791895, 12.056001405845466, 12.564685159370967, 13.1423356953774, 13.806493958066994, 14.581522249541205, 15.489478126621119, 16.4116440443305], [8.507377627623564, 8.77373260082531, 9.116369939590243, 9.505559217619744, 9.947771143907957, 10.45651209767657, 11.050509610573442, 11.745780545978029, 12.446255166771525], [6.4209242487616205, 6.622491772597791, 6.883440376737662, 7.180221469354471, 7.517581131398481, 7.905856540988494, 8.359348228679183, 8.889531211017609, 9.419325427992412], [4.841321893498258, 4.99352875499778, 5.191793675722786, 5.417556292794922, 5.674270910371925, 5.969813925574316, 6.315051038935285, 6.718101038833516, 7.117555516639559], [3.6475887862988876, 3.7623389212354166, 3.912711867646903, 4.084139837028731, 4.279119676829419, 4.5036327430265555, 4.765903487220752, 5.071605135594986, 5.372102291719134], [2.74666366152991, 2.8330731055830136, 2.946971672056833, 3.0769661013519194, 3.224849592298417, 3.395152837675794, 3.5940825769193494, 3.825551450401351, 4.051231242285762], [2.067397145554712, 2.132409128111774, 2.2185943415404488, 2.3170697788995347, 2.4291152307846637, 2.5581557968779736, 2.708864411808469, 2.8839002194854566, 3.0531853081674765]]
+      },
+      "theta": {
+        "parameterization": "empty theta; P30 spatial SIR production target has fixed kappa, nu, initial mean, covariances, and chain graph",
+        "value": [],
+        "dimension": 0,
+        "fixed_model_parameters": {
+          "compartments": 9,
+          "kappa": [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
+          "nu": [18.0, 18.0, 18.0, 18.0, 18.0, 18.0, 18.0, 18.0, 18.0],
+          "initial_mean": [486.0, 14.0, 487.0, 13.0, 488.0, 12.0, 489.0, 11.0, 490.0, 10.0, 491.0, 9.0, 492.0, 8.0, 493.0, 7.0, 494.0, 6.0],
+          "delta": 0.02,
+          "rk4_internal_step": 0.005,
+          "process_covariance": "identity_18x18",
+          "observation_covariance": "100 * identity_9x9",
+          "initial_covariance": "identity_18x18",
+          "neighbor_sets": "chain_neighbor_sets(9)"
+        }
+      },
+      "value_scalar": "blocked until a feasible fixed rank and d=18 route result exist.",
+      "gradient_parameterization": "No theta-gradient coordinate exists for the fixed-parameter d=18 target; the value route is also blocked before filtering.  Cells must report BLOCKED_VALUE_ROUTE and NO_THETA_GRADIENT_DIM0 distinctly.",
+      "gradient_metadata": {
+        "status": "blocked_value_route_no_theta_gradient_dim0",
+        "theta_coordinates": [],
+        "theta_dimension": 0,
+        "coordinate_type": "fixed_model_no_free_theta",
+        "backend": "not_applicable_until_value_route_exists",
+        "cell_status_required": "BLOCKED_VALUE_ROUTE"
+      },
+      "reference_route": {
+        "label": "p53_scaling_route_admitted_but_rank_selection_blocked",
+        "implementation_hint": "P53-M4D admits route for rank selection; P53-M5 blocks d=18 because no candidate rank is below memory ceiling.",
+        "evidence_tests": ["tests/highdim/test_p53_m4d_scaling_route_admission.py", "tests/highdim/test_p53_m5_rank_selection_integration.py"]
+      },
+      "current_admission": "blocked_current_scope_not_performance_cell",
+      "blocker": "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION",
+      "nonclaims": ["no d=18 spatial SIR filtering result", "no d=50/d=100 result", "no production filtering correctness", "no HMC readiness"]
+    },
+    {
+      "row_id": "predator_prey_lower_rung_dim_2",
+      "model_family": "predator_prey_additive_gaussian_rk4_closure",
+      "row_class": "lower_rung_reference",
+      "reference_type": "dense_numerical",
+      "target_identity": "two-step additive-Gaussian RK4 predator-prey closure with state (prey,predator).",
+      "state_dim": 2,
+      "observation_dim": 2,
+      "horizon": 2,
+      "dtype": "float64",
+      "observations": {
+        "kind": "fixed_fixture_matrix",
+        "values": [[51.0, 4.6], [80.0, 3.8]]
+      },
+      "theta": {
+        "parameterization": "physical predator-prey parameter vector (r,K,a,s,u,v) in lower-rung fixture",
+        "value": [0.6, 114.0, 25.0, 0.3, 0.5, 0.5],
+        "dimension": 6
+      },
+      "value_scalar": "dense tensor-product grid reference log marginal likelihood on the same coordinate map.",
+      "gradient_parameterization": "Physical theta coordinates (r,K,a,s,u,v).  Lower-rung evidence did not certify gradients, but benchmark cells must attempt/report gradients against these coordinates when an adapter exposes them.",
+      "gradient_metadata": {
+        "status": "uncertified_but_declared_physical_theta",
+        "theta_coordinates": ["r", "K", "a", "s", "u", "v"],
+        "theta_dimension": 6,
+        "coordinate_type": "physical_box_constrained",
+        "backend": "adapter_dependent",
+        "cell_status_required_if_missing": "GRADIENT_NOT_EXPOSED"
+      },
+      "reference_route": {
+        "label": "dense_tensor_product_grid_lower_rung",
+        "implementation_hint": "P47 predator-prey lower-rung dense reference",
+        "evidence_tests": ["tests/highdim/test_p47_predator_prey_filtering.py::test_p47_m5_zhaocui_matches_dense_reference_value_and_state_moments"]
+      },
+      "current_admission": "value_benchmark_admitted_gradient_status_must_be_reported",
+      "nonclaims": ["no certified gradient correctness", "no nonlinear preconditioning usefulness claim", "no HMC readiness"]
+    },
+    {
+      "row_id": "predator_prey_production_tuned_h25_dim_2",
+      "model_family": "predator_prey_additive_gaussian_rk4_closure",
+      "row_class": "production_candidate",
+      "reference_type": "dense_numerical",
+      "target_identity": "horizon-25 additive-Gaussian RK4 predator-prey production candidate from P51-M4 promoted tuning row.",
+      "state_dim": 2,
+      "observation_dim": 2,
+      "horizon": 25,
+      "dtype": "float64",
+      "observations": {
+        "kind": "deterministic_rk4_path",
+        "construction": "p30_predator_prey_fixture_model(); start at initial_mean; observations equal state before each deterministic transition_mean step; no observation noise",
+        "values": [[50.0, 5.0], [80.67536442385595, 3.7860257894535403], [100.30428994787653, 3.0540542662696986], [108.67802782511895, 2.5202068769271606], [111.68338996773372, 2.095411572478054], [112.7483355937436, 1.746598567946678], [113.1681253378351, 1.4571662901743516], [113.37156552733359, 1.2161630686023603], [113.49588674876867, 1.0152290851271695], [113.58560206551333, 0.8476093504393628], [113.65612026640386, 0.7077376477188366], [113.7136038929556, 0.5909963681041221], [113.76113745809991, 0.4935451017725172], [113.80066091130936, 0.41218610719306203], [113.83359598012792, 0.3442549650131395], [113.86106643082694, 0.28753058069144394], [113.8839892211528, 0.2401607432996263], [113.90312206805358, 0.20060040280956956], [113.91909427588955, 0.167560417214536], [113.93242962965735, 0.13996494805142223], [113.9435645437987, 0.11691601521680309], [113.95286285234003, 0.09766398778756574], [113.96062799958482, 0.08158300278947948], [113.96711313776535, 0.06815047928183057], [113.97252951107018, 0.05693003873497343]]
+      },
+      "theta": {
+        "parameterization": "physical predator-prey parameter vector (r,K,a,s,u,v) for the production fixture",
+        "value": [0.6, 114.0, 25.0, 0.3, 0.5, 0.5],
+        "dimension": 6
+      },
+      "value_scalar": "production-tuned log marginal likelihood compared to the dense horizon-25 reference.",
+      "gradient_parameterization": "Physical theta coordinates (r,K,a,s,u,v).  Gradients must be measured and reported when adapters expose them; invalid or unavailable gradients are findings, not exclusions.",
+      "gradient_metadata": {
+        "status": "declared_physical_theta_gradient_required_if_exposed",
+        "theta_coordinates": ["r", "K", "a", "s", "u", "v"],
+        "theta_dimension": 6,
+        "coordinate_type": "physical_box_constrained",
+        "backend": "adapter_dependent",
+        "cell_status_required_if_missing": "GRADIENT_NOT_EXPOSED"
+      },
+      "reference_route": {
+        "label": "dense_horizon25_reference",
+        "implementation_hint": "P51-M4 promoted candidate P51-M4-2 with fit_order 9 and rank 10",
+        "evidence_tests": ["tests/highdim/test_p51_predator_prey_production_tuning.py"]
+      },
+      "current_admission": "benchmark_admitted",
+      "historical_blocker_disposition": "P50 BLOCKED_M5B_PRODUCTION_ACCURACY_TUNING superseded for the tuned production row by PASS_P51_M4_PREDATOR_PREY_PRODUCTION_TUNING.",
+      "nonclaims": ["no production HMC readiness", "no native non-Gaussian predator-prey correctness", "no nonlinear preconditioning usefulness claim"]
+    }
+  ],
+  "nonclaims": [
+    "no algorithm ranking",
+    "no benchmark results emitted by this registry",
+    "no DPF gradient certification",
+    "no HMC readiness",
+    "no GPU readiness",
+    "no Bayesian-estimation readiness"
+  ]
+}

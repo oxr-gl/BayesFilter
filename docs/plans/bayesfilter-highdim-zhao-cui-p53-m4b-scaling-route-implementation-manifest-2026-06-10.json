@@ -1,0 +1,59 @@
+{
+  "schema_version": "p53.local_scaling_route.v1",
+  "phase": "P53-M4B",
+  "status": "PASS_P53_M4B_SCALING_ROUTE_IMPLEMENTATION",
+  "route": {
+    "route_id": "p53_spatial_sir_local_neighborhood_contraction",
+    "route_class": "scaling_route",
+    "selected_design": "local-neighborhood sparse transition contraction",
+    "implementation_symbols": [
+      "LocalNeighborhoodScalingRouteConfig",
+      "LocalNeighborhoodScalingRouteMetadata",
+      "LocalNeighborhoodCoordinateFactorResult",
+      "spatial_sir_local_scaling_route_metadata",
+      "spatial_sir_local_coordinate_log_factor",
+      "p53_local_scaling_route_manifest"
+    ],
+    "covariance_scope": "diagonal_process_covariance",
+    "basis_order": 3,
+    "tt_rank_metadata": {
+      "left": 2,
+      "right": 2
+    },
+    "example_j3_rk4_substeps": 4,
+    "example_j3_max_dependency_width": 6,
+    "example_j3_R_eff": 2916,
+    "example_j3_memory_forecast_bytes": 139968,
+    "required_replay_identity_fields": [
+      "route_id",
+      "route_class",
+      "selected_design",
+      "rk4_substeps",
+      "dependency_neighborhoods",
+      "basis_order",
+      "tt_rank_metadata",
+      "R_eff",
+      "memory_forecast_bytes",
+      "covariance_scope",
+      "dtype",
+      "branch_id"
+    ],
+    "nonclaims": [
+      "no lower-rung dense tie-out yet",
+      "no scaling-route admission yet",
+      "no rank-selection readiness",
+      "no d=18 spatial SIR readiness",
+      "no d=50 or d=100 spatial SIR readiness",
+      "no HMC readiness",
+      "no GPU readiness"
+    ]
+  },
+  "tokens_emitted": [
+    "PASS_P53_M4B_SCALING_ROUTE_IMPLEMENTATION"
+  ],
+  "forbidden_tokens": [
+    "PASS_P53_M4C_SCALING_ROUTE_TIEOUT",
+    "PASS_P53_M4D_SCALING_ROUTE_ADMISSION",
+    "PASS_P53_M5_RANK_SELECTION_INTEGRATION"
+  ]
+}

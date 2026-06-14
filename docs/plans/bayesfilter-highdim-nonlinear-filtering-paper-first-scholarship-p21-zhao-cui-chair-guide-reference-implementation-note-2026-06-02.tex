@@ -1,0 +1,1462 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs,longtable,array}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{microtype}
+
+\hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue}
+\allowdisplaybreaks
+
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+
+\newcommand{\R}{\mathbb R}
+\newcommand{\dd}{\,\mathrm d}
+\newcommand{\widehatell}{\widehat\ell}
+\newcommand{\widehatZ}{\widehat Z}
+\newcommand{\widehatq}{\widehat q}
+\newcommand{\widehatp}{\widehat p}
+\newcommand{\dotwidehatZ}{\dot{\widehat Z}}
+\newcommand{\dotwidehatp}{\dot{\widehat p}}
+\newcommand{\dotwidehatq}{\dot{\widehat q}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\vecop}{\operatorname{vec}}
+\newcommand{\shape}{\operatorname{shape}}
+
+\title{P21 Chair Guide and Implementation-Ready Specification for the Zhao--Cui Fixed-Branch TT Filter}
+\author{BayesFilter P21 Technical Note}
+\date{2026-06-02}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note is an additive companion to P20.  It does not summarize, shorten,
+replace, or regenerate P20.  P20 remains the complete integrated annotated
+companion to Zhao--Cui and the fixed-branch gradient derivation.  P21 adds a
+guided reading layer for a former chemistry academic chair and an
+implementation-ready mathematical specification for a later minimal
+fixed-branch Python implementation.  No executable code is produced here.
+\end{abstract}
+
+\tableofcontents
+
+\section{Non-Replacement Contract}
+
+P20 is the accepted integrated companion.  P21 has only two jobs:
+\[
+    \text{P21}
+    =
+    \text{chair teaching layer}
+    +
+    \text{implementation-ready mathematical specification}.
+    \tag{P21-0}
+\]
+It is not a substitute for P20:
+\[
+    \text{P21}\ne
+    \text{shortened P20},
+    \qquad
+    \text{P21}\ne
+    \text{executable implementation}.
+    \tag{P21-1}
+\]
+Every formula below points back to the P20 fixed-branch equations when
+possible.  The purpose is to slow down the most difficult parts: mass
+contractions, carried-filter derivatives, fixed solves, and same-branch finite
+differences.
+
+The reader should keep one distinction in view:
+\[
+\begin{aligned}
+    \theta
+    &=
+    \text{a random parameter coordinate in Zhao--Cui when used},\\
+    \beta
+    &=
+    \text{the external differentiated argument}.
+\end{aligned}
+    \tag{P21-2}
+\]
+The fixed-branch derivative is a derivative with respect to \(\beta\), after
+the numerical branch has been fixed.
+
+\section{Roadmap: Five Objects}
+
+The method is easier to learn if all notation is organized around five objects:
+\[
+    q_t,\qquad \phi_t,\qquad C_{t,k},\qquad \widehatZ_t,
+    \qquad \partial_\beta\log\widehatZ_t .
+    \tag{P21-3}
+\]
+The table gives the first pass.
+
+\begin{center}
+\begin{tabular}{p{0.13\linewidth}p{0.27\linewidth}p{0.24\linewidth}p{0.22\linewidth}}
+\toprule
+Object & Question answered & Stored object & If wrong \\
+\midrule
+\(q_t\) & What density must be approximated at time \(t\)? & target evaluator at fitting points & wrong scalar and wrong filter \\
+\(\phi_t\) & What square-root function is fitted? & TT evaluator for the square root & negative or biased mass if convention is mixed \\
+\(C_{t,k}\) & What finite arrays define \(\phi_t\)? & tensor-train cores & no reproducible value path \\
+\(\widehatZ_t\) & What evidence increment is computed? & scalar mass contraction & wrong likelihood contribution \\
+\(\partial_\beta\log\widehatZ_t\) & What derivative is needed? & derivative of same scalar & wrong HMC/MLE gradient contract \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Object 1: The unnormalized density}
+
+The first object answers: what is the thing that Bayes' rule asks us to
+normalize?  In ordinary one-step Bayes notation,
+\[
+    \text{posterior density}
+    =
+    \frac{\text{likelihood}\times\text{prior}}
+    {\int \text{likelihood}\times\text{prior}}.
+    \tag{P21-3a}
+\]
+The numerator is the unnormalized density.  In filtering, the prior at time
+\(t\) is the previous filter propagated through the transition model, so the
+unnormalized density is
+\[
+    q_t(x_t,x_{t-1};\beta)
+    =
+    \widehat p_{t-1}(x_{t-1};\beta)
+    f_\beta(x_t\mid x_{t-1})
+    g_\beta(y_t\mid x_t).
+    \tag{P21-3b}
+\]
+The implementation-ready question is not merely "what is \(q_t\)?"  It is:
+at which points will \(q_t\) be evaluated, and in which coordinates?  The
+fixed branch stores a deterministic point table,
+\[
+    Z_{\rm fit}
+    =
+    \begin{bmatrix}
+    z_1^{(1)} & z_2^{(1)}\\
+    \vdots & \vdots\\
+    z_1^{(N)} & z_2^{(N)}
+    \end{bmatrix},
+    \qquad
+    \shape(Z_{\rm fit})=(N,2).
+    \tag{P21-3c}
+\]
+At those points it stores the target vector
+\[
+    \widetilde q_t^{\rm fit}
+    =
+    \left(
+    \widetilde q_t(z^{(1)};\beta),\ldots,
+    \widetilde q_t(z^{(N)};\beta)
+    \right)^\top,
+    \qquad
+    \shape(\widetilde q_t^{\rm fit})=(N,).
+    \tag{P21-3d}
+\]
+If this object is wrong, every downstream quantity is wrong: the fitted square
+root, the mass, the carried filter, and the derivative.
+
+\subsection{Object 2: The square-root approximation}
+
+The second object answers: how do we get a nonnegative density from an
+approximated function?  If one directly fits \(q_t\), the approximation can go
+negative.  Zhao--Cui's repair is to fit a square root:
+\[
+    \phi_t(z;\beta)\approx e^{c_t/2}\sqrt{\widetilde q_t(z;\beta)}.
+    \tag{P21-3e}
+\]
+Then the declared approximate density is
+\[
+    \widehat q_t(z;\beta)
+    =
+    e^{-c_t}\phi_t(z;\beta)^2+\tau_t\lambda_t(z).
+    \tag{P21-3f}
+\]
+The implementation-ready object is the fitted value vector
+\[
+    y_t^{\rm fit}
+    =
+    \left(e^{c_t/2}\sqrt{\widetilde q_t(z^{(1)};\beta)},\ldots,
+    e^{c_t/2}\sqrt{\widetilde q_t(z^{(N)};\beta)}\right)^\top,
+    \qquad
+    \shape(y_t^{\rm fit})=(N,).
+    \tag{P21-3g}
+\]
+The derivative vector is
+\[
+    \dot y_t^{\rm fit}[j]
+    =
+    e^{c_t/2}
+    \frac{\dot{\widetilde q}_t(z^{(j)};\beta)}
+    {2\sqrt{\widetilde q_t(z^{(j)};\beta)}}.
+    \tag{P21-3h}
+\]
+If this object is wrong, the implementation may still produce a positive
+density, but it will be the positive density for the wrong scalar.
+
+\subsection{Object 3: The tensor-train cores}
+
+The third object answers: how is \(\phi_t\) stored without a full grid?  For
+the minimal two-coordinate specification,
+\[
+    \phi_t(z_1,z_2;\beta)
+    =
+    \sum_{r=1}^R
+    \left[
+    \sum_{\ell=0}^{p-1}C_1[0,\ell,r]b_1(z_1)[\ell]
+    \right]
+    \left[
+    \sum_{m=0}^{p-1}C_2[r,m,0]b_2(z_2)[m]
+    \right].
+    \tag{P21-3i}
+\]
+The stored arrays are
+\[
+    \shape(C_1)=(1,p,R),
+    \qquad
+    \shape(C_2)=(R,p,1).
+    \tag{P21-3j}
+\]
+The derivative arrays have the same shapes:
+\[
+    \shape(\dot C_1)=(1,p,R),
+    \qquad
+    \shape(\dot C_2)=(R,p,1).
+    \tag{P21-3k}
+\]
+If these arrays are copied from \(\beta_0\) when evaluating
+\(\beta_0+h\), the finite-difference test no longer checks the derivative of
+the fitted approximation.  The branch freezes the fitting rule, not the core
+values.
+
+\subsection{Object 4: The normalizer}
+
+The fourth object answers: what scalar did the filter contribute to the
+likelihood?  With the square-root convention,
+\[
+    \widehat Z_t(\beta)
+    =
+    e^{-c_t}R_t(\beta)+\tau_t,
+    \qquad
+    R_t(\beta)=\int\phi_t(z;\beta)^2\dd z.
+    \tag{P21-3l}
+\]
+For the two-coordinate TT this mass is computed by contractions:
+\[
+    S_2[r,s]
+    =
+    \sum_{\ell,m}
+    C_2[r,\ell,0]B_2[\ell,m]C_2[s,m,0],
+    \tag{P21-3m}
+\]
+\[
+    R_t
+    =
+    \sum_{r,s,\ell,m}
+    C_1[0,\ell,r]B_1[\ell,m]C_1[0,m,s]S_2[r,s].
+    \tag{P21-3n}
+\]
+The stored scalar objects are
+\[
+    S_2:(R,R),\qquad R_t:\text{scalar},\qquad
+    \widehat Z_t:\text{positive scalar}.
+    \tag{P21-3o}
+\]
+If the normalizer is wrong, the approximate likelihood is wrong even if the
+filter's shape looks plausible.
+
+\subsection{Object 5: The derivative of the log normalizer}
+
+The fifth object answers: how does the computed scalar change with the model
+parameter?  The scalar rule is
+\[
+    \partial_\beta\log\widehat Z_t
+    =
+    \frac{\dot{\widehat Z}_t}{\widehat Z_t}.
+    \tag{P21-3p}
+\]
+The TT work is to compute \(\dot{\widehat Z}_t\) for the same scalar.  Since
+\(c_t\) and \(\tau_t\) are frozen,
+\[
+    \dot{\widehat Z}_t
+    =
+    e^{-c_t}\dot R_t.
+    \tag{P21-3q}
+\]
+The mass derivative stores
+\[
+    \dot S_2:(R,R),\qquad \dot R_t:\text{scalar},
+    \qquad \dot{\widehat Z}_t:\text{scalar}.
+    \tag{P21-3r}
+\]
+The filter also needs the derivative of the carried density:
+\[
+    \dot{\widehat p}^{\rm ref}_t(z_1)
+    =
+    \frac{\dot a_t(z_1)}{\widehat Z_t}
+    -
+    \frac{a_t(z_1)\dot{\widehat Z}_t}{\widehat Z_t^2}.
+    \tag{P21-3s}
+\]
+If this carried derivative is missing, the \(t+1\) target derivative is
+incomplete.  This is the main hidden failure mode for a superficial
+implementation.
+
+The exact filtering target in physical variables is, for \(t\ge 2\),
+\[
+    q_t(x_t,x_{t-1};\beta)
+    =
+    p_{t-1}(x_{t-1};\beta)
+    f_\beta(x_t\mid x_{t-1})
+    g_\beta(y_t\mid x_t).
+    \tag{P21-4}
+\]
+In a fixed-branch implementation one usually works on reference coordinates
+\[
+    x_{t}=a_{t,1}+h_{t,1}z_1,\qquad
+    x_{t-1}=a_{t,2}+h_{t,2}z_2,\qquad z=(z_1,z_2)\in[-1,1]^2.
+    \tag{P21-5}
+\]
+If the previous filter is stored as a reference-coordinate density
+\(\widehatp_{t-1}^{\rm ref}(z_2;\beta)\), then the reference target for
+\(t\ge2\) is
+\[
+    \widetilde q_t(z_1,z_2;\beta)
+    =
+    \widehatp_{t-1}^{\rm ref}(z_2;\beta)
+    f_\beta(x_t(z_1)\mid x_{t-1}(z_2))
+    g_\beta(y_t\mid x_t(z_1))
+    h_{t,1}.
+    \tag{P21-6}
+\]
+The factor is \(h_{t,1}\), not \(h_{t,1}h_{t,2}\), because
+\(\widehatp_{t-1}^{\rm ref}(z_2)\dd z_2\) already represents the previous
+filter mass.  At \(t=1\), with a physical initial density \(p_0(x_0;\beta)\),
+the reference target is
+\[
+    \widetilde q_1(z_1,z_0;\beta)
+    =
+    p_0(x_0(z_0);\beta)
+    f_\beta(x_1(z_1)\mid x_0(z_0))
+    g_\beta(y_1\mid x_1(z_1))
+    h_{1,1}h_{1,0}.
+    \tag{P21-7}
+\]
+
+The fitted square-root values use the P20 shifted convention:
+\[
+    y_j(\beta)
+    =
+    \exp(c_t/2)\sqrt{\widetilde q_t(z^{(j)};\beta)}.
+    \tag{P21-8}
+\]
+The tensor train \(\phi_t\) approximates \(y\), and the density used for
+filtering is
+\[
+    \widehatq_t(z;\beta)
+    =
+    e^{-c_t}\phi_t(z;\beta)^2+\tau_t\lambda_t(z),
+    \qquad
+    \int_{[-1,1]^2}\lambda_t(z)\dd z=1.
+    \tag{P21-9}
+\]
+The normalizer is
+\[
+    \widehatZ_t(\beta)
+    =
+    e^{-c_t}\int\phi_t(z;\beta)^2\dd z+\tau_t.
+    \tag{P21-10}
+\]
+The carried reference filter is
+\[
+    \widehatp_t^{\rm ref}(z_1;\beta)
+    =
+    \frac{
+    a_t(z_1;\beta)}
+    {\widehatZ_t(\beta)},
+    \qquad
+    a_t(z_1;\beta)=\int_{-1}^{1}\widehatq_t(z_1,z_2;\beta)\dd z_2 .
+    \tag{P21-11}
+\]
+
+\subsection*{Teach-back checkpoint}
+
+At this point the chair should be able to say:
+\[
+\begin{array}{ll}
+\text{stored} & \phi_t,\ C_{t,k},\ \widehatZ_t,\ a_t,\ \widehatp_t,\\[1mm]
+\text{integrated} & \widehatq_t(z_1,z_2)\ \text{over one or both coordinates},\\[1mm]
+\text{differentiated} & \widehatZ_t(\beta),\ a_t(z_1;\beta),\ \widehatp_t(z_1;\beta),\\[1mm]
+\text{frozen} & z^{(j)},\ c_t,\ \tau_t,\ \lambda_t,\ \text{basis},\ \text{ranks},\\[1mm]
+\text{breaks claim} & \text{changing branch objects between }\beta_0-h,\beta_0,\beta_0+h.
+\end{array}
+\tag{P21-12}
+\]
+
+\section{Ladder 1: Normalizer Derivative}
+
+\subsection*{Scalar case}
+
+Let
+\[
+    Z(\beta)=\int q(z;\beta)\dd z,\qquad Z(\beta)>0.
+    \tag{P21-13}
+\]
+If differentiation can pass through the integral, then
+\[
+    \dot Z(\beta)=\int \dot q(z;\beta)\dd z,
+    \qquad
+    \partial_\beta\log Z(\beta)=\frac{\dot Z(\beta)}{Z(\beta)}.
+    \tag{P21-14}
+\]
+
+\subsection*{Two-coordinate case}
+
+For \(z=(z_1,z_2)\),
+\[
+    Z(\beta)
+    =
+    \int_{-1}^1\int_{-1}^1 q(z_1,z_2;\beta)\dd z_2\dd z_1,
+    \tag{P21-15}
+\]
+so
+\[
+    \dot Z(\beta)
+    =
+    \int_{-1}^1\int_{-1}^1
+    \dot q(z_1,z_2;\beta)\dd z_2\dd z_1.
+    \tag{P21-16}
+\]
+
+\subsection*{TT case}
+
+In the fixed branch,
+\[
+    q(z;\beta)=e^{-c}\phi(z;\beta)^2+\tau\lambda(z),
+    \tag{P21-17}
+\]
+with \(c,\tau,\lambda\) frozen.  Therefore
+\[
+    \dot q(z;\beta)=2e^{-c}\phi(z;\beta)\dot\phi(z;\beta),
+    \tag{P21-18}
+\]
+and
+\[
+    \dot{\widehatZ}(\beta)
+    =
+    2e^{-c}\int\phi(z;\beta)\dot\phi(z;\beta)\dd z.
+    \tag{P21-19}
+\]
+P20 computes the same quantity by differentiating mass contractions instead of
+forming the full integral grid.
+
+\subsection*{Filtering meaning}
+
+The scalar used by the fixed branch is
+\[
+    \widehatell_T(\beta;B)
+    =
+    \sum_{t=1}^T\log\widehatZ_t(\beta;B_t).
+    \tag{P21-20}
+\]
+The branch \(B_t\) defines one mathematical function of \(\beta\).  The
+gradient is
+\[
+    \partial_\beta\widehatell_T(\beta;B)
+    =
+    \sum_{t=1}^T
+    \frac{\dot{\widehatZ}_t(\beta;B_t)}
+    {\widehatZ_t(\beta;B_t)}.
+    \tag{P21-21}
+\]
+
+\subsection*{Teach-back checkpoint}
+
+The chair should be able to say:
+\[
+    \text{normalizer derivative}
+    =
+    \text{differentiate the mass before taking } \dot Z/Z.
+    \tag{P21-22}
+\]
+What would break it:
+\[
+    \widehatZ_t(\beta_0+h)\ \text{computed with a different branch than}\
+    \widehatZ_t(\beta_0).
+    \tag{P21-23}
+\]
+
+\section{Ladder 2: Squared-Density Derivative}
+
+\subsection*{Scalar case}
+
+If \(r(\beta)=\phi(\beta)^2\), then
+\[
+    \dot r(\beta)=2\phi(\beta)\dot\phi(\beta).
+    \tag{P21-24}
+\]
+This is the elementary reason the derivative of a squared-TT density needs the
+derivative of the fitted TT cores.
+
+\subsection*{Two-coordinate case}
+
+For \(\phi(z_1,z_2;\beta)\),
+\[
+    R(\beta)=
+    \int\!\!\int \phi(z_1,z_2;\beta)^2\dd z_2\dd z_1,
+    \tag{P21-25}
+\]
+and
+\[
+    \dot R(\beta)=
+    2\int\!\!\int
+    \phi(z_1,z_2;\beta)\dot\phi(z_1,z_2;\beta)
+    \dd z_2\dd z_1.
+    \tag{P21-26}
+\]
+
+\subsection*{TT case}
+
+For two coordinates and rank \(R\),
+\[
+    \phi(z_1,z_2;\beta)
+    =
+    \sum_{r=1}^{R}
+    u_r(z_1;\beta)v_r(z_2;\beta),
+    \tag{P21-27}
+\]
+where
+\[
+    u_r(z_1;\beta)=\sum_{\ell=0}^{p-1}C_1[0,\ell,r]b_1(z_1)[\ell],
+    \qquad
+    v_r(z_2;\beta)=\sum_{m=0}^{p-1}C_2[r,m,0]b_2(z_2)[m].
+    \tag{P21-28}
+\]
+Then
+\[
+    \dot\phi
+    =
+    \sum_{r=1}^{R}
+    \dot u_r v_r
+    +
+    \sum_{r=1}^{R}
+    u_r\dot v_r.
+    \tag{P21-29}
+\]
+The derivative arrays \(\dot C_1,\dot C_2\) define \(\dot u,\dot v\).
+
+\subsection*{Filtering meaning}
+
+Squaring \(\phi\) makes the approximation nonnegative:
+\[
+    e^{-c}\phi(z;\beta)^2+\tau\lambda(z)\ge0.
+    \tag{P21-30}
+\]
+The derivative does not disturb nonnegativity; it only tells how the mass of
+this nonnegative density changes with \(\beta\).
+
+\subsection*{Teach-back checkpoint}
+
+The chair should be able to point to the one-line reason for the square:
+\[
+\begin{array}{ll}
+\text{stored} & \phi_t,\dot\phi_t\ \text{through } C_{t,k},\dot C_{t,k},\\[1mm]
+\text{integrated} & e^{-c_t}\phi_t(z)^2+\tau_t\lambda_t(z),\\[1mm]
+\text{differentiated} &
+    e^{-c_t}\phi_t(z)^2
+    \mapsto 2e^{-c_t}\phi_t(z)\dot\phi_t(z),\\[1mm]
+\text{frozen} & c_t,\tau_t,\lambda_t,\text{ basis and branch},\\[1mm]
+\text{breaks claim} &
+    \text{differentiating a different fitted square root than the one squared.}
+\end{array}
+\tag{P21-30a}
+\]
+In words after the math: the square is what buys nonnegativity, and the dot is
+only a sensitivity of that already-declared nonnegative approximation.
+
+\section{Ladder 3: Mass Contraction Derivative}
+
+\subsection*{Scalar case}
+
+Suppose
+\[
+    R(\beta)=c(\beta)^2M,
+    \tag{P21-31}
+\]
+where \(M\) is fixed.  Then
+\[
+    \dot R(\beta)=2\dot c(\beta)c(\beta)M.
+    \tag{P21-32}
+\]
+
+\subsection*{Two-coordinate rank-one case}
+
+If \(\phi(z_1,z_2)=u(z_1)v(z_2)\), then
+\[
+    R
+    =
+    \left[\int u(z_1)^2\dd z_1\right]
+    \left[\int v(z_2)^2\dd z_2\right],
+    \tag{P21-33}
+\]
+and
+\[
+    \dot R
+    =
+    \left[2\int u\dot u\right]\left[\int v^2\right]
+    +
+    \left[\int u^2\right]\left[2\int v\dot v\right].
+    \tag{P21-34}
+\]
+
+\subsection*{Two-coordinate rank-\(R\) TT case}
+
+Define the one-coordinate basis mass matrices
+\[
+    B_k[\ell,m]
+    =
+    \int_{-1}^{1}b_k(z)[\ell]\,b_k(z)[m]\dd z,
+    \qquad
+    \shape(B_k)=(p,p).
+    \tag{P21-35}
+\]
+For the second core,
+\[
+    S_2[r,s]
+    =
+    \sum_{\ell=0}^{p-1}\sum_{m=0}^{p-1}
+    C_2[r,\ell,0]B_2[\ell,m]C_2[s,m,0],
+    \qquad
+    \shape(S_2)=(R,R).
+    \tag{P21-36}
+\]
+Then the square integral is
+\[
+    R_\phi
+    =
+    \sum_{r,s=1}^{R}
+    \sum_{\ell,m=0}^{p-1}
+    C_1[0,\ell,r]B_1[\ell,m]C_1[0,m,s]S_2[r,s].
+    \tag{P21-37}
+\]
+Its derivative is the product rule:
+\[
+\begin{aligned}
+    \dot R_\phi
+    &=
+    \sum_{r,s,\ell,m}
+    \dot C_1[0,\ell,r]B_1[\ell,m]C_1[0,m,s]S_2[r,s]\\
+    &\quad+
+    \sum_{r,s,\ell,m}
+    C_1[0,\ell,r]B_1[\ell,m]\dot C_1[0,m,s]S_2[r,s]\\
+    &\quad+
+    \sum_{r,s,\ell,m}
+    C_1[0,\ell,r]B_1[\ell,m]C_1[0,m,s]\dot S_2[r,s].
+\end{aligned}
+    \tag{P21-38}
+\]
+The derivative of \(S_2\) is
+\[
+\begin{aligned}
+    \dot S_2[r,s]
+    &=
+    \sum_{\ell,m}
+    \dot C_2[r,\ell,0]B_2[\ell,m]C_2[s,m,0]\\
+    &\quad+
+    \sum_{\ell,m}
+    C_2[r,\ell,0]B_2[\ell,m]\dot C_2[s,m,0].
+\end{aligned}
+    \tag{P21-39}
+\]
+
+\subsection*{Filtering meaning}
+
+Mass contraction is simply integration without a full grid.  The TT cores
+store the function; the mass matrices store the one-dimensional integration
+rules; the contraction order defines the finite-dimensional computation.
+
+\subsection*{Teach-back checkpoint}
+
+The chair should be able to say that a mass contraction is an integral written
+as matrix products:
+\[
+\begin{array}{ll}
+\text{stored} & C_1,C_2,B_1,B_2,S_2,R_\phi
+    \text{ and their dotted counterparts},\\[1mm]
+\text{integrated} & \phi_t(z_1,z_2)^2
+    \text{ over } z_2 \text{ first, then } z_1,\\[1mm]
+\text{differentiated} &
+    C_2^\top B_2 C_2 \text{ and } C_1^\top B_1 C_1
+    \text{ by the product rule},\\[1mm]
+\text{frozen} & B_1,B_2,\text{ coordinate order, rank, basis},\\[1mm]
+\text{breaks claim} &
+    \text{omitting one of the two } \dot C_2
+    \text{ terms or one of the three } \dot R_\phi \text{ groups.}
+\end{array}
+\tag{P21-39a}
+\]
+This is the part that often looks mysterious.  It is not a new probability
+rule; it is the ordinary integral of a square, evaluated with small mass
+matrices instead of a large tensor grid.
+
+\section{Ladder 4: Fixed Ridge-Solve Derivative}
+
+\subsection*{Scalar case}
+
+If \(ng=d\) with \(n\ne0\), then \(g=d/n\).  Differentiating \(ng=d\) gives
+\[
+    \dot n\,g+n\,\dot g=\dot d,
+    \qquad
+    \dot g=\frac{\dot d-\dot n\,g}{n}.
+    \tag{P21-40}
+\]
+
+\subsection*{Matrix case}
+
+For a fixed core update,
+\[
+    N_k(\beta)g_k(\beta)=d_k(\beta),
+    \tag{P21-41}
+\]
+where
+\[
+    N_k=A_k^\top W A_k+\rho I,
+    \qquad
+    d_k=A_k^\top W y.
+    \tag{P21-42}
+\]
+Differentiating gives
+\[
+    N_k\dot g_k=\dot d_k-\dot N_k g_k,
+    \tag{P21-43}
+\]
+with
+\[
+    \dot N_k=\dot A_k^\top W A_k+A_k^\top W\dot A_k,
+    \qquad
+    \dot d_k=\dot A_k^\top W y+A_k^\top W\dot y.
+    \tag{P21-44}
+\]
+This is P20's fixed-solve derivative written as the coding contract: same
+left-hand system, new right-hand side.
+
+\subsection*{Two-coordinate design rows}
+
+For updating \(C_1\) with \(C_2\) fixed, define
+\[
+    V_{j,r}=\sum_{m=0}^{p-1}C_2[r,m,0]b_2(z_2^{(j)})[m],
+    \qquad
+    \shape(V)=(N,R).
+    \tag{P21-45}
+\]
+The design row is
+\[
+    A^{(1)}_{j,(\ell,r)}=b_1(z_1^{(j)})[\ell]V_{j,r},
+    \qquad
+    \shape(A^{(1)})=(N,pR).
+    \tag{P21-46}
+\]
+Its derivative is
+\[
+    \dot A^{(1)}_{j,(\ell,r)}
+    =
+    b_1(z_1^{(j)})[\ell]\dot V_{j,r}.
+    \tag{P21-47}
+\]
+For updating \(C_2\) with \(C_1\) fixed, define
+\[
+    U_{j,r}=\sum_{\ell=0}^{p-1}C_1[0,\ell,r]b_1(z_1^{(j)})[\ell],
+    \qquad
+    A^{(2)}_{j,(r,m)}=U_{j,r}b_2(z_2^{(j)})[m].
+    \tag{P21-48}
+\]
+Shapes:
+\[
+    \shape(U)=(N,R),\qquad
+    \shape(A^{(2)})=(N,Rp).
+    \tag{P21-49}
+\]
+
+\subsection*{Filtering meaning}
+
+The fitted cores remain functions of \(\beta\):
+\[
+    C_k(\beta;B)
+    =
+    \text{core returned by the fixed solve rule at }\beta.
+    \tag{P21-50}
+\]
+The branch freezes the rule, not the numerical core values.
+
+\subsection*{Teach-back checkpoint}
+
+The chair should be able to teach the fixed solve as the derivative of a
+linear equation:
+\[
+\begin{array}{ll}
+\text{stored} & A^{(k)},N^{(k)},d^{(k)},g_k,C_k
+    \text{ and dotted versions},\\[1mm]
+\text{integrated} & \text{nothing in this block; it is a fitting solve},\\[1mm]
+\text{differentiated} &
+    N^{(k)}g_k=d^{(k)}
+    \mapsto
+    N^{(k)}\dot g_k=\dot d^{(k)}-\dot N^{(k)}g_k,\\[1mm]
+\text{frozen} & W,\rho,Z_{\rm fit},B_{\rm val},\text{sweep order},\\[1mm]
+\text{breaks claim} &
+    \text{using a different solve system for } \dot g_k
+    \text{ or copying } g_k(\beta_0)
+    \text{ to } \beta_0\pm h.
+\end{array}
+\tag{P21-50a}
+\]
+After the math: this is why the fixed branch is needed.  If the design rule,
+rank, point set, or sweep order changes, the derivative is no longer the
+derivative of one declared finite-dimensional solve.
+
+\section{Ladder 5: Carried-Filter Quotient Derivative}
+
+\subsection*{Scalar case}
+
+If
+\[
+    p(\beta)=\frac{a(\beta)}{Z(\beta)},
+    \tag{P21-51}
+\]
+then
+\[
+    \dot p(\beta)=
+    \frac{\dot a(\beta)}{Z(\beta)}
+    -
+    \frac{a(\beta)\dot Z(\beta)}{Z(\beta)^2}.
+    \tag{P21-52}
+\]
+
+\subsection*{Two-coordinate carried numerator}
+
+With coordinate order \(z=(z_1,z_2)=(z_t,z_{t-1})\),
+\[
+    a_t(z_1;\beta)=\int_{-1}^{1}\widehatq_t(z_1,z_2;\beta)\dd z_2.
+    \tag{P21-53}
+\]
+For uniform reference density \(\lambda(z_1,z_2)=1/4\),
+\[
+    \int_{-1}^{1}\lambda(z_1,z_2)\dd z_2=\frac12.
+    \tag{P21-54}
+\]
+Using \(S_2\) from (P21-36),
+\[
+\begin{aligned}
+    a_t(z_1;\beta)
+    &=
+    e^{-c_t}
+    \sum_{r,s,\ell,m}
+    C_1[0,\ell,r]b_1(z_1)[\ell]
+    S_2[r,s]
+    C_1[0,m,s]b_1(z_1)[m]
+    +\frac{\tau_t}{2}.
+\end{aligned}
+    \tag{P21-55}
+\]
+The derivative is
+\[
+\begin{aligned}
+    \dot a_t(z_1;\beta)
+    &=
+    e^{-c_t}
+    \sum_{r,s,\ell,m}
+    \dot C_1[0,\ell,r]b_1(z_1)[\ell]
+    S_2[r,s]C_1[0,m,s]b_1(z_1)[m]\\
+    &\quad+
+    e^{-c_t}
+    \sum_{r,s,\ell,m}
+    C_1[0,\ell,r]b_1(z_1)[\ell]
+    \dot S_2[r,s]C_1[0,m,s]b_1(z_1)[m]\\
+    &\quad+
+    e^{-c_t}
+    \sum_{r,s,\ell,m}
+    C_1[0,\ell,r]b_1(z_1)[\ell]
+    S_2[r,s]\dot C_1[0,m,s]b_1(z_1)[m].
+\end{aligned}
+    \tag{P21-56}
+\]
+Then
+\[
+    \dot{\widehatp}^{\rm ref}_t(z_1;\beta)
+    =
+    \frac{\dot a_t(z_1;\beta)}{\widehatZ_t(\beta)}
+    -
+    \frac{a_t(z_1;\beta)\dot{\widehatZ}_t(\beta)}
+    {\widehatZ_t(\beta)^2}.
+    \tag{P21-57}
+\]
+
+\subsection*{Filtering meaning}
+
+Equation (P21-57) is the derivative object that feeds time \(t+1\).  Without
+it, the derivative of the next target omits the dependency of the previous
+approximate filter on \(\beta\).
+
+\subsection*{Representation contract for carried one-coordinate objects}
+
+The carried filter must be stored as a concrete one-coordinate object, not as
+an informal phrase.  With the normalized Legendre basis from (P21-72),
+\(b_1(z)=(b_1(z)[0],\ldots,b_1(z)[p-1])^\top\) and \(b_1(z)[0]=1/\sqrt2\).
+Store the numerator coefficient matrix
+\[
+    Q_t[\ell,m]
+    =
+    e^{-c_t}\sum_{r,s=1}^{R}
+    C_1[0,\ell,r]S_2[r,s]C_1[0,m,s]
+    +\tau_t{\bf 1}_{\ell=0}{\bf 1}_{m=0},
+    \qquad
+    \shape(Q_t)=(p,p).
+    \tag{P21-57a}
+\]
+Then
+\[
+    a_t(z_1;\beta)=b_1(z_1)^\top Q_t b_1(z_1).
+    \tag{P21-57b}
+\]
+The defensive term is correct because
+\[
+    \tau_t b_1(z_1)[0]^2=\tau_t/2.
+    \tag{P21-57c}
+\]
+The derivative coefficient matrix is
+\[
+\begin{aligned}
+    \dot Q_t[\ell,m]
+    &=
+    e^{-c_t}\sum_{r,s}
+    \dot C_1[0,\ell,r]S_2[r,s]C_1[0,m,s]\\
+    &\quad+
+    e^{-c_t}\sum_{r,s}
+    C_1[0,\ell,r]\dot S_2[r,s]C_1[0,m,s]\\
+    &\quad+
+    e^{-c_t}\sum_{r,s}
+    C_1[0,\ell,r]S_2[r,s]\dot C_1[0,m,s],
+    \qquad
+    \shape(\dot Q_t)=(p,p).
+\end{aligned}
+\tag{P21-57d}
+\]
+Store the normalized carried-filter coefficient matrices
+\[
+    P_t=\frac{Q_t}{\widehatZ_t},
+    \qquad
+    \dot P_t=
+    \frac{\dot Q_t}{\widehatZ_t}
+    -
+    \frac{Q_t\dot{\widehatZ}_t}{\widehatZ_t^2},
+    \qquad
+    \shape(P_t)=\shape(\dot P_t)=(p,p).
+    \tag{P21-57e}
+\]
+For any query vector \(z^{\rm query}\in[-1,1]^M\), build
+\[
+    B^{\rm query}[j,\ell]=b_1(z^{\rm query}_j)[\ell],
+    \qquad
+    \shape(B^{\rm query})=(M,p).
+    \tag{P21-57f}
+\]
+The carried evaluator returns vectors
+\[
+\begin{aligned}
+    \widehat p_t^{\rm ref}[j]
+    &=
+    \sum_{\ell,m}B^{\rm query}[j,\ell]P_t[\ell,m]
+    B^{\rm query}[j,m],\\
+    \dot{\widehat p}_t^{\rm ref}[j]
+    &=
+    \sum_{\ell,m}B^{\rm query}[j,\ell]\dot P_t[\ell,m]
+    B^{\rm query}[j,m],
+\end{aligned}
+\qquad
+\shape(\widehat p_t^{\rm ref})=\shape(\dot{\widehat p}_t^{\rm ref})=(M,).
+\tag{P21-57g}
+\]
+At the next filtering step, \(M=N\) and
+\[
+    z^{\rm query}_j=Z_{\rm fit}[j,2],
+    \qquad
+    p_j=\widehat p_{t-1}^{\rm ref}[j],
+    \qquad
+    \dot p_j=\dot{\widehat p}_{t-1}^{\rm ref}[j].
+    \tag{P21-57h}
+\]
+
+\subsection*{Teach-back checkpoint}
+
+The chair should be able to say that the carried filter is a normalized
+one-coordinate quadratic form:
+\[
+\begin{array}{ll}
+\text{stored} & Q_t,\dot Q_t,P_t,\dot P_t
+    \text{ with shape }(p,p),\\[1mm]
+\text{integrated} & \widehat q_t(z_1,z_2)\text{ over }z_2,\\[1mm]
+\text{differentiated} &
+    P_t=Q_t/\widehatZ_t
+    \mapsto
+    \dot P_t=\dot Q_t/\widehatZ_t
+    -Q_t\dot{\widehatZ}_t/\widehatZ_t^2,\\[1mm]
+\text{frozen} & b_1,\ c_t,\tau_t,\text{ branch and query rule},\\[1mm]
+\text{breaks claim} &
+    \text{carrying only values without a declared basis object, or carrying }
+    P_t \text{ without } \dot P_t.
+\end{array}
+\tag{P21-57i}
+\]
+After the math: this contract is what lets the next target derivative know
+exactly where the previous-filter derivative lives.
+
+\section{Ladder 6: Next-Step Target Derivative}
+
+For \(t\ge2\), define abbreviations at fitting point \(j\):
+\[
+    p_j=\widehatp_{t-1}^{\rm ref}(z_2^{(j)};\beta),
+    \qquad
+    f_j=f_\beta(x_t^{(j)}\mid x_{t-1}^{(j)}),
+    \qquad
+    g_j=g_\beta(y_t\mid x_t^{(j)}).
+    \tag{P21-58}
+\]
+The target value is
+\[
+    \widetilde q_{t,j}=p_j f_j g_j h_{t,1}.
+    \tag{P21-59}
+\]
+Because the domain is frozen, \(\dot h_{t,1}=0\).  Hence
+\[
+    \dot{\widetilde q}_{t,j}
+    =
+    h_{t,1}
+    \left[
+    \dot p_j f_jg_j
+    +
+    p_j\dot f_jg_j
+    +
+    p_jf_j\dot g_j
+    \right].
+    \tag{P21-60}
+\]
+The square-root fitting value derivative is
+\[
+    \dot y_j
+    =
+    e^{c_t/2}
+    \frac{\dot{\widetilde q}_{t,j}}
+    {2\sqrt{\widetilde q_{t,j}}},
+    \qquad
+    \widetilde q_{t,j}>0.
+    \tag{P21-61}
+\]
+
+\subsection*{Teach-back checkpoint}
+
+The chair should be able to say:
+\[
+    \dot{\widetilde q}_{t}
+    =
+    \text{previous-filter derivative}
+    +
+    \text{transition derivative}
+    +
+    \text{observation derivative}.
+    \tag{P21-62}
+\]
+What would break it:
+\[
+    \dot{\widehatp}_{t-1}\ \text{not carried forward}.
+    \tag{P21-63}
+\]
+
+\section{Implementation-Ready Fixed-Branch Specification}
+
+This section is written as if a Python implementation were next, but it is not
+code.  It gives formulas, shapes, loop order, and diagnostics.
+
+\subsection{Declared constants and shapes}
+
+For the minimal specification:
+\[
+    T=2,\qquad D=2,\qquad z=(z_1,z_2),\qquad
+    R_0=R_2=1,\qquad R_1=R.
+    \tag{P21-64}
+\]
+Let \(p\) be the number of one-dimensional basis functions and \(N\) the number
+of fitting points.  The primary arrays have shapes
+\[
+\begin{array}{lll}
+Z_{\rm fit} &:& (N,2),\\
+B_{\rm val} &:& (N,2,p),\\
+w &:& (N,),\\
+B_1,B_2 &:& (p,p),\\
+C_1,\dot C_1 &:& (1,p,R),\\
+C_2,\dot C_2 &:& (R,p,1),\\
+Q_t,\dot Q_t &:& (p,p),\\
+P_t,\dot P_t &:& (p,p),\\
+B^{\rm query} &:& (M,p),\\
+\widehat p_t^{\rm ref},\dot{\widehat p}_t^{\rm ref} &:& (M,),\\
+A^{(1)} &:& (N,pR),\\
+A^{(2)} &:& (N,Rp),\\
+N^{(1)} &:& (pR,pR),\\
+N^{(2)} &:& (Rp,Rp),\\
+y,\dot y &:& (N,).
+\end{array}
+\tag{P21-65}
+\]
+The branch manifest is
+\[
+\begin{aligned}
+    \mathcal M
+    =
+    \{&
+    T,D,N,p,R,\ell_{t,k},u_{t,k},a_{t,k},h_{t,k},
+    \text{basis},\\
+    &\text{fitting point rule},\rho,c_t,\tau_t,
+    \lambda_t,\text{sweep order},S,\text{seed}\}.
+\end{aligned}
+\tag{P21-66}
+\]
+
+\subsection{Model and derivative formulas}
+
+Use
+\[
+    x_t=\beta x_{t-1}+\sigma\epsilon_t,\qquad
+    y_t=\sin(x_t)+\eta_t.
+    \tag{P21-67}
+\]
+The transition density is
+\[
+    f_\beta(x_t\mid x_{t-1})
+    =
+    \frac{1}{\sqrt{2\pi\sigma^2}}
+    \exp\left[
+    -\frac{(x_t-\beta x_{t-1})^2}{2\sigma^2}
+    \right],
+    \tag{P21-68}
+\]
+with derivative
+\[
+    \partial_\beta f_\beta(x_t\mid x_{t-1})
+    =
+    f_\beta(x_t\mid x_{t-1})
+    \frac{(x_t-\beta x_{t-1})x_{t-1}}{\sigma^2}.
+    \tag{P21-69}
+\]
+The observation density is
+\[
+    g_\beta(y_t\mid x_t)
+    =
+    \frac{1}{\sqrt{2\pi r^2}}
+    \exp\left[-\frac{(y_t-\sin x_t)^2}{2r^2}\right].
+    \tag{P21-70}
+\]
+For this example \(g_\beta\) has no direct \(\beta\)-derivative at fixed
+\(x_t\):
+\[
+    \partial_\beta g_\beta(y_t\mid x_t)=0.
+    \tag{P21-71}
+\]
+
+\subsection{Basis and fitting points}
+
+Use normalized Legendre basis on \([-1,1]\):
+\[
+    b_k(z)
+    =
+    \left(
+    \sqrt{\frac12}P_0(z),\sqrt{\frac32}P_1(z),\ldots,
+    \sqrt{\frac{2p-1}{2}}P_{p-1}(z)
+    \right)^\top.
+    \tag{P21-72}
+\]
+For the exact Legendre basis,
+\[
+    B_k[\ell,m]=\int_{-1}^{1}b_k(z)[\ell]b_k(z)[m]\dd z
+    =
+    \begin{cases}
+    1,&\ell=m,\\
+    0,&\ell\ne m.
+    \end{cases}
+    \tag{P21-73}
+\]
+The fitting point array is fixed:
+\[
+    Z_{\rm fit}[j,k]\in[-1,1],
+    \qquad
+    \shape(Z_{\rm fit})=(N,2).
+    \tag{P21-74}
+\]
+The basis value table is
+\[
+    B_{\rm val}[j,k,\ell]=b_k(Z_{\rm fit}[j,k])[\ell],
+    \qquad
+    \shape(B_{\rm val})=(N,2,p).
+    \tag{P21-75}
+\]
+
+\subsection{One sweep of core fitting}
+
+The deterministic initialization is part of the branch.  One forward sweep
+updates \(C_1\) and then \(C_2\); one backward sweep updates \(C_2\) and then
+\(C_1\).  The number of sweeps \(S\) is fixed.
+
+Pseudocode block \texttt{fit\_core\_1}:
+\[
+\begin{array}{ll}
+1. & V_{j,r}\leftarrow \sum_m C_2[r,m,0]B_{\rm val}[j,2,m].\\
+2. & A^{(1)}_{j,(\ell,r)}
+   \leftarrow B_{\rm val}[j,1,\ell]V_{j,r}.\\
+3. & N^{(1)}\leftarrow (A^{(1)})^\top W A^{(1)}+\rho I.\\
+4. & d^{(1)}\leftarrow (A^{(1)})^\top W y.\\
+5. & \vecop(C_1)\leftarrow (N^{(1)})^{-1}d^{(1)}.
+\end{array}
+\tag{P21-76}
+\]
+Pseudocode block \texttt{fit\_core\_2}:
+\[
+\begin{array}{ll}
+1. & U_{j,r}\leftarrow \sum_\ell C_1[0,\ell,r]B_{\rm val}[j,1,\ell].\\
+2. & A^{(2)}_{j,(r,m)}
+   \leftarrow U_{j,r}B_{\rm val}[j,2,m].\\
+3. & N^{(2)}\leftarrow (A^{(2)})^\top W A^{(2)}+\rho I.\\
+4. & d^{(2)}\leftarrow (A^{(2)})^\top W y.\\
+5. & \vecop(C_2)\leftarrow (N^{(2)})^{-1}d^{(2)}.
+\end{array}
+\tag{P21-77}
+\]
+Derivative pseudocode uses the same block names with dots.  For example,
+\[
+    \dot{\vecop(C_1)}
+    =
+    (N^{(1)})^{-1}
+    \left[
+    \dot d^{(1)}-\dot N^{(1)}\vecop(C_1)
+    \right],
+    \tag{P21-78}
+\]
+where \(\dot N^{(1)}\) and \(\dot d^{(1)}\) are computed from (P21-44).
+
+\subsection{Forward pass pseudocode}
+
+At each time \(t\):
+\[
+\begin{array}{ll}
+1. & \text{Build or reuse } Z_{\rm fit},B_{\rm val},W,\mathcal M.\\
+2. & \text{Evaluate } \widetilde q_{t,j} \text{ using (P21-7) if }t=1
+     \text{ and (P21-6) if }t=2.\\
+3. & y_j\leftarrow e^{c_t/2}\sqrt{\widetilde q_{t,j}}.\\
+4. & \text{Run the fixed sweep sequence to obtain } C_1,C_2.\\
+5. & \text{Compute } S_2,R_\phi,\widehatZ_t
+     \text{ using (P21-36)--(P21-37) and (P21-10).}\\
+6. & \text{Compute } Q_t \text{ using (P21-57a), then }
+     P_t\leftarrow Q_t/\widehatZ_t.\\
+7. & \text{Evaluate }\widehatp_t^{\rm ref}
+     \text{ from }B^{\rm query}P_tB^{\rm query\top}
+     \text{ using (P21-57g).}
+\end{array}
+\tag{P21-79}
+\]
+
+\subsection{Derivative pass pseudocode}
+
+At each time \(t\):
+\[
+\begin{array}{ll}
+1. & \text{Evaluate } \dot{\widetilde q}_{t,j}
+     \text{ using model derivatives and carried } \dot{\widehatp}_{t-1}.\\
+2. & \dot y_j\leftarrow
+     e^{c_t/2}\dot{\widetilde q}_{t,j}/(2\sqrt{\widetilde q_{t,j}}).\\
+3. & \text{Run the fixed derivative sweep using (P21-78).}\\
+4. & \text{Compute } \dot S_2,\dot R_\phi,\dot{\widehatZ}_t
+     \text{ using (P21-38)--(P21-39).}\\
+5. & \text{Compute } \dot Q_t \text{ using (P21-57d).}\\
+6. & \dot P_t\leftarrow
+     \dot Q_t/\widehatZ_t-Q_t\dot{\widehatZ}_t/\widehatZ_t^2.\\
+7. & \text{Evaluate }\dot{\widehatp}_t^{\rm ref}
+     \text{ from }B^{\rm query}\dot P_tB^{\rm query\top}
+     \text{ using (P21-57g).}\\
+8. & \partial_\beta\widehatell_T\leftarrow
+     \partial_\beta\widehatell_T+\dot{\widehatZ}_t/\widehatZ_t.
+\end{array}
+\tag{P21-80}
+\]
+
+\subsection{Diagnostics}
+
+The implementation-ready diagnostics are
+\[
+\begin{array}{ll}
+\text{positive target} & \min_j\widetilde q_{t,j}>0,\\
+\text{solve conditioning} & \kappa(N^{(k)})\ \text{below declared limit},\\
+\text{mass positivity} & R_\phi\ge0,\quad \widehatZ_t>0,\\
+\text{filter normalization} & \int \widehatp_t^{\rm ref}(z_1)\dd z_1=1,\\
+\text{branch identity} & \mathcal M(\beta_0-h)=\mathcal M(\beta_0)=\mathcal M(\beta_0+h).
+\end{array}
+\tag{P21-81}
+\]
+
+\section{Finite-Difference Protocol}
+
+The same-branch finite-difference protocol is a mathematical contract for a
+later implementation.  It does not report a numerical result.
+
+At base point \(\beta_0\), freeze the branch manifest:
+\[
+    \mathcal M_0=\mathcal M(\beta_0).
+    \tag{P21-82}
+\]
+For each \(h\in\{10^{-2},10^{-3},10^{-4},10^{-5}\}\), evaluate
+\[
+    \widehatell_2(\beta_0+h;\mathcal M_0),
+    \qquad
+    \widehatell_2(\beta_0-h;\mathcal M_0),
+    \tag{P21-83}
+\]
+where all branch choices are reused but the fitted cores are recomputed:
+\[
+    C_k(\beta_0\pm h;\mathcal M_0)
+    =
+    \text{result of the fixed fitting rule at }\beta_0\pm h.
+    \tag{P21-84}
+\]
+The centered difference is
+\[
+    D(h)=
+    \frac{
+    \widehatell_2(\beta_0+h;\mathcal M_0)
+    -
+    \widehatell_2(\beta_0-h;\mathcal M_0)}
+    {2h}.
+    \tag{P21-85}
+\]
+Compare with the analytic derivative
+\[
+    G=\partial_\beta\widehatell_2(\beta_0;\mathcal M_0),
+    \qquad
+    e(h)=|D(h)-G|,
+    \qquad
+    e_{\rm rel}(h)=\frac{|D(h)-G|}{1+|G|}.
+    \tag{P21-86}
+\]
+The later implementation must print or record the report object
+\[
+\begin{aligned}
+    \mathcal R_{\rm FD}
+    =
+    \{&
+    \widehatell_2(\beta_0;\mathcal M_0),\
+    G,\
+    (h_i,D(h_i),e(h_i),e_{\rm rel}(h_i))_{i=1}^{4},\\
+    &I_-(h_i),I_+(h_i),K_-(h_i),K_+(h_i),\
+    W_i,\ \text{status}\},
+\end{aligned}
+\tag{P21-86a}
+\]
+where
+\[
+\begin{aligned}
+    I_\pm(h_i)
+    &=
+    {\bf 1}\{\mathcal M(\beta_0\pm h_i)=\mathcal M_0\},\\
+    K_\pm(h_i)
+    &=
+    {\bf 1}\{C_k(\beta_0\pm h_i;\mathcal M_0)
+        \text{ was recomputed by the fixed solve rule}\},\\
+    W_i
+    &=
+    {\bf 1}\{e(h_i)>e(h_{i+1})>e(h_{i+2})\},
+    \qquad i=1,2.
+\end{aligned}
+\tag{P21-86b}
+\]
+The pass/fail status is
+\[
+\text{status}
+=
+\begin{cases}
+\texttt{FAIL\_BRANCH},&
+    \min_{i,\pm} I_\pm(h_i)=0,\\
+\texttt{FAIL\_COPIED\_CORES},&
+    \min_{i,\pm} K_\pm(h_i)=0,\\
+\texttt{PASS},&
+    \max(W_1,W_2)=1,\\
+\texttt{INCONCLUSIVE\_NO\_DECREASING\_WINDOW},&
+    \text{otherwise}.
+\end{cases}
+\tag{P21-86c}
+\]
+Expected behavior:
+\[
+    e(10^{-2})>e(10^{-3})>e(10^{-4})
+    \quad\text{over at least one stable window,}
+    \tag{P21-87}
+\]
+with possible roundoff deterioration at \(10^{-5}\).  If no decreasing window
+appears, first check branch identity, then target derivatives, then solve
+derivatives, then carried-filter derivatives.
+
+\section{Why This Is A Plausible High-Dimensional Filtering Method}
+
+The core mathematical argument is
+\[
+\begin{gathered}
+    \widehatq_t(z;\beta)
+    =
+    e^{-c_t}\phi_t(z;\beta)^2+\tau_t\lambda_t(z)\ge0,\\
+    0<\widehatZ_t(\beta)=\int\widehatq_t(z;\beta)\dd z<\infty,\\
+    \widehatp_t^{\rm ref}(z_1;\beta)
+    =
+    \frac{\int\widehatq_t(z_1,z_2;\beta)\dd z_2}{\widehatZ_t(\beta)}.
+\end{gathered}
+\tag{P21-88}
+\]
+Therefore
+\[
+    \int\widehatp_t^{\rm ref}(z_1;\beta)\dd z_1
+    =
+    \frac{\int\!\!\int\widehatq_t(z_1,z_2;\beta)\dd z_2\dd z_1}
+    {\widehatZ_t(\beta)}
+    =
+    1.
+    \tag{P21-89}
+\]
+This proves that the fixed branch defines a normalized approximate filter.
+It does not prove that the approximation equals the exact posterior.  The
+plausibility comes from the combination:
+\[
+\begin{aligned}
+    &\text{nonnegative approximation}
+    +\text{computable mass}
+    +\text{recursive marginal}\\
+    &\qquad\Longrightarrow
+    \text{valid normalized approximate filter}.
+\end{aligned}
+    \tag{P21-90}
+\]
+The remaining scientific question is empirical and numerical: whether TT ranks,
+domains, basis choices, and preconditioning make this approximation accurate
+and stable for the target high-dimensional model.
+
+\section{What Is Not Claimed}
+
+P21 does not claim
+\[
+\begin{array}{ll}
+\text{exact posterior accuracy}, & \widehatq_t=q_t,\\
+\text{global adaptive differentiability}, & \partial_\beta B(\beta)
+    \text{ for changing ranks/pivots/domains},\\
+\text{production readiness}, & \text{no production BayesFilter code is written},\\
+\text{HMC convergence}, & \text{same-scalar gradient is only one requirement},\\
+\text{full Zhao--Cui implementation}, & \text{adaptive TT-cross and KR engineering remain gaps}.
+\end{array}
+\tag{P21-91}
+\]
+
+\end{document}

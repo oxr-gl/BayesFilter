@@ -1,0 +1,233 @@
+{
+  "schema_version": "p50.integration_closeout.v1",
+  "metadata_date": "2026-06-09",
+  "program": "P50-hmc-deterministic-filtering",
+  "status": "PASS_P50_M9_INTEGRATION_CLOSEOUT",
+  "phase_statuses": [
+    {
+      "phase": "P50-M0",
+      "status": "PASS_P50_M0_SCOPE_CLAIM_GOVERNANCE",
+      "claim": "scope and claim governance passed",
+      "result_note": "docs/plans/bayesfilter-highdim-zhao-cui-p50-m0-scope-claim-governance-result-2026-06-09.md"
+    },
+    {
+      "phase": "P50-M1",
+      "status": "PASS_P50_M1_DETERMINISTIC_FILTER_LOOP_CONTRACT",
+      "claim": "deterministic filter-loop contract passed",
+      "result_note": "docs/plans/bayesfilter-highdim-zhao-cui-p50-m1-deterministic-filter-loop-contract-result-2026-06-09.md"
+    },
+    {
+      "phase": "P50-M2",
+      "status": "PASS_P50_M2_ONE_STEP_VALUE_PATH",
+      "claim": "focused one-step deterministic value path passed",
+      "result_note": "docs/plans/bayesfilter-highdim-zhao-cui-p50-m2-one-step-value-path-result-2026-06-09.md"
+    },
+    {
+      "phase": "P50-M3",
+      "status": "PASS_P50_M3_SEQUENTIAL_LIKELIHOOD_PATH",
+      "claim": "focused sequential deterministic likelihood path passed",
+      "result_note": "docs/plans/bayesfilter-highdim-zhao-cui-p50-m3-sequential-likelihood-path-result-2026-06-09.md"
+    },
+    {
+      "phase": "P50-M4",
+      "status": "PASS_P50_M4_VALUE_GRADIENT_CALIBRATION",
+      "claim": "predeclared value-gradient calibration rules passed",
+      "result_note": "docs/plans/bayesfilter-highdim-zhao-cui-p50-m4-value-gradient-calibration-result-2026-06-09.md"
+    },
+    {
+      "phase": "P50-M5",
+      "status": "PASS_P50_M5_SV_GENERALIZED_SV_LADDER",
+      "claim": "SV ladder passed in scoped form; native generalized SV remains reference-blocked",
+      "result_note": "docs/plans/bayesfilter-highdim-zhao-cui-p50-m5-sv-generalized-sv-ladder-result-2026-06-09.md"
+    },
+    {
+      "phase": "P50-M6",
+      "status": "PASS_P50_M6_SPATIAL_SIR_PREDATOR_PREY_LADDER",
+      "claim": "nonlinear model ladder passed in scoped diagnostic form; production rows remain blocked",
+      "result_note": "docs/plans/bayesfilter-highdim-zhao-cui-p50-m6-spatial-sir-predator-prey-ladder-result-2026-06-09.md"
+    },
+    {
+      "phase": "P50-M7",
+      "status": "PASS_P50_M7_HMC_READINESS_TIERS",
+      "status_meaning": "tier_definitions_and_overclaim_guards_passed_no_hmc_readiness_claim",
+      "claim": "HMC readiness tiers and overclaim guards passed; HMC readiness did not pass",
+      "result_note": "docs/plans/bayesfilter-highdim-zhao-cui-p50-m7-hmc-readiness-tiers-result-2026-06-09.md"
+    },
+    {
+      "phase": "P50-M8",
+      "status": "PASS_P50_M8_SMOOTHING_BOUNDARY",
+      "status_meaning": "boundary_and_overclaim_guards_passed_no_smoothing_support_claim",
+      "claim": "smoothing boundary and overclaim guards passed; smoothing support did not pass",
+      "result_note": "docs/plans/bayesfilter-highdim-zhao-cui-p50-m8-smoothing-boundary-result-2026-06-09.md"
+    },
+    {
+      "phase": "P50-M9",
+      "status": "PASS_P50_M9_INTEGRATION_CLOSEOUT",
+      "claim": "integration closeout reconciles phase claims, blockers, non-goals, and non-claims",
+      "result_note": "docs/plans/bayesfilter-highdim-zhao-cui-p50-m9-integration-closeout-result-2026-06-09.md"
+    }
+  ],
+  "supported_claims": [
+    "scope governance excludes adaptive TT/SIRT source-faithful filtering and S&P 500 reproduction as P50 gaps",
+    "deterministic filter loop contract defines HMC-compatible value and gradient path boundaries",
+    "focused one-step value path and low-dimensional sequential likelihood path pass reference checks",
+    "M4 value-gradient calibration rules are predeclared and guard finite-difference and likelihood-variability misuse",
+    "SV dim 1/2/3 strict rows pass for KSC CUT4-vs-Kalman and exact transformed SV Zhao-Cui-vs-dense",
+    "KSC Zhao-Cui-vs-dense remains local diagnostic evidence under looser existing tolerances",
+    "spatial SIR and predator-prey lower-rung diagnostics pass with production blockers preserved",
+    "HMC readiness tiers are defined and guard against finite-gradient overpromotion",
+    "smoothing is not required for P50 parameter-HMC filtering and remains explicitly deferred"
+  ],
+  "h1_h8_closure": [
+    {
+      "target": "H1",
+      "issue": "P49 helpers are scoped but not integrated into a full deterministic filter.",
+      "closing_phases": ["P50-M1", "P50-M2", "P50-M3"],
+      "closeout_status": "SCOPED_PASS_CONTRACT_AND_FOCUSED_VALUE_PATHS",
+      "boundary": "Full production deterministic filtering is not claimed."
+    },
+    {
+      "target": "H2",
+      "issue": "Recentring, Jacobian, proposal-correction, and normalizer accounting are not wired end to end.",
+      "closing_phases": ["P50-M1", "P50-M2", "P50-M3"],
+      "closeout_status": "SCOPED_PASS_ACCOUNTING_GUARDS",
+      "boundary": "Nonlinear production route accounting remains subject to model-specific blockers."
+    },
+    {
+      "target": "H3",
+      "issue": "Value and gradient correctness need HMC-grade criteria.",
+      "closing_phases": ["P50-M4"],
+      "closeout_status": "PASS_CALIBRATION_RULES",
+      "boundary": "Rules do not by themselves prove any model or HMC readiness."
+    },
+    {
+      "target": "H4",
+      "issue": "SV and generalized SV model comparisons need deterministic HMC-compatible value and gradient tests.",
+      "closing_phases": ["P50-M5"],
+      "closeout_status": "SCOPED_PASS_WITH_NATIVE_GENERALIZED_SV_REFERENCE_BLOCKER",
+      "boundary": "Native generalized SV same-target equality remains blocked."
+    },
+    {
+      "target": "H5",
+      "issue": "Spatial SIR and predator-prey comparisons need deterministic HMC-compatible value and gradient tests.",
+      "closing_phases": ["P50-M6"],
+      "closeout_status": "SCOPED_PASS_WITH_PRODUCTION_BLOCKERS",
+      "boundary": "Production spatial SIR and predator-prey readiness are not claimed."
+    },
+    {
+      "target": "H6",
+      "issue": "HMC readiness is not established by finite gradients alone.",
+      "closing_phases": ["P50-M7"],
+      "closeout_status": "PASS_TIER_DEFINITIONS_NO_HMC_READY_PROMOTION",
+      "boundary": "Tier 2, Tier 3, and production HMC readiness are not run or passed."
+    },
+    {
+      "target": "H7",
+      "issue": "Smoothing/backward conditionals are separate from parameter HMC.",
+      "closing_phases": ["P50-M8"],
+      "closeout_status": "PASS_BOUNDARY_NO_SMOOTHING_SUPPORT_CLAIM",
+      "boundary": "Smoothing is deferred unless latent-path inference becomes a separate reviewed target."
+    },
+    {
+      "target": "H8",
+      "issue": "Future artifacts may drift back into source-faithful/adaptive language.",
+      "closing_phases": ["P50-M0", "P50-M9"],
+      "closeout_status": "PASS_NON_GOAL_GOVERNANCE",
+      "boundary": "Adaptive TT/SIRT source-faithful filtering and S&P 500 reproduction are non-goals, not gaps."
+    }
+  ],
+  "route_label_inventory": [
+    {
+      "route_label": "hmc_compatible_deterministic_filtering",
+      "used_by": ["P50-M1", "P50-M2", "P50-M3", "P50-M5", "P50-M6"],
+      "allowed_claim": "phase-scoped deterministic value, gradient, or model-ladder evidence",
+      "forbidden_claim": "source-faithful adaptive TT/SIRT reproduction or production readiness without a production gate"
+    },
+    {
+      "route_label": "gradient_calibration_diagnostic",
+      "used_by": ["P50-M4", "P50-M5", "P50-M6"],
+      "allowed_claim": "predeclared value and gradient comparison classes",
+      "forbidden_claim": "HMC readiness by finite-gradient or finite-difference diagnostics alone"
+    },
+    {
+      "route_label": "model_ladder_diagnostic",
+      "used_by": ["P50-M5", "P50-M6"],
+      "allowed_claim": "scoped SV, generalized SV, spatial SIR, and predator-prey diagnostic evidence",
+      "forbidden_claim": "production model readiness from lower-rung or diagnostic rows"
+    },
+    {
+      "route_label": "hmc_readiness_tier",
+      "used_by": ["P50-M7"],
+      "allowed_claim": "tier definitions and explicit readiness blockers",
+      "forbidden_claim": "HMC readiness without Tier 2 and Tier 3 evidence"
+    },
+    {
+      "route_label": "smoothing_boundary",
+      "used_by": ["P50-M8"],
+      "allowed_claim": "smoothing deferral and backward-conditional requirements for future smoother claims",
+      "forbidden_claim": "smoothing support from filtering pass tokens"
+    },
+    {
+      "route_label": "historical_source_context",
+      "used_by": ["P50-M0", "P50-M9"],
+      "allowed_claim": "context explaining why P50 chooses deterministic HMC-compatible filtering",
+      "forbidden_claim": "adaptive TT/SIRT source-faithful filtering or S&P 500 reproduction as P50 gaps"
+    }
+  ],
+  "remaining_gaps": [
+    {
+      "id": "native_generalized_sv_same_target_reference",
+      "source_phase": "P50-M5",
+      "status": "BLOCKED_REFERENCE_MISSING",
+      "description": "Native generalized SV same-target value/gradient equality lacks an approved exact, dense, or reviewed reference."
+    },
+    {
+      "id": "spatial_sir_production_route_architecture",
+      "source_phase": "P50-M6",
+      "status": "BLOCKED_M4B_ROUTE_ARCHITECTURE",
+      "description": "Near-paper spatial SIR production route remains blocked by current all-axes retained-grid route architecture."
+    },
+    {
+      "id": "predator_prey_production_accuracy_tuning",
+      "source_phase": "P50-M6",
+      "status": "BLOCKED_M5B_PRODUCTION_ACCURACY_TUNING",
+      "description": "Predator-prey horizon-25 production candidate remains blocked by production accuracy/tuning criteria."
+    },
+    {
+      "id": "hmc_tier2_tier3_sampler_evidence",
+      "source_phase": "P50-M7",
+      "status": "NOT_RUN",
+      "description": "Hamiltonian/leapfrog and short-chain sampler diagnostics have not been run, so HMC readiness is not established."
+    },
+    {
+      "id": "stable_top_level_score_api",
+      "source_phase": "P50-M7",
+      "status": "NOT_CLAIMED",
+      "description": "The top-level score API remains experimental and is not claimed stable."
+    },
+    {
+      "id": "smoother_if_latent_path_inference_becomes_target",
+      "source_phase": "P50-M8",
+      "status": "DEFERRED_NOT_P50_BLOCKER",
+      "description": "Smoothing/backward-conditionals are deferred unless latent-path posterior inference becomes a separate reviewed target."
+    }
+  ],
+  "explicit_non_goals_not_gaps": [
+    "adaptive TT/SIRT source-faithful filtering",
+    "S&P 500 reproduction"
+  ],
+  "nonclaims": [
+    "no HMC readiness",
+    "no production HMC readiness",
+    "no production SV readiness",
+    "no production generalized SV readiness",
+    "no production spatial SIR readiness",
+    "no production predator-prey readiness",
+    "no certified nonlinear-model gradient correctness",
+    "no stable top-level score API",
+    "no smoothing support",
+    "no latent-path posterior inference",
+    "no source-faithful adaptive TT/SIRT filtering",
+    "no S&P 500 reproduction"
+  ]
+}

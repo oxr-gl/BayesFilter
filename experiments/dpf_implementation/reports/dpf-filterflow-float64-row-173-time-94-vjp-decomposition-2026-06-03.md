@@ -1,0 +1,13190 @@
+# Result: FilterFlow Float64 Row 173 VJP Decomposition
+
+## Decision
+
+`filterflow_float64_row_173_vjp_value_difference_localized`
+
+## Decision Table
+
+| Decision | Primary criterion status | Veto diagnostic status | Main uncertainty | Next justified action | Not concluded |
+| --- | --- | --- | --- | --- | --- |
+| filterflow_float64_row_173_vjp_value_difference_localized | first value delta: {'status': 'delta', 'field': 'normalized', 'row': {'filterflow_max_abs': 11.219771692193683, 'bayesfilter_max_abs': 11.219771700546191, 'max_abs_delta': 8.352508018560911e-09, 'sum_delta': 7.342077879002318e-08, 'shape_match': True, 'finite': True}, 'tolerance': 5e-08} | value mismatch | single row and single time index; no correctness claim | repair value-path replay before using VJP evidence | correctness of either implementation, analytic gradient correctness, production readiness |
+
+## Model Contract
+
+| Key | Value |
+| --- | --- |
+| `model` | `filterflow_simple_linear_smoothness_constant_velocity_lgssm` |
+| `mesh_index` | `173` |
+| `theta` | `[0.9710526315789474, 0.9842105263157894]` |
+| `target_time_index` | `94` |
+| `artifact_tag` | `row-173-time-94` |
+| `transition_matrix` | `A(theta)=diag(theta_1, theta_2)+[[0,1],[0,0]]` |
+| `transition_covariance` | `[[0.3333333333333333, 0.5], [0.5, 1.0]]` |
+| `observation_matrix` | `[[1.0, 0.0]]` |
+| `observation_covariance` | `[[0.01]]` |
+| `T` | `100` |
+| `batch_size` | `1` |
+| `num_particles` | `50` |
+| `data_seed` | `123` |
+| `filter_seed` | `1234` |
+| `epsilon` | `0.25` |
+| `scaling` | `0.85` |
+| `convergence_threshold` | `1e-06` |
+| `max_iter` | `500` |
+| `resampling_neff` | `0.9999` |
+| `dtype` | `float64` |
+
+## Comparison
+
+```json
+{
+  "adjoint_decomposition": {
+    "bayesfilter_full_recorded_state_identity_holds": false,
+    "bayesfilter_full_recorded_state_identity_max_abs": 10.67208159578736,
+    "bayesfilter_post_state_identity_holds": false,
+    "bayesfilter_post_state_identity_max_abs": 0.7827423714161323,
+    "bayesfilter_same_tape_identity_holds": false,
+    "bayesfilter_same_tape_identity_max_abs": 0.7827423714161341,
+    "filterflow_full_recorded_state_identity_holds": true,
+    "filterflow_full_recorded_state_identity_max_abs": 3.8906655674963986e-12,
+    "filterflow_post_state_identity_holds": true,
+    "filterflow_post_state_identity_max_abs": 5.447309270323331e-13,
+    "filterflow_same_tape_identity_holds": true,
+    "filterflow_same_tape_identity_max_abs": 5.44737865926237e-13,
+    "full_recorded_state_identity_contract": "pre_particles_adjoint == post-state VJP plus recorded carryover VJPs through pre_log_weights, pre_current_log_likelihoods, and log_ess",
+    "post_state_identity_contract": "pre_particles_adjoint == VJP(post_particles wrt pre_particles) + VJP(post_log_weights wrt pre_particles)",
+    "rows": {
+      "carryover_pre_particle_adjoint": {
+        "bayesfilter_max_abs": 0.0,
+        "filterflow_max_abs": 0.0,
+        "max_abs_delta": 0.0,
+        "status": "compared"
+      },
+      "current_increment_pre_particle_adjoint": {
+        "bayesfilter_max_abs": 0.0,
+        "filterflow_max_abs": 0.0,
+        "max_abs_delta": 0.0,
+        "status": "compared"
+      },
+      "direct_pre_particle_adjoint": {
+        "bayesfilter_max_abs": 0.3235047646012603,
+        "filterflow_max_abs": 0.3235047647100456,
+        "max_abs_delta": 1.5633576377904745e-10,
+        "status": "compared"
+      },
+      "implicit_pre_particle_adjoint": {
+        "bayesfilter_max_abs": 9.892800993827816,
+        "filterflow_max_abs": 0.7320163520451333,
+        "max_abs_delta": 9.889339224348294,
+        "status": "compared"
+      },
+      "same_tape_full_recorded_state_residual": {
+        "bayesfilter_max_abs": 10.67208159578736,
+        "filterflow_max_abs": 3.8906655674963986e-12,
+        "max_abs_delta": 10.672081595790809,
+        "status": "compared"
+      },
+      "same_tape_full_recorded_state_vjp": {
+        "bayesfilter_max_abs": 20.56831944060485,
+        "filterflow_max_abs": 0.7445793622981979,
+        "max_abs_delta": 20.56142082013373,
+        "status": "compared"
+      },
+      "same_tape_identity_residual": {
+        "bayesfilter_max_abs": 0.7827423714161341,
+        "filterflow_max_abs": 5.44737865926237e-13,
+        "max_abs_delta": 0.7827423714163894,
+        "status": "compared"
+      },
+      "same_tape_log_ess_carryover_vjp": {
+        "bayesfilter_max_abs": 0.0,
+        "filterflow_max_abs": 0.0,
+        "max_abs_delta": 0.0,
+        "status": "compared"
+      },
+      "same_tape_post_log_weights_vjp": {
+        "bayesfilter_max_abs": 0.0,
+        "filterflow_max_abs": 0.0,
+        "max_abs_delta": 0.0,
+        "status": "compared"
+      },
+      "same_tape_post_particles_vjp": {
+        "bayesfilter_max_abs": 10.678980216233622,
+        "filterflow_max_abs": 0.7445793622982807,
+        "max_abs_delta": 10.672081595759309,
+        "status": "compared"
+      },
+      "same_tape_post_state_identity_residual": {
+        "bayesfilter_max_abs": 0.7827423714161323,
+        "filterflow_max_abs": 5.447309270323331e-13,
+        "max_abs_delta": 0.7827423714163881,
+        "status": "compared"
+      },
+      "same_tape_post_state_vjp": {
+        "bayesfilter_max_abs": 10.678980216233622,
+        "filterflow_max_abs": 0.7445793622982807,
+        "max_abs_delta": 10.672081595759309,
+        "status": "compared"
+      },
+      "same_tape_pre_current_ll_carryover_vjp": {
+        "bayesfilter_max_abs": 0.7827423714161357,
+        "filterflow_max_abs": 5.445643935786393e-13,
+        "max_abs_delta": 0.7827423714163882,
+        "status": "compared"
+      },
+      "same_tape_pre_log_weights_carryover_vjp": {
+        "bayesfilter_max_abs": 10.672081595787361,
+        "filterflow_max_abs": 3.891109656706249e-12,
+        "max_abs_delta": 10.672081595790807,
+        "status": "compared"
+      },
+      "same_tape_reconstructed_pre_particle_adjoint": {
+        "bayesfilter_max_abs": 10.678980216233624,
+        "filterflow_max_abs": 0.7445793622982806,
+        "max_abs_delta": 10.67208159575931,
+        "status": "compared"
+      },
+      "same_tape_transport_matrix_vjp": {
+        "bayesfilter_max_abs": 10.67554336524395,
+        "filterflow_max_abs": 0.7320163520451194,
+        "max_abs_delta": 10.672081595764684,
+        "status": "compared"
+      }
+    },
+    "same_tape_identity_contract": "pre_particles_adjoint == T^T post_particles_adjoint + VJP(transport_matrix wrt pre_particles)"
+  },
+  "filterflow_proposal_mean_internal_probe": {
+    "adjoint_delta": {
+      "finite": true,
+      "max_abs": 0.0,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 0.0
+    },
+    "adjoint_delta_tensor": [
+      [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ]
+    ],
+    "manual_proposal_mean_adjoint": {
+      "finite": true,
+      "max_abs": 0.0,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 0.0
+    },
+    "proposal_mean_adjoint": {
+      "finite": true,
+      "max_abs": 0.0,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 0.0
+    },
+    "value_delta": {
+      "finite": true,
+      "max_abs": 0.0,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 0.0
+    },
+    "value_delta_tensor": [
+      [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ]
+    ]
+  },
+  "first_gradient_delta_over_tolerance": {
+    "field": "manual_proposal_mean",
+    "row": {
+      "bayesfilter_max_abs": 3.649954945187543,
+      "filterflow_max_abs": 0.0,
+      "finite": true,
+      "max_abs_delta": 3.649954945187543,
+      "shape_match": true,
+      "sum_delta": 4.879449388713602
+    },
+    "status": "delta",
+    "tolerance": 0.0002
+  },
+  "first_value_delta_over_tolerance": {
+    "field": "normalized",
+    "row": {
+      "bayesfilter_max_abs": 11.219771700546191,
+      "filterflow_max_abs": 11.219771692193683,
+      "finite": true,
+      "max_abs_delta": 8.352508018560911e-09,
+      "shape_match": true,
+      "sum_delta": 7.342077879002318e-08
+    },
+    "status": "delta",
+    "tolerance": 5e-08
+  },
+  "gradient_deltas": {
+    "increment": {
+      "bayesfilter_max_abs": 1.0,
+      "filterflow_max_abs": 1.0,
+      "finite": true,
+      "max_abs_delta": 0.0,
+      "shape_match": true,
+      "sum_delta": 0.0
+    },
+    "log_ess": {
+      "bayesfilter_max_abs": 0.0,
+      "filterflow_max_abs": 0.0,
+      "finite": true,
+      "max_abs_delta": 0.0,
+      "shape_match": true,
+      "sum_delta": 0.0
+    },
+    "manual_proposal_mean": {
+      "bayesfilter_max_abs": 3.649954945187543,
+      "filterflow_max_abs": 0.0,
+      "finite": true,
+      "max_abs_delta": 3.649954945187543,
+      "shape_match": true,
+      "sum_delta": 4.879449388713602
+    },
+    "normalized": {
+      "bayesfilter_max_abs": 0.0,
+      "filterflow_max_abs": 0.0,
+      "finite": true,
+      "max_abs_delta": 0.0,
+      "shape_match": true,
+      "sum_delta": 0.0
+    },
+    "observation_ll": {
+      "bayesfilter_max_abs": 0.13523604250031981,
+      "filterflow_max_abs": 0.1352360424745623,
+      "finite": true,
+      "max_abs_delta": 6.10920758425948e-11,
+      "shape_match": true,
+      "sum_delta": 0.0
+    },
+    "post_log_weights": {
+      "bayesfilter_max_abs": 0.13523604250031981,
+      "filterflow_max_abs": 0.1352360424745623,
+      "finite": true,
+      "max_abs_delta": 6.10920758425948e-11,
+      "shape_match": true,
+      "sum_delta": 0.0
+    },
+    "post_particles": {
+      "bayesfilter_max_abs": 0.3101939517731472,
+      "filterflow_max_abs": 0.3101939518711109,
+      "finite": true,
+      "max_abs_delta": 1.8543988566932512e-10,
+      "shape_match": true,
+      "sum_delta": 1.979626240711241e-09
+    },
+    "post_update_log_likelihoods": {
+      "bayesfilter_max_abs": 1.0,
+      "filterflow_max_abs": 1.0,
+      "finite": true,
+      "max_abs_delta": 0.0,
+      "shape_match": true,
+      "sum_delta": 0.0
+    },
+    "post_update_log_weights": {
+      "bayesfilter_max_abs": 0.0,
+      "filterflow_max_abs": 0.0,
+      "finite": true,
+      "max_abs_delta": 0.0,
+      "shape_match": true,
+      "sum_delta": 0.0
+    },
+    "pre_current_log_likelihoods": {
+      "bayesfilter_max_abs": 1.0,
+      "filterflow_max_abs": 1.0,
+      "finite": true,
+      "max_abs_delta": 0.0,
+      "shape_match": true,
+      "sum_delta": 0.0
+    },
+    "pre_log_weights": {
+      "bayesfilter_max_abs": 1.4445470405947634,
+      "filterflow_max_abs": 1.4445470403944805,
+      "finite": true,
+      "max_abs_delta": 9.87572468247322e-10,
+      "shape_match": true,
+      "sum_delta": 7.486910647003242e-09
+    },
+    "pre_particles": {
+      "bayesfilter_max_abs": 9.89623784481749,
+      "filterflow_max_abs": 0.7445793622982945,
+      "finite": true,
+      "max_abs_delta": 9.88933922434292,
+      "shape_match": true,
+      "sum_delta": 8.996168056947893
+    },
+    "proposal_ll": {
+      "bayesfilter_max_abs": 0.0,
+      "filterflow_max_abs": 0.1352360424745623,
+      "finite": true,
+      "max_abs_delta": 0.1352360424745623,
+      "shape_match": true,
+      "sum_delta": 1.0
+    },
+    "proposal_mean": {
+      "bayesfilter_max_abs": 3.649954945187543,
+      "filterflow_max_abs": 0.0,
+      "finite": true,
+      "max_abs_delta": 3.649954945187543,
+      "shape_match": true,
+      "sum_delta": 4.879449388713602
+    },
+    "proposed_particles": {
+      "bayesfilter_max_abs": 3.649954945187543,
+      "filterflow_max_abs": 9.239276010930553e-13,
+      "finite": true,
+      "max_abs_delta": 3.649954945187593,
+      "shape_match": true,
+      "sum_delta": 4.879449388712686
+    },
+    "transition_ll": {
+      "bayesfilter_max_abs": 0.13523604250031981,
+      "filterflow_max_abs": 0.1352360424745623,
+      "finite": true,
+      "max_abs_delta": 6.10920758425948e-11,
+      "shape_match": true,
+      "sum_delta": 0.0
+    },
+    "transport_matrix": {
+      "bayesfilter_max_abs": 164.27050480703247,
+      "filterflow_max_abs": 164.27050485883723,
+      "finite": true,
+      "max_abs_delta": 9.825456004364241e-08,
+      "shape_match": true,
+      "sum_delta": 2.6536654331721365e-05
+    },
+    "unnormalized": {
+      "bayesfilter_max_abs": 0.13523604250031981,
+      "filterflow_max_abs": 0.1352360424745623,
+      "finite": true,
+      "max_abs_delta": 6.10920758425948e-11,
+      "shape_match": true,
+      "sum_delta": 0.0
+    }
+  },
+  "interpretation": "value_path_difference_before_vjp_interpretation",
+  "local_post_particle_adjoint": {
+    "first_delta_over_tolerance": {
+      "field": "manual_proposal_mean_to_post_particles",
+      "row": {
+        "finite": true,
+        "max_abs_delta": 0.29546400044111154,
+        "shape_match": true,
+        "sum_delta": 0.3340868579627477
+      },
+      "status": "delta",
+      "tolerance": 0.0002
+    },
+    "interpretation": "first_local_post_particle_adjoint_delta_manual_proposal_mean_to_post_particles",
+    "rows": {
+      "increment_to_post_particles": {
+        "bayesfilter_max_abs": 0.3101939517731472,
+        "filterflow_max_abs": 0.3101939518711109,
+        "max_abs_delta": 1.8543988566932512e-10,
+        "status": "compared",
+        "sum_delta": -1.9796263770903216e-09
+      },
+      "manual_proposal_mean_to_post_particles": {
+        "bayesfilter_max_abs": 0.29546400044111154,
+        "filterflow_max_abs": 0.0,
+        "max_abs_delta": 0.29546400044111154,
+        "status": "compared",
+        "sum_delta": 0.3340868579627477
+      },
+      "observation_ll_to_post_particles": {
+        "bayesfilter_max_abs": 0.10639417650222047,
+        "filterflow_max_abs": 0.1063941765526005,
+        "max_abs_delta": 5.038003347834774e-11,
+        "status": "compared",
+        "sum_delta": -1.0986319427642804e-10
+      },
+      "proposal_ll_to_post_particles": {
+        "bayesfilter_max_abs": 0.0,
+        "filterflow_max_abs": 0.0,
+        "max_abs_delta": 0.0,
+        "status": "compared",
+        "sum_delta": 0.0
+      },
+      "proposal_mean_to_post_particles": {
+        "bayesfilter_max_abs": 0.29546400044111154,
+        "filterflow_max_abs": 0.0,
+        "max_abs_delta": 0.29546400044111154,
+        "status": "compared",
+        "sum_delta": 0.3340868579627477
+      },
+      "proposed_particles_to_post_particles": {
+        "bayesfilter_max_abs": 0.29546400044111154,
+        "filterflow_max_abs": 1.0212866576958088e-13,
+        "max_abs_delta": 0.29546400044103077,
+        "status": "compared",
+        "sum_delta": 0.33408685796271204
+      },
+      "transition_ll_to_post_particles": {
+        "bayesfilter_max_abs": 0.2972153984033842,
+        "filterflow_max_abs": 0.29721539840910516,
+        "max_abs_delta": 1.3505982443540177e-10,
+        "status": "compared",
+        "sum_delta": -1.8697633084559847e-09
+      },
+      "unnormalized_to_post_particles": {
+        "bayesfilter_max_abs": 0.3101939517731472,
+        "filterflow_max_abs": 0.3101939518711109,
+        "max_abs_delta": 1.8543988566932512e-10,
+        "status": "compared",
+        "sum_delta": -1.9796263770903216e-09
+      }
+    },
+    "status": "compared"
+  },
+  "max_abs_total_gradient_delta": 5.302730942314156,
+  "proposal_sample_gradient_contract": {
+    "bayesfilter_contract": "Probe BayesFilter proposal_dist.sample and a manual distribution built from the explicit proposal mean under the downstream upstream gradient for proposed_particles.",
+    "filterflow_contract": "Probe actual FilterFlow proposal_dist.sample and a manual distribution built from the explicit proposal mean under the downstream upstream gradient for proposed_particles.",
+    "first_value_delta_over_tolerance": {
+      "status": "no_delta",
+      "tolerance": 5e-08
+    },
+    "first_vjp_delta_over_tolerance": {
+      "field": "actual_sample_to_manual_proposal_mean",
+      "row": {
+        "bayesfilter_max_abs": 3.649954945187543,
+        "filterflow_max_abs": 0.0,
+        "finite": true,
+        "max_abs_delta": 3.649954945187543,
+        "shape_match": true,
+        "status": "compared",
+        "sum_delta": 4.879449388713601
+      },
+      "status": "delta",
+      "tolerance": 0.0002
+    },
+    "interpretation": "proposal_sample_gradient_contract_differs",
+    "status": "compared",
+    "value_rows": {
+      "actual_sample_minus_manual_mean": {
+        "bayesfilter_max_abs": 1.1505749415262052,
+        "filterflow_max_abs": 1.1505749415262052,
+        "finite": true,
+        "max_abs_delta": 0.0,
+        "shape_match": true,
+        "status": "compared",
+        "sum_delta": 0.0
+      },
+      "manual_probe_minus_actual_sample": {
+        "bayesfilter_max_abs": 0.0,
+        "filterflow_max_abs": 0.0,
+        "finite": true,
+        "max_abs_delta": 0.0,
+        "shape_match": true,
+        "status": "compared",
+        "sum_delta": 0.0
+      },
+      "manual_probe_minus_manual_mean": {
+        "bayesfilter_max_abs": 1.1505749415262052,
+        "filterflow_max_abs": 1.1505749415262052,
+        "finite": true,
+        "max_abs_delta": 0.0,
+        "shape_match": true,
+        "status": "compared",
+        "sum_delta": 0.0
+      }
+    },
+    "vjp_rows": {
+      "actual_sample_to_manual_proposal_mean": {
+        "bayesfilter_max_abs": 3.649954945187543,
+        "filterflow_max_abs": 0.0,
+        "finite": true,
+        "max_abs_delta": 3.649954945187543,
+        "shape_match": true,
+        "status": "compared",
+        "sum_delta": 4.879449388713601
+      },
+      "actual_sample_to_post_particles": {
+        "bayesfilter_max_abs": 0.29546400044111154,
+        "filterflow_max_abs": 1.0212866576958088e-13,
+        "finite": true,
+        "max_abs_delta": 0.29546400044103077,
+        "shape_match": true,
+        "status": "compared",
+        "sum_delta": 0.33408685796271204
+      },
+      "actual_sample_to_proposal_mean": {
+        "bayesfilter_max_abs": 3.649954945187543,
+        "filterflow_max_abs": 0.0,
+        "finite": true,
+        "max_abs_delta": 3.649954945187543,
+        "shape_match": true,
+        "status": "compared",
+        "sum_delta": 4.879449388713601
+      },
+      "manual_probe_sample_to_manual_proposal_mean": {
+        "bayesfilter_max_abs": 3.649954945187543,
+        "filterflow_max_abs": 9.239276010930553e-13,
+        "finite": true,
+        "max_abs_delta": 3.649954945187593,
+        "shape_match": true,
+        "status": "compared",
+        "sum_delta": 4.879449388712684
+      },
+      "manual_probe_sum_to_manual_proposal_mean": {
+        "bayesfilter_max_abs": 0.0,
+        "filterflow_max_abs": 0.0,
+        "finite": true,
+        "max_abs_delta": 0.0,
+        "shape_match": true,
+        "status": "compared",
+        "sum_delta": 0.0
+      }
+    }
+  },
+  "resampling_flags_match": true,
+  "scalar_delta": 6.9354371134977555e-09,
+  "status": "compared",
+  "total_gradient_delta": [
+    5.302730942314156,
+    -0.13377622534002853
+  ],
+  "transport_upstream_clip_fraction_delta": 0.0,
+  "value_deltas": {
+    "increment": {
+      "bayesfilter_max_abs": 3.1988675200752024,
+      "filterflow_max_abs": 3.198867520798236,
+      "finite": true,
+      "max_abs_delta": 7.230336329655529e-10,
+      "shape_match": true,
+      "sum_delta": 7.230336329655529e-10
+    },
+    "log_ess": {
+      "bayesfilter_max_abs": 3.7653098528818836,
+      "filterflow_max_abs": 3.765309853007448,
+      "finite": true,
+      "max_abs_delta": 1.255644477282658e-10,
+      "shape_match": true,
+      "sum_delta": 1.255644477282658e-10
+    },
+    "manual_proposal_mean": {
+      "bayesfilter_max_abs": 529.9426708636762,
+      "filterflow_max_abs": 529.9426708636646,
+      "finite": true,
+      "max_abs_delta": 1.0256826499244198e-09,
+      "shape_match": true,
+      "sum_delta": 1.2696546036750078e-09
+    },
+    "normalized": {
+      "bayesfilter_max_abs": 11.219771700546191,
+      "filterflow_max_abs": 11.219771692193683,
+      "finite": true,
+      "max_abs_delta": 8.352508018560911e-09,
+      "shape_match": true,
+      "sum_delta": 7.342077879002318e-08
+    },
+    "observation_ll": {
+      "bayesfilter_max_abs": 2.4248707209710143,
+      "filterflow_max_abs": 2.4248707210620064,
+      "finite": true,
+      "max_abs_delta": 7.540981172837746e-10,
+      "shape_match": true,
+      "sum_delta": 1.700982465990819e-09
+    },
+    "post_log_weights": {
+      "bayesfilter_max_abs": 3.912023005428146,
+      "filterflow_max_abs": 3.912023005428146,
+      "finite": true,
+      "max_abs_delta": 0.0,
+      "shape_match": true,
+      "sum_delta": 0.0
+    },
+    "post_particles": {
+      "bayesfilter_max_abs": 519.217856896508,
+      "filterflow_max_abs": 519.2178568970138,
+      "finite": true,
+      "max_abs_delta": 5.820766091346741e-10,
+      "shape_match": true,
+      "sum_delta": 3.5652192309498787e-09
+    },
+    "post_update_log_likelihoods": {
+      "bayesfilter_max_abs": 144.91598320088008,
+      "filterflow_max_abs": 144.91598320781551,
+      "finite": true,
+      "max_abs_delta": 6.9354371134977555e-09,
+      "shape_match": true,
+      "sum_delta": 6.9354371134977555e-09
+    },
+    "post_update_log_weights": {
+      "bayesfilter_max_abs": 11.219771700546191,
+      "filterflow_max_abs": 11.219771692193683,
+      "finite": true,
+      "max_abs_delta": 8.352508018560911e-09,
+      "shape_match": true,
+      "sum_delta": 7.342077879002318e-08
+    },
+    "pre_current_log_likelihoods": {
+      "bayesfilter_max_abs": 141.71711568080488,
+      "filterflow_max_abs": 141.71711568701727,
+      "finite": true,
+      "max_abs_delta": 6.2123888255882775e-09,
+      "shape_match": true,
+      "sum_delta": 6.2123888255882775e-09
+    },
+    "pre_log_weights": {
+      "bayesfilter_max_abs": 5.016766134437026,
+      "filterflow_max_abs": 5.01676613455824,
+      "finite": true,
+      "max_abs_delta": 1.1451586345856413e-09,
+      "shape_match": true,
+      "sum_delta": 4.819838750336203e-09
+    },
+    "pre_particles": {
+      "bayesfilter_max_abs": 519.3668650770353,
+      "filterflow_max_abs": 519.3668650770238,
+      "finite": true,
+      "max_abs_delta": 7.015614755800925e-10,
+      "shape_match": true,
+      "sum_delta": 1.3242242857813835e-09
+    },
+    "proposal_ll": {
+      "bayesfilter_max_abs": 3.187136485870994,
+      "filterflow_max_abs": 3.187136485869811,
+      "finite": true,
+      "max_abs_delta": 1.4663825709249068e-12,
+      "shape_match": true,
+      "sum_delta": 4.930278407755395e-12
+    },
+    "proposal_mean": {
+      "bayesfilter_max_abs": 529.9426708636762,
+      "filterflow_max_abs": 529.9426708636646,
+      "finite": true,
+      "max_abs_delta": 1.0256826499244198e-09,
+      "shape_match": true,
+      "sum_delta": 1.2696546036750078e-09
+    },
+    "proposed_particles": {
+      "bayesfilter_max_abs": 530.2126242780453,
+      "filterflow_max_abs": 530.2126242780465,
+      "finite": true,
+      "max_abs_delta": 1.0256826499244198e-09,
+      "shape_match": true,
+      "sum_delta": 1.2732925824820995e-09
+    },
+    "transition_ll": {
+      "bayesfilter_max_abs": 10.225122280067676,
+      "filterflow_max_abs": 10.225122275214627,
+      "finite": true,
+      "max_abs_delta": 6.876174296621684e-09,
+      "shape_match": true,
+      "sum_delta": 3.556317551556276e-08
+    },
+    "transport_matrix": {
+      "bayesfilter_max_abs": 0.2395491467017956,
+      "filterflow_max_abs": 0.2395491468001581,
+      "finite": true,
+      "max_abs_delta": 2.952288413737847e-10,
+      "shape_match": true,
+      "sum_delta": 1.4210854715202004e-14
+    },
+    "unnormalized": {
+      "bayesfilter_max_abs": 14.418639220621394,
+      "filterflow_max_abs": 14.41863921299192,
+      "finite": true,
+      "max_abs_delta": 7.629473941506149e-09,
+      "shape_match": true,
+      "sum_delta": 3.726904651557561e-08
+    }
+  }
+}
+```
+
+## Boundary Mode Comparison
+
+```json
+{
+  "best_value_valid_mode": {
+    "bayesfilter_gradient_diag": [
+      8383.77339215542,
+      207.4167537924937
+    ],
+    "finite_gradient": true,
+    "finite_scalar": true,
+    "gradient_delta": [
+      5.302730942172275,
+      -0.1337762253350263
+    ],
+    "gradient_within_tolerance": false,
+    "max_abs_gradient_delta": 5.302730942172275,
+    "mode": "target_proposal_sample_filterflow_contract",
+    "mode_description": "At the target time only, keep proposal sample values but stop the sampled particle path back through the proposal mean while preserving proposal log-probability dependence on the proposal distribution.",
+    "resampling_flag": [
+      true
+    ],
+    "scalar_delta": 6.935806595720351e-09,
+    "scalar_within_tolerance": true
+  },
+  "filterflow_gradient_diag": [
+    8378.470661213249,
+    207.55053001782872
+  ],
+  "filterflow_target_scalar": -144.91598320781551,
+  "interpretation": "tested_boundary_modes_do_not_explain_row_gradient_delta",
+  "matching_modes": [],
+  "rows": [
+    {
+      "bayesfilter_gradient_diag": [
+        8383.773392155563,
+        207.4167537924887
+      ],
+      "finite_gradient": true,
+      "finite_scalar": true,
+      "gradient_delta": [
+        5.302730942314156,
+        -0.13377622534002853
+      ],
+      "gradient_within_tolerance": false,
+      "max_abs_gradient_delta": 5.302730942314156,
+      "mode": "raw",
+      "mode_description": "No extra BayesFilter graph boundary.",
+      "resampling_flag": [
+        true
+      ],
+      "scalar_delta": 6.9354371134977555e-09,
+      "scalar_within_tolerance": true
+    },
+    {
+      "bayesfilter_gradient_diag": [
+        7415.668993027796,
+        218.23184357516237
+      ],
+      "finite_gradient": true,
+      "finite_scalar": true,
+      "gradient_delta": [
+        -962.8016681854524,
+        10.681313557333652
+      ],
+      "gradient_within_tolerance": false,
+      "max_abs_gradient_delta": 962.8016681854524,
+      "mode": "carry_log_weights_stop_gradient",
+      "mode_description": "Stop gradient through carried log weights after each update.",
+      "resampling_flag": [
+        true
+      ],
+      "scalar_delta": 6.9354371134977555e-09,
+      "scalar_within_tolerance": true
+    },
+    {
+      "bayesfilter_gradient_diag": [
+        0.0,
+        0.0
+      ],
+      "finite_gradient": true,
+      "finite_scalar": true,
+      "gradient_delta": [
+        -8378.470661213249,
+        -207.55053001782872
+      ],
+      "gradient_within_tolerance": false,
+      "max_abs_gradient_delta": 8378.470661213249,
+      "mode": "carry_log_likelihoods_stop_gradient",
+      "mode_description": "Stop gradient through carried cumulative log likelihoods after each update.",
+      "resampling_flag": [
+        true
+      ],
+      "scalar_delta": 6.9354371134977555e-09,
+      "scalar_within_tolerance": true
+    },
+    {
+      "bayesfilter_gradient_diag": [
+        0.0,
+        0.0
+      ],
+      "finite_gradient": true,
+      "finite_scalar": true,
+      "gradient_delta": [
+        -8378.470661213249,
+        -207.55053001782872
+      ],
+      "gradient_within_tolerance": false,
+      "max_abs_gradient_delta": 8378.470661213249,
+      "mode": "carry_both_stop_gradient",
+      "mode_description": "Stop gradient through both carried log weights and cumulative log likelihoods.",
+      "resampling_flag": [
+        true
+      ],
+      "scalar_delta": 6.9354371134977555e-09,
+      "scalar_within_tolerance": true
+    },
+    {
+      "bayesfilter_gradient_diag": [
+        -16307.02842594077,
+        1004.3626104859803
+      ],
+      "finite_gradient": true,
+      "finite_scalar": true,
+      "gradient_delta": [
+        -24685.49908715402,
+        796.8120804681516
+      ],
+      "gradient_within_tolerance": false,
+      "max_abs_gradient_delta": 24685.49908715402,
+      "mode": "proposal_mean_stop_gradient",
+      "mode_description": "Stop gradient through the optimal-proposal mean at each step.",
+      "resampling_flag": [
+        true
+      ],
+      "scalar_delta": 6.9354371134977555e-09,
+      "scalar_within_tolerance": true
+    },
+    {
+      "bayesfilter_gradient_diag": [
+        8383.776757033995,
+        207.4166689034987
+      ],
+      "finite_gradient": true,
+      "finite_scalar": true,
+      "gradient_delta": [
+        5.306095820746123,
+        -0.13386111433001702
+      ],
+      "gradient_within_tolerance": false,
+      "max_abs_gradient_delta": 5.306095820746123,
+      "mode": "proposal_sample_noise_stop_gradient",
+      "mode_description": "Keep proposal sample values, but stop the reparameterized sample-noise path from sampled particles back through proposal mean.",
+      "resampling_flag": [
+        true
+      ],
+      "scalar_delta": 6.933589702384779e-09,
+      "scalar_within_tolerance": true
+    },
+    {
+      "bayesfilter_gradient_diag": [
+        8383.77339215542,
+        207.4167537924937
+      ],
+      "finite_gradient": true,
+      "finite_scalar": true,
+      "gradient_delta": [
+        5.302730942172275,
+        -0.1337762253350263
+      ],
+      "gradient_within_tolerance": false,
+      "max_abs_gradient_delta": 5.302730942172275,
+      "mode": "target_proposal_sample_filterflow_contract",
+      "mode_description": "At the target time only, keep proposal sample values but stop the sampled particle path back through the proposal mean while preserving proposal log-probability dependence on the proposal distribution.",
+      "resampling_flag": [
+        true
+      ],
+      "scalar_delta": 6.935806595720351e-09,
+      "scalar_within_tolerance": true
+    },
+    {
+      "bayesfilter_gradient_diag": [
+        8302.655243175377,
+        1.8091295822530995e-11
+      ],
+      "finite_gradient": true,
+      "finite_scalar": true,
+      "gradient_delta": [
+        -75.8154180378715,
+        -207.55053001781062
+      ],
+      "gradient_within_tolerance": false,
+      "max_abs_gradient_delta": 207.55053001781062,
+      "mode": "proposal_sample_stop_gradient",
+      "mode_description": "Stop gradient through sampled proposal particles at each step.",
+      "resampling_flag": [
+        true
+      ],
+      "scalar_delta": 6.933589702384779e-09,
+      "scalar_within_tolerance": true
+    },
+    {
+      "bayesfilter_gradient_diag": [
+        8383.773392155563,
+        207.4167537924887
+      ],
+      "finite_gradient": true,
+      "finite_scalar": true,
+      "gradient_delta": [
+        5.302730942314156,
+        -0.13377622534002853
+      ],
+      "gradient_within_tolerance": false,
+      "max_abs_gradient_delta": 5.302730942314156,
+      "mode": "proposal_log_prob_stop_gradient",
+      "mode_description": "Stop gradient through proposal log probability at each step.",
+      "resampling_flag": [
+        true
+      ],
+      "scalar_delta": 6.9354371134977555e-09,
+      "scalar_within_tolerance": true
+    },
+    {
+      "bayesfilter_gradient_diag": [
+        0.0,
+        0.0
+      ],
+      "finite_gradient": true,
+      "finite_scalar": true,
+      "gradient_delta": [
+        -8378.470661213249,
+        -207.55053001782872
+      ],
+      "gradient_within_tolerance": false,
+      "max_abs_gradient_delta": 8378.470661213249,
+      "mode": "carry_both_proposal_sample_stop_gradient",
+      "mode_description": "Stop carried log weights/log likelihoods and sampled proposal particles.",
+      "resampling_flag": [
+        true
+      ],
+      "scalar_delta": 6.933589702384779e-09,
+      "scalar_within_tolerance": true
+    }
+  ],
+  "status": "compared"
+}
+```
+
+## BayesFilter Boundary Modes
+
+```json
+{
+  "boundary_contract": "BayesFilter-only diagnostic stop-gradient modes at the carried-state and optimal-proposal graph boundaries; values must remain aligned before any gradient interpretation.",
+  "modes": [
+    {
+      "finite_gradient": true,
+      "finite_scalar": true,
+      "mode": "raw",
+      "mode_description": "No extra BayesFilter graph boundary.",
+      "resampling_flag": [
+        true
+      ],
+      "target_scalar": -144.91598320088008,
+      "total_gradient_diag": [
+        8383.773392155563,
+        207.4167537924887
+      ]
+    },
+    {
+      "finite_gradient": true,
+      "finite_scalar": true,
+      "mode": "carry_log_weights_stop_gradient",
+      "mode_description": "Stop gradient through carried log weights after each update.",
+      "resampling_flag": [
+        true
+      ],
+      "target_scalar": -144.91598320088008,
+      "total_gradient_diag": [
+        7415.668993027796,
+        218.23184357516237
+      ]
+    },
+    {
+      "finite_gradient": true,
+      "finite_scalar": true,
+      "mode": "carry_log_likelihoods_stop_gradient",
+      "mode_description": "Stop gradient through carried cumulative log likelihoods after each update.",
+      "resampling_flag": [
+        true
+      ],
+      "target_scalar": -144.91598320088008,
+      "total_gradient_diag": [
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "finite_gradient": true,
+      "finite_scalar": true,
+      "mode": "carry_both_stop_gradient",
+      "mode_description": "Stop gradient through both carried log weights and cumulative log likelihoods.",
+      "resampling_flag": [
+        true
+      ],
+      "target_scalar": -144.91598320088008,
+      "total_gradient_diag": [
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "finite_gradient": true,
+      "finite_scalar": true,
+      "mode": "proposal_mean_stop_gradient",
+      "mode_description": "Stop gradient through the optimal-proposal mean at each step.",
+      "resampling_flag": [
+        true
+      ],
+      "target_scalar": -144.91598320088008,
+      "total_gradient_diag": [
+        -16307.02842594077,
+        1004.3626104859803
+      ]
+    },
+    {
+      "finite_gradient": true,
+      "finite_scalar": true,
+      "mode": "proposal_sample_noise_stop_gradient",
+      "mode_description": "Keep proposal sample values, but stop the reparameterized sample-noise path from sampled particles back through proposal mean.",
+      "resampling_flag": [
+        true
+      ],
+      "target_scalar": -144.91598320088193,
+      "total_gradient_diag": [
+        8383.776757033995,
+        207.4166689034987
+      ]
+    },
+    {
+      "finite_gradient": true,
+      "finite_scalar": true,
+      "mode": "target_proposal_sample_filterflow_contract",
+      "mode_description": "At the target time only, keep proposal sample values but stop the sampled particle path back through the proposal mean while preserving proposal log-probability dependence on the proposal distribution.",
+      "resampling_flag": [
+        true
+      ],
+      "target_scalar": -144.9159832008797,
+      "total_gradient_diag": [
+        8383.77339215542,
+        207.4167537924937
+      ]
+    },
+    {
+      "finite_gradient": true,
+      "finite_scalar": true,
+      "mode": "proposal_sample_stop_gradient",
+      "mode_description": "Stop gradient through sampled proposal particles at each step.",
+      "resampling_flag": [
+        true
+      ],
+      "target_scalar": -144.91598320088193,
+      "total_gradient_diag": [
+        8302.655243175377,
+        1.8091295822530995e-11
+      ]
+    },
+    {
+      "finite_gradient": true,
+      "finite_scalar": true,
+      "mode": "proposal_log_prob_stop_gradient",
+      "mode_description": "Stop gradient through proposal log probability at each step.",
+      "resampling_flag": [
+        true
+      ],
+      "target_scalar": -144.91598320088008,
+      "total_gradient_diag": [
+        8383.773392155563,
+        207.4167537924887
+      ]
+    },
+    {
+      "finite_gradient": true,
+      "finite_scalar": true,
+      "mode": "carry_both_proposal_sample_stop_gradient",
+      "mode_description": "Stop carried log weights/log likelihoods and sampled proposal particles.",
+      "resampling_flag": [
+        true
+      ],
+      "target_scalar": -144.91598320088193,
+      "total_gradient_diag": [
+        0.0,
+        0.0
+      ]
+    }
+  ],
+  "status": "executed"
+}
+```
+
+## FilterFlow VJP
+
+```json
+{
+  "backend": "executable_filterflow_subprocess",
+  "cpu_only_manifest": {
+    "cuda_visible_devices": "-1",
+    "gpu_devices_visible": [],
+    "pre_import_cuda_visible_devices": "-1"
+  },
+  "filterflow_proposal_mean_internal_probe": {
+    "adjoint_delta": {
+      "finite": true,
+      "max_abs": 0.0,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 0.0
+    },
+    "adjoint_delta_tensor": [
+      [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ]
+    ],
+    "manual_proposal_mean_adjoint": {
+      "finite": true,
+      "max_abs": 0.0,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 0.0
+    },
+    "proposal_mean_adjoint": {
+      "finite": true,
+      "max_abs": 0.0,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 0.0
+    },
+    "value_delta": {
+      "finite": true,
+      "max_abs": 0.0,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 0.0
+    },
+    "value_delta_tensor": [
+      [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ]
+    ]
+  },
+  "gradient_summaries": {
+    "increment": {
+      "finite": true,
+      "max_abs": 1.0,
+      "shape": [
+        1
+      ],
+      "sum": 1.0
+    },
+    "log_ess": {
+      "finite": true,
+      "max_abs": 0.0,
+      "shape": [
+        1
+      ],
+      "sum": 0.0
+    },
+    "manual_proposal_mean": {
+      "finite": true,
+      "max_abs": 0.0,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 0.0
+    },
+    "normalized": {
+      "finite": true,
+      "max_abs": 0.0,
+      "shape": [
+        1,
+        50
+      ],
+      "sum": 0.0
+    },
+    "observation_ll": {
+      "finite": true,
+      "max_abs": 0.1352360424745623,
+      "shape": [
+        1,
+        50
+      ],
+      "sum": 1.0
+    },
+    "post_log_weights": {
+      "finite": true,
+      "max_abs": 0.1352360424745623,
+      "shape": [
+        1,
+        50
+      ],
+      "sum": 1.0
+    },
+    "post_particles": {
+      "finite": true,
+      "max_abs": 0.3101939518711109,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 6.251517748337271
+    },
+    "post_update_log_likelihoods": {
+      "finite": true,
+      "max_abs": 1.0,
+      "shape": [
+        1
+      ],
+      "sum": 1.0
+    },
+    "post_update_log_weights": {
+      "finite": true,
+      "max_abs": 0.0,
+      "shape": [
+        1,
+        50
+      ],
+      "sum": 0.0
+    },
+    "pre_current_log_likelihoods": {
+      "finite": true,
+      "max_abs": 1.0,
+      "shape": [
+        1
+      ],
+      "sum": 1.0
+    },
+    "pre_log_weights": {
+      "finite": true,
+      "max_abs": 1.4445470403944805,
+      "shape": [
+        1,
+        50
+      ],
+      "sum": 44.31400197661374
+    },
+    "pre_particles": {
+      "finite": true,
+      "max_abs": 0.7445793622982945,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 9.314087789293671
+    },
+    "proposal_ll": {
+      "finite": true,
+      "max_abs": 0.1352360424745623,
+      "shape": [
+        1,
+        50
+      ],
+      "sum": -1.0
+    },
+    "proposal_mean": {
+      "finite": true,
+      "max_abs": 0.0,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 0.0
+    },
+    "proposed_particles": {
+      "finite": true,
+      "max_abs": 9.239276010930553e-13,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 9.161549895998246e-13
+    },
+    "transition_ll": {
+      "finite": true,
+      "max_abs": 0.1352360424745623,
+      "shape": [
+        1,
+        50
+      ],
+      "sum": 1.0
+    },
+    "transport_matrix": {
+      "finite": true,
+      "max_abs": 164.27050485883723,
+      "shape": [
+        1,
+        50,
+        50
+      ],
+      "sum": 83787.63406310226
+    },
+    "unnormalized": {
+      "finite": true,
+      "max_abs": 0.1352360424745623,
+      "shape": [
+        1,
+        50
+      ],
+      "sum": 1.0
+    }
+  },
+  "local_post_particle_adjoint_probe": {
+    "increment_to_post_particles": {
+      "finite": true,
+      "max_abs": 0.3101939518711109,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 6.251517748337271
+    },
+    "manual_proposal_mean_to_post_particles": {
+      "finite": true,
+      "max_abs": 0.0,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 0.0
+    },
+    "observation_ll_to_post_particles": {
+      "finite": true,
+      "max_abs": 0.1063941765526005,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 0.45327610819809616
+    },
+    "proposal_ll_to_post_particles": {
+      "finite": true,
+      "max_abs": 0.0,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 0.0
+    },
+    "proposal_mean_to_post_particles": {
+      "finite": true,
+      "max_abs": 0.0,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 0.0
+    },
+    "proposed_particles_to_post_particles": {
+      "finite": true,
+      "max_abs": 1.0212866576958088e-13,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 3.573486316287869e-14
+    },
+    "transition_ll_to_post_particles": {
+      "finite": true,
+      "max_abs": 0.29721539840910516,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 5.7982416401391745
+    },
+    "unnormalized_to_post_particles": {
+      "finite": true,
+      "max_abs": 0.3101939518711109,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 6.251517748337271
+    }
+  },
+  "proposal_sample_gradient_contract": {
+    "contract": "Probe actual FilterFlow proposal_dist.sample and a manual distribution built from the explicit proposal mean under the downstream upstream gradient for proposed_particles.",
+    "value_probe": {
+      "actual_sample_minus_manual_mean": {
+        "finite": true,
+        "max_abs": 1.1505749415262052,
+        "shape": [
+          1,
+          50,
+          2
+        ],
+        "sum": -0.8035127656526981
+      },
+      "manual_probe_minus_actual_sample": {
+        "finite": true,
+        "max_abs": 0.0,
+        "shape": [
+          1,
+          50,
+          2
+        ],
+        "sum": 0.0
+      },
+      "manual_probe_minus_manual_mean": {
+        "finite": true,
+        "max_abs": 1.1505749415262052,
+        "shape": [
+          1,
+          50,
+          2
+        ],
+        "sum": -0.8035127656526981
+      }
+    },
+    "value_probe_tensors": {
+      "actual_sample_minus_manual_mean": [
+        [
+          [
+            -0.11391480060365211,
+            0.39093255641532565
+          ],
+          [
+            -0.03375946438211486,
+            0.6821254193059403
+          ],
+          [
+            0.1269860782520027,
+            0.231485016344525
+          ],
+          [
+            -0.03633878817367986,
+            0.3225449336604598
+          ],
+          [
+            0.028929358468758437,
+            -0.4635828769210377
+          ],
+          [
+            -0.09793270386683162,
+            0.1978199068549955
+          ],
+          [
+            -0.009273467470507057,
+            -0.053288055376572885
+          ],
+          [
+            0.07824088716722599,
+            0.11149503676598727
+          ],
+          [
+            -0.07470699382940893,
+            -0.28906303115011056
+          ],
+          [
+            -0.08970779167464116,
+            0.38980797294689395
+          ],
+          [
+            -0.146466737857736,
+            -0.19599839358486904
+          ],
+          [
+            0.2021105751853156,
+            0.5837134847486638
+          ],
+          [
+            -0.02943445180198978,
+            0.12437314973327673
+          ],
+          [
+            0.0842541966741237,
+            -0.644940563922848
+          ],
+          [
+            -0.2527807132834141,
+            -0.12241066828595848
+          ],
+          [
+            -0.15994041346721133,
+            -0.4188761174094644
+          ],
+          [
+            0.18151302177398065,
+            0.04860601296587319
+          ],
+          [
+            0.04602562631453111,
+            0.6978831607210587
+          ],
+          [
+            -0.08526197936703284,
+            0.12055686529503973
+          ],
+          [
+            -0.06930970561234062,
+            0.3267228917378695
+          ],
+          [
+            -0.04781613392549389,
+            -1.1505749415262052
+          ],
+          [
+            -0.03488299905529857,
+            -0.005543368077979949
+          ],
+          [
+            0.1504006501005506,
+            1.1016650425048518
+          ],
+          [
+            -0.03822356850173492,
+            -0.25484147255646405
+          ],
+          [
+            0.0973547650268074,
+            0.25117256862013804
+          ],
+          [
+            0.04234225401785352,
+            0.17645056038577067
+          ],
+          [
+            0.04050104438078961,
+            0.5568973471043037
+          ],
+          [
+            -0.21282166628122923,
+            -0.4866025410982786
+          ],
+          [
+            0.07846171743858577,
+            0.46392908178944836
+          ],
+          [
+            -0.1290187663262259,
+            -0.4364671861759959
+          ],
+          [
+            0.12017199421802616,
+            0.8314500082334284
+          ],
+          [
+            -0.0927411469810977,
+            -0.08159746778609644
+          ],
+          [
+            0.06993965026049409,
+            -0.15017770847278555
+          ],
+          [
+            0.2852882899381939,
+            0.7179467128131307
+          ],
+          [
+            -0.013034244823984409,
+            -0.06720152871834628
+          ],
+          [
+            -0.131050237417071,
+            -0.10780266696345109
+          ],
+          [
+            0.033599042170294524,
+            -0.6731078730227367
+          ],
+          [
+            -0.007387500774598266,
+            0.04661804298877925
+          ],
+          [
+            0.11592403459610523,
+            0.38062807616683614
+          ],
+          [
+            -0.011887050230257046,
+            -0.054333149831713
+          ],
+          [
+            0.07536683003820599,
+            -0.6280607657753485
+          ],
+          [
+            -0.18435793773392106,
+            -0.011582859473168838
+          ],
+          [
+            0.12443306560953715,
+            0.0483619457860307
+          ],
+          [
+            0.04860716636756024,
+            0.4731487914600372
+          ],
+          [
+            -0.12820602589226837,
+            -0.9270601469492519
+          ],
+          [
+            -0.06398020788901704,
+            0.011925316913291795
+          ],
+          [
+            -0.0857181319557867,
+            -0.7878764815241759
+          ],
+          [
+            -0.04740815634499995,
+            -0.27607668320516865
+          ],
+          [
+            -0.24351141592740078,
+            -0.5777914490239802
+          ],
+          [
+            -0.13237897718101976,
+            -0.4541127404496237
+          ]
+        ]
+      ],
+      "manual_probe_minus_actual_sample": [
+        [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      ],
+      "manual_probe_minus_manual_mean": [
+        [
+          [
+            -0.11391480060365211,
+            0.39093255641532565
+          ],
+          [
+            -0.03375946438211486,
+            0.6821254193059403
+          ],
+          [
+            0.1269860782520027,
+            0.231485016344525
+          ],
+          [
+            -0.03633878817367986,
+            0.3225449336604598
+          ],
+          [
+            0.028929358468758437,
+            -0.4635828769210377
+          ],
+          [
+            -0.09793270386683162,
+            0.1978199068549955
+          ],
+          [
+            -0.009273467470507057,
+            -0.053288055376572885
+          ],
+          [
+            0.07824088716722599,
+            0.11149503676598727
+          ],
+          [
+            -0.07470699382940893,
+            -0.28906303115011056
+          ],
+          [
+            -0.08970779167464116,
+            0.38980797294689395
+          ],
+          [
+            -0.146466737857736,
+            -0.19599839358486904
+          ],
+          [
+            0.2021105751853156,
+            0.5837134847486638
+          ],
+          [
+            -0.02943445180198978,
+            0.12437314973327673
+          ],
+          [
+            0.0842541966741237,
+            -0.644940563922848
+          ],
+          [
+            -0.2527807132834141,
+            -0.12241066828595848
+          ],
+          [
+            -0.15994041346721133,
+            -0.4188761174094644
+          ],
+          [
+            0.18151302177398065,
+            0.04860601296587319
+          ],
+          [
+            0.04602562631453111,
+            0.6978831607210587
+          ],
+          [
+            -0.08526197936703284,
+            0.12055686529503973
+          ],
+          [
+            -0.06930970561234062,
+            0.3267228917378695
+          ],
+          [
+            -0.04781613392549389,
+            -1.1505749415262052
+          ],
+          [
+            -0.03488299905529857,
+            -0.005543368077979949
+          ],
+          [
+            0.1504006501005506,
+            1.1016650425048518
+          ],
+          [
+            -0.03822356850173492,
+            -0.25484147255646405
+          ],
+          [
+            0.0973547650268074,
+            0.25117256862013804
+          ],
+          [
+            0.04234225401785352,
+            0.17645056038577067
+          ],
+          [
+            0.04050104438078961,
+            0.5568973471043037
+          ],
+          [
+            -0.21282166628122923,
+            -0.4866025410982786
+          ],
+          [
+            0.07846171743858577,
+            0.46392908178944836
+          ],
+          [
+            -0.1290187663262259,
+            -0.4364671861759959
+          ],
+          [
+            0.12017199421802616,
+            0.8314500082334284
+          ],
+          [
+            -0.0927411469810977,
+            -0.08159746778609644
+          ],
+          [
+            0.06993965026049409,
+            -0.15017770847278555
+          ],
+          [
+            0.2852882899381939,
+            0.7179467128131307
+          ],
+          [
+            -0.013034244823984409,
+            -0.06720152871834628
+          ],
+          [
+            -0.131050237417071,
+            -0.10780266696345109
+          ],
+          [
+            0.033599042170294524,
+            -0.6731078730227367
+          ],
+          [
+            -0.007387500774598266,
+            0.04661804298877925
+          ],
+          [
+            0.11592403459610523,
+            0.38062807616683614
+          ],
+          [
+            -0.011887050230257046,
+            -0.054333149831713
+          ],
+          [
+            0.07536683003820599,
+            -0.6280607657753485
+          ],
+          [
+            -0.18435793773392106,
+            -0.011582859473168838
+          ],
+          [
+            0.12443306560953715,
+            0.0483619457860307
+          ],
+          [
+            0.04860716636756024,
+            0.4731487914600372
+          ],
+          [
+            -0.12820602589226837,
+            -0.9270601469492519
+          ],
+          [
+            -0.06398020788901704,
+            0.011925316913291795
+          ],
+          [
+            -0.0857181319557867,
+            -0.7878764815241759
+          ],
+          [
+            -0.04740815634499995,
+            -0.27607668320516865
+          ],
+          [
+            -0.24351141592740078,
+            -0.5777914490239802
+          ],
+          [
+            -0.13237897718101976,
+            -0.4541127404496237
+          ]
+        ]
+      ]
+    },
+    "vjp_probe": {
+      "actual_sample_to_manual_proposal_mean": {
+        "finite": true,
+        "max_abs": 0.0,
+        "shape": [
+          1,
+          50,
+          2
+        ],
+        "sum": 0.0
+      },
+      "actual_sample_to_post_particles": {
+        "finite": true,
+        "max_abs": 1.0212866576958088e-13,
+        "shape": [
+          1,
+          50,
+          2
+        ],
+        "sum": 3.573486316287869e-14
+      },
+      "actual_sample_to_proposal_mean": {
+        "finite": true,
+        "max_abs": 0.0,
+        "shape": [
+          1,
+          50,
+          2
+        ],
+        "sum": 0.0
+      },
+      "manual_probe_sample_to_manual_proposal_mean": {
+        "finite": true,
+        "max_abs": 9.239276010930553e-13,
+        "shape": [
+          1,
+          50,
+          2
+        ],
+        "sum": 9.161549895998246e-13
+      },
+      "manual_probe_sum_to_manual_proposal_mean": {
+        "finite": true,
+        "max_abs": 0.0,
+        "shape": [
+          1,
+          50,
+          2
+        ],
+        "sum": 0.0
+      }
+    },
+    "vjp_tensors": {
+      "actual_sample_to_manual_proposal_mean": [
+        [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      ],
+      "actual_sample_to_post_particles": [
+        [
+          [
+            -1.7523276339647257e-17,
+            -9.055474548459373e-18
+          ],
+          [
+            -4.2753789139539404e-16,
+            -8.686497059038847e-17
+          ],
+          [
+            1.7795958083496553e-14,
+            7.322699035312756e-15
+          ],
+          [
+            2.2856055959463104e-14,
+            1.3218280512618832e-14
+          ],
+          [
+            -5.967941274340974e-16,
+            -2.6756928462608216e-16
+          ],
+          [
+            -6.501873005246457e-16,
+            -3.4176162155778795e-16
+          ],
+          [
+            1.0840447793076451e-16,
+            4.861478141105785e-17
+          ],
+          [
+            -2.1726516820511654e-15,
+            -8.264416502325721e-16
+          ],
+          [
+            -8.424213677174925e-14,
+            -4.6310113383318134e-14
+          ],
+          [
+            1.658733191679537e-14,
+            1.1672973948366675e-14
+          ],
+          [
+            -1.948163931130748e-15,
+            -8.929513856942747e-16
+          ],
+          [
+            2.5282139692963165e-14,
+            1.5901078500810096e-14
+          ],
+          [
+            -3.581937378284221e-14,
+            -1.0840086138660812e-14
+          ],
+          [
+            -7.414451015339906e-16,
+            -4.972038366103696e-16
+          ],
+          [
+            8.078415300016932e-14,
+            2.5989864323013093e-14
+          ],
+          [
+            1.792627029827119e-15,
+            9.710575595056886e-16
+          ],
+          [
+            2.5944298446953554e-14,
+            1.598882448400282e-14
+          ],
+          [
+            -2.5083752102435585e-15,
+            -1.7363134027845163e-15
+          ],
+          [
+            -3.515387872214825e-17,
+            1.885966631970599e-17
+          ],
+          [
+            2.558346215796257e-16,
+            1.4213376911834848e-16
+          ],
+          [
+            -8.839250231098717e-15,
+            -5.770036693942203e-15
+          ],
+          [
+            2.8479302781658302e-15,
+            7.482870654368253e-15
+          ],
+          [
+            7.57685065046944e-16,
+            3.594142722468599e-16
+          ],
+          [
+            2.9048437454619804e-15,
+            1.6716695130571852e-15
+          ],
+          [
+            2.3579838260801744e-16,
+            1.3932053317673918e-16
+          ],
+          [
+            2.7547590071353212e-14,
+            1.3912802540794334e-14
+          ],
+          [
+            -1.0075845564567583e-16,
+            -4.6539759137432166e-17
+          ],
+          [
+            -1.2926593917972919e-15,
+            -6.817671236825726e-16
+          ],
+          [
+            2.099027549882689e-15,
+            1.0637850001609185e-15
+          ],
+          [
+            8.654281462386223e-16,
+            4.789058723339134e-16
+          ],
+          [
+            -8.96563737916327e-15,
+            -4.6811556433802545e-15
+          ],
+          [
+            2.2960168353947964e-15,
+            8.440816514346217e-16
+          ],
+          [
+            4.975022055025587e-16,
+            2.844039249974647e-16
+          ],
+          [
+            1.4508224080466337e-14,
+            1.1532881687064118e-14
+          ],
+          [
+            3.7606652909276843e-14,
+            1.9964127615872382e-14
+          ],
+          [
+            -3.0724440939823694e-15,
+            -3.452573863125017e-15
+          ],
+          [
+            -3.3133941266473664e-15,
+            -1.2711716792448154e-15
+          ],
+          [
+            -1.707509428390895e-17,
+            -1.0082846566718707e-17
+          ],
+          [
+            -1.0678634618109656e-15,
+            -7.539618361168752e-16
+          ],
+          [
+            1.6109209728173822e-15,
+            6.674093063324116e-16
+          ],
+          [
+            -1.5353879703152926e-15,
+            -5.823684768115817e-16
+          ],
+          [
+            4.5272424719479784e-18,
+            3.1749537224232635e-18
+          ],
+          [
+            2.465040020597589e-15,
+            1.650710383689567e-15
+          ],
+          [
+            1.0519485428849403e-17,
+            5.811114158601779e-18
+          ],
+          [
+            1.6206600445917672e-15,
+            1.1021378126838797e-15
+          ],
+          [
+            -2.772749151761382e-18,
+            -1.443187720196373e-18
+          ],
+          [
+            -2.752453030443149e-16,
+            -1.5027846536583918e-16
+          ],
+          [
+            -1.5568188345523265e-14,
+            -7.963424425362377e-15
+          ],
+          [
+            -1.0212866576958088e-13,
+            -4.264378409239681e-14
+          ],
+          [
+            -5.476939960576984e-16,
+            -2.848719546322708e-16
+          ]
+        ]
+      ],
+      "actual_sample_to_proposal_mean": [
+        [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      ],
+      "manual_probe_sample_to_manual_proposal_mean": [
+        [
+          [
+            -1.6284716630732277e-16,
+            9.134403303190375e-18
+          ],
+          [
+            2.8380076066980564e-15,
+            3.5908775952719907e-16
+          ],
+          [
+            7.019385073192552e-14,
+            -1.1180292802670522e-14
+          ],
+          [
+            2.8388402739665253e-13,
+            -1.0484668688803822e-14
+          ],
+          [
+            -3.4716153562985852e-15,
+            3.5258254649228604e-16
+          ],
+          [
+            -6.3352101342672995e-15,
+            3.3306690738754696e-16
+          ],
+          [
+            6.312225048210607e-16,
+            -6.403230268063609e-17
+          ],
+          [
+            -5.137383574105314e-15,
+            1.4336134276232704e-15
+          ],
+          [
+            -9.239276010930553e-13,
+            4.1092129698938606e-14
+          ],
+          [
+            3.116951141635127e-13,
+            -5.495603971894525e-15
+          ],
+          [
+            -1.2323475573339238e-14,
+            1.1311481265541268e-15
+          ],
+          [
+            3.7903014060702844e-13,
+            -1.0297318553398327e-14
+          ],
+          [
+            5.678790770957676e-14,
+            2.646494134950217e-14
+          ],
+          [
+            -1.2684298056342413e-14,
+            2.706168622523819e-16
+          ],
+          [
+            -4.973799150320701e-14,
+            -5.812017533912694e-14
+          ],
+          [
+            1.892930256985892e-14,
+            -8.890457814381136e-16
+          ],
+          [
+            3.72257780156815e-13,
+            -1.0901002323038256e-14
+          ],
+          [
+            -4.566702918595844e-14,
+            8.604228440844963e-16
+          ],
+          [
+            1.5543122344752192e-15,
+            5.594483210025203e-17
+          ],
+          [
+            2.8818093744664708e-15,
+            -1.2327378701160185e-16
+          ],
+          [
+            -1.432187701766452e-13,
+            3.3861802251067274e-15
+          ],
+          [
+            3.318456620604593e-13,
+            4.623038063478191e-15
+          ],
+          [
+            5.4088677980956845e-15,
+            -4.2760933682828295e-16
+          ],
+          [
+            3.5658975772179247e-14,
+            -1.3409412469300719e-15
+          ],
+          [
+            3.0787004889898384e-15,
+            -1.0516761073109393e-16
+          ],
+          [
+            2.396000065019166e-13,
+            -1.4687903671095626e-14
+          ],
+          [
+            -6.554815284304238e-16,
+            5.814034149953518e-17
+          ],
+          [
+            -1.2712053631958042e-14,
+            6.59845442174678e-16
+          ],
+          [
+            1.8443579996585413e-14,
+            -1.115427195053087e-15
+          ],
+          [
+            9.652001420334955e-15,
+            -4.189357194483989e-16
+          ],
+          [
+            -8.575778975838944e-14,
+            4.624772786954168e-15
+          ],
+          [
+            3.941291737419306e-15,
+            -1.5447712553573467e-15
+          ],
+          [
+            6.0108168442596366e-15,
+            -2.3158558404290375e-16
+          ],
+          [
+            3.398392678377604e-13,
+            -3.462508058049707e-15
+          ],
+          [
+            3.764211164991593e-13,
+            -1.906461100098511e-14
+          ],
+          [
+            -1.2329026688462363e-13,
+            -2.931682674400804e-16
+          ],
+          [
+            -8.383918559395909e-15,
+            2.175343238874916e-15
+          ],
+          [
+            -2.2264091611989834e-16,
+            7.621602459394194e-18
+          ],
+          [
+            -2.0192181260370035e-14,
+            3.5128150388530344e-16
+          ],
+          [
+            6.58501031480796e-15,
+            -1.0074406586735307e-15
+          ],
+          [
+            -3.5457747848965937e-15,
+            1.0148132334464322e-15
+          ],
+          [
+            8.451355934524507e-17,
+            -1.5111067779016718e-18
+          ],
+          [
+            4.205316650462976e-14,
+            -9.020562075079397e-16
+          ],
+          [
+            1.1680923155815703e-16,
+            -5.102526474259905e-18
+          ],
+          [
+            2.8504976157250894e-14,
+            -5.759281940243e-16
+          ],
+          [
+            -2.6291902682773483e-17,
+            1.4348738126487848e-18
+          ],
+          [
+            -2.96637714392034e-15,
+            1.3530843112619095e-16
+          ],
+          [
+            -1.405264793419292e-13,
+            8.19830314746639e-15
+          ],
+          [
+            -4.3431924723336124e-13,
+            6.353251258417458e-14
+          ],
+          [
+            -5.1833537462186996e-15,
+            2.8362728832220796e-16
+          ]
+        ]
+      ],
+      "manual_probe_sum_to_manual_proposal_mean": [
+        [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      ]
+    }
+  },
+  "resampling_adjoint_decomposition": {
+    "carryover_pre_particle_adjoint": {
+      "finite": true,
+      "max_abs": 0.0,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 0.0
+    },
+    "carryover_pre_particle_adjoint_tensor": [
+      [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ]
+    ],
+    "current_increment_pre_particle_adjoint": {
+      "finite": true,
+      "max_abs": 0.0,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 0.0
+    },
+    "current_increment_pre_particle_adjoint_tensor": [
+      [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ]
+    ],
+    "direct_pre_particle_adjoint": {
+      "finite": true,
+      "max_abs": 0.3235047647100456,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 6.25149314962835
+    },
+    "direct_pre_particle_adjoint_tensor": [
+      [
+        [
+          0.0009066201338131313,
+          0.0009336467502682653
+        ],
+        [
+          0.05114273994304397,
+          0.05266732026654934
+        ],
+        [
+          0.06807632150473178,
+          0.07010569694254223
+        ],
+        [
+          0.07099992830030603,
+          0.07311645732822844
+        ],
+        [
+          0.03154681126640442,
+          0.03248723111445442
+        ],
+        [
+          0.013685434307712952,
+          0.014093401184094637
+        ],
+        [
+          0.012199344166885449,
+          0.01256301025316117
+        ],
+        [
+          0.02678663630330275,
+          0.027585153916680344
+        ],
+        [
+          0.09914759825428364,
+          0.10210321771443845
+        ],
+        [
+          0.18185455117656013,
+          0.1872756895585172
+        ],
+        [
+          0.0584943857037019,
+          0.06023812077888
+        ],
+        [
+          0.1762571459400059,
+          0.1815114240032581
+        ],
+        [
+          0.08234181160960533,
+          0.08479644556002718
+        ],
+        [
+          0.022743769363739168,
+          0.02342176790845768
+        ],
+        [
+          0.31414015310001786,
+          0.3235047647100456
+        ],
+        [
+          0.028518709046674858,
+          0.029368860264868415
+        ],
+        [
+          0.10463373498134318,
+          0.10775289781276534
+        ],
+        [
+          0.07593789615649317,
+          0.07820162747823146
+        ],
+        [
+          0.039703035774748284,
+          0.040886595106786855
+        ],
+        [
+          0.014026783974739105,
+          0.014444926586452198
+        ],
+        [
+          0.0637570391236225,
+          0.0656576554660611
+        ],
+        [
+          0.08306316594428025,
+          0.08553930368245662
+        ],
+        [
+          0.040914257301137874,
+          0.04213392350794687
+        ],
+        [
+          0.062492984698534024,
+          0.06435591920174234
+        ],
+        [
+          0.017130709847193327,
+          0.01764138141445383
+        ],
+        [
+          0.05033379954199976,
+          0.05183426511100247
+        ],
+        [
+          0.006526580707202285,
+          0.006721140023677151
+        ],
+        [
+          0.016165654173914093,
+          0.01664755714386817
+        ],
+        [
+          0.061088212861026524,
+          0.06290927069699206
+        ],
+        [
+          0.04579815524961489,
+          0.0471634119101725
+        ],
+        [
+          0.07267679960610324,
+          0.07484331666753181
+        ],
+        [
+          0.08097586213142757,
+          0.08338977672071131
+        ],
+        [
+          0.029585411360781314,
+          0.030467361292945527
+        ],
+        [
+          0.1801344320501083,
+          0.18550429316813324
+        ],
+        [
+          0.050232561475107615,
+          0.051730009107156895
+        ],
+        [
+          0.05575260505917017,
+          0.05741460683600182
+        ],
+        [
+          0.043432273626120704,
+          0.044727002650205606
+        ],
+        [
+          0.004926752869920982,
+          0.005073620841653044
+        ],
+        [
+          0.08370727670788385,
+          0.08620261557993457
+        ],
+        [
+          0.030722865868362224,
+          0.031638723658475996
+        ],
+        [
+          0.0509164787019475,
+          0.05243431411040664
+        ],
+        [
+          0.00046304364533077504,
+          0.0004768471144327763
+        ],
+        [
+          0.053707142939344275,
+          0.05530816888062554
+        ],
+        [
+          0.0034368509950480947,
+          0.003539304547746007
+        ],
+        [
+          0.06703228466320614,
+          0.06903053705154018
+        ],
+        [
+          0.0019132919341268626,
+          0.001970327737041213
+        ],
+        [
+          0.03016040331400988,
+          0.031059493927706655
+        ],
+        [
+          0.16500801481188962,
+          0.16992695292281315
+        ],
+        [
+          0.10905915149069356,
+          0.11231023730748925
+        ],
+        [
+          0.045583610689122304,
+          0.046942471712375276
+        ]
+      ]
+    ],
+    "implicit_pre_particle_adjoint": {
+      "finite": true,
+      "max_abs": 0.7320163520451333,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 3.062594639665321
+    },
+    "implicit_pre_particle_adjoint_tensor": [
+      [
+        [
+          0.006309815330442857,
+          -0.08123833262952414
+        ],
+        [
+          0.003435775854176759,
+          -0.06469500792634139
+        ],
+        [
+          -0.0010758410543282027,
+          -0.0401455049946292
+        ],
+        [
+          -0.0010306158705128687,
+          -0.04177634047870128
+        ],
+        [
+          -0.0027977151293275965,
+          0.18671599134185166
+        ],
+        [
+          0.013250368336935266,
+          -0.11340322392577787
+        ],
+        [
+          -0.017407711889828537,
+          0.7320163520451333
+        ],
+        [
+          0.00827120677367604,
+          -0.08051797711412681
+        ],
+        [
+          -0.00047715108878641777,
+          -0.010993345708350408
+        ],
+        [
+          -0.0012159016611204554,
+          -0.028546769931773297
+        ],
+        [
+          0.002877695534866012,
+          -0.015175137779194811
+        ],
+        [
+          -0.0005647715463752978,
+          -0.01263161983264055
+        ],
+        [
+          -0.0007275530594976765,
+          -0.01598256857140798
+        ],
+        [
+          0.005096476255434253,
+          -0.09834858461992797
+        ],
+        [
+          -0.00023233733328420492,
+          -0.005997242958211968
+        ],
+        [
+          0.0017174122062938411,
+          0.0972281286440033
+        ],
+        [
+          -0.0009865143365868356,
+          -0.021268729834826805
+        ],
+        [
+          0.0005145178261461852,
+          -0.055488626387946646
+        ],
+        [
+          0.0009219676286535208,
+          0.07999012397965657
+        ],
+        [
+          -0.016993220232638044,
+          0.6524276940457193
+        ],
+        [
+          -0.0011877465453484504,
+          -0.029138148924657416
+        ],
+        [
+          -0.0011465512172535303,
+          -0.02943909170659846
+        ],
+        [
+          0.0011784600183149807,
+          0.06990630291240223
+        ],
+        [
+          0.002626002775128214,
+          -0.057544701659333265
+        ],
+        [
+          -0.013336521835356819,
+          0.5111837217583219
+        ],
+        [
+          -0.0006784360198352005,
+          -0.04883074388074885
+        ],
+        [
+          -0.008004201705146858,
+          0.6849001031955281
+        ],
+        [
+          0.009675477442503619,
+          -0.12964306950869367
+        ],
+        [
+          0.0025537230536018876,
+          -0.05876803417866805
+        ],
+        [
+          0.0030707532893926304,
+          0.014090444685582688
+        ],
+        [
+          0.0016997043279931012,
+          -0.05802974368631951
+        ],
+        [
+          0.0014616567942919295,
+          -0.05324409983720766
+        ],
+        [
+          0.005742756637995491,
+          -0.09389221112612209
+        ],
+        [
+          -0.001169201489595345,
+          -0.0352886913461298
+        ],
+        [
+          -0.001135661614091052,
+          -0.026415067670354044
+        ],
+        [
+          -0.0009676228753096525,
+          -0.0429296923036689
+        ],
+        [
+          0.004192898949122975,
+          -0.07158575248713538
+        ],
+        [
+          -0.002420192982605464,
+          0.684531696930365
+        ],
+        [
+          0.001875848521751225,
+          -0.04306099289468594
+        ],
+        [
+          0.00490745432681209,
+          -0.0883540483923446
+        ],
+        [
+          0.0037226395321059286,
+          -0.059835800048198745
+        ],
+        [
+          0.0009310112095774027,
+          -0.05209625426646778
+        ],
+        [
+          0.0034818297149515134,
+          -0.03155011845125009
+        ],
+        [
+          0.0034617694795210335,
+          0.6029893068233331
+        ],
+        [
+          0.0027647768919739774,
+          -0.04804179069346737
+        ],
+        [
+          0.005930363494101983,
+          0.27033369674831864
+        ],
+        [
+          -0.004079740346323,
+          0.22190020124803242
+        ],
+        [
+          -0.001090558541647274,
+          -0.037693551523333396
+        ],
+        [
+          -0.00020394369934226275,
+          -0.005581893547413799
+        ],
+        [
+          0.0030737585751923827,
+          0.015736977426436823
+        ]
+      ]
+    ],
+    "same_tape_full_recorded_state_residual": {
+      "finite": true,
+      "max_abs": 3.8906655674963986e-12,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 1.3104604207336834e-12
+    },
+    "same_tape_full_recorded_state_residual_tensor": [
+      [
+        [
+          4.955359039771068e-13,
+          -1.4654943925052066e-14
+        ],
+        [
+          -2.3506196988876127e-13,
+          -4.432218481120742e-15
+        ],
+        [
+          -4.970468481246826e-13,
+          -1.6476403574827714e-14
+        ],
+        [
+          -1.021405182655144e-14,
+          -1.759703494030873e-14
+        ],
+        [
+          1.0877410083764971e-13,
+          4.496403249731884e-15
+        ],
+        [
+          5.155598170603071e-15,
+          1.1518563880486e-15
+        ],
+        [
+          4.720043800254814e-13,
+          9.658940314238862e-14
+        ],
+        [
+          -5.709321904134868e-14,
+          -8.132383655379272e-15
+        ],
+        [
+          -3.3670288779319435e-13,
+          -2.4952262478450393e-14
+        ],
+        [
+          -2.6148527787484e-13,
+          -3.624878175401136e-14
+        ],
+        [
+          -3.701761119856428e-13,
+          1.029037965949442e-14
+        ],
+        [
+          -1.3408163468398016e-12,
+          3.83026943495679e-14
+        ],
+        [
+          2.7307323069436507e-13,
+          -2.20795604022328e-14
+        ],
+        [
+          -2.654265696122593e-13,
+          4.274358644806853e-15
+        ],
+        [
+          -1.5151213617059511e-12,
+          -2.6645352591003757e-15
+        ],
+        [
+          1.3313308788731604e-13,
+          -1.3322676295501878e-15
+        ],
+        [
+          -1.6765755450620645e-13,
+          -2.257916076331412e-14
+        ],
+        [
+          -4.1772141301521515e-13,
+          8.798517470154366e-15
+        ],
+        [
+          -2.914335439641036e-13,
+          8.368306048112117e-15
+        ],
+        [
+          1.2203849042435877e-12,
+          4.440892098500626e-15
+        ],
+        [
+          -1.7204293545347582e-13,
+          -1.913053049307223e-14
+        ],
+        [
+          3.1002977962657496e-14,
+          -2.899763762442831e-14
+        ],
+        [
+          8.096301407078954e-14,
+          -6.4254157550180935e-15
+        ],
+        [
+          -3.2335245592207684e-13,
+          2.949723798550963e-14
+        ],
+        [
+          1.4047513152704028e-12,
+          -3.608224830031759e-14
+        ],
+        [
+          -3.561387296180385e-13,
+          -1.1709383462843448e-15
+        ],
+        [
+          8.919531779838508e-13,
+          -4.8183679268731794e-14
+        ],
+        [
+          2.503552920529728e-14,
+          -9.270362255620057e-15
+        ],
+        [
+          1.7388868123191514e-13,
+          -4.5574655160862676e-14
+        ],
+        [
+          -6.108724637243768e-13,
+          2.400857290751901e-15
+        ],
+        [
+          -6.428191312579656e-14,
+          -3.212707877509047e-14
+        ],
+        [
+          -9.7025165679554e-13,
+          -1.0099560077136971e-14
+        ],
+        [
+          -1.47645784487338e-13,
+          0.0
+        ],
+        [
+          -4.901079542207754e-13,
+          -2.0566881531181025e-14
+        ],
+        [
+          -2.892130979148533e-14,
+          -1.2361639489810727e-14
+        ],
+        [
+          -1.1354112094963398e-13,
+          -1.3797990527919524e-14
+        ],
+        [
+          -6.953326803227355e-13,
+          1.9984014443252818e-14
+        ],
+        [
+          3.8906655674963986e-12,
+          -1.0602629885170245e-13
+        ],
+        [
+          -9.165723735549136e-13,
+          1.2996548282018239e-14
+        ],
+        [
+          -4.387046281806306e-13,
+          1.650068970349139e-14
+        ],
+        [
+          7.530087664520124e-14,
+          -7.327471962526033e-15
+        ],
+        [
+          2.76862907599984e-12,
+          -1.1456113835350834e-14
+        ],
+        [
+          -2.0961010704922955e-13,
+          -1.0401401961956935e-14
+        ],
+        [
+          3.449351915207899e-12,
+          8.315570454442422e-14
+        ],
+        [
+          -1.9124979377949103e-13,
+          -1.999442278410868e-14
+        ],
+        [
+          -1.566524687746096e-13,
+          1.0375034165122088e-13
+        ],
+        [
+          -1.0901696212428647e-13,
+          1.176836406102666e-14
+        ],
+        [
+          -1.7077450564784158e-12,
+          -1.7486012637846216e-15
+        ],
+        [
+          -5.966754867969826e-13,
+          1.1449174941446927e-14
+        ],
+        [
+          2.7977620220553945e-14,
+          -8.770761894538737e-15
+        ]
+      ]
+    ],
+    "same_tape_full_recorded_state_vjp": {
+      "finite": true,
+      "max_abs": 0.7445793622981979,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 9.314087789292362
+    },
+    "same_tape_full_recorded_state_vjp_tensor": [
+      [
+        [
+          0.007216435463760452,
+          -0.08030468587924122
+        ],
+        [
+          0.05457851579745579,
+          -0.01202768765978761
+        ],
+        [
+          0.06700048045090062,
+          0.029960191947929517
+        ],
+        [
+          0.06996931242980338,
+          0.031340116849544755
+        ],
+        [
+          0.02874909613696805,
+          0.21920322245630158
+        ],
+        [
+          0.026935802644643063,
+          -0.09930982274168439
+        ],
+        [
+          -0.00520836772341509,
+          0.7445793622981979
+        ],
+        [
+          0.03505784307703588,
+          -0.05293282319743833
+        ],
+        [
+          0.09867044716583392,
+          0.091109872006113
+        ],
+        [
+          0.18063864951570116,
+          0.15872891962678015
+        ],
+        [
+          0.06137208123893809,
+          0.0450629829996749
+        ],
+        [
+          0.17569237439497143,
+          0.16887980417057924
+        ],
+        [
+          0.08161425854983458,
+          0.06881387698864128
+        ],
+        [
+          0.027840245619438847,
+          -0.07492681671147457
+        ],
+        [
+          0.3139078157682488,
+          0.3175075217518363
+        ],
+        [
+          0.030236121252835566,
+          0.12659698890887305
+        ],
+        [
+          0.103647220644924,
+          0.08648416797796112
+        ],
+        [
+          0.07645241398305708,
+          0.02271300109027602
+        ],
+        [
+          0.04062500340369324,
+          0.12087671908643506
+        ],
+        [
+          -0.002966436259119326,
+          0.6668726206321671
+        ],
+        [
+          0.0625692925784461,
+          0.036519506541422816
+        ],
+        [
+          0.08191661472699571,
+          0.05610021197588715
+        ],
+        [
+          0.04209271731937189,
+          0.11204022642035552
+        ],
+        [
+          0.06511898747398559,
+          0.00681121754237958
+        ],
+        [
+          0.0037941880104317566,
+          0.5288251031728118
+        ],
+        [
+          0.0496553635225207,
+          0.0030035212302547878
+        ],
+        [
+          -0.0014776209988365263,
+          0.6916212432192534
+        ],
+        [
+          0.025841131616392676,
+          -0.11299551236481623
+        ],
+        [
+          0.06364193591445452,
+          0.00414123651836959
+        ],
+        [
+          0.048868908539618394,
+          0.06125385659575279
+        ],
+        [
+          0.07437650393416062,
+          0.016813572981244432
+        ],
+        [
+          0.08243751892668975,
+          0.030145676883513748
+        ],
+        [
+          0.03532816799892445,
+          -0.06342484983317656
+        ],
+        [
+          0.17896523056100305,
+          0.150215601822024
+        ],
+        [
+          0.049096899861045484,
+          0.025314941436815213
+        ],
+        [
+          0.05478498218397406,
+          0.014484914532346724
+        ],
+        [
+          0.04762517257593901,
+          -0.026858749836949754
+        ],
+        [
+          0.0025065598834248526,
+          0.6896053177721241
+        ],
+        [
+          0.08558312523055164,
+          0.04314162268523563
+        ],
+        [
+          0.03563032019561302,
+          -0.05671532473388511
+        ],
+        [
+          0.05463911823397813,
+          -0.00740148593778478
+        ],
+        [
+          0.0013940548521395486,
+          -0.051619407152023546
+        ],
+        [
+          0.0571889726545054,
+          0.023758050429385856
+        ],
+        [
+          0.006898620471119776,
+          0.6065286113709959
+        ],
+        [
+          0.06979706155537137,
+          0.020988746358092805
+        ],
+        [
+          0.007843655428385499,
+          0.2723040244852561
+        ],
+        [
+          0.026080662967795896,
+          0.2529596951757273
+        ],
+        [
+          0.1639174562719501,
+          0.1322334013994815
+        ],
+        [
+          0.10885520779194797,
+          0.106728343760064
+        ],
+        [
+          0.04865736926428671,
+          0.06267944913882087
+        ]
+      ]
+    ],
+    "same_tape_identity_residual": {
+      "finite": true,
+      "max_abs": 5.44737865926237e-13,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 6.284777819692833e-12
+    },
+    "same_tape_identity_residual_tensor": [
+      [
+        [
+          3.55201978941011e-14,
+          -1.0685896612017132e-15
+        ],
+        [
+          9.064970996064403e-14,
+          1.700029006457271e-15
+        ],
+        [
+          1.1213252548714081e-13,
+          3.715777685542321e-15
+        ],
+        [
+          2.345346139520643e-15,
+          4.038436252074007e-15
+        ],
+        [
+          1.9000079287678773e-13,
+          7.854827899222983e-15
+        ],
+        [
+          9.461181837977506e-15,
+          2.0816681711721685e-15
+        ],
+        [
+          6.800289498176681e-14,
+          1.3877787807814457e-14
+        ],
+        [
+          5.082045895221654e-14,
+          7.230327447871332e-15
+        ],
+        [
+          6.44068132160669e-14,
+          4.760081218080359e-15
+        ],
+        [
+          5.5011550870176507e-14,
+          7.577272143066693e-15
+        ],
+        [
+          1.914163272331848e-13,
+          -5.329070518200751e-15
+        ],
+        [
+          2.5834889783027393e-13,
+          -7.382983113757291e-15
+        ],
+        [
+          -5.3415605272277844e-14,
+          4.315992008230296e-15
+        ],
+        [
+          1.0508954817467497e-13,
+          -1.7069679003611782e-15
+        ],
+        [
+          2.8399504969911504e-13,
+          3.885780586188048e-16
+        ],
+        [
+          3.2203406608033447e-13,
+          -3.219646771412954e-15
+        ],
+        [
+          3.366751322175787e-14,
+          4.551914400963142e-15
+        ],
+        [
+          1.1766976282245878e-13,
+          -2.5118795932144167e-15
+        ],
+        [
+          5.44737865926237e-13,
+          -1.5681900222830336e-14
+        ],
+        [
+          2.0728384286794466e-13,
+          8.881784197001252e-16
+        ],
+        [
+          3.608224830031759e-14,
+          4.017619570362285e-15
+        ],
+        [
+          -6.314393452555578e-15,
+          6.0923488476305465e-15
+        ],
+        [
+          -1.2026490914252008e-13,
+          9.520162436160717e-15
+        ],
+        [
+          1.1619871731483045e-13,
+          -1.0609568779074152e-14
+        ],
+        [
+          3.2563882146341427e-13,
+          -8.43769498715119e-15
+        ],
+        [
+          8.575778975838944e-14,
+          2.8449465006019636e-16
+        ],
+        [
+          8.666851958327726e-14,
+          -4.773959005888173e-15
+        ],
+        [
+          -1.6833756610878936e-14,
+          6.2450045135165055e-15
+        ],
+        [
+          -6.164513344231182e-14,
+          1.6230072841239007e-14
+        ],
+        [
+          5.013628401329129e-13,
+          -1.9914625504213745e-15
+        ],
+        [
+          2.0566881531181025e-14,
+          1.0227929614359255e-14
+        ],
+        [
+          3.074623888821293e-13,
+          3.2057689836051395e-15
+        ],
+        [
+          6.496192472837947e-14,
+          1.3877787807814457e-17
+        ],
+        [
+          1.0910716774503726e-13,
+          4.551914400963142e-15
+        ],
+        [
+          5.953570969552402e-15,
+          2.5500435096859064e-15
+        ],
+        [
+          2.6097179972595086e-14,
+          3.1676050671336498e-15
+        ],
+        [
+          2.8513302829935583e-13,
+          -8.215650382226158e-15
+        ],
+        [
+          3.222630495791634e-13,
+          -8.43769498715119e-15
+        ],
+        [
+          3.214789545680219e-13,
+          -4.558853294867049e-15
+        ],
+        [
+          1.800018467612574e-13,
+          -6.786238238021269e-15
+        ],
+        [
+          -3.1488700535931e-14,
+          3.0461744238152733e-15
+        ],
+        [
+          1.6837529634439186e-13,
+          -6.453171330633722e-16
+        ],
+        [
+          1.0495077029659683e-13,
+          5.197231534026514e-15
+        ],
+        [
+          2.5523680391437154e-13,
+          5.440092820663267e-15
+        ],
+        [
+          7.373268662291821e-14,
+          7.688294445529209e-15
+        ],
+        [
+          -1.0816000872715392e-14,
+          7.105427357601002e-15
+        ],
+        [
+          -1.1456807724741225e-13,
+          1.2378986724570495e-14
+        ],
+        [
+          3.8827274728703287e-13,
+          4.440892098500626e-16
+        ],
+        [
+          1.1138312494551883e-13,
+          -2.067790383364354e-15
+        ],
+        [
+          -2.352978922814941e-14,
+          7.41073868937292e-15
+        ]
+      ]
+    ],
+    "same_tape_log_ess_carryover_vjp": {
+      "finite": true,
+      "max_abs": 0.0,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 0.0
+    },
+    "same_tape_log_ess_carryover_vjp_tensor": [
+      [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ]
+    ],
+    "same_tape_post_log_weights_vjp": {
+      "finite": true,
+      "max_abs": 0.0,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 0.0
+    },
+    "same_tape_post_log_weights_vjp_tensor": [
+      [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ]
+    ],
+    "same_tape_post_particles_vjp": {
+      "finite": true,
+      "max_abs": 0.7445793622982807,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 9.314087789287386
+    },
+    "same_tape_post_particles_vjp_tensor": [
+      [
+        [
+          0.007216435464220461,
+          -0.08030468587925482
+        ],
+        [
+          0.05457851579713008,
+          -0.012027687659793743
+        ],
+        [
+          0.06700048045029142,
+          0.029960191947909325
+        ],
+        [
+          0.06996931242979082,
+          0.03134011684952312
+        ],
+        [
+          0.028749096136886837,
+          0.2192032224562982
+        ],
+        [
+          0.026935802644638754,
+          -0.09930982274168532
+        ],
+        [
+          -0.0052083677230111425,
+          0.7445793622982807
+        ],
+        [
+          0.03505784307692797,
+          -0.05293282319745368
+        ],
+        [
+          0.0986704471654328,
+          0.09110987200608327
+        ],
+        [
+          0.18063864951538466,
+          0.15872891962673635
+        ],
+        [
+          0.06137208123837645,
+          0.045062982999690526
+        ],
+        [
+          0.17569237439337226,
+          0.1688798041706249
+        ],
+        [
+          0.08161425855016108,
+          0.06881387698861488
+        ],
+        [
+          0.027840245619068338,
+          -0.0749268167114686
+        ],
+        [
+          0.31390781576644966,
+          0.3175075217518333
+        ],
+        [
+          0.030236121252646665,
+          0.12659698890887494
+        ],
+        [
+          0.1036472206447227,
+          0.08648416797793398
+        ],
+        [
+          0.07645241398252167,
+          0.022713001090287344
+        ],
+        [
+          0.040625003402857074,
+          0.12087671908645911
+        ],
+        [
+          -0.0029664362581061088,
+          0.6668726206321708
+        ],
+        [
+          0.06256929257823798,
+          0.036519506541399675
+        ],
+        [
+          0.0819166147270331,
+          0.05610021197585207
+        ],
+        [
+          0.042092717319573175,
+          0.11204022642033959
+        ],
+        [
+          0.065118987473546,
+          0.00681121754241969
+        ],
+        [
+          0.0037941880115108795,
+          0.5288251031727842
+        ],
+        [
+          0.04965536352207879,
+          0.0030035212302533323
+        ],
+        [
+          -0.0014776209980311705,
+          0.6916212432192101
+        ],
+        [
+          0.02584113161643453,
+          -0.11299551236483174
+        ],
+        [
+          0.06364193591469014,
+          0.004141236518307792
+        ],
+        [
+          0.048868908538506145,
+          0.06125385659575718
+        ],
+        [
+          0.07437650393407577,
+          0.01681357298120207
+        ],
+        [
+          0.08243751892541205,
+          0.030145676883500443
+        ],
+        [
+          0.03532816799871184,
+          -0.06342484983317657
+        ],
+        [
+          0.17896523056040392,
+          0.1502156018219989
+        ],
+        [
+          0.049096899861010596,
+          0.025314941436800298
+        ],
+        [
+          0.054784982183834374,
+          0.014484914532329758
+        ],
+        [
+          0.04762517257495852,
+          -0.02685874983692156
+        ],
+        [
+          0.0025065598869931094,
+          0.6896053177720265
+        ],
+        [
+          0.08558312522931355,
+          0.04314162268525319
+        ],
+        [
+          0.03563032019499435,
+          -0.05671532473386183
+        ],
+        [
+          0.054639118234084905,
+          -0.007401485937795153
+        ],
+        [
+          0.0013940548547398124,
+          -0.05161940715203439
+        ],
+        [
+          0.05718897265419076,
+          0.023758050429370257
+        ],
+        [
+          0.006898620474313333,
+          0.6065286113710733
+        ],
+        [
+          0.0697970615551064,
+          0.020988746358065122
+        ],
+        [
+          0.007843655428239504,
+          0.27230402448535285
+        ],
+        [
+          0.026080662967801444,
+          0.2529596951757267
+        ],
+        [
+          0.163917456269854,
+          0.1322334013994793
+        ],
+        [
+          0.10885520779123992,
+          0.1067283437600775
+        ],
+        [
+          0.04865736926433817,
+          0.06267944913880469
+        ]
+      ]
+    ],
+    "same_tape_post_state_identity_residual": {
+      "finite": true,
+      "max_abs": 5.447309270323331e-13,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 6.285492959445804e-12
+    },
+    "same_tape_post_state_identity_residual_tensor": [
+      [
+        [
+          3.552713678800501e-14,
+          -1.0547118733938987e-15
+        ],
+        [
+          9.064970996064403e-14,
+          1.700029006457271e-15
+        ],
+        [
+          1.1216028106275644e-13,
+          3.715777685542321e-15
+        ],
+        [
+          2.345346139520643e-15,
+          4.038436252074007e-15
+        ],
+        [
+          1.8998691508897991e-13,
+          7.882583474838611e-15
+        ],
+        [
+          9.46465128492946e-15,
+          2.0816681711721685e-15
+        ],
+        [
+          6.80566714095221e-14,
+          1.3766765505351941e-14
+        ],
+        [
+          5.082045895221654e-14,
+          7.216449660063518e-15
+        ],
+        [
+          6.442069100387471e-14,
+          4.773959005888173e-15
+        ],
+        [
+          5.5011550870176507e-14,
+          7.549516567451064e-15
+        ],
+        [
+          1.9145796059660825e-13,
+          -5.336009412104659e-15
+        ],
+        [
+          2.5834889783027393e-13,
+          -7.355227538141662e-15
+        ],
+        [
+          -5.342948306008566e-14,
+          4.315992008230296e-15
+        ],
+        [
+          1.0508260928077107e-13,
+          -1.6930901125533637e-15
+        ],
+        [
+          2.8399504969911504e-13,
+          3.3306690738754696e-16
+        ],
+        [
+          3.2203406608033447e-13,
+          -3.219646771412954e-15
+        ],
+        [
+          3.3639757646142243e-14,
+          4.551914400963142e-15
+        ],
+        [
+          1.176836406102666e-13,
+          -2.525757381022231e-15
+        ],
+        [
+          5.447309270323331e-13,
+          -1.5681900222830336e-14
+        ],
+        [
+          2.071676163950542e-13,
+          7.771561172376096e-16
+        ],
+        [
+          3.606837051250977e-14,
+          4.010680676458378e-15
+        ],
+        [
+          -6.38378239159465e-15,
+          6.085409953726639e-15
+        ],
+        [
+          -1.2032042029375134e-13,
+          9.506284648352903e-15
+        ],
+        [
+          1.162403506782539e-13,
+          -1.0613038226026106e-14
+        ],
+        [
+          3.256284131225584e-13,
+          -8.43769498715119e-15
+        ],
+        [
+          8.577166754619725e-14,
+          2.8449465006019636e-16
+        ],
+        [
+          8.659739592076221e-14,
+          -4.884981308350689e-15
+        ],
+        [
+          -1.6819878823071122e-14,
+          6.2450045135165055e-15
+        ],
+        [
+          -6.17284001691587e-14,
+          1.62231339473351e-14
+        ],
+        [
+          5.013767179207207e-13,
+          -1.9914625504213745e-15
+        ],
+        [
+          2.0566881531181025e-14,
+          1.0234868508263162e-14
+        ],
+        [
+          3.074485110943215e-13,
+          3.2057689836051395e-15
+        ],
+        [
+          6.496192472837947e-14,
+          1.3877787807814457e-17
+        ],
+        [
+          1.0902390101819037e-13,
+          4.551914400963142e-15
+        ],
+        [
+          5.9674487573602164e-15,
+          2.55351295663786e-15
+        ],
+        [
+          2.6145752229922437e-14,
+          3.1676050671336498e-15
+        ],
+        [
+          2.8516078387497146e-13,
+          -8.208711488322251e-15
+        ],
+        [
+          3.2240876635114546e-13,
+          -8.43769498715119e-15
+        ],
+        [
+          3.2152058793144533e-13,
+          -4.565792188770956e-15
+        ],
+        [
+          1.7996715229173788e-13,
+          -6.779299344117362e-15
+        ],
+        [
+          -3.147482274812319e-14,
+          3.0461744238152733e-15
+        ],
+        [
+          1.68365321684405e-13,
+          -6.106226635438361e-16
+        ],
+        [
+          1.0502709812953981e-13,
+          5.197231534026514e-15
+        ],
+        [
+          2.5579538487363607e-13,
+          5.773159728050814e-15
+        ],
+        [
+          7.37188088351104e-14,
+          7.688294445529209e-15
+        ],
+        [
+          -1.0658141036401503e-14,
+          6.994405055138486e-15
+        ],
+        [
+          -1.145646078004603e-13,
+          1.2378986724570495e-14
+        ],
+        [
+          3.8835601401387976e-13,
+          4.440892098500626e-16
+        ],
+        [
+          1.1138312494551883e-13,
+          -2.0539125955565396e-15
+        ],
+        [
+          -2.348121697082206e-14,
+          7.41073868937292e-15
+        ]
+      ]
+    ],
+    "same_tape_post_state_vjp": {
+      "finite": true,
+      "max_abs": 0.7445793622982807,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 9.314087789287386
+    },
+    "same_tape_post_state_vjp_tensor": [
+      [
+        [
+          0.007216435464220461,
+          -0.08030468587925482
+        ],
+        [
+          0.05457851579713008,
+          -0.012027687659793743
+        ],
+        [
+          0.06700048045029142,
+          0.029960191947909325
+        ],
+        [
+          0.06996931242979082,
+          0.03134011684952312
+        ],
+        [
+          0.028749096136886837,
+          0.2192032224562982
+        ],
+        [
+          0.026935802644638754,
+          -0.09930982274168532
+        ],
+        [
+          -0.0052083677230111425,
+          0.7445793622982807
+        ],
+        [
+          0.03505784307692797,
+          -0.05293282319745368
+        ],
+        [
+          0.0986704471654328,
+          0.09110987200608327
+        ],
+        [
+          0.18063864951538466,
+          0.15872891962673635
+        ],
+        [
+          0.06137208123837645,
+          0.045062982999690526
+        ],
+        [
+          0.17569237439337226,
+          0.1688798041706249
+        ],
+        [
+          0.08161425855016108,
+          0.06881387698861488
+        ],
+        [
+          0.027840245619068338,
+          -0.0749268167114686
+        ],
+        [
+          0.31390781576644966,
+          0.3175075217518333
+        ],
+        [
+          0.030236121252646665,
+          0.12659698890887494
+        ],
+        [
+          0.1036472206447227,
+          0.08648416797793398
+        ],
+        [
+          0.07645241398252167,
+          0.022713001090287344
+        ],
+        [
+          0.040625003402857074,
+          0.12087671908645911
+        ],
+        [
+          -0.0029664362581061088,
+          0.6668726206321708
+        ],
+        [
+          0.06256929257823798,
+          0.036519506541399675
+        ],
+        [
+          0.0819166147270331,
+          0.05610021197585207
+        ],
+        [
+          0.042092717319573175,
+          0.11204022642033959
+        ],
+        [
+          0.065118987473546,
+          0.00681121754241969
+        ],
+        [
+          0.0037941880115108795,
+          0.5288251031727842
+        ],
+        [
+          0.04965536352207879,
+          0.0030035212302533323
+        ],
+        [
+          -0.0014776209980311705,
+          0.6916212432192101
+        ],
+        [
+          0.02584113161643453,
+          -0.11299551236483174
+        ],
+        [
+          0.06364193591469014,
+          0.004141236518307792
+        ],
+        [
+          0.048868908538506145,
+          0.06125385659575718
+        ],
+        [
+          0.07437650393407577,
+          0.01681357298120207
+        ],
+        [
+          0.08243751892541205,
+          0.030145676883500443
+        ],
+        [
+          0.03532816799871184,
+          -0.06342484983317657
+        ],
+        [
+          0.17896523056040392,
+          0.1502156018219989
+        ],
+        [
+          0.049096899861010596,
+          0.025314941436800298
+        ],
+        [
+          0.054784982183834374,
+          0.014484914532329758
+        ],
+        [
+          0.04762517257495852,
+          -0.02685874983692156
+        ],
+        [
+          0.0025065598869931094,
+          0.6896053177720265
+        ],
+        [
+          0.08558312522931355,
+          0.04314162268525319
+        ],
+        [
+          0.03563032019499435,
+          -0.05671532473386183
+        ],
+        [
+          0.054639118234084905,
+          -0.007401485937795153
+        ],
+        [
+          0.0013940548547398124,
+          -0.05161940715203439
+        ],
+        [
+          0.05718897265419076,
+          0.023758050429370257
+        ],
+        [
+          0.006898620474313333,
+          0.6065286113710733
+        ],
+        [
+          0.0697970615551064,
+          0.020988746358065122
+        ],
+        [
+          0.007843655428239504,
+          0.27230402448535285
+        ],
+        [
+          0.026080662967801444,
+          0.2529596951757267
+        ],
+        [
+          0.163917456269854,
+          0.1322334013994793
+        ],
+        [
+          0.10885520779123992,
+          0.1067283437600775
+        ],
+        [
+          0.04865736926433817,
+          0.06267944913880469
+        ]
+      ]
+    ],
+    "same_tape_pre_current_ll_carryover_vjp": {
+      "finite": true,
+      "max_abs": 5.445643935786393e-13,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 6.281424816054204e-12
+    },
+    "same_tape_pre_current_ll_carryover_vjp_tensor": [
+      [
+        [
+          3.5622546579183734e-14,
+          -1.0547118733938987e-15
+        ],
+        [
+          9.06219543850284e-14,
+          1.7052331768852014e-15
+        ],
+        [
+          1.1218456719142011e-13,
+          3.718162930321789e-15
+        ],
+        [
+          2.3436114160446664e-15,
+          4.035834166860042e-15
+        ],
+        [
+          1.900701818158268e-13,
+          7.868705687030797e-15
+        ],
+        [
+          9.471590178833367e-15,
+          2.067790383364354e-15
+        ],
+        [
+          6.800809915219475e-14,
+          1.3961054534661343e-14
+        ],
+        [
+          5.079270337660091e-14,
+          7.224255915705413e-15
+        ],
+        [
+          6.44137521099708e-14,
+          4.773959005888173e-15
+        ],
+        [
+          5.5039306445792135e-14,
+          7.61196661258623e-15
+        ],
+        [
+          1.9143020502099262e-13,
+          -5.325601071248798e-15
+        ],
+        [
+          2.5845992013273644e-13,
+          -7.369105325949477e-15
+        ],
+        [
+          -5.342948306008566e-14,
+          4.31946145518225e-15
+        ],
+        [
+          1.0505485370515544e-13,
+          -1.6930901125533637e-15
+        ],
+        [
+          2.836619827917275e-13,
+          4.440892098500626e-16
+        ],
+        [
+          3.22068760549854e-13,
+          -3.2057689836051395e-15
+        ],
+        [
+          3.365363543395006e-14,
+          4.538036613155327e-15
+        ],
+        [
+          1.1762812945903534e-13,
+          -2.4980018054066022e-15
+        ],
+        [
+          5.445643935786393e-13,
+          -1.5668022435022522e-14
+        ],
+        [
+          2.064737270046635e-13,
+          7.632783294297951e-16
+        ],
+        [
+          3.607530940641368e-14,
+          4.0115480381963664e-15
+        ],
+        [
+          -6.467049118441537e-15,
+          6.087144677202616e-15
+        ],
+        [
+          -1.202926647181357e-13,
+          9.51842771268474e-15
+        ],
+        [
+          1.163513729807164e-13,
+          -1.061650767297806e-14
+        ],
+        [
+          3.2564229091036623e-13,
+          -8.340550472496489e-15
+        ],
+        [
+          8.579421895138495e-14,
+          2.8275992658421956e-16
+        ],
+        [
+          8.637535131583718e-14,
+          -4.6351811278100286e-15
+        ],
+        [
+          -1.6819878823071122e-14,
+          6.241535066564552e-15
+        ],
+        [
+          -6.175615574477433e-14,
+          1.6209256159527285e-14
+        ],
+        [
+          5.01279573406066e-13,
+          -1.9845236565174673e-15
+        ],
+        [
+          2.0483614804334138e-14,
+          1.0227929614359255e-14
+        ],
+        [
+          3.074762666699371e-13,
+          3.2031668983911743e-15
+        ],
+        [
+          6.494804694057166e-14,
+          3.469446951953614e-18
+        ],
+        [
+          1.0907941216942163e-13,
+          4.5727310826748635e-15
+        ],
+        [
+          5.963979310408263e-15,
+          2.550910871423895e-15
+        ],
+        [
+          2.6055546609171643e-14,
+          3.1632682584437077e-15
+        ],
+        [
+          2.8516078387497146e-13,
+          -8.201772594418344e-15
+        ],
+        [
+          3.228528555609955e-13,
+          -8.81239525796218e-15
+        ],
+        [
+          3.213818100533672e-13,
+          -4.557985933129061e-15
+        ],
+        [
+          1.7991164114050662e-13,
+          -6.770625726737478e-15
+        ],
+        [
+          -3.1336044870045043e-14,
+          3.039235529911366e-15
+        ],
+        [
+          1.6857695794847416e-13,
+          -7.008282842946301e-16
+        ],
+        [
+          1.0491607582707729e-13,
+          5.198966257502491e-15
+        ],
+        [
+          2.525757381022231e-13,
+          6.106226635438361e-15
+        ],
+        [
+          7.367717547168695e-14,
+          7.69870278638507e-15
+        ],
+        [
+          -1.0769163338864018e-14,
+          7.147060721024445e-15
+        ],
+        [
+          -1.145333827778927e-13,
+          1.2385925618474403e-14
+        ],
+        [
+          3.879119248040297e-13,
+          4.0592529337857286e-16
+        ],
+        [
+          1.1142128886199032e-13,
+          -2.123301534595612e-15
+        ],
+        [
+          -2.3592239273284576e-14,
+          7.417677583276827e-15
+        ]
+      ]
+    ],
+    "same_tape_pre_log_weights_carryover_vjp": {
+      "finite": true,
+      "max_abs": 3.891109656706249e-12,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": -1.3065180447940916e-12
+    },
+    "same_tape_pre_log_weights_carryover_vjp_tensor": [
+      [
+        [
+          -4.956313137682855e-13,
+          1.4654943925052066e-14
+        ],
+        [
+          2.350897254643769e-13,
+          4.427014310692812e-15
+        ],
+        [
+          4.97019092549067e-13,
+          1.6472066766137772e-14
+        ],
+        [
+          1.021405182655144e-14,
+          1.7595300216832754e-14
+        ],
+        [
+          -1.088573675644966e-13,
+          -4.505076867111768e-15
+        ],
+        [
+          -5.162537064506978e-15,
+          -1.1310397063368782e-15
+        ],
+        [
+          -4.71955807768154e-13,
+          -9.681144774731365e-14
+        ],
+        [
+          5.71209746169643e-14,
+          8.12652896364785e-15
+        ],
+        [
+          3.3670288779319435e-13,
+          2.4952262478450393e-14
+        ],
+        [
+          2.6145752229922437e-13,
+          3.6193270602780103e-14
+        ],
+        [
+          3.7020386756125845e-13,
+          -1.030078800035028e-14
+        ],
+        [
+          1.340705324537339e-12,
+          -3.827493877395227e-14
+        ],
+        [
+          -2.7307323069436507e-13,
+          2.20795604022328e-14
+        ],
+        [
+          2.6545432518787493e-13,
+          -4.274358644806853e-15
+        ],
+        [
+          1.5154544286133387e-12,
+          2.55351295663786e-15
+        ],
+        [
+          -1.3316778235683557e-13,
+          1.3253287356462806e-15
+        ],
+        [
+          1.6764367671839864e-13,
+          2.2593038551121936e-14
+        ],
+        [
+          4.177769241664464e-13,
+          -8.826273045769994e-15
+        ],
+        [
+          2.9160007741779737e-13,
+          -8.387388006347862e-15
+        ],
+        [
+          -1.219691014853197e-12,
+          -4.440892098500626e-15
+        ],
+        [
+          1.72029057665668e-13,
+          1.913053049307223e-14
+        ],
+        [
+          -3.091971123581061e-14,
+          2.8994168177476354e-14
+        ],
+        [
+          -8.099076964640517e-14,
+          6.404599073306372e-15
+        ],
+        [
+          3.2324143361961433e-13,
+          -2.9493768538557674e-14
+        ],
+        [
+          -1.4047651930582106e-12,
+          3.597122599785507e-14
+        ],
+        [
+          3.561153108511128e-13,
+          1.1726730697603216e-15
+        ],
+        [
+          -8.917311333789257e-13,
+          4.796163466380676e-14
+        ],
+        [
+          -2.503552920529728e-14,
+          9.27383170257201e-15
+        ],
+        [
+          -1.7386092565629951e-13,
+          4.558853294867049e-14
+        ],
+        [
+          6.109696082390315e-13,
+          -2.4077961846558082e-15
+        ],
+        [
+          6.436517985264345e-14,
+          3.2134017668994375e-14
+        ],
+        [
+          9.702239012199243e-13,
+          1.0103029524088925e-14
+        ],
+        [
+          1.4765966227514582e-13,
+          1.3877787807814457e-17
+        ],
+        [
+          4.900524430695441e-13,
+          2.0539125955565396e-14
+        ],
+        [
+          2.892130979148533e-14,
+          1.2365108936762681e-14
+        ],
+        [
+          1.1363132657038477e-13,
+          1.3801459974871477e-14
+        ],
+        [
+          6.953326803227355e-13,
+          -1.9990953337156725e-14
+        ],
+        [
+          -3.891109656706249e-12,
+          1.0635936575909e-13
+        ],
+        [
+          9.167111514329918e-13,
+          -1.3000017728970192e-14
+        ],
+        [
+          4.3876013933186186e-13,
+          -1.6507628597395296e-14
+        ],
+        [
+          -7.543965452327939e-14,
+          7.33441085642994e-15
+        ],
+        [
+          -2.768840712263909e-12,
+          1.1546319456101628e-14
+        ],
+        [
+          2.0972112935169207e-13,
+          1.0401401961956935e-14
+        ],
+        [
+          -3.446132268436486e-12,
+          -8.348877145181177e-14
+        ],
+        [
+          1.9129142714291447e-13,
+          1.9984014443252818e-14
+        ],
+        [
+          1.567634910770721e-13,
+          -1.0391687510491465e-13
+        ],
+        [
+          1.0898573710171888e-13,
+          -1.1789180742738381e-14
+        ],
+        [
+          1.7081891456882659e-12,
+          1.7763568394002505e-15
+        ],
+        [
+          5.966338534335591e-13,
+          -1.1379786002407855e-14
+        ],
+        [
+          -2.786659791809143e-14,
+          8.770761894538737e-15
+        ]
+      ]
+    ],
+    "same_tape_reconstructed_pre_particle_adjoint": {
+      "finite": true,
+      "max_abs": 0.7445793622982806,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 9.314087789287386
+    },
+    "same_tape_reconstructed_pre_particle_adjoint_tensor": [
+      [
+        [
+          0.007216435464220468,
+          -0.08030468587925481
+        ],
+        [
+          0.05457851579713008,
+          -0.012027687659793743
+        ],
+        [
+          0.06700048045029144,
+          0.029960191947909325
+        ],
+        [
+          0.06996931242979082,
+          0.03134011684952312
+        ],
+        [
+          0.028749096136886823,
+          0.21920322245629822
+        ],
+        [
+          0.026935802644638757,
+          -0.09930982274168532
+        ],
+        [
+          -0.005208367723011089,
+          0.7445793622982806
+        ],
+        [
+          0.03505784307692797,
+          -0.052932823197453696
+        ],
+        [
+          0.09867044716543281,
+          0.09110987200608328
+        ],
+        [
+          0.18063864951538466,
+          0.15872891962673633
+        ],
+        [
+          0.061372081238376494,
+          0.04506298299969052
+        ],
+        [
+          0.17569237439337226,
+          0.16887980417062493
+        ],
+        [
+          0.08161425855016106,
+          0.06881387698861488
+        ],
+        [
+          0.02784024561906833,
+          -0.07492681671146859
+        ],
+        [
+          0.31390781576644966,
+          0.3175075217518332
+        ],
+        [
+          0.030236121252646665,
+          0.12659698890887494
+        ],
+        [
+          0.10364722064472268,
+          0.08648416797793398
+        ],
+        [
+          0.07645241398252169,
+          0.02271300109028733
+        ],
+        [
+          0.04062500340285707,
+          0.12087671908645911
+        ],
+        [
+          -0.002966436258106225,
+          0.6668726206321707
+        ],
+        [
+          0.06256929257823797,
+          0.03651950654139967
+        ],
+        [
+          0.08191661472703303,
+          0.05610021197585206
+        ],
+        [
+          0.04209271731957312,
+          0.11204022642033958
+        ],
+        [
+          0.06511898747354604,
+          0.006811217542419687
+        ],
+        [
+          0.003794188011510869,
+          0.5288251031727842
+        ],
+        [
+          0.049655363522078805,
+          0.0030035212302533323
+        ],
+        [
+          -0.0014776209980312417,
+          0.69162124321921
+        ],
+        [
+          0.025841131616434546,
+          -0.11299551236483174
+        ],
+        [
+          0.06364193591469006,
+          0.004141236518307785
+        ],
+        [
+          0.04886890853850616,
+          0.06125385659575718
+        ],
+        [
+          0.07437650393407577,
+          0.016813572981202077
+        ],
+        [
+          0.08243751892541204,
+          0.030145676883500443
+        ],
+        [
+          0.03532816799871184,
+          -0.06342484983317657
+        ],
+        [
+          0.17896523056040384,
+          0.1502156018219989
+        ],
+        [
+          0.04909689986101061,
+          0.0253149414368003
+        ],
+        [
+          0.05478498218383442,
+          0.014484914532329758
+        ],
+        [
+          0.047625172574958546,
+          -0.026858749836921554
+        ],
+        [
+          0.002506559886993255,
+          0.6896053177720265
+        ],
+        [
+          0.08558312522931359,
+          0.043141622685253185
+        ],
+        [
+          0.03563032019499431,
+          -0.05671532473386182
+        ],
+        [
+          0.05463911823408492,
+          -0.007401485937795153
+        ],
+        [
+          0.0013940548547398024,
+          -0.051619407152034356
+        ],
+        [
+          0.05718897265419084,
+          0.023758050429370257
+        ],
+        [
+          0.006898620474313891,
+          0.6065286113710736
+        ],
+        [
+          0.06979706155510638,
+          0.020988746358065122
+        ],
+        [
+          0.007843655428239662,
+          0.27230402448535274
+        ],
+        [
+          0.026080662967801448,
+          0.2529596951757267
+        ],
+        [
+          0.16391745626985407,
+          0.1322334013994793
+        ],
+        [
+          0.10885520779123992,
+          0.10672834376007752
+        ],
+        [
+          0.04865736926433822,
+          0.06267944913880469
+        ]
+      ]
+    ],
+    "same_tape_transport_matrix_vjp": {
+      "finite": true,
+      "max_abs": 0.7320163520451194,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 3.0625946396590367
+    },
+    "same_tape_transport_matrix_vjp_tensor": [
+      [
+        [
+          0.006309815330407337,
+          -0.08123833262952307
+        ],
+        [
+          0.0034357758540861094,
+          -0.06469500792634308
+        ],
+        [
+          -0.0010758410544403352,
+          -0.04014550499463291
+        ],
+        [
+          -0.0010306158705152071,
+          -0.04177634047870532
+        ],
+        [
+          -0.0027977151295175973,
+          0.1867159913418438
+        ],
+        [
+          0.013250368336925805,
+          -0.11340322392577995
+        ],
+        [
+          -0.017407711889896538,
+          0.7320163520451194
+        ],
+        [
+          0.008271206773625223,
+          -0.08051797711413404
+        ],
+        [
+          -0.0004771510888508246,
+          -0.010993345708355168
+        ],
+        [
+          -0.001215901661175467,
+          -0.028546769931780874
+        ],
+        [
+          0.002877695534674596,
+          -0.015175137779189482
+        ],
+        [
+          -0.0005647715466336467,
+          -0.012631619832633167
+        ],
+        [
+          -0.0007275530594442609,
+          -0.015982568571412302
+        ],
+        [
+          0.005096476255329163,
+          -0.09834858461992627
+        ],
+        [
+          -0.00023233733356819997,
+          -0.0059972429582123565
+        ],
+        [
+          0.001717412205971807,
+          0.09722812864400651
+        ],
+        [
+          -0.0009865143366205031,
+          -0.021268729834831357
+        ],
+        [
+          0.0005145178260285155,
+          -0.055488626387944134
+        ],
+        [
+          0.000921967628108783,
+          0.07999012397967226
+        ],
+        [
+          -0.01699322023284533,
+          0.6524276940457184
+        ],
+        [
+          -0.0011877465453845326,
+          -0.029138148924661433
+        ],
+        [
+          -0.0011465512172472159,
+          -0.02943909170660455
+        ],
+        [
+          0.0011784600184352456,
+          0.0699063029123927
+        ],
+        [
+          0.002626002775012015,
+          -0.057544701659322656
+        ],
+        [
+          -0.013336521835682458,
+          0.5111837217583304
+        ],
+        [
+          -0.0006784360199209609,
+          -0.048830743880749136
+        ],
+        [
+          -0.008004201705233527,
+          0.6849001031955329
+        ],
+        [
+          0.009675477442520453,
+          -0.12964306950869992
+        ],
+        [
+          0.002553723053663526,
+          -0.05876803417868428
+        ],
+        [
+          0.0030707532888912675,
+          0.01409044468558468
+        ],
+        [
+          0.0016997043279725343,
+          -0.05802974368632974
+        ],
+        [
+          0.0014616567939844671,
+          -0.053244099837210866
+        ],
+        [
+          0.0057427566379305295,
+          -0.0938922111261221
+        ],
+        [
+          -0.0011692014897044523,
+          -0.035288691346134354
+        ],
+        [
+          -0.0011356616140970055,
+          -0.026415067670356594
+        ],
+        [
+          -0.0009676228753357496,
+          -0.042929692303672065
+        ],
+        [
+          0.004192898948837842,
+          -0.07158575248712716
+        ],
+        [
+          -0.002420192982927727,
+          0.6845316969303734
+        ],
+        [
+          0.001875848521429746,
+          -0.043060992894681384
+        ],
+        [
+          0.004907454326632088,
+          -0.08835404839233782
+        ],
+        [
+          0.0037226395321374173,
+          -0.05983580004820179
+        ],
+        [
+          0.0009310112094090273,
+          -0.052096254266467135
+        ],
+        [
+          0.0034818297148465627,
+          -0.031550118451255285
+        ],
+        [
+          0.003461769479265797,
+          0.6029893068233276
+        ],
+        [
+          0.0027647768919002447,
+          -0.048041790693475056
+        ],
+        [
+          0.0059303634941128,
+          0.27033369674831154
+        ],
+        [
+          -0.004079740346208432,
+          0.22190020124802
+        ],
+        [
+          -0.0010905585420355468,
+          -0.037693551523333854
+        ],
+        [
+          -0.00020394369945364588,
+          -0.0055818935474117315
+        ],
+        [
+          0.0030737585752159124,
+          0.015736977426429415
+        ]
+      ]
+    ]
+  },
+  "resampling_flag": [
+    true
+  ],
+  "settings": {
+    "T": 100,
+    "batch_size": 1,
+    "convergence_threshold": 1e-06,
+    "data_seed": 123,
+    "dtype": "float64",
+    "epsilon": 0.25,
+    "filter_seed": 1234,
+    "max_iter": 500,
+    "mesh_index": 173,
+    "n_particles": 50,
+    "resampling_neff": 0.9999,
+    "scaling": 0.85,
+    "target_time_index": 94,
+    "theta": [
+      0.9710526315789474,
+      0.9842105263157894
+    ],
+    "transport_backward": "FilterFlow custom gradient clips d_transport to [-1,1]"
+  },
+  "status": "executed",
+  "stderr_excerpt": "t computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.\n2026-06-04 04:04:54.876596: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:467] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered\nWARNING: All log messages before absl::InitializeLog() is called are written to STDERR\nE0000 00:00:1780517094.886500     119 cuda_dnn.cc:8579] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered\nE0000 00:00:1780517094.889638     119 cuda_blas.cc:1407] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered\nW0000 00:00:1780517094.897465     119 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.\nW0000 00:00:1780517094.897514     119 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.\nW0000 00:00:1780517094.897518     119 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.\nW0000 00:00:1780517094.897519     119 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.\n2026-06-04 04:04:54.899814: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.\nTo enable the following instructions: SSE4.1 SSE4.2 AVX AVX2 AVX512F AVX512_VNNI AVX512_BF16 AVX_VNNI FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.\n2026-06-04 04:04:57.621230: E external/local_xla/xla/stream_executor/cuda/cuda_platform.cc:51] failed call to cuInit: INTERNAL: CUDA error: Failed call to cuInit: UNKNOWN ERROR (100)\n",
+  "target_scalar": -144.91598320781551,
+  "total_gradient_diag": [
+    8378.470661213249,
+    207.55053001782872
+  ],
+  "transport_upstream_clip_fraction": 0.84,
+  "value_summaries": {
+    "increment": {
+      "finite": true,
+      "max_abs": 3.198867520798236,
+      "shape": [
+        1
+      ],
+      "sum": -3.198867520798236
+    },
+    "log_ess": {
+      "finite": true,
+      "max_abs": 3.765309853007448,
+      "shape": [
+        1
+      ],
+      "sum": 3.765309853007448
+    },
+    "manual_proposal_mean": {
+      "finite": true,
+      "max_abs": 529.9426708636646,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 27806.213872214143
+    },
+    "normalized": {
+      "finite": true,
+      "max_abs": 11.219771692193683,
+      "shape": [
+        1,
+        50
+      ],
+      "sum": -278.8401961369083
+    },
+    "observation_ll": {
+      "finite": true,
+      "max_abs": 2.4248707210620064,
+      "shape": [
+        1,
+        50
+      ],
+      "sum": 24.308040729792694
+    },
+    "post_log_weights": {
+      "finite": true,
+      "max_abs": 3.912023005428146,
+      "shape": [
+        1,
+        50
+      ],
+      "sum": -195.60115027140728
+    },
+    "post_particles": {
+      "finite": true,
+      "max_abs": 519.2178568970138,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 27165.161481612475
+    },
+    "post_update_log_likelihoods": {
+      "finite": true,
+      "max_abs": 144.91598320781551,
+      "shape": [
+        1
+      ],
+      "sum": -144.91598320781551
+    },
+    "post_update_log_weights": {
+      "finite": true,
+      "max_abs": 11.219771692193683,
+      "shape": [
+        1,
+        50
+      ],
+      "sum": -278.8401961369083
+    },
+    "pre_current_log_likelihoods": {
+      "finite": true,
+      "max_abs": 141.71711568701727,
+      "shape": [
+        1
+      ],
+      "sum": -141.71711568701727
+    },
+    "pre_log_weights": {
+      "finite": true,
+      "max_abs": 5.01676613455824,
+      "shape": [
+        1,
+        50
+      ],
+      "sum": -200.45945262137084
+    },
+    "pre_particles": {
+      "finite": true,
+      "max_abs": 519.3668650770238,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 27168.99351217468
+    },
+    "proposal_ll": {
+      "finite": true,
+      "max_abs": 3.187136485869811,
+      "shape": [
+        1,
+        50
+      ],
+      "sum": 6.0115517190377075
+    },
+    "proposal_mean": {
+      "finite": true,
+      "max_abs": 529.9426708636646,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 27806.213872214143
+    },
+    "proposed_particles": {
+      "finite": true,
+      "max_abs": 530.2126242780465,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 27805.41035944849
+    },
+    "transition_ll": {
+      "finite": true,
+      "max_abs": 10.225122275214627,
+      "shape": [
+        1,
+        50
+      ],
+      "sum": -261.4789109161677
+    },
+    "transport_matrix": {
+      "finite": true,
+      "max_abs": 0.2395491468001581,
+      "shape": [
+        1,
+        50,
+        50
+      ],
+      "sum": 50.000000000000014
+    },
+    "unnormalized": {
+      "finite": true,
+      "max_abs": 14.41863921299192,
+      "shape": [
+        1,
+        50
+      ],
+      "sum": -438.78357217682003
+    }
+  }
+}
+```
+
+## BayesFilter VJP
+
+```json
+{
+  "backend": "tensorflow_tensorflow_probability",
+  "cpu_only_manifest": {
+    "cuda_visible_devices": "-1",
+    "gpu_devices_visible": [],
+    "pre_import_cuda_visible_devices": "-1"
+  },
+  "filterflow_proposal_mean_internal_probe": null,
+  "gradient_summaries": {
+    "increment": {
+      "finite": true,
+      "max_abs": 1.0,
+      "shape": [
+        1
+      ],
+      "sum": 1.0
+    },
+    "log_ess": {
+      "finite": true,
+      "max_abs": 0.0,
+      "shape": [
+        1
+      ],
+      "sum": 0.0
+    },
+    "manual_proposal_mean": {
+      "finite": true,
+      "max_abs": 3.649954945187543,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 4.879449388713602
+    },
+    "normalized": {
+      "finite": true,
+      "max_abs": 0.0,
+      "shape": [
+        1,
+        50
+      ],
+      "sum": 0.0
+    },
+    "observation_ll": {
+      "finite": true,
+      "max_abs": 0.13523604250031981,
+      "shape": [
+        1,
+        50
+      ],
+      "sum": 1.0
+    },
+    "post_log_weights": {
+      "finite": true,
+      "max_abs": 0.13523604250031981,
+      "shape": [
+        1,
+        50
+      ],
+      "sum": 1.0
+    },
+    "post_particles": {
+      "finite": true,
+      "max_abs": 0.3101939517731472,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 6.251517746357645
+    },
+    "post_update_log_likelihoods": {
+      "finite": true,
+      "max_abs": 1.0,
+      "shape": [
+        1
+      ],
+      "sum": 1.0
+    },
+    "post_update_log_weights": {
+      "finite": true,
+      "max_abs": 0.0,
+      "shape": [
+        1,
+        50
+      ],
+      "sum": 0.0
+    },
+    "pre_current_log_likelihoods": {
+      "finite": true,
+      "max_abs": 1.0,
+      "shape": [
+        1
+      ],
+      "sum": 1.0
+    },
+    "pre_log_weights": {
+      "finite": true,
+      "max_abs": 1.4445470405947634,
+      "shape": [
+        1,
+        50
+      ],
+      "sum": 44.31400196912683
+    },
+    "pre_particles": {
+      "finite": true,
+      "max_abs": 9.89623784481749,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 18.310255846241564
+    },
+    "proposal_ll": {
+      "finite": true,
+      "max_abs": 0.0,
+      "shape": [
+        1,
+        50
+      ],
+      "sum": 0.0
+    },
+    "proposal_mean": {
+      "finite": true,
+      "max_abs": 3.649954945187543,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 4.879449388713602
+    },
+    "proposed_particles": {
+      "finite": true,
+      "max_abs": 3.649954945187543,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 4.879449388713602
+    },
+    "transition_ll": {
+      "finite": true,
+      "max_abs": 0.13523604250031981,
+      "shape": [
+        1,
+        50
+      ],
+      "sum": 1.0
+    },
+    "transport_matrix": {
+      "finite": true,
+      "max_abs": 164.27050480703247,
+      "shape": [
+        1,
+        50,
+        50
+      ],
+      "sum": 83787.6340365656
+    },
+    "unnormalized": {
+      "finite": true,
+      "max_abs": 0.13523604250031981,
+      "shape": [
+        1,
+        50
+      ],
+      "sum": 1.0
+    }
+  },
+  "local_post_particle_adjoint_probe": {
+    "increment_to_post_particles": {
+      "finite": true,
+      "max_abs": 0.3101939517731472,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 6.251517746357645
+    },
+    "manual_proposal_mean_to_post_particles": {
+      "finite": true,
+      "max_abs": 0.29546400044111154,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 0.33408685796274773
+    },
+    "observation_ll_to_post_particles": {
+      "finite": true,
+      "max_abs": 0.10639417650222047,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 0.45327610808823293
+    },
+    "proposal_ll_to_post_particles": {
+      "finite": true,
+      "max_abs": 0.0,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 0.0
+    },
+    "proposal_mean_to_post_particles": {
+      "finite": true,
+      "max_abs": 0.29546400044111154,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 0.33408685796274773
+    },
+    "proposed_particles_to_post_particles": {
+      "finite": true,
+      "max_abs": 0.29546400044111154,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 0.33408685796274773
+    },
+    "transition_ll_to_post_particles": {
+      "finite": true,
+      "max_abs": 0.2972153984033842,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 5.798241638269412
+    },
+    "unnormalized_to_post_particles": {
+      "finite": true,
+      "max_abs": 0.3101939517731472,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 6.251517746357645
+    }
+  },
+  "proposal_sample_gradient_contract": {
+    "contract": "Probe BayesFilter proposal_dist.sample and a manual distribution built from the explicit proposal mean under the downstream upstream gradient for proposed_particles.",
+    "value_probe": {
+      "actual_sample_minus_manual_mean": {
+        "finite": true,
+        "max_abs": 1.1505749415262052,
+        "shape": [
+          1,
+          50,
+          2
+        ],
+        "sum": -0.8035127656526981
+      },
+      "manual_probe_minus_actual_sample": {
+        "finite": true,
+        "max_abs": 0.0,
+        "shape": [
+          1,
+          50,
+          2
+        ],
+        "sum": 0.0
+      },
+      "manual_probe_minus_manual_mean": {
+        "finite": true,
+        "max_abs": 1.1505749415262052,
+        "shape": [
+          1,
+          50,
+          2
+        ],
+        "sum": -0.8035127656526981
+      }
+    },
+    "value_probe_tensors": {
+      "actual_sample_minus_manual_mean": [
+        [
+          [
+            -0.11391480060365211,
+            0.39093255641532565
+          ],
+          [
+            -0.03375946438211486,
+            0.6821254193059403
+          ],
+          [
+            0.1269860782520027,
+            0.231485016344525
+          ],
+          [
+            -0.03633878817367986,
+            0.3225449336604598
+          ],
+          [
+            0.028929358468758437,
+            -0.4635828769210377
+          ],
+          [
+            -0.09793270386683162,
+            0.1978199068549955
+          ],
+          [
+            -0.009273467470507057,
+            -0.053288055376572885
+          ],
+          [
+            0.07824088716722599,
+            0.11149503676598727
+          ],
+          [
+            -0.07470699382940893,
+            -0.28906303115011056
+          ],
+          [
+            -0.08970779167464116,
+            0.38980797294689395
+          ],
+          [
+            -0.146466737857736,
+            -0.19599839358486904
+          ],
+          [
+            0.2021105751853156,
+            0.5837134847486638
+          ],
+          [
+            -0.02943445180198978,
+            0.12437314973327673
+          ],
+          [
+            0.0842541966741237,
+            -0.644940563922848
+          ],
+          [
+            -0.2527807132834141,
+            -0.12241066828595848
+          ],
+          [
+            -0.15994041346721133,
+            -0.4188761174094644
+          ],
+          [
+            0.18151302177398065,
+            0.04860601296587319
+          ],
+          [
+            0.04602562631453111,
+            0.6978831607210587
+          ],
+          [
+            -0.08526197936703284,
+            0.12055686529503973
+          ],
+          [
+            -0.06930970561234062,
+            0.3267228917378695
+          ],
+          [
+            -0.04781613392549389,
+            -1.1505749415262052
+          ],
+          [
+            -0.03488299905529857,
+            -0.005543368077979949
+          ],
+          [
+            0.1504006501005506,
+            1.1016650425048518
+          ],
+          [
+            -0.03822356850173492,
+            -0.25484147255646405
+          ],
+          [
+            0.0973547650268074,
+            0.25117256862013804
+          ],
+          [
+            0.04234225401785352,
+            0.17645056038577067
+          ],
+          [
+            0.04050104438078961,
+            0.5568973471043037
+          ],
+          [
+            -0.21282166628122923,
+            -0.4866025410982786
+          ],
+          [
+            0.07846171743858577,
+            0.46392908178944836
+          ],
+          [
+            -0.1290187663262259,
+            -0.4364671861759959
+          ],
+          [
+            0.12017199421802616,
+            0.8314500082334284
+          ],
+          [
+            -0.0927411469810977,
+            -0.08159746778609644
+          ],
+          [
+            0.06993965026049409,
+            -0.15017770847278555
+          ],
+          [
+            0.2852882899381939,
+            0.7179467128131307
+          ],
+          [
+            -0.013034244823984409,
+            -0.06720152871834628
+          ],
+          [
+            -0.131050237417071,
+            -0.10780266696345109
+          ],
+          [
+            0.033599042170294524,
+            -0.6731078730227367
+          ],
+          [
+            -0.007387500774598266,
+            0.04661804298877925
+          ],
+          [
+            0.11592403459610523,
+            0.38062807616683614
+          ],
+          [
+            -0.011887050230257046,
+            -0.054333149831713
+          ],
+          [
+            0.07536683003820599,
+            -0.6280607657753485
+          ],
+          [
+            -0.18435793773392106,
+            -0.011582859473168838
+          ],
+          [
+            0.12443306560953715,
+            0.0483619457860307
+          ],
+          [
+            0.04860716636756024,
+            0.4731487914600372
+          ],
+          [
+            -0.12820602589226837,
+            -0.9270601469492519
+          ],
+          [
+            -0.06398020788901704,
+            0.011925316913291795
+          ],
+          [
+            -0.0857181319557867,
+            -0.7878764815241759
+          ],
+          [
+            -0.04740815634499995,
+            -0.27607668320516865
+          ],
+          [
+            -0.24351141592740078,
+            -0.5777914490239802
+          ],
+          [
+            -0.13237897718101976,
+            -0.4541127404496237
+          ]
+        ]
+      ],
+      "manual_probe_minus_actual_sample": [
+        [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      ],
+      "manual_probe_minus_manual_mean": [
+        [
+          [
+            -0.11391480060365211,
+            0.39093255641532565
+          ],
+          [
+            -0.03375946438211486,
+            0.6821254193059403
+          ],
+          [
+            0.1269860782520027,
+            0.231485016344525
+          ],
+          [
+            -0.03633878817367986,
+            0.3225449336604598
+          ],
+          [
+            0.028929358468758437,
+            -0.4635828769210377
+          ],
+          [
+            -0.09793270386683162,
+            0.1978199068549955
+          ],
+          [
+            -0.009273467470507057,
+            -0.053288055376572885
+          ],
+          [
+            0.07824088716722599,
+            0.11149503676598727
+          ],
+          [
+            -0.07470699382940893,
+            -0.28906303115011056
+          ],
+          [
+            -0.08970779167464116,
+            0.38980797294689395
+          ],
+          [
+            -0.146466737857736,
+            -0.19599839358486904
+          ],
+          [
+            0.2021105751853156,
+            0.5837134847486638
+          ],
+          [
+            -0.02943445180198978,
+            0.12437314973327673
+          ],
+          [
+            0.0842541966741237,
+            -0.644940563922848
+          ],
+          [
+            -0.2527807132834141,
+            -0.12241066828595848
+          ],
+          [
+            -0.15994041346721133,
+            -0.4188761174094644
+          ],
+          [
+            0.18151302177398065,
+            0.04860601296587319
+          ],
+          [
+            0.04602562631453111,
+            0.6978831607210587
+          ],
+          [
+            -0.08526197936703284,
+            0.12055686529503973
+          ],
+          [
+            -0.06930970561234062,
+            0.3267228917378695
+          ],
+          [
+            -0.04781613392549389,
+            -1.1505749415262052
+          ],
+          [
+            -0.03488299905529857,
+            -0.005543368077979949
+          ],
+          [
+            0.1504006501005506,
+            1.1016650425048518
+          ],
+          [
+            -0.03822356850173492,
+            -0.25484147255646405
+          ],
+          [
+            0.0973547650268074,
+            0.25117256862013804
+          ],
+          [
+            0.04234225401785352,
+            0.17645056038577067
+          ],
+          [
+            0.04050104438078961,
+            0.5568973471043037
+          ],
+          [
+            -0.21282166628122923,
+            -0.4866025410982786
+          ],
+          [
+            0.07846171743858577,
+            0.46392908178944836
+          ],
+          [
+            -0.1290187663262259,
+            -0.4364671861759959
+          ],
+          [
+            0.12017199421802616,
+            0.8314500082334284
+          ],
+          [
+            -0.0927411469810977,
+            -0.08159746778609644
+          ],
+          [
+            0.06993965026049409,
+            -0.15017770847278555
+          ],
+          [
+            0.2852882899381939,
+            0.7179467128131307
+          ],
+          [
+            -0.013034244823984409,
+            -0.06720152871834628
+          ],
+          [
+            -0.131050237417071,
+            -0.10780266696345109
+          ],
+          [
+            0.033599042170294524,
+            -0.6731078730227367
+          ],
+          [
+            -0.007387500774598266,
+            0.04661804298877925
+          ],
+          [
+            0.11592403459610523,
+            0.38062807616683614
+          ],
+          [
+            -0.011887050230257046,
+            -0.054333149831713
+          ],
+          [
+            0.07536683003820599,
+            -0.6280607657753485
+          ],
+          [
+            -0.18435793773392106,
+            -0.011582859473168838
+          ],
+          [
+            0.12443306560953715,
+            0.0483619457860307
+          ],
+          [
+            0.04860716636756024,
+            0.4731487914600372
+          ],
+          [
+            -0.12820602589226837,
+            -0.9270601469492519
+          ],
+          [
+            -0.06398020788901704,
+            0.011925316913291795
+          ],
+          [
+            -0.0857181319557867,
+            -0.7878764815241759
+          ],
+          [
+            -0.04740815634499995,
+            -0.27607668320516865
+          ],
+          [
+            -0.24351141592740078,
+            -0.5777914490239802
+          ],
+          [
+            -0.13237897718101976,
+            -0.4541127404496237
+          ]
+        ]
+      ]
+    },
+    "vjp_probe": {
+      "actual_sample_to_manual_proposal_mean": {
+        "finite": true,
+        "max_abs": 3.649954945187543,
+        "shape": [
+          1,
+          50,
+          2
+        ],
+        "sum": 4.879449388713602
+      },
+      "actual_sample_to_post_particles": {
+        "finite": true,
+        "max_abs": 0.29546400044111154,
+        "shape": [
+          1,
+          50,
+          2
+        ],
+        "sum": 0.33408685796274773
+      },
+      "actual_sample_to_proposal_mean": {
+        "finite": true,
+        "max_abs": 3.649954945187543,
+        "shape": [
+          1,
+          50,
+          2
+        ],
+        "sum": 4.879449388713602
+      },
+      "manual_probe_sample_to_manual_proposal_mean": {
+        "finite": true,
+        "max_abs": 3.649954945187543,
+        "shape": [
+          1,
+          50,
+          2
+        ],
+        "sum": 4.879449388713602
+      },
+      "manual_probe_sum_to_manual_proposal_mean": {
+        "finite": true,
+        "max_abs": 0.0,
+        "shape": [
+          1,
+          50,
+          2
+        ],
+        "sum": 0.0
+      }
+    },
+    "vjp_tensors": {
+      "actual_sample_to_manual_proposal_mean": [
+        [
+          [
+            0.000439923683668509,
+            -6.545295312275605e-05
+          ],
+          [
+            0.03907352856395806,
+            -0.014545278568605794
+          ],
+          [
+            -0.31660097680723875,
+            -0.0040464336760846105
+          ],
+          [
+            0.13492481396528083,
+            -0.03388643439462335
+          ],
+          [
+            -0.007087333650473388,
+            0.0023868229393866
+          ],
+          [
+            0.014844405531697967,
+            -0.0016839118542487353
+          ],
+          [
+            0.00013019537912981223,
+            2.8525883871768706e-05
+          ],
+          [
+            -0.0193911991083309,
+            5.621662772468453e-05
+          ],
+          [
+            0.661654320206,
+            0.07062743041157388
+          ],
+          [
+            0.4865731484557896,
+            -0.08239680747045977
+          ],
+          [
+            0.0526403996766847,
+            -0.00032772376274291324
+          ],
+          [
+            -1.7461999244793998,
+            -0.1024123729621542
+          ],
+          [
+            0.3125029376247826,
+            -0.05210570254002677
+          ],
+          [
+            -0.06265404651745382,
+            0.014527588676483677
+          ],
+          [
+            3.649954945187543,
+            -0.13593425208568188
+          ],
+          [
+            0.019709513298479496,
+            0.000916183611615926
+          ],
+          [
+            -1.1826335106080585,
+            0.05280253886435444
+          ],
+          [
+            -0.00944004683881826,
+            -0.024541134452461238
+          ],
+          [
+            0.018575879717616803,
+            -0.0017970667613055934
+          ],
+          [
+            0.002354293551215461,
+            -0.00041713962527193673
+          ],
+          [
+            -0.06271259848031158,
+            0.17482085093626945
+          ],
+          [
+            0.15601246530591664,
+            -0.007536526500672146
+          ],
+          [
+            -0.01947990218085313,
+            -0.006669599672466092
+          ],
+          [
+            0.015372320756909225,
+            0.004412990602176973
+          ],
+          [
+            -0.003498401946942531,
+            -0.0001565756154719367
+          ],
+          [
+            -0.0646728567983924,
+            -0.007931276308262946
+          ],
+          [
+            -9.188084173480899e-05,
+            -0.0001526242138152945
+          ],
+          [
+            0.05670048880379118,
+            0.0018148358249741024
+          ],
+          [
+            -0.03404387189091802,
+            -0.007852738569193171
+          ],
+          [
+            0.029362442147841554,
+            0.002411665391642641
+          ],
+          [
+            -0.06118618893923738,
+            -0.018815257666734635
+          ],
+          [
+            0.07182755318795211,
+            -0.0016695690465590076
+          ],
+          [
+            -0.036179169381624916,
+            0.004226479489458716
+          ],
+          [
+            -0.7462979420853524,
+            -0.03131707380191087
+          ],
+          [
+            0.04898532641476047,
+            0.008836270037425894
+          ],
+          [
+            0.318107664445462,
+            -0.008050646151031203
+          ],
+          [
+            -0.03522341071684488,
+            0.013065990144758972
+          ],
+          [
+            5.273245847707878e-05,
+            -1.0993054645657273e-05
+          ],
+          [
+            -0.06389164769435329,
+            -0.004938104682798967
+          ],
+          [
+            0.004489042805899228,
+            0.0006519580282799385
+          ],
+          [
+            -0.05439112308482514,
+            0.013206118757493486
+          ],
+          [
+            0.0002758866693787071,
+            -1.4208414271401033e-05
+          ],
+          [
+            -0.048365459549984266,
+            0.001960481697046382
+          ],
+          [
+            -8.625805399724907e-05,
+            -5.300928738144669e-05
+          ],
+          [
+            0.04457419590588058,
+            0.014892351742753907
+          ],
+          [
+            0.00017093016305675713,
+            -1.0193043126099731e-05
+          ],
+          [
+            0.0051459181760928775,
+            0.0027847982739428543
+          ],
+          [
+            0.0876494428123733,
+            0.019670159937714055
+          ],
+          [
+            3.2195008879518863,
+            0.11496379466408159
+          ],
+          [
+            0.029734096733479806,
+            0.002511493379843191
+          ]
+        ]
+      ],
+      "actual_sample_to_post_particles": [
+        [
+          [
+            0.00010500297580903391,
+            4.371366037773091e-05
+          ],
+          [
+            0.02167438847451795,
+            0.008004892180725864
+          ],
+          [
+            -0.0032321711127830896,
+            -0.007311065715216166
+          ],
+          [
+            0.05173673768017293,
+            0.01992763982279691
+          ],
+          [
+            -0.0035757876353122737,
+            -0.0013332466692776014
+          ],
+          [
+            0.002801156823103147,
+            0.0012273363706935066
+          ],
+          [
+            -3.6657674696108734e-05,
+            -9.674975727505275e-06
+          ],
+          [
+            -0.0006279419457711702,
+            -0.0005913320856053641
+          ],
+          [
+            -0.0811644593973575,
+            -0.014071735669653113
+          ],
+          [
+            0.13028359143665072,
+            0.053071578888062285
+          ],
+          [
+            0.0019522849440447186,
+            0.001687933963193259
+          ],
+          [
+            0.0954389761639382,
+            -0.0025112950003022133
+          ],
+          [
+            0.08252405180227688,
+            0.03370113746619489
+          ],
+          [
+            -0.02231630206280514,
+            -0.008683351982472227
+          ],
+          [
+            0.29546400044111154,
+            0.1704839485833682
+          ],
+          [
+            -0.0007381791436260787,
+            0.00014153307063943614
+          ],
+          [
+            -0.10811946403641136,
+            -0.05937372292357511
+          ],
+          [
+            0.034437957590525245,
+            0.011310920516513195
+          ],
+          [
+            0.0030667129301396633,
+            0.0013894405338142038
+          ],
+          [
+            0.000656486490035698,
+            0.00026550333786817777
+          ],
+          [
+            -0.24899736703730768,
+            -0.08435953106458727
+          ],
+          [
+            0.015070325521355473,
+            0.008102047703836615
+          ],
+          [
+            0.008880891419437759,
+            0.002581343236117936
+          ],
+          [
+            -0.005805873039156795,
+            -0.0016356360420068886
+          ],
+          [
+            0.0001224764783113519,
+            -2.797583027143685e-05
+          ],
+          [
+            0.009386900643498562,
+            0.0018606813202328943
+          ],
+          [
+            0.0002132355171915207,
+            6.937777371745867e-05
+          ],
+          [
+            -0.0009627930967429679,
+            0.0007946862765061432
+          ],
+          [
+            0.010142118385835359,
+            0.0027157099981069254
+          ],
+          [
+            -0.0025800065398507814,
+            -0.0002833308395051963
+          ],
+          [
+            0.024877143604957238,
+            0.007100564020827597
+          ],
+          [
+            0.004392533165715485,
+            0.0028802684587783036
+          ],
+          [
+            -0.0070001527911854565,
+            -0.0030490838298740585
+          ],
+          [
+            0.023179565995076194,
+            -0.00695203792196198
+          ],
+          [
+            -0.011110393209769634,
+            -0.0027448473591908246
+          ],
+          [
+            0.020381922560058857,
+            0.01306598306199748
+          ],
+          [
+            -0.01947355314706072,
+            -0.007194380534288699
+          ],
+          [
+            1.7037312370241608e-05,
+            6.725719632251537e-06
+          ],
+          [
+            0.005176189069884359,
+            0.00047035820023496894
+          ],
+          [
+            -0.0007950052754002085,
+            -0.00017704066550412864
+          ],
+          [
+            -0.020213838693974605,
+            -0.007818818158346078
+          ],
+          [
+            2.7895816886159332e-05,
+            1.4743328615193528e-05
+          ],
+          [
+            -0.004140348126043686,
+            -0.002334246415048676
+          ],
+          [
+            7.252366864558304e-05,
+            2.2513322194111112e-05
+          ],
+          [
+            -0.019799387687624403,
+            -0.005732403990033295
+          ],
+          [
+            1.9248968511329854e-05,
+            9.790685660929338e-06
+          ],
+          [
+            -0.003792592055232555,
+            -0.0011648225801014372
+          ],
+          [
+            -0.02533764484821605,
+            -0.006733389129355526
+          ],
+          [
+            -0.0715191249794118,
+            0.03949744543848367
+          ],
+          [
+            -0.0027106671816647544,
+            -0.00031963475719406055
+          ]
+        ]
+      ],
+      "actual_sample_to_proposal_mean": [
+        [
+          [
+            0.000439923683668509,
+            -6.545295312275605e-05
+          ],
+          [
+            0.03907352856395806,
+            -0.014545278568605794
+          ],
+          [
+            -0.31660097680723875,
+            -0.0040464336760846105
+          ],
+          [
+            0.13492481396528083,
+            -0.03388643439462335
+          ],
+          [
+            -0.007087333650473388,
+            0.0023868229393866
+          ],
+          [
+            0.014844405531697967,
+            -0.0016839118542487353
+          ],
+          [
+            0.00013019537912981223,
+            2.8525883871768706e-05
+          ],
+          [
+            -0.0193911991083309,
+            5.621662772468453e-05
+          ],
+          [
+            0.661654320206,
+            0.07062743041157388
+          ],
+          [
+            0.4865731484557896,
+            -0.08239680747045977
+          ],
+          [
+            0.0526403996766847,
+            -0.00032772376274291324
+          ],
+          [
+            -1.7461999244793998,
+            -0.1024123729621542
+          ],
+          [
+            0.3125029376247826,
+            -0.05210570254002677
+          ],
+          [
+            -0.06265404651745382,
+            0.014527588676483677
+          ],
+          [
+            3.649954945187543,
+            -0.13593425208568188
+          ],
+          [
+            0.019709513298479496,
+            0.000916183611615926
+          ],
+          [
+            -1.1826335106080585,
+            0.05280253886435444
+          ],
+          [
+            -0.00944004683881826,
+            -0.024541134452461238
+          ],
+          [
+            0.018575879717616803,
+            -0.0017970667613055934
+          ],
+          [
+            0.002354293551215461,
+            -0.00041713962527193673
+          ],
+          [
+            -0.06271259848031158,
+            0.17482085093626945
+          ],
+          [
+            0.15601246530591664,
+            -0.007536526500672146
+          ],
+          [
+            -0.01947990218085313,
+            -0.006669599672466092
+          ],
+          [
+            0.015372320756909225,
+            0.004412990602176973
+          ],
+          [
+            -0.003498401946942531,
+            -0.0001565756154719367
+          ],
+          [
+            -0.0646728567983924,
+            -0.007931276308262946
+          ],
+          [
+            -9.188084173480899e-05,
+            -0.0001526242138152945
+          ],
+          [
+            0.05670048880379118,
+            0.0018148358249741024
+          ],
+          [
+            -0.03404387189091802,
+            -0.007852738569193171
+          ],
+          [
+            0.029362442147841554,
+            0.002411665391642641
+          ],
+          [
+            -0.06118618893923738,
+            -0.018815257666734635
+          ],
+          [
+            0.07182755318795211,
+            -0.0016695690465590076
+          ],
+          [
+            -0.036179169381624916,
+            0.004226479489458716
+          ],
+          [
+            -0.7462979420853524,
+            -0.03131707380191087
+          ],
+          [
+            0.04898532641476047,
+            0.008836270037425894
+          ],
+          [
+            0.318107664445462,
+            -0.008050646151031203
+          ],
+          [
+            -0.03522341071684488,
+            0.013065990144758972
+          ],
+          [
+            5.273245847707878e-05,
+            -1.0993054645657273e-05
+          ],
+          [
+            -0.06389164769435329,
+            -0.004938104682798967
+          ],
+          [
+            0.004489042805899228,
+            0.0006519580282799385
+          ],
+          [
+            -0.05439112308482514,
+            0.013206118757493486
+          ],
+          [
+            0.0002758866693787071,
+            -1.4208414271401033e-05
+          ],
+          [
+            -0.048365459549984266,
+            0.001960481697046382
+          ],
+          [
+            -8.625805399724907e-05,
+            -5.300928738144669e-05
+          ],
+          [
+            0.04457419590588058,
+            0.014892351742753907
+          ],
+          [
+            0.00017093016305675713,
+            -1.0193043126099731e-05
+          ],
+          [
+            0.0051459181760928775,
+            0.0027847982739428543
+          ],
+          [
+            0.0876494428123733,
+            0.019670159937714055
+          ],
+          [
+            3.2195008879518863,
+            0.11496379466408159
+          ],
+          [
+            0.029734096733479806,
+            0.002511493379843191
+          ]
+        ]
+      ],
+      "manual_probe_sample_to_manual_proposal_mean": [
+        [
+          [
+            0.000439923683668509,
+            -6.545295312275605e-05
+          ],
+          [
+            0.03907352856395806,
+            -0.014545278568605794
+          ],
+          [
+            -0.31660097680723875,
+            -0.0040464336760846105
+          ],
+          [
+            0.13492481396528083,
+            -0.03388643439462335
+          ],
+          [
+            -0.007087333650473388,
+            0.0023868229393866
+          ],
+          [
+            0.014844405531697967,
+            -0.0016839118542487353
+          ],
+          [
+            0.00013019537912981223,
+            2.8525883871768706e-05
+          ],
+          [
+            -0.0193911991083309,
+            5.621662772468453e-05
+          ],
+          [
+            0.661654320206,
+            0.07062743041157388
+          ],
+          [
+            0.4865731484557896,
+            -0.08239680747045977
+          ],
+          [
+            0.0526403996766847,
+            -0.00032772376274291324
+          ],
+          [
+            -1.7461999244793998,
+            -0.1024123729621542
+          ],
+          [
+            0.3125029376247826,
+            -0.05210570254002677
+          ],
+          [
+            -0.06265404651745382,
+            0.014527588676483677
+          ],
+          [
+            3.649954945187543,
+            -0.13593425208568188
+          ],
+          [
+            0.019709513298479496,
+            0.000916183611615926
+          ],
+          [
+            -1.1826335106080585,
+            0.05280253886435444
+          ],
+          [
+            -0.00944004683881826,
+            -0.024541134452461238
+          ],
+          [
+            0.018575879717616803,
+            -0.0017970667613055934
+          ],
+          [
+            0.002354293551215461,
+            -0.00041713962527193673
+          ],
+          [
+            -0.06271259848031158,
+            0.17482085093626945
+          ],
+          [
+            0.15601246530591664,
+            -0.007536526500672146
+          ],
+          [
+            -0.01947990218085313,
+            -0.006669599672466092
+          ],
+          [
+            0.015372320756909225,
+            0.004412990602176973
+          ],
+          [
+            -0.003498401946942531,
+            -0.0001565756154719367
+          ],
+          [
+            -0.0646728567983924,
+            -0.007931276308262946
+          ],
+          [
+            -9.188084173480899e-05,
+            -0.0001526242138152945
+          ],
+          [
+            0.05670048880379118,
+            0.0018148358249741024
+          ],
+          [
+            -0.03404387189091802,
+            -0.007852738569193171
+          ],
+          [
+            0.029362442147841554,
+            0.002411665391642641
+          ],
+          [
+            -0.06118618893923738,
+            -0.018815257666734635
+          ],
+          [
+            0.07182755318795211,
+            -0.0016695690465590076
+          ],
+          [
+            -0.036179169381624916,
+            0.004226479489458716
+          ],
+          [
+            -0.7462979420853524,
+            -0.03131707380191087
+          ],
+          [
+            0.04898532641476047,
+            0.008836270037425894
+          ],
+          [
+            0.318107664445462,
+            -0.008050646151031203
+          ],
+          [
+            -0.03522341071684488,
+            0.013065990144758972
+          ],
+          [
+            5.273245847707878e-05,
+            -1.0993054645657273e-05
+          ],
+          [
+            -0.06389164769435329,
+            -0.004938104682798967
+          ],
+          [
+            0.004489042805899228,
+            0.0006519580282799385
+          ],
+          [
+            -0.05439112308482514,
+            0.013206118757493486
+          ],
+          [
+            0.0002758866693787071,
+            -1.4208414271401033e-05
+          ],
+          [
+            -0.048365459549984266,
+            0.001960481697046382
+          ],
+          [
+            -8.625805399724907e-05,
+            -5.300928738144669e-05
+          ],
+          [
+            0.04457419590588058,
+            0.014892351742753907
+          ],
+          [
+            0.00017093016305675713,
+            -1.0193043126099731e-05
+          ],
+          [
+            0.0051459181760928775,
+            0.0027847982739428543
+          ],
+          [
+            0.0876494428123733,
+            0.019670159937714055
+          ],
+          [
+            3.2195008879518863,
+            0.11496379466408159
+          ],
+          [
+            0.029734096733479806,
+            0.002511493379843191
+          ]
+        ]
+      ],
+      "manual_probe_sum_to_manual_proposal_mean": [
+        [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      ]
+    }
+  },
+  "resampling_adjoint_decomposition": {
+    "carryover_pre_particle_adjoint": {
+      "finite": true,
+      "max_abs": 0.0,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 0.0
+    },
+    "carryover_pre_particle_adjoint_tensor": [
+      [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ]
+    ],
+    "current_increment_pre_particle_adjoint": {
+      "finite": true,
+      "max_abs": 0.0,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 0.0
+    },
+    "current_increment_pre_particle_adjoint_tensor": [
+      [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ]
+    ],
+    "direct_pre_particle_adjoint": {
+      "finite": true,
+      "max_abs": 0.3235047646012603,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 6.251493147651829
+    },
+    "direct_pre_particle_adjoint_tensor": [
+      [
+        [
+          0.000906620130902904,
+          0.0009336467472712834
+        ],
+        [
+          0.05114273995302844,
+          0.05266732027683146
+        ],
+        [
+          0.06807632149058815,
+          0.07010569692797695
+        ],
+        [
+          0.07099992827759731,
+          0.07311645730484274
+        ],
+        [
+          0.03154681125108163,
+          0.03248723109867485
+        ],
+        [
+          0.0136854343035684,
+          0.01409340117982654
+        ],
+        [
+          0.01219934415785966,
+          0.012563010243866315
+        ],
+        [
+          0.026786636263574203,
+          0.027585153875767477
+        ],
+        [
+          0.09914759817775397,
+          0.10210321763562741
+        ],
+        [
+          0.18185455116691024,
+          0.18727568954857965
+        ],
+        [
+          0.05849438567992954,
+          0.06023812075439898
+        ],
+        [
+          0.1762571458734376,
+          0.18151142393470535
+        ],
+        [
+          0.08234181160579217,
+          0.08479644555610036
+        ],
+        [
+          0.02274376936462377,
+          0.02342176790936865
+        ],
+        [
+          0.3141401529943817,
+          0.3235047646012603
+        ],
+        [
+          0.02851870904026233,
+          0.02936886025826473
+        ],
+        [
+          0.10463373493315102,
+          0.10775289776313657
+        ],
+        [
+          0.07593789600468294,
+          0.0782016273218957
+        ],
+        [
+          0.0397030357559186,
+          0.04088659508739585
+        ],
+        [
+          0.014026783967283945,
+          0.014444926578774794
+        ],
+        [
+          0.06375703910624365,
+          0.06565765544816421
+        ],
+        [
+          0.08306316597017117,
+          0.08553930370911936
+        ],
+        [
+          0.040914257271451926,
+          0.04213392347737597
+        ],
+        [
+          0.062492984704769654,
+          0.06435591920816389
+        ],
+        [
+          0.017130709834094284,
+          0.017641381400964305
+        ],
+        [
+          0.05033379953404614,
+          0.051834265102811736
+        ],
+        [
+          0.006526580705857396,
+          0.006721140022292167
+        ],
+        [
+          0.016165654172383363,
+          0.01664755714229181
+        ],
+        [
+          0.06108821280226543,
+          0.06290927063647929
+        ],
+        [
+          0.04579815523160633,
+          0.04716341189162713
+        ],
+        [
+          0.07267679962032524,
+          0.0748433166821778
+        ],
+        [
+          0.08097586213290195,
+          0.08338977672222965
+        ],
+        [
+          0.029585411359935778,
+          0.030467361292074786
+        ],
+        [
+          0.18013443201941562,
+          0.18550429313652564
+        ],
+        [
+          0.050232561481565165,
+          0.05173000911380695
+        ],
+        [
+          0.05575260504605637,
+          0.05741460682249709
+        ],
+        [
+          0.043432273622793366,
+          0.044727002646779083
+        ],
+        [
+          0.004926752860343667,
+          0.005073620831790226
+        ],
+        [
+          0.0837072766910307,
+          0.08620261556257908
+        ],
+        [
+          0.0307228658684357,
+          0.03163872365855167
+        ],
+        [
+          0.05091647871212563,
+          0.052434314120888184
+        ],
+        [
+          0.0004630436430527078,
+          0.00047684711208679934
+        ],
+        [
+          0.05370714293177911,
+          0.05530816887283485
+        ],
+        [
+          0.0034368509896734708,
+          0.0035393045422111627
+        ],
+        [
+          0.06703228466057626,
+          0.06903053704883193
+        ],
+        [
+          0.001913291927199416,
+          0.001970327729907258
+        ],
+        [
+          0.030160403288675492,
+          0.03105949390161704
+        ],
+        [
+          0.16500801478818558,
+          0.16992695289840257
+        ],
+        [
+          0.10905915145444933,
+          0.11231023727016458
+        ],
+        [
+          0.045583610598858244,
+          0.046942471619420424
+        ]
+      ]
+    ],
+    "implicit_pre_particle_adjoint": {
+      "finite": true,
+      "max_abs": 9.892800993827816,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 12.058762698589728
+    },
+    "implicit_pre_particle_adjoint_tensor": [
+      [
+        [
+          -0.027871427334223924,
+          -0.3442596669408886
+        ],
+        [
+          0.45389606356585954,
+          -0.020304790440316134
+        ],
+        [
+          -0.3307111066360423,
+          -0.0343790008768346
+        ],
+        [
+          -0.06678520654364001,
+          -0.05296322552927551
+        ],
+        [
+          0.17108417003408194,
+          0.19697468330186535
+        ],
+        [
+          -0.03918844668324982,
+          -0.09419054513190621
+        ],
+        [
+          0.5982670663443462,
+          0.15963841532796108
+        ],
+        [
+          -0.1686960529200751,
+          -0.08269939424577301
+        ],
+        [
+          -0.27040538278674536,
+          -0.11977637741669549
+        ],
+        [
+          0.6745147755238674,
+          -0.3137497086796133
+        ],
+        [
+          0.3238701356382742,
+          0.024141730206780468
+        ],
+        [
+          -0.308540924048822,
+          -0.26768592940387403
+        ],
+        [
+          -0.18703573570259208,
+          -0.08657167610955026
+        ],
+        [
+          0.3779909336360709,
+          -0.060720366719106966
+        ],
+        [
+          2.3363949059142977,
+          -0.882387428023703
+        ],
+        [
+          -0.08117272150549432,
+          0.1319459582341163
+        ],
+        [
+          0.43779251904761846,
+          -0.148480856458374
+        ],
+        [
+          1.407124702399707,
+          -0.2898587842881467
+        ],
+        [
+          0.4581859127647975,
+          0.11424761813830984
+        ],
+        [
+          2.037363449363401,
+          0.1220221702903435
+        ],
+        [
+          0.0996966987463591,
+          -0.06736505784089794
+        ],
+        [
+          -0.6189600820600965,
+          -0.048691415618493994
+        ],
+        [
+          0.6884138102426947,
+          0.0897320169976048
+        ],
+        [
+          0.32135828471795824,
+          -0.016253138732615233
+        ],
+        [
+          0.5810238978290199,
+          0.2806943302736992
+        ],
+        [
+          -0.1499518332934171,
+          -0.030527732715452633
+        ],
+        [
+          4.050856404671222,
+          -0.551133616297417
+        ],
+        [
+          0.3012438081226567,
+          -0.08987195289833179
+        ],
+        [
+          1.1839858999435693,
+          -0.1981035336589706
+        ],
+        [
+          -0.3457115886715988,
+          0.10547121550915542
+        ],
+        [
+          -0.3923627838602536,
+          0.00035076678151076124
+        ],
+        [
+          -0.03300437208689842,
+          -0.027671020040781147
+        ],
+        [
+          0.02741166185406999,
+          -0.02443544084860693
+        ],
+        [
+          -0.919286399188243,
+          -0.2685876103090149
+        ],
+        [
+          0.1008857479515756,
+          -0.05130724484370949
+        ],
+        [
+          -0.512594806902243,
+          -0.015900012842643488
+        ],
+        [
+          0.4168705301075629,
+          -0.018973240390291288
+        ],
+        [
+          -0.6528955446938413,
+          -0.44124834800663787
+        ],
+        [
+          -0.7768375528463464,
+          -0.020933650557841382
+        ],
+        [
+          0.595056501703674,
+          -0.05210244680224862
+        ],
+        [
+          0.5219521248874928,
+          -0.012396904378582159
+        ],
+        [
+          -0.029479529907452607,
+          -0.574861347724489
+        ],
+        [
+          0.7044200355690348,
+          0.004034685120072205
+        ],
+        [
+          9.892800993827816,
+          -1.5565772437008718
+        ],
+        [
+          -0.5982819023195787,
+          0.034894464561322336
+        ],
+        [
+          -1.9542465215774483,
+          -0.6453553988006333
+        ],
+        [
+          -0.009408711397205203,
+          0.22457222723971448
+        ],
+        [
+          -1.4264359560717224,
+          -0.17008781522098432
+        ],
+        [
+          -0.07556710559684174,
+          -0.16812758192994948
+        ],
+        [
+          -0.43896931326227184,
+          0.07052189452011376
+        ]
+      ]
+    ],
+    "same_tape_full_recorded_state_residual": {
+      "finite": true,
+      "max_abs": 10.67208159578736,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": -8.50635868588998
+    },
+    "same_tape_full_recorded_state_residual_tensor": [
+      [
+        [
+          0.03682813345941298,
+          0.28338890081652196
+        ],
+        [
+          -0.3251654735967311,
+          -0.03204314890938844
+        ],
+        [
+          0.268929295273761,
+          -0.004704538825156965
+        ],
+        [
+          0.053486028181814166,
+          0.009099623917672883
+        ],
+        [
+          0.2331840218884423,
+          0.01375740154021135
+        ],
+        [
+          -0.06299911093526389,
+          0.023081789425440452
+        ],
+        [
+          -0.7193443571612052,
+          0.6687570353973553
+        ],
+        [
+          0.09368472895024521,
+          0.0011548208667793713
+        ],
+        [
+          0.2265772020865311,
+          0.09131225288340589
+        ],
+        [
+          -0.5582057080880124,
+          0.23559964599628613
+        ],
+        [
+          -0.2115875560884134,
+          -0.025916373465512302
+        ],
+        [
+          0.25820104488187356,
+          0.21383243049645934
+        ],
+        [
+          0.15582200265151105,
+          0.059038395090435736
+        ],
+        [
+          -0.2671614819871813,
+          -0.026958862653672463
+        ],
+        [
+          -1.968363541251966,
+          0.7382668729545281
+        ],
+        [
+          -0.05844163561308967,
+          0.024477783305368678
+        ],
+        [
+          -0.36538579135104765,
+          0.10593373885839015
+        ],
+        [
+          -1.0977265167850765,
+          0.18290379223655098
+        ],
+        [
+          -0.15946555770260995,
+          -0.01194690811286142
+        ],
+        [
+          -2.4733118459570447,
+          0.6385737618815389
+        ],
+        [
+          -0.08339575598996857,
+          0.03160013373998231
+        ],
+        [
+          0.5106044302558735,
+          0.015911470625136398
+        ],
+        [
+          -0.2764075343910489,
+          -0.007973944581661369
+        ],
+        [
+          -0.23437419063149306,
+          -0.030363026208485022
+        ],
+        [
+          -0.7737020232780372,
+          0.3000369863946635
+        ],
+        [
+          0.12029259560761686,
+          -0.014749558649142281
+        ],
+        [
+          -4.493807647316787,
+          1.3684869526641064
+        ],
+        [
+          -0.174226434471682,
+          -0.023765200491911602
+        ],
+        [
+          -0.8715801971037136,
+          0.10279224189376043
+        ],
+        [
+          0.19159443464373138,
+          -0.050197630262785314
+        ],
+        [
+          0.298939902099535,
+          -0.04428806243420519
+        ],
+        [
+          0.026171879575504983,
+          -0.019418992733063703
+        ],
+        [
+          -0.015049560304935178,
+          -0.04823934767311969
+        ],
+        [
+          0.7510263861830246,
+          0.19084017203015632
+        ],
+        [
+          -0.08457496173182782,
+          0.020635422855815985
+        ],
+        [
+          0.4162102184847233,
+          -0.021988723763258278
+        ],
+        [
+          -0.29264365551076543,
+          -0.03730931046883539
+        ],
+        [
+          0.7093240722960217,
+          1.2276297385077921
+        ],
+        [
+          0.5765708029404307,
+          -0.016383408158147927
+        ],
+        [
+          -0.4185385432739941,
+          -0.025709933090009216
+        ],
+        [
+          -0.36645202557596446,
+          -0.033545137554164405
+        ],
+        [
+          0.03238202712392998,
+          0.5566554494992264
+        ],
+        [
+          -0.4673170301427787,
+          -0.023724466004904417
+        ],
+        [
+          -10.67208159578736,
+          2.3304964988525123
+        ],
+        [
+          0.43388460272214824,
+          -0.05987016545679773
+        ],
+        [
+          2.1048335821339097,
+          0.9832649143972572
+        ],
+        [
+          -0.10402834902190446,
+          0.052161359003465246
+        ],
+        [
+          1.161600372966452,
+          0.10789611154118181
+        ],
+        [
+          0.06350339852216183,
+          0.13696616976456
+        ],
+        [
+          0.23956358431401864,
+          -0.029690480022233623
+        ]
+      ]
+    ],
+    "same_tape_full_recorded_state_vjp": {
+      "finite": true,
+      "max_abs": 20.56831944060485,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 26.816614532131545
+    },
+    "same_tape_full_recorded_state_vjp_tensor": [
+      [
+        [
+          -0.063792940662734,
+          -0.6267149210101393
+        ],
+        [
+          0.8302042771156191,
+          0.06440567874590376
+        ],
+        [
+          -0.5315640804192152,
+          0.04043123487629932
+        ],
+        [
+          -0.049271306447856864,
+          0.011053607857894353
+        ],
+        [
+          -0.030553040603278736,
+          0.21570451286032885
+        ],
+        [
+          0.037496098555582474,
+          -0.10317893337752013
+        ],
+        [
+          1.329810767663411,
+          -0.496555609825528
+        ],
+        [
+          -0.23559414560674613,
+          -0.056269061236784906
+        ],
+        [
+          -0.3978349866955225,
+          -0.10898541266447397
+        ],
+        [
+          1.41457503477879,
+          -0.3620736651273198
+        ],
+        [
+          0.5939520774066172,
+          0.11029622442669175
+        ],
+        [
+          -0.39048482305725796,
+          -0.30000693596562805
+        ],
+        [
+          -0.260515926748311,
+          -0.060813625643885635
+        ],
+        [
+          0.667896184987876,
+          -0.010339736156065848
+        ],
+        [
+          4.618898600160645,
+          -1.2971495363769707
+        ],
+        [
+          0.00578762314785769,
+          0.13683703518701237
+        ],
+        [
+          0.9078120453318171,
+          -0.14666169755362757
+        ],
+        [
+          2.5807891151894666,
+          -0.394560949202802
+        ],
+        [
+          0.657354506223326,
+          0.16708112133856712
+        ],
+        [
+          4.52470207928773,
+          -0.5021066650124206
+        ],
+        [
+          0.24684949384257132,
+          -0.033307536132716045
+        ],
+        [
+          -1.0465013463457988,
+          0.020936417465488966
+        ],
+        [
+          1.0057356019051955,
+          0.13983988505664213
+        ],
+        [
+          0.618225460054221,
+          0.07846580668403368
+        ],
+        [
+          1.3718566309411513,
+          -0.0017012747199999373
+        ],
+        [
+          -0.21991062936698783,
+          0.036056091036501384
+        ],
+        [
+          8.551190632693867,
+          -1.9128994289392312
+        ],
+        [
+          0.4916358967667221,
+          -0.049459195264128376
+        ],
+        [
+          2.1166543098495483,
+          -0.23798650491625176
+        ],
+        [
+          -0.4915078680837238,
+          0.20283225766356786
+        ],
+        [
+          -0.6186258863394634,
+          0.11948214589789374
+        ],
+        [
+          0.021799610470498543,
+          0.0751377494145122
+        ],
+        [
+          0.07204663351894094,
+          0.05427126811658754
+        ],
+        [
+          -1.490178353351852,
+          -0.2739234892026456
+        ],
+        [
+          0.23569327116496858,
+          -0.020212658585718527
+        ],
+        [
+          -0.8730524203409099,
+          0.06350331774311188
+        ],
+        [
+          0.7529464592411217,
+          0.06306307272532319
+        ],
+        [
+          -1.3572928641295192,
+          -1.6638044656826398
+        ],
+        [
+          -1.2697010790957464,
+          0.08165237316288562
+        ],
+        [
+          1.0443179108461038,
+          0.00524620994631227
+        ],
+        [
+          0.9393206291755829,
+          0.07358254729647043
+        ],
+        [
+          -0.06139851338832988,
+          -1.1310399501116286
+        ],
+        [
+          1.2254442086435926,
+          0.08306731999781147
+        ],
+        [
+          20.56831944060485,
+          -3.8835344380111727
+        ],
+        [
+          -0.9651342203811506,
+          0.163795167066952
+        ],
+        [
+          -4.057166811784159,
+          -1.6266499854679832
+        ],
+        [
+          0.12478004091337475,
+          0.2034703621378663
+        ],
+        [
+          -2.4230283142499887,
+          -0.10805697386376356
+        ],
+        [
+          -0.03001135266455423,
+          -0.19278351442434488
+        ],
+        [
+          -0.6329492869774322,
+          0.1471548461617678
+        ]
+      ]
+    ],
+    "same_tape_identity_residual": {
+      "finite": true,
+      "max_abs": 0.7827423714161341,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 0.48980936998053864
+    },
+    "same_tape_identity_residual_tensor": [
+      [
+        [
+          0.0026468908081876616,
+          0.02036756702699294
+        ],
+        [
+          0.12529481412072085,
+          0.012347068531093762
+        ],
+        [
+          -0.06070597030480293,
+          0.0010619653538564769
+        ],
+        [
+          -0.012268562488561029,
+          -0.002087261074553544
+        ],
+        [
+          0.4070659071088486,
+          0.024016092921263638
+        ],
+        [
+          -0.11543792594500933,
+          0.042294468268135946
+        ],
+        [
+          -0.10366957885918959,
+          0.09637909789459452
+        ],
+        [
+          -0.08328253073918225,
+          -0.00102659638783692
+        ],
+        [
+          -0.04335102961008752,
+          -0.01747077879883331
+        ],
+        [
+          0.11752496910002208,
+          -0.049603292683141065
+        ],
+        [
+          0.10940488403467635,
+          0.01340049427296637
+        ],
+        [
+          -0.04977510761757725,
+          -0.041221879039872844
+        ],
+        [
+          -0.03048617999021798,
+          -0.011550712405397082
+        ],
+        [
+          0.10573297539848053,
+          0.0106693552548437
+        ],
+        [
+          0.36826370199866476,
+          -0.1381233120810026
+        ],
+        [
+          -0.14133176928711216,
+          0.059195612622440774
+        ],
+        [
+          0.07339324203522102,
+          -0.021278387719953787
+        ],
+        [
+          0.3088836677827409,
+          -0.0514663655596648
+        ],
+        [
+          0.2977983874773511,
+          0.022310585574755626
+        ],
+        [
+          -0.41895517629359746,
+          0.10816823742742557
+        ],
+        [
+          0.017488689304194505,
+          -0.006626775120499202
+        ],
+        [
+          -0.10720910058461364,
+          -0.003340853219476643
+        ],
+        [
+          0.4108278158768303,
+          0.01185176896000309
+        ],
+        [
+          0.08435809131673971,
+          0.010928536673115094
+        ],
+        [
+          -0.17934160354257533,
+          0.0695475940907084
+        ],
+        [
+          -0.028980801662859185,
+          0.003553452576747256
+        ],
+        [
+          -0.4349470408888516,
+          0.13245323281953425
+        ],
+        [
+          0.1173418962167676,
+          0.016005916083565483
+        ],
+        [
+          0.309851979784884,
+          -0.036543257594823866
+        ],
+        [
+          -0.15718790728395646,
+          0.04118314013814278
+        ],
+        [
+          -0.0951225860869187,
+          0.01409244802026402
+        ],
+        [
+          -0.008294149301780171,
+          0.006154087044209049
+        ],
+        [
+          0.006619344918176617,
+          0.02121742259616087
+        ],
+        [
+          -0.16709081151262106,
+          -0.04245874685680612
+        ],
+        [
+          0.017446447836165252,
+          -0.0042567542575159475
+        ],
+        [
+          -0.09541696553949608,
+          0.00504095575840198
+        ],
+        [
+          0.1200339756562463,
+          0.01530320162503157
+        ],
+        [
+          0.05884872060636115,
+          0.10184969368888952
+        ],
+        [
+          -0.20214259841938154,
+          0.005743934099964251
+        ],
+        [
+          0.17161050410933953,
+          0.01054166850125799
+        ],
+        [
+          0.15177745978636736,
+          0.013893758011442388
+        ],
+        [
+          0.0019714860439322794,
+          0.033890356702085955
+        ],
+        [
+          0.23362117572731222,
+          0.011860337381402554
+        ],
+        [
+          -0.7827423714161341,
+          0.17092994836254594
+        ],
+        [
+          -0.1671620764804191,
+          0.02306608972569031
+        ],
+        [
+          0.14465669708835804,
+          0.06757581981154703
+        ],
+        [
+          -0.10935732000513353,
+          0.054833384188799406
+        ],
+        [
+          -0.2637450245596167,
+          -0.02449815207586714
+        ],
+        [
+          -0.011859763374011165,
+          -0.02557951859986579
+        ],
+        [
+          -0.20247948749582118,
+          0.025094436600709175
+        ]
+      ]
+    ],
+    "same_tape_log_ess_carryover_vjp": {
+      "finite": true,
+      "max_abs": 0.0,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 0.0
+    },
+    "same_tape_log_ess_carryover_vjp_tensor": [
+      [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          -0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          -0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          -0.0
+        ],
+        [
+          0.0,
+          -0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          -0.0
+        ],
+        [
+          0.0,
+          -0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          -0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          -0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          -0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          -0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          -0.0,
+          0.0
+        ],
+        [
+          -0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          -0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          -0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          -0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          -0.0,
+          0.0
+        ],
+        [
+          -0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          -0.0
+        ],
+        [
+          0.0,
+          -0.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ]
+    ],
+    "same_tape_post_log_weights_vjp": {
+      "finite": true,
+      "max_abs": 0.0,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 0.0
+    },
+    "same_tape_post_log_weights_vjp_tensor": [
+      [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          -0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          -0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          -0.0
+        ],
+        [
+          0.0,
+          -0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          -0.0
+        ],
+        [
+          0.0,
+          -0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          -0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          -0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          -0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          -0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          -0.0,
+          0.0
+        ],
+        [
+          -0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          -0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          -0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          -0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          -0.0,
+          0.0
+        ],
+        [
+          -0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          -0.0
+        ],
+        [
+          0.0,
+          -0.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ]
+    ],
+    "same_tape_post_particles_vjp": {
+      "finite": true,
+      "max_abs": 10.678980216233622,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 17.820446476261015
+    },
+    "same_tape_post_particles_vjp_tensor": [
+      [
+        [
+          -0.029611698011508675,
+          -0.36369358722061024
+        ],
+        [
+          0.3797439893981671,
+          0.02001546130542156
+        ],
+        [
+          -0.20192881484065128,
+          0.03466473069728588
+        ],
+        [
+          0.01648328422251833,
+          0.022240492850120783
+        ],
+        [
+          -0.20443492582368503,
+          0.20544582147927656
+        ],
+        [
+          0.08993491356532791,
+          -0.1223916122202156
+        ],
+        [
+          0.7141359893613954,
+          0.07582232767723285
+        ],
+        [
+          -0.05862688591731867,
+          -0.054087643982168615
+        ],
+        [
+          -0.12790675499890383,
+          -0.00020238098223476775
+        ],
+        [
+          0.7388443575907554,
+          -0.07687072644789264
+        ],
+        [
+          0.2729596372835274,
+          0.07097935668821308
+        ],
+        [
+          -0.08250867055780714,
+          -0.04495262642929587
+        ],
+        [
+          -0.07420774410658194,
+          0.009775481851947182
+        ],
+        [
+          0.2950017276022141,
+          -0.047967954064582013
+        ],
+        [
+          2.2822713569100146,
+          -0.42075935134144005
+        ],
+        [
+          0.0886777568218802,
+          0.10211920586994028
+        ],
+        [
+          0.4690330119455485,
+          -0.01944957097528363
+        ],
+        [
+          1.174178930621649,
+          -0.1601907914065862
+        ],
+        [
+          0.200090561043365,
+          0.13282362765095007
+        ],
+        [
+          2.4703454096242825,
+          0.028298859441692747
+        ],
+        [
+          0.14596504854840825,
+          0.004919372727765464
+        ],
+        [
+          -0.42868781550531165,
+          0.04018874131010201
+        ],
+        [
+          0.31850025163731627,
+          0.12001417151497766
+        ],
+        [
+          0.2994931781059882,
+          0.03717424380243356
+        ],
+        [
+          0.7774962112056895,
+          0.22878811758395512
+        ],
+        [
+          -0.07063723209651177,
+          0.017753079810611846
+        ],
+        [
+          4.492330026265932,
+          -0.676865709094659
+        ],
+        [
+          0.20006756607827247,
+          -0.08923031183960545
+        ],
+        [
+          0.9352221329609508,
+          -0.09865100542766744
+        ],
+        [
+          -0.14272552615603598,
+          0.11145148726263976
+        ],
+        [
+          -0.22456339815300969,
+          0.061101635443424535
+        ],
+        [
+          0.0562656393477837,
+          0.049564669637239454
+        ],
+        [
+          0.05037772829582915,
+          -0.015185502152693008
+        ],
+        [
+          -0.5720611556562063,
+          -0.040624570315683145
+        ],
+        [
+          0.1336718615969755,
+          0.004679518527613405
+        ],
+        [
+          -0.36142523631669055,
+          0.036473638221451624
+        ],
+        [
+          0.3402688280741099,
+          0.010450560631456225
+        ],
+        [
+          -0.7068175124398588,
+          -0.5380244208637371
+        ],
+        [
+          -0.49098767773593416,
+          0.05952503090477344
+        ],
+        [
+          0.4541688634627702,
+          -0.031005391644954937
+        ],
+        [
+          0.4210911438132511,
+          0.026143651730863637
+        ],
+        [
+          -0.030987972308332223,
+          -0.6082748573144883
+        ],
+        [
+          0.5245060027735017,
+          0.0474825166115045
+        ],
+        [
+          10.678980216233622,
+          -1.7239678875212066
+        ],
+        [
+          -0.3640875411785833,
+          0.08085891188446395
+        ],
+        [
+          -2.096989926738607,
+          -0.7109608908822731
+        ],
+        [
+          0.1301090118966038,
+          0.20079833695253213
+        ],
+        [
+          -0.9976829167239202,
+          0.024337289753285363
+        ],
+        [
+          0.045351809231618745,
+          -0.030237826059919107
+        ],
+        [
+          -0.1909062151675924,
+          0.09236992953882502
+        ]
+      ]
+    ],
+    "same_tape_post_state_identity_residual": {
+      "finite": true,
+      "max_abs": 0.7827423714161323,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 0.4898093699805413
+    },
+    "same_tape_post_state_identity_residual_tensor": [
+      [
+        [
+          0.0026468908081876547,
+          0.02036756702699294
+        ],
+        [
+          0.12529481412072085,
+          0.012347068531093762
+        ],
+        [
+          -0.0607059703048029,
+          0.0010619653538564769
+        ],
+        [
+          -0.012268562488561029,
+          -0.0020872610745535473
+        ],
+        [
+          0.4070659071088486,
+          0.024016092921263638
+        ],
+        [
+          -0.11543792594500933,
+          0.04229446826813593
+        ],
+        [
+          -0.10366957885918959,
+          0.09637909789459453
+        ],
+        [
+          -0.08328253073918225,
+          -0.00102659638783692
+        ],
+        [
+          -0.04335102961008755,
+          -0.01747077879883331
+        ],
+        [
+          0.11752496910002219,
+          -0.04960329268314104
+        ],
+        [
+          0.10940488403467635,
+          0.01340049427296637
+        ],
+        [
+          -0.04977510761757725,
+          -0.041221879039872844
+        ],
+        [
+          -0.03048617999021798,
+          -0.011550712405397082
+        ],
+        [
+          0.10573297539848053,
+          0.0106693552548437
+        ],
+        [
+          0.36826370199866476,
+          -0.1381233120810026
+        ],
+        [
+          -0.14133176928711216,
+          0.059195612622440774
+        ],
+        [
+          0.07339324203522102,
+          -0.021278387719953787
+        ],
+        [
+          0.3088836677827411,
+          -0.0514663655596648
+        ],
+        [
+          0.2977983874773511,
+          0.022310585574755626
+        ],
+        [
+          -0.41895517629359746,
+          0.10816823742742554
+        ],
+        [
+          0.017488689304194505,
+          -0.006626775120499202
+        ],
+        [
+          -0.10720910058461364,
+          -0.003340853219476643
+        ],
+        [
+          0.4108278158768303,
+          0.011851768960003103
+        ],
+        [
+          0.08435809131673971,
+          0.010928536673115094
+        ],
+        [
+          -0.17934160354257533,
+          0.06954759409070843
+        ],
+        [
+          -0.0289808016628592,
+          0.003553452576747256
+        ],
+        [
+          -0.4349470408888516,
+          0.13245323281953425
+        ],
+        [
+          0.1173418962167676,
+          0.01600591608356547
+        ],
+        [
+          0.3098519797848839,
+          -0.03654325759482388
+        ],
+        [
+          -0.15718790728395646,
+          0.04118314013814278
+        ],
+        [
+          -0.09512258608691865,
+          0.01409244802026402
+        ],
+        [
+          -0.008294149301780171,
+          0.006154087044209049
+        ],
+        [
+          0.006619344918176617,
+          0.021217422596160863
+        ],
+        [
+          -0.16709081151262106,
+          -0.04245874685680612
+        ],
+        [
+          0.017446447836165252,
+          -0.0042567542575159475
+        ],
+        [
+          -0.09541696553949608,
+          0.00504095575840198
+        ],
+        [
+          0.12003397565624635,
+          0.01530320162503157
+        ],
+        [
+          0.05884872060636126,
+          0.10184969368888952
+        ],
+        [
+          -0.20214259841938148,
+          0.005743934099964251
+        ],
+        [
+          0.17161050410933953,
+          0.01054166850125799
+        ],
+        [
+          0.15177745978636736,
+          0.013893758011442388
+        ],
+        [
+          0.0019714860439323245,
+          0.033890356702086066
+        ],
+        [
+          0.23362117572731222,
+          0.011860337381402554
+        ],
+        [
+          -0.7827423714161323,
+          0.17092994836254594
+        ],
+        [
+          -0.1671620764804191,
+          0.02306608972569031
+        ],
+        [
+          0.14465669708835804,
+          0.06757581981154703
+        ],
+        [
+          -0.1093573200051335,
+          0.054833384188799406
+        ],
+        [
+          -0.26374502455961657,
+          -0.024498152075867113
+        ],
+        [
+          -0.01185976337401115,
+          -0.02557951859986579
+        ],
+        [
+          -0.2024794874958212,
+          0.02509443660070916
+        ]
+      ]
+    ],
+    "same_tape_post_state_vjp": {
+      "finite": true,
+      "max_abs": 10.678980216233622,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 17.820446476261015
+    },
+    "same_tape_post_state_vjp_tensor": [
+      [
+        [
+          -0.029611698011508675,
+          -0.36369358722061024
+        ],
+        [
+          0.3797439893981671,
+          0.02001546130542156
+        ],
+        [
+          -0.20192881484065128,
+          0.03466473069728588
+        ],
+        [
+          0.01648328422251833,
+          0.022240492850120783
+        ],
+        [
+          -0.20443492582368503,
+          0.20544582147927656
+        ],
+        [
+          0.08993491356532791,
+          -0.1223916122202156
+        ],
+        [
+          0.7141359893613954,
+          0.07582232767723285
+        ],
+        [
+          -0.05862688591731867,
+          -0.054087643982168615
+        ],
+        [
+          -0.12790675499890383,
+          -0.00020238098223476775
+        ],
+        [
+          0.7388443575907554,
+          -0.07687072644789264
+        ],
+        [
+          0.2729596372835274,
+          0.07097935668821308
+        ],
+        [
+          -0.08250867055780714,
+          -0.04495262642929587
+        ],
+        [
+          -0.07420774410658194,
+          0.009775481851947182
+        ],
+        [
+          0.2950017276022141,
+          -0.047967954064582013
+        ],
+        [
+          2.2822713569100146,
+          -0.42075935134144005
+        ],
+        [
+          0.0886777568218802,
+          0.10211920586994028
+        ],
+        [
+          0.4690330119455485,
+          -0.01944957097528363
+        ],
+        [
+          1.174178930621649,
+          -0.1601907914065862
+        ],
+        [
+          0.200090561043365,
+          0.13282362765095007
+        ],
+        [
+          2.4703454096242825,
+          0.028298859441692747
+        ],
+        [
+          0.14596504854840825,
+          0.004919372727765464
+        ],
+        [
+          -0.42868781550531165,
+          0.04018874131010201
+        ],
+        [
+          0.31850025163731627,
+          0.12001417151497766
+        ],
+        [
+          0.2994931781059882,
+          0.03717424380243356
+        ],
+        [
+          0.7774962112056895,
+          0.22878811758395512
+        ],
+        [
+          -0.07063723209651177,
+          0.017753079810611846
+        ],
+        [
+          4.492330026265932,
+          -0.676865709094659
+        ],
+        [
+          0.20006756607827247,
+          -0.08923031183960545
+        ],
+        [
+          0.9352221329609508,
+          -0.09865100542766744
+        ],
+        [
+          -0.14272552615603598,
+          0.11145148726263976
+        ],
+        [
+          -0.22456339815300969,
+          0.061101635443424535
+        ],
+        [
+          0.0562656393477837,
+          0.049564669637239454
+        ],
+        [
+          0.05037772829582915,
+          -0.015185502152693008
+        ],
+        [
+          -0.5720611556562063,
+          -0.040624570315683145
+        ],
+        [
+          0.1336718615969755,
+          0.004679518527613405
+        ],
+        [
+          -0.36142523631669055,
+          0.036473638221451624
+        ],
+        [
+          0.3402688280741099,
+          0.010450560631456225
+        ],
+        [
+          -0.7068175124398588,
+          -0.5380244208637371
+        ],
+        [
+          -0.49098767773593416,
+          0.05952503090477344
+        ],
+        [
+          0.4541688634627702,
+          -0.031005391644954937
+        ],
+        [
+          0.4210911438132511,
+          0.026143651730863637
+        ],
+        [
+          -0.030987972308332223,
+          -0.6082748573144883
+        ],
+        [
+          0.5245060027735017,
+          0.0474825166115045
+        ],
+        [
+          10.678980216233622,
+          -1.7239678875212066
+        ],
+        [
+          -0.3640875411785833,
+          0.08085891188446395
+        ],
+        [
+          -2.096989926738607,
+          -0.7109608908822731
+        ],
+        [
+          0.1301090118966038,
+          0.20079833695253213
+        ],
+        [
+          -0.9976829167239202,
+          0.024337289753285363
+        ],
+        [
+          0.045351809231618745,
+          -0.030237826059919107
+        ],
+        [
+          -0.1909062151675924,
+          0.09236992953882502
+        ]
+      ]
+    ],
+    "same_tape_pre_current_ll_carryover_vjp": {
+      "finite": true,
+      "max_abs": 0.7827423714161357,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 0.4898093699805401
+    },
+    "same_tape_pre_current_ll_carryover_vjp_tensor": [
+      [
+        [
+          0.0026468908081875827,
+          0.020367567026992977
+        ],
+        [
+          0.1252948141207208,
+          0.012347068531093767
+        ],
+        [
+          -0.060705970304802806,
+          0.001061965353856471
+        ],
+        [
+          -0.012268562488561006,
+          -0.0020872610745535374
+        ],
+        [
+          0.4070659071088484,
+          0.024016092921263627
+        ],
+        [
+          -0.11543792594500943,
+          0.04229446826813596
+        ],
+        [
+          -0.10366957885918988,
+          0.09637909789459483
+        ],
+        [
+          -0.08328253073918244,
+          -0.0010265963878369198
+        ],
+        [
+          -0.04335102961008747,
+          -0.017470778798833256
+        ],
+        [
+          0.11752496910002225,
+          -0.049603292683141106
+        ],
+        [
+          0.10940488403467612,
+          0.013400494272966348
+        ],
+        [
+          -0.049775107617577294,
+          -0.04122187903987288
+        ],
+        [
+          -0.03048617999021792,
+          -0.011550712405397056
+        ],
+        [
+          0.10573297539848053,
+          0.010669355254843705
+        ],
+        [
+          0.36826370199866487,
+          -0.13812331208100254
+        ],
+        [
+          -0.14133176928711205,
+          0.05919561262244074
+        ],
+        [
+          0.07339324203522132,
+          -0.021278387719953874
+        ],
+        [
+          0.3088836677827404,
+          -0.05146636555966472
+        ],
+        [
+          0.297798387477351,
+          0.022310585574755622
+        ],
+        [
+          -0.4189551762935966,
+          0.10816823742742539
+        ],
+        [
+          0.017488689304194605,
+          -0.006626775120499224
+        ],
+        [
+          -0.10720910058461362,
+          -0.0033408532194766443
+        ],
+        [
+          0.4108278158768298,
+          0.011851768960003091
+        ],
+        [
+          0.08435809131673994,
+          0.010928536673115124
+        ],
+        [
+          -0.17934160354257567,
+          0.06954759409070864
+        ],
+        [
+          -0.028980801662859212,
+          0.003553452576747258
+        ],
+        [
+          -0.4349470408888506,
+          0.1324532328195342
+        ],
+        [
+          0.1173418962167676,
+          0.01600591608356549
+        ],
+        [
+          0.30985197978488327,
+          -0.036543257594823776
+        ],
+        [
+          -0.15718790728395637,
+          0.041183140138142754
+        ],
+        [
+          -0.09512258608691895,
+          0.014092448020264057
+        ],
+        [
+          -0.008294149301780181,
+          0.006154087044209059
+        ],
+        [
+          0.006619344918176583,
+          0.021217422596160856
+        ],
+        [
+          -0.1670908115126207,
+          -0.042458746856806104
+        ],
+        [
+          0.017446447836165332,
+          -0.004256754257515961
+        ],
+        [
+          -0.09541696553949604,
+          0.0050409557584019824
+        ],
+        [
+          0.12003397565624635,
+          0.015303201625031562
+        ],
+        [
+          0.0588487206063614,
+          0.10184969368888955
+        ],
+        [
+          -0.20214259841938173,
+          0.005743934099964266
+        ],
+        [
+          0.17161050410933973,
+          0.010541668501258008
+        ],
+        [
+          0.15177745978636792,
+          0.01389375801144244
+        ],
+        [
+          0.001971486043932359,
+          0.03389035670208604
+        ],
+        [
+          0.23362117572731222,
+          0.01186033738140255
+        ],
+        [
+          -0.7827423714161357,
+          0.17092994836254657
+        ],
+        [
+          -0.16716207648041886,
+          0.02306608972569028
+        ],
+        [
+          0.14465669708835777,
+          0.06757581981154692
+        ],
+        [
+          -0.1093573200051336,
+          0.05483338418879946
+        ],
+        [
+          -0.2637450245596155,
+          -0.024498152075867037
+        ],
+        [
+          -0.011859763374011198,
+          -0.025579518599865837
+        ],
+        [
+          -0.20247948749582162,
+          0.025094436600709206
+        ]
+      ]
+    ],
+    "same_tape_pre_log_weights_carryover_vjp": {
+      "finite": true,
+      "max_abs": 10.672081595787361,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 8.50635868588998
+    },
+    "same_tape_pre_log_weights_carryover_vjp_tensor": [
+      [
+        [
+          -0.03682813345941291,
+          -0.283388900816522
+        ],
+        [
+          0.3251654735967312,
+          0.03204314890938844
+        ],
+        [
+          -0.2689292952737611,
+          0.004704538825156973
+        ],
+        [
+          -0.05348602818181419,
+          -0.009099623917672894
+        ],
+        [
+          -0.2331840218884421,
+          -0.013757401540211338
+        ],
+        [
+          0.06299911093526399,
+          -0.023081789425440483
+        ],
+        [
+          0.7193443571612055,
+          -0.6687570353973556
+        ],
+        [
+          -0.09368472895024499,
+          -0.0011548208667793724
+        ],
+        [
+          -0.2265772020865312,
+          -0.09131225288340594
+        ],
+        [
+          0.5582057080880123,
+          -0.23559964599628605
+        ],
+        [
+          0.21158755608841365,
+          0.025916373465512326
+        ],
+        [
+          -0.2582010448818735,
+          -0.21383243049645928
+        ],
+        [
+          -0.15582200265151114,
+          -0.059038395090435764
+        ],
+        [
+          0.2671614819871813,
+          0.02695886265367246
+        ],
+        [
+          1.9683635412519656,
+          -0.7382668729545281
+        ],
+        [
+          0.058441635613089536,
+          -0.02447778330536865
+        ],
+        [
+          0.36538579135104726,
+          -0.10593373885839007
+        ],
+        [
+          1.097726516785077,
+          -0.18290379223655104
+        ],
+        [
+          0.15946555770261,
+          0.011946908112861414
+        ],
+        [
+          2.473311845957044,
+          -0.6385737618815388
+        ],
+        [
+          0.08339575598996847,
+          -0.031600133739982286
+        ],
+        [
+          -0.5106044302558737,
+          -0.015911470625136398
+        ],
+        [
+          0.2764075343910493,
+          0.007973944581661377
+        ],
+        [
+          0.23437419063149295,
+          0.030363026208484998
+        ],
+        [
+          0.7737020232780374,
+          -0.3000369863946637
+        ],
+        [
+          -0.12029259560761685,
+          0.014749558649142276
+        ],
+        [
+          4.493807647316787,
+          -1.3684869526641061
+        ],
+        [
+          0.174226434471682,
+          0.023765200491911588
+        ],
+        [
+          0.8715801971037145,
+          -0.10279224189376053
+        ],
+        [
+          -0.1915944346437315,
+          0.050197630262785356
+        ],
+        [
+          -0.2989399020995348,
+          0.04428806243420515
+        ],
+        [
+          -0.026171879575504972,
+          0.019418992733063703
+        ],
+        [
+          0.015049560304935206,
+          0.048239347673119694
+        ],
+        [
+          -0.751026386183025,
+          -0.19084017203015635
+        ],
+        [
+          0.08457496173182774,
+          -0.02063542285581597
+        ],
+        [
+          -0.4162102184847233,
+          0.02198872376325828
+        ],
+        [
+          0.29264365551076554,
+          0.0373093104688354
+        ],
+        [
+          -0.7093240722960219,
+          -1.2276297385077921
+        ],
+        [
+          -0.5765708029404305,
+          0.01638340815814791
+        ],
+        [
+          0.41853854327399387,
+          0.0257099330900092
+        ],
+        [
+          0.36645202557596396,
+          0.03354513755416435
+        ],
+        [
+          -0.03238202712393001,
+          -0.5566554494992264
+        ],
+        [
+          0.46731703014277876,
+          0.023724466004904427
+        ],
+        [
+          10.672081595787361,
+          -2.3304964988525128
+        ],
+        [
+          -0.43388460272214846,
+          0.059870165456797755
+        ],
+        [
+          -2.10483358213391,
+          -0.9832649143972568
+        ],
+        [
+          0.10402834902190454,
+          -0.05216135900346531
+        ],
+        [
+          -1.161600372966453,
+          -0.1078961115411819
+        ],
+        [
+          -0.06350339852216177,
+          -0.13696616976455994
+        ],
+        [
+          -0.23956358431401814,
+          0.029690480022233567
+        ]
+      ]
+    ],
+    "same_tape_reconstructed_pre_particle_adjoint": {
+      "finite": true,
+      "max_abs": 10.678980216233624,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 17.820446476261022
+    },
+    "same_tape_reconstructed_pre_particle_adjoint_tensor": [
+      [
+        [
+          -0.02961169801150868,
+          -0.36369358722061024
+        ],
+        [
+          0.3797439893981671,
+          0.02001546130542156
+        ],
+        [
+          -0.20192881484065126,
+          0.03466473069728588
+        ],
+        [
+          0.01648328422251833,
+          0.02224049285012078
+        ],
+        [
+          -0.20443492582368503,
+          0.20544582147927656
+        ],
+        [
+          0.08993491356532791,
+          -0.12239161222021562
+        ],
+        [
+          0.7141359893613954,
+          0.07582232767723286
+        ],
+        [
+          -0.05862688591731867,
+          -0.054087643982168615
+        ],
+        [
+          -0.12790675499890386,
+          -0.00020238098223476775
+        ],
+        [
+          0.7388443575907555,
+          -0.07687072644789261
+        ],
+        [
+          0.2729596372835274,
+          0.07097935668821308
+        ],
+        [
+          -0.08250867055780714,
+          -0.04495262642929587
+        ],
+        [
+          -0.07420774410658194,
+          0.009775481851947182
+        ],
+        [
+          0.2950017276022141,
+          -0.047967954064582013
+        ],
+        [
+          2.2822713569100146,
+          -0.42075935134144005
+        ],
+        [
+          0.0886777568218802,
+          0.10211920586994028
+        ],
+        [
+          0.4690330119455485,
+          -0.01944957097528363
+        ],
+        [
+          1.1741789306216492,
+          -0.1601907914065862
+        ],
+        [
+          0.200090561043365,
+          0.13282362765095007
+        ],
+        [
+          2.4703454096242825,
+          0.028298859441692713
+        ],
+        [
+          0.14596504854840825,
+          0.004919372727765464
+        ],
+        [
+          -0.42868781550531165,
+          0.04018874131010201
+        ],
+        [
+          0.31850025163731627,
+          0.12001417151497767
+        ],
+        [
+          0.2994931781059882,
+          0.03717424380243356
+        ],
+        [
+          0.7774962112056895,
+          0.22878811758395515
+        ],
+        [
+          -0.07063723209651178,
+          0.017753079810611846
+        ],
+        [
+          4.492330026265932,
+          -0.676865709094659
+        ],
+        [
+          0.20006756607827247,
+          -0.08923031183960546
+        ],
+        [
+          0.9352221329609507,
+          -0.09865100542766746
+        ],
+        [
+          -0.14272552615603598,
+          0.11145148726263976
+        ],
+        [
+          -0.22456339815300963,
+          0.061101635443424535
+        ],
+        [
+          0.0562656393477837,
+          0.049564669637239454
+        ],
+        [
+          0.05037772829582915,
+          -0.015185502152693015
+        ],
+        [
+          -0.5720611556562063,
+          -0.040624570315683145
+        ],
+        [
+          0.1336718615969755,
+          0.004679518527613405
+        ],
+        [
+          -0.36142523631669055,
+          0.036473638221451624
+        ],
+        [
+          0.34026882807410996,
+          0.010450560631456225
+        ],
+        [
+          -0.7068175124398587,
+          -0.5380244208637371
+        ],
+        [
+          -0.4909876777359341,
+          0.05952503090477344
+        ],
+        [
+          0.4541688634627702,
+          -0.031005391644954937
+        ],
+        [
+          0.4210911438132511,
+          0.026143651730863637
+        ],
+        [
+          -0.03098797230833218,
+          -0.6082748573144882
+        ],
+        [
+          0.5245060027735017,
+          0.0474825166115045
+        ],
+        [
+          10.678980216233624,
+          -1.7239678875212066
+        ],
+        [
+          -0.3640875411785833,
+          0.08085891188446395
+        ],
+        [
+          -2.096989926738607,
+          -0.7109608908822731
+        ],
+        [
+          0.13010901189660382,
+          0.20079833695253213
+        ],
+        [
+          -0.9976829167239201,
+          0.02433728975328539
+        ],
+        [
+          0.04535180923161876,
+          -0.030237826059919107
+        ],
+        [
+          -0.19090621516759243,
+          0.092369929538825
+        ]
+      ]
+    ],
+    "same_tape_transport_matrix_vjp": {
+      "finite": true,
+      "max_abs": 10.67554336524395,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 11.56895332860919
+    },
+    "same_tape_transport_matrix_vjp_tensor": [
+      [
+        [
+          -0.030518318142411585,
+          -0.36462723396788155
+        ],
+        [
+          0.3286012494451387,
+          -0.032651858971409896
+        ],
+        [
+          -0.2700051363312394,
+          -0.035440966230691075
+        ],
+        [
+          -0.05451664405507898,
+          -0.050875964454721964
+        ],
+        [
+          -0.23598173707476666,
+          0.1729585903806017
+        ],
+        [
+          0.07624947926175951,
+          -0.13648501340004215
+        ],
+        [
+          0.7019366452035358,
+          0.06325931743336655
+        ],
+        [
+          -0.08541352218089288,
+          -0.08167279785793609
+        ],
+        [
+          -0.2270543531766578,
+          -0.10230559861786218
+        ],
+        [
+          0.5569898064238452,
+          -0.26414641599647226
+        ],
+        [
+          0.21446525160359786,
+          0.010741235933814097
+        ],
+        [
+          -0.25876581643124474,
+          -0.22646405036400122
+        ],
+        [
+          -0.1565495557123741,
+          -0.07502096370415318
+        ],
+        [
+          0.27225795823759036,
+          -0.07138972197395066
+        ],
+        [
+          1.968131203915633,
+          -0.7442641159427004
+        ],
+        [
+          0.06015904778161786,
+          0.07275034561167555
+        ],
+        [
+          0.36439927701239744,
+          -0.1272024687384202
+        ],
+        [
+          1.0982410346169662,
+          -0.2383924187284819
+        ],
+        [
+          0.1603875252874464,
+          0.09193703256355423
+        ],
+        [
+          2.4563186256569987,
+          0.013853932862917917
+        ],
+        [
+          0.08220800944216458,
+          -0.060738282720398745
+        ],
+        [
+          -0.5117509814754828,
+          -0.04535056239901735
+        ],
+        [
+          0.27758599436586434,
+          0.0778802480376017
+        ],
+        [
+          0.23700019340121853,
+          -0.027181675405730323
+        ],
+        [
+          0.7603655013715952,
+          0.21114673618299085
+        ],
+        [
+          -0.12097103163055792,
+          -0.03408118529219989
+        ],
+        [
+          4.485803445560074,
+          -0.6835868491169512
+        ],
+        [
+          0.18390191190588911,
+          -0.10587786898189727
+        ],
+        [
+          0.8741339201586853,
+          -0.16156027606414675
+        ],
+        [
+          -0.1885236813876423,
+          0.06428807537101264
+        ],
+        [
+          -0.2972401977733349,
+          -0.013741681238753259
+        ],
+        [
+          -0.024710222785118252,
+          -0.033825107084990196
+        ],
+        [
+          0.020792316935893368,
+          -0.0456528634447678
+        ],
+        [
+          -0.7521955876756219,
+          -0.22612886345220878
+        ],
+        [
+          0.08343930011541033,
+          -0.047050490586193545
+        ],
+        [
+          -0.41717784136274694,
+          -0.02094096860104547
+        ],
+        [
+          0.29683655445131657,
+          -0.03427644201532286
+        ],
+        [
+          -0.7117442653002024,
+          -0.5430980416955273
+        ],
+        [
+          -0.5746949544269648,
+          -0.026677584657805637
+        ],
+        [
+          0.4234459975943345,
+          -0.06264411530350661
+        ],
+        [
+          0.37017466510112546,
+          -0.026290662390024547
+        ],
+        [
+          -0.031451015951384886,
+          -0.608751704426575
+        ],
+        [
+          0.47079885984172254,
+          -0.007825652261330345
+        ],
+        [
+          10.67554336524395,
+          -1.7275071920634177
+        ],
+        [
+          -0.43111982583915953,
+          0.011828374835632025
+        ],
+        [
+          -2.0989032186658063,
+          -0.7129312186121803
+        ],
+        [
+          0.09994860860792831,
+          0.1697388430509151
+        ],
+        [
+          -1.1626909315121057,
+          -0.14558966314511718
+        ],
+        [
+          -0.06370734222283057,
+          -0.14254806333008369
+        ],
+        [
+          -0.23648982576645067,
+          0.045427457919404585
+        ]
+      ]
+    ]
+  },
+  "resampling_flag": [
+    true
+  ],
+  "settings": {
+    "T": 100,
+    "batch_size": 1,
+    "convergence_threshold": 1e-06,
+    "data_seed": 123,
+    "dtype": "float64",
+    "epsilon": 0.25,
+    "filter_seed": 1234,
+    "max_iter": 500,
+    "mesh_index": 173,
+    "n_particles": 50,
+    "resampling_neff": 0.9999,
+    "scaling": 0.85,
+    "target_time_index": 94,
+    "theta": [
+      0.9710526315789474,
+      0.9842105263157894
+    ],
+    "transport_backward": "FilterFlow custom gradient clips d_transport to [-1,1]"
+  },
+  "status": "executed",
+  "stderr_excerpt": "",
+  "target_scalar": -144.91598320088008,
+  "total_gradient_diag": [
+    8383.773392155563,
+    207.4167537924887
+  ],
+  "transport_upstream_clip_fraction": 0.84,
+  "value_summaries": {
+    "increment": {
+      "finite": true,
+      "max_abs": 3.1988675200752024,
+      "shape": [
+        1
+      ],
+      "sum": -3.1988675200752024
+    },
+    "log_ess": {
+      "finite": true,
+      "max_abs": 3.7653098528818836,
+      "shape": [
+        1
+      ],
+      "sum": 3.7653098528818836
+    },
+    "manual_proposal_mean": {
+      "finite": true,
+      "max_abs": 529.9426708636762,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 27806.213872215412
+    },
+    "normalized": {
+      "finite": true,
+      "max_abs": 11.219771700546191,
+      "shape": [
+        1,
+        50
+      ],
+      "sum": -278.84019621032905
+    },
+    "observation_ll": {
+      "finite": true,
+      "max_abs": 2.4248707209710143,
+      "shape": [
+        1,
+        50
+      ],
+      "sum": 24.30804072809171
+    },
+    "post_log_weights": {
+      "finite": true,
+      "max_abs": 3.912023005428146,
+      "shape": [
+        1,
+        50
+      ],
+      "sum": -195.60115027140728
+    },
+    "post_particles": {
+      "finite": true,
+      "max_abs": 519.217856896508,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 27165.16148160891
+    },
+    "post_update_log_likelihoods": {
+      "finite": true,
+      "max_abs": 144.91598320088008,
+      "shape": [
+        1
+      ],
+      "sum": -144.91598320088008
+    },
+    "post_update_log_weights": {
+      "finite": true,
+      "max_abs": 11.219771700546191,
+      "shape": [
+        1,
+        50
+      ],
+      "sum": -278.84019621032905
+    },
+    "pre_current_log_likelihoods": {
+      "finite": true,
+      "max_abs": 141.71711568080488,
+      "shape": [
+        1
+      ],
+      "sum": -141.71711568080488
+    },
+    "pre_log_weights": {
+      "finite": true,
+      "max_abs": 5.016766134437026,
+      "shape": [
+        1,
+        50
+      ],
+      "sum": -200.45945262619068
+    },
+    "pre_particles": {
+      "finite": true,
+      "max_abs": 519.3668650770353,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 27168.993512173354
+    },
+    "proposal_ll": {
+      "finite": true,
+      "max_abs": 3.187136485870994,
+      "shape": [
+        1,
+        50
+      ],
+      "sum": 6.011551719042638
+    },
+    "proposal_mean": {
+      "finite": true,
+      "max_abs": 529.9426708636762,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 27806.213872215412
+    },
+    "proposed_particles": {
+      "finite": true,
+      "max_abs": 530.2126242780453,
+      "shape": [
+        1,
+        50,
+        2
+      ],
+      "sum": 27805.410359449765
+    },
+    "transition_ll": {
+      "finite": true,
+      "max_abs": 10.225122280067676,
+      "shape": [
+        1,
+        50
+      ],
+      "sum": -261.4789109517309
+    },
+    "transport_matrix": {
+      "finite": true,
+      "max_abs": 0.2395491467017956,
+      "shape": [
+        1,
+        50,
+        50
+      ],
+      "sum": 50.0
+    },
+    "unnormalized": {
+      "finite": true,
+      "max_abs": 14.418639220621394,
+      "shape": [
+        1,
+        50
+      ],
+      "sum": -438.7835722140891
+    }
+  }
+}
+```
+
+## Non-Implications
+
+- No production readiness is concluded.
+- No public API readiness is concluded.
+- No posterior correctness is concluded.
+- No HMC readiness is concluded.
+- No general nonlinear-SSM validity is concluded.
+- No DSGE/NAWM validation is concluded.
+- No banking/model-risk claim is concluded.
+- No monograph claim is concluded.
+- No gradient correctness beyond this fixed 1D scalar fixture is concluded.
+- No correctness claim is made for either implementation.
+- No analytic smoothness-gradient correctness is concluded.
+- No full mesh_size=20 surface agreement is concluded.
+- No production dtype default is concluded.
+- Finite VJPs alone are smoke evidence only.

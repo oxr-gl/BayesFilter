@@ -900,14 +900,16 @@ The reason is concrete:
   prohibitions, acceptance gates, and caveats for a later BayesFilter-owned
   experimental implementation.
 
-The current decision after MP8 is:
-`student_dpf_baseline_program_complete_with_caveats`.
+The current decision after the 2026-05-27 controlled-baseline closeout is:
+`student_dpf_controlled_baseline_archive_complete`.
 
 MP5 through MP8 completed inside the student DPF experimental-baseline lane.
 The clean-room scaffold, fixed-grid execution, comparison audit, and final
-archive are complete.  Kernel PFF, stochastic flow, DPF, dPFPF, neural OT,
-differentiable resampling, and HMC remain out of routine comparison unless a
-new student-lane master revision authorizes separate reproduction gates.
+archive are complete.  A later closeout reconciled stale context and confirmed
+the lane as a complete quarantined archive.  Kernel PFF, stochastic flow, DPF,
+dPFPF, neural OT, differentiable resampling, and HMC remain out of routine
+comparison unless a new student-lane master revision authorizes separate
+reproduction gates.
 
 Post-MP8 future-work usability revision:
 `docs/plans/bayesfilter-student-dpf-baseline-future-work-usability-gates-plan-2026-05-15.md`.
@@ -941,6 +943,24 @@ Completed final phase ladder:
    `docs/plans/bayesfilter-student-dpf-baseline-mp7-clean-room-comparison-audit-result.md`.
 4. MP8 final archive and closeout:
    `docs/plans/bayesfilter-student-dpf-baseline-mp8-final-archive-and-closeout-result.md`.
+
+Completed controlled-baseline archive closeout:
+`docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-result-2026-05-27.md`.
+
+Controlled-baseline closeout audit:
+`docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-plan-audit-2026-05-27.md`.
+
+Controlled-baseline closeout review:
+`docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-review-2026-05-27.md`.
+
+Final archive report:
+`experiments/controlled_dpf_baseline/reports/controlled-dpf-baseline-final-archive-result.md`.
+
+The 2026-05-27 closeout corrected a stale controlled-baseline README authority
+pointer, confirmed the MP5/MP6/MP7 artifact evidence, and recorded that no
+further action is required to finish this student DPF experimental-baseline
+lane.  Future work must open a separate scoped plan rather than extending this
+archive.
 
 ## Stop Rules
 

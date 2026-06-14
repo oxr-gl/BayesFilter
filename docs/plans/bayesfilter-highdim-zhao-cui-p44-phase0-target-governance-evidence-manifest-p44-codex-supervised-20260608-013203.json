@@ -1,0 +1,81 @@
+{
+  "schema_version": "p44.phase_evidence.v1",
+  "run_id": "p44-codex-supervised-20260608-013203",
+  "phase": "P44-M0",
+  "pass_token": "PASS_P44_M0_CODE_GOVERNANCE",
+  "status": "PASS_P44_M0_CODE_GOVERNANCE",
+  "artifact_paths": {
+    "result_note": "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase0-target-governance-result-2026-06-07.md",
+    "claude_review_ledger": "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase0-target-governance-claude-review-ledger-2026-06-07.md",
+    "evidence_manifest": "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase0-target-governance-evidence-manifest-p44-codex-supervised-20260608-013203.json",
+    "target_governance_matrix": "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase0-target-governance-matrix-p44-codex-supervised-20260608-013203.json"
+  },
+  "evidence_chain": {
+    "PHASE_PLAN_CONFIRMED": true,
+    "SKEPTICAL_AUDIT_RECORDED": true,
+    "CLAUDE_PLAN_OR_REPAIR_REVIEW_PASS": true,
+    "IMPLEMENTED": true,
+    "LOCAL_EVIDENCE_RUN": true,
+    "EVIDENCE_AUDIT_RECORDED": true,
+    "RESULT_NOTE_WRITTEN": true,
+    "CLAUDE_CODE_GOVERNANCE_PASS": true,
+    "TRACEABILITY_UPDATED_OR_NONCLAIM_RECORDED": true,
+    "PHASE_PASS": true
+  },
+  "evidence_contract": {
+    "question": "For each planned P44 model, are CUT4, Zhao--Cui/fixed-design TT, and the reference route evaluating the same likelihood and score target?",
+    "baseline_or_comparator": "Exact Kalman for P44-M1; dense/refined references for M2--M4; diagnostic-only closure anchors for M5--M6; target-definition blocker for M7; traceability audit for M8.",
+    "primary_promotion_criterion": "Every P44 phase has a target-governance label plus target, reference, route, parameterization, dimension, and panel-structure metadata.",
+    "veto_diagnostics": [
+      "missing parameterization",
+      "missing observation/noise contract",
+      "missing horizon/dimension convention",
+      "transformed/native target mismatch without Jacobian accounting",
+      "diagnostic closure promoted as native-model evidence"
+    ],
+    "explanatory_only_diagnostics": [
+      "subplan text coverage",
+      "document validation commands",
+      "matrix schema completeness"
+    ],
+    "nonclaims": [
+      "no numerical value/gradient correctness",
+      "no HMC readiness",
+      "no paper-scale Zhao--Cui reproduction",
+      "no exact native generalized-SV/SIR/predator-prey claim"
+    ]
+  },
+  "commands": [
+    {
+      "purpose": "Validate the P44-M0 target-governance matrix JSON syntax.",
+      "command": "python -m json.tool docs/plans/bayesfilter-highdim-zhao-cui-p44-phase0-target-governance-matrix-p44-codex-supervised-20260608-013203.json",
+      "exit_code": 0,
+      "log_path": "docs/plans/logs/p44-codex-supervised-20260608-013203-P44-M0-command0.log"
+    },
+    {
+      "purpose": "Validate the P44-M0 evidence manifest JSON syntax.",
+      "command": "python -m json.tool docs/plans/bayesfilter-highdim-zhao-cui-p44-phase0-target-governance-evidence-manifest-p44-codex-supervised-20260608-013203.json",
+      "exit_code": 0,
+      "log_path": "docs/plans/logs/p44-codex-supervised-20260608-013203-P44-M0-command1.log"
+    }
+  ],
+  "diagnostics": {
+    "veto_status": "PASS",
+    "summary": "M0 records target-governance labels and explicit nonclaims. No phase equality claim is promoted from diagnostic-only or target-undefined rows."
+  },
+  "review_loops": {
+    "claude_code_governance": {
+      "iterations": 4,
+      "verdict": "PASS_P44_M0_CODE_GOVERNANCE"
+    },
+    "repair": {
+      "iterations": 0,
+      "verdict": "N/A"
+    }
+  },
+  "long_run_controls": {
+    "long_run_used": false,
+    "resource_caps": "No long run; documentation and JSON validation only.",
+    "pre_mortem": "N/A"
+  }
+}

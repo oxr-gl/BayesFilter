@@ -1,0 +1,66 @@
+{
+  "schema_version": "p45.cross_model_error_calibration.v1",
+  "phase": "P45-M5",
+  "metadata_date": "2026-06-08",
+  "promoted_same_target_rows": [],
+  "equality_metric_policy": "absent_for_blocked_or_diagnostic_rows",
+  "likelihood_variance_policy": "explanatory_only_not_bias_excuse",
+  "rows": [
+    {
+      "phase": "P45-M2",
+      "model_family": "generalized_stochastic_volatility",
+      "target_ids": [
+        "generalized_sv_native_raw_observation",
+        "generalized_sv_transformed_residual_diagnostic",
+        "generalized_sv_gaussian_mixture_or_moment_matched_approximation"
+      ],
+      "claim_class": "BLOCKED_NATIVE_SAME_TARGET",
+      "same_target_comparison_reached": false,
+      "value_gap": null,
+      "absolute_score_gap": null,
+      "relative_score_error": null,
+      "directional_residuals": [],
+      "reference_refinement_estimate": null,
+      "why_equality_metrics_absent": "Generalized SV has no matched native reference, native CUT4 route, or multistate Zhao-Cui route; transformed and approximation routes are diagnostic/non-exact."
+    },
+    {
+      "phase": "P45-M3",
+      "model_family": "spatial_sir",
+      "target_ids": [
+        "spatial_sir_additive_gaussian_closure",
+        "spatial_sir_native_or_nongaussian_route"
+      ],
+      "claim_class": "BLOCKED_CLOSURE_SAME_TARGET_PENDING_M1_AND_REFERENCE",
+      "same_target_comparison_reached": false,
+      "value_gap": null,
+      "absolute_score_gap": null,
+      "relative_score_error": null,
+      "directional_residuals": [],
+      "reference_refinement_estimate": null,
+      "why_equality_metrics_absent": "Spatial SIR closure has no dense/refined closure reference and no multistate Zhao-Cui route; native/non-Gaussian SIR target is undefined."
+    },
+    {
+      "phase": "P45-M4",
+      "model_family": "predator_prey",
+      "target_ids": [
+        "predator_prey_additive_gaussian_rk4_closure",
+        "predator_prey_native_or_nongaussian_route"
+      ],
+      "claim_class": "BLOCKED_CLOSURE_SAME_TARGET_PENDING_M1_AND_REFERENCE",
+      "same_target_comparison_reached": false,
+      "value_gap": null,
+      "absolute_score_gap": null,
+      "relative_score_error": null,
+      "directional_residuals": [],
+      "reference_refinement_estimate": null,
+      "why_equality_metrics_absent": "Predator-prey RK4 closure has no dense/refined closure reference and no multistate Zhao-Cui route; native/non-Gaussian predator-prey target is undefined."
+    }
+  ],
+  "nonclaims": [
+    "no HMC readiness",
+    "no production score API",
+    "no long/high-dimensional conclusion from tiny fixtures",
+    "no likelihood variance tolerance used to excuse systematic bias",
+    "no CUT4--Zhao-Cui equality for P45-M2 through P45-M4"
+  ]
+}

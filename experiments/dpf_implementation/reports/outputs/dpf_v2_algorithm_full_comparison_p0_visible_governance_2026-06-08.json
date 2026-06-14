@@ -1,0 +1,79 @@
+{
+  "metadata_date": "2026-06-08",
+  "phase": "P0",
+  "execution_route": "VISIBLE_IN_DIALOGUE",
+  "status": "PASS_P0_READY_FOR_P1",
+  "decision": "PASS_P0_READY_FOR_P1",
+  "required_v2_model_ids": [
+    "lgssm_2d_h25_rich",
+    "sv_1d_h18_rich",
+    "range_bearing_4d_h20_rich",
+    "structural_ar1_quadratic_h16",
+    "spatial_sir_j3_rk4",
+    "predator_prey_rk4"
+  ],
+  "primary_criterion_status": {
+    "additive_program_not_closed_v2_reinterpretation": "PASS",
+    "all_phase_subplans_exist": "PASS",
+    "master_phase_table_paths_exist": "PASS",
+    "six_v2_rows_preserved_in_order": "PASS",
+    "expected_v2_model_ids_match_fixture": "PASS",
+    "filterflow_mutation_forbidden_and_current_checkout_clean": "PASS",
+    "student_code_out_of_scope": "PASS",
+    "finite_differences_diagnostic_only": "PASS",
+    "full_success_requires_all_rows_and_gradient_knobs": "PASS",
+    "cpu_only_tensorflow_policy_recorded": "PASS",
+    "p1_blocked_pending_claude_review": "PASS"
+  },
+  "veto_diagnostics": {
+    "missing_phase_path": "PASS",
+    "row_order_mismatch": "PASS",
+    "old_v2_or_detached_p0_evidence_substituted": "PASS",
+    "oracle_treatment_allowed": "PASS",
+    "finite_difference_gradient_promotion_allowed": "PASS",
+    "post_result_contract_weakening_allowed": "PASS",
+    "filterflow_mutation": "PASS",
+    "student_command_or_student_metric": "PASS",
+    "unexecuted_required_row_allowed_for_full_success": "PASS"
+  },
+  "explanatory_only_diagnostics": {
+    "filterflow_head": "1e5fbc288c1c11fc18ba01bb4842832e2088b800",
+    "filterflow_status": "clean",
+    "tensorflow_commands_run": false,
+    "gpu_commands_run": false,
+    "student_implementation_commands_run": false,
+    "numerical_values_or_gradients_computed": false,
+    "historical_detached_p0_artifacts_available": true
+  },
+  "artifacts": {
+    "visible_runbook": "docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-visible-gated-execution-runbook-2026-06-08.md",
+    "visible_ledger": "docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-visible-execution-ledger-2026-06-08.md",
+    "visible_result": "docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p0-governance-visible-result-2026-06-08.md",
+    "historical_detached_result": "docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p0-governance-result-2026-06-07.md",
+    "visible_json": "experiments/dpf_implementation/reports/outputs/dpf_v2_algorithm_full_comparison_p0_visible_governance_2026-06-08.json"
+  },
+  "claude_readonly_review": {
+    "round_1": {
+      "verdict": "VERDICT: REVISE",
+      "repair": "Marked stale detached-route P0 status historical and created visible-specific P0 artifacts."
+    },
+    "round_2": {
+      "verdict": "VERDICT: REVISE",
+      "repair": "Updated visible runbook and P0 subplan to route P0 to visible-specific artifacts."
+    },
+    "round_3": {
+      "verdict": "VERDICT: AGREE",
+      "outcome": "P0 visible governance accepted for P1 precheck."
+    }
+  },
+  "next_allowed_action": "Begin P1 PRECHECK visibly in the current dialogue.",
+  "non_claims": [
+    "P0 does not establish any BayesFilter value match.",
+    "P0 does not establish any FilterFlow value match.",
+    "P0 does not establish any gradient match.",
+    "P0 does not establish filtering correctness.",
+    "P0 does not establish scientific correctness of bootstrap-OT or LEDH-PFPF-OT.",
+    "P0 does not make a student implementation claim.",
+    "P0 does not make a TT/SIRT, dense quadrature, paper-table, simulated-truth, GPU, HMC, DSGE, scalability, deployment, or production-readiness claim."
+  ]
+}

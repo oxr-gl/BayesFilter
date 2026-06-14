@@ -1,0 +1,95 @@
+{
+  "schema_version": "p45.phase_evidence.v1",
+  "run_id": "p45-codex-supervised-20260608-055034",
+  "phase": "P45-M5",
+  "pass_token": "PASS_P45_M5_CODE_GOVERNANCE",
+  "status": "PASS_P45_M5_CODE_GOVERNANCE",
+  "artifact_paths": {
+    "result_note": "docs/plans/bayesfilter-highdim-zhao-cui-p45-phase5-cross-model-error-calibration-result-2026-06-08.md",
+    "claude_review_ledger": "docs/plans/bayesfilter-highdim-zhao-cui-p45-phase5-cross-model-error-calibration-claude-review-ledger-2026-06-08.md",
+    "evidence_manifest": "docs/plans/bayesfilter-highdim-zhao-cui-p45-phase5-cross-model-error-calibration-evidence-manifest-p45-codex-supervised-20260608-055034.json",
+    "calibration_ledger": "docs/plans/bayesfilter-highdim-zhao-cui-p45-cross-model-error-calibration-2026-06-08.json",
+    "calibration_tests": "tests/highdim/test_p45_cross_model_error_calibration.py"
+  },
+  "evidence_chain": {
+    "PHASE_PLAN_CONFIRMED": true,
+    "SKEPTICAL_AUDIT_RECORDED": true,
+    "CLAUDE_PLAN_OR_REPAIR_REVIEW_PASS": true,
+    "IMPLEMENTED": true,
+    "LOCAL_EVIDENCE_RUN": true,
+    "EVIDENCE_AUDIT_RECORDED": true,
+    "RESULT_NOTE_WRITTEN": true,
+    "CLAUDE_CODE_GOVERNANCE_PASS": true,
+    "TRACEABILITY_UPDATED_OR_NONCLAIM_RECORDED": true,
+    "PHASE_PASS": true
+  },
+  "evidence_contract": {
+    "question": "Are observed CUT4--Zhao-Cui differences small relative to reference error, directional-gradient residuals, and likelihood-scale variability for declared tiny fixtures?",
+    "baseline_or_comparator": "P45-M2--M4 phase results. No same-target rows reached comparison, so no numeric comparator is available for calibration.",
+    "primary_promotion_criterion": "Every same-target row reports value/score gaps and reference diagnostics; every diagnostic-only or blocked row reports why equality metrics are absent.",
+    "veto_diagnostics": [
+      "likelihood variance used to excuse systematic same-target bias without a reference check",
+      "finite-difference noise treated as proof that gradients agree",
+      "long/high-dimensional conclusions drawn from tiny fixtures"
+    ],
+    "explanatory_only_diagnostics": [
+      "JSON syntax validation",
+      "pytest calibration governance checks",
+      "compile check",
+      "diff whitespace check",
+      "TFP deprecation warnings"
+    ],
+    "nonclaims": [
+      "no CUT4--Zhao-Cui equality",
+      "no gradient agreement",
+      "no HMC readiness",
+      "no production score API",
+      "no long/high-dimensional conclusion"
+    ]
+  },
+  "commands": [
+    {
+      "purpose": "Validate P45-M5 cross-model error calibration JSON syntax.",
+      "command": "python -m json.tool docs/plans/bayesfilter-highdim-zhao-cui-p45-cross-model-error-calibration-2026-06-08.json",
+      "exit_code": 0,
+      "log_path": "docs/plans/logs/p45-codex-supervised-20260608-055034-P45-M5-command0.log"
+    },
+    {
+      "purpose": "Run P45-M5 calibration governance tests with inherited P45 tests.",
+      "command": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp pytest -q tests/highdim/test_p45_target_registry.py tests/highdim/test_p45_multistate_zhaocui_route.py tests/highdim/test_p45_generalized_sv_comparison_blocker.py tests/highdim/test_p45_spatial_sir_comparison_blocker.py tests/highdim/test_p45_predator_prey_comparison_blocker.py tests/highdim/test_p45_cross_model_error_calibration.py",
+      "exit_code": 0,
+      "log_path": "docs/plans/logs/p45-codex-supervised-20260608-055034-P45-M5-command1.log"
+    },
+    {
+      "purpose": "Compile the P45-M5 calibration test.",
+      "command": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp python -m compileall -q tests/highdim/test_p45_cross_model_error_calibration.py",
+      "exit_code": 0,
+      "log_path": "docs/plans/logs/p45-codex-supervised-20260608-055034-P45-M5-command2.log"
+    },
+    {
+      "purpose": "Check whitespace safety for P45-M5 artifacts.",
+      "command": "git diff --check -- tests/highdim/test_p45_cross_model_error_calibration.py docs/plans/bayesfilter-highdim-zhao-cui-p45-cross-model-error-calibration-2026-06-08.json",
+      "exit_code": 0,
+      "log_path": "docs/plans/logs/p45-codex-supervised-20260608-055034-P45-M5-command3.log"
+    }
+  ],
+  "diagnostics": {
+    "veto_status": "NONCLAIM_RECORDED",
+    "summary": "M5 records no promoted same-target rows and preserves absent equality metrics for M2--M4 blockers."
+  },
+  "review_loops": {
+    "claude_code_governance": {
+      "iterations": 1,
+      "verdict": "PASS_P45_M5_CODE_GOVERNANCE"
+    },
+    "repair": {
+      "iterations": 0,
+      "verdict": "N/A"
+    }
+  },
+  "long_run_controls": {
+    "long_run_used": false,
+    "resource_caps": "No long run; CPU-only focused tests and artifact validation.",
+    "pre_mortem": "N/A"
+  }
+}

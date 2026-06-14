@@ -1,0 +1,89 @@
+{
+  "schema_version": "p45.phase_evidence.v1",
+  "run_id": "p45-codex-supervised-20260608-055034",
+  "phase": "P45-M4",
+  "pass_token": "PASS_P45_M4_CODE_GOVERNANCE",
+  "status": "PASS_P45_M4_CODE_GOVERNANCE",
+  "artifact_paths": {
+    "result_note": "docs/plans/bayesfilter-highdim-zhao-cui-p45-phase4-predator-prey-comparison-result-2026-06-08.md",
+    "claude_review_ledger": "docs/plans/bayesfilter-highdim-zhao-cui-p45-phase4-predator-prey-comparison-claude-review-ledger-2026-06-08.md",
+    "evidence_manifest": "docs/plans/bayesfilter-highdim-zhao-cui-p45-phase4-predator-prey-comparison-evidence-manifest-p45-codex-supervised-20260608-055034.json",
+    "blocker_tests": "tests/highdim/test_p45_predator_prey_comparison_blocker.py",
+    "target_registry": "docs/plans/bayesfilter-highdim-zhao-cui-p45-target-registry-2026-06-08.json",
+    "m1_result": "docs/plans/bayesfilter-highdim-zhao-cui-p45-phase1-multistate-zhaocui-route-result-2026-06-08.md"
+  },
+  "evidence_chain": {
+    "PHASE_PLAN_CONFIRMED": true,
+    "SKEPTICAL_AUDIT_RECORDED": true,
+    "CLAUDE_PLAN_OR_REPAIR_REVIEW_PASS": true,
+    "IMPLEMENTED": true,
+    "LOCAL_EVIDENCE_RUN": true,
+    "EVIDENCE_AUDIT_RECORDED": true,
+    "RESULT_NOTE_WRITTEN": true,
+    "CLAUDE_CODE_GOVERNANCE_PASS": true,
+    "TRACEABILITY_UPDATED_OR_NONCLAIM_RECORDED": true,
+    "PHASE_PASS": true
+  },
+  "evidence_contract": {
+    "question": "Can the declared predator-prey target be evaluated by CUT4, Zhao-Cui/fixed-design TT, and a reference route without changing the ODE transition, parameterization, or observation model?",
+    "baseline_or_comparator": "P45-M0 target registry and P45-M1 scalar-only Zhao-Cui blocker. Current predator-prey evidence is RK4 closure diagnostic only.",
+    "primary_promotion_criterion": "Same-target promotion requires matched ODE/RK4 convention, target, reference, CUT4 route, Zhao-Cui route, observations, parameter vector, and score checks; otherwise record blocker/nonclaim.",
+    "veto_diagnostics": [
+      "ODE solver or time step differs across methods",
+      "wall-time or ESS proxy promoted without matched value/score evidence",
+      "finite CUT4 diagnostic score treated as production score API readiness",
+      "no matched Zhao-Cui route exists"
+    ],
+    "explanatory_only_diagnostics": [
+      "pytest blocker tests",
+      "compile check",
+      "diff whitespace check",
+      "TFP deprecation warnings"
+    ],
+    "nonclaims": [
+      "no native predator-prey filtering correctness",
+      "no nonlinear preconditioning usefulness claim",
+      "no CUT4--Zhao-Cui equality",
+      "no HMC readiness"
+    ]
+  },
+  "commands": [
+    {
+      "purpose": "Run P45-M4 predator-prey blocker/nonclaim tests with inherited M0--M3 governance tests.",
+      "command": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp pytest -q tests/highdim/test_p45_target_registry.py tests/highdim/test_p45_multistate_zhaocui_route.py tests/highdim/test_p45_generalized_sv_comparison_blocker.py tests/highdim/test_p45_spatial_sir_comparison_blocker.py tests/highdim/test_p45_predator_prey_comparison_blocker.py",
+      "exit_code": 0,
+      "log_path": "docs/plans/logs/p45-codex-supervised-20260608-055034-P45-M4-command0.log"
+    },
+    {
+      "purpose": "Compile the P45-M4 predator-prey blocker test.",
+      "command": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp python -m compileall -q tests/highdim/test_p45_predator_prey_comparison_blocker.py",
+      "exit_code": 0,
+      "log_path": "docs/plans/logs/p45-codex-supervised-20260608-055034-P45-M4-command1.log"
+    },
+    {
+      "purpose": "Check whitespace safety for the P45-M4 test artifact.",
+      "command": "git diff --check -- tests/highdim/test_p45_predator_prey_comparison_blocker.py",
+      "exit_code": 0,
+      "log_path": "docs/plans/logs/p45-codex-supervised-20260608-055034-P45-M4-command2.log"
+    }
+  ],
+  "diagnostics": {
+    "veto_status": "NONCLAIM_RECORDED",
+    "summary": "M4 records predator-prey same-target equality as blocked under current code and preserves RK4 closure-vs-native plus factorized replicated-panel boundaries."
+  },
+  "review_loops": {
+    "claude_code_governance": {
+      "iterations": 1,
+      "verdict": "PASS_P45_M4_CODE_GOVERNANCE"
+    },
+    "repair": {
+      "iterations": 0,
+      "verdict": "N/A"
+    }
+  },
+  "long_run_controls": {
+    "long_run_used": false,
+    "resource_caps": "No long run; CPU-only focused tests and artifact validation.",
+    "pre_mortem": "N/A"
+  }
+}

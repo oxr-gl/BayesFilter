@@ -224,6 +224,141 @@ The important mathematical point is that EDH/PF and LEDH/PF are not merely flow
 algorithms.  They are proposal-corrected particle methods.  That is why they
 occupy a different target-status category from raw flow transport.
 
+\section{Li--Coates Algorithm 1 as an implementation contract}
+\label{sec:bf-pfpf-li-coates-algorithm-contract}
+
+Algorithm~1 of \citet{li2017particle} is more specific than the generic
+proposal-correction derivation above.  It is a recursive particle filter in
+which each particle carries both a state and a covariance object.  For
+BayesFilter, this algorithm must be read as an implementation contract, not as
+a vague instruction to apply a deterministic affine map.
+
+At the start of time step $k$, particle $i$ has an ancestor
+$x_{k-1}^i$, an importance weight $w_{k-1}^i$, and a posterior covariance
+$P_{k-1}^i$ inherited from the previous time step.  The covariance lifecycle in
+Algorithm~1 is
+\begin{equation}
+\label{eq:bf-pfpf-alg1-covariance-lifecycle}
+  (x_{k-1}^i,P_{k-1}^i)
+  \xrightarrow{\mathrm{EKF/UKF\ prediction}}
+  (m_{k|k-1}^i,P^i)
+  \xrightarrow{\mathrm{EKF/UKF\ update}}
+  (m_{k|k}^i,P_k^i).
+\end{equation}
+The source states that EKF or UKF covariance prediction equations may be used
+when the dynamic model is nonlinear.  The source does not make optimal
+transport resampling part of Algorithm~1, and it should not be cited as
+evidence for any BayesFilter OT relaxation.  In the BayesFilter rebuild, using
+UKF for the prediction and update arrows in
+\eqref{eq:bf-pfpf-alg1-covariance-lifecycle} is a reviewed implementation
+choice requested for this program; it is not a claim that the paper's reported
+experiments used UKF in every scenario.
+
+After the prediction arrow, Algorithm~1 defines two distinct state objects:
+\begin{align}
+\label{eq:bf-pfpf-alg1-zero-noise-anchor}
+  \bar\eta_0^i &= g_k(x_{k-1}^i,0),\\
+\label{eq:bf-pfpf-alg1-preflo-sample}
+  \eta_0^i &= g_k(x_{k-1}^i,v_k).
+\end{align}
+The first is the zero-noise transition anchor used to drive the local
+linearization.  The second is the actual pre-flow proposal particle drawn
+through the dynamic model.  The implementation must keep both objects.  If the
+code transports only the actual proposal and never maintains the auxiliary
+zero-noise path, then the local Jacobian field is not the one specified by
+Algorithm~1.
+
+For pseudo-time grid
+$0=\lambda_0<\lambda_1<\cdots<\lambda_{N_\lambda}=1$ with
+$\epsilon_j=\lambda_j-\lambda_{j-1}$, Algorithm~1 repeats the following
+particle-specific update.  Set $P=P^i$ and compute
+$A_j^i(\lambda_j)$ and $b_j^i(\lambda_j)$ from the LEDH formulas using the
+linearization at the current auxiliary state $\bar\eta^i$.  Then move the
+auxiliary and actual states by the same local affine step:
+\begin{align}
+\label{eq:bf-pfpf-alg1-auxiliary-step}
+  \bar\eta^i
+  &\leftarrow
+  \bar\eta^i
+  +\epsilon_j\{A_j^i(\lambda_j)\bar\eta^i+b_j^i(\lambda_j)\},\\
+\label{eq:bf-pfpf-alg1-actual-step}
+  \eta_1^i
+  &\leftarrow
+  \eta_1^i
+  +\epsilon_j\{A_j^i(\lambda_j)\eta_1^i+b_j^i(\lambda_j)\}.
+\end{align}
+At the same pseudo-time step, the forward determinant multiplier is accumulated
+as
+\begin{equation}
+\label{eq:bf-pfpf-alg1-theta-product}
+  \theta^i
+  \leftarrow
+  \theta^i
+  \left|\det\{I+\epsilon_j A_j^i(\lambda_j)\}\right|,
+  \qquad
+  \theta^i_0=1.
+\end{equation}
+Thus, at the end of the pseudo-time integration,
+\begin{equation}
+\label{eq:bf-pfpf-alg1-det-product}
+  \theta^i
+  =
+  \prod_{j=1}^{N_\lambda}
+  \left|\det\{I+\epsilon_j A_j^i(\lambda_j)\}\right|.
+\end{equation}
+This is the discrete Algorithm~1 version of the forward determinant in
+\eqref{eq:bf-pfpf-weight}.  It is particle-specific because the LEDH
+coefficients are particle-specific.
+
+After the flow, Algorithm~1 sets $x_k^i=\eta_1^i$ and applies the PF-PF
+importance update
+\begin{equation}
+\label{eq:bf-pfpf-alg1-weight}
+  w_k^i
+  \propto
+  \frac{
+    p(x_k^i\mid x_{k-1}^i)
+    p(z_k\mid x_k^i)
+    \theta^i
+  }{
+    p(\eta_0^i\mid x_{k-1}^i)
+  }
+  w_{k-1}^i .
+\end{equation}
+The denominator is the density of the pre-flow transition sample, while the
+transition density in the numerator is evaluated at the post-flow particle
+$x_k^i$.  Replacing both densities by the same value, dropping $\theta^i$, or
+using a determinant from a different map changes the proposal-to-target ratio.
+
+Finally, the weights are normalized, the EKF/UKF update produces
+$P_k^i$, and any resampling step resamples the triple
+\begin{equation}
+\label{eq:bf-pfpf-alg1-resampling-triple}
+  \{x_k^i,P_k^i,w_k^i\}_{i=1}^{N_p}.
+\end{equation}
+The covariance component is part of the particle state for the next recursion.
+Resampling only the states while leaving covariances in their old order breaks
+the Algorithm~1 lifecycle.  Likewise, introducing differentiable or optimal
+transport resampling may be a BayesFilter extension, but it must be labelled as
+an extension and audited separately from the Li--Coates source algorithm.
+
+These details give a sharper audit checklist than the generic PF-PF equations:
+\begin{enumerate}[label=(\roman*)]
+  \item each particle has its own $P_{k-1}^i$, predicted $P^i$, and updated
+    $P_k^i$;
+  \item the local LEDH Jacobian is evaluated along the particle's auxiliary
+    zero-noise path;
+  \item the actual proposal particle and the auxiliary path are both migrated;
+  \item the determinant product in
+    \eqref{eq:bf-pfpf-alg1-det-product} uses the same local matrices that
+    migrated the actual proposal particle;
+  \item the weight uses the post-flow transition density, the observation
+    density, the determinant product, the pre-flow proposal density, and the
+    previous particle weight;
+  \item resampling, if used, resamples covariances together with states and
+    weights.
+\end{enumerate}
+
 \section{Jacobian determinant and log-determinant evolution}
 \label{sec:bf-pfpf-logdet}
 

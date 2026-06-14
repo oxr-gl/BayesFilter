@@ -1,0 +1,91 @@
+{
+  "schema_version": "p44.phase_evidence.v1",
+  "run_id": "p44-codex-supervised-20260608-013203",
+  "phase": "P44-M6",
+  "pass_token": "PASS_P44_M6_CODE_GOVERNANCE",
+  "status": "PASS_P44_M6_CODE_GOVERNANCE",
+  "artifact_paths": {
+    "result_note": "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase6-predator-prey-diagnostic-result-2026-06-07.md",
+    "claude_review_ledger": "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase6-predator-prey-diagnostic-claude-review-ledger-2026-06-07.md",
+    "evidence_manifest": "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase6-predator-prey-diagnostic-evidence-manifest-p44-codex-supervised-20260608-013203.json",
+    "test_file": "tests/highdim/test_p44_predator_prey_diagnostic.py"
+  },
+  "evidence_chain": {
+    "PHASE_PLAN_CONFIRMED": true,
+    "SKEPTICAL_AUDIT_RECORDED": true,
+    "CLAUDE_PLAN_OR_REPAIR_REVIEW_PASS": true,
+    "IMPLEMENTED": true,
+    "LOCAL_EVIDENCE_RUN": true,
+    "EVIDENCE_AUDIT_RECORDED": true,
+    "RESULT_NOTE_WRITTEN": true,
+    "CLAUDE_CODE_GOVERNANCE_PASS": true,
+    "TRACEABILITY_UPDATED_OR_NONCLAIM_RECORDED": true,
+    "PHASE_PASS": true
+  },
+  "evidence_contract": {
+    "question": "For the existing two-state predator-prey fixture, can CUT4 evaluate a finite additive-Gaussian closure value and diagnostic parameter score while preserving the blocked nonlinear-preconditioning usefulness boundary?",
+    "baseline_or_comparator": "PredatorPreySSM model-contract tests are the governing anchor; CUT4 is a clean-room additive-Gaussian diagnostic closure; no matched Zhao--Cui predator-prey equality target exists in this phase; P30PredatorPreyComparisonManifest is used only for fair-comparison blockers.",
+    "primary_promotion_criterion": "PredatorPreySSM source/model-contract metadata is present; domain diagnostics surface failures; CUT4 closure value and diagnostic TensorFlow autodiff parameter score are finite; CUT4 metadata stays within two-state/horizon-2/augmented-dim-4/point-count-24 caps; absence of a matched Zhao--Cui equality route is executable; fair-comparison manifest rejects unmatched budgets and cost-free ESS promotion.",
+    "veto_diagnostics": [
+      "unmatched budgets or parameter settings",
+      "ODE domain failure or nonfinite likelihood",
+      "cost-free ESS promotion",
+      "diagnostic closure described as paper-scale predator-prey validation",
+      "CUT4-vs-Zhao--Cui equality claimed without a matched shared closure target",
+      "finite diagnostic score promoted as production score API readiness"
+    ],
+    "explanatory_only_diagnostics": [
+      "TensorFlow warning logs",
+      "wall time",
+      "CUT4 point count",
+      "CUT4 polynomial degree",
+      "diagnostic score norm",
+      "manifest schema checks"
+    ],
+    "artifact_preserving_result": "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase6-predator-prey-diagnostic-result-2026-06-07.md plus docs/plans/bayesfilter-highdim-zhao-cui-p44-phase6-predator-prey-diagnostic-evidence-manifest-p44-codex-supervised-20260608-013203.json and docs/plans/logs/p44-codex-supervised-20260608-013203-P44-M6-command0.log",
+    "nonclaims": [
+      "no nonlinear preconditioning usefulness",
+      "no matched linear/nonlinear comparison success",
+      "no CUT4-vs-Zhao--Cui equality",
+      "no paper-scale predator-prey validation",
+      "no adaptive MATLAB behavior",
+      "no GPU readiness",
+      "no HMC readiness",
+      "no DSGE readiness",
+      "no stable public API or score API readiness"
+    ]
+  },
+  "commands": [
+    {
+      "purpose": "Run focused P44-M6 predator-prey diagnostic closure evidence for model-contract anchors, finite CUT4 value/parameter score, metadata boundary, no matched Zhao--Cui equality route, and fair-comparison blockers.",
+      "command": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp pytest -q -s tests/highdim/test_p44_predator_prey_diagnostic.py",
+      "exit_code": 0,
+      "log_path": "docs/plans/logs/p44-codex-supervised-20260608-013203-P44-M6-command0.log"
+    },
+    {
+      "purpose": "Compile highdim package and the focused M6 test file.",
+      "command": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp python -m compileall -q bayesfilter/highdim tests/highdim/test_p44_predator_prey_diagnostic.py",
+      "exit_code": 0,
+      "log_path": "docs/plans/logs/p44-codex-supervised-20260608-013203-P44-M6-command1.log"
+    }
+  ],
+  "diagnostics": {
+    "veto_status": "NONCLAIM_RECORDED",
+    "summary": "Local M6 evidence is diagnostic-only. Focused pytest reports 5 passed. CUT4 diagnostic value is -1.442440e+02 and diagnostic score norm is 4.194142e+02. Metadata records augmented_dim 4, point_count 24, polynomial_degree 5, and no innovation-floor events. The highdim fixed-branch value route rejects non-scalar predator-prey, so no Zhao--Cui equality row is run; fair-comparison manifest blockers reject unmatched budgets and proxy-only promotion."
+  },
+  "review_loops": {
+    "claude_code_governance": {
+      "iterations": 1,
+      "verdict": "PASS_P44_M6_CODE_GOVERNANCE"
+    },
+    "repair": {
+      "iterations": 0,
+      "verdict": "NOT_NEEDED"
+    }
+  },
+  "long_run_controls": {
+    "long_run_used": false,
+    "resource_caps": "No long run; two-state fixture, horizon 2, CPU-only focused local pytest and compile check only.",
+    "pre_mortem": "N/A"
+  }
+}

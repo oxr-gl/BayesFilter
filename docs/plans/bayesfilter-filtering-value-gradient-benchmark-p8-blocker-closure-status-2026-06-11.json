@@ -1,0 +1,672 @@
+{
+  "schema_version": "filter_bench.p8_blocker_closure_status.v1",
+  "metadata_date": "2026-06-11",
+  "phase": "FILTER_BENCH_P8_BLOCKER_CLOSURE",
+  "status": "PASS_P8_BLOCKER_CLOSURE_STATUS_MANIFEST_WITH_REMAINING_BLOCKERS",
+  "numeric_benchmark_status": "BLOCK_P8_NUMERIC_BENCHMARK_NOT_YET_RUN",
+  "purpose": "Execute the first reviewed P8 blocker-closure slice: materialize the source-truth readiness ledger, preserve real row-level blockers, and define the remaining execution gates without proxy promotion. The manifest now also carries the reviewed P8-B2 partial dataset generation pass.",
+  "source_artifacts": {
+    "plan": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8-blocker-closure-master-plan-2026-06-11.md",
+    "source_scope_contract": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-source-paper-scope-contract-2026-06-11.json",
+    "generalized_sv_spec": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-generalized-sv-testing-spec-2026-06-11.json",
+    "p8_synthetic_truth_contract": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8-synthetic-truth-contract-2026-06-11.json",
+    "p58_sir_blocker_ledger": "docs/plans/bayesfilter-highdim-zhao-cui-p58-m9-source-route-pipeline-blocker-ledger-2026-06-11.md",
+    "p59_9a_result": "docs/plans/bayesfilter-highdim-zhao-cui-p59-9a-author-sir-36d-target-fit-result-2026-06-11.md",
+    "p59_9b_result": "docs/plans/bayesfilter-highdim-zhao-cui-p59-9b-source-route-step-spec-assembly-result-2026-06-11.md",
+    "p59_9c_result": "docs/plans/bayesfilter-highdim-zhao-cui-p59-9c-preconditioned-route-integration-result-2026-06-11.md",
+    "p59_9d_result": "docs/plans/bayesfilter-highdim-zhao-cui-p59-9d-runner-manifest-path-result-2026-06-11.md",
+    "p59_9e_result": "docs/plans/bayesfilter-highdim-zhao-cui-p59-9e-validation-ladder-result-2026-06-11.md",
+    "p8_b2_dataset_manifest": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8-synthetic-dataset-manifest-2026-06-11.json",
+    "p8_b2_dataset_result": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8-synthetic-dataset-result-2026-06-11.md",
+    "p8_blocker_fix_gates": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8-blocker-fix-gates-2026-06-11.json"
+  },
+  "role_contract": {
+    "supervisor_and_executor": "Codex in this dialogue",
+    "reviewer": "Claude Code read-only",
+    "detached_codex_agent_allowed": false
+  },
+  "truth_manifest": [
+    {
+      "model_row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+      "model_family": "linear_gaussian_state_space",
+      "truth_status": "accepted_source_truth_available",
+      "blocker_token": null,
+      "numeric_readiness": "reviewed_evaluator_pending",
+      "source_scope_numeric_readiness": "reviewed_evaluator_pending",
+      "truth_or_test_values": {
+        "benchmark_policy": "User-amended exact-oracle LGSSM row. Any valid identifiable LGSSM is admissible; this row does not claim to reproduce the Zhao-Cui MATLAB rng(0); rand(3,3) observation matrix.",
+        "state_dim": 3,
+        "observation_dim": 3,
+        "horizon": 50,
+        "estimated_parameters": [
+          "phi1",
+          "phi2",
+          "phi3",
+          "q_scale",
+          "r_scale"
+        ],
+        "truth": {
+          "phi1": 0.72,
+          "phi2": 0.55,
+          "phi3": 0.35,
+          "q_scale": 0.35,
+          "r_scale": 0.45
+        },
+        "prior": {
+          "type": "benchmark_box",
+          "lower": {
+            "phi1": -0.95,
+            "phi2": -0.95,
+            "phi3": -0.95,
+            "q_scale": 0.05,
+            "r_scale": 0.05
+          },
+          "upper": {
+            "phi1": 0.95,
+            "phi2": 0.95,
+            "phi3": 0.95,
+            "q_scale": 2.0,
+            "r_scale": 2.0
+          }
+        },
+        "transition_matrix": [
+          [
+            0.72,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.55,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.35
+          ]
+        ],
+        "observation_matrix": [
+          [
+            1.0,
+            0.25,
+            -0.15
+          ],
+          [
+            0.2,
+            1.1,
+            0.3
+          ],
+          [
+            -0.1,
+            0.35,
+            0.9
+          ]
+        ],
+        "process_covariance": [
+          [
+            0.1225,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.1225,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.1225
+          ]
+        ],
+        "observation_covariance": [
+          [
+            0.2025,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.2025,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.2025
+          ]
+        ],
+        "initial_mean": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "initial_covariance_policy": "stationary diagonal covariance q_scale^2 / (1 - phi_i^2)",
+        "identifiability_diagnostics": {
+          "transition_spectral_radius": 0.72,
+          "observation_matrix_rank": 3,
+          "observation_matrix_full_rank": true,
+          "positive_process_and_observation_covariances": true
+        }
+      },
+      "source_anchors": [
+        "user amendment in dialogue on 2026-06-12: LGSSM may use any valid identifiable exact-oracle model",
+        "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8-lgssm-oracle-amendment-result-2026-06-12.md"
+      ],
+      "nonclaims": []
+    },
+    {
+      "model_row_id": "zhao_cui_sv_actual_nongaussian_T1000",
+      "model_family": "stochastic_volatility_transformed_actual_nongaussian",
+      "truth_status": "accepted_source_truth_available",
+      "blocker_token": null,
+      "numeric_readiness": "reviewed_evaluator_pending",
+      "source_scope_numeric_readiness": "reviewed_evaluator_pending",
+      "truth_or_test_values": {
+        "state_dim": 1,
+        "observation_dim": 1,
+        "horizon": 1000,
+        "fixed_sigma": 1.0,
+        "estimated_parameters": [
+          "gamma",
+          "beta"
+        ],
+        "truth": {
+          "gamma": 0.6,
+          "beta": 0.4
+        },
+        "prior": {
+          "type": "uniform_box",
+          "lower": {
+            "gamma": 0.1,
+            "beta": 0.1
+          },
+          "upper": {
+            "gamma": 0.9,
+            "beta": 0.9
+          }
+        },
+        "initial_state_prior": "x0 | theta ~ N(0, 1 / (1 - gamma^2))"
+      },
+      "source_anchors": [
+        "docs/plans/bayesfilter-p10-truth-prior-literature-audit-result-2026-06-11.md",
+        "third_party/audit/zhao_cui_tensor_ssm_p10/source/eg2_sv/mainscript.m",
+        "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/sv/setup.m"
+      ],
+      "nonclaims": []
+    },
+    {
+      "model_row_id": "zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000",
+      "model_family": "stochastic_volatility_ksc_gaussian_mixture_surrogate",
+      "truth_status": "accepted_source_truth_available",
+      "blocker_token": null,
+      "numeric_readiness": "reviewed_evaluator_pending",
+      "source_scope_numeric_readiness": "reviewed_evaluator_pending",
+      "truth_or_test_values": {
+        "state_dim": 1,
+        "observation_dim": 1,
+        "horizon": 1000,
+        "fixed_sigma": 1.0,
+        "estimated_parameters": [
+          "gamma",
+          "beta"
+        ],
+        "truth": {
+          "gamma": 0.6,
+          "beta": 0.4
+        },
+        "prior": {
+          "type": "uniform_box",
+          "lower": {
+            "gamma": 0.1,
+            "beta": 0.1
+          },
+          "upper": {
+            "gamma": 0.9,
+            "beta": 0.9
+          }
+        },
+        "surrogate_policy": "same SV truth values; Gaussian-mixture observation target is reported as a surrogate, not the actual non-Gaussian target"
+      },
+      "source_anchors": [
+        "docs/plans/bayesfilter-p10-truth-prior-literature-audit-result-2026-06-11.md",
+        "third_party/audit/zhao_cui_tensor_ssm_p10/source/eg2_sv/mainscript.m",
+        "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/sv/setup.m"
+      ],
+      "nonclaims": []
+    },
+    {
+      "model_row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+      "model_family": "spatial_sir_austria_fixed_parameter",
+      "truth_status": "accepted_source_truth_available",
+      "blocker_token": null,
+      "numeric_readiness": "source_route_execution_only_ready_numeric_pending",
+      "source_scope_numeric_readiness": "blocked_value_route_pending_rank_selection_repair",
+      "truth_or_test_values": {
+        "J": 9,
+        "state_dim": 18,
+        "observation_dim": 9,
+        "horizon": 20,
+        "theta_dimension": 0,
+        "fixed_parameters": {
+          "kappa": [
+            0.1,
+            0.1,
+            0.1,
+            0.1,
+            0.1,
+            0.1,
+            0.1,
+            0.1,
+            0.1
+          ],
+          "nu": [
+            18.0,
+            18.0,
+            18.0,
+            18.0,
+            18.0,
+            18.0,
+            18.0,
+            18.0,
+            18.0
+          ],
+          "delta": 0.02,
+          "rk4_internal_step": 0.005,
+          "process_covariance": "identity_18x18",
+          "observation_covariance": "100 * identity_9x9",
+          "initial_covariance": "identity_18x18",
+          "initial_mean": [
+            486.0,
+            14.0,
+            487.0,
+            13.0,
+            488.0,
+            12.0,
+            489.0,
+            11.0,
+            490.0,
+            10.0,
+            491.0,
+            9.0,
+            492.0,
+            8.0,
+            493.0,
+            7.0,
+            494.0,
+            6.0
+          ]
+        }
+      },
+      "source_anchors": [
+        "docs/plans/bayesfilter-p10-truth-prior-literature-audit-result-2026-06-11.md",
+        "third_party/audit/zhao_cui_tensor_ssm_p10/source/eg3_sir/mainscript.m",
+        "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/sir_austria/setup.mlx"
+      ],
+      "nonclaims": []
+    },
+    {
+      "model_row_id": "zhao_cui_predator_prey_T20",
+      "model_family": "predator_prey_additive_gaussian",
+      "truth_status": "accepted_source_truth_available",
+      "blocker_token": null,
+      "numeric_readiness": "reviewed_evaluator_pending",
+      "source_scope_numeric_readiness": "reviewed_evaluator_pending",
+      "truth_or_test_values": {
+        "state_dim": 2,
+        "observation_dim": 2,
+        "horizon": 20,
+        "initial_state": [
+          50.0,
+          5.0
+        ],
+        "process_covariance": "4 * identity_2x2",
+        "observation_covariance": "4 * identity_2x2",
+        "paper_physical_truth": {
+          "r": 0.6,
+          "K": 114.0,
+          "a": 25.0,
+          "s": 0.3,
+          "u": 0.5,
+          "v": 0.5
+        },
+        "author_code_normalized_truth": [
+          0.6,
+          1.2,
+          0.5,
+          0.3,
+          0.5,
+          0.5
+        ],
+        "author_code_ncons": [
+          0.1,
+          1.0,
+          0.1,
+          0.1,
+          0.0,
+          0.0
+        ],
+        "normalization_notes": {
+          "K": "physical K = 90 + 20 * 1.2 = 114",
+          "a": "physical a = 20 + 10 * 0.5 = 25"
+        },
+        "prior_box_physical": {
+          "lower": {
+            "r": 0.1,
+            "K": 110.0,
+            "a": 20.0,
+            "s": 0.1,
+            "u": 0.0,
+            "v": 0.0
+          },
+          "upper": {
+            "r": 1.1,
+            "K": 130.0,
+            "a": 30.0,
+            "s": 1.1,
+            "u": 1.0,
+            "v": 1.0
+          }
+        }
+      },
+      "source_anchors": [
+        "docs/plans/bayesfilter-p10-truth-prior-literature-audit-result-2026-06-11.md",
+        "third_party/audit/zhao_cui_tensor_ssm_p10/source/eg4_predatorprey/mainscript.m",
+        "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/pp/setup.mlx",
+        "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/pp/truetheta.mlx"
+      ],
+      "nonclaims": []
+    },
+    {
+      "model_row_id": "zhao_cui_generalized_sv_synthetic_from_estimated_values",
+      "model_family": "generalized_stochastic_volatility_svmodels_synthetic",
+      "truth_status": "accepted_source_prior_mean_test_point_available",
+      "blocker_token": null,
+      "numeric_readiness": "reviewed_evaluator_pending",
+      "source_scope_numeric_readiness": "reviewed_evaluator_pending",
+      "truth_or_test_values": {
+        "benchmark_data_policy": "generate synthetic data from the finite-coordinate mean of the Zhao-Cui S&P 500 prior distribution; do not use SP500 returns as benchmark data",
+        "source_real_data_role": "SP500 returns are source-estimation input only, not the benchmark data series for this amended synthetic row",
+        "legacy_row_id_note": "The row id retains 'estimated_values' for compatibility with existing P8 artifacts; the current truth/test point is the S&P prior mean convention, not a posterior estimate.",
+        "state_dim": 1,
+        "observation_dim": 1,
+        "horizon": 1008,
+        "source_author_route": "svmodels",
+        "parameter_order": [
+          "gamma",
+          "tau",
+          "mu",
+          "phi",
+          "a",
+          "delta",
+          "nu1",
+          "nu2"
+        ],
+        "estimated_indices": [
+          1,
+          2,
+          3
+        ],
+        "estimated_parameters": [
+          "gamma",
+          "tau",
+          "mu"
+        ],
+        "paper_prior_contract": {
+          "(gamma+1)/2": "Beta(20, 1.5)",
+          "sigma_squared": "IG(1, 0.005)",
+          "log_beta_given_sigma": "Normal(0, sigma^2 / 0.8)",
+          "initial_state": "X0 | gamma, sigma ~ Normal(0, sigma^2 / (1 - gamma^2))"
+        },
+        "prior_mean_test_point": {
+          "status": "ready",
+          "mean_convention": "finite-coordinate prior center: E[(gamma+1)/2], E[sigma], and E[log(beta)/sigma]=0",
+          "physical_values": {
+            "gamma": 0.8604651162790697,
+            "tau_or_sigma": 0.12533141373155002,
+            "mu_or_log_beta_center_coordinate": 0.0,
+            "phi": 0.0,
+            "a": 0.0,
+            "delta": 0.0,
+            "nu1": "inf",
+            "nu2": "inf"
+          },
+          "transformed_active_values": [
+            1.0824113944610982,
+            -2.076793740349318,
+            0.0
+          ],
+          "nonfinite_mean_caveats": [
+            "E[sigma^2] is infinite under IG(shape=1, scale=0.005).",
+            "The ordinary unconditional E[beta] is not used.",
+            "This is not a posterior estimate from SP500 returns."
+          ]
+        },
+        "author_code_defaults_not_estimates": {
+          "gamma": 0.95,
+          "tau": {
+            "expression": "sqrt(3/64)",
+            "value": 0.21650635094610965
+          },
+          "mu": 0.0,
+          "phi": 0.0,
+          "a": 0.0,
+          "delta": 0.0,
+          "nu1": "inf",
+          "nu2": "inf"
+        },
+        "source_route_transform_notes": {
+          "gamma": "ftt2true uses normcdf, so physical gamma is in (0, 1)",
+          "tau": "ftt2true uses exp",
+          "mu_phi_a": "when estimated, ftt2true multiplies the transformed coordinate by tau",
+          "paper_code_coordinate_caveat": "the paper writes log(beta)/sigma as the third active coordinate, while the mirrored svmodels code names the third coordinate mu; both centers are zero for this test point",
+          "delta": "ftt2true uses 4 * (normcdf(x) - 0.5)",
+          "nu": "ftt2true uses 5 * x + 20"
+        },
+        "testing_spec": {
+          "json": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-generalized-sv-testing-spec-2026-06-11.json",
+          "markdown": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-generalized-sv-testing-spec-2026-06-11.md"
+        }
+      },
+      "source_anchors": [
+        ".local_sources/highdim_nonlinear_filtering/zhao_cui_tt_sequential_learning_jmlr_23-0743.pdf",
+        "third_party/audit/zhao_cui_tensor_ssm_p10/source/eg2_sv/mainscriptSP500.m",
+        "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/svmodels/setup.m",
+        "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/svmodels/ftt2true.m",
+        "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/svmodels/true2ftt.m",
+        "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/svmodels/st_process.m",
+        "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/svmodels/ob_process.m",
+        "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/svmodels/like.m"
+      ],
+      "nonclaims": [
+        "not a posterior estimate from SP500 returns",
+        "author defaults are not accepted truth",
+        "SP500 returns are not benchmark observations"
+      ]
+    }
+  ],
+  "truth_status_counts": {
+    "accepted_source_truth_available": 5,
+    "accepted_source_prior_mean_test_point_available": 1
+  },
+  "blockers": [
+    {
+      "blocker_id": "P8-B1",
+      "name": "Source truth and generalized-SV prior-mean gate",
+      "status": "pass_source_truth_manifest_ready",
+      "pass_token": "PASS_P8_B1_SOURCE_TRUTH_MANIFEST_READY",
+      "block_token": "",
+      "remaining_work": "No source-truth/test-point row block remains; generalized SV uses the reviewed Zhao-Cui S&P prior-mean convention."
+    },
+    {
+      "blocker_id": "P8-B2",
+      "name": "Synthetic datasets",
+      "status": "pass_dataset_manifest_ready",
+      "pass_token": "PASS_P8_B2_SYNTHETIC_DATASET_MANIFEST_READY",
+      "block_token": "",
+      "remaining_work": "Synthetic data manifests exist for the benchmark exact-oracle LGSSM, SV actual, SV KSC surrogate, raw SIR, predator-prey, and generalized-SV prior-mean rows."
+    },
+    {
+      "blocker_id": "P8-B3",
+      "name": "Horizon calibration",
+      "status": "protocol_ready_numeric_pending",
+      "pass_token": "PASS_P8_B3_HORIZON_PROTOCOL_READY_NUMERIC_PENDING",
+      "block_token": "BLOCK_P8_B3_NUMERIC_HORIZON_CALIBRATION_PENDING",
+      "remaining_work": "Protocol gate exists for source-paper horizons and long-run variance estimators; measured horizon calibration remains pending."
+    },
+    {
+      "blocker_id": "P8-B4",
+      "name": "Stochastic seed calibration",
+      "status": "protocol_ready_numeric_pending",
+      "pass_token": "PASS_P8_B4_STOCHASTIC_PROTOCOL_READY_NUMERIC_PENDING",
+      "block_token": "BLOCK_P8_B4_NUMERIC_SEED_LADDER_PENDING",
+      "remaining_work": "DPF seed-ladder and MC-SE/data-SE rule gate exists; measured seed ladders remain pending before any DPF ranking."
+    },
+    {
+      "blocker_id": "P8-B5",
+      "name": "Evaluator and adapter closure",
+      "status": "adapter_status_matrix_ready_numeric_pending",
+      "pass_token": "PASS_P8_B5_ADAPTER_STATUS_MATRIX_READY_NUMERIC_PENDING",
+      "block_token": "BLOCK_P8_B5_NUMERIC_EVALUATOR_RUN_PENDING",
+      "remaining_work": "No-silent-hole adapter status matrix exists; reviewed numeric value/score/curvature evaluator execution remains pending."
+    },
+    {
+      "blocker_id": "P8-B6",
+      "name": "Spatial SIR d=18 source route",
+      "status": "pass_execution_only_ready_numeric_pending",
+      "pass_token": "PASS_P8_B6_SPATIAL_SIR_D18_EXECUTION_ONLY_RECOGNIZED",
+      "block_token": "",
+      "remaining_work": "No row-level source-route hard block remains. P59-9e execution-only evidence is recognized with nonclaims; numeric evaluator execution and any accuracy/rank/scaling claims remain pending."
+    },
+    {
+      "blocker_id": "P8-B7",
+      "name": "Numeric benchmark runner and tables",
+      "status": "blocked_on_source_rows_and_numeric_evaluators",
+      "pass_token": "PASS_P8_B7_NUMERIC_BENCHMARK_RUNNER",
+      "block_token": "BLOCK_P8_B7_NUMERIC_BENCHMARK_RUNNER",
+      "remaining_work": "Run promoted source-paper rows across algorithms and emit value, componentwise score, curvature, failure, and stochastic uncertainty tables."
+    },
+    {
+      "blocker_id": "P8-B8",
+      "name": "Reviewed closeout",
+      "status": "pending_execution_review",
+      "pass_token": "PASS_P8_B8_REVIEWED_CLOSEOUT",
+      "block_token": "BLOCK_P8_B8_REVIEWED_CLOSEOUT",
+      "remaining_work": "Run Claude read-only execution review after artifacts are validated."
+    }
+  ],
+  "blocker_status_counts": {
+    "pass_source_truth_manifest_ready": 1,
+    "pass_dataset_manifest_ready": 1,
+    "protocol_ready_numeric_pending": 2,
+    "adapter_status_matrix_ready_numeric_pending": 1,
+    "pass_execution_only_ready_numeric_pending": 1,
+    "blocked_on_source_rows_and_numeric_evaluators": 1,
+    "pending_execution_review": 1
+  },
+  "row_level_blocks": {},
+  "sir_d18_execution_only_status": {
+    "status": "PASS_P8_B6_SPATIAL_SIR_D18_EXECUTION_ONLY_RECOGNIZED",
+    "readiness": "source_route_execution_only_ready_numeric_pending",
+    "artifact_statuses": {
+      "P59-9a": {
+        "artifact": "docs/plans/bayesfilter-highdim-zhao-cui-p59-9a-author-sir-36d-target-fit-result-2026-06-11.md",
+        "required_token": "PASS_P59_9A_AUTHOR_SIR_36D_TARGET_FIT_PREP",
+        "passed": true
+      },
+      "P59-9b": {
+        "artifact": "docs/plans/bayesfilter-highdim-zhao-cui-p59-9b-source-route-step-spec-assembly-result-2026-06-11.md",
+        "required_token": "PASS_P59_9B_SOURCE_ROUTE_STEP_SPEC_ASSEMBLY",
+        "passed": true
+      },
+      "P59-9c": {
+        "artifact": "docs/plans/bayesfilter-highdim-zhao-cui-p59-9c-preconditioned-route-integration-result-2026-06-11.md",
+        "required_token": "PASS_P59_9C_PRECONDITIONED_ROUTE_INTEGRATION",
+        "passed": true
+      },
+      "P59-9d": {
+        "artifact": "docs/plans/bayesfilter-highdim-zhao-cui-p59-9d-runner-manifest-path-result-2026-06-11.md",
+        "required_token": "PASS_P59_9D_RUNNER_MANIFEST_PATH",
+        "passed": true
+      },
+      "P59-9e": {
+        "artifact": "docs/plans/bayesfilter-highdim-zhao-cui-p59-9e-validation-ladder-result-2026-06-11.md",
+        "required_token": "PASS_P59_9E_D18_EXECUTION_ONLY",
+        "passed": true
+      }
+    },
+    "missing_phases": [],
+    "nonclaims": [
+      "not d18 filtering accuracy evidence",
+      "not same-route rank convergence evidence",
+      "not same-target correctness evidence",
+      "not d50 or d100 scaling evidence",
+      "not HMC production readiness",
+      "not adaptive Zhao-Cui parity",
+      "not UKF correctness comparator evidence"
+    ]
+  },
+  "generalized_sv_prior_mean_status": {
+    "status": "PASS_GENERALIZED_SV_PRIOR_MEAN_TEST_CASE_READY_NUMERIC_EVALUATOR_PENDING",
+    "reason": "Zhao-Cui S&P prior-mean synthetic test point is materialized; value/score evaluator execution remains pending.",
+    "nonclaims": [
+      "not a posterior estimate from SP500 returns",
+      "not a direct SP500 benchmark-data row",
+      "not a claim that sigma^2 or beta has a finite ordinary prior mean"
+    ]
+  },
+  "promotion_guardrails": {
+    "p44_rows_promoted": false,
+    "old_ledh_pfpf_ot_current_evidence_allowed": false,
+    "sir_old_local_operator_route_allowed": false,
+    "generalized_sv_author_defaults_as_truth_allowed": false,
+    "sp500_returns_as_benchmark_data_allowed": false,
+    "dpf_ranking_before_mc_se_allowed": false,
+    "uncertified_score_or_hessian_promotion_allowed": false,
+    "protocol_gate_counts_as_numeric_benchmark_allowed": false
+  },
+  "ready_for_numeric_benchmark": false,
+  "next_executable_phases": [
+    "generalized-SV prior-mean evaluator execution",
+    "P8-B7 numeric evaluator execution for nonblocked rows"
+  ],
+  "decision_table": [
+    {
+      "decision": "pass_source_truth_manifest_for_available_source_rows",
+      "primary_criterion": "source-paper truth values are carried from the source-scope contract with anchors",
+      "veto_diagnostics": "P44 rows, SP500 benchmark data, and author defaults are not promoted",
+      "main_uncertainty": "generalized-SV evaluator semantics, DPF MC-SE, and score/curvature provenance remain pending",
+      "next_justified_action": "continue P8-B7 numeric evaluator work",
+      "not_concluded": "numeric performance or filter ranking"
+    },
+    {
+      "decision": "keep_numeric_p8_blocked",
+      "primary_criterion": "reviewed numeric evaluator outputs are not yet complete",
+      "veto_diagnostics": "numeric benchmark remains blocked",
+      "main_uncertainty": "remaining implementation effort for numeric evaluators and adapters",
+      "next_justified_action": "execute P8-B7 numeric evaluator run",
+      "not_concluded": "Bayesian-estimation readiness or DPF gradient validity"
+    }
+  ],
+  "inherited_p8_scope_flags": {
+    "contract_emission_complete": true,
+    "numeric_benchmark_execution_complete": false,
+    "performance_answer_complete": false,
+    "accepted_truth_draws_generated": false,
+    "synthetic_datasets_generated": false,
+    "horizon_calibration_complete": false,
+    "stochastic_seed_calibration_complete": false,
+    "p7_preflight_used_as_performance_evidence": false,
+    "smoke_fixtures_used_as_performance_evidence": false,
+    "old_ledh_pfpf_ot_current_evidence": false
+  },
+  "nonclaims": [
+    "not a numeric benchmark result",
+    "not a filter ranking",
+    "not a DPF gradient certification",
+    "not generalized-SV evaluator correctness or performance evidence",
+    "not SIR d=18 filtering accuracy or rank-convergence evidence",
+    "not Bayesian-estimation readiness"
+  ]
+}

@@ -1,0 +1,126 @@
+{
+  "run_id": "dpf-v2-algorithm-full-comparison-live-20260608-012812",
+  "metadata_date": "2026-06-07",
+  "phase": "P0",
+  "status": "PASS_P0_READY_FOR_P1",
+  "root": "/home/chakwong/BayesFilter",
+  "git": {
+    "root_head": "137f6ba5a03ebab199c8ab4699354d50bd560123",
+    "root_dirty_status": "dirty",
+    "filterflow_head": "1e5fbc288c1c11fc18ba01bb4842832e2088b800",
+    "filterflow_status_short_line_count": 0,
+    "protected_dirty_tracked_manifest": "docs/plans/logs/dpf-v2-algorithm-full-comparison-live-20260608-012812/prelaunch-dirty-tracked.txt"
+  },
+  "environment": {
+    "shell": "bash",
+    "tensorflow_commands_run": false,
+    "tensorflow_cpu_only_policy": "For later TensorFlow commands, set CUDA_VISIBLE_DEVICES=-1 before TensorFlow import unless a separate GPU plan is approved.",
+    "gpu_commands_run": false,
+    "student_implementation_commands_run": false,
+    "student_metrics_derived": false,
+    "filterflow_mutated": false,
+    "values_or_gradients_computed": false,
+    "random_seeds": "N/A",
+    "dtype": "N/A for P0; later algorithm phases use the frozen phase contract."
+  },
+  "evidence_contract": {
+    "question": "Are the governance, artifact, non-oracle, and stop-condition rules strong enough to launch a full BF/FilterFlow comparison for bootstrap-OT and LEDH-PFPF-OT across all V2 rows?",
+    "baseline_or_comparator": "Governance plans and frozen live-run file contracts only; no implementation is treated as an oracle.",
+    "primary_promotion_criterion": "P0 confirms governance, artifacts, no-oracle policy, .localsource/filterflow no-mutation policy, CPU-only TensorFlow policy, student-code exclusion, all phase files, and six-row V2 order.",
+    "veto_diagnostics": [
+      "missing phase path",
+      "old deterministic V2 evidence substituted for algorithm comparison",
+      "oracle treatment of BayesFilter, FilterFlow, students, TT, dense quadrature, paper tables, or simulated truth",
+      "FD used as gradient promotion gate",
+      "post-result tolerance, scalar, branch, fixture, OT setting, or gradient knob weakening without reviewed amendment",
+      ".localsource/filterflow mutation",
+      "student implementation command or metric",
+      "full-comparison success with unexecuted required row or gradient knob"
+    ],
+    "explanatory_only_diagnostics": [
+      "current dirty git status",
+      "count of untracked DPF planning artifacts",
+      "prior closed V2 result summary"
+    ],
+    "not_concluded": [
+      "BayesFilter correctness",
+      "FilterFlow correctness",
+      "bootstrap-OT or LEDH-PFPF-OT scientific correctness",
+      "value agreement",
+      "gradient agreement",
+      "student implementation correctness",
+      "TT/SIRT, dense quadrature, paper-table, simulated-truth, GPU, HMC, DSGE, scalability, deployment, or production readiness"
+    ]
+  },
+  "commands": [
+    {
+      "label": "inspect phase and execution plans",
+      "command": "sed/rg reads of execution plan, P0 subplan, master program, dirty-file manifest, live gate script, and supervisor script",
+      "exit_code": 0,
+      "log_path": "P0-command-0-inspect-plans.log",
+      "mutating": false
+    },
+    {
+      "label": "governance check log",
+      "command": "read-only subplan existence, master phase table, row-order, FilterFlow status/head, root head/status, and protected dirty tracked list capture",
+      "exit_code": 0,
+      "log_path": "P0-command-1-governance-check.log",
+      "mutating": true,
+      "mutation_scope": "wrote P0-governance-check.log under the run log directory"
+    },
+    {
+      "label": "EXPECTED_V2_MODEL_IDS source check",
+      "command": "rg and sed reads of experiments/dpf_implementation/tf_tfp/fixtures/common_model_suite_tf.py",
+      "exit_code": 0,
+      "log_path": "P0-command-2-expected-v2-model-ids.log",
+      "mutating": false
+    },
+    {
+      "label": "student command scan",
+      "command": "rg -n \"python -m experiments\\\\.student|student_dpf_baselines\\\\.runners|run_student|experiments/student_dpf_baselines\" docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-*2026-06-07.md",
+      "exit_code": 0,
+      "log_path": "P0-command-3-student-command-scan.log",
+      "mutating": false
+    },
+    {
+      "label": "diff hygiene",
+      "command": "git diff --check -- DPF V2 algorithm full comparison master/live/P0-P8 plan files",
+      "exit_code": 0,
+      "log_path": "P0-command-4-diff-hygiene.log",
+      "mutating": false
+    },
+    {
+      "label": "artifact creation",
+      "command": "apply_patch add P0 local skeptical audit, JSON, markdown report, result ledger, and command manifest",
+      "exit_code": 0,
+      "log_path": "P0-command-5-artifact-creation.log",
+      "mutating": true,
+      "mutation_scope": "allowed P0 docs/plans, experiments/dpf_implementation/reports, and run-log artifacts"
+    }
+  ],
+  "required_v2_model_ids": [
+    "lgssm_2d_h25_rich",
+    "sv_1d_h18_rich",
+    "range_bearing_4d_h20_rich",
+    "structural_ar1_quadratic_h16",
+    "spatial_sir_j3_rk4",
+    "predator_prey_rk4"
+  ],
+  "artifacts": {
+    "local_skeptical_phase_audit": "docs/plans/logs/dpf-v2-algorithm-full-comparison-live-20260608-012812/P0-local-skeptical-phase-audit.md",
+    "governance_check_log": "docs/plans/logs/dpf-v2-algorithm-full-comparison-live-20260608-012812/P0-governance-check.log",
+    "json": "experiments/dpf_implementation/reports/outputs/dpf_v2_algorithm_full_comparison_p0_governance_2026-06-07.json",
+    "markdown_report": "experiments/dpf_implementation/reports/dpf-v2-algorithm-full-comparison-p0-governance-2026-06-07.md",
+    "result_ledger": "docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p0-governance-result-2026-06-07.md",
+    "command_manifest": "docs/plans/logs/dpf-v2-algorithm-full-comparison-live-20260608-012812/P0-command-manifest.json"
+  },
+  "artifact_checksums_recorded_before_artifact_creation": {
+    "master_program_sha256": "40cdaa54f60f1e947f51996d73f4f87a801d38e906488dccbf47264939630b9b",
+    "live_execution_plan_sha256": "aa897522b7f013563f733d3d4672774cb5ffec96540d8f79e84e564efd8e07da",
+    "p0_subplan_sha256": "c33e5ad03ae3a16c9ec12458087fcb17b002465ded2e69d466ece6b76ccc9558",
+    "common_model_suite_tf_sha256": "c1caf4ef9896126031b396f591aea03e6f3a4014bfab799a93bcfba543f532b8",
+    "live_gate_script_sha256": "e993b8b424d1dcf6a4289507419b70b0f7316f3c6dfa60747ea16a92f28c31d6",
+    "p0_governance_check_log_sha256": "961174739736f23ddf41d29655e48abf140dae34e7608de455aed13d7b48ac6a"
+  },
+  "next_allowed_action": "The live shell supervisor should run the separate read-only reviewer and proceed to P1 only if the P0 review ledger status is PASS_P0_READY_FOR_P1."
+}

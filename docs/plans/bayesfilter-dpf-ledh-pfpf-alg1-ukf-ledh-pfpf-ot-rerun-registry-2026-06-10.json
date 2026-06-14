@@ -1,0 +1,1303 @@
+{
+  "schema_version": "dpf_ledh_pfpf_alg1_ukf_rerun_registry.v1",
+  "metadata": {
+    "date": "2026-06-10",
+    "phase": "P0",
+    "program": "docs/plans/bayesfilter-dpf-ledh-pfpf-alg1-ukf-ledh-pfpf-ot-rerun-master-program-2026-06-10.md",
+    "branch": "main",
+    "commit": "26485010c28e11b3591da59b7ca375d4764c3d8d",
+    "inventory_policy": "Executable consumers, old runners, result JSON/report artifacts, and historical plan families are represented as lanes. Archival mentions are bucketed so broad grep output does not turn every historical note into an executable rerun lane.",
+    "old_evidence_policy": "Old LEDH-PFPF-OT and dpf_ledh_pfpf_ot artifacts define historical coverage only and cannot be cited as current Algorithm 1 evidence."
+  },
+  "allowed_final_statuses": [
+    "RERUN_ALG1",
+    "RERUN_ALG1_DIAGNOSTIC_ONLY",
+    "ALG1_EXTENSION_RERUN",
+    "HISTORICAL_ONLY_NOT_EVIDENCE",
+    "SCAFFOLDING_ONLY",
+    "N_A_NOT_APPLICABLE",
+    "BLOCKED_REQUIRES_ADAPTER",
+    "BLOCKED_REQUIRES_SEPARATE_PLAN"
+  ],
+  "mandatory_algorithm1_route_fields": {
+    "method_generation": "li_coates_algorithm1_ukf_covariance_lifecycle",
+    "flow_source_route": "li_coates_2017_algorithm1_ledh_pfpf",
+    "covariance_route": "per_particle_ukf_prediction_update",
+    "prediction_covariance_route": "ukf_prediction_per_particle_covariance",
+    "update_covariance_route": "ukf_update_per_particle_covariance",
+    "flow_anchor_route": "zero_noise_transition",
+    "core_resampling_route": "none_or_algorithm1_classical_status",
+    "extension_resampling_route": "none_or_bayesfilter_extension_label",
+    "evidence_route_class": "SOURCE_ALGORITHM1_CORE_or_BAYESFILTER_EXTENSION_NOT_SOURCE_CORE",
+    "previous_ledh_pfpf_ot_evidence_status": "quarantined"
+  },
+  "default_threshold_policy": {
+    "finite_only_promotion_allowed": false,
+    "threshold_source": "P0 registry row or P2 frozen contract row before numerical execution",
+    "missing_threshold_status": "RERUN_ALG1_DIAGNOSTIC_ONLY_or_BLOCKED_REQUIRES_ADAPTER",
+    "lgssm_value_reference": "exact_kalman_log_likelihood",
+    "lgssm_gradient_reference": "exact_kalman_score",
+    "non_lgssm_reference_policy": "exact_or_approximation_route_must_be_declared_per_row_before execution"
+  },
+  "guardrail_test": {
+    "old_lane_id": "alg1_guardrail_pytest",
+    "old_artifact_paths": [
+      "tests/test_ledh_pfpf_alg1_ukf_tf.py"
+    ],
+    "old_route_ids_detected": [
+      "dpf_ledh_pfpf_ot rejection fixture",
+      "ledh_pfpf_ot_tf import rejection fixture"
+    ],
+    "planned_disposition": "RERUN_ALG1",
+    "replacement_phase": "P0/P1/P9",
+    "replacement_runner": "python -m pytest tests/test_ledh_pfpf_alg1_ukf_tf.py -q",
+    "claim_class": "governance_guardrail",
+    "value_tolerance": "N/A: unit/governance tests",
+    "gradient_tolerance": "N/A: unit/governance tests",
+    "minimum_seed_count": "N/A",
+    "particle_ladder": "N/A",
+    "allowed_final_statuses": [
+      "RERUN_ALG1",
+      "BLOCKED_REQUIRES_ADAPTER"
+    ],
+    "non_claims": [
+      "Does not establish broad numerical performance."
+    ],
+    "planned_result_paths": {
+      "phase_result": "docs/plans/bayesfilter-dpf-ledh-pfpf-alg1-ukf-ledh-pfpf-ot-rerun-p0-inventory-registry-result-2026-06-10.md",
+      "json": "N/A: pytest guardrail",
+      "markdown_report": "N/A: pytest guardrail"
+    },
+    "primary_promote_statistic": "pytest pass/fail only; no numerical promotion",
+    "veto_diagnostics": [
+      "pytest failure",
+      "old route accepted as Algorithm 1 route",
+      "old implementation imported by Algorithm 1 module"
+    ]
+  },
+  "registry_rows": [
+    {
+      "old_lane_id": "direct_lgssm_value",
+      "old_artifact_paths": [
+        "experiments/dpf_implementation/tf_tfp/runners/run_lgssm_ledh_pfpf_ot_tf.py",
+        "experiments/dpf_implementation/reports/outputs/dpf_ledh_pfpf_ot_tf_tfp_lgssm_2026-05-29.json",
+        "experiments/dpf_implementation/reports/dpf-ledh-pfpf-ot-tf-tfp-lgssm-result-2026-05-29.md"
+      ],
+      "old_route_ids_detected": [
+        "ledh_pfpf_ot"
+      ],
+      "planned_disposition": "RERUN_ALG1",
+      "replacement_phase": "P1",
+      "replacement_runner": "experiments.dpf_implementation.tf_tfp.runners.run_ledh_pfpf_alg1_ukf_direct_replacements_tf",
+      "required_algorithm1_route_fields": "mandatory_algorithm1_route_fields",
+      "evidence_route_class": "SOURCE_ALGORITHM1_CORE",
+      "core_resampling_route": "none",
+      "extension_resampling_route": "none",
+      "comparator_route": "exact_kalman_and_bootstrap_no_flow",
+      "claim_class": "exact_oracle_lgssm_value",
+      "value_scalar": "log_likelihood",
+      "gradient_scalar": "N/A for value lane",
+      "value_normalization": "absolute and per-observation log-likelihood error",
+      "gradient_normalization": "N/A",
+      "value_tolerance": "P1 must predeclare before run using Kalman scale and MC uncertainty",
+      "gradient_tolerance": "N/A",
+      "certification_band": "P1 must predeclare before run",
+      "minimum_seed_count": 3,
+      "particle_ladder": [
+        8,
+        16
+      ],
+      "allowed_final_statuses": [
+        "RERUN_ALG1",
+        "RERUN_ALG1_DIAGNOSTIC_ONLY",
+        "BLOCKED_REQUIRES_ADAPTER"
+      ],
+      "required_run_manifest_fields": "master_program_serious_run_manifest",
+      "non_claims": [
+        "No production default.",
+        "No gradient claim from value row."
+      ],
+      "planned_result_paths": {
+        "phase_result": "docs/plans/bayesfilter-dpf-ledh-pfpf-alg1-ukf-ledh-pfpf-ot-rerun-p1-direct-lgssm-range-bearing-result-2026-06-10.md",
+        "json": "experiments/dpf_implementation/reports/outputs/dpf_ledh_pfpf_alg1_ukf_direct_replacements_2026-06-10.json",
+        "markdown_report": "experiments/dpf_implementation/reports/dpf-ledh-pfpf-alg1-ukf-direct-replacements-2026-06-10.md"
+      },
+      "primary_promote_statistic": "predeclared value error statistic against comparator; finite-only is diagnostic",
+      "veto_diagnostics": [
+        "old LEDH-PFPF-OT route used as current Algorithm 1 evidence",
+        "mandatory Algorithm 1 route field missing on replacement row",
+        "core Algorithm 1 row mixed with BayesFilter extension row",
+        "threshold or certification band missing without explicit N/A reason",
+        "Monte Carlo uncertainty missing for stochastic promoted row",
+        "unsupported comparator or target-route pair promoted",
+        "nonfinite particles, weights, determinants, covariances, value, or gradient",
+        "value agreement used to promote gradient correctness"
+      ]
+    },
+    {
+      "old_lane_id": "direct_lgssm_multiseed",
+      "old_artifact_paths": [
+        "experiments/dpf_implementation/tf_tfp/runners/run_lgssm_multiseed_ledh_pfpf_ot_tf.py",
+        "experiments/dpf_implementation/reports/outputs/dpf_nonlinear_ssm_lgssm_multiseed_2026-05-29.json"
+      ],
+      "old_route_ids_detected": [
+        "ledh_pfpf_ot"
+      ],
+      "planned_disposition": "RERUN_ALG1",
+      "replacement_phase": "P1",
+      "replacement_runner": "experiments.dpf_implementation.tf_tfp.runners.run_ledh_pfpf_alg1_ukf_direct_replacements_tf",
+      "required_algorithm1_route_fields": "mandatory_algorithm1_route_fields",
+      "evidence_route_class": "SOURCE_ALGORITHM1_CORE",
+      "core_resampling_route": "none",
+      "extension_resampling_route": "none",
+      "comparator_route": "exact_kalman_and_bootstrap_no_flow",
+      "claim_class": "exact_oracle_lgssm_multiseed",
+      "value_scalar": "log_likelihood",
+      "gradient_scalar": "fixed_branch_score_if_enabled",
+      "value_normalization": "absolute and per-observation error with standard error",
+      "gradient_normalization": "relative score error and norm error if enabled",
+      "value_tolerance": "P1 must predeclare before run",
+      "gradient_tolerance": "P1 must predeclare before gradient promotion",
+      "certification_band": "P1 must predeclare before run",
+      "minimum_seed_count": 5,
+      "particle_ladder": [
+        8,
+        16,
+        32
+      ],
+      "allowed_final_statuses": [
+        "RERUN_ALG1",
+        "RERUN_ALG1_DIAGNOSTIC_ONLY",
+        "BLOCKED_REQUIRES_ADAPTER"
+      ],
+      "required_run_manifest_fields": "master_program_serious_run_manifest",
+      "non_claims": [
+        "No one-seed ranking."
+      ],
+      "planned_result_paths": {
+        "phase_result": "docs/plans/bayesfilter-dpf-ledh-pfpf-alg1-ukf-ledh-pfpf-ot-rerun-p1-direct-lgssm-range-bearing-result-2026-06-10.md",
+        "json": "experiments/dpf_implementation/reports/outputs/dpf_ledh_pfpf_alg1_ukf_direct_replacements_2026-06-10.json",
+        "markdown_report": "experiments/dpf_implementation/reports/dpf-ledh-pfpf-alg1-ukf-direct-replacements-2026-06-10.md"
+      },
+      "primary_promote_statistic": "phase-specific predeclared statistic; finite-only is diagnostic",
+      "veto_diagnostics": [
+        "old LEDH-PFPF-OT route used as current Algorithm 1 evidence",
+        "mandatory Algorithm 1 route field missing on replacement row",
+        "core Algorithm 1 row mixed with BayesFilter extension row",
+        "threshold or certification band missing without explicit N/A reason",
+        "Monte Carlo uncertainty missing for stochastic promoted row",
+        "unsupported comparator or target-route pair promoted",
+        "nonfinite particles, weights, determinants, covariances, value, or gradient",
+        "value agreement used to promote gradient correctness"
+      ]
+    },
+    {
+      "old_lane_id": "direct_range_bearing_value",
+      "old_artifact_paths": [
+        "experiments/dpf_implementation/tf_tfp/runners/run_range_bearing_ledh_pfpf_ot_tf.py",
+        "experiments/dpf_implementation/reports/outputs/dpf_ledh_pfpf_ot_tf_tfp_range_bearing_2026-05-29.json",
+        "experiments/dpf_implementation/reports/dpf-ledh-pfpf-ot-tf-tfp-range-bearing-result-2026-05-29.md"
+      ],
+      "old_route_ids_detected": [
+        "ledh_pfpf_ot"
+      ],
+      "planned_disposition": "BLOCKED_REQUIRES_ADAPTER",
+      "replacement_phase": "P1",
+      "replacement_runner": "experiments.dpf_implementation.tf_tfp.runners.run_ledh_pfpf_alg1_ukf_direct_replacements_tf",
+      "required_algorithm1_route_fields": "mandatory_algorithm1_route_fields",
+      "evidence_route_class": "SOURCE_ALGORITHM1_CORE",
+      "core_resampling_route": "none",
+      "extension_resampling_route": "none",
+      "comparator_route": "range_bearing_reference_must_be_declared",
+      "claim_class": "nonlinear_diagnostic_until_reference_declared",
+      "value_scalar": "log_likelihood_or_declared_surrogate",
+      "gradient_scalar": "N/A unless same-scalar gradient adapter exists",
+      "value_normalization": "per-observation error",
+      "gradient_normalization": "N/A",
+      "value_tolerance": "N/A until reference route declared",
+      "gradient_tolerance": "N/A",
+      "certification_band": "N/A until reference route declared",
+      "minimum_seed_count": 5,
+      "particle_ladder": [
+        16,
+        32
+      ],
+      "allowed_final_statuses": [
+        "RERUN_ALG1_DIAGNOSTIC_ONLY",
+        "BLOCKED_REQUIRES_ADAPTER",
+        "N_A_NOT_APPLICABLE"
+      ],
+      "required_run_manifest_fields": "master_program_serious_run_manifest",
+      "non_claims": [
+        "No exact-reference claim unless P1 supplies one."
+      ],
+      "planned_result_paths": {
+        "phase_result": "docs/plans/bayesfilter-dpf-ledh-pfpf-alg1-ukf-ledh-pfpf-ot-rerun-p1-direct-lgssm-range-bearing-result-2026-06-10.md",
+        "json": "experiments/dpf_implementation/reports/outputs/dpf_ledh_pfpf_alg1_ukf_direct_replacements_2026-06-10.json",
+        "markdown_report": "experiments/dpf_implementation/reports/dpf-ledh-pfpf-alg1-ukf-direct-replacements-2026-06-10.md"
+      },
+      "primary_promote_statistic": "phase-specific predeclared statistic; finite-only is diagnostic",
+      "veto_diagnostics": [
+        "old LEDH-PFPF-OT route used as current Algorithm 1 evidence",
+        "mandatory Algorithm 1 route field missing on replacement row",
+        "core Algorithm 1 row mixed with BayesFilter extension row",
+        "threshold or certification band missing without explicit N/A reason",
+        "Monte Carlo uncertainty missing for stochastic promoted row",
+        "unsupported comparator or target-route pair promoted",
+        "nonfinite particles, weights, determinants, covariances, value, or gradient",
+        "value agreement used to promote gradient correctness"
+      ]
+    },
+    {
+      "old_lane_id": "direct_range_bearing_stress",
+      "old_artifact_paths": [
+        "experiments/dpf_implementation/tf_tfp/runners/run_range_bearing_stress_ledh_pfpf_ot_tf.py",
+        "experiments/dpf_implementation/reports/outputs/dpf_nonlinear_ssm_range_bearing_stress_2026-05-29.json"
+      ],
+      "old_route_ids_detected": [
+        "ledh_pfpf_ot"
+      ],
+      "planned_disposition": "BLOCKED_REQUIRES_ADAPTER",
+      "replacement_phase": "P1",
+      "replacement_runner": "experiments.dpf_implementation.tf_tfp.runners.run_ledh_pfpf_alg1_ukf_direct_replacements_tf",
+      "required_algorithm1_route_fields": "mandatory_algorithm1_route_fields",
+      "evidence_route_class": "SOURCE_ALGORITHM1_CORE",
+      "core_resampling_route": "none",
+      "extension_resampling_route": "none",
+      "comparator_route": "diagnostic_stress_only_until_reference_declared",
+      "claim_class": "stress_diagnostic_only",
+      "value_scalar": "declared stress scalar",
+      "gradient_scalar": "N/A",
+      "value_normalization": "per-observation diagnostic",
+      "gradient_normalization": "N/A",
+      "value_tolerance": "N/A: stress diagnostics do not promote",
+      "gradient_tolerance": "N/A",
+      "certification_band": "N/A",
+      "minimum_seed_count": 5,
+      "particle_ladder": [
+        16,
+        32
+      ],
+      "allowed_final_statuses": [
+        "RERUN_ALG1_DIAGNOSTIC_ONLY",
+        "BLOCKED_REQUIRES_ADAPTER"
+      ],
+      "required_run_manifest_fields": "master_program_serious_run_manifest",
+      "non_claims": [
+        "Stress pass is not correctness evidence."
+      ],
+      "planned_result_paths": {
+        "phase_result": "docs/plans/bayesfilter-dpf-ledh-pfpf-alg1-ukf-ledh-pfpf-ot-rerun-p1-direct-lgssm-range-bearing-result-2026-06-10.md",
+        "json": "experiments/dpf_implementation/reports/outputs/dpf_ledh_pfpf_alg1_ukf_direct_replacements_2026-06-10.json",
+        "markdown_report": "experiments/dpf_implementation/reports/dpf-ledh-pfpf-alg1-ukf-direct-replacements-2026-06-10.md"
+      },
+      "primary_promote_statistic": "phase-specific predeclared statistic; finite-only is diagnostic",
+      "veto_diagnostics": [
+        "old LEDH-PFPF-OT route used as current Algorithm 1 evidence",
+        "mandatory Algorithm 1 route field missing on replacement row",
+        "core Algorithm 1 row mixed with BayesFilter extension row",
+        "threshold or certification band missing without explicit N/A reason",
+        "Monte Carlo uncertainty missing for stochastic promoted row",
+        "unsupported comparator or target-route pair promoted",
+        "nonfinite particles, weights, determinants, covariances, value, or gradient",
+        "value agreement used to promote gradient correctness"
+      ]
+    },
+    {
+      "old_lane_id": "direct_gradient_checks",
+      "old_artifact_paths": [
+        "experiments/dpf_implementation/tf_tfp/runners/run_ledh_pfpf_gradient_checks_tf.py",
+        "experiments/dpf_implementation/reports/outputs/dpf_ledh_pfpf_ot_tf_tfp_gradient_check_2026-05-29.json",
+        "experiments/dpf_implementation/reports/dpf-ledh-pfpf-ot-tf-tfp-gradient-check-result-2026-05-29.md"
+      ],
+      "old_route_ids_detected": [
+        "ledh_pfpf_ot"
+      ],
+      "planned_disposition": "RERUN_ALG1_DIAGNOSTIC_ONLY",
+      "replacement_phase": "P1",
+      "replacement_runner": "experiments.dpf_implementation.tf_tfp.runners.run_ledh_pfpf_alg1_ukf_direct_replacements_tf",
+      "required_algorithm1_route_fields": "mandatory_algorithm1_route_fields",
+      "evidence_route_class": "SOURCE_ALGORITHM1_CORE",
+      "core_resampling_route": "none",
+      "extension_resampling_route": "none",
+      "comparator_route": "exact_kalman_for_lgssm_gradient",
+      "claim_class": "same_scalar_fixed_branch_gradient",
+      "value_scalar": "same scalar as gradient row",
+      "gradient_scalar": "fixed_branch_score",
+      "value_normalization": "N/A unless paired value row",
+      "gradient_normalization": "score norm and relative score error",
+      "value_tolerance": "N/A",
+      "gradient_tolerance": "P1 must predeclare before promotion",
+      "certification_band": "P1 must predeclare before promotion",
+      "minimum_seed_count": 3,
+      "particle_ladder": [
+        4,
+        8,
+        16
+      ],
+      "allowed_final_statuses": [
+        "RERUN_ALG1",
+        "RERUN_ALG1_DIAGNOSTIC_ONLY",
+        "BLOCKED_REQUIRES_ADAPTER"
+      ],
+      "required_run_manifest_fields": "master_program_serious_run_manifest",
+      "non_claims": [
+        "No stochastic-resampling gradient correctness."
+      ],
+      "planned_result_paths": {
+        "phase_result": "docs/plans/bayesfilter-dpf-ledh-pfpf-alg1-ukf-ledh-pfpf-ot-rerun-p1-direct-lgssm-range-bearing-result-2026-06-10.md",
+        "json": "experiments/dpf_implementation/reports/outputs/dpf_ledh_pfpf_alg1_ukf_direct_replacements_2026-06-10.json",
+        "markdown_report": "experiments/dpf_implementation/reports/dpf-ledh-pfpf-alg1-ukf-direct-replacements-2026-06-10.md"
+      },
+      "primary_promote_statistic": "predeclared fixed-branch gradient error statistic against same-scalar comparator; finite-only is diagnostic",
+      "veto_diagnostics": [
+        "old LEDH-PFPF-OT route used as current Algorithm 1 evidence",
+        "mandatory Algorithm 1 route field missing on replacement row",
+        "core Algorithm 1 row mixed with BayesFilter extension row",
+        "threshold or certification band missing without explicit N/A reason",
+        "Monte Carlo uncertainty missing for stochastic promoted row",
+        "unsupported comparator or target-route pair promoted",
+        "nonfinite particles, weights, determinants, covariances, value, or gradient",
+        "value agreement used to promote gradient correctness"
+      ]
+    },
+    {
+      "old_lane_id": "v2_contracts",
+      "old_artifact_paths": [
+        "experiments/dpf_implementation/tf_tfp/runners/run_v2_ledh_pfpf_ot_contracts_tf.py",
+        "experiments/dpf_implementation/reports/outputs/dpf_v2_ledh_pfpf_ot_contracts_2026-06-07.json",
+        "experiments/dpf_implementation/reports/dpf-v2-ledh-pfpf-ot-contracts-2026-06-07.md"
+      ],
+      "old_route_ids_detected": [
+        "ledh_pfpf_ot"
+      ],
+      "planned_disposition": "RERUN_ALG1",
+      "replacement_phase": "P2",
+      "replacement_runner": "experiments.dpf_implementation.tf_tfp.runners.run_v2_ledh_pfpf_alg1_ukf_contracts_tf",
+      "required_algorithm1_route_fields": "mandatory_algorithm1_route_fields",
+      "evidence_route_class": "SOURCE_ALGORITHM1_CORE_or_BAYESFILTER_EXTENSION_NOT_SOURCE_CORE_per_row",
+      "core_resampling_route": "P2 frozen per row",
+      "extension_resampling_route": "P2 frozen per row",
+      "comparator_route": "P2 declared per V2 row",
+      "claim_class": "contract_freeze",
+      "value_scalar": "P2 declared",
+      "gradient_scalar": "P2 declared",
+      "value_normalization": "P2 declared",
+      "gradient_normalization": "P2 declared",
+      "value_tolerance": "P2 declared or N/A reason",
+      "gradient_tolerance": "P2 declared or N/A reason",
+      "certification_band": "P2 declared or N/A reason",
+      "minimum_seed_count": "P2 declared",
+      "particle_ladder": "P2 declared",
+      "allowed_final_statuses": [
+        "RERUN_ALG1",
+        "N_A_NOT_APPLICABLE",
+        "BLOCKED_REQUIRES_ADAPTER"
+      ],
+      "required_run_manifest_fields": "contract_manifest",
+      "non_claims": [
+        "No values or gradients from contract freeze alone."
+      ],
+      "planned_result_paths": {
+        "phase_result": "docs/plans/bayesfilter-dpf-ledh-pfpf-alg1-ukf-ledh-pfpf-ot-rerun-p2-v2-contracts-result-2026-06-10.md",
+        "json": "experiments/dpf_implementation/reports/outputs/dpf_v2_ledh_pfpf_alg1_ukf_contracts_2026-06-10.json",
+        "markdown_report": "experiments/dpf_implementation/reports/dpf-v2-ledh-pfpf-alg1-ukf-contracts-2026-06-10.md"
+      },
+      "primary_promote_statistic": "all contract fields present and old route ids quarantined; no numerical promotion",
+      "veto_diagnostics": [
+        "old LEDH-PFPF-OT route used as current Algorithm 1 evidence",
+        "mandatory Algorithm 1 route field missing on replacement row",
+        "core Algorithm 1 row mixed with BayesFilter extension row",
+        "threshold or certification band missing without explicit N/A reason",
+        "Monte Carlo uncertainty missing for stochastic promoted row",
+        "unsupported comparator or target-route pair promoted",
+        "nonfinite particles, weights, determinants, covariances, value, or gradient",
+        "value agreement used to promote gradient correctness"
+      ]
+    },
+    {
+      "old_lane_id": "v2_values",
+      "old_artifact_paths": [
+        "experiments/dpf_implementation/tf_tfp/runners/run_v2_ledh_pfpf_ot_values_tf.py",
+        "experiments/dpf_implementation/reports/outputs/dpf_v2_ledh_pfpf_ot_values_2026-06-07.json",
+        "experiments/dpf_implementation/reports/dpf-v2-ledh-pfpf-ot-values-2026-06-07.md"
+      ],
+      "old_route_ids_detected": [
+        "ledh_pfpf_ot"
+      ],
+      "planned_disposition": "RERUN_ALG1",
+      "replacement_phase": "P3",
+      "replacement_runner": "experiments.dpf_implementation.tf_tfp.runners.run_v2_ledh_pfpf_alg1_ukf_values_tf",
+      "required_algorithm1_route_fields": "mandatory_algorithm1_route_fields",
+      "evidence_route_class": "P2 frozen per row",
+      "core_resampling_route": "P2 frozen per row",
+      "extension_resampling_route": "P2 frozen per row",
+      "comparator_route": "P2 frozen per row",
+      "claim_class": "value_replacement",
+      "value_scalar": "P2 frozen per row",
+      "gradient_scalar": "N/A for value lane",
+      "value_normalization": "P2 frozen per row",
+      "gradient_normalization": "N/A",
+      "value_tolerance": "P2 frozen per row",
+      "gradient_tolerance": "N/A",
+      "certification_band": "P2 frozen per row",
+      "minimum_seed_count": "P2 frozen per row",
+      "particle_ladder": "P2 frozen per row",
+      "allowed_final_statuses": [
+        "RERUN_ALG1",
+        "RERUN_ALG1_DIAGNOSTIC_ONLY",
+        "N_A_NOT_APPLICABLE",
+        "BLOCKED_REQUIRES_ADAPTER"
+      ],
+      "required_run_manifest_fields": "master_program_serious_run_manifest",
+      "non_claims": [
+        "No gradient claim."
+      ],
+      "planned_result_paths": {
+        "phase_result": "docs/plans/bayesfilter-dpf-ledh-pfpf-alg1-ukf-ledh-pfpf-ot-rerun-p3-v2-values-result-2026-06-10.md",
+        "json": "experiments/dpf_implementation/reports/outputs/dpf_v2_ledh_pfpf_alg1_ukf_values_2026-06-10.json",
+        "markdown_report": "experiments/dpf_implementation/reports/dpf-v2-ledh-pfpf-alg1-ukf-values-2026-06-10.md"
+      },
+      "primary_promote_statistic": "predeclared value error statistic against comparator; finite-only is diagnostic",
+      "veto_diagnostics": [
+        "old LEDH-PFPF-OT route used as current Algorithm 1 evidence",
+        "mandatory Algorithm 1 route field missing on replacement row",
+        "core Algorithm 1 row mixed with BayesFilter extension row",
+        "threshold or certification band missing without explicit N/A reason",
+        "Monte Carlo uncertainty missing for stochastic promoted row",
+        "unsupported comparator or target-route pair promoted",
+        "nonfinite particles, weights, determinants, covariances, value, or gradient",
+        "value agreement used to promote gradient correctness"
+      ]
+    },
+    {
+      "old_lane_id": "v2_gradients",
+      "old_artifact_paths": [
+        "experiments/dpf_implementation/tf_tfp/runners/run_v2_ledh_pfpf_ot_gradients_tf.py",
+        "experiments/dpf_implementation/reports/outputs/dpf_v2_ledh_pfpf_ot_gradients_2026-06-07.json",
+        "experiments/dpf_implementation/reports/dpf-v2-ledh-pfpf-ot-gradients-2026-06-07.md"
+      ],
+      "old_route_ids_detected": [
+        "ledh_pfpf_ot"
+      ],
+      "planned_disposition": "RERUN_ALG1",
+      "replacement_phase": "P4",
+      "replacement_runner": "experiments.dpf_implementation.tf_tfp.runners.run_v2_ledh_pfpf_alg1_ukf_gradients_tf",
+      "required_algorithm1_route_fields": "mandatory_algorithm1_route_fields",
+      "evidence_route_class": "P2 frozen per row",
+      "core_resampling_route": "P2 frozen per row",
+      "extension_resampling_route": "P2 frozen per row",
+      "comparator_route": "P2 frozen per row",
+      "claim_class": "fixed_branch_gradient_replacement",
+      "value_scalar": "same scalar as gradient row",
+      "gradient_scalar": "fixed_branch_score",
+      "value_normalization": "P2 frozen per row",
+      "gradient_normalization": "P2 frozen per row",
+      "value_tolerance": "P2 frozen per row",
+      "gradient_tolerance": "P2 frozen per row",
+      "certification_band": "P2 frozen per row",
+      "minimum_seed_count": "P2 frozen per row",
+      "particle_ladder": "P2 frozen per row",
+      "allowed_final_statuses": [
+        "RERUN_ALG1",
+        "RERUN_ALG1_DIAGNOSTIC_ONLY",
+        "N_A_NOT_APPLICABLE",
+        "BLOCKED_REQUIRES_ADAPTER"
+      ],
+      "required_run_manifest_fields": "master_program_serious_run_manifest",
+      "non_claims": [
+        "No stochastic branch-gradient claim."
+      ],
+      "planned_result_paths": {
+        "phase_result": "docs/plans/bayesfilter-dpf-ledh-pfpf-alg1-ukf-ledh-pfpf-ot-rerun-p4-v2-gradients-result-2026-06-10.md",
+        "json": "experiments/dpf_implementation/reports/outputs/dpf_v2_ledh_pfpf_alg1_ukf_gradients_2026-06-10.json",
+        "markdown_report": "experiments/dpf_implementation/reports/dpf-v2-ledh-pfpf-alg1-ukf-gradients-2026-06-10.md"
+      },
+      "primary_promote_statistic": "predeclared fixed-branch gradient error statistic against same-scalar comparator; finite-only is diagnostic",
+      "veto_diagnostics": [
+        "old LEDH-PFPF-OT route used as current Algorithm 1 evidence",
+        "mandatory Algorithm 1 route field missing on replacement row",
+        "core Algorithm 1 row mixed with BayesFilter extension row",
+        "threshold or certification band missing without explicit N/A reason",
+        "Monte Carlo uncertainty missing for stochastic promoted row",
+        "unsupported comparator or target-route pair promoted",
+        "nonfinite particles, weights, determinants, covariances, value, or gradient",
+        "value agreement used to promote gradient correctness"
+      ]
+    },
+    {
+      "old_lane_id": "v2_live_gate_and_closeout_consumers",
+      "old_artifact_paths": [
+        "scripts/dpf_v2_algorithm_full_comparison_live_gate.py",
+        "scripts/dpf_v2_algorithm_full_comparison_live_supervisor.sh",
+        "experiments/dpf_implementation/tf_tfp/runners/run_v2_algorithm_full_comparison_closeout.py"
+      ],
+      "old_route_ids_detected": [
+        "ledh_pfpf_ot",
+        "LEDH-PFPF-OT"
+      ],
+      "planned_disposition": "HISTORICAL_ONLY_NOT_EVIDENCE",
+      "replacement_phase": "P0/P9",
+      "replacement_runner": "N/A: executable old-route consumers are quarantined, not edited in P0",
+      "required_algorithm1_route_fields": "N/A",
+      "evidence_route_class": "historical_consumer",
+      "core_resampling_route": "N/A",
+      "extension_resampling_route": "N/A",
+      "comparator_route": "N/A",
+      "claim_class": "old_gate_consumer_quarantine",
+      "value_scalar": "N/A",
+      "gradient_scalar": "N/A",
+      "value_normalization": "N/A",
+      "gradient_normalization": "N/A",
+      "value_tolerance": "N/A",
+      "gradient_tolerance": "N/A",
+      "certification_band": "N/A",
+      "minimum_seed_count": "N/A",
+      "particle_ladder": "N/A",
+      "allowed_final_statuses": [
+        "HISTORICAL_ONLY_NOT_EVIDENCE",
+        "BLOCKED_REQUIRES_SEPARATE_PLAN"
+      ],
+      "required_run_manifest_fields": "N/A",
+      "non_claims": [
+        "Old gate pass cannot imply Algorithm 1 UKF pass."
+      ],
+      "planned_result_paths": {
+        "phase_result": "docs/plans/bayesfilter-dpf-ledh-pfpf-alg1-ukf-ledh-pfpf-ot-rerun-p9-closeout-supersession-result-2026-06-10.md",
+        "json": "N/A: historical consumer classification only",
+        "markdown_report": "N/A: historical consumer classification only"
+      },
+      "primary_promote_statistic": "classification completeness only; no promotion permitted",
+      "veto_diagnostics": [
+        "old LEDH-PFPF-OT route used as current Algorithm 1 evidence",
+        "mandatory Algorithm 1 route field missing on replacement row",
+        "core Algorithm 1 row mixed with BayesFilter extension row",
+        "threshold or certification band missing without explicit N/A reason",
+        "Monte Carlo uncertainty missing for stochastic promoted row",
+        "unsupported comparator or target-route pair promoted",
+        "nonfinite particles, weights, determinants, covariances, value, or gradient",
+        "value agreement used to promote gradient correctness"
+      ]
+    },
+    {
+      "old_lane_id": "filter_oracle_p0_registry_consumer",
+      "old_artifact_paths": [
+        "experiments/dpf_implementation/tf_tfp/runners/run_filter_oracle_comparison_p0_registry_tf.py"
+      ],
+      "old_route_ids_detected": [
+        "dpf_ledh_pfpf_ot",
+        "LEDH-PFPF-OT"
+      ],
+      "planned_disposition": "HISTORICAL_ONLY_NOT_EVIDENCE",
+      "replacement_phase": "P0/P9",
+      "replacement_runner": "N/A: old target-route registry consumer classified; future registries must use Algorithm 1 route fields",
+      "required_algorithm1_route_fields": "N/A for old consumer; mandatory_algorithm1_route_fields for replacement rows",
+      "evidence_route_class": "historical_registry_consumer",
+      "core_resampling_route": "N/A",
+      "extension_resampling_route": "N/A",
+      "comparator_route": "N/A",
+      "claim_class": "old_filter_oracle_registry_consumer_quarantine",
+      "value_scalar": "N/A",
+      "gradient_scalar": "N/A",
+      "value_normalization": "N/A",
+      "gradient_normalization": "N/A",
+      "value_tolerance": "N/A",
+      "gradient_tolerance": "N/A",
+      "certification_band": "N/A",
+      "minimum_seed_count": "N/A",
+      "particle_ladder": "N/A",
+      "allowed_final_statuses": [
+        "HISTORICAL_ONLY_NOT_EVIDENCE",
+        "BLOCKED_REQUIRES_SEPARATE_PLAN"
+      ],
+      "required_run_manifest_fields": "N/A",
+      "non_claims": [
+        "Old registry entries cannot support Algorithm 1 UKF evidence."
+      ],
+      "planned_result_paths": {
+        "phase_result": "docs/plans/bayesfilter-dpf-ledh-pfpf-alg1-ukf-ledh-pfpf-ot-rerun-p9-closeout-supersession-result-2026-06-10.md",
+        "json": "N/A: historical consumer classification only",
+        "markdown_report": "N/A: historical consumer classification only"
+      },
+      "primary_promote_statistic": "classification completeness only; no promotion permitted",
+      "veto_diagnostics": [
+        "old LEDH-PFPF-OT route used as current Algorithm 1 evidence",
+        "mandatory Algorithm 1 route field missing on replacement row",
+        "core Algorithm 1 row mixed with BayesFilter extension row",
+        "threshold or certification band missing without explicit N/A reason",
+        "Monte Carlo uncertainty missing for stochastic promoted row",
+        "unsupported comparator or target-route pair promoted",
+        "nonfinite particles, weights, determinants, covariances, value, or gradient",
+        "value agreement used to promote gradient correctness"
+      ]
+    },
+    {
+      "old_lane_id": "filter_oracle_p2_tiny_nonlinear_dense_oracle_consumer",
+      "old_artifact_paths": [
+        "experiments/dpf_implementation/tf_tfp/runners/run_filter_oracle_comparison_p2_tiny_nonlinear_dense_oracle_tf.py"
+      ],
+      "old_route_ids_detected": [
+        "dpf_ledh_pfpf_ot",
+        "LEDH-PFPF-OT"
+      ],
+      "planned_disposition": "HISTORICAL_ONLY_NOT_EVIDENCE",
+      "replacement_phase": "P5/P9",
+      "replacement_runner": "covered by Algorithm 1 filter-oracle replacement rows after target-route reclassification",
+      "required_algorithm1_route_fields": "mandatory_algorithm1_route_fields for replacement rows",
+      "evidence_route_class": "historical_filter_oracle_consumer",
+      "core_resampling_route": "N/A for old consumer",
+      "extension_resampling_route": "N/A for old consumer",
+      "comparator_route": "tiny_dense_reference_if_reused_by_replacement",
+      "claim_class": "old_tiny_nonlinear_consumer_quarantine",
+      "value_scalar": "N/A until replacement row declares target",
+      "gradient_scalar": "N/A until replacement row declares target",
+      "value_normalization": "N/A until replacement row declares target",
+      "gradient_normalization": "N/A until replacement row declares target",
+      "value_tolerance": "N/A until replacement row declares target",
+      "gradient_tolerance": "N/A until replacement row declares target",
+      "certification_band": "N/A until replacement row declares target",
+      "minimum_seed_count": "N/A until replacement row declares target",
+      "particle_ladder": "N/A until replacement row declares target",
+      "allowed_final_statuses": [
+        "HISTORICAL_ONLY_NOT_EVIDENCE",
+        "RERUN_ALG1_DIAGNOSTIC_ONLY",
+        "BLOCKED_REQUIRES_ADAPTER"
+      ],
+      "required_run_manifest_fields": "master_program_serious_run_manifest if rerun",
+      "non_claims": [
+        "Old tiny nonlinear dense rows cannot be reused as Algorithm 1 evidence."
+      ],
+      "planned_result_paths": {
+        "phase_result": "docs/plans/bayesfilter-dpf-ledh-pfpf-alg1-ukf-ledh-pfpf-ot-rerun-p5-filter-oracle-statistical-closeness-result-2026-06-10.md",
+        "json": "experiments/dpf_implementation/reports/outputs/dpf_filter_oracle_comparison_p5_alg1_ukf_statistical_closeness_2026-06-10.json",
+        "markdown_report": "experiments/dpf_implementation/reports/dpf-filter-oracle-comparison-p5-alg1-ukf-statistical-closeness-2026-06-10.md"
+      },
+      "primary_promote_statistic": "classification completeness only; no promotion permitted",
+      "veto_diagnostics": [
+        "old LEDH-PFPF-OT route used as current Algorithm 1 evidence",
+        "mandatory Algorithm 1 route field missing on replacement row",
+        "core Algorithm 1 row mixed with BayesFilter extension row",
+        "threshold or certification band missing without explicit N/A reason",
+        "Monte Carlo uncertainty missing for stochastic promoted row",
+        "unsupported comparator or target-route pair promoted",
+        "nonfinite particles, weights, determinants, covariances, value, or gradient",
+        "value agreement used to promote gradient correctness"
+      ]
+    },
+    {
+      "old_lane_id": "filter_oracle_p3_conditional_gaussian_mixture_consumer",
+      "old_artifact_paths": [
+        "experiments/dpf_implementation/tf_tfp/runners/run_filter_oracle_comparison_p3_conditional_gaussian_mixture_tf.py"
+      ],
+      "old_route_ids_detected": [
+        "dpf_ledh_pfpf_ot",
+        "LEDH-PFPF-OT"
+      ],
+      "planned_disposition": "HISTORICAL_ONLY_NOT_EVIDENCE",
+      "replacement_phase": "P5/P9",
+      "replacement_runner": "covered by Algorithm 1 filter-oracle replacement rows after target-route reclassification",
+      "required_algorithm1_route_fields": "mandatory_algorithm1_route_fields for replacement rows",
+      "evidence_route_class": "historical_filter_oracle_consumer",
+      "core_resampling_route": "N/A for old consumer",
+      "extension_resampling_route": "N/A for old consumer",
+      "comparator_route": "conditional_gaussian_reference_if_reused_by_replacement",
+      "claim_class": "old_conditional_gaussian_consumer_quarantine",
+      "value_scalar": "N/A until replacement row declares target",
+      "gradient_scalar": "N/A until replacement row declares target",
+      "value_normalization": "N/A until replacement row declares target",
+      "gradient_normalization": "N/A until replacement row declares target",
+      "value_tolerance": "N/A until replacement row declares target",
+      "gradient_tolerance": "N/A until replacement row declares target",
+      "certification_band": "N/A until replacement row declares target",
+      "minimum_seed_count": "N/A until replacement row declares target",
+      "particle_ladder": "N/A until replacement row declares target",
+      "allowed_final_statuses": [
+        "HISTORICAL_ONLY_NOT_EVIDENCE",
+        "RERUN_ALG1_DIAGNOSTIC_ONLY",
+        "BLOCKED_REQUIRES_ADAPTER"
+      ],
+      "required_run_manifest_fields": "master_program_serious_run_manifest if rerun",
+      "non_claims": [
+        "Old conditional Gaussian mixture rows cannot be reused as Algorithm 1 evidence."
+      ],
+      "planned_result_paths": {
+        "phase_result": "docs/plans/bayesfilter-dpf-ledh-pfpf-alg1-ukf-ledh-pfpf-ot-rerun-p5-filter-oracle-statistical-closeness-result-2026-06-10.md",
+        "json": "experiments/dpf_implementation/reports/outputs/dpf_filter_oracle_comparison_p5_alg1_ukf_statistical_closeness_2026-06-10.json",
+        "markdown_report": "experiments/dpf_implementation/reports/dpf-filter-oracle-comparison-p5-alg1-ukf-statistical-closeness-2026-06-10.md"
+      },
+      "primary_promote_statistic": "classification completeness only; no promotion permitted",
+      "veto_diagnostics": [
+        "old LEDH-PFPF-OT route used as current Algorithm 1 evidence",
+        "mandatory Algorithm 1 route field missing on replacement row",
+        "core Algorithm 1 row mixed with BayesFilter extension row",
+        "threshold or certification band missing without explicit N/A reason",
+        "Monte Carlo uncertainty missing for stochastic promoted row",
+        "unsupported comparator or target-route pair promoted",
+        "nonfinite particles, weights, determinants, covariances, value, or gradient",
+        "value agreement used to promote gradient correctness"
+      ]
+    },
+    {
+      "old_lane_id": "filter_oracle_p4_zhaocui_route_classification_consumer",
+      "old_artifact_paths": [
+        "experiments/dpf_implementation/tf_tfp/runners/run_filter_oracle_comparison_p4_zhaocui_tt_route_classification_tf.py"
+      ],
+      "old_route_ids_detected": [
+        "dpf_ledh_pfpf_ot",
+        "LEDH-PFPF-OT"
+      ],
+      "planned_disposition": "HISTORICAL_ONLY_NOT_EVIDENCE",
+      "replacement_phase": "P5/P6/P9",
+      "replacement_runner": "covered by Algorithm 1 filter-oracle replacement rows after target-route reclassification",
+      "required_algorithm1_route_fields": "mandatory_algorithm1_route_fields for replacement rows",
+      "evidence_route_class": "historical_filter_oracle_consumer",
+      "core_resampling_route": "N/A for old consumer",
+      "extension_resampling_route": "N/A for old consumer",
+      "comparator_route": "zhaocui_route_if_valid_for_replacement_row",
+      "claim_class": "old_zhaocui_route_classification_consumer_quarantine",
+      "value_scalar": "N/A until replacement row declares target",
+      "gradient_scalar": "N/A until replacement row declares target",
+      "value_normalization": "N/A until replacement row declares target",
+      "gradient_normalization": "N/A until replacement row declares target",
+      "value_tolerance": "N/A until replacement row declares target",
+      "gradient_tolerance": "N/A until replacement row declares target",
+      "certification_band": "N/A until replacement row declares target",
+      "minimum_seed_count": "N/A until replacement row declares target",
+      "particle_ladder": "N/A until replacement row declares target",
+      "allowed_final_statuses": [
+        "HISTORICAL_ONLY_NOT_EVIDENCE",
+        "RERUN_ALG1_DIAGNOSTIC_ONLY",
+        "BLOCKED_REQUIRES_ADAPTER"
+      ],
+      "required_run_manifest_fields": "master_program_serious_run_manifest if rerun",
+      "non_claims": [
+        "Old Zhao-Cui classification rows cannot be reused as Algorithm 1 evidence."
+      ],
+      "planned_result_paths": {
+        "phase_result": "docs/plans/bayesfilter-dpf-ledh-pfpf-alg1-ukf-ledh-pfpf-ot-rerun-p5-filter-oracle-statistical-closeness-result-2026-06-10.md",
+        "json": "experiments/dpf_implementation/reports/outputs/dpf_filter_oracle_comparison_p5_alg1_ukf_statistical_closeness_2026-06-10.json",
+        "markdown_report": "experiments/dpf_implementation/reports/dpf-filter-oracle-comparison-p5-alg1-ukf-statistical-closeness-2026-06-10.md"
+      },
+      "primary_promote_statistic": "classification completeness only; no promotion permitted",
+      "veto_diagnostics": [
+        "old LEDH-PFPF-OT route used as current Algorithm 1 evidence",
+        "mandatory Algorithm 1 route field missing on replacement row",
+        "core Algorithm 1 row mixed with BayesFilter extension row",
+        "threshold or certification band missing without explicit N/A reason",
+        "Monte Carlo uncertainty missing for stochastic promoted row",
+        "unsupported comparator or target-route pair promoted",
+        "nonfinite particles, weights, determinants, covariances, value, or gradient",
+        "value agreement used to promote gradient correctness"
+      ]
+    },
+    {
+      "old_lane_id": "filter_oracle_p1_lgssm_exact",
+      "old_artifact_paths": [
+        "experiments/dpf_implementation/tf_tfp/runners/run_filter_oracle_comparison_p1_lgssm_exact_oracle_tf.py",
+        "experiments/dpf_implementation/reports/outputs/dpf_filter_oracle_comparison_p1_lgssm_exact_oracle_2026-06-08.json"
+      ],
+      "old_route_ids_detected": [
+        "dpf_ledh_pfpf_ot",
+        "LEDH-PFPF-OT"
+      ],
+      "planned_disposition": "RERUN_ALG1",
+      "replacement_phase": "P5",
+      "replacement_runner": "experiments.dpf_implementation.tf_tfp.runners.run_filter_oracle_comparison_p5_alg1_ukf_statistical_closeness_tf",
+      "required_algorithm1_route_fields": "mandatory_algorithm1_route_fields",
+      "evidence_route_class": "SOURCE_ALGORITHM1_CORE",
+      "core_resampling_route": "none",
+      "extension_resampling_route": "none",
+      "comparator_route": "exact_kalman",
+      "claim_class": "lgssm_exact_oracle_value_gradient",
+      "value_scalar": "log_likelihood",
+      "gradient_scalar": "fixed_branch_score",
+      "value_normalization": "absolute and per-observation error",
+      "gradient_normalization": "relative score and norm error",
+      "value_tolerance": "P5 must predeclare from filter-oracle registry before run",
+      "gradient_tolerance": "P5 must predeclare from filter-oracle registry before run",
+      "certification_band": "P5 must predeclare before run",
+      "minimum_seed_count": 5,
+      "particle_ladder": [
+        8,
+        16,
+        32
+      ],
+      "allowed_final_statuses": [
+        "RERUN_ALG1",
+        "RERUN_ALG1_DIAGNOSTIC_ONLY",
+        "BLOCKED_REQUIRES_ADAPTER"
+      ],
+      "required_run_manifest_fields": "master_program_serious_run_manifest",
+      "non_claims": [
+        "No old dpf_ledh_pfpf_ot row may be reused."
+      ],
+      "planned_result_paths": {
+        "phase_result": "docs/plans/bayesfilter-dpf-ledh-pfpf-alg1-ukf-ledh-pfpf-ot-rerun-p5-filter-oracle-statistical-closeness-result-2026-06-10.md",
+        "json": "experiments/dpf_implementation/reports/outputs/dpf_filter_oracle_comparison_p5_alg1_ukf_statistical_closeness_2026-06-10.json",
+        "markdown_report": "experiments/dpf_implementation/reports/dpf-filter-oracle-comparison-p5-alg1-ukf-statistical-closeness-2026-06-10.md"
+      },
+      "primary_promote_statistic": "predeclared fixed-branch gradient error statistic against same-scalar comparator; finite-only is diagnostic",
+      "veto_diagnostics": [
+        "old LEDH-PFPF-OT route used as current Algorithm 1 evidence",
+        "mandatory Algorithm 1 route field missing on replacement row",
+        "core Algorithm 1 row mixed with BayesFilter extension row",
+        "threshold or certification band missing without explicit N/A reason",
+        "Monte Carlo uncertainty missing for stochastic promoted row",
+        "unsupported comparator or target-route pair promoted",
+        "nonfinite particles, weights, determinants, covariances, value, or gradient",
+        "value agreement used to promote gradient correctness"
+      ]
+    },
+    {
+      "old_lane_id": "filter_oracle_p5_statistical_closeness",
+      "old_artifact_paths": [
+        "experiments/dpf_implementation/tf_tfp/runners/run_filter_oracle_comparison_p5_dpf_statistical_closeness_tf.py",
+        "experiments/dpf_implementation/reports/outputs/dpf_filter_oracle_comparison_p5_dpf_statistical_closeness_2026-06-08.json",
+        "experiments/dpf_implementation/reports/dpf-filter-oracle-comparison-p5-dpf-statistical-closeness-2026-06-08.md"
+      ],
+      "old_route_ids_detected": [
+        "dpf_ledh_pfpf_ot",
+        "LEDH-PFPF-OT"
+      ],
+      "planned_disposition": "RERUN_ALG1",
+      "replacement_phase": "P5",
+      "replacement_runner": "experiments.dpf_implementation.tf_tfp.runners.run_filter_oracle_comparison_p5_alg1_ukf_statistical_closeness_tf",
+      "required_algorithm1_route_fields": "mandatory_algorithm1_route_fields",
+      "evidence_route_class": "SOURCE_ALGORITHM1_CORE_or_BAYESFILTER_EXTENSION_NOT_SOURCE_CORE_per_row",
+      "core_resampling_route": "P5 declared per row",
+      "extension_resampling_route": "P5 declared per row",
+      "comparator_route": "filter_oracle_registry_per_row",
+      "claim_class": "statistical_closeness_replacement",
+      "value_scalar": "filter_oracle_registry_per_row",
+      "gradient_scalar": "fixed_branch_score_or_N/A_per_row",
+      "value_normalization": "filter_oracle_registry_per_row",
+      "gradient_normalization": "filter_oracle_registry_per_row",
+      "value_tolerance": "filter_oracle_registry_per_row",
+      "gradient_tolerance": "filter_oracle_registry_per_row",
+      "certification_band": "filter_oracle_registry_per_row",
+      "minimum_seed_count": 5,
+      "particle_ladder": "filter_oracle_registry_per_row",
+      "allowed_final_statuses": [
+        "RERUN_ALG1",
+        "RERUN_ALG1_DIAGNOSTIC_ONLY",
+        "N_A_NOT_APPLICABLE",
+        "BLOCKED_REQUIRES_ADAPTER"
+      ],
+      "required_run_manifest_fields": "master_program_serious_run_manifest",
+      "non_claims": [
+        "Approximation rows must not be called exact."
+      ],
+      "planned_result_paths": {
+        "phase_result": "docs/plans/bayesfilter-dpf-ledh-pfpf-alg1-ukf-ledh-pfpf-ot-rerun-p5-filter-oracle-statistical-closeness-result-2026-06-10.md",
+        "json": "experiments/dpf_implementation/reports/outputs/dpf_filter_oracle_comparison_p5_alg1_ukf_statistical_closeness_2026-06-10.json",
+        "markdown_report": "experiments/dpf_implementation/reports/dpf-filter-oracle-comparison-p5-alg1-ukf-statistical-closeness-2026-06-10.md"
+      },
+      "primary_promote_statistic": "phase-specific predeclared statistic; finite-only is diagnostic",
+      "veto_diagnostics": [
+        "old LEDH-PFPF-OT route used as current Algorithm 1 evidence",
+        "mandatory Algorithm 1 route field missing on replacement row",
+        "core Algorithm 1 row mixed with BayesFilter extension row",
+        "threshold or certification band missing without explicit N/A reason",
+        "Monte Carlo uncertainty missing for stochastic promoted row",
+        "unsupported comparator or target-route pair promoted",
+        "nonfinite particles, weights, determinants, covariances, value, or gradient",
+        "value agreement used to promote gradient correctness"
+      ]
+    },
+    {
+      "old_lane_id": "filter_oracle_p6_cross_filter_calibration",
+      "old_artifact_paths": [
+        "experiments/dpf_implementation/tf_tfp/runners/run_filter_oracle_comparison_p6_cross_filter_error_calibration_tf.py",
+        "experiments/dpf_implementation/reports/outputs/dpf_filter_oracle_comparison_p6_cross_filter_error_calibration_2026-06-08.json",
+        "experiments/dpf_implementation/reports/dpf-filter-oracle-comparison-p6-cross-filter-error-calibration-2026-06-08.md"
+      ],
+      "old_route_ids_detected": [
+        "dpf_ledh_pfpf_ot"
+      ],
+      "planned_disposition": "RERUN_ALG1",
+      "replacement_phase": "P6",
+      "replacement_runner": "experiments.dpf_implementation.tf_tfp.runners.run_filter_oracle_comparison_p6_alg1_ukf_cross_filter_calibration_tf",
+      "required_algorithm1_route_fields": "mandatory_algorithm1_route_fields",
+      "evidence_route_class": "SOURCE_ALGORITHM1_CORE_or_BAYESFILTER_EXTENSION_NOT_SOURCE_CORE_per_row",
+      "core_resampling_route": "P6 declared per row",
+      "extension_resampling_route": "P6 declared per row",
+      "comparator_route": "filter_oracle_registry_per_row",
+      "claim_class": "cross_filter_calibration_replacement",
+      "value_scalar": "P6 declared per row",
+      "gradient_scalar": "P6 declared per row",
+      "value_normalization": "normalized per observation/dimension where applicable",
+      "gradient_normalization": "P6 declared per row",
+      "value_tolerance": "P6 imported from pre-run registry",
+      "gradient_tolerance": "P6 imported from pre-run registry",
+      "certification_band": "P6 imported from pre-run registry",
+      "minimum_seed_count": 5,
+      "particle_ladder": "P6 declared per row",
+      "allowed_final_statuses": [
+        "RERUN_ALG1",
+        "RERUN_ALG1_DIAGNOSTIC_ONLY",
+        "N_A_NOT_APPLICABLE",
+        "BLOCKED_REQUIRES_ADAPTER"
+      ],
+      "required_run_manifest_fields": "master_program_serious_run_manifest",
+      "non_claims": [
+        "No universal filter ranking."
+      ],
+      "planned_result_paths": {
+        "phase_result": "docs/plans/bayesfilter-dpf-ledh-pfpf-alg1-ukf-ledh-pfpf-ot-rerun-p6-cross-filter-calibration-result-2026-06-10.md",
+        "json": "experiments/dpf_implementation/reports/outputs/dpf_filter_oracle_comparison_p6_alg1_ukf_cross_filter_calibration_2026-06-10.json",
+        "markdown_report": "experiments/dpf_implementation/reports/dpf-filter-oracle-comparison-p6-alg1-ukf-cross-filter-calibration-2026-06-10.md"
+      },
+      "primary_promote_statistic": "predeclared normalized value/gradient calibration statistic with uncertainty and applicability class",
+      "veto_diagnostics": [
+        "old LEDH-PFPF-OT route used as current Algorithm 1 evidence",
+        "mandatory Algorithm 1 route field missing on replacement row",
+        "core Algorithm 1 row mixed with BayesFilter extension row",
+        "threshold or certification band missing without explicit N/A reason",
+        "Monte Carlo uncertainty missing for stochastic promoted row",
+        "unsupported comparator or target-route pair promoted",
+        "nonfinite particles, weights, determinants, covariances, value, or gradient",
+        "value agreement used to promote gradient correctness"
+      ]
+    },
+    {
+      "old_lane_id": "filter_oracle_p7_closeout",
+      "old_artifact_paths": [
+        "experiments/dpf_implementation/tf_tfp/runners/run_filter_oracle_comparison_p7_integration_closeout.py",
+        "experiments/dpf_implementation/reports/outputs/dpf_filter_oracle_comparison_p7_integration_closeout_2026-06-08.json",
+        "experiments/dpf_implementation/reports/dpf-filter-oracle-comparison-p7-integration-closeout-2026-06-08.md"
+      ],
+      "old_route_ids_detected": [
+        "dpf_ledh_pfpf_ot",
+        "LEDH-PFPF"
+      ],
+      "planned_disposition": "HISTORICAL_ONLY_NOT_EVIDENCE",
+      "replacement_phase": "P9",
+      "replacement_runner": "experiments.dpf_implementation.reports generation from P1-P8 results",
+      "required_algorithm1_route_fields": "mandatory_algorithm1_route_fields_for_new_rows",
+      "evidence_route_class": "closeout_index",
+      "core_resampling_route": "P9 indexed per row",
+      "extension_resampling_route": "P9 indexed per row",
+      "comparator_route": "P9 indexed per row",
+      "claim_class": "closeout_replacement",
+      "value_scalar": "P9 indexed per row",
+      "gradient_scalar": "P9 indexed per row",
+      "value_normalization": "P9 indexed per row",
+      "gradient_normalization": "P9 indexed per row",
+      "value_tolerance": "P9 imported from phase results",
+      "gradient_tolerance": "P9 imported from phase results",
+      "certification_band": "P9 imported from phase results",
+      "minimum_seed_count": "P9 indexed per stochastic row",
+      "particle_ladder": "P9 indexed per stochastic row",
+      "allowed_final_statuses": [
+        "RERUN_ALG1",
+        "RERUN_ALG1_DIAGNOSTIC_ONLY",
+        "HISTORICAL_ONLY_NOT_EVIDENCE",
+        "N_A_NOT_APPLICABLE",
+        "BLOCKED_REQUIRES_ADAPTER"
+      ],
+      "required_run_manifest_fields": "closeout_manifest_index",
+      "non_claims": [
+        "Old closeout is superseded for Algorithm 1 evidence."
+      ],
+      "planned_result_paths": {
+        "phase_result": "docs/plans/bayesfilter-dpf-ledh-pfpf-alg1-ukf-ledh-pfpf-ot-rerun-p9-closeout-supersession-result-2026-06-10.md",
+        "json": "experiments/dpf_implementation/reports/outputs/dpf_ledh_pfpf_alg1_ukf_ledh_pfpf_ot_rerun_closeout_2026-06-10.json",
+        "markdown_report": "experiments/dpf_implementation/reports/dpf-ledh-pfpf-alg1-ukf-ledh-pfpf-ot-rerun-closeout-2026-06-10.md"
+      },
+      "primary_promote_statistic": "classification completeness only; no promotion permitted",
+      "veto_diagnostics": [
+        "old LEDH-PFPF-OT route used as current Algorithm 1 evidence",
+        "mandatory Algorithm 1 route field missing on replacement row",
+        "core Algorithm 1 row mixed with BayesFilter extension row",
+        "threshold or certification band missing without explicit N/A reason",
+        "Monte Carlo uncertainty missing for stochastic promoted row",
+        "unsupported comparator or target-route pair promoted",
+        "nonfinite particles, weights, determinants, covariances, value, or gradient",
+        "value agreement used to promote gradient correctness"
+      ]
+    },
+    {
+      "old_lane_id": "filter_oracle_p8_p44_blocker_closure",
+      "old_artifact_paths": [
+        "experiments/dpf_implementation/tf_tfp/runners/run_filter_oracle_comparison_p8_p44_dpf_blocker_closure_tf.py",
+        "experiments/dpf_implementation/reports/outputs/dpf_filter_oracle_comparison_p8_p44_dpf_blocker_closure_2026-06-09.json",
+        "experiments/dpf_implementation/reports/outputs/dpf_filter_oracle_comparison_p8_p44_dpf_blocker_closure_review_brief_2026-06-09.json",
+        "experiments/dpf_implementation/reports/dpf-filter-oracle-comparison-p8-p44-dpf-blocker-closure-2026-06-09.md"
+      ],
+      "old_route_ids_detected": [
+        "dpf_ledh_pfpf_ot"
+      ],
+      "planned_disposition": "BLOCKED_REQUIRES_ADAPTER",
+      "replacement_phase": "P7",
+      "replacement_runner": "experiments.dpf_implementation.tf_tfp.runners.run_filter_oracle_comparison_p8_p44_alg1_ukf_blocker_closure_tf",
+      "required_algorithm1_route_fields": "mandatory_algorithm1_route_fields",
+      "evidence_route_class": "SOURCE_ALGORITHM1_CORE_or_BAYESFILTER_EXTENSION_NOT_SOURCE_CORE_per_row",
+      "core_resampling_route": "P7 declared per row",
+      "extension_resampling_route": "P7 declared per row",
+      "comparator_route": "P44 registry per target",
+      "claim_class": "p44_cell_replacement_or_adapter_blocker",
+      "value_scalar": "P7 declared per row",
+      "gradient_scalar": "P7 declared per row",
+      "value_normalization": "P7 declared per row",
+      "gradient_normalization": "P7 declared per row",
+      "value_tolerance": "P7 declared before run or N/A reason",
+      "gradient_tolerance": "P7 declared before run or N/A reason",
+      "certification_band": "P7 declared before run or N/A reason",
+      "minimum_seed_count": 5,
+      "particle_ladder": "P7 declared per row",
+      "allowed_final_statuses": [
+        "RERUN_ALG1",
+        "RERUN_ALG1_DIAGNOSTIC_ONLY",
+        "N_A_NOT_APPLICABLE",
+        "BLOCKED_REQUIRES_ADAPTER"
+      ],
+      "required_run_manifest_fields": "master_program_serious_run_manifest",
+      "non_claims": [
+        "Adapter blocker is engineering status, not evidence against method."
+      ],
+      "planned_result_paths": {
+        "phase_result": "docs/plans/bayesfilter-dpf-ledh-pfpf-alg1-ukf-ledh-pfpf-ot-rerun-p7-p44-blocker-closure-result-2026-06-10.md",
+        "json": "experiments/dpf_implementation/reports/outputs/dpf_filter_oracle_comparison_p8_p44_alg1_ukf_blocker_closure_2026-06-10.json",
+        "markdown_report": "experiments/dpf_implementation/reports/dpf-filter-oracle-comparison-p8-p44-alg1-ukf-blocker-closure-2026-06-10.md"
+      },
+      "primary_promote_statistic": "all required adapter/callback fields classified; executable rows require predeclared thresholds before promotion",
+      "veto_diagnostics": [
+        "old LEDH-PFPF-OT route used as current Algorithm 1 evidence",
+        "mandatory Algorithm 1 route field missing on replacement row",
+        "core Algorithm 1 row mixed with BayesFilter extension row",
+        "threshold or certification band missing without explicit N/A reason",
+        "Monte Carlo uncertainty missing for stochastic promoted row",
+        "unsupported comparator or target-route pair promoted",
+        "nonfinite particles, weights, determinants, covariances, value, or gradient",
+        "value agreement used to promote gradient correctness"
+      ]
+    },
+    {
+      "old_lane_id": "source_faithful_repair_auxiliary_flow_only",
+      "old_artifact_paths": [
+        "experiments/dpf_implementation/tf_tfp/runners/run_ledh_pfpf_source_faithful_repair_tf.py",
+        "experiments/dpf_implementation/reports/outputs/dpf_ledh_pfpf_source_faithful_repair_2026-06-10.json",
+        "experiments/dpf_implementation/reports/dpf-ledh-pfpf-source-faithful-repair-2026-06-10.md"
+      ],
+      "old_route_ids_detected": [
+        "ledh_pfpf",
+        "source_faithful_repair"
+      ],
+      "planned_disposition": "HISTORICAL_ONLY_NOT_EVIDENCE",
+      "replacement_phase": "P8/P9",
+      "replacement_runner": "N/A",
+      "required_algorithm1_route_fields": "N/A",
+      "evidence_route_class": "historical_auxiliary_flow_only",
+      "core_resampling_route": "N/A",
+      "extension_resampling_route": "N/A",
+      "comparator_route": "N/A",
+      "claim_class": "superseded_repair",
+      "value_scalar": "N/A",
+      "gradient_scalar": "N/A",
+      "value_normalization": "N/A",
+      "gradient_normalization": "N/A",
+      "value_tolerance": "N/A",
+      "gradient_tolerance": "N/A",
+      "certification_band": "N/A",
+      "minimum_seed_count": "N/A",
+      "particle_ladder": "N/A",
+      "allowed_final_statuses": [
+        "HISTORICAL_ONLY_NOT_EVIDENCE",
+        "SCAFFOLDING_ONLY"
+      ],
+      "required_run_manifest_fields": "N/A",
+      "non_claims": [
+        "Not Algorithm 1 covariance lifecycle evidence."
+      ],
+      "planned_result_paths": {
+        "phase_result": "docs/plans/bayesfilter-dpf-ledh-pfpf-alg1-ukf-ledh-pfpf-ot-rerun-p8-filterflow-annealed-historical-regression-result-2026-06-10.md",
+        "json": "experiments/dpf_implementation/reports/outputs/dpf_ledh_pfpf_alg1_ukf_extension_historical_classification_2026-06-10.json",
+        "markdown_report": "experiments/dpf_implementation/reports/dpf-ledh-pfpf-alg1-ukf-extension-historical-classification-2026-06-10.md"
+      },
+      "primary_promote_statistic": "classification completeness only; no promotion permitted",
+      "veto_diagnostics": [
+        "old LEDH-PFPF-OT route used as current Algorithm 1 evidence",
+        "mandatory Algorithm 1 route field missing on replacement row",
+        "core Algorithm 1 row mixed with BayesFilter extension row",
+        "threshold or certification band missing without explicit N/A reason",
+        "Monte Carlo uncertainty missing for stochastic promoted row",
+        "unsupported comparator or target-route pair promoted",
+        "nonfinite particles, weights, determinants, covariances, value, or gradient",
+        "value agreement used to promote gradient correctness"
+      ]
+    },
+    {
+      "old_lane_id": "annealed_transport_ledh_lgssm",
+      "old_artifact_paths": [
+        "experiments/dpf_implementation/tf_tfp/runners/run_ledh_pfpf_annealed_transport_lgssm_tf.py",
+        "experiments/dpf_implementation/reports/outputs/dpf_ledh_pfpf_annealed_transport_lgssm_2026-05-31.json",
+        "experiments/dpf_implementation/reports/dpf-ledh-pfpf-annealed-transport-lgssm-2026-05-31.md"
+      ],
+      "old_route_ids_detected": [
+        "ledh_pfpf",
+        "annealed_transport"
+      ],
+      "planned_disposition": "BLOCKED_REQUIRES_SEPARATE_PLAN",
+      "replacement_phase": "P8",
+      "replacement_runner": "separate reviewed extension runner if needed",
+      "required_algorithm1_route_fields": "mandatory_algorithm1_route_fields_if_rerun",
+      "evidence_route_class": "BAYESFILTER_EXTENSION_NOT_SOURCE_CORE",
+      "core_resampling_route": "P8 declared",
+      "extension_resampling_route": "annealed_transport_extension",
+      "comparator_route": "P8 declared if extension rerun",
+      "claim_class": "extension_classification",
+      "value_scalar": "P8 declared if rerun",
+      "gradient_scalar": "P8 declared if rerun",
+      "value_normalization": "P8 declared if rerun",
+      "gradient_normalization": "P8 declared if rerun",
+      "value_tolerance": "N/A unless separate extension plan declares it",
+      "gradient_tolerance": "N/A unless separate extension plan declares it",
+      "certification_band": "N/A unless separate extension plan declares it",
+      "minimum_seed_count": "P8 declared if rerun",
+      "particle_ladder": "P8 declared if rerun",
+      "allowed_final_statuses": [
+        "ALG1_EXTENSION_RERUN",
+        "HISTORICAL_ONLY_NOT_EVIDENCE",
+        "BLOCKED_REQUIRES_SEPARATE_PLAN"
+      ],
+      "required_run_manifest_fields": "extension_run_manifest_if_rerun",
+      "non_claims": [
+        "Annealed/OT extension is not source Algorithm 1."
+      ],
+      "planned_result_paths": {
+        "phase_result": "docs/plans/bayesfilter-dpf-ledh-pfpf-alg1-ukf-ledh-pfpf-ot-rerun-p8-filterflow-annealed-historical-regression-result-2026-06-10.md",
+        "json": "experiments/dpf_implementation/reports/outputs/dpf_ledh_pfpf_alg1_ukf_extension_historical_classification_2026-06-10.json",
+        "markdown_report": "experiments/dpf_implementation/reports/dpf-ledh-pfpf-alg1-ukf-extension-historical-classification-2026-06-10.md"
+      },
+      "primary_promote_statistic": "phase-specific predeclared statistic; finite-only is diagnostic",
+      "veto_diagnostics": [
+        "old LEDH-PFPF-OT route used as current Algorithm 1 evidence",
+        "mandatory Algorithm 1 route field missing on replacement row",
+        "core Algorithm 1 row mixed with BayesFilter extension row",
+        "threshold or certification band missing without explicit N/A reason",
+        "Monte Carlo uncertainty missing for stochastic promoted row",
+        "unsupported comparator or target-route pair promoted",
+        "nonfinite particles, weights, determinants, covariances, value, or gradient",
+        "value agreement used to promote gradient correctness"
+      ]
+    },
+    {
+      "old_lane_id": "filterflow_matched_ledh_pfpf_ot",
+      "old_artifact_paths": [
+        "experiments/dpf_implementation/tf_tfp/runners/run_filterflow_matched_ledh_pfpf_ot_tf.py",
+        "experiments/dpf_implementation/reports/outputs/dpf_filterflow_matched_ledh_pfpf_ot_2026-05-31.json",
+        "experiments/dpf_implementation/reports/dpf-filterflow-matched-ledh-pfpf-ot-2026-05-31.md"
+      ],
+      "old_route_ids_detected": [
+        "ledh_pfpf_ot",
+        "filterflow_matched"
+      ],
+      "planned_disposition": "BLOCKED_REQUIRES_SEPARATE_PLAN",
+      "replacement_phase": "P8",
+      "replacement_runner": "separate reviewed same-contract adapter if needed",
+      "required_algorithm1_route_fields": "mandatory_algorithm1_route_fields_if_rerun",
+      "evidence_route_class": "same_contract_adapter_not_correctness_proof",
+      "core_resampling_route": "P8 declared if rerun",
+      "extension_resampling_route": "filterflow_ot_extension_if_rerun",
+      "comparator_route": "FilterFlow same-contract adapter",
+      "claim_class": "same_contract_extension_classification",
+      "value_scalar": "P8 declared if rerun",
+      "gradient_scalar": "P8 declared if rerun",
+      "value_normalization": "same-contract residual if rerun",
+      "gradient_normalization": "same-contract residual if rerun",
+      "value_tolerance": "N/A unless separate extension plan declares it",
+      "gradient_tolerance": "N/A unless separate extension plan declares it",
+      "certification_band": "N/A unless separate extension plan declares it",
+      "minimum_seed_count": "P8 declared if rerun",
+      "particle_ladder": "P8 declared if rerun",
+      "allowed_final_statuses": [
+        "ALG1_EXTENSION_RERUN",
+        "HISTORICAL_ONLY_NOT_EVIDENCE",
+        "BLOCKED_REQUIRES_SEPARATE_PLAN"
+      ],
+      "required_run_manifest_fields": "extension_run_manifest_if_rerun",
+      "non_claims": [
+        "Same-contract agreement does not prove either implementation correct.",
+        "Do not mutate .localsource/filterflow."
+      ],
+      "planned_result_paths": {
+        "phase_result": "docs/plans/bayesfilter-dpf-ledh-pfpf-alg1-ukf-ledh-pfpf-ot-rerun-p8-filterflow-annealed-historical-regression-result-2026-06-10.md",
+        "json": "experiments/dpf_implementation/reports/outputs/dpf_ledh_pfpf_alg1_ukf_extension_historical_classification_2026-06-10.json",
+        "markdown_report": "experiments/dpf_implementation/reports/dpf-ledh-pfpf-alg1-ukf-extension-historical-classification-2026-06-10.md"
+      },
+      "primary_promote_statistic": "all contract fields present and old route ids quarantined; no numerical promotion",
+      "veto_diagnostics": [
+        "old LEDH-PFPF-OT route used as current Algorithm 1 evidence",
+        "mandatory Algorithm 1 route field missing on replacement row",
+        "core Algorithm 1 row mixed with BayesFilter extension row",
+        "threshold or certification band missing without explicit N/A reason",
+        "Monte Carlo uncertainty missing for stochastic promoted row",
+        "unsupported comparator or target-route pair promoted",
+        "nonfinite particles, weights, determinants, covariances, value, or gradient",
+        "value agreement used to promote gradient correctness"
+      ]
+    }
+  ],
+  "artifact_groups": [
+    {
+      "group_id": "historical_ledh_pfpf_ot_plan_family_2026_05_29",
+      "paths_or_globs": [
+        "docs/plans/bayesfilter-dpf-ledh-pfpf-ot-*2026-05-29.md"
+      ],
+      "planned_disposition": "HISTORICAL_ONLY_NOT_EVIDENCE",
+      "replacement_phase": "P9",
+      "notes": "Historical plan/result family defines old coverage, not current Algorithm 1 evidence."
+    },
+    {
+      "group_id": "old_v2_ledh_pfpf_ot_reports_outputs_2026_06_07",
+      "paths_or_globs": [
+        "experiments/dpf_implementation/reports/dpf-v2-ledh-pfpf-ot-*.md",
+        "experiments/dpf_implementation/reports/outputs/dpf_v2_ledh_pfpf_ot_*.json"
+      ],
+      "planned_disposition": "HISTORICAL_ONLY_NOT_EVIDENCE",
+      "replacement_phase": "P2/P3/P4/P9",
+      "notes": "Covered by V2 contract/value/gradient replacement lanes."
+    },
+    {
+      "group_id": "old_filter_oracle_ledh_rows",
+      "paths_or_globs": [
+        "docs/plans/bayesfilter-dpf-filter-oracle-comparison-p0-*",
+        "docs/plans/bayesfilter-dpf-filter-oracle-comparison-p1-*",
+        "docs/plans/bayesfilter-dpf-filter-oracle-comparison-p2-*",
+        "docs/plans/bayesfilter-dpf-filter-oracle-comparison-p3-*",
+        "docs/plans/bayesfilter-dpf-filter-oracle-comparison-p4-*",
+        "docs/plans/bayesfilter-dpf-filter-oracle-comparison-p5-*",
+        "docs/plans/bayesfilter-dpf-filter-oracle-comparison-p6-*",
+        "docs/plans/bayesfilter-dpf-filter-oracle-comparison-p7-*",
+        "docs/plans/bayesfilter-dpf-filter-oracle-comparison-p8-*",
+        "experiments/dpf_implementation/tf_tfp/runners/run_filter_oracle_comparison_p*_*.py",
+        "experiments/dpf_implementation/reports/outputs/dpf_filter_oracle_comparison_p*.json"
+      ],
+      "planned_disposition": "HISTORICAL_ONLY_NOT_EVIDENCE",
+      "replacement_phase": "P5/P6/P7/P9",
+      "notes": "Any executable consumer or artifact with dpf_ledh_pfpf_ot is superseded for Algorithm 1 evidence; P0-P4 old consumers are explicitly represented as historical consumers."
+    },
+    {
+      "group_id": "archival_mentions",
+      "paths_or_globs": [
+        "docs/plans/*reset-memo*",
+        "docs/plans/logs/*",
+        "older broad docs/plans artifacts containing LEDH-PFPF-OT terms"
+      ],
+      "planned_disposition": "HISTORICAL_ONLY_NOT_EVIDENCE",
+      "replacement_phase": "P0/P9",
+      "notes": "Not executable lanes. P0 result must keep these separate from active runners/gates."
+    }
+  ],
+  "p0_inventory_commands": [
+    "rg -n \"LEDH-PFPF-OT|dpf_ledh_pfpf_ot|ledh_pfpf_ot|ledh_pfpf\" tests experiments scripts docs/plans",
+    "rg --files tests experiments/dpf_implementation/tf_tfp/runners experiments/dpf_implementation/reports experiments/dpf_implementation/reports/outputs docs/plans scripts | rg -i \"ledh.*pfpf|pfpf.*ledh|dpf_v2_ledh|filterflow_matched_ledh|source_faithful_repair|filter_oracle_comparison_p[5678]|filter-oracle-comparison-p[5678]|dpf_v2_algorithm_full_comparison_live_gate|run_v2_algorithm_full_comparison_closeout|run_filter_oracle_comparison_p1\"",
+    "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp python -m pytest tests/test_ledh_pfpf_alg1_ukf_tf.py -q"
+  ],
+  "p0_guardrail_test_result": {
+    "command": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp python -m pytest tests/test_ledh_pfpf_alg1_ukf_tf.py -q",
+    "status": "passed",
+    "summary": "15 passed, 2 warnings in 6.23s",
+    "cpu_gpu_status": "CPU-only TensorFlow run; CUDA_VISIBLE_DEVICES=-1 set before import"
+  }
+}

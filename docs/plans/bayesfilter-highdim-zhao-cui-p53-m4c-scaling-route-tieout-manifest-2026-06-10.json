@@ -1,0 +1,61 @@
+{
+  "schema_version": "p53.scaling_route_tieout.v1",
+  "phase": "P53-M4C",
+  "status": "PASS_P53_M4C_SCALING_ROUTE_TIEOUT",
+  "route": {
+    "route_id": "p53_spatial_sir_local_neighborhood_contraction",
+    "route_class": "scaling_route",
+    "selected_design": "local-neighborhood sparse transition contraction",
+    "implementation_symbols": [
+      "spatial_sir_local_pairwise_transition_log_density",
+      "spatial_sir_local_predictive_log_density",
+      "LocalNeighborhoodPredictiveResult"
+    ],
+    "baseline": "dense retained-grid route; P53 C_low is admissible only as a computational proxy because P53-M3 tied C_low to dense",
+    "dimensions": [
+      {
+        "compartments": 1,
+        "state_dim": 2
+      },
+      {
+        "compartments": 2,
+        "state_dim": 4
+      },
+      {
+        "compartments": 3,
+        "state_dim": 6
+      }
+    ],
+    "metadata_checks": [
+      "route_id stable",
+      "route_class is scaling_route",
+      "R_eff finite and positive",
+      "memory forecast finite and below configured cap for the tie-out fixture",
+      "source adapter avoids tf.repeat and tf.tile"
+    ]
+  },
+  "tieout_adapter_scope": "lower_rung_diagnostic_not_production_contraction",
+  "tolerances": {
+    "transition_log_density_atol": 1e-08,
+    "predictive_log_density_atol": 1e-08,
+    "one_step_log_increment_atol": 1e-08,
+    "gradient_atol": 1e-06
+  },
+  "tokens_emitted": [
+    "PASS_P53_M4C_SCALING_ROUTE_TIEOUT"
+  ],
+  "forbidden_tokens": [
+    "PASS_P53_M4D_SCALING_ROUTE_ADMISSION",
+    "PASS_P53_M5_RANK_SELECTION_INTEGRATION",
+    "PASS_P53_M6_SPATIAL_SIR_D18"
+  ],
+  "nonclaims": [
+    "no scaling-route admission yet",
+    "no rank-selection readiness",
+    "no d=18 spatial SIR readiness",
+    "no d=50 or d=100 spatial SIR readiness",
+    "no production retained-TT contraction readiness",
+    "no HMC readiness",
+    "no GPU readiness"
+  ]
+}

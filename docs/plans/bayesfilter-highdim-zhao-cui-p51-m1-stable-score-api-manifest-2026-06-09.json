@@ -1,0 +1,98 @@
+{
+  "schema_version": "p51.stable_score_api.v1",
+  "metadata_date": "2026-06-09",
+  "phase": "P51-M1",
+  "status": "PASS_P51_M1_STABLE_SCORE_API",
+  "source_artifacts": [
+    "docs/plans/bayesfilter-highdim-zhao-cui-p51-m1-stable-score-api-subplan-2026-06-09.md",
+    "docs/plans/bayesfilter-highdim-zhao-cui-p51-m0-gap-scope-preflight-manifest-2026-06-09.json",
+    "docs/plans/bayesfilter-highdim-zhao-cui-p47-phase6-score-hmc-readiness-result-2026-06-08.md",
+    "docs/plans/bayesfilter-highdim-zhao-cui-p50-hmc-readiness-tier-manifest-2026-06-09.json"
+  ],
+  "original_p50_gap": {
+    "id": "stable_top_level_score_api",
+    "source_phase": "P50-M7/P50-M9",
+    "classification": "partially_closed",
+    "reason": "A stable bayesfilter.highdim subpackage score API contract is implemented and guarded, while root-level bayesfilter public score API export remains unapproved."
+  },
+  "gap_resolution": {
+    "split": {
+      "subpackage_contract_lane": {
+        "status": "passed_stable_highdim_contract",
+        "api_scope": "bayesfilter.highdim",
+        "stable_symbols": [
+          "HighDimScoreAPIResult",
+          "evaluate_highdim_score_api"
+        ],
+        "required_properties": [
+          "tf.float64 theta vector",
+          "scalar tf.float64 log_likelihood",
+          "score shape equals theta shape",
+          "finite theta, value, and score",
+          "target_id preserved",
+          "evidence_class preserved",
+          "route_label preserved",
+          "parameterization preserved",
+          "branch_identity preserved",
+          "diagnostics preserve nonclaims"
+        ]
+      },
+      "root_public_export_lane": {
+        "status": "BLOCKED_PUBLIC_API_DECISION",
+        "api_scope": "root-level bayesfilter public API",
+        "requires_separate_policy_approval": true,
+        "implemented": false,
+        "tested_absent": true
+      }
+    }
+  },
+  "stable_highdim_api_contract": {
+    "function": "bayesfilter.highdim.evaluate_highdim_score_api",
+    "result_type": "bayesfilter.highdim.HighDimScoreAPIResult",
+    "backend": "TensorFlow float64",
+    "supported_value_function_class": "deterministic scalar TensorFlow value functions with differentiable theta dependence",
+    "allowed_route_labels": [
+      "hmc_compatible_deterministic_filtering",
+      "gradient_calibration_diagnostic",
+      "documented-deviation fixed-design substitute"
+    ],
+    "explicit_nonclaims_in_result_diagnostics": {
+      "stable_top_level_api": false,
+      "hmc_readiness": "not_claimed"
+    }
+  },
+  "validation": {
+    "tests": [
+      "tests/highdim/test_p51_stable_score_api.py",
+      "tests/highdim/test_p47_score_hmc_readiness.py",
+      "tests/highdim/test_p50_hmc_readiness_tiers.py"
+    ],
+    "compileall": [
+      "bayesfilter/highdim/score_api.py",
+      "bayesfilter/highdim/__init__.py",
+      "tests/highdim/test_p51_stable_score_api.py"
+    ],
+    "diff_check_paths": [
+      "bayesfilter/highdim/score_api.py",
+      "bayesfilter/highdim/__init__.py",
+      "tests/highdim/test_p51_stable_score_api.py",
+      "docs/plans/bayesfilter-highdim-zhao-cui-p51-m1-stable-score-api-manifest-2026-06-09.json",
+      "docs/plans/bayesfilter-highdim-zhao-cui-p51-m1-stable-score-api-result-2026-06-09.md",
+      "docs/plans/bayesfilter-highdim-zhao-cui-p51-visible-execution-ledger-2026-06-09.md"
+    ]
+  },
+  "stop_conditions": [
+    "root-level public API export requested without separate policy approval",
+    "HMC readiness requested without Tier 2 and Tier 3 diagnostics",
+    "stable API support requested for nondeterministic or disconnected value functions"
+  ],
+  "nonclaims": [
+    "no root-level bayesfilter public score API",
+    "no HMC readiness",
+    "no production HMC readiness",
+    "no production model readiness",
+    "no GPU readiness",
+    "no source-faithful adaptive TT/SIRT filtering",
+    "no S&P 500 reproduction"
+  ]
+}

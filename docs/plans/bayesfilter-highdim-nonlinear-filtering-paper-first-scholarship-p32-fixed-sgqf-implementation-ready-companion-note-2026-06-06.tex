@@ -1,0 +1,1146 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{hyperref}
+\usepackage{microtype}
+\usepackage{xcolor}
+
+\hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue}
+\allowdisplaybreaks
+
+\newtheorem{proposition}{Proposition}
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
+\numberwithin{equation}{section}
+
+\newcommand{\R}{\mathbb R}
+\newcommand{\E}{\mathbb E}
+\newcommand{\N}{\mathcal N}
+\newcommand{\dd}{\,\mathrm d}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\chol}{\operatorname{chol}}
+\newcommand{\ellhat}{\widehat\ell}
+\newcommand{\sgq}{\operatorname{SGQ}}
+\newcommand{\branch}{\mathfrak B}
+
+\title{Implementation-Ready Mathematical Companion to Fixed Sparse-Grid Quadrature Filtering and Its Analytical Gradient}
+\author{Chak Wong}
+\date{2026-06-06}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note defines a fixed sparse-grid quadrature filter (FixedSGQF) for
+high-dimensional nonlinear state-space models in which exact nonlinear filtering
+is unavailable but a deterministic Gaussian-surrogate likelihood is still
+scientifically useful.  The method carries one Gaussian state
+\(\N(m_t,P_t)\), evaluates the nonlinear moments needed for Gaussian projection
+with a fixed sparse-grid cloud in standardized Gaussian coordinates, and defines
+an analytical gradient of the same deterministic approximate likelihood scalar
+that the value routine evaluates.  The note is implementation-ready at the
+algorithm level: it states the cloud-construction rule, the one-step value
+recursion, the branch-conditioned derivative recursion, the same-scalar
+finite-difference validity rule, and a worked numerical oracle.  The main
+limitation is explicit.  FixedSGQF is not exact nonlinear filtering and it does
+not preserve general non-Gaussian posterior shape; it is a deterministic
+Gaussian-surrogate lane whose usefulness depends on whether one carried Gaussian
+and a fixed sparse-grid moment engine are adequate for the intended regime.
+\end{abstract}
+
+\tableofcontents
+
+\section{Reader Orientation, Scope, and Approval Target}
+\label{sec:reader-orientation}
+
+This document is written for three readers at once:
+\begin{enumerate}[leftmargin=0.3in]
+  \item implementation engineers who need an auditable mathematical contract,
+  \item mathematically trained first-year-PhD-level workers who must implement
+  the algorithm correctly from the note, and
+  \item general scientific reviewers who need to judge whether the proposal is
+  coherent, bounded, and worth approval.
+\end{enumerate}
+
+The note therefore serves two roles at once.  It is a mathematical derivation of
+one deterministic approximate filtering lane, and it is an implementation handoff
+document for that lane.  It is not a general survey of nonlinear filtering, and
+it is not a full software engineering manual.
+
+\paragraph{Background assumed.}
+The reader is assumed to know multivariate Gaussian notation, basic
+state-space-model notation, Jacobian-style derivative notation, and the use of a
+Cholesky factor for a positive-definite covariance matrix.  The note does not
+assume prior familiarity with fixed-branch derivative contracts, sparse-grid
+cloud merging, or same-scalar finite-difference validation; those are defined
+here.
+
+\paragraph{What this note provides internally.}
+The note defines:
+\begin{enumerate}[leftmargin=0.3in]
+  \item the exact filtering target and the narrower approximate object carried by
+  FixedSGQF,
+  \item the fixed sparse-grid cloud construction in standardized coordinates,
+  \item the one-step value recursion and the accumulated deterministic
+  approximate log likelihood,
+  \item the fixed-branch analytical derivative of that same scalar,
+  \item the same-scalar finite-difference validity rule, and
+  \item a worked numerical oracle for value and gradient checking.
+\end{enumerate}
+
+\paragraph{What this note does not claim.}
+The note does not claim exact nonlinear filtering, exact nonlinear likelihood
+evaluation, or faithful preservation of arbitrary posterior multimodality,
+skewness, or hard global interaction structure.  It defines one deterministic
+Gaussian-surrogate lane and makes its approximation boundary explicit.
+
+\paragraph{How to read this note.}
+Sections~\ref{sec:problem-and-lane}--\ref{sec:algorithm-one-pass} give the
+problem statement, the exact-versus-approximate object distinction, and the full
+runtime path.  Sections~\ref{sec:sparse-grid-construction} and
+\ref{sec:value-path} define the fixed cloud and the value recursion.
+Sections~\ref{sec:same-scalar-contract} and \ref{sec:gradient} define the saved
+branch and the analytical gradient.  Section~\ref{sec:fd-check} defines the
+finite-difference audit, and Section~\ref{sec:validation} states what evidence
+supports implementation correctness versus what evidence supports only
+approximate scientific usefulness.
+
+\section{Problem, Exact Target, and Selected Approximation Lane}
+\label{sec:problem-and-lane}
+
+The scientific problem is high-dimensional nonlinear filtering.  In a general
+state-space model, the exact Bayesian filter propagates a full conditional law
+through time.  Once the transition or observation map is nonlinear, that law is
+usually no longer representable by a finite list of moments, and in high
+dimension exact function-valued propagation is rarely a practical computational
+object.
+
+The question addressed here is therefore narrower than exact filtering: what
+deterministic approximation lane is transparent about its compromises,
+mathematically coherent, and still implementable with a reproducible value and
+analytical gradient?
+
+The lane selected here is \emph{fixed sparse-grid quadrature filtering}
+(FixedSGQF).  The method makes three deliberate approximation decisions:
+\begin{enumerate}[leftmargin=0.3in]
+  \item it carries one Gaussian surrogate \(\N(m_t,P_t)\) instead of the full
+  filtering density,
+  \item it evaluates the nonlinear moments needed by that Gaussian projection
+  with a deterministic sparse-grid quadrature rule in standardized Gaussian
+  coordinates, and
+  \item it freezes the cloud, merge rule, covariance-factor branch, and veto
+  policy so that the reported gradient differentiates the same deterministic
+  scalar that the reported value routine evaluates.
+\end{enumerate}
+
+This note chooses FixedSGQF because it defines an auditable deterministic
+Gaussian-surrogate scalar, an analytical derivative of that same scalar on a
+fixed branch, and a moment engine less explosive than dense tensor-product
+Gaussian quadrature in the intended high-dimensional regime
+\cite{jia2012sparsegrid,singh2018adaptive}.  It is not a substitute for richer
+non-Gaussian density-approximation lanes such as the Zhao--Cui squared
+tensor-train construction \cite{zhao2024ttsequential}; it is the deterministic
+Gaussian-surrogate lane in a broader program.
+
+\section{What the Algorithm Computes}
+\label{sec:what-computes}
+
+This section is the scope statement an implementer should keep in mind while
+reading every later formula.
+
+\paragraph{Exact target.}
+The scientific target is the exact nonlinear filtering law
+\begin{equation}
+  p_\theta(x_t\mid y_{1:t}).
+  \label{eq:exact-filtering-law}
+\end{equation}
+That is a full probability law on \(\R^{n_x}\).
+
+\paragraph{Approximate carried object.}
+FixedSGQF does \emph{not} store that full law.  It stores only one Gaussian
+surrogate,
+\begin{equation}
+  X_t\mid y_{1:t}
+  \approx
+  \N(m_t,P_t).
+  \label{eq:carried-gaussian}
+\end{equation}
+
+\paragraph{Accumulated deterministic scalar.}
+At each time step the method forms a Gaussian innovation log-likelihood
+increment,
+\begin{equation}
+  \ellhat_t^{\rm FSGQ}
+  =
+  -\frac12\left\{\log\det S_t + v_t^\top S_t^{-1}v_t + n_y\log(2\pi)\right\},
+  \label{eq:increment-loglik}
+\end{equation}
+and then accumulates
+\begin{equation}
+  \ellhat_T^{\rm FSGQ}(\theta)=\sum_{t=1}^T \ellhat_t^{\rm FSGQ}(\theta).
+  \label{eq:total-loglik}
+\end{equation}
+The analytical gradient in this note is the derivative of the same scalar in
+\eqref{eq:total-loglik}, not the derivative of an adaptive grid-selection
+procedure.
+
+\paragraph{What is discarded.}
+The approximation in \eqref{eq:carried-gaussian} discards general non-Gaussian
+posterior shape.  Sparse-grid exactness for selected Gaussian moments is not the
+same as exact posterior representation.
+
+\paragraph{A scalar warning cell.}
+Let
+\begin{equation}
+  X\sim\N(0,P),
+  \qquad
+  Y=X^2+\varepsilon,
+  \qquad
+  \varepsilon\sim\N(0,R).
+  \label{eq:quadratic-cell}
+\end{equation}
+For \(y>0\) and small \(R\), the exact posterior density can have two separated
+lobes near \(\pm\sqrt y\).  A Gaussian-projection filter can still compute useful
+moments of \(X^2\), but after the update it stores only one Gaussian.  That is
+not a bug in quadrature.  It is the design choice in
+\eqref{eq:carried-gaussian}.
+
+\section{Object Map and Core Terminology}
+\label{sec:object-map}
+
+The table below is the object inventory an implementer should keep open while
+coding.
+
+\begin{center}
+\small
+\begin{tabular}{p{0.22\linewidth}p{0.45\linewidth}p{0.21\linewidth}}
+\toprule
+symbol & meaning & shape \\
+\midrule
+\(\xi^{(r)}\) & standardized sparse-grid node & \(n_x\) \\
+\(w_r\) & accumulated signed weight after merge & scalar \\
+\(m_t,P_t\) & carried Gaussian after update & \(n_x\), \(n_x\times n_x\) \\
+\(m_t^-,P_t^-\) & predictive Gaussian before update & \(n_x\), \(n_x\times n_x\) \\
+\(C_t,C_t^-\) & Cholesky factors of \(P_t\) and \(P_t^-\) & \(n_x\times n_x\) \\
+\(\chi_{t-1}^{(r)}\) & placed previous-state cloud point & \(n_x\) \\
+\(a_t^{(r)}\) & transition image of \(\chi_{t-1}^{(r)}\) & \(n_x\) \\
+\(\chi_t^{(r)}\) & placed predictive cloud point & \(n_x\) \\
+\(z_t^{(r)}\) & observation image of \(\chi_t^{(r)}\) & \(n_y\) \\
+\(\bar z_t\) & predicted observation mean & \(n_y\) \\
+\(S_t\) & innovation covariance & \(n_y\times n_y\) \\
+\(C_{xz,t}\) & state-observation cross covariance & \(n_x\times n_y\) \\
+\(v_t\) & innovation residual \(y_t-\bar z_t\) & \(n_y\) \\
+\(K_t\) & Gaussian-projection gain & \(n_x\times n_y\) \\
+\(\ellhat_t^{\rm FSGQ}\) & one-step deterministic approximate log likelihood & scalar \\
+\(\dot{\square}\) & derivative with respect to one parameter component & matching object \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Exact filtering law.}
+The full conditional law \(p_\theta(x_t\mid y_{1:t})\).
+
+\paragraph{Carried Gaussian surrogate.}
+The pair \((m_t,P_t)\) used in place of the full law.
+
+\paragraph{Standardized sparse-grid cloud.}
+A fixed list \(\{(\xi^{(r)},w_r)\}_{r=1}^M\) in standard normal coordinates.
+The cloud is fixed before value evaluation.
+
+\paragraph{Physical cloud points.}
+Points obtained by mapping standardized nodes through the current mean and
+covariance factor, for example \(x=m+C\xi\).
+
+\paragraph{Fixed branch.}
+The saved structural choices under which the value and derivative are both
+evaluated: cloud, merge rule, ordering, factor convention, veto thresholds, and
+other declared policies.
+
+\paragraph{Same-scalar derivative.}
+The derivative of the deterministic scalar actually evaluated on the saved
+branch, not the derivative of a changing adaptive algorithm.
+
+\paragraph{Branch veto.}
+A declared failure exit, such as a predictive covariance or innovation
+covariance failing the positive-definite branch check.
+
+\paragraph{Implementation conventions.}
+This note fixes three conventions report-wide:
+\begin{enumerate}[leftmargin=0.3in]
+  \item every covariance factor is the lower-triangular Cholesky factor with
+  positive diagonal, written \(C(P)=\chol(P)\), whenever the declared branch is
+  valid;
+  \item all expressions written with \(S_t^{-1}\) are implemented by linear
+  solves against the Cholesky factor of \(S_t\), not by forming an explicit
+  inverse;
+  \item if floating-point accumulation yields a covariance that is not exactly
+  symmetric, the implementation first symmetrizes by
+  \((P+P^\top)/2\) and then either accepts the declared branch or returns a veto;
+  it does not silently repair the scalar with hidden jitter, clipping, or floor
+  operations.
+\end{enumerate}
+
+\section{FixedSGQF in One Pass}
+\label{sec:algorithm-one-pass}
+
+A junior implementer should be able to say what the method does after one read:
+\begin{enumerate}[leftmargin=0.3in]
+  \item Build a fixed sparse-grid cloud in standardized Gaussian coordinates.
+  \item Start from an initial Gaussian surrogate \((m_0,P_0)\).
+  \item At each time step, place the previous cloud using the current factor
+  \(C_{t-1}\), pass those points through the nonlinear transition map, and form
+  predictive moments \((m_t^-,P_t^-)\).
+  \item If the predictive covariance fails the declared branch, stop and report
+  a predictive-branch failure.
+  \item Place the predictive cloud using \(C_t^-\), pass those points through the
+  nonlinear observation map, and form \(\bar z_t\), \(S_t\), and
+  \(C_{xz,t}\).
+  \item If the innovation covariance fails the declared branch, stop and report
+  an innovation-branch failure.
+  \item Form the one-step Gaussian innovation log likelihood
+  \(\ellhat_t^{\rm FSGQ}\), update the running total
+  \(\ellhat_T^{\rm FSGQ}\), and update the carried Gaussian
+  \((m_t,P_t)\).
+  \item If the updated carried covariance fails the declared branch, stop and
+  report a carried-covariance failure.
+  \item If gradients are requested, propagate the same fixed-branch derivative
+  recursion using the same cloud and the same branch policies.
+\end{enumerate}
+
+The approximation ladder is therefore:
+\begin{equation}
+\begin{aligned}
+  \text{exact target} &\Longrightarrow p_\theta(x_t\mid y_{1:t}), \\
+  \text{carried surrogate} &\Longrightarrow \N(m_t,P_t), \\
+  \text{moment engine} &\Longrightarrow \text{fixed sparse-grid quadrature}, \\
+  \text{reported scalar} &\Longrightarrow \ellhat_T^{\rm FSGQ}(\theta), \\
+  \text{reported derivative} &\Longrightarrow \nabla_\theta \ellhat_T^{\rm FSGQ}(\theta;\branch).
+\end{aligned}
+\label{eq:approximation-ladder}
+\end{equation}
+
+\section{State-Space Model and Gaussian Projection}
+\label{sec:ssm-gaussian-projection}
+
+Use the additive-noise state-space model
+\begin{align}
+  X_t &= f_\theta(X_{t-1}) + \eta_t,
+  &
+  \eta_t &\sim \N(0,Q_\theta),
+  \label{eq:state-model}\\
+  Y_t &= h_\theta(X_t) + \varepsilon_t,
+  &
+  \varepsilon_t &\sim \N(0,R_\theta),
+  \label{eq:observation-model}
+\end{align}
+with \(X_t\in\R^{n_x}\), \(Y_t\in\R^{n_y}\), and parameter
+\(\theta\in\R^p\).
+
+The exact Bayesian prediction and update are
+\begin{align}
+  p_\theta(x_t\mid y_{1:t-1})
+  &=
+  \int p_\theta(x_t\mid x_{t-1}) p_\theta(x_{t-1}\mid y_{1:t-1})\dd x_{t-1},
+  \label{eq:exact-prediction}\\
+  p_\theta(x_t\mid y_{1:t})
+  &=
+  \frac{g_\theta(y_t\mid x_t)p_\theta(x_t\mid y_{1:t-1})}
+  {\int g_\theta(y_t\mid x_t)p_\theta(x_t\mid y_{1:t-1})\dd x_t}.
+  \label{eq:exact-update}
+\end{align}
+FixedSGQF does not close these exact densities; it performs a Gaussian moment
+projection.
+
+Assume the predictive state is represented by
+\begin{equation}
+  X_t^-\sim\N(m_t^-,P_t^-).
+  \label{eq:predictive-gaussian}
+\end{equation}
+Let \(Z_t=h_\theta(X_t^-)\).  The Gaussian projection uses
+\begin{align}
+  \bar z_t &= \E[Z_t],
+  \label{eq:zbar}\\
+  S_t &= R_\theta + \E[(Z_t-\bar z_t)(Z_t-\bar z_t)^\top],
+  \label{eq:S-def}\\
+  C_{xz,t} &= \E[(X_t^- - m_t^-)(Z_t-\bar z_t)^\top].
+  \label{eq:Cxz-def}
+\end{align}
+Given these moments, define
+\begin{align}
+  v_t &= y_t-\bar z_t,
+  &
+  K_t &= C_{xz,t}S_t^{-1},
+  \label{eq:innovation-and-gain}\\
+  m_t &= m_t^- + K_t v_t,
+  &
+  P_t &= P_t^- - K_tS_tK_t^\top.
+  \label{eq:gaussian-projection-update}
+\end{align}
+The sparse-grid machinery answers how to approximate the expectations in
+\eqref{eq:zbar}--\eqref{eq:Cxz-def}; it does not change the fact that the
+carried object is \((m_t,P_t)\).
+
+\section{Sparse-Grid Construction in Standardized Coordinates}
+\label{sec:sparse-grid-construction}
+
+Let \(\xi\sim\N(0,I_{n_x})\).  The sparse-grid cloud is built once in
+standardized coordinates and then mapped into physical coordinates by the
+current Gaussian factor.
+
+For a one-dimensional standard-normal quadrature rule at level \(\ell\), write
+\begin{equation}
+  I_\ell[\psi]
+  =
+  \sum_{a=1}^{s_\ell}\omega_{\ell,a}\psi(\zeta_{\ell,a})
+  \approx
+  \int_\R \psi(\xi)\phi(\xi)\dd\xi.
+  \label{eq:univariate-rule}
+\end{equation}
+For a multi-index \(\mathbf i=(i_1,\ldots,i_b)\), the tensor rule is
+\begin{equation}
+  I_{\mathbf i}[F] = (I_{i_1}\otimes\cdots\otimes I_{i_b})[F].
+  \label{eq:tensor-rule}
+\end{equation}
+
+Following \citet[Eq.~26--29]{jia2012sparsegrid}, define the active band
+\begin{equation}
+  \mathcal A_{b,L}
+  =
+  \{\mathbf i\in\mathbb N^b: L\le |\mathbf i|\le L+b-1\},
+  \qquad
+  |\mathbf i|=\sum_{j=1}^b i_j,
+  \label{eq:active-band}
+\end{equation}
+and the Smolyak coefficient
+\begin{equation}
+  c_{\mathbf i}
+  =
+  (-1)^{L+b-1-|\mathbf i|}
+  \binom{b-1}{L+b-1-|\mathbf i|}.
+  \label{eq:smolyak-coeff}
+\end{equation}
+Then
+\begin{equation}
+  A_{b,L}[F]
+  =
+  \sum_{\mathbf i\in\mathcal A_{b,L}} c_{\mathbf i}I_{\mathbf i}[F].
+  \label{eq:smolyak-rule}
+\end{equation}
+
+Each tensor point contributes a standardized node and signed weight.  Duplicate
+standardized nodes must be merged by accumulating their signed contributions.
+The final fixed cloud is
+\begin{equation}
+  \mathcal C_{b,L} = \{(\xi^{(r)},w_r)\}_{r=1}^{M_{b,L}}.
+  \label{eq:fixed-cloud}
+\end{equation}
+
+\paragraph{Cloud-construction contract.}
+The fixed cloud is part of the saved scalar.  The univariate rule family, merge
+tolerance, zero-weight threshold, enumeration order, and final sort order all
+belong to the target.  Two implementations that use the same level but different
+merge or ordering policies have not necessarily evaluated the same scalar.
+
+\subsection{Pseudocode: build the fixed sparse-grid cloud}
+\label{subsec:cloud-pseudocode}
+
+\fbox{\begin{minipage}{0.96\linewidth}
+\textbf{Routine: \texttt{build\_fixed\_sparse\_grid\_cloud}}\\[0.2em]
+\textbf{Inputs:} dimension \(b\), level \(L\), one-dimensional rule family
+\(\{I_\ell\}\), merge tolerance \(\tau_{\rm merge}\), zero-weight threshold
+\(\tau_{\rm zero}\).\\
+\textbf{Outputs:} merged standardized cloud
+\(\mathcal C_{b,L}=\{(\xi^{(r)},w_r)\}_{r=1}^{M_{b,L}}\), plus diagnostics.
+\begin{enumerate}[leftmargin=0.28in]
+  \item Enumerate all multi-indices \(\mathbf i\in\mathcal A_{b,L}\) in
+  lexicographic order.
+  \item For each \(\mathbf i\), enumerate local tensor indices \(\alpha\) in
+  lexicographic order.
+  \item Form the candidate standardized node
+  \(\xi^{\mathbf i,\alpha}\) and signed contribution
+  \(c_{\mathbf i}w^{\mathbf i,\alpha}\).
+  \item Search the current dictionary for an existing node \(\xi\) satisfying
+  \(\|\xi^{\mathbf i,\alpha}-\xi\|_\infty\le \tau_{\rm merge}\).
+  \item If found, add the signed contribution to the stored weight for that
+  node; otherwise create a new dictionary entry.
+  \item After all contributions have been processed, remove entries with
+  accumulated absolute weight below \(\tau_{\rm zero}\).
+  \item Sort the surviving nodes lexicographically and store them in that
+  order.
+  \item Report at least the weight-total diagnostic
+  \(\sum_r w_r\), the number of surviving nodes, and the number of negative
+  accumulated weights.
+\end{enumerate}
+\end{minipage}}
+
+\subsection{A toy cloud oracle}
+\label{subsec:toy-cloud}
+
+Take \(b=2\) and \(L=2\).  Use the level-1 and level-2 one-dimensional rules
+\begin{equation}
+  I_1:(0,1),
+  \qquad
+  I_2:\left\{(-\sqrt3,1/6),(0,2/3),(\sqrt3,1/6)\right\}.
+  \label{eq:toy-rules}
+\end{equation}
+The active band contains
+\begin{equation}
+  (1,1),\qquad (1,2),\qquad (2,1),
+  \label{eq:toy-indices}
+\end{equation}
+with coefficients
+\begin{equation}
+  c_{(1,1)}=-1,
+  \qquad
+  c_{(1,2)}=1,
+  \qquad
+  c_{(2,1)}=1.
+  \label{eq:toy-coeffs}
+\end{equation}
+After duplicate merge, the cloud is
+\begin{center}
+\begin{tabular}{ccc}
+\toprule
+node \(\xi\) & accumulated weight & source components \\
+\midrule
+\((0,0)\) & \(1/3\) & \((1,1),(1,2),(2,1)\) \\
+\(( -\sqrt3,0 )\) & \(1/6\) & \((2,1)\) \\
+\(( \sqrt3,0 )\) & \(1/6\) & \((2,1)\) \\
+\((0,-\sqrt3)\) & \(1/6\) & \((1,2)\) \\
+\((0,\sqrt3)\) & \(1/6\) & \((1,2)\) \\
+\bottomrule
+\end{tabular}
+\end{center}
+The weights sum to one, and any implementation should reproduce this merged
+cloud exactly up to the declared merge and zero-weight tolerances.
+
+\section{Value Path: Filtering and Deterministic Likelihood}
+\label{sec:value-path}
+
+Fix a merged standardized cloud
+\begin{equation}
+  \mathcal C=\{(\xi^{(r)},w_r)\}_{r=1}^M,
+  \qquad
+  \xi^{(r)}\in\R^{n_x},
+  \quad
+  w_r\in\R.
+  \label{eq:cloud-for-filter}
+\end{equation}
+The cloud is fixed before likelihood evaluation.
+
+\subsection{Prediction stage}
+
+Let \(P_{t-1}=C_{t-1}C_{t-1}^\top\) on the declared Cholesky branch.  Place the
+previous-state cloud,
+\begin{equation}
+  \chi_{t-1}^{(r)} = m_{t-1}+C_{t-1}\xi^{(r)},
+  \label{eq:pred-placed-points}
+\end{equation}
+push those points through the transition,
+\begin{equation}
+  a_t^{(r)} = f_\theta(\chi_{t-1}^{(r)}),
+  \label{eq:transition-points}
+\end{equation}
+and compute the predictive moments
+\begin{align}
+  m_t^- &= \sum_{r=1}^M w_r a_t^{(r)},
+  \label{eq:pred-mean}\\
+  P_t^- &= Q_\theta + \sum_{r=1}^M w_r
+  (a_t^{(r)}-m_t^-)(a_t^{(r)}-m_t^-)^\top.
+  \label{eq:pred-cov}
+\end{align}
+After \eqref{eq:pred-cov}, the implementation symmetrizes by
+\((P_t^-+P_t^{-\top})/2\) and either accepts the Cholesky branch or returns a
+predictive-branch veto.
+
+\subsection{Observation stage}
+
+Factor \(P_t^-=C_t^-(C_t^-)^\top\) on the declared branch and place the
+predictive cloud,
+\begin{equation}
+  \chi_t^{(r)} = m_t^- + C_t^-\xi^{(r)}.
+  \label{eq:obs-placed-points}
+\end{equation}
+Evaluate the observation map,
+\begin{equation}
+  z_t^{(r)} = h_\theta(\chi_t^{(r)}),
+  \label{eq:obs-values}
+\end{equation}
+and compute
+\begin{align}
+  \bar z_t &= \sum_{r=1}^M w_r z_t^{(r)},
+  \label{eq:obs-mean}\\
+  \Delta_t^{(r)} &= z_t^{(r)}-\bar z_t,
+  \label{eq:obs-centered}\\
+  S_t &= R_\theta + \sum_{r=1}^M w_r \Delta_t^{(r)}\Delta_t^{(r)\top},
+  \label{eq:obs-cov}\\
+  C_{xz,t} &= \sum_{r=1}^M w_r
+  (\chi_t^{(r)}-m_t^-)\Delta_t^{(r)\top}.
+  \label{eq:cross-cov}
+\end{align}
+If the symmetrized innovation covariance fails the declared branch, the value
+path returns an innovation-branch veto.
+
+If it passes, define
+\begin{align}
+  v_t &= y_t-\bar z_t,
+  \label{eq:innovation}\\
+  \ellhat_t^{\rm FSGQ}
+  &=
+  -\frac12\left\{\log\det S_t + v_t^\top S_t^{-1}v_t + n_y\log(2\pi)\right\},
+  \label{eq:value-loglik}\\
+  K_t &= C_{xz,t}S_t^{-1},
+  \label{eq:kalman-gain}\\
+  m_t &= m_t^- + K_t v_t,
+  \label{eq:filter-mean}\\
+  P_t &= P_t^- - K_tS_tK_t^\top.
+  \label{eq:filter-cov}
+\end{align}
+After the update, the implementation again symmetrizes \(P_t\) and either
+accepts the carried branch or returns a carried-covariance veto.
+
+\subsection{Pseudocode: one-step value recursion}
+\label{subsec:value-pseudocode}
+
+\fbox{\begin{minipage}{0.96\linewidth}
+\textbf{Routine: \texttt{fixed\_sgqf\_filter\_value\_step}}\\[0.2em]
+\textbf{Inputs:} previous mean/covariance \((m_{t-1},P_{t-1})\), current
+observation \(y_t\), model objects \(f_\theta,h_\theta,Q_\theta,R_\theta\),
+fixed cloud \(\mathcal C\), branch thresholds, factor convention.\\
+\textbf{Outputs:} one-step increment \(\ellhat_t^{\rm FSGQ}\), updated pair
+\((m_t,P_t)\), and either acceptance diagnostics or a failure record.
+\begin{enumerate}[leftmargin=0.28in]
+  \item Symmetrize \(P_{t-1}\) and factor it as
+  \(P_{t-1}=C_{t-1}C_{t-1}^\top\).  If factorization fails, return a
+  factor-branch failure.
+  \item Place previous-state points \(\chi_{t-1}^{(r)}\) and compute transition
+  images \(a_t^{(r)}\).
+  \item Compute \(m_t^-\) and \(P_t^-\), then symmetrize \(P_t^-\).  If the
+  predictive branch fails, return a predictive-covariance failure.
+  \item Factor \(P_t^-\) as \(C_t^-C_t^{-\top}\) and place predictive points
+  \(\chi_t^{(r)}\).
+  \item Compute observation images \(z_t^{(r)}\), then
+  \(\bar z_t\), \(S_t\), and \(C_{xz,t}\).  Symmetrize \(S_t\).  If the
+  innovation branch fails, return an innovation-covariance failure.
+  \item Form \(v_t\), solve against \(S_t\), compute
+  \(\ellhat_t^{\rm FSGQ}\), and update the running scalar.
+  \item Compute \(K_t\), \(m_t\), and \(P_t\).  Symmetrize \(P_t\).  If the
+  carried branch fails, return a carried-covariance failure.
+  \item Return \(\ellhat_t^{\rm FSGQ}\), \((m_t,P_t)\), and diagnostics.
+\end{enumerate}
+\end{minipage}}
+
+\section{Worked One-Step Numerical Oracle}
+\label{sec:worked-example}
+
+This section is a compact end-to-end oracle for both the value path and the
+gradient path.
+
+Use the one-dimensional model
+\begin{align}
+  X_0 &\sim \N(m_0,P_0),
+  &m_0&=0.5,
+  &P_0&=1,
+  \label{eq:example-initial}\\
+  X_1 &= f_\beta(X_0)+\eta_1,
+  &f_\beta(x)&=\beta x,
+  &\eta_1&\sim\N(0,Q),
+  \label{eq:example-transition}\\
+  Y_1 &= h(X_1)+\varepsilon_1,
+  &h(x)&=x^2,
+  &\varepsilon_1&\sim\N(0,R),
+  \label{eq:example-observation}
+\end{align}
+with
+\begin{equation}
+  Q=0.25,
+  \qquad
+  R=1,
+  \qquad
+  y_1=2,
+  \qquad
+  \beta=1.
+  \label{eq:example-QRy}
+\end{equation}
+Use the three-point standard-normal cloud
+\begin{equation}
+  \mathcal C_{1,2}
+  =
+  \left\{\left(-\sqrt3,\frac16\right),\left(0,\frac23\right),
+  \left(\sqrt3,\frac16\right)\right\}.
+  \label{eq:example-cloud}
+\end{equation}
+Then the one-step value objects are
+\begin{align}
+  m_1^- &= 0.5,
+  &
+  P_1^- &= 1.25 = \frac54,
+  \label{eq:example-pred-moments}\\
+  \bar z_1 &= 1.5 = \frac32,
+  &
+  S_1 &= 5.375 = \frac{43}{8},
+  \label{eq:example-observation-moments}\\
+  C_{xz,1} &= 1.25 = \frac54,
+  &
+  v_1 &= 0.5 = \frac12,
+  \label{eq:example-cross-and-innovation}\\
+  K_1 &= \frac{10}{43}\approx 0.2325581395,
+  &
+  m_1 &= \frac{53}{86}\approx 0.6162790698,
+  \label{eq:example-gain-and-mean}\\
+  P_1 &= \frac{165}{172}\approx 0.9593023256,
+  &
+  \ellhat_1^{\rm FSGQ} &\approx -1.7830736342.
+  \label{eq:example-final-values}
+\end{align}
+An implementation should reproduce these values up to declared floating-point
+tolerance before attempting larger cases.
+
+\section{Saved Scalar and Same-Scalar Contract}
+\label{sec:same-scalar-contract}
+
+The value and derivative paths are meaningful only if they refer to the same
+saved scalar.
+
+\paragraph{Plain-language rule.}
+Value, gradient, and finite differences must use the same fixed cloud, the same
+merge and ordering rules, the same factor family, the same symmetrize-then-veto
+policy, and the same preprocessing and initial-condition policies.  The
+parameter-dependent numerical objects are recomputed on that same branch; the
+structural route is what must remain fixed.
+
+Formally, a saved branch is the tuple
+\begin{equation}
+\begin{aligned}
+  \branch
+  =
+  (&y_{1:T},\ \text{observation preprocessing},\ m_0(\theta),P_0(\theta),\dot m_0,\dot P_0,\\
+  &\mathcal C,\ \text{one-dimensional rules},\ \text{merge tolerance},\ \text{zero-weight rule},\ \text{ordering},\\
+  &C(P)=\chol(P),\ \text{symmetrize-then-veto rule},\ \epsilon_S,\epsilon_P,\\
+  &f_\theta,h_\theta,Q_\theta,R_\theta,
+  D_xf_\theta,\partial_i f_\theta,D_xh_\theta,\partial_i h_\theta,
+  \dot Q_\theta,\dot R_\theta).
+\end{aligned}
+\label{eq:branch-tuple}
+\end{equation}
+The fixed scalar is
+\begin{equation}
+  \ellhat_T^{\rm FSGQ}(\theta;\branch)
+  =
+  \sum_{t=1}^T \ellhat_t^{\rm FSGQ}(\theta;\branch).
+  \label{eq:fixed-scalar-branch}
+\end{equation}
+
+\paragraph{Frozen versus variable objects.}
+The frozen structural objects are the cloud, merge rule, zero-weight rule,
+ordering, factor family, thresholds, preprocessing policy, and
+initial-condition policy.  The parameter-dependent numerical objects that are
+recomputed on that fixed branch include
+\(m_t,P_t,C_t,m_t^-,P_t^-,C_t^-,\bar z_t,S_t,C_{xz,t},K_t\), and
+\(\ellhat_t^{\rm FSGQ}\).
+
+\paragraph{Operational branch identity for finite differences.}
+A finite-difference row is branch-valid only if both perturbed evaluations reuse
+the same structural metadata and follow the same realized acceptance path through
+each likelihood contribution.  If one perturbation triggers a different first
+failure location, a different accepted-prefix pattern, or a different structural
+policy, the row is branch-invalid and is not interpreted as derivative evidence.
+
+\section{Analytical Gradient of the Fixed Scalar}
+\label{sec:gradient}
+
+\paragraph{Why this derivative is nontrivial.}
+The one-step log likelihood at time \(t\) depends on objects built by earlier
+steps of the filter.  The derivative must therefore propagate through the
+previous carried Gaussian, the covariance factors used to place points, the
+nonlinear transition and observation maps, the innovation covariance, and the
+posterior update.  The branch must be fixed first because otherwise the value and
+derivative would refer to different targets.
+
+\paragraph{Score objects versus propagation objects.}
+For the current one-step score, the essential derivative objects are
+\(\dot v_t\) and \(\dot S_t\).  The derivative of the cross covariance
+\(\dot C_{xz,t}\) is not needed to close the current score, but it is needed to
+form \(\dot K_t\), and hence to propagate \(\dot m_t\) and \(\dot P_t\) to the
+next time step.
+
+Differentiate with respect to one parameter component \(\theta_i\).  A dot
+denotes \(\partial_i\).
+
+The derivative dependency chain is
+\begin{equation}
+\begin{aligned}
+  \theta
+  &\longmapsto (m_{t-1},P_{t-1})
+  \longmapsto C_{t-1}
+  \longmapsto \chi_{t-1}^{(r)}
+  \longmapsto a_t^{(r)}
+  \longmapsto (m_t^-,P_t^-) \\
+  &\longmapsto C_t^-
+  \longmapsto \chi_t^{(r)}
+  \longmapsto z_t^{(r)}
+  \longmapsto (\bar z_t,S_t,C_{xz,t})
+  \longmapsto (v_t,K_t,\ellhat_t,m_t,P_t).
+\end{aligned}
+\label{eq:gradient-chain}
+\end{equation}
+
+\subsection{Cholesky-branch derivative}
+\label{subsec:chol-derivative}
+
+If \(P=LL^\top\) with positive diagonal and \(C(P)=L\), define
+\begin{equation}
+  A = L^{-1}\dot P L^{-\top}.
+  \label{eq:chol-A}
+\end{equation}
+Let \(\Phi(A)\) be the lower-triangular operator
+\begin{equation}
+  \Phi(A)_{jk}
+  =
+  \begin{cases}
+    A_{jk}, & j>k,\\
+    A_{jj}/2, & j=k,\\
+    0, & j<k.
+  \end{cases}
+  \label{eq:chol-Phi}
+\end{equation}
+Then
+\begin{equation}
+  \dot L = L\Phi(A).
+  \label{eq:chol-derivative}
+\end{equation}
+This derivative matters operationally because every placed cloud point depends on
+the covariance factor.
+
+\subsection{Prediction sensitivities}
+
+Differentiate the placed previous-state points,
+\begin{equation}
+  \dot\chi_{t-1}^{(r)} = \dot m_{t-1}+\dot C_{t-1}\xi^{(r)},
+  \label{eq:dot-pred-place}
+\end{equation}
+and the transition images,
+\begin{equation}
+  \dot a_t^{(r)} = D_xf_\theta(\chi_{t-1}^{(r)})\dot\chi_{t-1}^{(r)} + \partial_i f_\theta(\chi_{t-1}^{(r)}).
+  \label{eq:dot-transition}
+\end{equation}
+Then
+\begin{align}
+  \dot m_t^- &= \sum_{r=1}^M w_r\dot a_t^{(r)},
+  \label{eq:dot-pred-mean}\\
+  d_t^{(r)} &= a_t^{(r)}-m_t^-,
+  \qquad
+  \dot d_t^{(r)} = \dot a_t^{(r)}-\dot m_t^-,
+  \label{eq:pred-centered}\\
+  \dot P_t^- &= \dot Q_\theta + \sum_{r=1}^M w_r\left\{
+  \dot d_t^{(r)}d_t^{(r)\top} + d_t^{(r)}\dot d_t^{(r)\top}
+  \right\}.
+  \label{eq:dot-pred-cov}
+\end{align}
+
+\subsection{Observation sensitivities}
+
+Differentiate the predictive placed points,
+\begin{equation}
+  \dot\chi_t^{(r)} = \dot m_t^- + \dot C_t^-\xi^{(r)},
+  \label{eq:dot-obs-place}
+\end{equation}
+then the observation images,
+\begin{equation}
+  \dot z_t^{(r)} = D_xh_\theta(\chi_t^{(r)})\dot\chi_t^{(r)} + \partial_i h_\theta(\chi_t^{(r)}),
+  \label{eq:dot-obs-value}
+\end{equation}
+and then
+\begin{align}
+  \dot{\bar z}_t &= \sum_{r=1}^M w_r\dot z_t^{(r)},
+  \label{eq:dot-zbar}\\
+  \dot v_t &= -\dot{\bar z}_t,
+  \label{eq:dot-v}\\
+  \dot\Delta_t^{(r)} &= \dot z_t^{(r)}-\dot{\bar z}_t,
+  \label{eq:dot-Delta}\\
+  \dot S_t &= \dot R_\theta + \sum_{r=1}^M w_r\left\{
+  \dot\Delta_t^{(r)}\Delta_t^{(r)\top} + \Delta_t^{(r)}\dot\Delta_t^{(r)\top}
+  \right\},
+  \label{eq:dot-S}\\
+  \dot C_{xz,t} &= \sum_{r=1}^M w_r\left\{
+  (\dot\chi_t^{(r)}-\dot m_t^-)\Delta_t^{(r)\top} +
+  (\chi_t^{(r)}-m_t^-)\dot\Delta_t^{(r)\top}
+  \right\}.
+  \label{eq:dot-Cxz}
+\end{align}
+
+\subsection{Innovation score}
+
+\begin{proposition}[Fixed Gaussian innovation score]
+\label{prop:innovation-score}
+Assume \(S_t\) is positive definite and the saved branch is differentiable.
+Let \(u_t\) solve
+\begin{equation}
+  S_tu_t=v_t.
+  \label{eq:score-solve}
+\end{equation}
+Then the derivative of \eqref{eq:value-loglik} is
+\begin{equation}
+  \dot\ellhat_t^{\rm FSGQ}
+  =
+  -\frac12\left[\tr(S_t^{-1}\dot S_t) + 2\dot v_t^\top u_t - u_t^\top \dot S_tu_t\right].
+  \label{eq:score-formula}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+Use \(\dd\log\det S = \tr(S^{-1}\dd S)\) and
+\(\dd S^{-1} = -S^{-1}(\dd S)S^{-1}\).  With \(u=S^{-1}v\),
+\begin{equation}
+  \dd(v^\top S^{-1}v) = 2(\dd v)^\top u - u^\top(\dd S)u.
+  \label{eq:d-quadratic}
+\end{equation}
+Substitute \(\dd v=\dot v_t\) and \(\dd S=\dot S_t\) into
+\eqref{eq:value-loglik}.
+\end{proof}
+
+\subsection{Posterior sensitivity propagation}
+
+Differentiate the gain,
+\begin{equation}
+  \dot K_t = \dot C_{xz,t}S_t^{-1} - K_t\dot S_tS_t^{-1},
+  \label{eq:dot-K}
+\end{equation}
+then propagate
+\begin{align}
+  \dot m_t &= \dot m_t^- + \dot K_t v_t + K_t\dot v_t,
+  \label{eq:dot-m}\\
+  \dot P_t &= \dot P_t^- - \dot K_tS_tK_t^\top - K_t\dot S_tK_t^\top - K_tS_t\dot K_t^\top.
+  \label{eq:dot-P}
+\end{align}
+The structural summary is: \(\dot v_t\) and \(\dot S_t\) close the current
+score, while \(\dot C_{xz,t}\), \(\dot K_t\), \(\dot m_t\), and
+\(\dot P_t\) exist because the derivative state must be carried forward in
+time.
+
+\subsection{Pseudocode: one-step gradient recursion}
+\label{subsec:gradient-pseudocode}
+
+\fbox{\begin{minipage}{0.96\linewidth}
+\textbf{Routine: \texttt{fixed\_sgqf\_filter\_gradient\_step}}\\[0.2em]
+\textbf{Inputs:} all value-step inputs, plus derivative objects
+\((\dot m_{t-1},\dot P_{t-1})\), first-derivative model routines, and the same
+saved branch.\\
+\textbf{Outputs:} one-step derivative contribution
+\(\dot\ellhat_t^{\rm FSGQ}\), updated derivative state
+\((\dot m_t,\dot P_t)\), and either acceptance diagnostics or the same failure
+record as the value path.
+\begin{enumerate}[leftmargin=0.28in]
+  \item Reuse the same accepted value-path branch through previous factor,
+  predictive factor, and innovation covariance.
+  \item Compute \(\dot C_{t-1}\), then \(\dot\chi_{t-1}^{(r)}\) and
+  \(\dot a_t^{(r)}\).
+  \item Compute \(\dot m_t^-\) and \(\dot P_t^-\), then \(\dot C_t^-\).
+  \item Compute \(\dot\chi_t^{(r)}\), \(\dot z_t^{(r)}\),
+  \(\dot{\bar z}_t\), \(\dot v_t\), \(\dot S_t\), and
+  \(\dot C_{xz,t}\).
+  \item Solve \(S_tu_t=v_t\) on the accepted innovation branch and evaluate the
+  one-step score derivative with \eqref{eq:score-formula}.
+  \item Compute \(\dot K_t\), then propagate \(\dot m_t\) and \(\dot P_t\).
+  \item Return the derivative contribution, the updated derivative state, and
+  diagnostics.
+\end{enumerate}
+\end{minipage}}
+
+\section{Finite-Difference Same-Scalar Check}
+\label{sec:fd-check}
+
+Finite differences test whether the implementation differentiates the same saved
+scalar that the value path evaluates.
+
+For parameter component \(i\), define the central difference
+\begin{equation}
+  D_i(h)
+  =
+  \frac{\ellhat_T^{\rm FSGQ}(\theta+he_i;\branch)-
+        \ellhat_T^{\rm FSGQ}(\theta-he_i;\branch)}{2h}.
+  \label{eq:central-diff}
+\end{equation}
+Use a step ladder such as
+\begin{equation}
+  h\in\{10^{-1},10^{-2},10^{-3},10^{-4},10^{-5}\}\max\{1,|\theta_i|\}.
+  \label{eq:fd-ladder}
+\end{equation}
+A row is branch-valid only if both perturbed evaluations reuse the same saved
+structural metadata and match the base evaluation in their realized
+accepted/failure stage-time pattern.  If either side changes branch or returns a
+different veto pattern, the row is branch-invalid and is not interpreted as
+score evidence.
+
+For valid rows, compare the analytical score \(G_i\) against \(D_i(h)\) by
+\begin{equation}
+  e_i(h) = \frac{|D_i(h)-G_i|}{\max\{1,|D_i(h)|,|G_i|\}}.
+  \label{eq:fd-relative-error}
+\end{equation}
+A practical diagnostic passes when at least two consecutive valid rows satisfy
+\(e_i(h)\le 10^{-5}\) and the smaller-step row is no worse than ten times the
+larger-step row.
+
+\subsection{Pseudocode: same-scalar finite-difference audit}
+\label{subsec:fd-pseudocode}
+
+\fbox{\begin{minipage}{0.96\linewidth}
+\textbf{Routine: \texttt{same\_scalar\_fd\_check}}\\[0.2em]
+\textbf{Inputs:} parameter component \(i\), step ladder, base parameter value,
+saved branch \(\branch\), value routine, analytical score \(G_i\).\\
+\textbf{Outputs:} finite-difference table with branch-valid flags and relative
+errors.
+\begin{enumerate}[leftmargin=0.28in]
+  \item For each step size \(h\), evaluate the value routine at
+  \(\theta+he_i\) and \(\theta-he_i\) using the same saved structural branch.
+  \item Record whether both perturbations match the base structural metadata and
+  the realized acceptance path.
+  \item If either side changes branch, mark the row branch-invalid and do not
+  use it as derivative evidence.
+  \item If the row is branch-valid, compute \(D_i(h)\) and the relative error
+  \(e_i(h)\).
+  \item Report whether two consecutive branch-valid rows meet the declared
+  tolerance rule.
+\end{enumerate}
+\end{minipage}}
+
+\section{Validation, Diagnostics, and What Counts as Evidence}
+\label{sec:validation}
+
+FixedSGQF should be validated as an approximate deterministic likelihood lane,
+not as exact posterior propagation.
+
+\paragraph{Implementation-correctness evidence.}
+The minimum implementation audit should include:
+\begin{enumerate}[leftmargin=0.3in]
+  \item cloud-construction checks, including duplicate-node accumulation, weight
+  totals, negative-weight counts, and exact reproduction of the toy cloud in
+  Section~\ref{subsec:toy-cloud};
+  \item linear-Gaussian recovery, where the Gaussian projection recursion should
+  match the Kalman filter up to quadrature and floating-point tolerance;
+  \item the worked one-step numerical oracle in
+  Section~\ref{sec:worked-example};
+  \item same-scalar finite differences on representative parameter points;
+  \item signed-weight stability diagnostics for the minimum eigenvalues of
+  symmetrized \(P_t^-\), \(S_t\), and \(P_t\), plus any branch veto.
+\end{enumerate}
+
+\paragraph{Approximate scientific-usefulness evidence.}
+Separate from implementation correctness, one may also report:
+\begin{enumerate}[leftmargin=0.3in]
+  \item accuracy ladders across sparse-grid levels,
+  \item comparisons against dense quadrature in small dimension,
+  \item comparisons against linear-Gaussian truth when available,
+  \item comparisons against particle or tensor-density references in regimes
+  where richer posterior structure matters,
+  \item runtime, point count, and memory scaling.
+\end{enumerate}
+These latter diagnostics support judgments about usefulness of the chosen
+approximation; they do not by themselves certify correct implementation of the
+saved scalar.
+
+\section{Neighboring Methods and Why FixedSGQF Is the Selected Lane}
+\label{sec:comparison}
+
+Nearby filters can be compared by the carried object, the moment engine, and
+whether they admit the deterministic fixed-scalar derivative contract used here.
+
+\begin{center}
+\small
+\begin{tabular}{p{0.15\linewidth}p{0.21\linewidth}p{0.20\linewidth}p{0.17\linewidth}p{0.19\linewidth}}
+\toprule
+method & carried object & moment engine & same-scalar gradient lane & main limitation \\
+\midrule
+EKF & one Gaussian & local linearization & yes, but for the linearized moment engine & weak nonlinear moment fidelity \\
+UKF/CKF & one Gaussian & fixed low-order deterministic points & yes & lower-order point design \cite{julier1996general,vandermerwe2004sigma,arasaratnam2009cubature} \\
+Dense GHQF & one Gaussian & dense tensor-product Gaussian quadrature & yes & point count grows exponentially in dimension \\
+FixedSGQF & one Gaussian & fixed sparse-grid quadrature & yes & still one Gaussian; branch-sensitive signed-weight moments \cite{jia2012sparsegrid} \\
+Adaptive sparse grid & one Gaussian & parameter-dependent active grid & only piecewise, unless frozen first & target changes if the live grid changes \cite{singh2018adaptive} \\
+Particle / TT lanes & richer non-Gaussian object & samples or density representation & different target class & heavier approximation object; different contract \cite{zhao2024ttsequential} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The selection argument of this note is local rather than universal.  FixedSGQF
+is selected here because it jointly provides:
+\begin{enumerate}[leftmargin=0.3in]
+  \item a declared deterministic approximate likelihood scalar,
+  \item an analytical derivative of that same scalar on a fixed smooth branch,
+  \item a moment engine less explosive than dense tensor-product Gaussian
+  quadrature in the intended high-dimensional regime.
+\end{enumerate}
+This is not a theorem that FixedSGQF is the best nonlinear filter overall.  It
+is the selection statement for the deterministic Gaussian-surrogate lane treated
+in this note.
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+This note has defined an implementation-ready mathematical companion for fixed
+sparse-grid quadrature filtering.  The document states the exact target and the
+narrower carried object, constructs the fixed sparse-grid cloud in standardized
+coordinates, gives the one-step value recursion, fixes the saved-branch
+same-scalar contract, derives the branch-conditioned analytical gradient, and
+states the finite-difference rule needed to check that value and derivative refer
+to the same deterministic scalar.
+
+The note has also preserved the central non-claim.  FixedSGQF is not exact
+nonlinear filtering, and it does not preserve general non-Gaussian posterior
+shape.  It is a deterministic Gaussian-surrogate lane.  Its approval claim is
+therefore bounded: the claim is not universal optimality, but that this lane is
+coherent, mathematically explicit, auditable by implementation engineers, and
+sufficiently explicit for mathematically trained junior workers to implement at
+the algorithm level.
+
+\appendix
+
+\section{Implementation-Oriented Notes for a CS-Facing Appendix}
+\label{sec:appendix-cs}
+
+This appendix records software-facing detail that is helpful for implementation
+engineers but is not mathematically indispensable to the main note.
+
+\subsection{Suggested record layout}
+
+A practical implementation may distinguish at least four record types:
+\begin{enumerate}[leftmargin=0.3in]
+  \item a cloud record containing standardized nodes, accumulated weights,
+  negative-weight diagnostics, and deterministic ordering metadata;
+  \item a one-step value cache containing placed points, transition images,
+  observation images, and moment objects reused by the gradient path;
+  \item a branch record containing all fixed structural policies used to define
+  the saved scalar;
+  \item a failure record of the form
+  \((\text{time},\text{stage},\text{reason},\text{diagnostic values})\).
+\end{enumerate}
+
+\subsection{Deterministic storage and ordering}
+
+Because node ordering is part of the saved scalar contract, implementations
+should store the merged cloud in a deterministic sorted order after duplicate
+accumulation.  Hash-based storage may be used during construction, but the final
+serialized object should record the deterministic order actually used by value,
+gradient, and finite-difference routines.
+
+\subsection{Suggested routine surfaces}
+
+A software-facing implementation may expose routines analogous to:
+\begin{enumerate}[leftmargin=0.3in]
+  \item \texttt{build\_fixed\_sparse\_grid\_cloud},
+  \item \texttt{fixed\_sgqf\_value},
+  \item \texttt{fixed\_sgqf\_gradient},
+  \item \texttt{same\_scalar\_fd\_check}.
+\end{enumerate}
+The exact API is an engineering choice, but these routine boundaries should
+remain consistent with the mathematical contract of the main note.
+
+\bibliographystyle{plainnat}
+\bibliography{../references}
+
+\end{document}

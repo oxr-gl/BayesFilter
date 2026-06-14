@@ -1,0 +1,137 @@
+{
+  "schema_version": "p50.spatial_sir_predator_prey_ladder.v1",
+  "metadata_date": "2026-06-09",
+  "phase": "P50-M6",
+  "calibration_contract": "docs/plans/bayesfilter-highdim-zhao-cui-p50-value-gradient-calibration-rules-2026-06-09.json",
+  "rows": [
+    {
+      "row_id": "spatial_sir_j1_zhaocui_vs_dense_lower_rung",
+      "model_family": "spatial_sir",
+      "dimension": 2,
+      "target_identity": "J=1 additive-Gaussian lower-rung spatial SIR closure",
+      "candidate": "multistate fixed-design Zhao-Cui TT value path",
+      "reference": "dense tensor-product grid reference on same coordinate map",
+      "m4_class": "PASS_VALUE_ONLY_DIAGNOSTIC",
+      "evidence_tests": [
+        "tests/highdim/test_p47_spatial_sir_filtering.py::test_p47_m4_zhaocui_matches_dense_reference_value_and_state_moments"
+      ],
+      "nonclaims": [
+        "no gradient correctness",
+        "not production spatial SIR filtering",
+        "not paper-scale J=9",
+        "no HMC readiness"
+      ]
+    },
+    {
+      "row_id": "spatial_sir_cut4_finite_score_diagnostic",
+      "model_family": "spatial_sir",
+      "dimension": 2,
+      "target_identity": "additive-Gaussian CUT4 diagnostic closure",
+      "candidate": "CUT4 closure value and finite diagnostic score",
+      "reference": "none for promoted same-target gradient",
+      "m4_class": "PASS_GRADIENT_LOCAL_DIAGNOSTIC",
+      "evidence_tests": [
+        "tests/highdim/test_p44_spatial_sir_diagnostic.py::test_p44_m5_cut4_closure_has_finite_value_and_diagnostic_score",
+        "tests/highdim/test_p44_spatial_sir_diagnostic.py::test_p44_m5_cut4_metadata_preserves_diagnostic_closure_boundary"
+      ],
+      "promotion_boundary": "metadata differentiability_status is value_only and derivatives are not certified",
+      "nonclaims": [
+        "no same-target gradient reference",
+        "no certified derivative",
+        "not nonlinear ground truth",
+        "no HMC readiness"
+      ]
+    },
+    {
+      "row_id": "spatial_sir_production_route",
+      "model_family": "spatial_sir",
+      "dimension": 18,
+      "target_identity": "near-paper spatial SIR current all-axes retained-grid route",
+      "candidate": "current multistate fixed-design route",
+      "reference": "production route preflight",
+      "m4_class": "FAIL_NUMERICAL_VETO",
+      "blocker": "BLOCKED_M4B_ROUTE_ARCHITECTURE",
+      "evidence_tests": [
+        "tests/highdim/test_p47_m4b_m5b_production_repair.py::test_p47_m4b_manifest_preflight_blocks_current_j9_all_grid_route"
+      ],
+      "nonclaims": [
+        "no production spatial SIR filtering",
+        "no paper-scale J=9 pass",
+        "no HMC readiness"
+      ]
+    },
+    {
+      "row_id": "predator_prey_zhaocui_vs_dense_lower_rung",
+      "model_family": "predator_prey",
+      "dimension": 2,
+      "target_identity": "two-step additive-Gaussian RK4 predator-prey closure",
+      "candidate": "multistate fixed-design Zhao-Cui TT value path",
+      "reference": "dense tensor-product grid reference on same coordinate map",
+      "m4_class": "PASS_VALUE_ONLY_DIAGNOSTIC",
+      "evidence_tests": [
+        "tests/highdim/test_p47_predator_prey_filtering.py::test_p47_m5_zhaocui_matches_dense_reference_value_and_state_moments"
+      ],
+      "nonclaims": [
+        "no gradient correctness",
+        "not production predator-prey filtering",
+        "no nonlinear preconditioning usefulness claim",
+        "no HMC readiness"
+      ]
+    },
+    {
+      "row_id": "predator_prey_cut4_finite_score_diagnostic",
+      "model_family": "predator_prey",
+      "dimension": 2,
+      "target_identity": "additive-Gaussian CUT4 diagnostic closure",
+      "candidate": "CUT4 closure value and finite parameter score",
+      "reference": "none for promoted same-target gradient",
+      "m4_class": "PASS_GRADIENT_LOCAL_DIAGNOSTIC",
+      "evidence_tests": [
+        "tests/highdim/test_p44_predator_prey_diagnostic.py::test_p44_m6_cut4_closure_has_finite_value_and_parameter_score",
+        "tests/highdim/test_p44_predator_prey_diagnostic.py::test_p44_m6_cut4_metadata_preserves_diagnostic_closure_boundary"
+      ],
+      "promotion_boundary": "metadata differentiability_status is value_only and derivatives are not certified",
+      "nonclaims": [
+        "no same-target gradient reference",
+        "no certified derivative",
+        "no nonlinear preconditioning usefulness claim",
+        "no HMC readiness"
+      ]
+    },
+    {
+      "row_id": "predator_prey_production_route",
+      "model_family": "predator_prey",
+      "dimension": 2,
+      "target_identity": "horizon-25 same-target production candidate",
+      "candidate": "current multistate fixed-design route",
+      "reference": "dense horizon-25 reference and production tolerances",
+      "m4_class": "FAIL_NUMERICAL_VETO",
+      "blocker": "BLOCKED_M5B_PRODUCTION_ACCURACY_TUNING",
+      "evidence_tests": [
+        "tests/highdim/test_p47_m4b_m5b_production_repair.py::test_p47_m5b_predator_prey_horizon25_records_blocker_when_tolerances_fail"
+      ],
+      "nonclaims": [
+        "no production predator-prey filtering",
+        "no production HMC readiness",
+        "no nonlinear preconditioning usefulness claim"
+      ]
+    }
+  ],
+  "phase_decision": {
+    "status": "PASS_WITH_PRODUCTION_BLOCKERS_AND_DIAGNOSTIC_GRADIENT_BOUNDARY",
+    "reason": "lower-rung spatial SIR and predator-prey value diagnostics pass; finite diagnostic score probes are retained as local diagnostics with uncertified-derivative boundaries; production spatial SIR and predator-prey rows remain blocked by reviewed P47 blockers"
+  },
+  "explicit_non_goals": [
+    "adaptive TT/SIRT source-faithful filtering",
+    "S&P 500 reproduction"
+  ],
+  "nonclaims": [
+    "no production spatial SIR readiness",
+    "no production predator-prey readiness",
+    "no certified nonlinear-model gradient correctness",
+    "no HMC readiness",
+    "no smoothing support",
+    "no source-faithful adaptive TT/SIRT filtering",
+    "no S&P 500 reproduction"
+  ]
+}

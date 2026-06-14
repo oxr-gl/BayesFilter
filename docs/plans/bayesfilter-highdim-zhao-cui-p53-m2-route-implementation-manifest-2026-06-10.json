@@ -1,0 +1,52 @@
+{
+  "schema_version": "p53.lower_rung_streaming_route.v1",
+  "phase": "P53-M2",
+  "status": "PASS_P53_M2_ROUTE_IMPLEMENTATION",
+  "route": {
+    "route_id": "p53_lower_rung_streaming_dense_equivalent",
+    "route_class": "lower_rung_dense_equivalent",
+    "claim_class": "interface_tieout_only_not_scaling",
+    "current_block_size": 8,
+    "previous_block_size": 64,
+    "materializes_full_dense_pairs": false,
+    "uses_tensorflow_backend": true,
+    "differentiable_backend": "tensorflow",
+    "exposes_reff_bound": false,
+    "effective_transition_rank_multiplier": null,
+    "metadata_fields": [
+      "current_count",
+      "previous_count",
+      "state_dim",
+      "time_index",
+      "current_block_size",
+      "previous_block_size",
+      "max_transition_rows_per_call",
+      "route_width_proxy",
+      "memory_forecast_bytes",
+      "replay_identity"
+    ],
+    "replay_identity": {
+      "formula": "logsumexp_j(previous_log_terms[j] + transition_log_density(previous_j,current_i,t))",
+      "block_order": "current-major then previous-major",
+      "reduction": "streaming_logaddexp_over_previous_blocks"
+    },
+    "nonclaims": [
+      "no lower-rung dense equivalence proof beyond focused tiny-grid test",
+      "no scaling-route readiness",
+      "no d=18 spatial SIR readiness",
+      "no d=50 or d=100 spatial SIR readiness",
+      "no filtering correctness",
+      "no HMC readiness"
+    ]
+  },
+  "implementation_symbols": [
+    "LowerRungStreamingRouteConfig",
+    "LowerRungStreamingRouteMetadata",
+    "LowerRungStreamingRouteResult",
+    "lower_rung_streaming_predictive_log_density",
+    "p53_lower_rung_streaming_route_manifest"
+  ],
+  "tokens_emitted": [
+    "PASS_P53_M2_ROUTE_IMPLEMENTATION"
+  ]
+}

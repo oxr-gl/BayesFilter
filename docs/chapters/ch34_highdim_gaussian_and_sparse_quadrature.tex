@@ -1,0 +1,1773 @@
+\chapter[Gaussian And High-Order Filters]{Gaussian Projection and High-Order Quadrature Filters}
+\label{ch:bf-highdim-gaussian-quadrature}
+
+\section{What This Chapter Computes}
+\label{sec:bf-hd-gq-purpose}
+
+This chapter is about a deliberately limited object.  It does not compute the
+full nonlinear filtering law
+\[
+  p(x_t\mid y_{1:t}).
+\]
+It replaces that law by a Gaussian moment pair
+\[
+  p(x_t\mid y_{1:t}) \quad\leadsto\quad \calN(m_t,P_t),
+\]
+and it computes the Gaussian-weighted expectations needed to update
+\((m_t,P_t)\).  The result is a useful baseline and diagnostic, not a theorem
+that the posterior is Gaussian.
+
+The notation is fixed for the rest of the chapter.  Before observing \(y_t\),
+the predictive approximation is
+\[
+  X\sim \calN(m^-,P^-),\qquad P^-=CC^\top ,
+\]
+where \(C\) is a chosen covariance factor.  The observation equation is
+\[
+  Y=h_\theta(X)+V,\qquad V\sim\calN(0,R_\theta),
+\]
+with \(V\) independent of \(X\).  The exact Bayesian update would multiply the
+predictive density by \(g_\theta(y_t\mid x_t)\) and renormalize.  A Gaussian
+projection filter instead computes a finite list of moments of \(X\) and
+\(h_\theta(X)\), then performs a Kalman-style affine correction.
+
+Here are the terms before they are used.
+
+\begin{description}[leftmargin=0.25in]
+  \item[Sigma point.] A deterministic point chosen so that a weighted cloud has
+  prescribed mean and covariance.  Julier--Uhlmann use this language for the
+  unscented transform.
+  \item[Cubature point.] A deterministic point in a numerical integration rule.
+  In the CKF literature it is usually chosen to integrate polynomials under a
+  Gaussian weight up to a stated degree.
+  \item[Degree.] A degree-\(d\) rule integrates every polynomial of total degree
+  at most \(d\) exactly under the stated weight.  Degree is a property of a
+  quadrature formula, not a posterior-accuracy guarantee.
+  \item[Gaussian weight.] The density of a standard normal variable
+  \(\xi\sim\calN(0,I)\).  A Gaussian expectation is written as
+  \[
+    \E[\varphi(X)]
+    =
+    \int \varphi(m^-+C\xi)\phi(\xi)\,d\xi .
+  \]
+  \item[Tensor-product GHQ.] A multivariate Gauss--Hermite quadrature rule
+  formed by taking all combinations of one-dimensional Gauss--Hermite nodes.
+  \item[Sparse-grid index set.] A selected set of tensor-product levels.  It
+  keeps some coordinate interactions and omits others to reduce point count.
+  \item[Innovation likelihood.] The Gaussian density assigned to the residual
+  \(v_t=y_t-\bar z_t\) with covariance \(S_t\).  It is an approximate scalar
+  unless the model is in an exact linear-Gaussian case.
+  \item[Approximate score.] The derivative of the reported approximate scalar.
+  It is not the derivative of the exact nonlinear likelihood unless a separate
+  correction or exactness proof is supplied.
+\end{description}
+
+\paragraph{Running scalar cell.}
+The common example is
+\begin{equation}
+  x_t=\rho x_{t-1}+\eta_t,\qquad y_t=x_t^2+\epsilon_t,
+  \label{eq:bf-hd-gq-running-cell}
+\end{equation}
+with Gaussian innovations.  If \(X\sim\calN(m^-,P^-)\), then the exact
+likelihood factor is proportional to
+\[
+  \exp\{-(y-X^2)^2/(2R)\}.
+\]
+For \(y>0\) and small \(R\), the posterior can have mass near
+\(+\sqrt y\) and \(-\sqrt y\).  A Gaussian filter cannot carry those two lobes.
+It can only carry a mean, covariance, innovation scalar, and diagnostics.  This
+simple cell will be used below as a truth-telling device: whenever a method
+computes moments accurately but still cannot represent two lobes, the reader can
+see the exact limitation.
+
+\section{Gaussian Moment Projection}
+\label{sec:bf-hd-moment-projection}
+
+\paragraph{Problem setting.}
+Start with the predictive Gaussian \(X\sim\calN(m^-,P^-)\).  The method first
+computes the joint moments of \(X\) and the predicted observation
+\[
+  Z=h_\theta(X).
+\]
+Define
+\begin{align}
+  \bar z &= \E[Z],&
+  S &= R_\theta+\E[(Z-\bar z)(Z-\bar z)^\top],&
+  C_{xz}&=\E[(X-m^-)(Z-\bar z)^\top].
+  \label{eq:bf-hd-gq-moments}
+\end{align}
+The Gaussian projection update is
+\begin{align}
+  K &= C_{xz}S^{-1},&
+  m &= m^-+K(y-\bar z),&
+  P &= P^- - KSK^\top .
+  \label{eq:bf-hd-gq-update}
+\end{align}
+Jia--Xin--Cheng write the same Gaussian-approximation filtering structure as
+Gaussian weighted integrals in their sparse-grid paper and high-degree CKF
+paper \citep{jia2012sparsegrid,jia2013highdegree}.  The derivation below is a
+BayesFilter derivation of the affine projection once those moments are given.
+
+\begin{proposition}[Affine moment projection]
+\label{prop:bf-hd-affine-projection}
+Among estimators of \(X\) of the form \(a+BY\), the minimum mean-square
+estimator under the joint moments in \eqref{eq:bf-hd-gq-moments} has
+\(B=C_{xz}S^{-1}\), provided \(S\) is nonsingular.  Interpreting the resulting
+mean and residual covariance as a Gaussian gives \eqref{eq:bf-hd-gq-update}.
+\end{proposition}
+
+\begin{proof}
+Center \(\tilde X=X-m^-\) and \(\tilde Y=Y-\bar z\).  The estimator can be
+written as \(m^-+B\tilde Y\).  The mean-square objective is
+\[
+  J(B)=\E\|\tilde X-B\tilde Y\|^2
+  =\tr(P^-)-2\tr(BC_{xz}^\top)+\tr(BSB^\top).
+\]
+The derivative is \(\nabla_BJ=-2C_{xz}+2BS\).  The stationary point is
+\(B=C_{xz}S^{-1}\).  Substituting this \(B\) gives residual covariance
+\[
+  \E[(\tilde X-C_{xz}S^{-1}\tilde Y)
+     (\tilde X-C_{xz}S^{-1}\tilde Y)^\top]
+  =P^- - C_{xz}S^{-1}C_{xz}^\top ,
+\]
+which is the covariance in \eqref{eq:bf-hd-gq-update}.
+\end{proof}
+
+\paragraph{What is exact and what is approximate.}
+The affine theorem is exact for the moments it is given.  The approximation is
+earlier: the posterior law is compressed to the moments
+\((\bar z,S,C_{xz})\), and those moments may themselves be approximated by
+Taylor expansion or quadrature.
+
+\paragraph{Running scalar example.}
+For \(h(x)=x^2\) and \(X\sim\calN(0,P^-)\),
+\[
+  C_{xz}=\Cov(X,X^2)=\E[X^3]-\E[X]\E[X^2]=0.
+\]
+The Gaussian update therefore leaves the mean at zero regardless of \(y\), even
+when the exact posterior has two separated lobes.  The affine projection has not
+made an algebra mistake.  It has solved a compressed moment problem that cannot
+store the posterior shape.
+
+\paragraph{Cost and gradient status.}
+After \(\bar z,S,C_{xz}\) have been computed, the dominant dense operation is
+solving with \(S\) and updating \(P\).  If the moment computation is a fixed
+smooth rule, Section~\ref{sec:bf-hd-gq-gradient-contract} gives the derivative
+of the approximate innovation scalar.  If the rule changes branches, the same
+formula is only branch-local.
+
+\section{Extended Kalman Filter (EKF) and Second-Order Taylor Filters}
+\label{sec:bf-hd-derivative-filters}
+
+\paragraph{Problem setting.}
+Derivative filters approximate the moments in
+\eqref{eq:bf-hd-gq-moments} by expanding \(h_\theta\) around \(m^-\).  This
+section is a project derivation in the notation of this chapter.  It is included
+because Julier--Uhlmann explicitly motivate the unscented transform as an
+alternative to EKF linearization \citep{julier1997new}, but the formulas below
+are not claimed as a new result from that paper.
+
+Write \(X=m^-+\delta\), with \(\E[\delta]=0\) and
+\(\E[\delta\delta^\top]=P^-\).  Let \(J=D_xh_\theta(m^-)\).  The first-order
+Taylor approximation is
+\[
+  h_\theta(m^-+\delta)\approx h_\theta(m^-)+J\delta .
+\]
+Therefore the extended Kalman filter moment approximation is
+\begin{align}
+  \bar z_{\rm EKF} &= h_\theta(m^-),&
+  S_{\rm EKF} &= R_\theta+JP^-J^\top,&
+  C_{xz,{\rm EKF}} &= P^-J^\top .
+  \label{eq:bf-hd-ekf-moments}
+\end{align}
+
+For a second-order Taylor filter, write the \(r\)th observation component as
+\[
+  h_r(m^-+\delta)
+  =
+  h_r(m^-)+J_r\delta+\frac12\delta^\top H_r\delta
+  +\operatorname{rem}_r(\delta),
+\]
+where \(H_r=D_x^2h_r(m^-)\).  If the remainder is dropped and \(\delta\) is
+Gaussian, then
+\begin{equation}
+  \bar z_r
+  \approx
+  h_r(m^-)+\frac12\tr(H_rP^-).
+  \label{eq:bf-hd-second-order-mean}
+\end{equation}
+For observation components \(r,s\), the same Gaussian moment calculation gives
+\begin{equation}
+  \Cov(h_r(X),h_s(X))
+  \approx
+  J_rP^-J_s^\top
+  +\frac12\tr(H_rP^-H_sP^-).
+  \label{eq:bf-hd-second-order-cov}
+\end{equation}
+The cross covariance with \(X\) remains \(P^-J^\top\) at this expansion point,
+because the third central moment of a Gaussian is zero.
+
+\paragraph{Running scalar example.}
+For \(h(x)=x^2\), \(J=2m^-\) and \(H=2\).  The EKF gives
+\[
+  \bar z_{\rm EKF}=(m^-)^2,\qquad
+  C_{xz,{\rm EKF}}=2m^-P^-.
+\]
+At \(m^-=0\), it cannot move the state mean because \(C_{xz}=0\).  The
+second-order mean gives \(\bar z=(m^-)^2+P^-\), and for this quadratic cell the
+second-order covariance formula recovers
+\[
+  \Var(X^2)=2(P^-)^2+4(m^-)^2P^-.
+\]
+Even so, after the update the filter stores only one Gaussian.  The Taylor
+filter can improve local moments without representing the two-lobed posterior.
+
+\paragraph{What is exact and what is approximate.}
+The Taylor identities are exact only up to the displayed remainder.  Dropping
+the remainder, and then storing the result as one Gaussian, are the
+approximations.  The first-order EKF is exact for affine \(h_\theta\); the
+second-order formulas are local moment formulas, not posterior-shape formulas.
+
+\paragraph{Computational cost.}
+The EKF needs Jacobians and dense innovation solves.  The second-order filter
+needs Hessian contractions such as \(\tr(H_rP^-)\) and
+\(\tr(H_rP^-H_sP^-)\), which are too expensive for large dense blocks unless
+the model supplies exploitable sparsity, Hessian-vector products, or a small
+active subspace.
+
+\paragraph{Limitations.}
+The EKF can be misleading when the predictive mean lies at a point where the
+Jacobian is uninformative, as in the scalar quadratic cell at \(m^-=0\).  The
+second-order filter repairs selected local moments, but it can still be
+overconfident after Gaussian projection and can be numerically impractical when
+Hessian contractions are dense.
+
+\paragraph{Analytical gradient status.}
+If the Taylor moments define a fixed smooth approximate innovation scalar, the
+score in Section~\ref{sec:bf-hd-gq-gradient-contract} applies after replacing
+the quadrature sums by Taylor-derived \(\bar z\) and \(S\).  An iterated EKF
+with data-dependent convergence branches is only a local branch calculation
+unless the iteration policy is part of a declared smooth scalar.
+
+\section{Julier-Uhlmann Unscented Transform and Unscented Kalman Filter (UKF)}
+\label{sec:bf-hd-ukf}
+
+\paragraph{Problem setting.}
+The unscented transform replaces Taylor expansion with a deterministic weighted
+cloud.  Julier--Uhlmann construct \(2n+1\) sigma points for a random vector with
+mean and covariance, transform those points through the nonlinear map, and take
+weighted mean and covariance of the transformed cloud
+\citep[Eq. 12--14]{julier1997new}.
+
+\paragraph{Original construction in BayesFilter notation.}
+Let \(n=n_x\), \(P^-=CC^\top\), and choose \(\kappa\) with \(n+\kappa>0\).
+Set \(\gamma=\sqrt{n+\kappa}\).  The standardized offsets and weights are
+\begin{align}
+  \xi^{(0)}&=0,&
+  w_0&=\frac{\kappa}{n+\kappa},\\
+  \xi^{(j)}&=\gamma e_j,&
+  w_j&=\frac{1}{2(n+\kappa)},\qquad j=1,\ldots,n,\\
+  \xi^{(j+n)}&=-\gamma e_j,&
+  w_{j+n}&=\frac{1}{2(n+\kappa)},\qquad j=1,\ldots,n.
+  \label{eq:bf-hd-ut-points}
+\end{align}
+The state-space sigma points are
+\[
+  \chi^{(r)}=m^-+C\xi^{(r)},\qquad
+  z^{(r)}=h_\theta(\chi^{(r)}).
+\]
+Then the UT observation moments are
+\begin{align}
+  \bar z_{\rm UT}&=\sum_{r=0}^{2n}w_rz^{(r)},\\
+  S_{\rm UT}&=R_\theta+
+    \sum_{r=0}^{2n}w_r(z^{(r)}-\bar z_{\rm UT})
+      (z^{(r)}-\bar z_{\rm UT})^\top,\\
+  C_{xz,{\rm UT}}&=
+    \sum_{r=0}^{2n}w_r(\chi^{(r)}-m^-)
+      (z^{(r)}-\bar z_{\rm UT})^\top .
+  \label{eq:bf-hd-ut-moments}
+\end{align}
+These moments are inserted into \eqref{eq:bf-hd-gq-update}.
+
+\paragraph{Derivation of the moment match.}
+The weights sum to one.  Symmetry gives \(\sum_rw_r\xi^{(r)}=0\).  For the
+covariance,
+\[
+  \sum_rw_r\xi^{(r)}\xi^{(r)\top}
+  =
+  \sum_{j=1}^n
+  \frac{1}{2(n+\kappa)}
+  \{(n+\kappa)e_je_j^\top+(n+\kappa)e_je_j^\top\}
+  =I .
+\]
+Thus the point cloud has the predictive mean and covariance exactly.  What is
+not exact is the transformed distribution after \(h_\theta\), except in special
+cases.
+
+\paragraph{Running scalar example.}
+Let \(m^-=0\), \(P^-=P\), and \(h(x)=x^2\).  The nonzero transformed points have
+value \(P(1+\kappa)\), while the center has value zero.  The UT mean is
+\[
+  \bar z_{\rm UT}
+  =
+  \frac{1}{1+\kappa}P(1+\kappa)=P.
+\]
+The UT variance of \(z=x^2\) is \(\kappa P^2\).  The true Gaussian variance is
+\(2P^2\), so in this scalar cell the common Gaussian choice \(1+\kappa=3\)
+matches the variance.  Matching this local moment still does not create a
+two-lobed posterior representation.
+
+\paragraph{What is exact and what is approximate.}
+The input point cloud matches the predictive mean and covariance exactly.  The
+weighted transformed cloud is an approximation to the transformed moments of
+\(h_\theta(X)\), and the final update is still a Gaussian projection.  The UKF
+does not claim to represent the exact posterior law after a nonlinear
+observation.
+
+\paragraph{Computational cost and limitations.}
+The UT uses \(2n+1\) function evaluations per transformed Gaussian block plus
+the covariance factorization and dense solve.  Julier--Uhlmann note that
+\(\kappa\) may be negative and that negative choices can create covariance
+semantics problems \citep{julier1997new}.  In this chapter that becomes a
+practical veto: if the weighted covariance or innovation covariance is not
+positive definite, the approximate likelihood is not a valid HMC scalar.
+
+\paragraph{Use in parameter inference.}
+If the UKF likelihood is used inside HMC, the sampler is not targeting the
+exact nonlinear filtering likelihood.  It is targeting the approximate
+Gaussian innovation scalar derived in
+Section~\ref{sec:bf-hd-gq-gradient-contract}.  The derivative is meaningful
+only when \(\kappa\), the sigma-point offsets, the weights, and the covariance
+factor branch are fixed smooth parts of that scalar.  If a factor floor, active
+subspace, or tuning rule changes discontinuously with \(\theta\), the reported
+score is at best local to that branch and should not be presented as the
+gradient of a single smooth target.
+
+\section{Arasaratnam-Haykin Cubature Kalman Filter (CKF)}
+\label{sec:bf-hd-ckf}
+
+\paragraph{Problem setting.}
+The cubature Kalman filter computes the same Gaussian projection moments, but
+uses a third-degree spherical--radial cubature rule.  Arasaratnam--Haykin
+derive the rule for Gaussian-weighted integrals and embed it in a CKF and
+square-root CKF \citep{arasaratnam2009cubature}.
+
+\paragraph{Original construction in BayesFilter notation.}
+For \(\xi\sim\calN(0,I_n)\), the CKF rule uses
+\begin{align}
+  \xi^{(j)}&=\sqrt n\,e_j,&
+  \xi^{(j+n)}&=-\sqrt n\,e_j,&
+  w_j&=w_{j+n}=\frac{1}{2n},
+  \qquad j=1,\ldots,n .
+  \label{eq:bf-hd-ckf-points}
+\end{align}
+There is no center point.  The transformed points
+\(\chi^{(r)}=m^-+C\xi^{(r)}\) and \(z^{(r)}=h_\theta(\chi^{(r)})\) are inserted
+into the same formulas as \eqref{eq:bf-hd-ut-moments}.
+
+\paragraph{Derivation of the third-degree moment rule.}
+The weights sum to one and symmetry gives zero mean.  The covariance is
+\[
+  \sum_{j=1}^n \frac{1}{2n}
+  \{(\sqrt n e_j)(\sqrt n e_j)^\top
+    +(-\sqrt n e_j)(-\sqrt n e_j)^\top\}
+  =I .
+\]
+All odd monomials of degree one or three vanish by sign symmetry.  Quadratic
+cross terms vanish because each point lies on a coordinate axis.  This is the
+source of the third-degree cubature interpretation.  The rule is a rule for
+Gaussian integrals, not a representation of the updated posterior.
+
+\paragraph{Running scalar example.}
+When \(n=1\), the CKF points are \(\xi=\pm1\) with weights \(1/2\).  For
+\(m^-=0\) and \(h(x)=x^2\), both transformed observation points equal \(P\).
+Hence
+\[
+  \bar z_{\rm CKF}=P,\qquad
+  \Var_{\rm CKF}(z)=0.
+\]
+The exact variance of \(X^2\) is \(2P^2\).  The CKF integrates up to degree
+three, but the innovation variance for a quadratic observation depends on a
+fourth moment.  This is why "third-degree" is not enough to judge posterior or
+likelihood quality.
+
+\paragraph{What is exact and what is approximate.}
+The third-degree cubature statement is exact for the polynomial class under the
+standard Gaussian weight.  The approximation is using that rule for the
+nonlinear moment integrals and then projecting the result to one Gaussian.
+
+\paragraph{Computational cost and limitations.}
+The CKF uses \(2n\) model evaluations.  Arasaratnam--Haykin emphasize that this
+is linear in function evaluations, while dense square-root and solve operations
+still scale cubically in the state or observation block dimension
+\citep{arasaratnam2009cubature}.  CKF is therefore a compact local baseline,
+not a complete cure for high dimensionality.
+
+\paragraph{Limitations.}
+The CKF can be too low-order for likelihoods whose decisive information enters
+through fourth and higher moments.  It also inherits the Gaussian-projection
+failure: even perfect third-degree integration does not store multimodality,
+tail behavior, or support constraints.
+
+\paragraph{Use in parameter inference.}
+With a fixed cubature rule and a smooth factor branch, CKF supplies a
+well-defined approximate Gaussian innovation scalar and the derivative formula
+in Section~\ref{sec:bf-hd-gq-gradient-contract} differentiates that scalar.
+A square-root implementation with hard floors, pivot changes, or failed
+positive-definite factors does not define the same smooth function of
+\(\theta\) unless those branch choices are explicitly included in the scalar.
+
+\section{Jia-Xin-Cheng High-Degree Cubature Kalman Filter (High-Degree CKF)}
+\label{sec:bf-hd-high-degree-cubature}
+
+\paragraph{Problem setting.}
+High-degree CKF changes the cubature rule while keeping the same Gaussian
+projection update.  Jia--Xin--Cheng define degree-\(d\) cubature rules, derive
+arbitrary-degree spherical--radial constructions, give explicit third- and
+fifth-degree rules, and apply them to Gaussian approximation filtering
+\citep[Definition 3.1, Theorem 3.1, Propositions 3.1--3.2]{jia2013highdegree}.
+
+\paragraph{Original construction.}
+A degree-\(d\) rule is exact for all polynomials of total degree at most \(d\)
+under the stated Gaussian weight.  The paper constructs such rules by splitting
+the Gaussian integral into a radial integral and a spherical integral.  The
+third-degree rule reduces to the CKF rule \eqref{eq:bf-hd-ckf-points}.  The
+fifth-degree rule has \(2n^2+1\) points.
+
+To write the fifth-degree rule compactly, for each pair \(1\le a<b\le n\) set
+\[
+  s_{ab}^+=\frac{e_a+e_b}{\sqrt2},\qquad
+  s_{ab}^-=\frac{e_a-e_b}{\sqrt2},\qquad
+  \alpha=\sqrt{n+2}.
+\]
+The rule for \(I(g)=\E[g(\xi)]\), \(\xi\sim\calN(0,I_n)\), is
+\begin{align}
+  I(g)\approx&
+  \frac{2}{n+2}g(0)
+  +\frac{1}{(n+2)^2}
+    \sum_{a<b}\sum_{\sigma\in\{-1,1\}}
+    \{g(\sigma\alpha s_{ab}^+)+g(\sigma\alpha s_{ab}^-)\}
+  \nonumber\\
+  &+
+  \frac{4-n}{2(n+2)^2}
+    \sum_{j=1}^n
+    \{g(\alpha e_j)+g(-\alpha e_j)\}.
+  \label{eq:bf-hd-fifth-degree-rule}
+\end{align}
+This is the BayesFilter notation version of the explicit fifth-degree rule in
+Jia--Xin--Cheng \citep[Eq. 46]{jia2013highdegree}.  After choosing these
+points and weights, the filter again computes \(\bar z,S,C_{xz}\) and applies
+\eqref{eq:bf-hd-gq-update}.
+
+\paragraph{Derivation of selected moments.}
+The weights in \eqref{eq:bf-hd-fifth-degree-rule} sum to one.  Symmetry makes
+all odd moments vanish.  For coordinate \(i\), the second moment receives
+\((4-n)/(n+2)\) from the two axis points and \(2(n-1)/(n+2)\) from the pair
+points involving coordinate \(i\), hence equals one.  The fourth moments also
+match:
+\[
+  \E_{\rm rule}[\xi_i^4]=(4-n)+(n-1)=3,
+\]
+and for \(i\ne j\),
+\[
+  \E_{\rm rule}[\xi_i^2\xi_j^2]=1.
+\]
+These are the moments that the third-degree CKF misses in the scalar quadratic
+cell.
+
+\paragraph{Running scalar example.}
+For \(n=1\), the pair terms disappear and the fifth-degree rule becomes
+\[
+  \frac23 g(0)+\frac16 g(\sqrt3)+\frac16 g(-\sqrt3),
+\]
+the familiar three-point Gauss--Hermite rule for a standard normal.  Thus it
+matches \(\E[X^2]\) and \(\Var(X^2)\) in the scalar cell, while still projecting
+the posterior back to one Gaussian.
+
+\paragraph{What is exact and what is approximate.}
+The source-local exactness claim is polynomial exactness under the Gaussian
+weight for the constructed rule.  The approximate objects are the nonlinear
+moments outside that polynomial class, the Gaussian innovation scalar, and the
+single-Gaussian posterior representation.
+
+\paragraph{Computational cost and limitations.}
+For fixed degree \(2m+1\), Jia--Xin--Cheng prove that the number of cubature
+points grows polynomially in dimension with highest degree \(m\)
+\citep[Proposition 3.2]{jia2013highdegree}.  For the explicit fifth-degree
+rule, that is \(2n^2+1\) points.  The limitation is numerical as well as
+statistical: the fifth-degree axis weight
+\((4-n)/[2(n+2)^2]\) is negative for \(n>4\), and the paper records the
+stability concern for high-degree rules \citep[Remark 3.6]{jia2013highdegree}.
+
+\paragraph{Limitations.}
+High degree is useful only when the decisive local integrand is smooth enough
+and the active block is small enough for the point set.  Negative weights can
+make covariance assembly fragile, and polynomial exactness can still miss
+nonsmooth likelihoods, tail events, and multimodal posterior structure.
+
+\paragraph{Use in parameter inference.}
+A fixed high-degree rule can be differentiated as an approximate likelihood
+when the degree, points, weights, model maps, and factor branch remain fixed
+and smooth.  If the implementation changes degree, prunes points, floors
+covariances, or switches active subspaces while the sampler moves through
+parameter space, then the target itself has changed.
+
+\section{Transformed Stochastic Volatility and Gaussian-Mixture CUT4}
+\label{sec:bf-hd-sv-mixture-cut4}
+
+\paragraph{Why the direct CUT4 path is not the SV likelihood.}
+The scalar stochastic-volatility benchmark used in the Zhao--Cui validation
+line can be written as
+\begin{align}
+  X_t &= \gamma X_{t-1}+\sigma \eta_t,\qquad
+    \eta_t\sim\calN(0,1),\\
+  Y_t &= \beta \exp(X_t/2)\epsilon_t,\qquad
+    \epsilon_t\sim\calN(0,1).
+  \label{eq:bf-hd-sv-native}
+\end{align}
+The observation variance is state dependent:
+\[
+  Y_t\mid X_t=x_t \sim
+  \calN\{0,\beta^2\exp(x_t)\}.
+\]
+This is not the additive-Gaussian observation equation assumed at the start of
+this chapter.  Therefore a direct call to a Gaussian CUT4 observation update
+would test a different model.
+
+\paragraph{The log-squared transform.}
+For \(Y_t\ne0\), define
+\[
+  Z_t=\log(Y_t^2).
+\]
+Then \eqref{eq:bf-hd-sv-native} gives
+\begin{align}
+  Z_t
+  &= \log(\beta^2)+X_t+\log(\epsilon_t^2) \nonumber\\
+  &= \log(\beta^2)+X_t+U_t,
+  \qquad U_t=\log(\epsilon_t^2).
+  \label{eq:bf-hd-sv-log-square}
+\end{align}
+The transformed observation is additive, but the noise \(U_t\) is not Gaussian.
+Kim--Shephard--Chib use this transformed representation together with an
+approximating offset normal mixture and an importance reweighting correction in
+their likelihood-based SV framework
+\citep[Section~3, Table~4]{kim1998stochasticvolatility}.  The construction
+below uses only the approximating mixture as a BayesFilter comparator.  It does
+not implement the importance reweighting correction and therefore is not
+promoted as the exact native SV likelihood.
+
+In numerical code one often replaces \(Z_t=\log(Y_t^2)\) by
+\[
+  Z_t^{(c)}=\log(Y_t^2+c),\qquad c>0,
+  \label{eq:bf-hd-sv-log-square-offset}
+\]
+to avoid an infinite value when an observation is exactly zero.  This offset is
+a declared approximation and must appear in the run manifest.
+
+\paragraph{Gaussian-mixture approximation.}
+Let a finite mixture approximate the law of \(U_t\):
+\[
+  p_U(u)\approx \sum_{j=1}^J \pi_j
+  \varphi(u;m_j,v_j),
+  \qquad
+  \pi_j>0,\quad \sum_{j=1}^J\pi_j=1,\quad v_j>0.
+  \label{eq:bf-hd-sv-logchi-mixture}
+\]
+Kim--Shephard--Chib tabulate component locations \(a_j\) for the shifted
+variable \(U_t+1.2704\); equivalently, the component means for \(U_t\) itself
+are \(m_j=a_j-1.2704\).  The P39 implementation pins the following
+seven-component table and uses the effective means \(m_j\):
+\begin{equation}
+\begin{array}{c|rrrr}
+j & \pi_j & a_j & m_j=a_j-1.2704 & v_j\\
+\hline
+1 & 0.00730 & -10.12999 & -11.40039 & 5.79596\\
+2 & 0.10556 &  -3.97281 &  -5.24321 & 2.61369\\
+3 & 0.00002 &  -8.56686 &  -9.83726 & 5.17950\\
+4 & 0.04395 &   2.77786 &   1.50746 & 0.16735\\
+5 & 0.34001 &   0.61942 &  -0.65098 & 0.64009\\
+6 & 0.24566 &   1.79518 &   0.52478 & 0.34023\\
+7 & 0.25750 &  -1.08819 &  -2.35859 & 1.26261
+\end{array}
+\label{eq:bf-hd-sv-ksc-pinned-table}
+\end{equation}
+These constants are the declared BayesFilter approximation contract for this
+phase.  The code records them in the run diagnostics and tests only their
+finite-mixture consequences.  The implementation also checks that the shifted
+fixture has mean close to \(-1.2704\) and variance close to \(\pi^2/2\), the
+first two moments of \(\log\chi_1^2\).
+
+Introduce a discrete component \(S_t\in\{1,\ldots,J\}\) with
+\(\Pr(S_t=j)=\pi_j\).  Conditional on \(S_t=j\), the transformed observation is
+linear Gaussian:
+\begin{equation}
+  Z_t\mid X_t=x_t,S_t=j
+  \sim
+  \calN\{\log(\beta^2)+x_t+m_j,\;v_j\}.
+  \label{eq:bf-hd-sv-component-observation}
+\end{equation}
+This is the least-disruptive route back to the Gaussian quadrature machinery:
+each mixture component is an additive-Gaussian observation model, and the
+non-Gaussian skewness and tail shape enter through the mixture weights,
+locations, and variances rather than through a new non-Gaussian cubature rule.
+
+\paragraph{Component CUT4 update.}
+CUT4 denotes the named conjugate unscented transform family of
+Adurthi--Singla--Singh.  The BayesFilter implementation used in this phase is
+the positive-weight SVD-placed CUT4-G rule from
+Chapter~\ref{ch:bf-svd-sigma-point}.  Its code diagnostics report polynomial
+degree \(5\).  For an augmented stochastic integration dimension \(q\ge3\),
+the rule uses
+\[
+  N_{\rm CUT4}=2q+2^q
+\]
+standard-normal points and weights to approximate Gaussian expectations in the
+projection moments.  Each component update below feeds the conditional
+Gaussian model for component \(j\) into that rule and obtains a component log
+normalizer and Gaussian retained moments.  CUT4 exactness is a statement about
+Gaussian polynomial integration for the implemented point rule
+\citep{adurthi2012cut,adurthi2012cutfiltering}; it is not by itself a proof
+that the collapsed SV posterior is exact.
+
+Suppose that before observing \(Z_t\) the predictive approximation is
+\[
+  X_t\mid Z_{1:t-1}\approx\calN(m_t^-,P_t^-).
+\]
+For component \(j\), apply a Gaussian projection update using the observation
+map
+\[
+  h_j(x)=\log(\beta^2)+x+m_j,
+  \qquad R_j=v_j.
+\]
+Let the component CUT4 update return
+\[
+  \ell_{tj},\qquad m_{tj},\qquad P_{tj},
+  \label{eq:bf-hd-sv-component-cut4}
+\]
+where \(\ell_{tj}\) is the approximate component log normalizer and
+\((m_{tj},P_{tj})\) is the component Gaussian posterior.  The mixture
+normalizer is
+\begin{equation}
+  \ell_t
+  =
+  \log\sum_{j=1}^J \pi_j\exp(\ell_{tj}),
+  \label{eq:bf-hd-sv-mixture-normalizer}
+\end{equation}
+and the posterior component weights are
+\begin{equation}
+  \alpha_{tj}
+  =
+  \frac{\pi_j\exp(\ell_{tj})}{\sum_{k=1}^J\pi_k\exp(\ell_{tk})}.
+  \label{eq:bf-hd-sv-component-weights}
+\end{equation}
+If the filter is forced back to a single Gaussian for the next prediction, the
+retained moments are
+\begin{align}
+  m_t &= \sum_{j=1}^J \alpha_{tj}m_{tj},\\
+  P_t &=
+  \sum_{j=1}^J \alpha_{tj}
+  \{P_{tj}+(m_{tj}-m_t)(m_{tj}-m_t)^\top\}.
+  \label{eq:bf-hd-sv-mixture-moment-collapse}
+\end{align}
+Equations \eqref{eq:bf-hd-sv-mixture-normalizer}--\eqref{eq:bf-hd-sv-mixture-moment-collapse}
+are exact for the finite mixture approximation and the component Gaussian
+updates they are given.  The approximations are the mixture replacement for
+the log-chi-square law, the CUT4 component integration when the transition or
+observation is nonlinear, and the collapse of the mixture posterior back to
+one Gaussian.
+
+\paragraph{Simple SV recursion.}
+For the simple SV model \eqref{eq:bf-hd-sv-native}, the prediction before
+component updates is
+\[
+  m_t^-=\gamma m_{t-1},\qquad
+  P_t^-=\gamma^2P_{t-1}+\sigma^2,
+  \label{eq:bf-hd-sv-simple-predict}
+\]
+with the stationary initial variance \(P_0^-=\sigma^2/(1-\gamma^2)\) when
+\(|\gamma|<1\).  Because \eqref{eq:bf-hd-sv-component-observation} is linear in
+\(x_t\), the component update is Kalman-exact for the finite mixture model; a
+CUT4 implementation should agree with a dense transformed-mixture reference on
+small scalar fixtures.  Agreement with the native likelihood is a separate
+question, because the finite mixture is only an approximation to
+\(\log(\epsilon_t^2)\).  These scalar fixtures validate the transformation,
+mixture bookkeeping, log-sum-exp normalization, moment collapse, and CUT4
+reduction to the Gaussian component update.  They do not establish
+CUT4-specific accuracy for a nonlinear conditional component; that would
+require a same-target nonlinear transformed-mixture fixture.
+
+\paragraph{Generalized SV after Chib--Nardari--Shephard.}
+Chib--Nardari--Shephard extend the SV likelihood program to generalized models
+with heavy-tailed observation errors, exogenous variables in observation and
+volatility equations, and jump components \citep{chib2002mcmcsv}.  In
+BayesFilter notation, a broad transformed observation template is
+\begin{equation}
+  Z_t
+  =
+  a_\theta(w_t)
+  + b_\theta(w_t)^\top X_t
+  + c_\theta(w_t,S_t,J_t)
+  + E_t,
+  \qquad
+  E_t\mid S_t,J_t\sim\calN(0,R_{S_t,J_t}),
+  \label{eq:bf-hd-sv-generalized-template}
+\end{equation}
+where \(w_t\) are exogenous covariates, \(S_t\) is a mixture component, and
+\(J_t\) denotes an optional jump or tail-state indicator.  Conditional on the
+discrete indicators, \eqref{eq:bf-hd-sv-generalized-template} again has an
+additive-Gaussian observation form.  The CUT4 recipe is therefore the same:
+run a component update for each declared discrete component, combine
+normalizers by log-sum-exp, and collapse retained moments only after recording
+the mixture weights.
+
+This generalized template is a derivation route, not an implementation claim.
+To promote a particular CNS-style model, the project must first inspect the
+relevant Chib--Nardari--Shephard primary-source equations and then specify the
+component state space, priors, jump/tail indicators, exogenous regressors,
+mixture table, and whether an exact correction or reweighting step is used.
+
+\paragraph{Comparison with TT filtering.}
+The existing scalar SV TT lane approximates the native SV value path on a tiny
+two-observation fixture.  The Gaussian-mixture CUT4 lane approximates the
+transformed mixture model.  These are adjacent but not identical algorithms.
+They can be compared as an explanatory approximation gap.  They become a
+same-target equivalence comparison only after a TT lane is built for the same
+transformed mixture likelihood, with the same offset, mixture table, horizon,
+and parameter values.
+
+\paragraph{Claim boundary.}
+The phrase "CUT4 for SV" is too broad unless the target is named.  In this
+chapter it means
+\[
+  \hbox{CUT4 component updates inside a transformed finite-mixture SV
+  approximation.}
+\]
+It does not mean exact native SV filtering, KSC importance reweighting,
+paper-scale S\&P 500 validation, generalized CNS estimation, or a production
+default for HMC.
+
+\section{Tensor-Product Gauss-Hermite Quadrature Filtering (GHQF)}
+\label{sec:bf-hd-tensor-product-ghq}
+
+\paragraph{Problem setting.}
+Tensor-product Gauss--Hermite quadrature filtering is the most literal way to
+connect quadrature with Gaussian filtering.  The filter needs Gaussian
+expectations such as
+\[
+  \E[\varphi(X)],\qquad X\sim\calN(m,P),
+\]
+where \(\varphi\) is the transition map, an outer product of transition
+residuals, the observation map, or an observation outer product.  GHQF replaces
+each such expectation by a finite weighted sum.  Jia--Xin--Cheng use this
+construction as the conventional Gauss--Hermite quadrature filter baseline
+before introducing sparse grids \citep[Section 2.2.1]{jia2012sparsegrid}.
+
+For implementability, separate two objects:
+
+\begin{description}[leftmargin=0.25in]
+  \item[Standardized rule.] A list of points and weights
+  \(\{(\xi^{(r)},w_r)\}_{r=1}^M\) for
+  \(\xi\sim\calN(0,I_b)\).
+  \item[Placed rule.] The points \(\chi^{(r)}=m+C\xi^{(r)}\) for
+  \(X=m+C\xi\sim\calN(m,CC^\top)\).
+\end{description}
+
+Once a standardized rule has been built, the filter never integrates directly.
+It evaluates the model at the placed points and forms weighted sums.
+
+\paragraph{One-dimensional rule.}
+Let \(\{(\zeta_a,\omega_a)\}_{a=1}^s\) be a one-dimensional rule for a standard
+normal variable:
+\[
+  \E[\psi(\xi)]\approx \sum_{a=1}^s\omega_a\psi(\zeta_a),
+  \qquad \xi\sim\calN(0,1),\qquad \sum_a\omega_a=1 .
+\]
+Jia--Xin--Cheng describe obtaining these nodes and weights from a symmetric
+tridiagonal matrix and record the usual univariate exactness degree
+\(2s-1\) \citep[Section 2.2.1]{jia2012sparsegrid}.  In code, this chapter
+assumes the implementation has a routine
+\[
+  \textsc{OneDimGHQ}(s)\mapsto \{(\zeta_a,\omega_a)\}_{a=1}^s
+\]
+returning standard-normal, not physicists' \(e^{-x^2}\), weights.  If a library
+returns physicists' or probabilists' Hermite nodes with a different
+normalization, the implementation must rescale before using the formulas here.
+
+\paragraph{Tensor-product construction.}
+In \(b\) dimensions the tensor-product rule enumerates every multi-index
+\(\alpha=(\alpha_1,\ldots,\alpha_b)\in\{1,\ldots,s\}^b\):
+\begin{equation}
+  \xi^\alpha=(\zeta_{\alpha_1},\ldots,\zeta_{\alpha_b}),\qquad
+  w^\alpha=\prod_{j=1}^b\omega_{\alpha_j}.
+  \label{eq:bf-hd-ghq-tensor-rule}
+\end{equation}
+For \(X\sim\calN(m,P)\) with \(P=CC^\top\),
+\begin{equation}
+  \widehat{\E}_{\rm GHQ}[\varphi(X)]
+  =
+  \sum_{\alpha\in\{1,\ldots,s\}^b}
+  w^\alpha\,
+  \varphi(m+C\xi^\alpha).
+  \label{eq:bf-hd-ghq-expectation}
+\end{equation}
+This is the only quadrature object needed by the filter.  Prediction,
+observation prediction, likelihood evaluation, and update are obtained by
+choosing different \(\varphi\)'s.
+
+\paragraph{Prediction step.}
+Suppose the transition is
+\[
+  x_t=f_\theta(x_{t-1})+u_t,\qquad u_t\sim\calN(0,Q_\theta),
+\]
+and the previous filtering approximation is \(X_{t-1}\sim\calN(m_{t-1},P_{t-1})\).
+Choose \(C_{t-1}C_{t-1}^\top=P_{t-1}\), place the GHQ points
+\[
+  \chi_{t-1}^{\alpha}=m_{t-1}+C_{t-1}\xi^\alpha,
+  \qquad
+  x_{t|t-1}^{\alpha}=f_\theta(\chi_{t-1}^{\alpha}).
+\]
+The predicted moments are
+\begin{align}
+  m_t^- &= \sum_\alpha w^\alpha x_{t|t-1}^{\alpha},\\
+  P_t^- &= Q_\theta+
+  \sum_\alpha w^\alpha
+  (x_{t|t-1}^{\alpha}-m_t^-)
+  (x_{t|t-1}^{\alpha}-m_t^-)^\top .
+  \label{eq:bf-hd-ghq-predict}
+\end{align}
+
+\paragraph{Observation prediction and update.}
+Choose \(C_t^-(C_t^-)^\top=P_t^-\), place a new GHQ cloud
+\[
+  \chi_t^\alpha=m_t^-+C_t^-\xi^\alpha,\qquad
+  z_t^\alpha=h_\theta(\chi_t^\alpha).
+\]
+Then compute
+\begin{align}
+  \bar z_t&=\sum_\alpha w^\alpha z_t^\alpha,\\
+  S_t&=R_\theta+
+  \sum_\alpha w^\alpha(z_t^\alpha-\bar z_t)(z_t^\alpha-\bar z_t)^\top,\\
+  C_{xz,t}&=
+  \sum_\alpha w^\alpha(\chi_t^\alpha-m_t^-)(z_t^\alpha-\bar z_t)^\top,\\
+  v_t&=y_t-\bar z_t,\qquad
+  \widehat\ell_t=-\frac12\{\log\det S_t+v_t^\top S_t^{-1}v_t+n_y\log(2\pi)\}.
+  \label{eq:bf-hd-ghq-update-moments}
+\end{align}
+If \(S_t\) is positive definite, solve \(K_t=C_{xz,t}S_t^{-1}\) and set
+\begin{align}
+  m_t&=m_t^-+K_tv_t,\\
+  P_t&=P_t^- - K_tS_tK_t^\top .
+  \label{eq:bf-hd-ghq-update}
+\end{align}
+In implementation, symmetrize \(P_t\leftarrow(P_t+P_t^\top)/2\) and require a
+positive-semidefinite check or square-root update before exporting \(P_t\).
+
+\begin{algorithm}
+\caption{One Tensor-Product GHQF Step}
+\label{alg:bf-hd-ghqf-step}
+\begin{algorithmic}[1]
+\Require \(m_{t-1},P_{t-1},y_t,\theta\); maps \(f_\theta,h_\theta\); covariances
+\(Q_\theta,R_\theta\); one-dimensional size \(s\)
+\Ensure \(m_t,P_t,\widehat\ell_t\), and diagnostics
+\State Build \(\{(\xi^\alpha,w^\alpha)\}\) from \(\textsc{OneDimGHQ}(s)\) by
+\eqref{eq:bf-hd-ghq-tensor-rule}
+\State Factor \(P_{t-1}=C_{t-1}C_{t-1}^\top\)
+\State Place prediction points \(\chi_{t-1}^\alpha=m_{t-1}+C_{t-1}\xi^\alpha\)
+and evaluate \(x_{t|t-1}^\alpha=f_\theta(\chi_{t-1}^\alpha)\)
+\State Compute \(m_t^-,P_t^-\) from \eqref{eq:bf-hd-ghq-predict}
+\State Factor \(P_t^-=C_t^-(C_t^-)^\top\)
+\State Place observation points \(\chi_t^\alpha=m_t^-+C_t^-\xi^\alpha\) and
+evaluate \(z_t^\alpha=h_\theta(\chi_t^\alpha)\)
+\State Compute \(\bar z_t,S_t,C_{xz,t},v_t,\widehat\ell_t\) from
+\eqref{eq:bf-hd-ghq-update-moments}
+\State If \(S_t\) is not positive definite, return a likelihood/covariance veto
+\State Compute \(K_t=C_{xz,t}S_t^{-1}\), update \(m_t,P_t\), symmetrize \(P_t\),
+and run the PSD diagnostic
+\end{algorithmic}
+\end{algorithm}
+
+\paragraph{Cost and role.}
+The point count is \(M=s^b\).  With \(s=5\) and \(b=20\), the method asks for
+\(5^{20}\) transition evaluations and another \(5^{20}\) observation
+evaluations.  That is why tensor-product GHQF is a reference construction and
+small-block benchmark, not the high-dimensional default.  Mathematically, a
+fixed tensor-product rule defines a differentiable approximate likelihood when
+the factor branches are smooth.  Practically, the exponential point count makes
+it a tool for small-block parity checks and debugging, not a candidate for the
+large high-dimensional filtering path.
+
+\section{Jia-Xin-Cheng Sparse-Grid Quadrature Filter (SGQF)}
+\label{sec:bf-hd-sgqf}
+
+\paragraph{Problem setting.}
+Sparse-grid quadrature filtering keeps the same Gaussian projection filter as
+GHQF but replaces the full tensor-product expectation
+\eqref{eq:bf-hd-ghq-expectation} by a signed linear combination of lower-level
+tensor products.  Jia--Xin--Cheng define this construction, merge repeated
+points, and insert the resulting weighted cloud into the Gaussian approximation
+filter \citep[Sections 2--3]{jia2012sparsegrid}.  In this monograph, the fixed
+SGQF is the selected high-dimensional approximate likelihood target.
+
+\paragraph{Univariate levels and tensor component rules.}
+Let \(I_\ell\) denote a one-dimensional standard-normal quadrature rule at
+level \(\ell\):
+\[
+  I_\ell[\psi]=\sum_{a=1}^{s_\ell}\omega_{\ell,a}\psi(\zeta_{\ell,a}),
+  \qquad \ell=1,2,\ldots .
+\]
+Jia--Xin--Cheng allow several moment-matched choices for the univariate point
+sets and discuss \(2\ell-1\) symmetric points for level \(\ell\)
+\citep[Section 3.2]{jia2012sparsegrid}.  To make the algorithm below
+reproducible, BayesFilter uses the following default level policy:
+\[
+  s_\ell=2\ell-1,\qquad
+  \{(\zeta_{\ell,a},\omega_{\ell,a})\}_{a=1}^{s_\ell}
+  =
+  \textsc{OneDimGHQ}(2\ell-1),
+  \label{eq:bf-hd-sgqf-level-policy}
+\]
+where \(\textsc{OneDimGHQ}\) returns standard-normal Gauss--Hermite nodes and
+weights.  This default is not nested in general, except for repeated nodes such
+as zero in symmetric odd rules.  Nesting is therefore not assumed.  Duplicate
+node merging below combines only exactly identical standardized nodes under the
+chosen numerical tolerance.  A nested moment-matched family can be substituted,
+but then the node/weight family and its derivatives must be declared as part of
+the scalar.
+
+For a multi-index \(\mathbf i=(i_1,\ldots,i_b)\), define the tensor component
+rule
+\[
+  I_{\mathbf i}[F]
+  =
+  (I_{i_1}\otimes\cdots\otimes I_{i_b})[F].
+\]
+It has standardized points
+\[
+  \xi^{\mathbf i,\alpha}
+  =
+  (\zeta_{i_1,\alpha_1},\ldots,\zeta_{i_b,\alpha_b}),
+  \qquad
+  w^{\mathbf i,\alpha}
+  =
+  \prod_{j=1}^b\omega_{i_j,\alpha_j}.
+\]
+
+\paragraph{Fixed sparse-grid index set.}
+For level \(L\), Jia--Xin--Cheng write the sparse-grid rule in terms of
+multi-indices whose component sums fall in a source-local level band
+\citep[Eq. 26--29]{jia2012sparsegrid}.  The implementable convention in this
+chapter is the direct translation of that band:
+\[
+  \mathcal A_{b,L}
+  =
+  \{\mathbf i\in\mathbb N^b:
+    L\le |\mathbf i|\le L+b-1\},
+  \qquad |\mathbf i|=\sum_{j=1}^b i_j ,
+\]
+and coefficient
+\begin{equation}
+  c_{\mathbf i}
+  =
+  (-1)^{L+b-1-|\mathbf i|}
+  {b-1\choose L+b-1-|\mathbf i|}.
+  \label{eq:bf-hd-sgqf-coefficient}
+\end{equation}
+The sparse-grid approximation is
+\begin{equation}
+  A_{b,L}[F]
+  =
+  \sum_{\mathbf i\in\mathcal A_{b,L}} c_{\mathbf i} I_{\mathbf i}[F].
+  \label{eq:bf-hd-sgqf-smolyak}
+\end{equation}
+To see the equivalence with the source formula, write their inner set as
+\(N_q^b=\{\mathbf i:|\mathbf i|=b+q\}\) and sum over
+\(q=L-b,\ldots,L-1\).  Then \(|\mathbf i|=b+q\) runs from \(L\) to \(L+b-1\),
+and their coefficient becomes exactly \eqref{eq:bf-hd-sgqf-coefficient}.  The
+paper's Theorem 3.1 records the inherited polynomial exactness, Algorithm 1
+gives the construction, and Theorem 3.2 relates UKF to a low-level SGQF member
+in the paper's parameterization
+\citep[Theorem 3.1, Algorithm 1, Theorem 3.2]{jia2012sparsegrid}.
+
+\paragraph{Combined node and weight dictionary.}
+Equation \eqref{eq:bf-hd-sgqf-smolyak} is not yet an implementable point cloud,
+because the same standardized node can appear in several tensor components.
+The implementation constructs a dictionary \(D\) keyed by standardized node
+\(\xi\):
+\[
+  D[\xi]\leftarrow D[\xi]+c_{\mathbf i}w^{\mathbf i,\alpha}
+  \quad\hbox{for every } \mathbf i\in\mathcal A_{b,L}
+  \hbox{ and tensor node } \alpha .
+\]
+After duplicate-node merging, discard entries with numerical zero weight and
+enumerate the remaining dictionary as
+\[
+  \{(\xi^{(r)},w_r)\}_{r=1}^{M_{b,L}} .
+\]
+The weights can be negative.  Therefore covariance matrices assembled from the
+rule must be checked, symmetrized, and, if necessary, rejected or stabilized by
+a declared square-root/PSD policy.  Silent clipping changes the scalar and
+invalidates the HMC gradient unless the clipping is part of the scalar
+definition.
+
+\begin{algorithm}
+\caption{ConstructFixedSparseGrid}
+\label{alg:bf-hd-construct-fixed-sgq}
+\begin{algorithmic}[1]
+\Require Dimension \(b\), level \(L\), one-dimensional rules \(I_\ell\) for
+\(\ell=1,\ldots,L+b-1\) built by \eqref{eq:bf-hd-sgqf-level-policy} unless a
+different declared family is supplied
+\Ensure Distinct standardized points and signed weights
+\State \(D\gets\) empty map from standardized node to weight
+\ForAll{\(\mathbf i\in\mathbb N^b\) with \(L\le|\mathbf i|\le L+b-1\)}
+  \State \(c_{\mathbf i}\gets
+  (-1)^{L+b-1-|\mathbf i|}{b-1\choose L+b-1-|\mathbf i|}\)
+  \ForAll{tensor nodes
+  \(\alpha\in\{1,\ldots,s_{i_1}\}\times\cdots\times\{1,\ldots,s_{i_b}\}\)}
+    \State \(\xi\gets(\zeta_{i_1,\alpha_1},\ldots,\zeta_{i_b,\alpha_b})\)
+    \State \(w\gets c_{\mathbf i}\prod_{j=1}^b\omega_{i_j,\alpha_j}\)
+    \State Add \(w\) to \(D[\xi]\)
+  \EndFor
+\EndFor
+\State Return all \((\xi,w)\) in \(D\) whose accumulated weight is not zero
+\end{algorithmic}
+\end{algorithm}
+
+\paragraph{Filtering recursion using a fixed sparse grid.}
+After Algorithm~\ref{alg:bf-hd-construct-fixed-sgq} returns
+\(\{(\xi^{(r)},w_r)\}_{r=1}^{M}\), the filter uses exactly the same moment
+formulas as GHQF, with \(\sum_\alpha w^\alpha\) replaced by \(\sum_{r=1}^M w_r\).
+The prediction step is
+\begin{align}
+  \chi_{t-1}^{(r)}&=m_{t-1}+C_{t-1}\xi^{(r)},&
+  x_{t|t-1}^{(r)}&=f_\theta(\chi_{t-1}^{(r)}),\\
+  m_t^-&=\sum_{r=1}^Mw_rx_{t|t-1}^{(r)},&
+  P_t^-&=Q_\theta+
+  \sum_{r=1}^Mw_r
+  (x_{t|t-1}^{(r)}-m_t^-)(x_{t|t-1}^{(r)}-m_t^-)^\top .
+  \label{eq:bf-hd-sgqf-predict}
+\end{align}
+The observation step is
+\begin{align}
+  \chi_t^{(r)}&=m_t^-+C_t^-\xi^{(r)},&
+  z_t^{(r)}&=h_\theta(\chi_t^{(r)}),\\
+  \bar z_t&=\sum_{r=1}^Mw_rz_t^{(r)},\\
+  S_t&=R_\theta+\sum_{r=1}^Mw_r
+  (z_t^{(r)}-\bar z_t)(z_t^{(r)}-\bar z_t)^\top,\\
+  C_{xz,t}&=\sum_{r=1}^Mw_r
+  (\chi_t^{(r)}-m_t^-)(z_t^{(r)}-\bar z_t)^\top .
+  \label{eq:bf-hd-sgqf-observation}
+\end{align}
+Then compute \(v_t,\widehat\ell_t,K_t,m_t,P_t\) as in
+\eqref{eq:bf-hd-ghq-update-moments}--\eqref{eq:bf-hd-ghq-update}.
+
+\begin{algorithm}
+\caption{RunFixedSparseGridFilterStep}
+\label{alg:bf-hd-fixed-sgqf-step}
+\begin{algorithmic}[1]
+\Require \(m_{t-1},P_{t-1},y_t,\theta\); fixed sparse-grid cloud
+\(\{(\xi^{(r)},w_r)\}_{r=1}^M\); maps and covariances
+\Ensure \(m_t,P_t,\widehat\ell_t\), score inputs, diagnostics
+\State Factor \(P_{t-1}=C_{t-1}C_{t-1}^\top\)
+\State Use \eqref{eq:bf-hd-sgqf-predict} to compute \(m_t^-,P_t^-\)
+\State Symmetrize \(P_t^-\); if the square-root diagnostic fails, return veto
+\State Factor \(P_t^-=C_t^-(C_t^-)^\top\)
+\State Use \eqref{eq:bf-hd-sgqf-observation} to compute
+\(\bar z_t,S_t,C_{xz,t}\)
+\State Symmetrize \(S_t\); if \(S_t\) is not positive definite, return veto
+\State Compute \(v_t=y_t-\bar z_t\) and \(\widehat\ell_t\)
+\State Compute \(K_t=C_{xz,t}S_t^{-1}\), update \(m_t,P_t\), and run the PSD
+diagnostic
+\end{algorithmic}
+\end{algorithm}
+
+\paragraph{Why this is the high-dimensional candidate.}
+For fixed level, Jia--Xin--Cheng record polynomial point growth rather than the
+full tensor-product \(s^b\) growth \citep[Proposition 3.1 and Appendix
+point-count examples]{jia2012sparsegrid}.  The point count can still be too
+large, and signed weights can damage covariance semantics, but the fixed sparse
+grid is the smallest object in this chapter that can plausibly define a
+high-dimensional approximate likelihood scalar with a reproducible analytical
+gradient.  It can be used as an HMC likelihood only in that precise sense: the
+sampler sees the fixed sparse-grid approximate scalar, not the exact
+filtering likelihood.  The index set \(\mathcal A_{b,L}\), one-dimensional
+rules, duplicate-node merging, covariance stabilization policy, and
+square-root branches must be fixed parts of the scalar being differentiated.
+
+\section{Adaptive Sparse-Grid Gauss-Hermite Filter (ASGHF)}
+\label{sec:bf-hd-asghf}
+
+\paragraph{Problem setting.}
+ASGHF is not a different filtering object.  It is a procedure for choosing a
+sparse-grid index set before using the same Gaussian projection formulas.
+Singh et al. start from sparse-grid Gauss--Hermite filtering and adaptively add
+tensor-product increments in directions whose estimated contribution is large
+relative to their cost \citep[Section 3]{singh2018adaptive}.  The implementable
+BayesFilter interpretation is:
+
+\[
+  \hbox{ASGHF pilot run chooses an index set}
+  \quad\Longrightarrow\quad
+  \hbox{freeze that index set}
+  \quad\Longrightarrow\quad
+  \hbox{run fixed SGQF.}
+\]
+
+\paragraph{Difference increments.}
+Let \(I_\ell\) be a one-dimensional Gauss--Hermite rule and set \(I_0=0\).
+Define
+\[
+  \Delta_\ell=I_\ell-I_{\ell-1}.
+\]
+For a multi-index \(\lambda=(\lambda_1,\ldots,\lambda_b)\),
+\[
+  \Delta_\lambda F
+  =
+  (\Delta_{\lambda_1}\otimes\cdots\otimes\Delta_{\lambda_b})F .
+\]
+This increment is the new tensor-product information added by level
+\(\lambda\) after lower one-dimensional levels have already been accounted for.
+
+\paragraph{Admissible index sets.}
+An index set \(\Lambda\subset\mathbb N^b\) is admissible if every backward
+neighbor is present:
+\[
+  \lambda\in\Lambda,\ \lambda_j>1
+  \quad\Longrightarrow\quad
+  \lambda-e_j\in\Lambda .
+\]
+The algorithm maintains an old set \(O\) of accepted indices and an active
+frontier \(A\) of admissible candidates.  A forward neighbor \(\lambda+e_j\)
+can be added to \(A\) only when all of its backward neighbors are already in
+\(O\cup A\).
+
+\paragraph{Error and cost indicator.}
+For a vector-valued filter integrand \(F\), Singh et al. use a local indicator
+of the form
+\begin{equation}
+  g_\lambda
+  =
+  \max\left\{
+    \psi\frac{\|\Delta_\lambda F\|_1}{\|\Delta_{\mathbf 1}F\|_1},
+    (1-\psi)\frac{\varpi_{\mathbf 1}}{\varpi_\lambda}
+  \right\},
+  \label{eq:bf-hd-asghf-error-indicator}
+\end{equation}
+where \(\mathbf 1=(1,\ldots,1)\), \(\varpi_\lambda\) is the number of function
+evaluations in the increment, and \(\psi\in[0,1]\) trades estimated error
+against cost \citep[Section 3]{singh2018adaptive}.  For filtering, \(F\) should
+be a concrete vector function of a standardized point.  BayesFilter uses a
+pilot Gaussian \(X=m+C\xi\), a pilot predicted Gaussian
+\(X^-=m^-+C^-\xi\), and the column-major vectorization
+\[
+  \operatorname{vec}(A)=(A_{11},A_{21},\ldots,A_{n1},A_{12},\ldots)^\top .
+\]
+The pilot integrand is
+\begin{equation}
+  F_{\rm pilot}(\xi)
+  =
+  \begin{bmatrix}
+    a(\xi)/s_a\\
+    \operatorname{vec}(a(\xi)a(\xi)^\top)/s_{aa}\\
+    z(\xi)/s_z\\
+    \operatorname{vec}(z(\xi)z(\xi)^\top)/s_{zz}\\
+    \operatorname{vec}((C^-\xi)z(\xi)^\top)/s_{xz}
+  \end{bmatrix},
+  \quad
+  a(\xi)=f_\theta(m+C\xi),\quad
+  z(\xi)=h_\theta(m^-+C^-\xi).
+  \label{eq:bf-hd-asghf-pilot-integrand}
+\end{equation}
+The positive scales \(s_a,s_{aa},s_z,s_{zz},s_{xz}\) are fixed before the
+adaptive run, for example the corresponding norms under the base index
+\(\mathbf 1\) floored at one.  The norm in
+\eqref{eq:bf-hd-asghf-error-indicator} is then the ordinary vector
+\(\ell_1\) norm of this concatenated vector.  This convention makes the
+adaptive score reproducible; changing the vectorization, scales, or norm is a
+different grid-selection algorithm.  Using only one scalar diagnostic can miss
+an interaction that matters for covariance or likelihood.
+
+\begin{algorithm}
+\caption{SelectAdaptiveSparseGrid}
+\label{alg:bf-hd-select-asghf}
+\begin{algorithmic}[1]
+\Require Dimension \(b\), one-dimensional rules, pilot Gaussian
+\((m,P)\), pilot integrand vector \(F\), tolerance \(TOL\), maximum point budget
+\(M_{\max}\), tradeoff \(\psi\)
+\Ensure Frozen admissible index set \(\Lambda\), or a budget/tolerance veto
+\State \(O\gets\emptyset\), \(A\gets\{\mathbf 1\}\), \(E\gets\infty\)
+\While{\(E>TOL\) and estimated point count is below \(M_{\max}\)}
+  \State Choose \(\lambda^\star\in A\) with largest \(g_\lambda\)
+  \State Move \(\lambda^\star\) from \(A\) to \(O\)
+  \For{\(j=1,\ldots,b\)}
+    \State \(\mu\gets\lambda^\star+e_j\)
+    \If{\(\mu\) is admissible relative to \(O\cup A\)}
+      \State Evaluate \(\Delta_\mu F\), compute \(g_\mu\), and add \(\mu\) to \(A\)
+    \EndIf
+  \EndFor
+  \State Update \(E\) from the active indicators, for example
+  \(E=\sum_{\lambda\in A}g_\lambda\)
+\EndWhile
+\State If \(E>TOL\), return veto; otherwise return \(\Lambda=O\cup A\)
+\end{algorithmic}
+\end{algorithm}
+
+\paragraph{Node and weight assembly after adaptation.}
+The adaptive algorithm returns an admissible set \(\Lambda\), not a point cloud.
+To freeze it, expand every tensor increment
+\[
+  \Delta_\lambda
+  =
+  \bigotimes_{j=1}^b (I_{\lambda_j}-I_{\lambda_j-1})
+  =
+  \sum_{\epsilon\in\{0,1\}^b}
+  (-1)^{|\epsilon|}
+  \bigotimes_{j=1}^b I_{\lambda_j-\epsilon_j},
+  \label{eq:bf-hd-asghf-increment-expansion}
+\]
+with \(I_0=0\).  Terms with any \(\lambda_j-\epsilon_j=0\) are skipped.  Then
+accumulate the tensor-product nodes and signed weights in the same dictionary
+style as fixed SGQF.
+
+\begin{algorithm}
+\caption{AssembleFrozenAdaptiveSparseGrid}
+\label{alg:bf-hd-assemble-frozen-asghf}
+\begin{algorithmic}[1]
+\Require Frozen admissible set \(\Lambda\), one-dimensional rules \(I_\ell\)
+\Ensure Distinct standardized points and signed weights
+\State \(D\gets\) empty map from standardized node to weight
+\ForAll{\(\lambda\in\Lambda\)}
+  \ForAll{\(\epsilon\in\{0,1\}^b\)}
+    \State \(j_\ell\gets\lambda_\ell-\epsilon_\ell\) for
+    \(\ell=1,\ldots,b\)
+    \If{any \(j_\ell=0\)}
+      \State Skip this term
+    \Else
+      \State \(c\gets(-1)^{\epsilon_1+\cdots+\epsilon_b}\)
+      \ForAll{tensor nodes
+      \(\alpha\in\{1,\ldots,s_{j_1}\}\times\cdots\times\{1,\ldots,s_{j_b}\}\)}
+        \State \(\xi\gets(\zeta_{j_1,\alpha_1},\ldots,\zeta_{j_b,\alpha_b})\)
+        \State \(w\gets c\prod_{\ell=1}^b\omega_{j_\ell,\alpha_\ell}\)
+        \State Add \(w\) to \(D[\xi]\)
+      \EndFor
+    \EndIf
+  \EndFor
+\EndFor
+\State Return all \((\xi,w)\) in \(D\) whose accumulated weight is not zero
+\end{algorithmic}
+\end{algorithm}
+
+\paragraph{Frozen-grid filtering after adaptation.}
+Algorithm~\ref{alg:bf-hd-select-asghf} is a grid-selection routine, not an HMC
+target by itself.  To use it in a likelihood, convert the returned admissible
+set \(\Lambda\) into a signed node/weight dictionary with
+Algorithm~\ref{alg:bf-hd-assemble-frozen-asghf}.  Then freeze the resulting
+distinct \(\{(\xi^{(r)},w_r)\}\) and run
+Algorithm~\ref{alg:bf-hd-fixed-sgqf-step}.  The frozen-grid scalar is
+differentiable under the same assumptions as fixed SGQF.  If
+Algorithm~\ref{alg:bf-hd-select-asghf} is rerun as \(\theta\) changes during
+HMC, the scalar changes by discrete branch decisions.  The sampler would then
+receive gradients from one frozen cloud while evaluating values from another,
+or would differentiate through a discontinuous grid-selection rule.  Therefore
+ASGHF is a grid-design procedure before HMC, not a live adaptive rule inside an
+HMC trajectory.
+
+\paragraph{Limitations and diagnostics.}
+ASGHF can miss weak many-way interactions because an increment may look
+unimportant before its neighboring increments have been selected.  It can also
+select a grid that is adequate for a pilot Gaussian but poor after filtering
+moves the covariance.  Required diagnostics are: final point count, active error
+estimate, PSD status of the resulting \(P_t^-\) and \(S_t\), duplicate-node
+weight cancellation, and finite-difference parity after freezing the grid.
+After the grid is frozen, the likelihood and gradient are those of fixed SGQF.
+
+\section{Approximate Likelihood and Analytical Gradient}
+\label{sec:bf-hd-gq-gradient-contract}
+
+\paragraph{Problem setting.}
+HMC cannot sample from a method name.  It needs a scalar potential and the
+gradient of that same scalar.  For the Gaussian and quadrature filters in this
+chapter, the scalar is the reported Gaussian innovation log likelihood.
+
+For a fixed deterministic rule, define
+\begin{align}
+  \chi_t^{(r)}(\theta)
+  &=m_t^-(\theta)+C_t^-(\theta)\xi^{(r)},\\
+  z_t^{(r)}(\theta)
+  &=h_\theta(\chi_t^{(r)}(\theta)).
+  \label{eq:bf-hd-gq-cloud}
+\end{align}
+The approximate observation moments are
+\begin{align}
+  \bar z_t&=\sum_r w_r^{(m)}z_t^{(r)},\\
+  S_t&=R_\theta+\sum_r w_r^{(c)}
+    (z_t^{(r)}-\bar z_t)(z_t^{(r)}-\bar z_t)^\top,\\
+  v_t&=y_t-\bar z_t.
+  \label{eq:bf-hd-gq-likelihood-objects}
+\end{align}
+The approximate scalar is
+\begin{equation}
+  \widehat\ell_t(\theta)
+  =
+  -\frac12
+  \{\log\det S_t+v_t^\top S_t^{-1}v_t+n_y\log(2\pi)\}.
+  \label{eq:bf-hd-gq-loglik}
+\end{equation}
+This is a project derivation in BayesFilter notation, patterned after the
+sigma-point likelihood derivative in Chapter~\ref{ch:bf-svd-sigma-point}.  It
+is not a claim that the cited UKF, CKF, SGQF, or ASGHF papers prove HMC
+correctness.
+
+\paragraph{Point and moment derivatives.}
+For parameter component \(\theta_i\), assume the offsets and weights are fixed
+and the covariance factor branch is differentiable.  Equations
+\eqref{eq:bf-hd-gq-point-score}--\eqref{eq:bf-hd-gq-score} are valid only when
+\(w_r^{(m)},w_r^{(c)}\), and \(\xi^{(r)}\) are constant in the differentiated
+parameter.  If a tuning parameter changes the weights, offsets, index set, or
+degree, the corresponding derivative terms must be added to the scalar
+definition and score.  Then
+\begin{align}
+  \dot\chi_t^{(r,i)}
+  &=
+  \dot m_t^{-(i)}+\dot C_t^{-(i)}\xi^{(r)},\\
+  \dot z_t^{(r,i)}
+  &=
+  D_xh_\theta(\chi_t^{(r)})\dot\chi_t^{(r,i)}
+  +\partial_i h_\theta(\chi_t^{(r)}),\\
+  \dot{\bar z}_t^{(i)}
+  &=
+  \sum_r w_r^{(m)}\dot z_t^{(r,i)}.
+  \label{eq:bf-hd-gq-point-score}
+\end{align}
+Let
+\[
+  \Delta_t^{(r)}=z_t^{(r)}-\bar z_t,\qquad
+  \dot\Delta_t^{(r,i)}=\dot z_t^{(r,i)}-\dot{\bar z}_t^{(i)}.
+\]
+Then
+\begin{align}
+  \dot S_t^{(i)}
+  &=
+  \dot R_\theta^{(i)}
+  +
+  \sum_r w_r^{(c)}
+  \left\{
+    \dot\Delta_t^{(r,i)}\Delta_t^{(r)\top}
+    +\Delta_t^{(r)}\dot\Delta_t^{(r,i)\top}
+  \right\},\\
+  \dot v_t^{(i)}
+  &=
+  \dot y_t^{(i)}-\dot{\bar z}_t^{(i)}.
+  \label{eq:bf-hd-gq-S-v-score}
+\end{align}
+For recorded data independent of \(\theta\), \(\dot y_t^{(i)}=0\).  If
+quadrature tuning parameters or weights are estimated, their derivatives must
+be added explicitly; the fixed-rule formulas above do not cover hidden rule
+adaptation.
+
+\begin{proposition}[Approximate Gaussian innovation score]
+\label{prop:bf-hd-gq-score}
+Assume \(S_t\) is positive definite, the deterministic rule is fixed, and all
+objects above are differentiable on the active branch.  If \(S_tw_t=v_t\), then
+the derivative of \eqref{eq:bf-hd-gq-loglik} is
+\begin{equation}
+  \partial_i\widehat\ell_t
+  =
+  -\frac12
+  \left[
+    \tr(S_t^{-1}\dot S_t^{(i)})
+    +2\dot v_t^{(i)\top}w_t
+    -w_t^\top\dot S_t^{(i)}w_t
+  \right].
+  \label{eq:bf-hd-gq-score}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+Differentiate the three terms in \eqref{eq:bf-hd-gq-loglik}.  The log
+determinant identity gives
+\[
+  \partial_i\log\det S_t=\tr(S_t^{-1}\dot S_t^{(i)}).
+\]
+For the quadratic term, use \(w_t=S_t^{-1}v_t\) and
+\(\partial_i S_t^{-1}=-S_t^{-1}\dot S_t^{(i)}S_t^{-1}\):
+\[
+  \partial_i(v_t^\top S_t^{-1}v_t)
+  =
+  2\dot v_t^{(i)\top}w_t
+  -w_t^\top\dot S_t^{(i)}w_t.
+\]
+The constant \(n_y\log(2\pi)\) has zero derivative.  Combining the derivatives
+proves \eqref{eq:bf-hd-gq-score}.
+\end{proof}
+
+\subsection{Fixed-SGQF Approximate Likelihood Gradient}
+\label{sec:bf-hd-fixed-sgqf-gradient}
+
+The generic score above is useful but not enough for implementation.  The
+selected high-dimensional target in this chapter is the fixed sparse-grid
+Gaussian projection likelihood
+\begin{equation}
+  \widehat\ell_T^{\rm FSGQ}(\theta)
+  =
+  \sum_{t=1}^T\widehat\ell_t^{\rm FSGQ}(\theta),
+  \label{eq:bf-hd-fsgq-total-likelihood}
+\end{equation}
+where every \(\widehat\ell_t^{\rm FSGQ}\) is produced by
+Algorithm~\ref{alg:bf-hd-fixed-sgqf-step} using one frozen standardized cloud
+\(\{(\xi^{(r)},w_r)\}_{r=1}^M\).  The cloud is part of the scalar definition.
+The gradient below differentiates this approximate scalar, not the exact
+nonlinear likelihood.
+
+\paragraph{Differentiable square-root convention.}
+At each time, let \(C(P)\) be the declared covariance square-root map used by
+the implementation.  The default P9 implementation is unpivoted Cholesky on the
+strictly positive-definite branch, \(P=LL^\top\), \(C=L\).  Given a symmetric
+\(\dot P^{(i)}\), compute
+\[
+  A^{(i)}=L^{-1}\dot P^{(i)}L^{-\top}.
+\]
+Let \(\Phi(A)\) be the lower-triangular matrix
+\[
+  \Phi(A)_{jk}=
+  \begin{cases}
+    A_{jk}, & j>k,\\
+    A_{jj}/2, & j=k,\\
+    0, & j<k .
+  \end{cases}
+\]
+Then the Cholesky sensitivity is
+\begin{equation}
+  \dot L^{(i)}=L\Phi(A^{(i)}).
+  \label{eq:bf-hd-fsgq-cholesky-derivative}
+\end{equation}
+Indeed, with \(B=\Phi(A)\), \(B+B^\top=A\), so
+\[
+  \dot L L^\top+L\dot L^\top
+  =
+  L(B+B^\top)L^\top
+  =
+  \dot P .
+\]
+If the implementation uses SVD, a pivoted factor, or a custom square-root map
+from the earlier derivative chapters, it must instead supply
+\[
+  \dot C^{(i)} = D C(P)[\dot P^{(i)}].
+\]
+If the square-root branch pivots, changes rank, floors eigenvalues, or clips
+covariances, the derivative is only branch-local unless the branch rule is
+included in the scalar and differentiated or smoothed.
+
+\paragraph{Prediction sensitivities.}
+Assume the previous filtering state and sensitivities are
+\[
+  m_{t-1},\quad P_{t-1},\quad
+  \dot m_{t-1}^{(i)},\quad \dot P_{t-1}^{(i)} .
+\]
+Let \(C_{t-1}=C(P_{t-1})\) and
+\(\dot C_{t-1}^{(i)}=DC(P_{t-1})[\dot P_{t-1}^{(i)}]\).  For each fixed
+sparse-grid point,
+\begin{align}
+  \chi_{t-1}^{(r)}&=m_{t-1}+C_{t-1}\xi^{(r)},\\
+  \dot\chi_{t-1}^{(r,i)}
+  &=
+  \dot m_{t-1}^{(i)}+\dot C_{t-1}^{(i)}\xi^{(r)}.
+  \label{eq:bf-hd-fsgq-pred-point-score}
+\end{align}
+Propagate the transition points:
+\begin{align}
+  a_t^{(r)}&=f_\theta(\chi_{t-1}^{(r)}),\\
+  \dot a_t^{(r,i)}
+  &=
+  D_xf_\theta(\chi_{t-1}^{(r)})\dot\chi_{t-1}^{(r,i)}
+  +\partial_i f_\theta(\chi_{t-1}^{(r)}).
+  \label{eq:bf-hd-fsgq-transition-score}
+\end{align}
+Then
+\begin{align}
+  m_t^-&=\sum_rw_ra_t^{(r)},&
+  \dot m_t^{-(i)}&=\sum_rw_r\dot a_t^{(r,i)}.
+  \label{eq:bf-hd-fsgq-pred-mean-score}
+\end{align}
+With \(d_t^{(r)}=a_t^{(r)}-m_t^-\) and
+\(\dot d_t^{(r,i)}=\dot a_t^{(r,i)}-\dot m_t^{-(i)}\),
+\begin{align}
+  P_t^-&=Q_\theta+\sum_rw_rd_t^{(r)}d_t^{(r)\top},\\
+  \dot P_t^{-(i)}
+  &=
+  \dot Q_\theta^{(i)}
+  +
+  \sum_rw_r
+  \{\dot d_t^{(r,i)}d_t^{(r)\top}
+  +d_t^{(r)}\dot d_t^{(r,i)\top}\}.
+  \label{eq:bf-hd-fsgq-pred-cov-score}
+\end{align}
+
+\paragraph{Observation and likelihood sensitivities.}
+Let \(C_t^-=C(P_t^-)\) and
+\(\dot C_t^{-(i)}=DC(P_t^-)[\dot P_t^{-(i)}]\).  The observation cloud and its
+sensitivities are
+\begin{align}
+  \chi_t^{(r)}&=m_t^-+C_t^-\xi^{(r)},\\
+  \dot\chi_t^{(r,i)}
+  &=
+  \dot m_t^{-(i)}+\dot C_t^{-(i)}\xi^{(r)},\\
+  z_t^{(r)}&=h_\theta(\chi_t^{(r)}),\\
+  \dot z_t^{(r,i)}
+  &=
+  D_xh_\theta(\chi_t^{(r)})\dot\chi_t^{(r,i)}
+  +\partial_i h_\theta(\chi_t^{(r)}).
+  \label{eq:bf-hd-fsgq-obs-point-score}
+\end{align}
+The observation mean and innovation residual derivatives are
+\begin{align}
+  \bar z_t&=\sum_rw_rz_t^{(r)},&
+  \dot{\bar z}_t^{(i)}&=\sum_rw_r\dot z_t^{(r,i)},\\
+  v_t&=y_t-\bar z_t,&
+  \dot v_t^{(i)}&=-\dot{\bar z}_t^{(i)}
+  \label{eq:bf-hd-fsgq-z-v-score}
+\end{align}
+for recorded data independent of \(\theta\).  With
+\(\Delta_t^{(r)}=z_t^{(r)}-\bar z_t\) and
+\(\dot\Delta_t^{(r,i)}=\dot z_t^{(r,i)}-\dot{\bar z}_t^{(i)}\),
+\begin{align}
+  S_t&=R_\theta+\sum_rw_r\Delta_t^{(r)}\Delta_t^{(r)\top},\\
+  \dot S_t^{(i)}
+  &=
+  \dot R_\theta^{(i)}
+  +
+  \sum_rw_r
+  \{\dot\Delta_t^{(r,i)}\Delta_t^{(r)\top}
+  +\Delta_t^{(r)}\dot\Delta_t^{(r,i)\top}\}.
+  \label{eq:bf-hd-fsgq-S-score}
+\end{align}
+The cross-covariance is needed for the filter state:
+\begin{align}
+  C_{xz,t}&=\sum_rw_r
+  (\chi_t^{(r)}-m_t^-)\Delta_t^{(r)\top},\\
+  \dot C_{xz,t}^{(i)}
+  &=
+  \sum_rw_r
+  \{(\dot\chi_t^{(r,i)}-\dot m_t^{-(i)})\Delta_t^{(r)\top}
+  +(\chi_t^{(r)}-m_t^-)\dot\Delta_t^{(r,i)\top}\}.
+  \label{eq:bf-hd-fsgq-cross-score}
+\end{align}
+For the current likelihood contribution, \(\dot C_{xz,t}^{(i)}\) is not needed.
+It is needed only if the implementation propagates posterior sensitivities
+through the Kalman update to the next time step.
+
+\paragraph{Likelihood score and posterior sensitivity propagation.}
+If \(S_tw_t=v_t\), the per-period score is
+\begin{equation}
+  \partial_i\widehat\ell_t^{\rm FSGQ}
+  =
+  -\frac12
+  \left[
+    \tr(S_t^{-1}\dot S_t^{(i)})
+    +2\dot v_t^{(i)\top}w_t
+    -w_t^\top\dot S_t^{(i)}w_t
+  \right].
+  \label{eq:bf-hd-fsgq-score}
+\end{equation}
+To continue the recursion, differentiate the update on the same smooth branch.
+Let \(K_t=C_{xz,t}S_t^{-1}\).  Then
+\begin{align}
+  \dot K_t^{(i)}
+  &=
+  \dot C_{xz,t}^{(i)}S_t^{-1}
+  -K_t\dot S_t^{(i)}S_t^{-1},\\
+  \dot m_t^{(i)}
+  &=
+  \dot m_t^{-(i)}
+  +\dot K_t^{(i)}v_t
+  +K_t\dot v_t^{(i)},\\
+  \dot P_t^{(i)}
+  &=
+  \dot P_t^{-(i)}
+  -\dot K_t^{(i)}S_tK_t^\top
+  -K_t\dot S_t^{(i)}K_t^\top
+  -K_tS_t\dot K_t^{(i)\top}.
+  \label{eq:bf-hd-fsgq-update-score}
+\end{align}
+Equations \eqref{eq:bf-hd-fsgq-pred-point-score}--\eqref{eq:bf-hd-fsgq-update-score}
+are enough to implement a value-and-gradient pass for
+\(\widehat\ell_T^{\rm FSGQ}\), provided the same fixed sparse-grid cloud,
+factor branch, covariance stabilization policy, and model derivative routines
+are used in both the value and gradient paths.
+
+\begin{algorithm}
+\caption{FixedSparseGridValueAndScore}
+\label{alg:bf-hd-fsgq-score}
+\begin{algorithmic}[1]
+\Require Observations \(y_{1:T}\), parameters \(\theta\), initial
+\(m_0,P_0,\dot m_0^{(i)},\dot P_0^{(i)}\), fixed cloud
+\(\{(\xi^{(r)},w_r)\}\), model derivatives
+\Ensure \(\widehat\ell_T^{\rm FSGQ}\) and \(\nabla_\theta\widehat\ell_T^{\rm FSGQ}\)
+\State \(\widehat\ell\gets0\), score components \(g_i\gets0\)
+\For{\(t=1,\ldots,T\)}
+  \State Compute prediction value and sensitivities by
+  \eqref{eq:bf-hd-fsgq-pred-point-score}--\eqref{eq:bf-hd-fsgq-pred-cov-score}
+  \State Compute observation value and sensitivities by
+  \eqref{eq:bf-hd-fsgq-obs-point-score}--\eqref{eq:bf-hd-fsgq-S-score}
+  \State If \(P_t^-\) or \(S_t\) fails the declared PSD/PD diagnostic, return veto
+  \State Add \(\widehat\ell_t^{\rm FSGQ}\) to \(\widehat\ell\)
+  \State For each \(i\), add \eqref{eq:bf-hd-fsgq-score} to \(g_i\)
+  \State Compute posterior sensitivities by \eqref{eq:bf-hd-fsgq-cross-score}
+  and \eqref{eq:bf-hd-fsgq-update-score}
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+\paragraph{When these approximations can feed HMC.}
+The question for HMC is not whether a method name sounds differentiable.  The
+question is whether the implementation reports a scalar
+\(\widehat\ell_T(\theta)\) and the derivative of that same scalar.  The table
+below states this in ordinary mathematical terms.  None of the entries is a
+convergence guarantee; they only say what object an HMC target would be
+differentiating.
+
+\begin{longtable}{@{}p{0.25\linewidth}p{0.30\linewidth}p{0.34\linewidth}@{}}
+\toprule
+Method family & Scalar seen by HMC & What must be fixed or checked \\
+\midrule
+\endhead
+Extended Kalman filter under declared approximate scalar \(\widehat\ell_t\) &
+The EKF Gaussian innovation approximation. &
+The linearization rule, covariance factor branch, and derivative path must be
+the same in value and gradient calculations. \\
+Iterated extended Kalman filter under declared approximate scalar
+\(\widehat\ell_t\) &
+No single scalar unless the iteration branch is frozen or smoothed. &
+Iteration count and convergence basin can change with \(\theta\); without a
+declared branch, the derivative is not the derivative of one smooth function. \\
+UKF, CKF, high-degree CKF, fixed tensor-product GHQ &
+The fixed-rule Gaussian innovation scalar
+\eqref{eq:bf-hd-gq-loglik}. &
+Offsets, weights, covariance factors, and stabilization rules must be fixed
+smooth parts of the scalar.  Large tensor-product GHQ usually fails the cost
+test before it becomes a serious HMC candidate. \\
+Fixed nonadaptive SGQF &
+The fixed sparse-grid scalar
+\(\widehat\ell_T^{\rm FSGQ}\). &
+The index set, nodes, weights, duplicate-node merge, covariance policy, and
+factor derivative must be fixed and used identically in value and gradient. \\
+Frozen ASGHF branch &
+The fixed SGQF scalar built from the selected grid. &
+The adaptive search must run before HMC.  Once the grid is frozen, the filter
+is mathematically the fixed SGQF above. \\
+Live adaptive ASGHF &
+No smooth scalar is supplied by the algorithm as written. &
+The point set changes by discrete decisions.  HMC should not be handed this
+branch-changing procedure as if it were one differentiable likelihood. \\
+Large tensor-product GHQ &
+A clear scalar in principle. &
+The exponential point count makes it a small-block reference and debugging
+tool, not the high-dimensional route. \\
+\bottomrule
+\end{longtable}
+
+\paragraph{Implementability checklist.}
+The table is a post-derivation checklist, not the explanation.
+
+\begin{longtable}{@{}p{0.22\linewidth}p{0.18\linewidth}p{0.18\linewidth}p{0.18\linewidth}p{0.16\linewidth}@{}}
+\toprule
+Object & Nodes/weights & Filter recursion & Gradient recursion & Use in inference \\
+\midrule
+\endhead
+Tensor-product GHQF & Eq. \eqref{eq:bf-hd-ghq-tensor-rule} &
+Alg. \ref{alg:bf-hd-ghqf-step} & Generic fixed-rule score only &
+Small-block reference because \(s^b\) points do not scale \\
+Fixed SGQF & Alg. \ref{alg:bf-hd-construct-fixed-sgq} &
+Alg. \ref{alg:bf-hd-fixed-sgqf-step} &
+Alg. \ref{alg:bf-hd-fsgq-score} &
+Selected fixed approximate likelihood target \\
+ASGHF & Alg. \ref{alg:bf-hd-select-asghf} then freeze &
+Frozen SGQF recursion & Fixed-SGQF gradient after freeze &
+Grid design before inference; fixed SGQF after freeze \\
+\bottomrule
+\end{longtable}
+
+\section{Limitations of These Methods}
+\label{sec:bf-hd-gq-defects}
+
+The limitations are not bureaucratic cautions; they are mathematical reasons
+the methods can fail.
+
+\begin{enumerate}[label=(\arabic*)]
+  \item Gaussian projection preserves a mean/covariance object, not the full
+  posterior law.  The scalar quadratic cell can be bimodal while every method
+  here stores one Gaussian.
+  \item EKF and second-order Taylor filters depend on local derivatives.  They
+  fail when the expansion point is not representative of the posterior mass or
+  when Hessian contractions are too dense to compute reliably.
+  \item The Julier--Uhlmann UT matches the input mean and covariance by
+  construction, but negative or badly scaled weights can damage positive
+  semidefinite covariance semantics.
+  \item CKF is a clean third-degree Gaussian integral rule.  It misses fourth
+  moments such as the variance of \(X^2\) in the scalar cell.
+  \item Jia--Xin--Cheng high-degree CKF improves polynomial moment exactness,
+  but fifth-degree and higher rules add point cost and can introduce negative
+  weights.  The broader Stroud/Genz/Cools cubature foundations are not used as
+  independent support in this chapter.
+  \item Tensor-product Gauss--Hermite filtering is easy to understand and hard
+  to scale: \(s^b\) points is a hard veto outside tiny blocks.  Its main role
+  here is reference construction and small-block parity testing.
+  \item Jia--Xin--Cheng SGQF reduces tensor-product cost for fixed level, but it
+  omits interactions outside the selected sparse-grid structure and can produce
+  signed weights.  The PSD status of \(P_t^-\) and \(S_t\) is therefore an
+  algorithmic veto, not an implementation detail.
+  \item Singh et al.'s adaptive sparse-grid filter is useful as a computational
+  allocation device, but it must be separated into grid selection and
+  frozen-grid filtering before HMC can use the resulting approximate scalar.
+  \item The approximate likelihood gradient in
+  \eqref{eq:bf-hd-fsgq-score} is the derivative of the fixed sparse-grid
+  approximate Gaussian innovation scalar.  It is not a derivative through live
+  adaptation, hidden covariance clipping, or a changed node set.
+\end{enumerate}
+
+\paragraph{How synthesis uses this chapter.}
+The synthesis decision is a mathematical filtering calculation, not a label
+lookup.  Start with a block \(B\) of dimension \(b\) and a Gaussian prediction
+\(\calN(m_B^-,P_B^-)\).  Choose a deterministic rule \(Q_B\) with standardized
+points and weights \(\{(\xi^{(r)},w_r)\}_{r=1}^{M_B}\).  That rule is allowed
+to enter the candidate architecture only if it can compute the five Gaussian
+projection objects
+\[
+  m_B^-,\qquad
+  P_B^-,\qquad
+  \bar z_B,\qquad
+  S_B,\qquad
+  C_{xz,B}
+\]
+by explicit weighted sums of the form derived above, with \(P_B^-\succeq0\)
+and \(S_B\succ0\) after the declared stabilization policy.  The local
+likelihood contribution is then
+\[
+  \widehat\ell_{B,t}
+  =
+  -\frac12\{\log\det S_B
+  +(y_{B,t}-\bar z_B)^\top S_B^{-1}(y_{B,t}-\bar z_B)
+  +n_B\log(2\pi)\}.
+\]
+For a collection of blocks \(\mathcal B_t\), the candidate scalar used
+downstream is the declared sum
+\[
+  \widehat\ell_t^{\rm cand}(\theta)
+  =
+  \sum_{B\in\mathcal B_t}\widehat\ell_{B,t}(\theta)
+  +\widehat\ell_{t,\rm cross}(\theta),
+\]
+where the cross term is either zero by an explicit conditional-independence or
+block-diagonal approximation, or is supplied by a stated low-rank/correction
+model.  This equation is where synthesis must be honest: ignoring cross-block
+dependence is an approximation to the likelihood, not a computational detail.
+
+The promotion rule is therefore concrete.  Use tensor-product GHQ only when
+\(M_B=s^b\) is small enough for reference evaluation.  Use CKF or high-degree
+CKF when the active block is small and the needed moments are low-order smooth
+polynomial-like effects.  Use fixed SGQF when \(M_{b,L}\) fits the point
+budget, signed weights do not break the covariance diagnostics, and the
+fixed-grid score recursion in
+\eqref{eq:bf-hd-fsgq-pred-point-score}--\eqref{eq:bf-hd-fsgq-update-score}
+is the derivative actually supplied to the inference engine.  Use ASGHF only to
+select a grid before this calculation; after selection, replace it by the
+frozen fixed-grid rule and re-run the same value-gradient checks.
