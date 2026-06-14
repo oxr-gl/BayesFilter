@@ -1,0 +1,22 @@
+{
+  "cuda_visible_devices": "1",
+  "device_arg": "/GPU:0",
+  "device_scope": "visible",
+  "expect_device_kind": "gpu",
+  "failure_classification": "capacity_not_run_after_b20_scalar_gpu_slow",
+  "finite_outputs": null,
+  "mode": "scalar-compiled-loop",
+  "notes": [
+    "The B=4096 scalar-loop GPU comparator was not launched after the B=20 scalar-loop GPU comparator completed with a warm median of about 3.07 seconds for only 20 rows.",
+    "Batched GPU artifacts exist for B=20, B=256, and B=4096.",
+    "This is capacity evidence for the scalar-loop comparator, not a batched Kalman correctness failure."
+  ],
+  "shape": {
+    "batch_size": 4096,
+    "obs_dim": 10,
+    "parameter_dim": 2,
+    "state_dim": 10,
+    "time_steps": 200
+  },
+  "status": "not_run_capacity_guard"
+}

@@ -1,0 +1,125 @@
+{
+  "backend": "tf_svd_ukf",
+  "cuda_visible_devices": "-1",
+  "device_arg": "/CPU:0",
+  "device_scope": "cpu",
+  "expect_device_kind": "cpu",
+  "finite_batched_outputs": true,
+  "host": "ubuntu-MZ72-HB2-00",
+  "logical_gpus": [],
+  "max_abs_score_error": 0.0,
+  "max_abs_value_error": 0.0,
+  "max_rel_score_error": 0.0,
+  "max_rel_value_error": 0.0,
+  "mode": "parity",
+  "notes": [
+    "Single-shape diagnostic only; not a production benchmark.",
+    "The experimental kernel hardcasts tensors to float64.",
+    "Time remains sequential; the batch axis parallelizes independent parameter rows.",
+    "The affine fixture uses structural SVD sigma-point filtering so scalar rows are the authority path."
+  ],
+  "passed": true,
+  "physical_gpus": [],
+  "python": "3.13.13",
+  "regularization": {
+    "fixed_null_tolerance": 1e-10,
+    "innovation_floor": 1e-12,
+    "jitter": 0.0,
+    "placement_floor": 0.0,
+    "rank_tolerance": 1e-12,
+    "spectral_gap_tolerance": 1e-10
+  },
+  "row_results": [
+    {
+      "batched_score": [
+        -0.18855677498034515,
+        -7.021438101962865
+      ],
+      "batched_value": 0.21253664523004046,
+      "row": 0,
+      "row_pass": true,
+      "scalar_score": [
+        -0.18855677498034515,
+        -7.021438101962865
+      ],
+      "scalar_value": 0.21253664523004046,
+      "score_abs_error_max": 0.0,
+      "score_pass": true,
+      "score_rel_error_max": 0.0,
+      "value_abs_error": 0.0,
+      "value_pass": true,
+      "value_rel_error": 0.0
+    },
+    {
+      "batched_score": [
+        -0.20552850962401623,
+        -7.302306628817863
+      ],
+      "batched_value": -0.5742054807534447,
+      "row": 1,
+      "row_pass": true,
+      "scalar_score": [
+        -0.20552850962401623,
+        -7.302306628817863
+      ],
+      "scalar_value": -0.5742054807534447,
+      "score_abs_error_max": 0.0,
+      "score_pass": true,
+      "score_rel_error_max": 0.0,
+      "value_abs_error": 0.0,
+      "value_pass": true,
+      "value_rel_error": 0.0
+    },
+    {
+      "batched_score": [
+        -0.1759061975368337,
+        -7.556769961024184
+      ],
+      "batched_value": -1.385302901677555,
+      "row": 2,
+      "row_pass": true,
+      "scalar_score": [
+        -0.1759061975368337,
+        -7.556769961024184
+      ],
+      "scalar_value": -1.385302901677555,
+      "score_abs_error_max": 0.0,
+      "score_pass": true,
+      "score_rel_error_max": 0.0,
+      "value_abs_error": 0.0,
+      "value_pass": true,
+      "value_rel_error": 0.0
+    }
+  ],
+  "rows": [
+    0,
+    1,
+    2
+  ],
+  "score_abs_max": 7.556769961024184,
+  "score_device": "/job:localhost/replica:0/task:0/device:CPU:0",
+  "score_shape": [
+    3,
+    2
+  ],
+  "shape": {
+    "batch_size": 3,
+    "obs_dim": 2,
+    "parameter_dim": 2,
+    "state_dim": 2,
+    "time_steps": 5
+  },
+  "tensorflow": "2.20.0",
+  "timestamp_utc": "2026-06-14T05:07:35.455690+00:00",
+  "tolerances": {
+    "score_atol": 1e-07,
+    "score_rtol": 1e-07,
+    "value_atol": 1e-08,
+    "value_rtol": 1e-08
+  },
+  "value_device": "/job:localhost/replica:0/task:0/device:CPU:0",
+  "value_shape": [
+    3
+  ],
+  "value_sum": -1.7469717372009592
+}

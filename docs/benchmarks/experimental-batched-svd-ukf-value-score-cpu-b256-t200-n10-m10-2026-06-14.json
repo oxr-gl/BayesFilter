@@ -1,0 +1,61 @@
+{
+  "backend": "tf_svd_ukf",
+  "cuda_visible_devices": "-1",
+  "device_arg": "/CPU:0",
+  "device_scope": "cpu",
+  "expect_device_kind": "cpu",
+  "finite_outputs": true,
+  "first_call_seconds": 27.105498187011108,
+  "host": "ubuntu-MZ72-HB2-00",
+  "logical_gpus": [],
+  "mode": "timing",
+  "notes": [
+    "Single-shape diagnostic only; not a production benchmark.",
+    "The experimental kernel hardcasts tensors to float64.",
+    "Time remains sequential; the batch axis parallelizes independent parameter rows.",
+    "The affine fixture uses structural SVD sigma-point filtering so scalar rows are the authority path."
+  ],
+  "per_filter_warm_median_seconds": 0.1017090135746912,
+  "physical_gpus": [],
+  "python": "3.13.13",
+  "regularization": {
+    "fixed_null_tolerance": 1e-10,
+    "innovation_floor": 1e-12,
+    "jitter": 0.0,
+    "placement_floor": 0.0,
+    "rank_tolerance": 1e-12,
+    "spectral_gap_tolerance": 1e-10
+  },
+  "score_abs_max": 1546.9953987201986,
+  "score_device": "/job:localhost/replica:0/task:0/device:CPU:0",
+  "score_shape": [
+    256,
+    2
+  ],
+  "shape": {
+    "batch_size": 256,
+    "obs_dim": 10,
+    "parameter_dim": 2,
+    "state_dim": 10,
+    "time_steps": 200
+  },
+  "tensorflow": "2.20.0",
+  "timestamp_utc": "2026-06-13T19:22:52.807489+00:00",
+  "timing_policy": {
+    "first_call_includes_trace_and_initialization": true,
+    "materialization": "value.numpy() and score.numpy() after each call",
+    "repeats": 3,
+    "warmups": 1
+  },
+  "value_device": "/job:localhost/replica:0/task:0/device:CPU:0",
+  "value_shape": [
+    256
+  ],
+  "value_sum": -48657.30742542367,
+  "warm_call_summary": {
+    "max_seconds": 26.80856622592546,
+    "mean_seconds": 26.161004924681038,
+    "median_seconds": 26.037507475120947,
+    "min_seconds": 25.636941072996706
+  }
+}

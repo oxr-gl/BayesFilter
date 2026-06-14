@@ -1,0 +1,23 @@
+{
+  "backend": "tf_svd_ukf",
+  "cuda_visible_devices": "1",
+  "device_arg": "/GPU:0",
+  "device_scope": "visible",
+  "expect_device_kind": "gpu",
+  "failure_classification": "not_run_after_scalar_cpu_xla_trace_type_infeasible",
+  "finite_outputs": null,
+  "mode": "scalar-compiled-loop",
+  "notes": [
+    "The scalar-loop SVD-UKF GPU comparator was not launched because the same scalar compiled comparator failed before timing on CPU with TensorFlow TraceType infeasibility for TFStructuralStateSpace.",
+    "Batched SVD-UKF GPU artifacts exist for B=20, B=256, and B=4096.",
+    "This is scalar comparator feasibility evidence, not a batched SVD-UKF correctness failure."
+  ],
+  "shape": {
+    "batch_size": 20,
+    "obs_dim": 10,
+    "parameter_dim": 2,
+    "state_dim": 10,
+    "time_steps": 200
+  },
+  "status": "not_run_after_scalar_xla_infeasible"
+}

@@ -1,0 +1,61 @@
+{
+  "compiler": {
+    "compile_and_first_call_seconds": 2.4169473911169916,
+    "compiled_unit": "batched_value_score",
+    "jit_compile": true,
+    "tf_function": true,
+    "warm_calls_exclude_compile": true
+  },
+  "cuda_visible_devices": "1",
+  "device_arg": "/GPU:0",
+  "device_scope": "visible",
+  "expect_device_kind": "gpu",
+  "finite_outputs": true,
+  "host": "ubuntu-MZ72-HB2-00",
+  "logical_gpus": [
+    "LogicalDevice(name='/device:GPU:0', device_type='GPU')"
+  ],
+  "mode": "compiled-timing",
+  "notes": [
+    "Single-shape diagnostic only; not a production benchmark.",
+    "The experimental kernel hardcasts tensors to float64.",
+    "Time remains sequential; the batch axis parallelizes independent parameter rows."
+  ],
+  "per_filter_warm_median_seconds": 0.0005421239784482168,
+  "physical_gpus": [
+    "PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')"
+  ],
+  "python": "3.13.13",
+  "score_abs_max": 1479.1003659312034,
+  "score_device": "/job:localhost/replica:0/task:0/device:GPU:0",
+  "score_shape": [
+    256,
+    2
+  ],
+  "shape": {
+    "batch_size": 256,
+    "obs_dim": 10,
+    "parameter_dim": 2,
+    "state_dim": 10,
+    "time_steps": 200
+  },
+  "tensorflow": "2.20.0",
+  "timestamp_utc": "2026-06-14T06:43:41.278883+00:00",
+  "timing_policy": {
+    "first_call_includes_trace_compile_and_initialization": true,
+    "materialization": "value.numpy() and score.numpy() after each compiled call",
+    "repeats": 10,
+    "warmups": 3
+  },
+  "value_device": "/job:localhost/replica:0/task:0/device:GPU:0",
+  "value_shape": [
+    256
+  ],
+  "value_sum": -12971.647473754127,
+  "warm_call_summary": {
+    "max_seconds": 0.13879819796420634,
+    "mean_seconds": 0.13878685468807817,
+    "median_seconds": 0.1387837384827435,
+    "min_seconds": 0.1387740089558065
+  }
+}
