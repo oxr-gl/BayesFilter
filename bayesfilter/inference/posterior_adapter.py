@@ -14,6 +14,7 @@ ValueScoreAuthority = Literal[
     "graph_native",
     "gradient_tape_fallback",
     "reviewed_gradient_tape_xla_exception",
+    "reviewed_tf_py_function_finite_reject_bridge",
     "debug_only",
     "unavailable",
 ]
@@ -35,6 +36,7 @@ _KNOWN_AUTHORITIES = {
     "graph_native",
     "gradient_tape_fallback",
     "reviewed_gradient_tape_xla_exception",
+    "reviewed_tf_py_function_finite_reject_bridge",
     "debug_only",
     "unavailable",
 }
@@ -125,6 +127,18 @@ class ValueScoreCapability:
             if not self.target_scope:
                 raise ValueError(
                     "reviewed GradientTape XLA exceptions require target_scope binding"
+                )
+        if authority == "reviewed_tf_py_function_finite_reject_bridge":
+            if self.xla_hmc_ready:
+                raise ValueError("reviewed tf.py_function finite-reject bridge is non-XLA only")
+            if not self.evidence_path and not self.nonclaims:
+                raise ValueError(
+                    "reviewed tf.py_function finite-reject bridges require scoped evidence_path "
+                    "or nonclaims"
+                )
+            if not self.target_scope:
+                raise ValueError(
+                    "reviewed tf.py_function finite-reject bridges require target_scope binding"
                 )
 
     @property

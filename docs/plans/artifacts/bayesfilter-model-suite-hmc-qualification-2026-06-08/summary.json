@@ -1,0 +1,434 @@
+{
+  "artifact_type": "bayesfilter_model_suite_hmc_qualification_summary",
+  "cpu_gpu_status": {
+    "CUDA_VISIBLE_DEVICES": "-1",
+    "tensorflow_visible_gpus": []
+  },
+  "executed_model_order": [
+    "A",
+    "QR",
+    "B",
+    "C"
+  ],
+  "execution_design": {
+    "final_hmc_evidence_path": "bayesfilter.inference.run_full_chain_tfp_hmc",
+    "full_chain_config": "bayesfilter.inference.FullChainHMCConfig",
+    "old_smoke_helper_functions_not_called": [
+      "run_qr_static_lgssm_hmc_smoke",
+      "run_model_b_nonlinear_svd_cut4_hmc_smoke"
+    ],
+    "old_smoke_helpers_final_evidence": false,
+    "robust_artifacts": true
+  },
+  "git": {
+    "commit": "3dac444c22e8a366063f0fa0a73788cc9db96201",
+    "dirty_state": {
+      "available": true,
+      "entry_count": 60,
+      "is_dirty": true,
+      "short_status": [
+        " M bayesfilter/__init__.py",
+        " M bayesfilter/linear/__init__.py",
+        " M bayesfilter/nonlinear/__init__.py",
+        " M docs/benchmarks/benchmark_tfp_nuts_gaussian.py",
+        " M tests/conftest.py",
+        " M tests/test_macrofinance_adapter.py",
+        " M tests/test_macrofinance_linear_compat_tf.py",
+        " M tests/test_v1_public_api.py",
+        "?? .claude/worktrees/agent-a40719abf526450b2/",
+        "?? .claude/worktrees/agent-a4ec60117270d7bad/",
+        "?? bayesfilter/inference/__init__.py",
+        "?? bayesfilter/inference/hmc.py",
+        "?? bayesfilter/inference/hmc_diagnostics.py",
+        "?? bayesfilter/inference/mass_matrix.py",
+        "?? bayesfilter/inference/posterior_adapter.py",
+        "?? bayesfilter/nonlinear/compiled_value_paths.py",
+        "?? bayesfilter/runtime/__init__.py",
+        "?? bayesfilter/runtime/device_policy.py",
+        "?? bayesfilter/runtime/runner.py",
+        "?? bayesfilter/runtime/selection.py",
+        "?? docs/plans/artifacts/bayesfilter-common-filtering-hmc-refactor-focused-pytest-2026-06-06.txt",
+        "?? docs/plans/artifacts/bayesfilter-common-filtering-hmc-refactor-pycompile-2026-06-06.txt",
+        "?? docs/plans/artifacts/nonlinear-ssm-jit-hmc-phase-1R-live-backup-diff-bayesfilter-init-2026-06-08.txt",
+        "?? docs/plans/artifacts/nonlinear-ssm-jit-hmc-phase-1R-live-backup-diff-inference-init-2026-06-08.txt",
+        "?? docs/plans/artifacts/nonlinear-ssm-jit-hmc-phase-1R-live-backup-diff-posterior-adapter-2026-06-08.txt",
+        "?? docs/plans/artifacts/nonlinear-ssm-jit-hmc-phase-1R-live-focused-pytest-2026-06-08.txt",
+        "?? docs/plans/artifacts/nonlinear-ssm-jit-hmc-phase-1R-live-pycompile-2026-06-08.txt",
+        "?? docs/plans/artifacts/nonlinear-ssm-jit-hmc-phase-3-export-delta-2026-06-08.md",
+        "?? docs/plans/artifacts/nonlinear-ssm-jit-hmc-phase-6-canary-2026-06-08/partial_snapshot.json",
+        "?? docs/plans/artifacts/nonlinear-ssm-jit-hmc-phase-6-canary-2026-06-08/reducer_status.json",
+        "?? docs/plans/artifacts/nonlinear-ssm-jit-hmc-phase-6-canary-2026-06-08/stage_events.jsonl",
+        "?? docs/plans/artifacts/nonlinear-ssm-jit-hmc-phase-6-canary-2026-06-08/summary.json",
+        "?? docs/plans/artifacts/nonlinear-ssm-jit-hmc-phase-6-canary-2026-06-08/worker_manifest.json",
+        "?? docs/plans/artifacts/nonlinear-ssm-jit-hmc-phase-6-canary-2026-06-08/worker_result.json",
+        "?? docs/plans/bayesfilter-common-filtering-hmc-refactor-result-2026-06-06.md",
+        "?? docs/plans/logs/nonlinear-ssm-jit-hmc-overnight-20260607-codex-r3-bayesfilter-phases-1-6-codex-final-message.txt",
+        "?? docs/plans/logs/nonlinear-ssm-jit-hmc-overnight-20260607-codex-r3-bayesfilter-phases-1-6-prelaunch-dirty-tracked.txt",
+        "?? docs/plans/logs/nonlinear-ssm-jit-hmc-overnight-20260607-codex-r3-bayesfilter-phases-1-6-prelaunch-git-status.txt",
+        "?? docs/plans/logs/nonlinear-ssm-jit-hmc-overnight-20260607-codex-r3-bayesfilter-phases-1-6.handoff.ready",
+        "?? docs/plans/logs/nonlinear-ssm-jit-hmc-overnight-20260607-codex-r3-bayesfilter-phases-1-6.pid",
+        "?? docs/plans/logs/nonlinear-ssm-jit-hmc-overnight-20260607-codex-r3-bayesfilter-phases-1-6.supervisor.pid",
+        "?? docs/plans/logs/nonlinear-ssm-jit-hmc-overnight-20260607-codex-r3-bayesfilter-phases-1-6.wrapper.pid",
+        "?? docs/plans/logs/nonlinear-ssm-jit-hmc-phases-1-6-handoff-2026-06-07.md",
+        "?? docs/plans/nonlinear-ssm-jit-hmc-phase-1R-live-repair-result-2026-06-08.md",
+        "?? docs/plans/nonlinear-ssm-jit-hmc-phase-2-compiled-filter-value-result-2026-06-08.md",
+        "?? docs/plans/nonlinear-ssm-jit-hmc-phase-3-value-score-chain-batching-result-2026-06-08.md",
+        "?? docs/plans/nonlinear-ssm-jit-hmc-phase-4-full-chain-tfp-hmc-jit-result-2026-06-08.md",
+        "?? docs/plans/nonlinear-ssm-jit-hmc-phase-5-runner-device-performance-result-2026-06-08.md",
+        "?? docs/plans/nonlinear-ssm-jit-hmc-phase-6-engineering-canary-result-2026-06-08.md",
+        "?? docs/plans/reviewed-target.md",
+        "?? scripts/run_model_suite_hmc_qualification.py",
+        "?? scripts/run_nonlinear_ssm_phase6_engineering_canary.py",
+        "?? tests/test_common_inference_runtime_contracts.py",
+        "?? tests/test_model_suite_hmc_qualification.py",
+        "?? tests/test_nonlinear_ssm_phase1_contract.py",
+        "?? tests/test_nonlinear_ssm_phase2_value_paths.py",
+        "?? tests/test_nonlinear_ssm_phase3_value_score_chain.py",
+        "?? tests/test_nonlinear_ssm_phase4_full_chain_hmc.py",
+        "?? tests/test_nonlinear_ssm_phase5_runner_device_performance.py",
+        "?? tests/test_nonlinear_ssm_phase6_engineering_canary.py"
+      ]
+    }
+  },
+  "models": [
+    {
+      "adapter_signature": "model-a-affine-gaussian-structural-oracle-quadratic-v1",
+      "branch_summary": null,
+      "hmc": {
+        "acceptance_rate": 1.0,
+        "divergence_count": null,
+        "divergence_status": "unavailable",
+        "finite_sample_count": 2,
+        "jit_compile": true,
+        "nonclaims": [
+          "tiny full-chain HMC engineering gate only",
+          "no sampler convergence claim",
+          "no posterior validity claim",
+          "no GPU readiness claim",
+          "no performance superiority claim"
+        ],
+        "nonfinite_sample_count": 0,
+        "program_signature": "4abd5b1cb640c89ef0780bcb5dd3e6d256e21133ded8b887dfd6a8dc434550fb",
+        "runtime": "tfp.mcmc.sample_chain",
+        "sample_shape": [
+          2,
+          2
+        ],
+        "target_scope": "model_a_affine_gaussian_structural_oracle"
+      },
+      "model_id": "A",
+      "parameter_names": [
+        "rho_anchor",
+        "observation_sigma_anchor"
+      ],
+      "runtime_s": 1.1791558020049706,
+      "status": "passed",
+      "target_scope": "model_a_affine_gaussian_structural_oracle",
+      "value_path_sanity": {
+        "deterministic_residual": 0.0,
+        "first_observation_log_likelihood": -0.2481143419664794,
+        "fixture": "model_a_affine_gaussian_structural_oracle",
+        "nonfinite_count": 0,
+        "role": "exact-value structural sanity, not posterior evidence"
+      },
+      "value_score": {
+        "chain_score_shape": [
+          2,
+          2
+        ],
+        "chain_values": [
+          -0.0,
+          -0.006250000000000011
+        ],
+        "nonfinite_count": 0,
+        "runtime_s": 0.4057821969036013
+      },
+      "value_score_authority": "graph_native",
+      "veto_reasons": []
+    },
+    {
+      "adapter_signature": "qr-static-lgssm-analytic-score-target-v1",
+      "branch_summary": null,
+      "hmc": {
+        "acceptance_rate": 1.0,
+        "divergence_count": null,
+        "divergence_status": "unavailable",
+        "finite_sample_count": 2,
+        "jit_compile": true,
+        "nonclaims": [
+          "tiny full-chain HMC engineering gate only",
+          "no sampler convergence claim",
+          "no posterior validity claim",
+          "no GPU readiness claim",
+          "no performance superiority claim"
+        ],
+        "nonfinite_sample_count": 0,
+        "program_signature": "78399d117d1f5804855f3c389407c958140b38992fb9356619d7546bbc03bc1d",
+        "runtime": "tfp.mcmc.sample_chain",
+        "sample_shape": [
+          2,
+          2
+        ],
+        "target_scope": "qr_static_lgssm"
+      },
+      "model_id": "QR",
+      "parameter_names": [
+        "rho_unconstrained",
+        "log_measurement_noise"
+      ],
+      "runtime_s": 22.932205275050364,
+      "status": "passed",
+      "target_scope": "qr_static_lgssm",
+      "value_score": {
+        "chain_score_shape": [
+          2,
+          2
+        ],
+        "chain_values": [
+          -1.3568111688046285,
+          -1.371534461274945
+        ],
+        "nonfinite_count": 0,
+        "runtime_s": 17.43860786408186
+      },
+      "value_score_authority": "graph_native",
+      "veto_reasons": []
+    },
+    {
+      "adapter_signature": "model-b-nonlinear-svd-cut4-analytic-score-target-v1",
+      "branch_summary": {
+        "active_floor_count": 0,
+        "failure_labels": [],
+        "max_deterministic_residual": 0.0,
+        "max_support_residual": 0.0,
+        "nonfinite_count": 0,
+        "ok_count": 5,
+        "total_count": 5,
+        "weak_spectral_gap_count": 0
+      },
+      "hmc": {
+        "acceptance_rate": 1.0,
+        "divergence_count": null,
+        "divergence_status": "unavailable",
+        "finite_sample_count": 2,
+        "jit_compile": true,
+        "nonclaims": [
+          "tiny full-chain HMC engineering gate only",
+          "no sampler convergence claim",
+          "no posterior validity claim",
+          "no GPU readiness claim",
+          "no performance superiority claim"
+        ],
+        "nonfinite_sample_count": 0,
+        "program_signature": "2c19602060ba90551c1164ad4302a270f359d5e54d1bba43ca18c646647e24e8",
+        "runtime": "tfp.mcmc.sample_chain",
+        "sample_shape": [
+          2,
+          3
+        ],
+        "target_scope": "model_b_nonlinear_accumulation_svd_cut4"
+      },
+      "model_id": "B",
+      "parameter_names": [
+        "rho",
+        "sigma",
+        "beta"
+      ],
+      "runtime_s": 14.898170656058937,
+      "status": "passed",
+      "target_scope": "model_b_nonlinear_accumulation_svd_cut4",
+      "value_score": {
+        "chain_score_shape": [
+          2,
+          3
+        ],
+        "chain_values": [
+          -1.5372792647414193,
+          -1.6152013274028088
+        ],
+        "nonfinite_count": 0,
+        "runtime_s": 7.49364759796299
+      },
+      "value_score_authority": "graph_native",
+      "veto_reasons": []
+    },
+    {
+      "adapter_signature": "model-c-autonomous-growth-svd-cut4-fixed-support-log-params-v1",
+      "branch_summary": {
+        "active_floor_count": 0,
+        "failure_labels": [],
+        "max_deterministic_residual": 0.0,
+        "max_fixed_null_derivative_residual": 0.0,
+        "max_structural_null_count": 1.0,
+        "max_structural_null_covariance_residual": 0.0,
+        "max_support_residual": 0.0,
+        "nonfinite_count": 0,
+        "ok_count": 3,
+        "other_blocked_count": 0.0,
+        "total_count": 3,
+        "weak_spectral_gap_count": 0
+      },
+      "hmc": {
+        "acceptance_rate": 1.0,
+        "divergence_count": null,
+        "divergence_status": "unavailable",
+        "finite_sample_count": 2,
+        "jit_compile": true,
+        "nonclaims": [
+          "tiny full-chain HMC engineering gate only",
+          "no sampler convergence claim",
+          "no posterior validity claim",
+          "no GPU readiness claim",
+          "no performance superiority claim"
+        ],
+        "nonfinite_sample_count": 0,
+        "program_signature": "fc56768286526cade7f21e3f8ea0501920e74b9225704b2252e4885a76c9ca95",
+        "runtime": "tfp.mcmc.sample_chain",
+        "sample_shape": [
+          2,
+          3
+        ],
+        "target_scope": "model_c_autonomous_nonlinear_growth_svd_cut4_fixed_support"
+      },
+      "model_id": "C",
+      "parameter_names": [
+        "log_process_sigma",
+        "log_observation_sigma",
+        "log_initial_variance"
+      ],
+      "runtime_s": 8.673826680984348,
+      "status": "passed",
+      "target_scope": "model_c_autonomous_nonlinear_growth_svd_cut4_fixed_support",
+      "value_score": {
+        "chain_score_shape": [
+          2,
+          3
+        ],
+        "chain_values": [
+          -4.788656811372123,
+          -4.795955268775843
+        ],
+        "nonfinite_count": 0,
+        "runtime_s": 3.8241583129856735
+      },
+      "value_score_authority": "graph_native",
+      "veto_reasons": []
+    }
+  ],
+  "nonclaims": [
+    "bounded BayesFilter model-suite engineering qualification only",
+    "no sampler convergence claim",
+    "no posterior validity claim",
+    "no DSGE readiness claim",
+    "no real-NK readiness claim",
+    "no GPU readiness claim",
+    "no score-matching readiness claim",
+    "no performance superiority claim"
+  ],
+  "nonfinite_counts": {
+    "A": {
+      "hmc_samples": 0,
+      "value_score": 0
+    },
+    "B": {
+      "hmc_samples": 0,
+      "value_score": 0
+    },
+    "C": {
+      "hmc_samples": 0,
+      "value_score": 0
+    },
+    "QR": {
+      "hmc_samples": 0,
+      "value_score": 0
+    }
+  },
+  "planned_model_order": [
+    "A",
+    "QR",
+    "B",
+    "C"
+  ],
+  "program_signature": "bayesfilter-model-suite-hmc-qualification-v1",
+  "reducer_reason": "complete_result_present",
+  "reducer_status": "complete",
+  "skipped_models": [],
+  "stale_match_payload": {
+    "device_policy": {
+      "CUDA_VISIBLE_DEVICES": "-1",
+      "mode": "cpu_only",
+      "tensorflow_visible_gpus_after_import": []
+    },
+    "normalized_config": {
+      "artifact_contract": "single_worker_model_suite_qualification",
+      "cpu_only": true,
+      "jit_compile": true,
+      "ladder": [
+        "A",
+        "QR",
+        "B",
+        "C"
+      ],
+      "num_burnin_steps": 1,
+      "num_leapfrog_steps": 1,
+      "num_results": 2,
+      "old_smoke_helpers_final_evidence": false,
+      "seed_base": [
+        20260608,
+        70
+      ],
+      "step_sizes": {
+        "A": 0.02,
+        "B": 0.0005,
+        "C": 0.0005,
+        "QR": 0.01
+      },
+      "stop_after": "C",
+      "trace_policy": "standard"
+    },
+    "program_signature": "bayesfilter-model-suite-hmc-qualification-v1",
+    "thread_caps": {
+      "OMP_NUM_THREADS": null,
+      "TF_NUM_INTEROP_THREADS": null,
+      "TF_NUM_INTRAOP_THREADS": null
+    },
+    "worker_config_hash": "dd7a5336f447fa1a9c45363de31e738084401307b19b00a579a5a9344ccc8faf"
+  },
+  "status": "passed",
+  "summary_signature": "6251a31b93115b59f8723fbdf0d9f694a2211fc7b1a58b38fe1e669522a88a29",
+  "timing_buckets": [
+    {
+      "elapsed_s": 0.7721097219036892,
+      "name": "hmc_kernel",
+      "nonclaims": [
+        "timing is not a validity or promotion criterion"
+      ],
+      "role": "explanatory_only"
+    },
+    {
+      "elapsed_s": 5.492136139073409,
+      "name": "hmc_kernel",
+      "nonclaims": [
+        "timing is not a validity or promotion criterion"
+      ],
+      "role": "explanatory_only"
+    },
+    {
+      "elapsed_s": 6.85641783894971,
+      "name": "hmc_kernel",
+      "nonclaims": [
+        "timing is not a validity or promotion criterion"
+      ],
+      "role": "explanatory_only"
+    },
+    {
+      "elapsed_s": 4.621238440973684,
+      "name": "hmc_kernel",
+      "nonclaims": [
+        "timing is not a validity or promotion criterion"
+      ],
+      "role": "explanatory_only"
+    }
+  ],
+  "worker_runtime_s": 47.845839459914714
+}

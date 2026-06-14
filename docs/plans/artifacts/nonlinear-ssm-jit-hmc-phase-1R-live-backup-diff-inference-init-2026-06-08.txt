@@ -1,0 +1,47 @@
+--- /tmp/bayesfilter_phase1_repair_backup_20260608/bayesfilter/inference/__init__.py	2026-06-07 01:51:18.459271691 +0800
++++ /home/ubuntu/python/BayesFilter/bayesfilter/inference/__init__.py	2026-06-07 23:52:45.154548423 +0800
+@@ -22,19 +22,33 @@
+ )
+ from bayesfilter.inference.posterior_adapter import (
+     HessianPosteriorAdapter,
++    InvalidNonlinearSSMContract,
++    NonlinearSSMAdapterContract,
++    NonlinearSSMStaticShape,
++    ObservationSemantics,
++    ParameterTransformMetadata,
+     PosteriorAdapter,
++    RegularizationConvention,
+     UnsupportedValueScoreAuthority,
+     ValueScoreCapability,
+     ValueScorePosteriorAdapter,
++    stable_nonlinear_ssm_program_signature,
++    validate_nonlinear_ssm_contract,
+     value_score_capability,
+ )
+ 
+ __all__ = [
+     "HMCDiagnosticSummary",
+     "HessianPosteriorAdapter",
++    "InvalidNonlinearSSMContract",
+     "MassMatrixResult",
++    "NonlinearSSMAdapterContract",
++    "NonlinearSSMStaticShape",
++    "ObservationSemantics",
++    "ParameterTransformMetadata",
+     "PosteriorAdapter",
+     "PrecomputedMAP",
++    "RegularizationConvention",
+     "UnsupportedValueScoreAuthority",
+     "ValueScoreCapability",
+     "ValueScorePosteriorAdapter",
+@@ -46,8 +60,10 @@
+     "program_signature",
+     "regularize_covariance",
+     "stable_adapter_signature",
++    "stable_nonlinear_ssm_program_signature",
+     "summarize_hmc_diagnostics",
+     "validate_precomputed_map",
++    "validate_nonlinear_ssm_contract",
+     "value_score_capability",
+     "whitening_from_covariance",
+ ]
