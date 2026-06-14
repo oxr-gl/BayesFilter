@@ -22,7 +22,21 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Callable
 
+_pre_parser = argparse.ArgumentParser(add_help=False)
+_pre_parser.add_argument(
+    "--device-scope",
+    choices=("cpu", "visible"),
+    default="cpu",
+    help=(
+        "Device visibility before TensorFlow import. The default hides GPU "
+        "devices. Use 'visible' only after trusted GPU probes."
+    ),
+)
+_pre_args, _ = _pre_parser.parse_known_args()
+if _pre_args.device_scope == "cpu":
+    os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")
+os.environ.setdefault("TF_FORCE_GPU_ALLOW_GROWTH", "true")
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib-bayesfilter")
 
 import tensorflow as tf  # noqa: E402
@@ -173,6 +187,8 @@ def _environment() -> dict[str, object]:
         "platform": platform.platform(),
         "tensorflow": tf.__version__,
         "tensorflow_probability": tfp.__version__,
+        "device_scope": _pre_args.device_scope,
+        "cuda_visible_devices": os.environ.get("CUDA_VISIBLE_DEVICES"),
         "logical_devices": [
             {"name": device.name, "device_type": device.device_type}
             for device in tf.config.list_logical_devices()
@@ -185,7 +201,7 @@ def _environment() -> dict[str, object]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(parents=[_pre_parser])
     parser.add_argument("--dim", type=int, default=4)
     parser.add_argument("--chains", type=int, default=2)
     parser.add_argument("--num-results", type=int, default=32)

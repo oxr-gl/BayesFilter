@@ -1,4 +1,5 @@
 from pathlib import Path
+import inspect
 
 import numpy as np
 import pytest
@@ -6,6 +7,8 @@ import tensorflow as tf
 
 from bayesfilter.linear.kalman_qr_derivatives_tf import (
     _tf_qr_sqrt_kalman_score,
+    tf_qr_linear_gaussian_score,
+    tf_qr_sqrt_kalman_score,
     tf_qr_linear_gaussian_score_hessian,
     tf_qr_sqrt_kalman_score_hessian,
     tf_qr_sqrt_masked_kalman_score_hessian,
@@ -352,6 +355,47 @@ def test_private_qr_score_only_matches_score_hessian_and_autodiff_reference() ->
     np.testing.assert_allclose(score_only_loglik.numpy(), autodiff_loglik.numpy(), atol=1e-10)
     np.testing.assert_allclose(score_only.numpy(), full_score.numpy(), rtol=1e-8, atol=1e-9)
     np.testing.assert_allclose(score_only.numpy(), autodiff_score.numpy(), rtol=1e-8, atol=1e-9)
+
+
+def test_public_dynamic_qr_score_matches_score_hessian_without_hessian_claim() -> None:
+    params = tf.constant([0.25, -1.1], dtype=tf.float64)
+    model, derivatives = _model_and_derivatives(params)
+
+    score_result = tf_qr_linear_gaussian_score(
+        _observations(),
+        model,
+        derivatives,
+        jitter=tf.constant(JITTER, dtype=tf.float64),
+    )
+    full_loglik, full_score, _full_hessian = _dense_derivatives(
+        _observations(),
+        model,
+        derivatives,
+    )
+
+    assert score_result.hessian is None
+    assert score_result.metadata.filter_name == "tf_qr_sqrt_score_dynamic_kalman"
+    assert score_result.metadata.differentiability_status == (
+        "analytic_score_no_hessian"
+    )
+    np.testing.assert_allclose(
+        score_result.log_likelihood.numpy(),
+        full_loglik.numpy(),
+        atol=1e-10,
+    )
+    np.testing.assert_allclose(
+        score_result.score.numpy(),
+        full_score.numpy(),
+        rtol=1e-8,
+        atol=1e-9,
+    )
+
+
+def test_public_qr_score_uses_dynamic_time_loop_not_static_time_unroll() -> None:
+    source = inspect.getsource(tf_qr_sqrt_kalman_score.python_function)
+
+    assert "tf.while_loop" in source
+    assert "for t in range" not in source
 
 
 def test_masked_qr_all_true_score_hessian_matches_dense_qr() -> None:

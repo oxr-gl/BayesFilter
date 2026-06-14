@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib
+import os
 import sys
 from dataclasses import dataclass
 from typing import NamedTuple
@@ -37,7 +38,7 @@ from bayesfilter.filters import kalman_log_likelihood
 from bayesfilter.structural import StatePartition
 
 
-MACROFINANCE_ROOT = Path("/home/chakwong/MacroFinance")
+MACROFINANCE_ROOT_ENV = "BAYESFILTER_MACROFINANCE_ROOT"
 
 
 @dataclass(frozen=True)
@@ -710,9 +711,13 @@ def test_hmc_backend_comparison_handles_missing_arrays_as_blocked_result():
 
 
 def _macrofinance_module(name: str):
-    if not MACROFINANCE_ROOT.exists():
-        pytest.skip("MacroFinance checkout is not available")
-    root = str(MACROFINANCE_ROOT)
+    raw_root = os.environ.get(MACROFINANCE_ROOT_ENV)
+    if not raw_root:
+        pytest.skip(f"MacroFinance checkout is optional; set {MACROFINANCE_ROOT_ENV}")
+    macrofinance_root = Path(raw_root).expanduser()
+    if not macrofinance_root.exists():
+        pytest.skip(f"MacroFinance checkout is not available at {macrofinance_root}")
+    root = str(macrofinance_root)
     if root not in sys.path:
         sys.path.insert(0, root)
     return importlib.import_module(name)
