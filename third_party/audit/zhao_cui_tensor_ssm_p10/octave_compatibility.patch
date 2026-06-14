@@ -1,0 +1,691 @@
+diff --git a/deep-tensor.dev/src/@TTFun/local_truncate.m b/deep-tensor.dev/src/@TTFun/local_truncate.m
+index 22e8201..379a327 100644
+--- a/deep-tensor.dev/src/@TTFun/local_truncate.m
++++ b/deep-tensor.dev/src/@TTFun/local_truncate.m
+@@ -6,7 +6,7 @@ if isa(oned, 'Piecewise')
+     [U,S,V] = svd( reshape(oned.mass_R*reshape(F,cardinal(oned),[]),size(F,1),[]), 0);
+     s = diag(S);
+     % truncation index r
+-    cs2 = cumsum(s.^2, 'reverse');
++    cs2 = flipud(cumsum(flipud(s.^2)));
+     tol = cs2(1)*loc_err_tol^2/10;
+     ind = cs2>=tol;
+     r = max(min_rank, min(sum(ind), max_rank));
+@@ -18,11 +18,11 @@ else
+     [U,S,V] = svd(F, 0);
+     s = diag(S);
+     % truncation index r
+-    cs2 = cumsum(s.^2, 'reverse');
++    cs2 = flipud(cumsum(flipud(s.^2)));
+     tol = cs2(1)*loc_err_tol^2/10;
+     ind = cs2>=tol;
+     r = max(min_rank, min(sum(ind), max_rank));
+     B = U(:,1:r);
+     A = s(1:r).*V(:,1:r)';
+ end
+-end
+\ No newline at end of file
++end
+diff --git a/deep-tensor.dev/src/AbstractIRT.m b/deep-tensor.dev/src/AbstractIRT.m
+index ced16b8..c4c88f5 100644
+--- a/deep-tensor.dev/src/AbstractIRT.m
++++ b/deep-tensor.dev/src/AbstractIRT.m
+@@ -61,7 +61,7 @@ classdef AbstractIRT
+         approx_base
+     end
+     
+-    properties (Abstract, Constant)
++    properties (Constant)
+         defaultVar
+         defaultTau
+         defaultOpt
+@@ -70,17 +70,34 @@ classdef AbstractIRT
+         defaultDomain
+     end
+     
+-    methods (Abstract)
+-        get_potential_to_density(obj, base, y, z)
+-        potential_to_density(obj, base, potential_fun, z)
+-        %
+-        approximate(obj, func, base, opt, var)
+-        eval_irt_reference(obj, z);
+-        eval_rt_reference(obj, z);
+-        eval_potential_reference(obj, z);
+-        eval_cirt_reference(obj, z);
+-        eval_rt_jac_reference(obj, z);
+-        marginalise(obj, dir)
++    methods
++        function get_potential_to_density(obj, base, y, z)
++            error('AbstractIRT:abstractMethod', 'get_potential_to_density must be implemented by a subclass');
++        end
++        function potential_to_density(obj, base, potential_fun, z)
++            error('AbstractIRT:abstractMethod', 'potential_to_density must be implemented by a subclass');
++        end
++        function approximate(obj, func, base, opt, var)
++            error('AbstractIRT:abstractMethod', 'approximate must be implemented by a subclass');
++        end
++        function eval_irt_reference(obj, z)
++            error('AbstractIRT:abstractMethod', 'eval_irt_reference must be implemented by a subclass');
++        end
++        function eval_rt_reference(obj, z)
++            error('AbstractIRT:abstractMethod', 'eval_rt_reference must be implemented by a subclass');
++        end
++        function eval_potential_reference(obj, z)
++            error('AbstractIRT:abstractMethod', 'eval_potential_reference must be implemented by a subclass');
++        end
++        function eval_cirt_reference(obj, z)
++            error('AbstractIRT:abstractMethod', 'eval_cirt_reference must be implemented by a subclass');
++        end
++        function eval_rt_jac_reference(obj, z)
++            error('AbstractIRT:abstractMethod', 'eval_rt_jac_reference must be implemented by a subclass');
++        end
++        function marginalise(obj, dir)
++            error('AbstractIRT:abstractMethod', 'marginalise must be implemented by a subclass');
++        end
+     end
+     
+     methods
+@@ -338,4 +355,4 @@ classdef AbstractIRT
+         end
+     end
+     
+-end
+\ No newline at end of file
++end
+diff --git a/deep-tensor.dev/src/ApproxFun.m b/deep-tensor.dev/src/ApproxFun.m
+index 7b9d8b3..74fe06c 100644
+--- a/deep-tensor.dev/src/ApproxFun.m
++++ b/deep-tensor.dev/src/ApproxFun.m
+@@ -42,7 +42,7 @@ classdef ApproxFun
+     % See also TTFun and SparseFun.
+     
+     properties
+-        base ApproxBases
++        base
+         data 
+         opt  
+         var
+@@ -51,7 +51,7 @@ classdef ApproxFun
+         n_eval
+     end
+     
+-    properties (Abstract, Constant)
++    properties (Constant)
+         defaultVar
+         defaultOpt
+         defaultData
+@@ -59,10 +59,16 @@ classdef ApproxFun
+         defaultDomain
+     end
+     
+-    methods (Abstract)
+-        eval_reference(obj,z)
+-        grad_reference(obj,z)
+-        int_reference(obj)
++    methods
++        function eval_reference(obj,z)
++            error('ApproxFun:abstractMethod', 'eval_reference must be implemented by a subclass');
++        end
++        function grad_reference(obj,z)
++            error('ApproxFun:abstractMethod', 'grad_reference must be implemented by a subclass');
++        end
++        function int_reference(obj)
++            error('ApproxFun:abstractMethod', 'int_reference must be implemented by a subclass');
++        end
+     end
+     
+     methods (Static)
+@@ -191,4 +197,4 @@ classdef ApproxFun
+         end
+     end
+     
+-end
+\ No newline at end of file
++end
+diff --git a/deep-tensor.dev/src/Domains/Domain.m b/deep-tensor.dev/src/Domains/Domain.m
+index ba9054c..4fdb9b2 100644
+--- a/deep-tensor.dev/src/Domains/Domain.m
++++ b/deep-tensor.dev/src/Domains/Domain.m
+@@ -4,12 +4,19 @@ classdef Domain
+         bound
+     end
+     
+-    methods (Abstract)        
+-        [x,dxdz] = reference2domain(obj, z)
+-        [z,dzdx] = domain2reference(obj, x)
+-        %
+-        [logdxdz,logdxdz2] = reference2domain_log_density(obj, z)
+-        [logdzdx,logdzdx2] = domain2reference_log_density(obj, x)
++    methods
++        function [x,dxdz] = reference2domain(obj, z)
++            error('Domain:abstractMethod', 'reference2domain must be implemented by a subclass');
++        end
++        function [z,dzdx] = domain2reference(obj, x)
++            error('Domain:abstractMethod', 'domain2reference must be implemented by a subclass');
++        end
++        function [logdxdz,logdxdz2] = reference2domain_log_density(obj, z)
++            error('Domain:abstractMethod', 'reference2domain_log_density must be implemented by a subclass');
++        end
++        function [logdzdx,logdzdx2] = domain2reference_log_density(obj, x)
++            error('Domain:abstractMethod', 'domain2reference_log_density must be implemented by a subclass');
++        end
+     end
+     
+     
+@@ -26,4 +33,4 @@ classdef Domain
+             y = obj.bound(2);
+         end
+     end
+-end
+\ No newline at end of file
++end
+diff --git a/deep-tensor.dev/src/InputData.m b/deep-tensor.dev/src/InputData.m
+index da2445c..bf55c1d 100644
+--- a/deep-tensor.dev/src/InputData.m
++++ b/deep-tensor.dev/src/InputData.m
+@@ -44,7 +44,7 @@ classdef InputData
+         debug_f
+     end
+         
+-    properties (Constant)
++    properties
+         count = Counter
+     end
+ 
+@@ -176,4 +176,4 @@ classdef InputData
+             end
+         end
+     end
+-end
+\ No newline at end of file
++end
+diff --git a/deep-tensor.dev/src/Polynomials/Chebyshev2nd.m b/deep-tensor.dev/src/Polynomials/Chebyshev2nd.m
+index d5eaf1d..b5887ee 100644
+--- a/deep-tensor.dev/src/Polynomials/Chebyshev2nd.m
++++ b/deep-tensor.dev/src/Polynomials/Chebyshev2nd.m
+@@ -1,7 +1,7 @@
+ classdef Chebyshev2nd < Spectral
+     
+     properties
+-        n(1,:) % only for Chebyshev
++        n % only for Chebyshev
+     end
+     
+     methods
+@@ -136,4 +136,4 @@ classdef Chebyshev2nd < Spectral
+         
+     end
+     
+-end
+\ No newline at end of file
++end
+diff --git a/deep-tensor.dev/src/Polynomials/Lagrange1.m b/deep-tensor.dev/src/Polynomials/Lagrange1.m
+index 3662530..fa3be00 100644
+--- a/deep-tensor.dev/src/Polynomials/Lagrange1.m
++++ b/deep-tensor.dev/src/Polynomials/Lagrange1.m
+@@ -1,9 +1,9 @@
+ classdef Lagrange1 < Piecewise
+     
+     properties
+-        local_mass(2,2) = [2, 1; 1, 2]/6
+-        local_weights(1,2) = [1, 1]/2
+-        local_domain(1,2) = [0, 1]
++        local_mass = [2, 1; 1, 2]/6
++        local_weights = [1, 1]/2
++        local_domain = [0, 1]
+     end
+     
+     methods
+@@ -88,4 +88,4 @@ classdef Lagrange1 < Piecewise
+         end
+         
+     end
+-end
+\ No newline at end of file
++end
+diff --git a/deep-tensor.dev/src/Polynomials/LagrangeRef.m b/deep-tensor.dev/src/Polynomials/LagrangeRef.m
+index 5fb9bad..f8c6bb9 100644
+--- a/deep-tensor.dev/src/Polynomials/LagrangeRef.m
++++ b/deep-tensor.dev/src/Polynomials/LagrangeRef.m
+@@ -20,12 +20,12 @@ classdef LagrangeRef
+     %                 function), nx1
+     
+     properties
+-        domain(1,2) = [0, 1]
++        domain = [0, 1]
+         order
+-        nodes(:,1)
+-        omega(:,1)
+-        mass(:,:)
+-        weights(:,1)
++        nodes
++        omega
++        mass
++        weights
+     end
+     
+     methods
+@@ -97,4 +97,4 @@ classdef LagrangeRef
+         end
+         
+     end
+-end
+\ No newline at end of file
++end
+diff --git a/deep-tensor.dev/src/Polynomials/Lagrangep.m b/deep-tensor.dev/src/Polynomials/Lagrangep.m
+index 5ce19f2..274cbb4 100644
+--- a/deep-tensor.dev/src/Polynomials/Lagrangep.m
++++ b/deep-tensor.dev/src/Polynomials/Lagrangep.m
+@@ -1,8 +1,8 @@
+ classdef Lagrangep < Piecewise
+     
+     properties
+-        local LagrangeRef
+-        global2local(:,:) 
++        local
++        global2local
+     end
+     
+     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+@@ -136,4 +136,4 @@ classdef Lagrangep < Piecewise
+         end
+         
+     end
+-end
+\ No newline at end of file
++end
+diff --git a/deep-tensor.dev/src/Polynomials/Oned.m b/deep-tensor.dev/src/Polynomials/Oned.m
+index a6ae06c..d62b7bb 100644
+--- a/deep-tensor.dev/src/Polynomials/Oned.m
++++ b/deep-tensor.dev/src/Polynomials/Oned.m
+@@ -39,27 +39,43 @@ classdef Oned
+     properties
+         domain
+         order
+-        nodes(:,1)
+-        mass_R(:,:)
+-        int_W(1,:)
++        nodes
++        mass_R
++        int_W
+         constant_weight
+     end
+     
+-    methods (Abstract)
+-        eval_basis(obj)
+-        eval_basis_deri(obj)
+-        %
+-        eval_measure(obj,x)
+-        eval_log_measure(obj,x)
+-        eval_measure_deri(obj,x)
+-        eval_log_measure_deri(obj,x)
+-        %
+-        measure_inverse_cdf(obj,n)
+-        sample_measure_skip(obj,n)
+-        %
+-        point_selection(obj) 
+-        %
+-        approximate(obj)
++    methods
++        function eval_basis(obj)
++            error('Oned:abstractMethod', 'eval_basis must be implemented by a subclass');
++        end
++        function eval_basis_deri(obj)
++            error('Oned:abstractMethod', 'eval_basis_deri must be implemented by a subclass');
++        end
++        function eval_measure(obj,x)
++            error('Oned:abstractMethod', 'eval_measure must be implemented by a subclass');
++        end
++        function eval_log_measure(obj,x)
++            error('Oned:abstractMethod', 'eval_log_measure must be implemented by a subclass');
++        end
++        function eval_measure_deri(obj,x)
++            error('Oned:abstractMethod', 'eval_measure_deri must be implemented by a subclass');
++        end
++        function eval_log_measure_deri(obj,x)
++            error('Oned:abstractMethod', 'eval_log_measure_deri must be implemented by a subclass');
++        end
++        function measure_inverse_cdf(obj,n)
++            error('Oned:abstractMethod', 'measure_inverse_cdf must be implemented by a subclass');
++        end
++        function sample_measure_skip(obj,n)
++            error('Oned:abstractMethod', 'sample_measure_skip must be implemented by a subclass');
++        end
++        function point_selection(obj)
++            error('Oned:abstractMethod', 'point_selection must be implemented by a subclass');
++        end
++        function approximate(obj)
++            error('Oned:abstractMethod', 'approximate must be implemented by a subclass');
++        end
+     end
+     
+     methods
+@@ -191,4 +207,4 @@ classdef Oned
+         
+     end
+     
+-end
+\ No newline at end of file
++end
+diff --git a/deep-tensor.dev/src/Polynomials/OnedCDF.m b/deep-tensor.dev/src/Polynomials/OnedCDF.m
+index 69c5ecc..5cbbc04 100644
+--- a/deep-tensor.dev/src/Polynomials/OnedCDF.m
++++ b/deep-tensor.dev/src/Polynomials/OnedCDF.m
+@@ -21,10 +21,16 @@ classdef OnedCDF
+         num_Newton
+     end
+     
+-    methods (Abstract)
+-        invert_cdf(obj)
+-        eval_cdf(obj)
+-        eval_int_deri(obj)
++    methods
++        function invert_cdf(obj)
++            error('OnedCDF:abstractMethod', 'invert_cdf must be implemented by a subclass');
++        end
++        function eval_cdf(obj)
++            error('OnedCDF:abstractMethod', 'eval_cdf must be implemented by a subclass');
++        end
++        function eval_int_deri(obj)
++            error('OnedCDF:abstractMethod', 'eval_int_deri must be implemented by a subclass');
++        end
+     end
+     
+     methods
+@@ -40,4 +46,4 @@ classdef OnedCDF
+             obj.num_Newton = p.Results.num_Newton;
+         end
+     end
+-end
+\ No newline at end of file
++end
+diff --git a/deep-tensor.dev/src/Polynomials/Piecewise.m b/deep-tensor.dev/src/Polynomials/Piecewise.m
+index ca3746d..6f25454 100644
+--- a/deep-tensor.dev/src/Polynomials/Piecewise.m
++++ b/deep-tensor.dev/src/Polynomials/Piecewise.m
+@@ -17,15 +17,15 @@ classdef Piecewise < Oned
+         gs % ghostsize
+         bc % boundary condition
+         %}        
+-        grid(:,1) 
++        grid 
+         num_elems 
+         elem_size 
+         jac 
+-        mass(:,:) 
+-        unweighed_mass(:,:) 
++        mass 
++        unweighed_mass 
+         %
+-        unweighed_mass_R(:,:) 
+-        unweighed_int_W(1,:) 
++        unweighed_mass_R 
++        unweighed_int_W 
+     end
+     
+     methods
+diff --git a/deep-tensor.dev/src/Polynomials/PiecewiseCDF.m b/deep-tensor.dev/src/Polynomials/PiecewiseCDF.m
+index 4abaa0a..4e05fb7 100644
+--- a/deep-tensor.dev/src/Polynomials/PiecewiseCDF.m
++++ b/deep-tensor.dev/src/Polynomials/PiecewiseCDF.m
+@@ -14,9 +14,13 @@ classdef PiecewiseCDF < OnedCDF
+     %
+     % See also Lagrange1CDF and LagrangepCDF.
+     
+-    methods (Abstract)
+-        eval_int_lag_local(obj)
+-        pdf2cdf(obj)
++    methods
++        function eval_int_lag_local(obj)
++            error('PiecewiseCDF:abstractMethod', 'eval_int_lag_local must be implemented by a subclass');
++        end
++        function pdf2cdf(obj)
++            error('PiecewiseCDF:abstractMethod', 'pdf2cdf must be implemented by a subclass');
++        end
+     end
+     
+     methods
+@@ -231,4 +235,4 @@ classdef PiecewiseCDF < OnedCDF
+         end
+         
+     end
+-end
+\ No newline at end of file
++end
+diff --git a/deep-tensor.dev/src/Polynomials/Recurr.m b/deep-tensor.dev/src/Polynomials/Recurr.m
+index 764c88f..1efea34 100644
+--- a/deep-tensor.dev/src/Polynomials/Recurr.m
++++ b/deep-tensor.dev/src/Polynomials/Recurr.m
+@@ -1,9 +1,9 @@
+ classdef Recurr < Spectral
+     
+     properties
+-        a(:,1) 
+-        b(:,1) 
+-        c(:,1) 
++        a
++        b
++        c
+     end
+     
+     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+@@ -87,4 +87,4 @@ classdef Recurr < Spectral
+             %df = (df.*w(:)).*obj.normalising;
+         end
+     end
+-end
+\ No newline at end of file
++end
+diff --git a/deep-tensor.dev/src/Polynomials/Spectral.m b/deep-tensor.dev/src/Polynomials/Spectral.m
+index 4ac82dc..a77343b 100644
+--- a/deep-tensor.dev/src/Polynomials/Spectral.m
++++ b/deep-tensor.dev/src/Polynomials/Spectral.m
+@@ -14,11 +14,11 @@ classdef Spectral < Oned
+ % See also SPECTRALCDF
+     
+     properties
+-        weights(:,1) 
+-        omegas(:,1) 
+-        normalising(1,:) 
+-        basis2node(:,:) 
+-        node2basis(:,:) 
++        weights
++        omegas
++        normalising
++        basis2node
++        node2basis
+     end
+     
+     methods        
+diff --git a/deep-tensor.dev/src/Polynomials/SpectralCDF.m b/deep-tensor.dev/src/Polynomials/SpectralCDF.m
+index 49e4fbc..2e16fc4 100644
+--- a/deep-tensor.dev/src/Polynomials/SpectralCDF.m
++++ b/deep-tensor.dev/src/Polynomials/SpectralCDF.m
+@@ -11,15 +11,21 @@ classdef SpectralCDF < OnedCDF
+     % See also ChebyshevCDF and FourierCDF.
+     
+     properties
+-        sampling_nodes(1,:)
+-        cdf_basis2node(:,:)
++        sampling_nodes
++        cdf_basis2node
+     end
+     
+ 
+-    methods (Abstract)
+-        grid_measure(obj)
+-        eval_int_basis(obj)
+-        eval_int_basis_newton(obj)
++    methods
++        function grid_measure(obj)
++            error('SpectralCDF:abstractMethod', 'grid_measure must be implemented by a subclass');
++        end
++        function eval_int_basis(obj)
++            error('SpectralCDF:abstractMethod', 'eval_int_basis must be implemented by a subclass');
++        end
++        function eval_int_basis_newton(obj)
++            error('SpectralCDF:abstractMethod', 'eval_int_basis_newton must be implemented by a subclass');
++        end
+     end
+     
+     methods
+@@ -279,4 +285,4 @@ classdef SpectralCDF < OnedCDF
+         end
+     end
+     
+-end
+\ No newline at end of file
++end
+diff --git a/deep-tensor.dev/src/References/HalfSpaceReference.m b/deep-tensor.dev/src/References/HalfSpaceReference.m
+index f733526..df3c9fd 100644
+--- a/deep-tensor.dev/src/References/HalfSpaceReference.m
++++ b/deep-tensor.dev/src/References/HalfSpaceReference.m
+@@ -8,12 +8,19 @@ classdef HalfSpaceReference < Reference
+         is_truncated
+     end
+     
+-    methods (Abstract)
+-        [u,f] = eval_ref_cdf(obj, z)
+-        [f,g] = eval_ref_pdf(obj, z)
+-        z = invert_ref_cdf(obj, u)
+-        %
+-        [f,g] = log_joint_ref_pdf(obj, z)
++    methods
++        function [u,f] = eval_ref_cdf(obj, z)
++            error('HalfSpaceReference:abstractMethod', 'eval_ref_cdf must be implemented by a subclass');
++        end
++        function [f,g] = eval_ref_pdf(obj, z)
++            error('HalfSpaceReference:abstractMethod', 'eval_ref_pdf must be implemented by a subclass');
++        end
++        function z = invert_ref_cdf(obj, u)
++            error('HalfSpaceReference:abstractMethod', 'invert_ref_cdf must be implemented by a subclass');
++        end
++        function [f,g] = log_joint_ref_pdf(obj, z)
++            error('HalfSpaceReference:abstractMethod', 'log_joint_ref_pdf must be implemented by a subclass');
++        end
+     end
+     
+     methods
+@@ -154,4 +161,4 @@ classdef HalfSpaceReference < Reference
+         end
+     end
+     
+-end
+\ No newline at end of file
++end
+diff --git a/deep-tensor.dev/src/References/SymmetricReference.m b/deep-tensor.dev/src/References/SymmetricReference.m
+index b046f57..92075a0 100644
+--- a/deep-tensor.dev/src/References/SymmetricReference.m
++++ b/deep-tensor.dev/src/References/SymmetricReference.m
+@@ -8,12 +8,19 @@ classdef SymmetricReference < Reference
+         is_truncated
+     end
+     
+-    methods (Abstract)
+-        [u,f] = eval_ref_cdf(obj, z)
+-        [f,g] = eval_ref_pdf(obj, z)
+-        z = invert_ref_cdf(obj, u)
+-        %
+-        [f,g] = log_joint_ref_pdf(obj, z)
++    methods
++        function [u,f] = eval_ref_cdf(obj, z)
++            error('SymmetricReference:abstractMethod', 'eval_ref_cdf must be implemented by a subclass');
++        end
++        function [f,g] = eval_ref_pdf(obj, z)
++            error('SymmetricReference:abstractMethod', 'eval_ref_pdf must be implemented by a subclass');
++        end
++        function z = invert_ref_cdf(obj, u)
++            error('SymmetricReference:abstractMethod', 'invert_ref_cdf must be implemented by a subclass');
++        end
++        function [f,g] = log_joint_ref_pdf(obj, z)
++            error('SymmetricReference:abstractMethod', 'log_joint_ref_pdf must be implemented by a subclass');
++        end
+     end
+     
+     methods
+@@ -175,4 +182,4 @@ classdef SymmetricReference < Reference
+         %}
+     end
+     
+-end
+\ No newline at end of file
++end
+diff --git a/models/ESS.m b/models/ESS.m
+index 7a5c6de..0ed87e2 100644
+--- a/models/ESS.m
++++ b/models/ESS.m
+@@ -1,3 +1,5 @@
+ function ess = ESS(w)
+-    ess = sum(w, 'omitnan')^2/sum(w.^2, 'omitnan');
+-end
+\ No newline at end of file
++    w = w(:);
++    w = w(~isnan(w));
++    ess = sum(w)^2/sum(w.^2);
++end
+diff --git a/models/Y_sol.m b/models/Y_sol.m
+index 257456f..c5c127e 100644
+--- a/models/Y_sol.m
++++ b/models/Y_sol.m
+@@ -1,19 +1,19 @@
+ classdef Y_sol
+     properties
+-        model ssmodel % the underlying model
++        model % the underlying model
+         poly % poly for ftt
+         opt  % opt for ftt
+         N % # of particles
+         epd % expand the approximation domain
+         SIRTs
+-        resample_time (1,:) = 0 % time steps of reapproximate and resample
++        resample_time = 0 % time steps of reapproximate and resample
+         weight
+-        ESS_all (1,:)  % effective sample size for all time
+-        tau (1,1) = 1 % reapproximate threshold
++        ESS_all  % effective sample size for all time
++        tau = 1 % reapproximate threshold
+         samples % contain all the samples of thetas, states of all time
+         L % contain the matrix for linear transformation in all steps
+         mu % conts. to fit in the FTT interval
+-        FTT_time (1, :)
++        FTT_time
+         logmarginal_likelihood
+     end
+ 
+@@ -142,4 +142,4 @@ classdef Y_sol
+             output = ESS(w);
+         end
+     end
+-end
+\ No newline at end of file
++end
+diff --git a/models/ssmodel.m b/models/ssmodel.m
+index c9415e3..d8ec527 100644
+--- a/models/ssmodel.m
++++ b/models/ssmodel.m
+@@ -1,12 +1,12 @@
+ classdef ssmodel
+     properties
+-        name string % the model name, to import the corresponding funs
++        name % the model name, to import the corresponding funs
+         type = 0 % characterise if this model has state process error; 1 indicates no error and 2 indicates state error
+-        d (1,1)  % dimension for theta
+-        m (1,1)  % dimension for state
+-        n (1,1)  % dimension for observations
+-        T (1,1)  % time steps
+-        theta (:, 1) double % true value for theta
++        d  % dimension for theta
++        m  % dimension for state
++        n  % dimension for observations
++        T  % time steps
++        theta % true value for theta
+         X % states
+         Y % observations
+         pre % structure containing all prescribed paras
+@@ -65,4 +65,4 @@ classdef ssmodel
+             end
+         end
+     end
+-end
+\ No newline at end of file
++end

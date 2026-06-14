@@ -1,0 +1,85 @@
+{
+    "claude_review": {
+        "plan": "accepted_iteration_1",
+        "result": "round_5_reject_max_review_rounds_reached_after_patches",
+        "continuation_result_review": "round_6_accept_governance_closure_for_inspection_only"
+    },
+  "component_match_decision": "annealed_transport_component_matched_filterflow",
+  "component_summary": {
+    "fixed_target_sinkhorn_status": "not_used_local_comparator_only",
+    "max_abs_delta": 0.026786881508458538,
+    "max_column_residual": 2.1316282072803006e-14,
+    "max_row_residual": 0.5659112334251404,
+    "min_triggered_rows": 14900.0,
+    "nonfinite_count": 0,
+    "row_count": 9,
+    "within_band_count": 9
+  },
+    "decision": "annealed_transport_reference_alignment_blocked_max_review_rounds_reached_after_patches",
+  "gradient_claim_status": "finite_gradient_smoke_not_agreement",
+  "gradient_decision": "annealed_transport_gradient_contract_severe_unreconciled_magnitude_risk_recorded",
+  "gradient_scalar_contract_ledger": {
+    "bayesfilter_all_finite": true,
+    "bayesfilter_gradient_count": 16,
+    "bayesfilter_scalar": "total_log_likelihood_common_observations_common_random_numbers",
+    "comparable_gradient_count": 16,
+    "filterflow_gradient_count": 16,
+    "filterflow_scalar": "total_log_likelihood_from_simple_linear_smoothness",
+    "filterflow_status": "filterflow_smoothness_executed",
+    "interpretation": "BayesFilter GradientTape surface is finite, but filterflow/BayesFilter same-randomness and gradient-magnitude agreement are severely unreconciled. Gradient agreement is not concluded.",
+    "normalization_variants_recorded": "total, negative total, per-time",
+    "status": "severe_unreconciled_gradient_magnitude_mismatch_risk_recorded"
+  },
+  "ledh_decision": "ledh_pfpf_annealed_transport_lgssm_finite_diagnostics",
+  "ledh_summary": {
+    "annealed_transport_row_count": 27,
+    "executed_row_count": 27,
+    "finite_row_count": 27,
+    "fixed_target_sinkhorn_status": "not_default_local_comparator_only",
+    "interpretation": "finite bounded diagnostics on the matched filterflow LGSSM protocol; not a requirement that LEDH equal filterflow RegularisedTransform",
+    "max_abs_corrected_log_weight": 14.856345448972045,
+    "max_abs_error_per_time": 0.015512713400855773,
+    "max_sinkhorn_residual": 3.552713678800501e-15,
+    "min_jacobian_singular_value": 0.30151134457776363,
+    "nonfinite_row_count": 0,
+    "pfpf_correction_status": "recorded_in_rows",
+    "row_count": 27,
+    "transport_method": "filterflow_style_annealed_transport_tf"
+  },
+  "non_implications": [
+    "No production readiness.",
+    "No posterior correctness.",
+    "No HMC readiness.",
+    "No general nonlinear-SSM validity.",
+    "No DSGE/NAWM validation.",
+    "No monograph claim."
+  ],
+  "nonlinear_decision": "nonlinear_ladder_annealed_transport_executed_with_caveats",
+  "nonlinear_rows": [
+    {
+      "interpretation": "UKF approximate diagnostic; range-bearing stress",
+      "model_id": "range_bearing",
+      "promotion_status": "bounded_diagnostic_not_general_validity",
+      "source_decision": "DPF_NONLINEAR_SSM_RANGE_BEARING_STRESS_PASSED"
+    },
+    {
+      "interpretation": "CUT4 differentiable comparator; scalar/gradient/MLE smoke",
+      "model_id": "stochastic_volatility",
+      "promotion_status": "bounded_diagnostic_not_general_validity",
+      "source_decision": "DPF_NONLINEAR_SSM_SV_GRADIENT_MLE_PASSED_SMOKE"
+    },
+    {
+      "interpretation": "CUT4 comparator and deterministic residual contract",
+      "model_id": "structural_ar1",
+      "promotion_status": "bounded_diagnostic_not_general_validity",
+      "source_decision": "DPF_STRUCTURAL_INTERFACE_NONLINEAR_AR1_EXECUTED_WITH_POLICY_LADDER"
+    }
+  ],
+  "plan_path": "docs/plans/bayesfilter-dpf-annealed-transport-reference-alignment-plan-2026-05-31.md",
+  "reference_hierarchy": {
+    "filterflow": "canonical_executable_reference_for_audit_lane",
+    "fixed_target_sinkhorn": "local_comparator_only",
+    "transition_covariance": "I_2_executable_reproduction_setting"
+  },
+  "result_path": "docs/plans/bayesfilter-dpf-annealed-transport-reference-alignment-result-2026-05-31.md"
+}

@@ -1,0 +1,85 @@
+{
+  "schema_version": "p51.spatial_sir_route_preflight.v1",
+  "metadata_date": "2026-06-09",
+  "phase": "P51-M3",
+  "status": "PASS_P51_M3_SPATIAL_SIR_ROUTE_PREFLIGHT",
+  "target_id": "spatial_sir_production_filtering",
+  "source_blocker": "BLOCKED_M4B_ROUTE_ARCHITECTURE",
+  "source_artifacts": [
+    "docs/plans/bayesfilter-highdim-zhao-cui-p51-m3-spatial-sir-production-route-subplan-2026-06-09.md",
+    "docs/plans/bayesfilter-highdim-zhao-cui-p47-m4b-production-row-manifest-2026-06-09.json",
+    "docs/plans/bayesfilter-highdim-zhao-cui-p50-m6-spatial-sir-predator-prey-ladder-manifest-2026-06-09.json",
+    "docs/plans/bayesfilter-highdim-zhao-cui-p50-m6-spatial-sir-predator-prey-ladder-result-2026-06-09.md"
+  ],
+  "production_filtering_status": "blocked_route_architecture",
+  "production_readiness_claimed": false,
+  "hmc_readiness_claimed": false,
+  "same_target_lock": {
+    "target_family": "M4a additive-Gaussian spatial SIR closure unless reviewed amendment changes it",
+    "production_row": "same P47-M4b/P50-M6 spatial_sir_production_route row",
+    "no_easier_substitute": true
+  },
+  "preflight_gate": {
+    "current_route": "P46/P47 all-axes multistate retained-grid fixed-design TT route",
+    "grid_points_formula": "order^(2*sites)",
+    "pairwise_transition_evaluations_formula": "order^(4*sites)",
+    "max_pairwise_transition_evaluations_cpu": 50000000
+  },
+  "candidate_ladder": [
+    {
+      "candidate_id": "M4b-0",
+      "sites": 3,
+      "state_dim": 6,
+      "horizon": 2,
+      "order": 3,
+      "grid_points": 729,
+      "pairwise_transition_evaluations": 531441,
+      "below_cap": true,
+      "route_preflight": "below_cap_feasibility_only"
+    },
+    {
+      "candidate_id": "M4b-1",
+      "sites": 5,
+      "state_dim": 10,
+      "horizon": 2,
+      "order": 3,
+      "grid_points": 59049,
+      "pairwise_transition_evaluations": 3486784401,
+      "below_cap": false,
+      "route_preflight": "blocked_above_cap"
+    },
+    {
+      "candidate_id": "M4b-2",
+      "sites": 9,
+      "state_dim": 18,
+      "horizon": 25,
+      "order": 3,
+      "grid_points": 387420489,
+      "pairwise_transition_evaluations": 150094635296999121,
+      "below_cap": false,
+      "route_preflight": "blocked_above_cap_near_paper"
+    }
+  ],
+  "required_architecture_change": {
+    "decision": "required_before_production_spatial_sir_filtering",
+    "missing_component": "streamed_or_factorized_transition_application",
+    "must_avoid": "materializing all grid_points^2 transition pairs",
+    "must_preserve": [
+      "same P50/P47 spatial SIR production target family",
+      "deterministic replay and branch identity",
+      "TensorFlow/TFP differentiable route",
+      "production-row metrics and nonclaims"
+    ]
+  },
+  "tokens_emitted": [
+    "PASS_P51_M3_SPATIAL_SIR_ROUTE_PREFLIGHT"
+  ],
+  "nonclaims": [
+    "no production spatial SIR filtering readiness",
+    "no HMC readiness",
+    "no lower-rung J=1 to J=9 promotion",
+    "no certified nonlinear-model gradient correctness",
+    "no source-faithful adaptive TT/SIRT filtering",
+    "no S&P 500 reproduction"
+  ]
+}

@@ -1,0 +1,545 @@
+{
+  "schema_version": "filter_bench.deterministic_filter_coverage.v1",
+  "metadata_date": "2026-06-10",
+  "phase": "FILTER_BENCH_P4",
+  "status": "PASS_FILTER_BENCH_P4_DETERMINISTIC_FILTERS",
+  "target_registry": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-target-registry-2026-06-10.json",
+  "reference_oracles": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-reference-oracles-2026-06-10.json",
+  "adapter_schema": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-adapter-schema-2026-06-10.json",
+  "smoke_payloads": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-deterministic-filter-smoke-payloads-2026-06-10.json",
+  "purpose": "P4 deterministic filter adapter coverage matrix.  Every deterministic algorithm/target row receives a runnable, diagnostic, scout-only, unsupported, adapter-required, or blocked status before P8 benchmark matrices are allowed.",
+  "algorithm_ids": [
+    "kalman_exact_or_mixture_enumeration",
+    "ukf",
+    "svd_sigma_point",
+    "cut4",
+    "zhao_cui_scalar_or_multistate"
+  ],
+  "cell_status_vocabulary": [
+    "READY_VALUE_GRADIENT",
+    "READY_VALUE_ONLY",
+    "READY_DIAGNOSTIC_ONLY",
+    "READY_SURROGATE_VALUE_GRADIENT",
+    "SCOUT_ONLY_NOT_TRUTH",
+    "ADAPTER_REQUIRED_WITH_REASON",
+    "UNSUPPORTED_WITH_REASON",
+    "BLOCKED_VALUE_ROUTE"
+  ],
+  "reason_code_vocabulary": [
+    "NONE",
+    "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE",
+    "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED",
+    "CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED",
+    "UKF_SCOUT_NOT_TRUTH",
+    "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET",
+    "ADAPTER_REQUIRED_PRODUCTION_TARGET",
+    "NO_CUT4_SAME_TARGET_NATIVE_GENERALIZED_SV",
+    "NO_ZHAOCUI_NATIVE_GENERALIZED_SV_ROUTE",
+    "ZHAOCUI_H4_SCALAR_HELPER_NONCLAIM",
+    "ZHAOCUI_LGSSM_DIAGNOSTIC_NOT_ORACLE",
+    "REFERENCE_GRADIENT_NOT_AVAILABLE",
+    "NO_THETA_GRADIENT_DIM0",
+    "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+  ],
+  "cell_status_contract": {
+    "READY_VALUE_GRADIENT": {
+      "value_error_policy": "eligible_when_p8_runs",
+      "gradient_error_policy": "eligible_when_p8_runs",
+      "required_reason_codes": ["NONE"]
+    },
+    "READY_VALUE_ONLY": {
+      "value_error_policy": "eligible_when_p8_runs",
+      "gradient_error_policy": "status_only",
+      "allowed_gradient_status": ["GRADIENT_NOT_EXPOSED", "NO_THETA_GRADIENT_DIM0"]
+    },
+    "READY_DIAGNOSTIC_ONLY": {
+      "value_error_policy": "diagnostic_only",
+      "gradient_error_policy": "diagnostic_or_status_only"
+    },
+    "READY_SURROGATE_VALUE_GRADIENT": {
+      "value_error_policy": "eligible_for_declared_surrogate_target_only",
+      "gradient_error_policy": "eligible_for_declared_surrogate_target_only"
+    },
+    "SCOUT_ONLY_NOT_TRUTH": {
+      "value_error_policy": "not_a_benchmark_value",
+      "gradient_error_policy": "not_a_benchmark_gradient",
+      "required_reason_codes": ["UKF_SCOUT_NOT_TRUTH"]
+    },
+    "ADAPTER_REQUIRED_WITH_REASON": {
+      "value_error_policy": "not_run_until_adapter_exists",
+      "gradient_error_policy": "not_run_until_adapter_exists"
+    },
+    "UNSUPPORTED_WITH_REASON": {
+      "value_error_policy": "not_applicable_under_current_algorithm_boundary",
+      "gradient_error_policy": "not_applicable_under_current_algorithm_boundary"
+    },
+    "BLOCKED_VALUE_ROUTE": {
+      "value_error_policy": "blocked_before_filtering",
+      "gradient_error_policy": "blocked_before_filtering"
+    }
+  },
+  "algorithms": [
+    {
+      "algorithm_id": "kalman_exact_or_mixture_enumeration",
+      "algorithm_family": "kalman_or_mixture",
+      "route_boundary": "Kalman is exact only for LGSSM rows and is a declared Gaussian-mixture enumeration reference for KSC surrogate rows.",
+      "adapter_paths": [
+        "bayesfilter.highdim.filtering.FixedBranchSquaredTTFilter(fit_config=None) on LinearGaussianSSM",
+        "bayesfilter.highdim.sv_mixture_cut4.independent_panel_sv_mixture_kalman_filter"
+      ],
+      "row_groups": [
+        {
+          "row_ids": ["lgssm_exact_kalman_dim_1_2_3"],
+          "cell_status": "READY_VALUE_GRADIENT",
+          "value_status_when_run": "VALID",
+          "gradient_status_when_run": "VALID",
+          "reason_codes": ["NONE"],
+          "evidence_tests": [
+            "tests/highdim/test_p44_lgssm_exact_baseline.py::test_p44_m1_cut4_and_zhaocui_artifact_lane_match_kalman_value_and_score_dims_1_2_3"
+          ]
+        },
+        {
+          "row_ids": ["sv_ksc_gaussian_mixture_surrogate_dim_1_2_3"],
+          "cell_status": "READY_SURROGATE_VALUE_GRADIENT",
+          "value_status_when_run": "VALID",
+          "gradient_status_when_run": "VALID",
+          "reason_codes": ["NONE"],
+          "evidence_tests": [
+            "tests/highdim/test_p43_sv_value_gradient_cut4_zhaocui.py::test_p43_ksc_cut4_matches_kalman_value_and_diagnostic_score"
+          ]
+        },
+        {
+          "row_ids": [
+            "p44_cubic_additive_gaussian_dim_1_2_3",
+            "p44_quadratic_observation_dim_1_2_3",
+            "p44_nonlinear_transition_h2_dim_1_2_3",
+            "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3",
+            "sv_exact_transformed_actual_nongaussian_dim_1_2_3",
+            "native_generalized_sv_dense_lower_rung_dim_2",
+            "spatial_sir_lower_rung_j1_dim_2",
+            "predator_prey_lower_rung_dim_2",
+            "predator_prey_production_tuned_h25_dim_2"
+          ],
+          "cell_status": "UNSUPPORTED_WITH_REASON",
+          "value_status_when_run": "UNSUPPORTED_BY_TARGET",
+          "gradient_status_when_run": "UNSUPPORTED_BY_TARGET",
+          "reason_codes": ["KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"],
+          "evidence_tests": [
+            "tests/highdim/test_filtering_value_gradient_benchmark_reference_oracles.py::test_filter_bench_reference_oracles_keep_sv_actual_and_surrogate_distinct"
+          ]
+        },
+        {
+          "row_ids": ["spatial_sir_scaling_route_admitted_rank_selection_blocked_d18"],
+          "cell_status": "BLOCKED_VALUE_ROUTE",
+          "value_status_when_run": "BLOCKED_VALUE_ROUTE",
+          "gradient_status_when_run": "BLOCKED_VALUE_ROUTE",
+          "reason_codes": ["BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"],
+          "evidence_tests": [
+            "tests/highdim/test_p53_m5_rank_selection_integration.py::test_p53_m5_result_manifest_preserves_blocker_and_forbids_downstream_tokens"
+          ]
+        }
+      ],
+      "nonclaims": [
+        "Kalman is not used as truth outside LGSSM and declared Gaussian-mixture surrogate rows.",
+        "No native non-Gaussian exactness is claimed."
+      ]
+    },
+    {
+      "algorithm_id": "ukf",
+      "algorithm_family": "deterministic_sigma_point",
+      "route_boundary": "UKF uses the TensorFlow structural unscented sigma-point value filter where a structural Gaussian adapter exists.  P52 spatial SIR UKF is scout-only and not truth.",
+      "adapter_paths": [
+        "bayesfilter.nonlinear.sigma_points_tf.tf_svd_sigma_point_filter(backend='tf_svd_ukf')",
+        "bayesfilter.highdim.ukf_scout.spatial_sir_ukf_scout for scout-only spatial SIR diagnostics"
+      ],
+      "row_groups": [
+        {
+          "row_ids": [
+            "lgssm_exact_kalman_dim_1_2_3",
+            "p44_cubic_additive_gaussian_dim_1_2_3",
+            "p44_quadratic_observation_dim_1_2_3",
+            "p44_nonlinear_transition_h2_dim_1_2_3",
+            "predator_prey_lower_rung_dim_2"
+          ],
+          "cell_status": "READY_VALUE_ONLY",
+          "value_status_when_run": "VALID",
+          "gradient_status_when_run": "GRADIENT_NOT_EXPOSED",
+          "reason_codes": ["SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"],
+          "evidence_tests": [
+            "tests/test_nonlinear_sigma_point_values_tf.py",
+            "tests/highdim/test_p47_spatial_sir_filtering.py::test_p47_m4_cut4_closure_is_same_target_value_diagnostic_not_state_promotion",
+            "tests/highdim/test_p47_predator_prey_filtering.py::test_p47_m5_cut4_closure_is_same_target_value_diagnostic_not_state_promotion"
+          ]
+        },
+        {
+          "row_ids": ["p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3"],
+          "cell_status": "READY_DIAGNOSTIC_ONLY",
+          "value_status_when_run": "VALID",
+          "gradient_status_when_run": "GRADIENT_NOT_EXPOSED",
+          "reason_codes": ["SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"],
+          "evidence_tests": [
+            "tests/highdim/test_p44_nonlinear_transition.py::test_p44_m4_cut4_horizon_4_error_accumulation_is_bounded_dims_1_2_3"
+          ]
+        },
+        {
+          "row_ids": ["spatial_sir_lower_rung_j1_dim_2"],
+          "cell_status": "READY_VALUE_ONLY",
+          "value_status_when_run": "VALID",
+          "gradient_status_when_run": "NO_THETA_GRADIENT_DIM0",
+          "reason_codes": ["NO_THETA_GRADIENT_DIM0"],
+          "evidence_tests": [
+            "tests/highdim/test_p47_spatial_sir_filtering.py::test_p47_m4_cut4_closure_is_same_target_value_diagnostic_not_state_promotion"
+          ]
+        },
+        {
+          "row_ids": ["spatial_sir_scaling_route_admitted_rank_selection_blocked_d18"],
+          "cell_status": "SCOUT_ONLY_NOT_TRUTH",
+          "value_status_when_run": "NOT_RUN",
+          "gradient_status_when_run": "NOT_RUN",
+          "reason_codes": ["UKF_SCOUT_NOT_TRUTH", "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"],
+          "evidence_tests": [
+            "tests/highdim/test_p52_ukf_scout.py::test_p52_ukf_scout_manifest_for_dimensions_and_nonclaims",
+            "tests/highdim/test_p53_m5_rank_selection_integration.py::test_p53_m5_result_manifest_preserves_blocker_and_forbids_downstream_tokens"
+          ]
+        },
+        {
+          "row_ids": [
+            "sv_exact_transformed_actual_nongaussian_dim_1_2_3",
+            "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3",
+            "native_generalized_sv_dense_lower_rung_dim_2"
+          ],
+          "cell_status": "ADAPTER_REQUIRED_WITH_REASON",
+          "value_status_when_run": "NOT_RUN",
+          "gradient_status_when_run": "NOT_RUN",
+          "reason_codes": ["ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"],
+          "evidence_tests": [
+            "tests/highdim/test_p51_native_generalized_sv_reference.py::test_p51_m2_native_dense_reference_has_raw_observation_identity_and_moments"
+          ]
+        },
+        {
+          "row_ids": ["predator_prey_production_tuned_h25_dim_2"],
+          "cell_status": "ADAPTER_REQUIRED_WITH_REASON",
+          "value_status_when_run": "NOT_RUN",
+          "gradient_status_when_run": "NOT_RUN",
+          "reason_codes": ["ADAPTER_REQUIRED_PRODUCTION_TARGET"],
+          "evidence_tests": [
+            "tests/highdim/test_p51_predator_prey_production_tuning.py::test_p51_m4_result_emits_token_once_and_promoted_candidate_is_visible"
+          ]
+        }
+      ],
+      "nonclaims": [
+        "UKF scout metadata is not a correctness oracle.",
+        "UKF value-filter readiness is not benchmark accuracy or gradient certification."
+      ]
+    },
+    {
+      "algorithm_id": "svd_sigma_point",
+      "algorithm_family": "deterministic_sigma_point",
+      "route_boundary": "SVD/cubature sigma-point filter uses the TensorFlow structural value route where a structural Gaussian adapter exists.  Gradients are not certified by P4 coverage.",
+      "adapter_paths": [
+        "bayesfilter.nonlinear.sigma_points_tf.tf_svd_sigma_point_filter(backend='tf_svd_cubature')"
+      ],
+      "row_groups": [
+        {
+          "row_ids": [
+            "lgssm_exact_kalman_dim_1_2_3",
+            "p44_cubic_additive_gaussian_dim_1_2_3",
+            "p44_quadratic_observation_dim_1_2_3",
+            "p44_nonlinear_transition_h2_dim_1_2_3",
+            "predator_prey_lower_rung_dim_2"
+          ],
+          "cell_status": "READY_VALUE_ONLY",
+          "value_status_when_run": "VALID",
+          "gradient_status_when_run": "GRADIENT_NOT_EXPOSED",
+          "reason_codes": ["SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"],
+          "evidence_tests": [
+            "tests/test_nonlinear_sigma_point_values_tf.py",
+            "tests/test_structural_svd_sigma_point_tf.py",
+            "tests/highdim/test_p47_spatial_sir_filtering.py::test_p47_m4_cut4_closure_is_same_target_value_diagnostic_not_state_promotion",
+            "tests/highdim/test_p47_predator_prey_filtering.py::test_p47_m5_cut4_closure_is_same_target_value_diagnostic_not_state_promotion"
+          ]
+        },
+        {
+          "row_ids": ["p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3"],
+          "cell_status": "READY_DIAGNOSTIC_ONLY",
+          "value_status_when_run": "VALID",
+          "gradient_status_when_run": "GRADIENT_NOT_EXPOSED",
+          "reason_codes": ["SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"],
+          "evidence_tests": [
+            "tests/highdim/test_p44_nonlinear_transition.py::test_p44_m4_cut4_horizon_4_error_accumulation_is_bounded_dims_1_2_3"
+          ]
+        },
+        {
+          "row_ids": ["spatial_sir_lower_rung_j1_dim_2"],
+          "cell_status": "READY_VALUE_ONLY",
+          "value_status_when_run": "VALID",
+          "gradient_status_when_run": "NO_THETA_GRADIENT_DIM0",
+          "reason_codes": ["NO_THETA_GRADIENT_DIM0"],
+          "evidence_tests": [
+            "tests/highdim/test_p47_spatial_sir_filtering.py::test_p47_m4_cut4_closure_is_same_target_value_diagnostic_not_state_promotion"
+          ]
+        },
+        {
+          "row_ids": [
+            "sv_exact_transformed_actual_nongaussian_dim_1_2_3",
+            "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3",
+            "native_generalized_sv_dense_lower_rung_dim_2"
+          ],
+          "cell_status": "ADAPTER_REQUIRED_WITH_REASON",
+          "value_status_when_run": "NOT_RUN",
+          "gradient_status_when_run": "NOT_RUN",
+          "reason_codes": ["ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"],
+          "evidence_tests": [
+            "tests/highdim/test_p51_native_generalized_sv_reference.py::test_p51_m2_native_dense_reference_has_raw_observation_identity_and_moments"
+          ]
+        },
+        {
+          "row_ids": ["spatial_sir_scaling_route_admitted_rank_selection_blocked_d18"],
+          "cell_status": "BLOCKED_VALUE_ROUTE",
+          "value_status_when_run": "BLOCKED_VALUE_ROUTE",
+          "gradient_status_when_run": "BLOCKED_VALUE_ROUTE",
+          "reason_codes": ["BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"],
+          "evidence_tests": [
+            "tests/highdim/test_p53_m5_rank_selection_integration.py::test_p53_m5_result_manifest_preserves_blocker_and_forbids_downstream_tokens"
+          ]
+        },
+        {
+          "row_ids": ["predator_prey_production_tuned_h25_dim_2"],
+          "cell_status": "ADAPTER_REQUIRED_WITH_REASON",
+          "value_status_when_run": "NOT_RUN",
+          "gradient_status_when_run": "NOT_RUN",
+          "reason_codes": ["ADAPTER_REQUIRED_PRODUCTION_TARGET"],
+          "evidence_tests": [
+            "tests/highdim/test_p51_predator_prey_production_tuning.py::test_p51_m4_result_emits_token_once_and_promoted_candidate_is_visible"
+          ]
+        }
+      ],
+      "nonclaims": [
+        "SVD sigma-point value readiness is not benchmark accuracy.",
+        "SVD sigma-point gradient certification is deferred to P6."
+      ]
+    },
+    {
+      "algorithm_id": "cut4",
+      "algorithm_family": "deterministic_sigma_point",
+      "route_boundary": "CUT4 uses the TensorFlow structural CUT4 value route for additive-Gaussian structural rows and dedicated transformed-SV Gaussian-mixture CUT4 route for the KSC surrogate.",
+      "adapter_paths": [
+        "bayesfilter.nonlinear.svd_cut_tf.tf_svd_cut4_filter",
+        "bayesfilter.highdim.sv_mixture_cut4.independent_panel_sv_mixture_cut4_filter"
+      ],
+      "row_groups": [
+        {
+          "row_ids": [
+            "lgssm_exact_kalman_dim_1_2_3",
+            "p44_cubic_additive_gaussian_dim_1_2_3",
+            "p44_quadratic_observation_dim_1_2_3",
+            "p44_nonlinear_transition_h2_dim_1_2_3",
+            "predator_prey_lower_rung_dim_2"
+          ],
+          "cell_status": "READY_VALUE_ONLY",
+          "value_status_when_run": "VALID",
+          "gradient_status_when_run": "GRADIENT_NOT_EXPOSED",
+          "reason_codes": ["CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"],
+          "evidence_tests": [
+            "tests/highdim/test_p44_cubic_additive_gaussian.py::test_p44_m2_cut4_and_zhaocui_match_dense_statistically_for_value_and_score_dims_1_2_3",
+            "tests/highdim/test_p44_quadratic_observation.py::test_p44_m3_cut4_records_stress_gap_and_zhaocui_matches_dense_dims_1_2_3",
+            "tests/highdim/test_p44_nonlinear_transition.py::test_p44_m4_cut4_and_zhaocui_match_dense_horizon_2_dims_1_2_3",
+            "tests/highdim/test_p47_spatial_sir_filtering.py::test_p47_m4_cut4_closure_is_same_target_value_diagnostic_not_state_promotion",
+            "tests/highdim/test_p47_predator_prey_filtering.py::test_p47_m5_cut4_closure_is_same_target_value_diagnostic_not_state_promotion"
+          ]
+        },
+        {
+          "row_ids": ["p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3"],
+          "cell_status": "READY_DIAGNOSTIC_ONLY",
+          "value_status_when_run": "VALID",
+          "gradient_status_when_run": "GRADIENT_NOT_EXPOSED",
+          "reason_codes": ["CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"],
+          "evidence_tests": [
+            "tests/highdim/test_p44_nonlinear_transition.py::test_p44_m4_cut4_horizon_4_error_accumulation_is_bounded_dims_1_2_3"
+          ]
+        },
+        {
+          "row_ids": ["spatial_sir_lower_rung_j1_dim_2"],
+          "cell_status": "READY_VALUE_ONLY",
+          "value_status_when_run": "VALID",
+          "gradient_status_when_run": "NO_THETA_GRADIENT_DIM0",
+          "reason_codes": ["NO_THETA_GRADIENT_DIM0"],
+          "evidence_tests": [
+            "tests/highdim/test_p47_spatial_sir_filtering.py::test_p47_m4_cut4_closure_is_same_target_value_diagnostic_not_state_promotion"
+          ]
+        },
+        {
+          "row_ids": ["sv_ksc_gaussian_mixture_surrogate_dim_1_2_3"],
+          "cell_status": "READY_SURROGATE_VALUE_GRADIENT",
+          "value_status_when_run": "VALID",
+          "gradient_status_when_run": "VALID",
+          "reason_codes": ["NONE"],
+          "evidence_tests": [
+            "tests/highdim/test_p43_sv_value_gradient_cut4_zhaocui.py::test_p43_ksc_cut4_matches_kalman_value_and_diagnostic_score"
+          ]
+        },
+        {
+          "row_ids": ["sv_exact_transformed_actual_nongaussian_dim_1_2_3"],
+          "cell_status": "UNSUPPORTED_WITH_REASON",
+          "value_status_when_run": "UNSUPPORTED_BY_TARGET",
+          "gradient_status_when_run": "UNSUPPORTED_BY_TARGET",
+          "reason_codes": ["ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"],
+          "evidence_tests": [
+            "tests/highdim/test_p43_sv_value_gradient_cut4_zhaocui.py::test_p43_ksc_mixture_gradient_gap_to_exact_transformed_is_approximation_only"
+          ]
+        },
+        {
+          "row_ids": ["native_generalized_sv_dense_lower_rung_dim_2"],
+          "cell_status": "UNSUPPORTED_WITH_REASON",
+          "value_status_when_run": "UNSUPPORTED_BY_TARGET",
+          "gradient_status_when_run": "UNSUPPORTED_BY_TARGET",
+          "reason_codes": ["NO_CUT4_SAME_TARGET_NATIVE_GENERALIZED_SV"],
+          "evidence_tests": [
+            "tests/highdim/test_p51_native_generalized_sv_reference.py::test_p51_m2_result_emits_token_once_and_nonclaims_are_visible"
+          ]
+        },
+        {
+          "row_ids": ["spatial_sir_scaling_route_admitted_rank_selection_blocked_d18"],
+          "cell_status": "BLOCKED_VALUE_ROUTE",
+          "value_status_when_run": "BLOCKED_VALUE_ROUTE",
+          "gradient_status_when_run": "BLOCKED_VALUE_ROUTE",
+          "reason_codes": ["BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"],
+          "evidence_tests": [
+            "tests/highdim/test_p53_m5_rank_selection_integration.py::test_p53_m5_result_manifest_preserves_blocker_and_forbids_downstream_tokens"
+          ]
+        },
+        {
+          "row_ids": ["predator_prey_production_tuned_h25_dim_2"],
+          "cell_status": "ADAPTER_REQUIRED_WITH_REASON",
+          "value_status_when_run": "NOT_RUN",
+          "gradient_status_when_run": "NOT_RUN",
+          "reason_codes": ["ADAPTER_REQUIRED_PRODUCTION_TARGET"],
+          "evidence_tests": [
+            "tests/highdim/test_p51_predator_prey_production_tuning.py::test_p51_m4_result_emits_token_once_and_promoted_candidate_is_visible"
+          ]
+        }
+      ],
+      "nonclaims": [
+        "CUT4 value readiness is not exactness outside exact/surrogate labels.",
+        "CUT4 gradient certification is deferred to P6 unless a row-specific score test is cited."
+      ]
+    },
+    {
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "algorithm_family": "zhao_cui_tt",
+      "route_boundary": "Zhao-Cui coverage uses current scalar, factorized panel, or multistate fixed-design TT routes and explicit blockers.  The stale scalar-only blocker is historical only and cannot suppress current rows.",
+      "adapter_paths": [
+        "bayesfilter.highdim.filtering.scalar_nonlinear_fixed_design_tt_value_path",
+        "bayesfilter.highdim.filtering.multistate_nonlinear_fixed_design_tt_value_path",
+        "bayesfilter.highdim.sv_mixture_cut4.exact_transformed_sv_independent_panel_zhaocui_tt_filter",
+        "bayesfilter.highdim.sv_mixture_cut4.independent_panel_sv_mixture_zhaocui_tt_filter"
+      ],
+      "row_groups": [
+        {
+          "row_ids": ["lgssm_exact_kalman_dim_1_2_3"],
+          "cell_status": "READY_DIAGNOSTIC_ONLY",
+          "value_status_when_run": "VALID",
+          "gradient_status_when_run": "GRADIENT_NOT_EXPOSED",
+          "reason_codes": ["ZHAOCUI_LGSSM_DIAGNOSTIC_NOT_ORACLE"],
+          "evidence_tests": [
+            "tests/highdim/test_p44_lgssm_exact_baseline.py::test_p44_m1_scalar_tt_propagation_gap_is_not_promoted"
+          ]
+        },
+        {
+          "row_ids": [
+            "p44_cubic_additive_gaussian_dim_1_2_3",
+            "p44_quadratic_observation_dim_1_2_3",
+            "p44_nonlinear_transition_h2_dim_1_2_3",
+            "sv_exact_transformed_actual_nongaussian_dim_1_2_3"
+          ],
+          "cell_status": "READY_VALUE_GRADIENT",
+          "value_status_when_run": "VALID",
+          "gradient_status_when_run": "VALID",
+          "reason_codes": ["NONE"],
+          "evidence_tests": [
+            "tests/highdim/test_p44_cubic_additive_gaussian.py::test_p44_m2_cut4_and_zhaocui_match_dense_statistically_for_value_and_score_dims_1_2_3",
+            "tests/highdim/test_p44_quadratic_observation.py::test_p44_m3_cut4_records_stress_gap_and_zhaocui_matches_dense_dims_1_2_3",
+            "tests/highdim/test_p44_nonlinear_transition.py::test_p44_m4_cut4_and_zhaocui_match_dense_horizon_2_dims_1_2_3",
+            "tests/highdim/test_p43_sv_value_gradient_cut4_zhaocui.py::test_p43_exact_transformed_zhaocui_matches_dense_value_and_diagnostic_score"
+          ]
+        },
+        {
+          "row_ids": ["p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3"],
+          "cell_status": "UNSUPPORTED_WITH_REASON",
+          "value_status_when_run": "UNSUPPORTED_BY_TARGET",
+          "gradient_status_when_run": "UNSUPPORTED_BY_TARGET",
+          "reason_codes": ["ZHAOCUI_H4_SCALAR_HELPER_NONCLAIM"],
+          "evidence_tests": [
+            "tests/highdim/test_p44_nonlinear_transition.py::test_p44_m4_zhaocui_horizon_4_is_explicit_nonclaim_for_current_scalar_helper"
+          ]
+        },
+        {
+          "row_ids": ["sv_ksc_gaussian_mixture_surrogate_dim_1_2_3"],
+          "cell_status": "READY_SURROGATE_VALUE_GRADIENT",
+          "value_status_when_run": "VALID",
+          "gradient_status_when_run": "VALID",
+          "reason_codes": ["NONE"],
+          "evidence_tests": [
+            "tests/highdim/test_p47_generalized_sv_equality.py::test_p47_m3_zhaocui_matches_dense_on_same_ksc_mixture_target_value_and_score"
+          ]
+        },
+        {
+          "row_ids": ["native_generalized_sv_dense_lower_rung_dim_2"],
+          "cell_status": "UNSUPPORTED_WITH_REASON",
+          "value_status_when_run": "UNSUPPORTED_BY_TARGET",
+          "gradient_status_when_run": "UNSUPPORTED_BY_TARGET",
+          "reason_codes": ["NO_ZHAOCUI_NATIVE_GENERALIZED_SV_ROUTE"],
+          "evidence_tests": [
+            "tests/highdim/test_p51_native_generalized_sv_reference.py::test_p51_m2_result_emits_token_once_and_nonclaims_are_visible"
+          ]
+        },
+        {
+          "row_ids": ["spatial_sir_lower_rung_j1_dim_2"],
+          "cell_status": "READY_VALUE_ONLY",
+          "value_status_when_run": "VALID",
+          "gradient_status_when_run": "NO_THETA_GRADIENT_DIM0",
+          "reason_codes": ["NO_THETA_GRADIENT_DIM0"],
+          "evidence_tests": [
+            "tests/highdim/test_p47_spatial_sir_filtering.py::test_p47_m4_zhaocui_matches_dense_reference_value_and_state_moments"
+          ]
+        },
+        {
+          "row_ids": ["spatial_sir_scaling_route_admitted_rank_selection_blocked_d18"],
+          "cell_status": "BLOCKED_VALUE_ROUTE",
+          "value_status_when_run": "BLOCKED_VALUE_ROUTE",
+          "gradient_status_when_run": "BLOCKED_VALUE_ROUTE",
+          "reason_codes": ["BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"],
+          "evidence_tests": [
+            "tests/highdim/test_p53_m5_rank_selection_integration.py::test_p53_m5_result_manifest_preserves_blocker_and_forbids_downstream_tokens"
+          ]
+        },
+        {
+          "row_ids": [
+            "predator_prey_lower_rung_dim_2",
+            "predator_prey_production_tuned_h25_dim_2"
+          ],
+          "cell_status": "READY_VALUE_ONLY",
+          "value_status_when_run": "VALID",
+          "gradient_status_when_run": "GRADIENT_NOT_EXPOSED",
+          "reason_codes": ["REFERENCE_GRADIENT_NOT_AVAILABLE"],
+          "evidence_tests": [
+            "tests/highdim/test_p47_predator_prey_filtering.py::test_p47_m5_zhaocui_matches_dense_reference_value_and_state_moments",
+            "tests/highdim/test_p51_predator_prey_production_tuning.py::test_p51_m4_result_emits_token_once_and_promoted_candidate_is_visible"
+          ]
+        }
+      ],
+      "nonclaims": [
+        "No Zhao-Cui row is an exact oracle.",
+        "Fixed-design substitutes are not adaptive MATLAB TT-cross/SIRT reproduction.",
+        "Stale scalar-only blocker text is historical and not current admission logic."
+      ]
+    }
+  ],
+  "global_nonclaims": [
+    "P4 coverage is not the final benchmark matrix.",
+    "Smoke payloads and coverage classifications do not rank filters.",
+    "Gradient eligibility follows P3 reference policies and P6 gradient semantics.",
+    "No DPF result is created in P4.",
+    "No HMC, GPU, or Bayesian-estimation readiness is claimed."
+  ]
+}

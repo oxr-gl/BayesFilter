@@ -1,0 +1,112 @@
+{
+  "schema_version": "p51.predator_prey_production_tuning.v1",
+  "metadata_date": "2026-06-09",
+  "phase": "P51-M4",
+  "status": "PASS_P51_M4_PREDATOR_PREY_PRODUCTION_TUNING",
+  "target_id": "predator_prey_production_filtering",
+  "source_blocker": "BLOCKED_M5B_PRODUCTION_ACCURACY_TUNING",
+  "source_artifacts": [
+    "docs/plans/bayesfilter-highdim-zhao-cui-p51-m4-predator-prey-production-tuning-subplan-2026-06-09.md",
+    "docs/plans/bayesfilter-highdim-zhao-cui-p47-m5b-production-row-manifest-2026-06-09.json",
+    "docs/plans/bayesfilter-highdim-zhao-cui-p50-m6-spatial-sir-predator-prey-ladder-manifest-2026-06-09.json",
+    "docs/plans/bayesfilter-highdim-zhao-cui-p50-m6-spatial-sir-predator-prey-ladder-result-2026-06-09.md"
+  ],
+  "target_family": "M5a additive-Gaussian RK4 predator-prey closure",
+  "reference": {
+    "horizon": 25,
+    "reference_order": 9,
+    "route": "dense tensor-product grid reference from P47-M5b"
+  },
+  "production_tolerances": {
+    "abs_log_likelihood_gap_lt": 5.0,
+    "max_step_log_normalizer_gap_lt": 1.0,
+    "max_state_mean_component_error_lt": 5.0,
+    "max_covariance_entry_error_lt": 8.0,
+    "truth_path_prey_rmse_lt": 8.0,
+    "truth_path_predator_rmse_lt": 2.0,
+    "deterministic_replay_required": true
+  },
+  "criterion_change_after_results": "forbidden_not_performed",
+  "tuning_ladder_predeclared_in_ledger": true,
+  "promotion_basis": "all preserved P47/P50 production tolerances pass",
+  "candidate_ladder": [
+    {
+      "candidate_id": "P51-M4-0",
+      "fit_order": 7,
+      "rank": 8,
+      "abs_log_likelihood_gap": 145.7760213472871,
+      "max_step_log_normalizer_gap": 11.414750146529755,
+      "max_state_mean_component_error": 19.45492436940154,
+      "max_covariance_entry_error": 44.61958715970044,
+      "truth_path_prey_rmse": 2.9920493714843683,
+      "truth_path_predator_rmse": 0.966927670936316,
+      "deterministic_replay": true,
+      "passes": {
+        "abs_log_likelihood_gap_lt": false,
+        "max_step_log_normalizer_gap_lt": false,
+        "max_state_mean_component_error_lt": false,
+        "max_covariance_entry_error_lt": false,
+        "truth_path_prey_rmse_lt": true,
+        "truth_path_predator_rmse_lt": true,
+        "deterministic_replay_required": true
+      },
+      "decision": "FAIL_PRESERVED_PRODUCTION_TOLERANCES"
+    },
+    {
+      "candidate_id": "P51-M4-1",
+      "fit_order": 7,
+      "rank": 10,
+      "abs_log_likelihood_gap": 145.77571268796095,
+      "max_step_log_normalizer_gap": 11.414774164303584,
+      "max_state_mean_component_error": 19.4549243695202,
+      "max_covariance_entry_error": 44.61958619855251,
+      "truth_path_prey_rmse": 2.9920493702863555,
+      "truth_path_predator_rmse": 0.9669276709405975,
+      "deterministic_replay": true,
+      "passes": {
+        "abs_log_likelihood_gap_lt": false,
+        "max_step_log_normalizer_gap_lt": false,
+        "max_state_mean_component_error_lt": false,
+        "max_covariance_entry_error_lt": false,
+        "truth_path_prey_rmse_lt": true,
+        "truth_path_predator_rmse_lt": true,
+        "deterministic_replay_required": true
+      },
+      "decision": "FAIL_PRESERVED_PRODUCTION_TOLERANCES"
+    },
+    {
+      "candidate_id": "P51-M4-2",
+      "fit_order": 9,
+      "rank": 10,
+      "abs_log_likelihood_gap": 0.0026244076792636406,
+      "max_step_log_normalizer_gap": 0.0002265739885594087,
+      "max_state_mean_component_error": 0.00014690055770927302,
+      "max_covariance_entry_error": 0.0007808143975545079,
+      "truth_path_prey_rmse": 5.801996686864651,
+      "truth_path_predator_rmse": 1.0318416785760351,
+      "deterministic_replay": true,
+      "passes": {
+        "abs_log_likelihood_gap_lt": true,
+        "max_step_log_normalizer_gap_lt": true,
+        "max_state_mean_component_error_lt": true,
+        "max_covariance_entry_error_lt": true,
+        "truth_path_prey_rmse_lt": true,
+        "truth_path_predator_rmse_lt": true,
+        "deterministic_replay_required": true
+      },
+      "decision": "PASS_PRESERVED_PRODUCTION_TOLERANCES"
+    }
+  ],
+  "promoted_candidate": "P51-M4-2",
+  "tokens_emitted": [
+    "PASS_P51_M4_PREDATOR_PREY_PRODUCTION_TUNING"
+  ],
+  "nonclaims": [
+    "no HMC readiness",
+    "no production HMC readiness",
+    "no nonlinear preconditioning usefulness claim",
+    "no native non-Gaussian predator-prey correctness",
+    "no source-faithful adaptive TT/SIRT filtering",
+    "no S&P 500 reproduction"
+  ]
+}

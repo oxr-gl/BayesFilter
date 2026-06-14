@@ -1,0 +1,84 @@
+{
+  "schema_version": "p51.hmc_tier3_short_chain.v1",
+  "metadata_date": "2026-06-09",
+  "phase": "P51-M6",
+  "status": "BLOCK_P51_M6_HMC_TIER3_SHORT_CHAIN",
+  "source_p51_tier2_phase": "P51-M5",
+  "target_id": "p51_m5_exact_transformed_sv_dim1_dense_reference",
+  "source_artifacts": [
+    "docs/plans/bayesfilter-highdim-zhao-cui-p51-m6-hmc-tier3-short-chain-subplan-2026-06-09.md",
+    "docs/plans/bayesfilter-highdim-zhao-cui-p51-m5-hmc-tier2-leapfrog-manifest-2026-06-09.json",
+    "docs/plans/bayesfilter-highdim-zhao-cui-p50-hmc-readiness-tier-manifest-2026-06-09.json"
+  ],
+  "posterior_target": {
+    "likelihood": "exact transformed SV dim-1 dense reference, z_t=log(y_t^2), order 401 radius 8",
+    "prior": "independent Normal(theta_initial, 1.0^2) on theta=(Phi^{-1}(gamma), log(beta))",
+    "initial_theta": [0.2533471031357997, -0.916290731874155]
+  },
+  "posterior_reference": {
+    "route": "deterministic two-dimensional quadrature",
+    "order": 31,
+    "half_width": 0.5
+  },
+  "sampler": {
+    "kernel": "tfp.mcmc.HamiltonianMonteCarlo",
+    "step_size": 0.015,
+    "num_leapfrog_steps": 4,
+    "num_burnin_steps": 40,
+    "num_results": 80,
+    "seed": [20260609, 20260610]
+  },
+  "tolerances": {
+    "acceptance_rate_between": [0.5, 1.0],
+    "mean_error_inf_lt": 0.15,
+    "covariance_error_inf_lt": 0.08,
+    "reference_tail_boundary_log_ratio_lt": -3.0,
+    "nonfinite_sample_count_eq": 0
+  },
+  "metrics": {
+    "reference_mean": [0.266873781983618, -1.0249098937575378],
+    "reference_covariance": [
+      [0.08069704459519905, 0.0025249602296697187],
+      [0.002524960229669718, 0.07200576878981826]
+    ],
+    "reference_log_normalizer": -6.354194197304573,
+    "reference_tail_boundary_log_ratio": 0.0,
+    "reference_grid_points": 961,
+    "sample_mean": [0.17815024847613847, -0.8328009361121943],
+    "sample_covariance": [
+      [0.05689788741401712, 0.02487408882415091],
+      [0.02487408882415091, 0.023897307564418973]
+    ],
+    "acceptance_rate": 1.0,
+    "max_abs_log_accept_ratio": 0.00005376492257180843,
+    "nonfinite_sample_count": 0,
+    "mean_error_inf": 0.19210895764534353,
+    "covariance_error_inf": 0.04810846122539929
+  },
+  "predeclared_criteria_disposition": {
+    "finite_sample": "passed_nonfinite_sample_count_eq_0",
+    "acceptance": "passed_acceptance_rate_between_0p5_and_1p0",
+    "posterior_reference": "failed_mean_error_and_reference_tail_boundary_support",
+    "divergence": "not_assessed_after_posterior_reference_veto",
+    "reproducibility": "not_assessed_after_posterior_reference_veto"
+  },
+  "decision": "BLOCK_TIER3_SHORT_CHAIN_DIAGNOSTIC",
+  "blocker_reason": "The same-target short-chain attempt did not satisfy predeclared posterior/reference veto diagnostics: mean_error_inf was 0.19210895764534353 versus the 0.15 tolerance, and the reference_tail_boundary_log_ratio was 0.0 rather than below -3.0, so the declared bounded-grid reference support is inadequate.",
+  "promotion_boundary": {
+    "short_chain_is_not_production_hmc_ready": true,
+    "single_seed_short_chain_scope": "diagnostic_only",
+    "cpu_only_is_not_gpu_readiness": true,
+    "same_target_as_m5_required": true
+  },
+  "tokens_emitted": [
+    "BLOCK_P51_M6_HMC_TIER3_SHORT_CHAIN"
+  ],
+  "nonclaims": [
+    "no production HMC readiness",
+    "no GPU readiness",
+    "no broad sampler convergence",
+    "no model production readiness",
+    "no source-faithful adaptive TT/SIRT filtering",
+    "no S&P 500 reproduction"
+  ]
+}

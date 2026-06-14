@@ -1,0 +1,403 @@
+{
+  "schema_version": "filter_bench.reference_oracles.v1",
+  "metadata_date": "2026-06-10",
+  "phase": "FILTER_BENCH_P3",
+  "status": "PASS_FILTER_BENCH_P3_REFERENCE_ORACLES",
+  "target_registry": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-target-registry-2026-06-10.json",
+  "adapter_schema": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-adapter-schema-2026-06-10.json",
+  "purpose": "Reference-oracle manifest for value and gradient error reporting.  This manifest binds every P1 target row to a reference route, row class, reference type, gradient policy, diagnostics, and nonclaims before algorithm cells are compared.",
+  "benchmark_class_vocabulary": [
+    "benchmarkable_value_gradient",
+    "benchmarkable_value_only",
+    "diagnostic_only",
+    "surrogate_approximation_lane",
+    "blocked_only"
+  ],
+  "reference_gradient_policy_vocabulary": [
+    "reference_gradient_available",
+    "reference_gradient_unavailable_but_value_benchmarkable",
+    "reference_gradient_missing_blocks_gradient_benchmark",
+    "blocked_value_route"
+  ],
+  "reference_value_policy_vocabulary": [
+    "reference_value_available",
+    "diagnostic_reference_value_available",
+    "surrogate_reference_value_available",
+    "blocked_value_route"
+  ],
+  "rows": [
+    {
+      "registry_row_id": "lgssm_exact_kalman_dim_1_2_3",
+      "benchmark_class": "benchmarkable_value_gradient",
+      "reference_type": "exact",
+      "registry_row_class": "exact_oracle",
+      "reference_oracle_id": "exact_kalman_lgssm",
+      "reference_route_label": "exact_kalman",
+      "target_scope": "same_target_exact_lgssm",
+      "reference_value_policy": "reference_value_available",
+      "reference_gradient_policy": "reference_gradient_available",
+      "reference_gradient_status_for_cells": "VALID",
+      "value_error_eligible": true,
+      "gradient_error_eligible": true,
+      "theta_dimension_policy": "fixed_4",
+      "implementation_hint": "highdim.FixedBranchSquaredTTFilter with fit_config=None on LinearGaussianSSM.",
+      "diagnostics_required": [
+        "kalman_log_likelihood",
+        "tensorflow_gradient",
+        "dtype_float64"
+      ],
+      "evidence_tests": [
+        "tests/highdim/test_p44_lgssm_exact_baseline.py::test_p44_m1_cut4_and_zhaocui_artifact_lane_match_kalman_value_and_score_dims_1_2_3"
+      ],
+      "nonclaims": [
+        "no nonlinear-model exactness",
+        "no HMC readiness"
+      ]
+    },
+    {
+      "registry_row_id": "p44_cubic_additive_gaussian_dim_1_2_3",
+      "benchmark_class": "benchmarkable_value_gradient",
+      "reference_type": "dense_numerical",
+      "registry_row_class": "same_target_dense_reference",
+      "reference_oracle_id": "p44_m2_dense_factorized_legendre",
+      "reference_route_label": "dense_factorized_legendre_reference",
+      "target_scope": "same_target_dense_numerical",
+      "reference_value_policy": "reference_value_available",
+      "reference_gradient_policy": "reference_gradient_available",
+      "reference_gradient_status_for_cells": "VALID",
+      "value_error_eligible": true,
+      "gradient_error_eligible": true,
+      "theta_dimension_policy": "fixed_5",
+      "implementation_hint": "P44 scalar dense Legendre reference summed over active dimensions; order-refinement supports value and score.",
+      "diagnostics_required": [
+        "dense_order",
+        "refinement_gap",
+        "tensorflow_gradient"
+      ],
+      "evidence_tests": [
+        "tests/highdim/test_p44_cubic_additive_gaussian.py::test_p44_m2_dense_reference_refines_value_and_score_dims_1_2_3"
+      ],
+      "nonclaims": [
+        "dense numerical reference is not closed-form exactness",
+        "no HMC readiness"
+      ]
+    },
+    {
+      "registry_row_id": "p44_quadratic_observation_dim_1_2_3",
+      "benchmark_class": "benchmarkable_value_gradient",
+      "reference_type": "dense_numerical",
+      "registry_row_class": "same_target_dense_reference",
+      "reference_oracle_id": "p44_m3_dense_factorized_legendre",
+      "reference_route_label": "dense_factorized_legendre_reference",
+      "target_scope": "same_target_dense_numerical",
+      "reference_value_policy": "reference_value_available",
+      "reference_gradient_policy": "reference_gradient_available",
+      "reference_gradient_status_for_cells": "VALID",
+      "value_error_eligible": true,
+      "gradient_error_eligible": true,
+      "theta_dimension_policy": "fixed_4",
+      "implementation_hint": "P44 quadratic-observation scalar dense Legendre reference summed over active dimensions; order-refinement covers symmetric modes before comparison.",
+      "diagnostics_required": [
+        "dense_order",
+        "symmetric_mode_coverage",
+        "tensorflow_gradient"
+      ],
+      "evidence_tests": [
+        "tests/highdim/test_p44_quadratic_observation.py::test_p44_m3_dense_reference_covers_symmetric_modes_before_comparison",
+        "tests/highdim/test_p44_quadratic_observation.py::test_p44_m3_dense_reference_refines_value_and_score_dims_1_2_3"
+      ],
+      "nonclaims": [
+        "dense numerical reference is not closed-form exactness",
+        "quadratic symmetry stress row remains explicitly labeled",
+        "no HMC readiness"
+      ]
+    },
+    {
+      "registry_row_id": "p44_nonlinear_transition_h2_dim_1_2_3",
+      "benchmark_class": "benchmarkable_value_gradient",
+      "reference_type": "dense_numerical",
+      "registry_row_class": "same_target_dense_reference",
+      "reference_oracle_id": "p44_m4_h2_dense_factorized_legendre",
+      "reference_route_label": "dense_factorized_legendre_reference",
+      "target_scope": "same_target_dense_numerical",
+      "reference_value_policy": "reference_value_available",
+      "reference_gradient_policy": "reference_gradient_available",
+      "reference_gradient_status_for_cells": "VALID",
+      "value_error_eligible": true,
+      "gradient_error_eligible": true,
+      "theta_dimension_policy": "fixed_5",
+      "implementation_hint": "P44 nonlinear-transition horizon-2 dense Legendre reference summed over active dimensions.",
+      "diagnostics_required": [
+        "dense_order",
+        "horizon",
+        "tensorflow_gradient"
+      ],
+      "evidence_tests": [
+        "tests/highdim/test_p44_nonlinear_transition.py::test_p44_m4_dense_reference_refines_value_and_score_dims_1_2_3_horizons_2_4",
+        "tests/highdim/test_p44_nonlinear_transition.py::test_p44_m4_cut4_and_zhaocui_match_dense_horizon_2_dims_1_2_3"
+      ],
+      "nonclaims": [
+        "dense numerical reference is not closed-form exactness",
+        "no production nonlinear-transition claim",
+        "no HMC readiness"
+      ]
+    },
+    {
+      "registry_row_id": "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3",
+      "benchmark_class": "diagnostic_only",
+      "reference_type": "diagnostic",
+      "registry_row_class": "diagnostic_only",
+      "reference_oracle_id": "p44_m4_h4_dense_diagnostic",
+      "reference_route_label": "dense_factorized_legendre_reference_diagnostic",
+      "target_scope": "diagnostic_horizon4_dense_numerical",
+      "reference_value_policy": "diagnostic_reference_value_available",
+      "reference_gradient_policy": "reference_gradient_available",
+      "reference_gradient_status_for_cells": "VALID",
+      "value_error_eligible": true,
+      "gradient_error_eligible": true,
+      "theta_dimension_policy": "fixed_5",
+      "implementation_hint": "P44 nonlinear-transition horizon-4 dense diagnostic reference; not a Zhao-Cui horizon-4 promotion.",
+      "diagnostics_required": [
+        "dense_order",
+        "horizon_4",
+        "diagnostic_only_scope"
+      ],
+      "evidence_tests": [
+        "tests/highdim/test_p44_nonlinear_transition.py::test_p44_m4_dense_reference_refines_value_and_score_dims_1_2_3_horizons_2_4",
+        "tests/highdim/test_p44_nonlinear_transition.py::test_p44_m4_cut4_horizon_4_error_accumulation_is_bounded_dims_1_2_3",
+        "tests/highdim/test_p44_nonlinear_transition.py::test_p44_m4_zhaocui_horizon_4_is_explicit_nonclaim_for_current_scalar_helper"
+      ],
+      "nonclaims": [
+        "not a Zhao-Cui horizon-4 promotion",
+        "not a production nonlinear-transition claim",
+        "no HMC readiness"
+      ]
+    },
+    {
+      "registry_row_id": "sv_exact_transformed_actual_nongaussian_dim_1_2_3",
+      "benchmark_class": "benchmarkable_value_gradient",
+      "reference_type": "transformed_actual_nongaussian",
+      "registry_row_class": "same_target_dense_reference",
+      "reference_oracle_id": "exact_transformed_sv_dense_actual_nongaussian",
+      "reference_route_label": "dense_exact_transformed_sv_reference",
+      "target_scope": "actual_log_square_transformed_non_gaussian_likelihood",
+      "reference_value_policy": "reference_value_available",
+      "reference_gradient_policy": "reference_gradient_available",
+      "reference_gradient_status_for_cells": "VALID",
+      "value_error_eligible": true,
+      "gradient_error_eligible": true,
+      "theta_dimension_policy": "2_times_active_dim",
+      "implementation_hint": "highdim.exact_transformed_sv_independent_panel_dense_reference on the actual log-chi-square observation target.",
+      "diagnostics_required": [
+        "dense_order",
+        "actual_transformed_target",
+        "tensorflow_gradient"
+      ],
+      "evidence_tests": [
+        "tests/highdim/test_p43_sv_value_gradient_cut4_zhaocui.py::test_p43_exact_transformed_zhaocui_matches_dense_value_and_diagnostic_score"
+      ],
+      "nonclaims": [
+        "not KSC Gaussian mixture surrogate",
+        "not native generalized SV",
+        "no HMC readiness"
+      ]
+    },
+    {
+      "registry_row_id": "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3",
+      "benchmark_class": "surrogate_approximation_lane",
+      "reference_type": "gaussian_mixture_surrogate",
+      "registry_row_class": "surrogate_target",
+      "reference_oracle_id": "ksc_sv_gaussian_mixture_kalman_enumeration",
+      "reference_route_label": "kalman_mixture_enumeration",
+      "target_scope": "ksc_gaussian_mixture_surrogate_only",
+      "reference_value_policy": "surrogate_reference_value_available",
+      "reference_gradient_policy": "reference_gradient_available",
+      "reference_gradient_status_for_cells": "VALID",
+      "value_error_eligible": true,
+      "gradient_error_eligible": true,
+      "theta_dimension_policy": "2_times_active_dim",
+      "implementation_hint": "Coordinatewise finite Gaussian-mixture transformed-SV surrogate with Kalman enumeration over mixture components.",
+      "diagnostics_required": [
+        "mixture_table_id",
+        "kalman_component_enumeration",
+        "surrogate_target_scope"
+      ],
+      "evidence_tests": [
+        "tests/highdim/test_p43_sv_value_gradient_cut4_zhaocui.py::test_p43_ksc_cut4_matches_kalman_value_and_diagnostic_score",
+        "tests/highdim/test_p43_sv_value_gradient_cut4_zhaocui.py::test_p43_ksc_mixture_gradient_gap_to_exact_transformed_is_approximation_only"
+      ],
+      "nonclaims": [
+        "not exact transformed actual non-Gaussian target",
+        "not exact native SV likelihood",
+        "no HMC readiness"
+      ]
+    },
+    {
+      "registry_row_id": "native_generalized_sv_dense_lower_rung_dim_2",
+      "benchmark_class": "benchmarkable_value_gradient",
+      "reference_type": "dense_numerical",
+      "registry_row_class": "lower_rung_reference",
+      "reference_oracle_id": "native_generalized_sv_raw_y_dense_lower_rung",
+      "reference_route_label": "dense_native_generalized_sv_raw_observation",
+      "target_scope": "native_raw_y_generalized_sv_lower_rung",
+      "reference_value_policy": "reference_value_available",
+      "reference_gradient_policy": "reference_gradient_available",
+      "reference_gradient_status_for_cells": "VALID",
+      "value_error_eligible": true,
+      "gradient_error_eligible": true,
+      "theta_dimension_policy": "fixed_5",
+      "implementation_hint": "highdim.native_generalized_sv_dense_reference with TensorFlow autodiff through the dense raw-observation reference.",
+      "diagnostics_required": [
+        "dense_order",
+        "raw_y_target",
+        "tensorflow_gradient"
+      ],
+      "evidence_tests": [
+        "tests/highdim/test_p51_native_generalized_sv_reference.py::test_p51_m2_native_dense_reference_value_and_gradient_refine"
+      ],
+      "source_manifests": [
+        "docs/plans/bayesfilter-highdim-zhao-cui-p51-m2-native-generalized-sv-reference-manifest-2026-06-09.json"
+      ],
+      "nonclaims": [
+        "no CUT4 same-target equality",
+        "no Zhao-Cui same-target equality",
+        "no production generalized SV readiness",
+        "no HMC readiness"
+      ]
+    },
+    {
+      "registry_row_id": "spatial_sir_lower_rung_j1_dim_2",
+      "benchmark_class": "benchmarkable_value_only",
+      "reference_type": "dense_numerical",
+      "registry_row_class": "lower_rung_reference",
+      "reference_oracle_id": "spatial_sir_j1_dense_lower_rung",
+      "reference_route_label": "dense_tensor_product_grid_lower_rung",
+      "target_scope": "spatial_sir_j1_additive_gaussian_lower_rung",
+      "reference_value_policy": "reference_value_available",
+      "reference_gradient_policy": "reference_gradient_unavailable_but_value_benchmarkable",
+      "reference_gradient_status_for_cells": "NO_THETA_GRADIENT_DIM0",
+      "value_error_eligible": true,
+      "gradient_error_eligible": false,
+      "theta_dimension_policy": "fixed_0_no_theta",
+      "implementation_hint": "P47 spatial SIR J=1 dense tensor-product lower-rung reference with fixed model parameters.",
+      "diagnostics_required": [
+        "dense_grid",
+        "fixed_model_no_theta",
+        "lower_rung_scope"
+      ],
+      "evidence_tests": [
+        "tests/highdim/test_p47_spatial_sir_filtering.py::test_p47_m4_zhaocui_matches_dense_reference_value_and_state_moments",
+        "tests/highdim/test_p47_spatial_sir_filtering.py::test_p47_m4_lower_rung_evidence_does_not_emit_production_claim"
+      ],
+      "nonclaims": [
+        "no theta-gradient coordinate exists",
+        "not production spatial SIR filtering",
+        "no HMC readiness"
+      ]
+    },
+    {
+      "registry_row_id": "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18",
+      "benchmark_class": "blocked_only",
+      "reference_type": "blocked_only",
+      "registry_row_class": "blocked_current_scope",
+      "reference_oracle_id": "spatial_sir_d18_rank_selection_blocked",
+      "reference_route_label": "p53_scaling_route_admitted_but_rank_selection_blocked",
+      "target_scope": "spatial_sir_d18_blocked_before_filtering",
+      "reference_value_policy": "blocked_value_route",
+      "reference_gradient_policy": "blocked_value_route",
+      "reference_gradient_status_for_cells": "BLOCKED_VALUE_ROUTE",
+      "value_error_eligible": false,
+      "gradient_error_eligible": false,
+      "theta_dimension_policy": "fixed_0_value_route_blocked",
+      "blocker": "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION",
+      "implementation_hint": "P53-M4D admits scaling route; P53-M5 blocks d=18 because no candidate rank is feasible below the memory ceiling.",
+      "diagnostics_required": [
+        "blocked_token",
+        "rank_selection_preflight",
+        "not_performance_cell"
+      ],
+      "evidence_tests": [
+        "tests/highdim/test_p53_m5_rank_selection_integration.py::test_p53_m5_result_manifest_preserves_blocker_and_forbids_downstream_tokens"
+      ],
+      "source_manifests": [
+        "docs/plans/bayesfilter-highdim-zhao-cui-p53-m5-rank-selection-integration-manifest-2026-06-10.json"
+      ],
+      "nonclaims": [
+        "no d=18 spatial SIR filtering result",
+        "no d=50/d=100 result",
+        "no filtering correctness",
+        "no HMC readiness"
+      ]
+    },
+    {
+      "registry_row_id": "predator_prey_lower_rung_dim_2",
+      "benchmark_class": "benchmarkable_value_only",
+      "reference_type": "dense_numerical",
+      "registry_row_class": "lower_rung_reference",
+      "reference_oracle_id": "predator_prey_dense_lower_rung",
+      "reference_route_label": "dense_tensor_product_grid_lower_rung",
+      "target_scope": "predator_prey_additive_gaussian_lower_rung",
+      "reference_value_policy": "reference_value_available",
+      "reference_gradient_policy": "reference_gradient_unavailable_but_value_benchmarkable",
+      "reference_gradient_status_for_cells": "GRADIENT_NOT_EXPOSED",
+      "value_error_eligible": true,
+      "gradient_error_eligible": false,
+      "theta_dimension_policy": "fixed_6_physical_theta_reference_gradient_not_certified",
+      "implementation_hint": "P47 predator-prey dense tensor-product lower-rung reference; gradients are not certified by the reference route.",
+      "diagnostics_required": [
+        "dense_grid",
+        "physical_theta_declared",
+        "lower_rung_scope"
+      ],
+      "evidence_tests": [
+        "tests/highdim/test_p47_predator_prey_filtering.py::test_p47_m5_zhaocui_matches_dense_reference_value_and_state_moments"
+      ],
+      "nonclaims": [
+        "no certified reference gradient",
+        "no nonlinear preconditioning usefulness claim",
+        "no HMC readiness"
+      ]
+    },
+    {
+      "registry_row_id": "predator_prey_production_tuned_h25_dim_2",
+      "benchmark_class": "benchmarkable_value_only",
+      "reference_type": "dense_numerical",
+      "registry_row_class": "production_candidate",
+      "reference_oracle_id": "predator_prey_h25_dense_production_tuned",
+      "reference_route_label": "dense_horizon25_reference",
+      "target_scope": "predator_prey_horizon25_additive_gaussian_production_candidate",
+      "reference_value_policy": "reference_value_available",
+      "reference_gradient_policy": "reference_gradient_unavailable_but_value_benchmarkable",
+      "reference_gradient_status_for_cells": "GRADIENT_NOT_EXPOSED",
+      "value_error_eligible": true,
+      "gradient_error_eligible": false,
+      "theta_dimension_policy": "fixed_6_physical_theta_reference_gradient_not_certified",
+      "implementation_hint": "P51-M4 promoted P51-M4-2 against the unchanged horizon-25 dense P47/P50 reference and preserved production tolerances.",
+      "diagnostics_required": [
+        "dense_reference_order",
+        "promoted_candidate",
+        "preserved_tolerances"
+      ],
+      "evidence_tests": [
+        "tests/highdim/test_p51_predator_prey_production_tuning.py::test_p51_m4_candidate_ladder_passes_only_order9_rank10",
+        "tests/highdim/test_p51_predator_prey_production_tuning.py::test_p51_m4_result_emits_token_once_and_promoted_candidate_is_visible"
+      ],
+      "source_manifests": [
+        "docs/plans/bayesfilter-highdim-zhao-cui-p51-m4-predator-prey-production-tuning-manifest-2026-06-09.json"
+      ],
+      "nonclaims": [
+        "no certified reference gradient",
+        "no native non-Gaussian predator-prey correctness",
+        "no HMC readiness"
+      ]
+    }
+  ],
+  "global_nonclaims": [
+    "no filter ranking",
+    "no DPF gradient certification",
+    "no HMC readiness",
+    "no GPU readiness",
+    "no Bayesian-estimation readiness",
+    "dense numerical references are labeled as numerical references, not closed-form exactness"
+  ]
+}

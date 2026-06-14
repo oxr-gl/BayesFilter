@@ -1,0 +1,97 @@
+{
+  "schema_version": "p45.integration_closeout.v1",
+  "phase": "P45-M6",
+  "metadata_date": "2026-06-08",
+  "run_id": "p45-codex-supervised-20260608-055034",
+  "phase_statuses": [
+    {
+      "phase": "P45-M0",
+      "status": "PASS_P45_M0_CODE_GOVERNANCE",
+      "claim_class": "target_governance_only",
+      "result_note": "docs/plans/bayesfilter-highdim-zhao-cui-p45-phase0-target-governance-result-2026-06-08.md",
+      "evidence_manifest": "docs/plans/bayesfilter-highdim-zhao-cui-p45-phase0-target-governance-evidence-manifest-p45-codex-supervised-20260608-055034.json",
+      "claude_review_ledger": "docs/plans/bayesfilter-highdim-zhao-cui-p45-phase0-target-governance-claude-review-ledger-2026-06-08.md"
+    },
+    {
+      "phase": "P45-M1",
+      "status": "PASS_P45_M1_CODE_GOVERNANCE",
+      "claim_class": "implementation_blocker_recorded",
+      "result_note": "docs/plans/bayesfilter-highdim-zhao-cui-p45-phase1-multistate-zhaocui-route-result-2026-06-08.md",
+      "evidence_manifest": "docs/plans/bayesfilter-highdim-zhao-cui-p45-phase1-multistate-zhaocui-route-evidence-manifest-p45-codex-supervised-20260608-055034.json",
+      "claude_review_ledger": "docs/plans/bayesfilter-highdim-zhao-cui-p45-phase1-multistate-zhaocui-route-claude-review-ledger-2026-06-08.md"
+    },
+    {
+      "phase": "P45-M2",
+      "status": "PASS_P45_M2_CODE_GOVERNANCE",
+      "claim_class": "generalized_sv_blocker_nonclaim",
+      "result_note": "docs/plans/bayesfilter-highdim-zhao-cui-p45-phase2-generalized-sv-comparison-result-2026-06-08.md",
+      "evidence_manifest": "docs/plans/bayesfilter-highdim-zhao-cui-p45-phase2-generalized-sv-comparison-evidence-manifest-p45-codex-supervised-20260608-055034.json",
+      "claude_review_ledger": "docs/plans/bayesfilter-highdim-zhao-cui-p45-phase2-generalized-sv-comparison-claude-review-ledger-2026-06-08.md"
+    },
+    {
+      "phase": "P45-M3",
+      "status": "PASS_P45_M3_CODE_GOVERNANCE",
+      "claim_class": "spatial_sir_blocker_nonclaim",
+      "result_note": "docs/plans/bayesfilter-highdim-zhao-cui-p45-phase3-spatial-sir-comparison-result-2026-06-08.md",
+      "evidence_manifest": "docs/plans/bayesfilter-highdim-zhao-cui-p45-phase3-spatial-sir-comparison-evidence-manifest-p45-codex-supervised-20260608-055034.json",
+      "claude_review_ledger": "docs/plans/bayesfilter-highdim-zhao-cui-p45-phase3-spatial-sir-comparison-claude-review-ledger-2026-06-08.md"
+    },
+    {
+      "phase": "P45-M4",
+      "status": "PASS_P45_M4_CODE_GOVERNANCE",
+      "claim_class": "predator_prey_blocker_nonclaim",
+      "result_note": "docs/plans/bayesfilter-highdim-zhao-cui-p45-phase4-predator-prey-comparison-result-2026-06-08.md",
+      "evidence_manifest": "docs/plans/bayesfilter-highdim-zhao-cui-p45-phase4-predator-prey-comparison-evidence-manifest-p45-codex-supervised-20260608-055034.json",
+      "claude_review_ledger": "docs/plans/bayesfilter-highdim-zhao-cui-p45-phase4-predator-prey-comparison-claude-review-ledger-2026-06-08.md"
+    },
+    {
+      "phase": "P45-M5",
+      "status": "PASS_P45_M5_CODE_GOVERNANCE",
+      "claim_class": "no_promoted_rows_to_calibrate",
+      "result_note": "docs/plans/bayesfilter-highdim-zhao-cui-p45-phase5-cross-model-error-calibration-result-2026-06-08.md",
+      "evidence_manifest": "docs/plans/bayesfilter-highdim-zhao-cui-p45-phase5-cross-model-error-calibration-evidence-manifest-p45-codex-supervised-20260608-055034.json",
+      "claude_review_ledger": "docs/plans/bayesfilter-highdim-zhao-cui-p45-phase5-cross-model-error-calibration-claude-review-ledger-2026-06-08.md"
+    }
+  ],
+  "promoted_comparisons": [],
+  "diagnostic_or_blocked_rows": [
+    "generalized_sv_native_raw_observation",
+    "generalized_sv_transformed_residual_diagnostic",
+    "generalized_sv_gaussian_mixture_or_moment_matched_approximation",
+    "spatial_sir_additive_gaussian_closure",
+    "spatial_sir_native_or_nongaussian_route",
+    "predator_prey_additive_gaussian_rk4_closure",
+    "predator_prey_native_or_nongaussian_route"
+  ],
+  "blockers": [
+    {
+      "class": "implementation",
+      "description": "Current nonlinear Zhao-Cui/fixed-design TT route is scalar-only and rejects state_dim != 1."
+    },
+    {
+      "class": "numerical_reference",
+      "description": "Dense/refined references for generalized-SV native, SIR closure, and predator-prey closure were not implemented in P45."
+    },
+    {
+      "class": "target_definition",
+      "description": "Native/non-Gaussian SIR and predator-prey routes are not scientifically defined in P45."
+    },
+    {
+      "class": "scientific_evidence",
+      "description": "No P45 phase produced matched value/score evidence for CUT4--Zhao-Cui equality on generalized SV, spatial SIR, or predator-prey."
+    }
+  ],
+  "nonclaims": [
+    "no CUT4--Zhao-Cui equality",
+    "no HMC readiness",
+    "no production score API",
+    "no stable public API",
+    "no paper-scale Zhao-Cui reproduction",
+    "no native generalized-SV/SIR/predator-prey correctness"
+  ],
+  "next_justified_actions": [
+    "Decide whether to implement a multistate/factorized Zhao-Cui adapter as a separate reviewed implementation program.",
+    "If adapter work is approved, add dense/refined reference routes for one closure target before any equality claim.",
+    "Keep M2--M4 as blocker/nonclaim evidence until matched reference, CUT4, and Zhao-Cui routes exist."
+  ]
+}

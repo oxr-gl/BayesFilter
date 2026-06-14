@@ -1,0 +1,91 @@
+{
+  "schema_version": "p44.phase_evidence.v1",
+  "run_id": "p44-codex-supervised-20260608-013203",
+  "phase": "P44-M4",
+  "pass_token": "PASS_P44_M4_CODE_GOVERNANCE",
+  "status": "PASS_P44_M4_CODE_GOVERNANCE",
+  "artifact_paths": {
+    "result_note": "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase4-nonlinear-transition-result-2026-06-07.md",
+    "claude_review_ledger": "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase4-nonlinear-transition-claude-review-ledger-2026-06-07.md",
+    "evidence_manifest": "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase4-nonlinear-transition-evidence-manifest-p44-codex-supervised-20260608-013203.json",
+    "test_file": "tests/highdim/test_p44_nonlinear_transition.py",
+    "repair_amendment": "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase4-nonlinear-transition-repair-amendment-2026-06-08.md"
+  },
+  "evidence_chain": {
+    "PHASE_PLAN_CONFIRMED": true,
+    "SKEPTICAL_AUDIT_RECORDED": true,
+    "CLAUDE_PLAN_OR_REPAIR_REVIEW_PASS": true,
+    "IMPLEMENTED": true,
+    "LOCAL_EVIDENCE_RUN": true,
+    "EVIDENCE_AUDIT_RECORDED": true,
+    "RESULT_NOTE_WRITTEN": true,
+    "CLAUDE_CODE_GOVERNANCE_PASS": true,
+    "TRACEABILITY_UPDATED_OR_NONCLAIM_RECORDED": true,
+    "PHASE_PASS": true
+  },
+  "evidence_contract": {
+    "question": "For the nonlinear additive-Gaussian transition model x_t = rho x_{t-1} + c tanh(x_{t-1}) + eta_t, y_t = x_t + epsilon_t, do dense quadrature, CUT4, and Zhao--Cui/fixed-design scalar TT produce consistent same-target value and diagnostic score evidence in dimensions 1, 2, and 3?",
+    "baseline_or_comparator": "Dense scalar quadrature order 241 summed across independent product-panel coordinates is the governing baseline after order-181 refinement; exact Kalman is the nested c=0 timing check; CUT4 uses the matched TensorFlow structural target; Zhao--Cui uses the current two-observation fixed-design scalar TT helper.",
+    "primary_promotion_criterion": "Dims 1, 2, and 3 pass nested c=0 dense/CUT4 tie-out to exact Kalman at T=2 and T=4; dense refinement at T=2 and T=4; T=2 CUT4 and Zhao--Cui value and at least five deterministic directional score residual checks; T=4 CUT4 accumulation checks; and an executable nonclaim for Zhao--Cui T=4.",
+    "veto_diagnostics": [
+      "transition, observation, or initial-law targets differ across methods",
+      "nested c=0 timing fails against exact Kalman",
+      "dense reference lacks refinement",
+      "horizon growth hides accumulated score error",
+      "a Zhao--Cui T=4 claim is made without a separately reviewed helper",
+      "CUT4 augmented dimension, point count, polynomial degree, or innovation-floor diagnostics exceed the phase boundary",
+      "nonfinite value or score appears"
+    ],
+    "explanatory_only_diagnostics": [
+      "TensorFlow warning logs",
+      "wall time",
+      "CUT4 point count",
+      "CUT4 polynomial degree",
+      "fixed-design TT fit details",
+      "approximation-gap magnitudes after passing the stated gate"
+    ],
+    "artifact_preserving_result": "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase4-nonlinear-transition-result-2026-06-07.md plus docs/plans/bayesfilter-highdim-zhao-cui-p44-phase4-nonlinear-transition-evidence-manifest-p44-codex-supervised-20260608-013203.json and docs/plans/logs/p44-codex-supervised-20260608-013203-P44-M4-command0.log",
+    "nonclaims": [
+      "no Zhao--Cui T=4 accumulation result",
+      "no exact CUT4 nonlinear likelihood claim",
+      "no production analytic score API",
+      "no HMC readiness",
+      "no long-horizon posterior recovery",
+      "no coupled multivariate TT claim",
+      "no paper-scale Zhao--Cui reproduction"
+    ]
+  },
+  "commands": [
+    {
+      "purpose": "Run focused P44-M4 nonlinear transition evidence for dense reference, nested Kalman timing, CUT4, and the governed two-observation Zhao--Cui/fixed-design scalar TT lane.",
+      "command": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp pytest -q -s tests/highdim/test_p44_nonlinear_transition.py",
+      "exit_code": 0,
+      "log_path": "docs/plans/logs/p44-codex-supervised-20260608-013203-P44-M4-command0.log"
+    },
+    {
+      "purpose": "Compile highdim package and the focused M4 test file.",
+      "command": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp python -m compileall -q bayesfilter/highdim tests/highdim/test_p44_nonlinear_transition.py",
+      "exit_code": 0,
+      "log_path": "docs/plans/logs/p44-codex-supervised-20260608-013203-P44-M4-command1.log"
+    }
+  ],
+  "diagnostics": {
+    "veto_status": "NONCLAIM_RECORDED",
+    "summary": "Local M4 evidence passes after reviewed horizon-scope repair. Dense order-181 versus order-241 refinement is at numerical-noise scale for horizons 2 and 4. At T=2, dim-3 CUT4 value gap is 6.552222e-04 with relative score error 1.515370e-03, and Zhao--Cui value gap is 9.175742e-04 with relative score error 2.295156e-03. At T=4, dim-3 CUT4 value gap is 6.594262e-04 with relative score error 7.594646e-04. Zhao--Cui T=4 is an explicit executable nonclaim."
+  },
+  "review_loops": {
+    "claude_code_governance": {
+      "iterations": 1,
+      "verdict": "PASS_P44_M4_CODE_GOVERNANCE"
+    },
+    "repair": {
+      "iterations": 1,
+      "verdict": "PASS_P44_M4_REPAIR_REVIEW"
+    }
+  },
+  "long_run_controls": {
+    "long_run_used": false,
+    "resource_caps": "No long run; focused local pytest and compile check only.",
+    "pre_mortem": "N/A"
+  }
+}

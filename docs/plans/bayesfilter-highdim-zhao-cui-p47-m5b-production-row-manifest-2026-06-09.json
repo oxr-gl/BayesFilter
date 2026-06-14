@@ -1,0 +1,56 @@
+{
+  "schema_version": "p47.production_repair.v1",
+  "phase": "P47-M5b",
+  "metadata_date": "2026-06-09",
+  "target_id": "predator_prey_production_filtering",
+  "status": "blocked_accuracy_tuning_after_initial_horizon25_candidate",
+  "pass_token": "PASS_P47_M5_PREDATOR_PREY_PRODUCTION_FILTERING",
+  "production_token_emitted": false,
+  "current_blocker": "BLOCKED_M5B_PRODUCTION_ACCURACY_TUNING",
+  "supervisor": "Codex",
+  "reviewer": "Claude read-only",
+  "m1_route_label": "documented-deviation fixed-design substitute",
+  "prerequisite_tokens": [
+    "PASS_P47_M2_PAPER_SCALE_READINESS",
+    "PASS_P47_M5_PREDATOR_PREY_REFERENCE_FILTERING"
+  ],
+  "target_family": "M5a additive-Gaussian RK4 predator-prey closure",
+  "candidate_ladder": [
+    {"candidate_id": "M5b-0", "horizon": 4, "state_dim": 2, "fit_order": 7, "reference_order": 9, "rank": 8},
+    {"candidate_id": "M5b-1", "horizon": 8, "state_dim": 2, "fit_order": 7, "reference_order": 9, "rank": 8},
+    {"candidate_id": "M5b-2", "horizon": 16, "state_dim": 2, "fit_order": 7, "reference_order": 9, "rank": 8},
+    {"candidate_id": "M5b-3", "horizon": 25, "state_dim": 2, "fit_order": 7, "reference_order": 9, "rank": 8}
+  ],
+  "coordinate_window_amendment": {
+    "prey_window": "approximately [10, 130]",
+    "predator_window": "approximately [0, 11]",
+    "reason": "horizon-25 deterministic prey path reaches about 114"
+  },
+  "production_tolerances": {
+    "abs_log_likelihood_gap_lt": 5.0,
+    "max_step_log_normalizer_gap_lt": 1.0,
+    "max_state_mean_component_error_lt": 5.0,
+    "max_covariance_entry_error_lt": 8.0,
+    "truth_path_prey_rmse_lt": 8.0,
+    "truth_path_predator_rmse_lt": 2.0,
+    "deterministic_replay_required": true
+  },
+  "initial_horizon25_result": {
+    "abs_log_likelihood_gap": 145.7760213472871,
+    "max_step_log_normalizer_gap": 11.414750146529755,
+    "max_state_mean_component_error": 19.45492436940154,
+    "max_covariance_entry_error": 44.61958715970044,
+    "truth_path_prey_rmse": 2.99204937,
+    "truth_path_predator_rmse": 0.96692767,
+    "deterministic_replay": "PASS",
+    "decision": "BLOCKED_M5B_PRODUCTION_ACCURACY_TUNING"
+  },
+  "nonclaims": [
+    "no native non-Gaussian predator-prey correctness",
+    "no nonlinear preconditioning usefulness claim",
+    "no production HMC readiness",
+    "no production score API",
+    "no adaptive MATLAB TT-cross/SIRT reproduction",
+    "no S&P 500 reproduction"
+  ]
+}

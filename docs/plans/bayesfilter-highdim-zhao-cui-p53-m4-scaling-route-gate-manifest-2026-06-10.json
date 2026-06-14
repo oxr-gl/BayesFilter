@@ -1,0 +1,71 @@
+{
+  "schema_version": "p53.scaling_route_gate.v1",
+  "phase": "P53-M4",
+  "status": "BLOCK_P53_M4_SCALING_ROUTE_GATE",
+  "amendment_status": "historical_blocker_superseded_by_P53_M4A_M4D_phase_split",
+  "blocker_type": "scaling_route_design_and_implementation_missing",
+  "lower_rung_evidence_available": {
+    "P53-M1": "PASS_P53_M1_ROUTE_DESIGN_MATH",
+    "P53-M2": "PASS_P53_M2_ROUTE_IMPLEMENTATION",
+    "P53-M3": "PASS_P53_M3_LOWER_RUNG_DENSE_TIEOUT",
+    "route_class": "lower_rung_dense_equivalent",
+    "claim_class": "interface_tieout_only_not_scaling"
+  },
+  "scaling_route_required": {
+    "route_class": "scaling_route",
+    "allowed_designs": [
+      "local-neighborhood sparse transition contraction",
+      "TT-MPO factorized transition contraction"
+    ],
+    "required_properties": [
+      "TensorFlow differentiable implementation",
+      "no dense all-pairs semantics in the production transition application",
+      "deterministic replay metadata",
+      "R_eff or conservative route-width bound",
+      "memory forecast metadata",
+      "lower-rung tie-out against dense reference or P53 C_low route"
+    ]
+  },
+  "blocker": {
+    "summary": "Only the lower-rung dense-equivalent streaming route has passed. No implemented C_scale route exists yet.",
+    "why_not_pass": [
+      "The block-streaming route still has dense-equivalent pair semantics.",
+      "No local-neighborhood sparse contraction has been implemented.",
+      "No TT-MPO transition operator has been implemented.",
+      "No scaling-route R_eff or route-width metadata exists.",
+      "No scaling-route lower-rung tie-out exists."
+    ],
+    "smallest_next_repair": [
+      "Choose local-neighborhood sparse contraction or TT-MPO transition operator.",
+      "Derive the exact TensorFlow contraction and metadata contract.",
+      "Implement it separately from C_low.",
+      "Tie it out on J=1/J=2/J=3 against dense or C_low predictive updates.",
+      "Only then emit PASS_P53_M4_SCALING_ROUTE_GATE."
+    ]
+  },
+  "tokens_emitted": [
+    "BLOCK_P53_M4_SCALING_ROUTE_GATE"
+  ],
+  "forbidden_tokens": [
+    "PASS_P53_M4_SCALING_ROUTE_GATE",
+    "PASS_P53_M5_RANK_SELECTION_INTEGRATION",
+    "PASS_P53_M6_SPATIAL_SIR_D18",
+    "PASS_P53_M7_SPATIAL_SIR_D50_D100"
+  ],
+  "downstream_phase_admission": {
+    "P53-M5": "blocked_without_PASS_P53_M4D_SCALING_ROUTE_ADMISSION",
+    "P53-M6": "blocked_without_PASS_P53_M4D_SCALING_ROUTE_ADMISSION",
+    "P53-M7": "blocked_without_PASS_P53_M4D_SCALING_ROUTE_ADMISSION",
+    "P53-M8": "allowed_only_for_stop_or_closeout_bookkeeping"
+  },
+  "active_resume_target": "P53-M4A",
+  "nonclaims": [
+    "no scaling-route readiness",
+    "no rank-selection readiness",
+    "no d=18 spatial SIR readiness",
+    "no d=50 or d=100 spatial SIR readiness",
+    "no production filtering correctness",
+    "no HMC readiness",
+    "no GPU readiness"
+  ]
+}

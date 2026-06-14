@@ -1,0 +1,61 @@
+{
+  "schema_version": "p47.spatial_sir_filtering_target.v1",
+  "phase": "P47-M4",
+  "metadata_date": "2026-06-08",
+  "target_id": "spatial_sir_reference_equality",
+  "lower_rung_pass_token": "PASS_P47_M4_SPATIAL_SIR_REFERENCE_EQUALITY",
+  "production_pass_token": "PASS_P47_M4_SPATIAL_SIR_PRODUCTION_FILTERING",
+  "target_name": "small-J additive-Gaussian spatial SIR closure",
+  "target_class": "lower_rung_reference_equality_not_native_sir",
+  "state_law": "RK4 spatial SIR transition mean with additive Gaussian process noise on (S_j,I_j)",
+  "observation_law": "infectious-coordinate Gaussian observation closure",
+  "domain_policy": "diagnose_negative_after_noise",
+  "dimensions_tested": {
+    "compartments": [
+      1
+    ],
+    "state_dim": [
+      2
+    ],
+    "horizon": 2
+  },
+  "reference_routes": {
+    "dense_reference": "small-J tensor-product dense quadrature on the declared closure target",
+    "cut4": "CUT4 diagnostic on the same additive-Gaussian structural closure",
+    "zhao_cui": "P46/P47 multistate retained-grid fixed-design TT route"
+  },
+  "m1_route_label": "documented-deviation fixed-design substitute",
+  "lower_rung_tolerances": {
+    "zhao_cui_vs_dense_log_likelihood_abs": 0.25,
+    "zhao_cui_vs_dense_log_normalizer_abs": 0.25,
+    "zhao_cui_vs_dense_observed_mean_abs": 2.0,
+    "zhao_cui_vs_dense_unobserved_mean_abs": 2.0,
+    "cut4_vs_dense_log_likelihood_abs": 5.0,
+    "cut4_vs_dense_state_accuracy_status": "diagnostic_only_not_promotion"
+  },
+  "production_state": "blocked_until_separate_near_paper_or_paper_scale_row_runs_after_lower_rung_pass",
+  "production_prerequisites": [
+    "PASS_P47_M2_PAPER_SCALE_READINESS",
+    "PASS_P47_M4_SPATIAL_SIR_REFERENCE_EQUALITY",
+    "reviewed production or near-paper-scale run manifest",
+    "observed and unobserved state errors reported separately"
+  ],
+  "nonclaims": [
+    "not native non-Gaussian SIR correctness",
+    "not production spatial SIR filtering",
+    "not paper-scale J=9 validation",
+    "CUT4 state moments are diagnostic only in M4a",
+    "not adaptive MATLAB TT-cross/SIRT reproduction",
+    "no HMC readiness",
+    "no production score API",
+    "no S&P 500 reproduction"
+  ],
+  "veto_diagnostics": [
+    "negative populations silently accepted",
+    "observed-only accuracy promoted as full-state accuracy",
+    "native SIR and Gaussian closure mixed as one target",
+    "production token emitted from lower-rung evidence",
+    "M1 route label absent",
+    "finite output promoted as production correctness"
+  ]
+}

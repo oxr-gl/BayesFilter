@@ -1,0 +1,1190 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,mathtools,amsthm}
+\usepackage{booktabs,longtable}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\TT}{\mathrm{TT}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\calX}{\mathcal{X}}
+\newcommand{\calU}{\mathcal{U}}
+\newcommand{\calB}{\mathcal{B}}
+\newcommand{\calD}{\mathcal{D}}
+\newcommand{\dotp}{\partial_i}
+
+% This teaching note cites many displayed formulas.  Number every display so
+% cross-references point to a visible formula rather than to the surrounding
+% section number.
+\renewcommand{\[}{\begin{equation}}
+\renewcommand{\]}{\end{equation}}
+
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{assumption}{Assumption}
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+
+\title{Teaching the Fixed-Branch Zhao--Cui Tensor-Train Filter}
+\author{BayesFilter P14 Pedagogical Mathematical Note}
+\date{2026-05-31}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note retells the fixed-branch Zhao--Cui tensor-train filtering
+construction as a mathematical teaching document.  It is written for a
+scientific reader who is comfortable with probability densities, Gaussian
+likelihoods, integrals, least squares, and matrix factorizations, but who has
+not previously worked with tensor-train filtering.  The presentation keeps the
+P12--P13 mathematical content: the fixed-branch squared-TT recursion produces
+normalized approximate filters, and its analytical gradient differentiates the
+same approximate likelihood scalar computed by the forward pass.  The
+difference is pedagogical.  Tensor trains are introduced first as low-rank
+coupling in coefficient arrays; the filtering construction is derived before
+the source papers are cited; and the gradient proof is split into layers so
+that each derivative has a visible role in the filtering algorithm.
+\end{abstract}
+
+\section{Filtering Objects Before Tensor Notation}
+
+The mathematical object of interest is not a tensor train.  It is the
+unnormalized density that appears in one Bayesian filtering step.  Let
+\[
+  x_t\in\R^{d_x},\qquad \vartheta\in\R^{d_\vartheta},\qquad y_t\in\R^{d_y}
+\]
+denote the current state, a static parameter, and the observation.  A dominated
+state-space model supplies
+\[
+  p_0(x_0,\vartheta),\qquad
+  f_\alpha(x_t\mid x_{t-1},\vartheta),\qquad
+  g_\alpha(y_t\mid x_t,\vartheta),
+  \label{eq:p14-ssm}
+\]
+where \(\alpha\) is the external parameter with respect to which we may later
+differentiate a likelihood.
+
+Assume that, after observing \(y_{1:t-1}\), the filter has density
+\[
+  p_{t-1}(x_{t-1},\vartheta)
+  =
+  p(x_{t-1},\vartheta\mid y_{1:t-1}).
+\]
+Prediction and update can be written as
+\[
+  p(x_t,\vartheta\mid y_{1:t-1})
+  =
+  \int f_\alpha(x_t\mid x_{t-1},\vartheta)
+       p_{t-1}(x_{t-1},\vartheta)\,\dd x_{t-1},
+  \label{eq:p14-prediction}
+\]
+\[
+  p_t(x_t,\vartheta)
+  =
+  \frac{
+  g_\alpha(y_t\mid x_t,\vartheta)
+  p(x_t,\vartheta\mid y_{1:t-1})}
+  {p_\alpha(y_t\mid y_{1:t-1})}.
+  \label{eq:p14-update}
+\]
+Now introduce the enlarged variable
+\[
+  u_t=(x_t,\vartheta,x_{t-1})
+\]
+and define
+\[
+  q_t(u_t;\alpha)
+  =
+  p_{t-1}(x_{t-1},\vartheta)
+  f_\alpha(x_t\mid x_{t-1},\vartheta)
+  g_\alpha(y_t\mid x_t,\vartheta).
+  \label{eq:p14-q}
+\]
+Its integral is
+\[
+  Z_t(\alpha)
+  =
+  \int q_t(x_t,\vartheta,x_{t-1};\alpha)
+  \,\dd x_t\,\dd\vartheta\,\dd x_{t-1}.
+  \label{eq:p14-Z}
+\]
+Substituting \eqref{eq:p14-q} and integrating over \(x_{t-1}\) first gives
+\[
+\begin{aligned}
+  Z_t(\alpha)
+  &=
+  \int g_\alpha(y_t\mid x_t,\vartheta)
+  \left[
+  \int f_\alpha(x_t\mid x_{t-1},\vartheta)
+  p_{t-1}(x_{t-1},\vartheta)\,\dd x_{t-1}
+  \right]
+  \dd x_t\,\dd\vartheta \\
+  &=
+  \int g_\alpha(y_t\mid x_t,\vartheta)
+  p(x_t,\vartheta\mid y_{1:t-1})\,\dd x_t\,\dd\vartheta
+  =
+  p_\alpha(y_t\mid y_{1:t-1}).
+\end{aligned}
+\]
+The updated filter is therefore
+\[
+  p_t(x_t,\vartheta)
+  =
+  \int
+  \frac{q_t(x_t,\vartheta,x_{t-1};\alpha)}
+       {Z_t(\alpha)}
+  \,\dd x_{t-1}.
+  \label{eq:p14-filter-as-marginal}
+\]
+
+\paragraph{Why this matters.}
+Every approximation in this note is an approximation to the three operations
+in \eqref{eq:p14-Z}--\eqref{eq:p14-filter-as-marginal}: represent \(q_t\),
+integrate it, and marginalize the old state.  Tensor trains are useful only if
+they make those three operations feasible in high dimension.
+
+\paragraph{Failure mode.}
+If the approximation to \(q_t\) is poor in regions that contribute meaningful
+mass to the integral, the output can be normalized but inaccurate.  Normalized
+does not mean close to the exact posterior.
+
+\section{Scalar Nonlinear Filtering Example}
+
+Before using tensor notation, consider the scalar nonlinear model
+\[
+  x_t=\rho x_{t-1}+\eta_t,\qquad
+  \eta_t\sim N(0,\sigma_\eta^2),
+\]
+\[
+  y_t=x_t^2+\epsilon_t,\qquad
+  \epsilon_t\sim N(0,\sigma_\epsilon^2).
+  \label{eq:p14-scalar-model}
+\]
+Given a previous approximate filter \(\widehat p_{t-1}(x_{t-1})\), the
+one-step unnormalized density is
+\[
+  q_t(x_t,x_{t-1})
+  =
+  \widehat p_{t-1}(x_{t-1})
+  \frac{1}{\sigma_\eta}
+  \varphi\!\left(\frac{x_t-\rho x_{t-1}}{\sigma_\eta}\right)
+  \frac{1}{\sigma_\epsilon}
+  \varphi\!\left(\frac{y_t-x_t^2}{\sigma_\epsilon}\right),
+  \label{eq:p14-scalar-q}
+\]
+where \(\varphi\) is the standard normal density.
+
+If \(y_t>0\) and \(\sigma_\epsilon\) is small, then
+\[
+  \frac{1}{\sigma_\epsilon}
+  \varphi\!\left(\frac{y_t-x_t^2}{\sigma_\epsilon}\right)
+\]
+has large values near both \(x_t=\sqrt{y_t}\) and
+\(x_t=-\sqrt{y_t}\).  Thus a single observation can create two plausible
+state regions.  The non-Gaussian shape is visible directly in the formula; it
+does not require any tensor argument.
+
+Let \(\phi_t\) approximate the square root:
+\[
+  \phi_t(x_t,x_{t-1})\approx \sqrt{q_t(x_t,x_{t-1})}.
+  \label{eq:p14-scalar-root}
+\]
+Define the nonnegative approximation
+\[
+  \widehat q_t(x_t,x_{t-1})
+  =
+  \phi_t(x_t,x_{t-1})^2
+  +
+  \tau_t\lambda_x(x_t)\lambda_{x^-}(x_{t-1}),
+  \label{eq:p14-scalar-qhat}
+\]
+where
+\[
+  \tau_t\ge0,\qquad
+  \int\lambda_x(x_t)\,\dd x_t=1,\qquad
+  \int\lambda_{x^-}(x_{t-1})\,\dd x_{t-1}=1.
+\]
+The approximate normalizer is
+\[
+\begin{aligned}
+  \widehat Z_t
+  &=
+  \iint \widehat q_t(x_t,x_{t-1})
+  \,\dd x_t\,\dd x_{t-1}  \\
+  &=
+  \iint \phi_t(x_t,x_{t-1})^2\,\dd x_t\,\dd x_{t-1}
+  +
+  \tau_t
+  \left[\int\lambda_x(x_t)\,\dd x_t\right]
+  \left[\int\lambda_{x^-}(x_{t-1})\,\dd x_{t-1}\right] \\
+  &=
+  \iint \phi_t(x_t,x_{t-1})^2\,\dd x_t\,\dd x_{t-1}
+  +\tau_t.
+\end{aligned}
+  \label{eq:p14-scalar-Zhat}
+\]
+The next approximate filter is
+\[
+\begin{aligned}
+  \widehat p_t(x_t)
+  &=
+  \int
+  \frac{\widehat q_t(x_t,x_{t-1})}{\widehat Z_t}
+  \,\dd x_{t-1} \\
+  &=
+  \frac{1}{\widehat Z_t}
+  \int\phi_t(x_t,x_{t-1})^2\,\dd x_{t-1}
+  +
+  \frac{\tau_t}{\widehat Z_t}\lambda_x(x_t).
+\end{aligned}
+  \label{eq:p14-scalar-next-filter}
+\]
+
+\paragraph{Why this matters.}
+The defensive term is not mysterious.  It contributes a controlled background
+density \((\tau_t/\widehat Z_t)\lambda_x(x_t)\) to the next filter.  The main
+shape still comes from the square-root fit through
+\(\int\phi_t^2\,\dd x_{t-1}\).
+
+\paragraph{Failure mode.}
+If \(\tau_t\) is too large, the defensive density can dominate the filter.  If
+\(\tau_t\) is too small and \(\phi_t\) misses an important region, the filter
+can assign too little mass there.  The equations show the tradeoff explicitly.
+
+\section{Tensor Trains As Low-Rank Coupling, Not Magic Compression}
+
+Start with two variables \(u_1,u_2\) and basis functions
+\(\{b_{1,a}\}_{a=1}^{n_1}\), \(\{b_{2,b}\}_{b=1}^{n_2}\).  A full coefficient
+expansion is
+\[
+  \phi(u_1,u_2)
+  =
+  \sum_{a=1}^{n_1}\sum_{b=1}^{n_2}
+  F_{ab} b_{1,a}(u_1)b_{2,b}(u_2).
+  \label{eq:p14-two-full}
+\]
+The coefficient matrix \(F\in\R^{n_1\times n_2}\) stores how coordinate
+\(u_1\) couples to coordinate \(u_2\).  A rank-\(r\) factorization replaces
+\[
+  F_{ab}
+  \approx
+  \sum_{\ell=1}^r U_{a\ell}V_{\ell b}.
+  \label{eq:p14-two-rank}
+\]
+Substituting into \eqref{eq:p14-two-full} gives
+\[
+\begin{aligned}
+  \phi(u_1,u_2)
+  &\approx
+  \sum_{\ell=1}^r
+  \left[\sum_{a=1}^{n_1}U_{a\ell}b_{1,a}(u_1)\right]
+  \left[\sum_{b=1}^{n_2}V_{\ell b}b_{2,b}(u_2)\right] \\
+  &=
+  \sum_{\ell=1}^r U_\ell(u_1)V_\ell(u_2).
+\end{aligned}
+  \label{eq:p14-two-functional-rank}
+\]
+The storage changes from \(n_1n_2\) numbers to \(r(n_1+n_2)\) numbers.
+
+For three variables, a full coefficient tensor
+\[
+  F_{abc},\qquad
+  1\le a\le n_1,\quad 1\le b\le n_2,\quad 1\le c\le n_3,
+\]
+can be approximated by the chain
+\[
+  F_{abc}
+  \approx
+  \sum_{\ell_1=1}^{r_1}\sum_{\ell_2=1}^{r_2}
+  G_1(a,\ell_1)G_2(\ell_1,b,\ell_2)G_3(\ell_2,c).
+  \label{eq:p14-three-tt}
+\]
+The corresponding function is
+\[
+  \phi(u_1,u_2,u_3)
+  \approx
+  G_1(u_1)G_2(u_2)G_3(u_3),
+  \label{eq:p14-three-functional}
+\]
+where \(G_1(u_1)\) is a \(1\times r_1\) row, \(G_2(u_2)\) is an
+\(r_1\times r_2\) matrix, and \(G_3(u_3)\) is an \(r_2\times1\) column.
+Multiplication produces a scalar.
+
+The \(D\)-coordinate tensor train is
+\[
+  \phi(u_1,\ldots,u_D)
+  =
+  G_1(u_1)G_2(u_2)\cdots G_D(u_D),
+  \label{eq:p14-functional-tt}
+\]
+\[
+  G_k(u_k)=\sum_{a=1}^{n_k} C_{k,a}b_{k,a}(u_k),
+  \qquad
+  C_{k,a}\in\R^{r_{k-1}\times r_k},\quad r_0=r_D=1.
+  \label{eq:p14-core-expansion}
+\]
+The storage is roughly
+\[
+  \sum_{k=1}^D r_{k-1}n_k r_k,
+  \label{eq:p14-tt-storage}
+\]
+instead of
+\[
+  \prod_{k=1}^D n_k.
+  \label{eq:p14-full-storage}
+\]
+
+\paragraph{Why this matters.}
+For a chemistry or physics reader, the useful analogy is limited coupling.  If
+a high-dimensional density can be described by local or moderately long-range
+interactions after a good coordinate ordering, the TT ranks may stay moderate.
+The TT is then not magic compression; it is a controlled low-rank description
+of how coordinate groups interact.
+
+\paragraph{Failure mode.}
+If every coordinate is strongly coupled to many distant coordinates, the ranks
+\(r_k\) can grow until \eqref{eq:p14-tt-storage} is no longer small.  The TT
+representation remains mathematically valid, but it may stop being efficient.
+
+\section{From Square-Root Approximation To A Filter}
+
+The filtering density \(q_t\) is nonnegative.  Therefore its square root is
+well-defined wherever \(q_t\) is finite:
+\[
+  s_t(u_t;\alpha)=\sqrt{q_t(u_t;\alpha)}.
+  \label{eq:p14-root-target}
+\]
+Approximate \(s_t\) by a TT:
+\[
+  s_t(u_t;\alpha)\approx
+  \phi_t(u_t;\alpha)
+  =
+  G_{t,1}(u_{t,1};\alpha)\cdots G_{t,D}(u_{t,D};\alpha).
+  \label{eq:p14-root-tt}
+\]
+Then define
+\[
+  \widehat q_t(u_t;\alpha)
+  =
+  \phi_t(u_t;\alpha)^2+\tau_t(\alpha)\lambda_t(u_t),
+  \qquad
+  \lambda_t\ge0,\quad \int\lambda_t=1.
+  \label{eq:p14-qhat}
+\]
+The normalizer and normalized joint density are
+\[
+  \widehat z_t(\alpha)
+  =
+  \int\widehat q_t(u_t;\alpha)\,\dd u_t,
+  \qquad
+  \widehat\pi_t(u_t;\alpha)
+  =
+  \frac{\widehat q_t(u_t;\alpha)}{\widehat z_t(\alpha)}.
+  \label{eq:p14-zhat-pihat}
+\]
+The approximate filter is the marginal
+\[
+  \widehat p_t(x_t,\vartheta;\alpha)
+  =
+  \int
+  \widehat\pi_t(x_t,\vartheta,x_{t-1};\alpha)
+  \,\dd x_{t-1}.
+  \label{eq:p14-pt-from-pihat}
+\]
+
+To compute the square part of \(\widehat z_t\), use the basis mass matrices
+\[
+  M_{t,k}[a,b]
+  =
+  \int b_{t,k,a}(u_k)b_{t,k,b}(u_k)\,\dd\nu_{t,k}(u_k).
+  \label{eq:p14-mass-matrix}
+\]
+Starting from \(R_{t,D}=1\), define
+\[
+  R_{t,k-1}
+  =
+  \sum_{a,b=1}^{n_k}
+  M_{t,k}[a,b]\,
+  C_{t,k,a}R_{t,k}C_{t,k,b}^{\top},
+  \qquad k=D,\ldots,1.
+  \label{eq:p14-mass-contraction}
+\]
+Then
+\[
+  R_{t,0}
+  =
+  \int \phi_t(u_t;\alpha)^2\,\dd u_t,
+  \qquad
+  \widehat z_t=R_{t,0}+\tau_t
+  \label{eq:p14-z-from-R}
+\]
+for fixed normalized \(\lambda_t\).
+
+\paragraph{Why this matters.}
+The square makes the approximation nonnegative.  The mass contraction makes
+the integral computable without enumerating the full tensor grid.  The
+normalization and marginalization then turn the approximation into a filter.
+
+\paragraph{Failure mode.}
+Signed or unconstrained low-rank density approximations can become negative.
+The squared-TT construction avoids that problem, but it can still be inaccurate
+if the square-root fit \(\phi_t\approx\sqrt q_t\) is poor.
+
+\section{The Zhao--Cui Sequential Construction}
+
+The sequential construction can be written as the following recursion.  Given
+\(\widehat p_{t-1}\), form
+\[
+  q_t(x_t,\vartheta,x_{t-1})
+  =
+  \widehat p_{t-1}(x_{t-1},\vartheta)
+  f_\alpha(x_t\mid x_{t-1},\vartheta)
+  g_\alpha(y_t\mid x_t,\vartheta).
+  \label{eq:p14-zc-q}
+\]
+Fit a square-root TT
+\[
+  \phi_t\approx\sqrt{q_t}.
+  \label{eq:p14-zc-root-fit}
+\]
+Define
+\[
+  \widehat q_t=\phi_t^2+\tau_t\lambda_t,\qquad
+  \widehat z_t=\int\widehat q_t,\qquad
+  \widehat\pi_t=\widehat q_t/\widehat z_t.
+  \label{eq:p14-zc-normalize}
+\]
+Propagate the filter by
+\[
+  \widehat p_t(x_t,\vartheta)
+  =
+  \int \widehat\pi_t(x_t,\vartheta,x_{t-1})\,\dd x_{t-1}.
+  \label{eq:p14-zc-propagate}
+\]
+
+The same normalized joint density also defines conditional distributions.  If
+the coordinates of \(u_t\) are ordered as \(u_1,\ldots,u_D\), then
+\[
+  \widehat\pi_t(u_1,\ldots,u_D)
+  =
+  \widehat\pi_t(u_1)
+  \widehat\pi_t(u_2\mid u_1)\cdots
+  \widehat\pi_t(u_D\mid u_1,\ldots,u_{D-1}).
+  \label{eq:p14-conditional-factorization}
+\]
+A conditional Knothe--Rosenblatt map samples these coordinates by inverting
+successive conditional cumulative distribution functions:
+\[
+  r_k
+  =
+  F_k(u_k\mid u_1,\ldots,u_{k-1}),
+  \qquad
+  u_k
+  =
+  F_k^{-1}(r_k\mid u_1,\ldots,u_{k-1}),
+  \quad r_k\in(0,1).
+  \label{eq:p14-kr}
+\]
+For the filtering and gradient results in this note, the map is secondary.
+What matters is that the same squared-TT object supplies marginals,
+conditionals, normalizers, and samples.
+
+Zhao and Cui use this sequential squared-TT construction for state-space
+learning, including the nonseparable density over
+\((x_t,\theta,x_{t-1})\), the squared density
+\(\phi^2+\tau\lambda\), and the marginal/conditional constructions
+\cite{zhao-cui-2024}.  Cui and Dolgov provide the squared inverse Rosenblatt
+transport machinery used to interpret the conditional maps
+\cite{cui-dolgov-2022}.
+
+\paragraph{Why this matters.}
+The source papers do not merely provide a compression trick.  They provide a
+way to use a nonnegative low-rank density representation inside the same
+normalization and marginalization operations that define Bayesian filtering.
+
+\paragraph{Failure mode.}
+The conditional maps inherit the quality of the squared-TT approximation.  A
+bad density approximation yields bad marginal and conditional distributions
+even if the algebraic conditioning procedure is internally consistent.
+
+\section{Why Adaptive TT Filtering Is Not Automatically A Gradient Method}
+
+Let \(B\) denote all numerical branch choices:
+\[
+  B=
+  \{\text{ranks, pivots, interpolation points, samples, truncations,
+  factorization signs, shift rule}\}.
+  \label{eq:p14-branch}
+\]
+For a fixed branch \(B\), the algorithm computes a scalar
+\[
+  \widehat\ell_T(\alpha;B)
+  =
+  \sum_{t=1}^T
+  \{\log\widehat z_t(\alpha;B)-c_t(\alpha;B)\}.
+  \label{eq:p14-branch-scalar}
+\]
+An adaptive code chooses a branch from the parameter value:
+\[
+  B=B(\alpha).
+  \label{eq:p14-adaptive-branch}
+\]
+Thus the adaptive value path is
+\[
+  L_{\rm adap}(\alpha)
+  =
+  \widehat\ell_T(\alpha;B(\alpha)).
+  \label{eq:p14-adaptive-scalar}
+\]
+A fixed-branch derivative computes
+\[
+  \left.
+  \frac{\partial}{\partial\alpha_i}
+  \widehat\ell_T(\alpha;B_0)
+  \right|_{\alpha=\alpha_0},
+  \qquad B_0=B(\alpha_0),
+  \label{eq:p14-fixed-branch-derivative}
+\]
+not the derivative of \eqref{eq:p14-adaptive-scalar} across branch changes.
+
+\paragraph{Why this matters.}
+Adaptation is useful for filtering because the representation can respond to
+the target density.  A gradient, however, must differentiate one scalar formula.
+When the formula changes because \(B(\alpha)\) changes, the derivative of the
+old branch is only a local branch derivative.
+
+\paragraph{Failure mode.}
+If finite-difference evaluations at \(\alpha+h e_i\) and \(\alpha-h e_i\)
+choose different ranks or interpolation points, then the finite difference is
+testing the adaptive value path, while the fixed-branch formula differentiates
+\(\widehat\ell_T(\alpha;B_0)\).  These are different mathematical objects.
+
+\section{The Fixed-Branch Filtering Algorithm}
+
+A fixed branch is specified before differentiation.  For each time \(t\), fix
+\[
+  B_t=
+  (\text{ordering},\text{domain maps},\text{basis},\text{ranks},
+  \text{fitting points},\text{solver path},\lambda_t,\tau_t,c_t,
+  \text{factorization signs}).
+  \label{eq:p14-fixed-branch-spec}
+\]
+The forward step is:
+\[
+  q_t=\widehat p_{t-1}^{\TT}f_\alpha g_\alpha,
+  \qquad
+  s_t=\exp(c_t/2)\sqrt{q_t},
+  \qquad
+  \phi_t\approx s_t.
+  \label{eq:p14-fixed-forward-target}
+\]
+At fixed fitting points \(u^{(j)}\), this means
+\[
+  s_j(\alpha)
+  =
+  \exp(c_t(\alpha)/2)
+  \left[
+  \widehat p_{t-1}^{\TT}(x_{t-1}^{(j)},\vartheta^{(j)};\alpha)
+  f_\alpha(x_t^{(j)}\mid x_{t-1}^{(j)},\vartheta^{(j)})
+  g_\alpha(y_t\mid x_t^{(j)},\vartheta^{(j)})
+  \right]^{1/2}.
+  \label{eq:p14-target-values}
+\]
+
+One possible core update is interpolation:
+\[
+  A_{t,k}(\alpha)g_{t,k}(\alpha)=b_{t,k}(\alpha).
+  \label{eq:p14-interpolation-system}
+\]
+Another is fixed weighted least squares:
+\[
+  g_{t,k}(\alpha)
+  =
+  \arg\min_g
+  \|W_{t,k}^{1/2}(A_{t,k}(\alpha)g-b_{t,k}(\alpha))\|_2^2.
+  \label{eq:p14-ls-system}
+\]
+The branch must choose the value path.  The derivative later differentiates
+that path, not an unspecified mixture of paths.
+
+After the cores are obtained, compute
+\[
+  R_{t,0}=\int\phi_t^2,\qquad
+  \widehat z_t=R_{t,0}+\tau_t,\qquad
+  \widehat\ell_t^{\TT}=\log\widehat z_t-c_t.
+  \label{eq:p14-fixed-forward-scalar}
+\]
+The normalized joint and filter are
+\[
+  \widehat\pi_t
+  =
+  \frac{\phi_t^2+\tau_t\lambda_t}{\widehat z_t},
+  \qquad
+  \widehat p_t^{\TT}(x_t,\vartheta)
+  =
+  \int\widehat\pi_t(x_t,\vartheta,x_{t-1})\,\dd x_{t-1}.
+  \label{eq:p14-fixed-filter}
+\]
+Store the unnormalized marginal numerator
+\[
+  a_t(x_t,\vartheta)
+  =
+  \int
+  \{\phi_t(x_t,\vartheta,x_{t-1})^2
+  +\tau_t\lambda_t(x_t,\vartheta,x_{t-1})\}
+  \,\dd x_{t-1},
+  \label{eq:p14-marginal-numerator}
+\]
+so that
+\[
+  \widehat p_t^{\TT}(x_t,\vartheta)=a_t(x_t,\vartheta)/\widehat z_t.
+  \label{eq:p14-filter-numerator-ratio}
+\]
+
+\paragraph{Why this matters.}
+The saved numerator \(a_t\) is not bookkeeping clutter.  It is needed because
+the next target \(q_{t+1}\) contains \(\widehat p_t^{\TT}\), and therefore the
+gradient at \(t+1\) needs the derivative of the previous approximate filter.
+
+\paragraph{Failure mode.}
+If the implementation saves only \(\widehat\ell_t^{\TT}\) and discards the
+branch objects that produced it, then a later derivative implementation cannot
+prove that it differentiates the same scalar.
+
+\section{Proposition 1: Normalized Approximate Filtering}
+
+\begin{assumption}[Fixed-branch filtering assumptions]
+For every \(t\), \(\widehat p_{t-1}^{\TT}\) is nonnegative and integrates to
+one.  The transition and likelihood densities are nonnegative and measurable.
+The fixed branch produces a measurable \(\phi_t\).  The defensive density
+satisfies \(\lambda_t\ge0\) and \(\int\lambda_t=1\).  The defensive mass
+satisfies \(\tau_t\ge0\).  Finally,
+\[
+  0<
+  \widehat z_t
+  =
+  \int\{\phi_t(u)^2+\tau_t\lambda_t(u)\}\,\dd u
+  <\infty.
+  \label{eq:p14-pos-finite}
+\]
+\end{assumption}
+
+\begin{proposition}[Fixed-branch squared-TT filtering is normalized]
+Under the fixed-branch filtering assumptions, define
+\[
+  \widehat q_t(u)=\phi_t(u)^2+\tau_t\lambda_t(u),
+  \qquad
+  \widehat\pi_t(u)=\widehat q_t(u)/\widehat z_t,
+  \label{eq:p14-prop1-joint}
+\]
+and
+\[
+  \widehat p_t^{\TT}(x_t,\vartheta)
+  =
+  \int
+  \widehat\pi_t(x_t,\vartheta,x_{t-1})\,\dd x_{t-1}.
+  \label{eq:p14-prop1-marginal}
+\]
+Then \(\widehat p_t^{\TT}\) is a nonnegative normalized density.  Starting
+from a normalized prior, the recursion defines normalized approximate filters
+for all times for which \eqref{eq:p14-pos-finite} holds.
+\end{proposition}
+
+\begin{proof}
+Pointwise,
+\[
+  \widehat q_t(u)=\phi_t(u)^2+\tau_t\lambda_t(u)\ge0.
+\]
+Because \(0<\widehat z_t<\infty\),
+\[
+  \widehat\pi_t(u)\ge0,\qquad
+  \int\widehat\pi_t(u)\,\dd u
+  =
+  \frac{\int\widehat q_t(u)\,\dd u}{\widehat z_t}
+  =
+  1.
+\]
+Using Tonelli's theorem for the nonnegative integrand,
+\[
+\begin{aligned}
+  \int \widehat p_t^{\TT}(x_t,\vartheta)\,\dd x_t\,\dd\vartheta
+  &=
+  \int\int
+  \widehat\pi_t(x_t,\vartheta,x_{t-1})
+  \,\dd x_{t-1}\,\dd x_t\,\dd\vartheta \\
+  &=
+  \int \widehat\pi_t(u)\,\dd u
+  =
+  1.
+\end{aligned}
+\]
+Thus the marginal filter is nonnegative and normalized.  The induction over
+time is immediate: a normalized prior gives the base case, and the displayed
+argument advances the property from \(t-1\) to \(t\).
+\end{proof}
+
+\paragraph{Why this matters.}
+The proposition proves that the approximation is a proper probability density
+after every completed step.  It does not prove that the density is accurate;
+that depends on the approximation quality of \(\phi_t\).
+
+\paragraph{Failure mode.}
+If \(\widehat z_t=0\), \(\widehat z_t=\infty\), or the numerical branch creates
+a nonmeasurable or nonintegrable object, the normalization argument fails.
+
+\section{Proposition 2 In Layers: Same-Scalar Gradient}
+
+This section expands the gradient proof in layers.  Each layer contributes one
+piece of the final derivative.
+
+\subsection*{Layer A: derivative of the declared scalar}
+
+The fixed-branch scalar is
+\[
+  \widehat\ell_T^{\TT}(\alpha)
+  =
+  \sum_{t=1}^T
+  \{\log\widehat z_t(\alpha)-c_t(\alpha)\}.
+  \label{eq:p14-declared-scalar}
+\]
+If \(\widehat z_t(\alpha)>0\), then
+\[
+  \partial_i
+  \{\log\widehat z_t(\alpha)-c_t(\alpha)\}
+  =
+  \frac{\partial_i\widehat z_t(\alpha)}
+       {\widehat z_t(\alpha)}
+  -
+  \partial_i c_t(\alpha).
+  \label{eq:p14-layerA}
+\]
+
+\paragraph{Why this matters.}
+The gradient problem reduces to computing \(\partial_i\widehat z_t\) and
+\(\partial_i c_t\) for the same branch that produced \(\widehat z_t\) and
+\(c_t\).
+
+\subsection*{Layer B: derivative of the squared-TT normalizer}
+
+For fixed normalized \(\lambda_t\),
+\[
+  \widehat z_t
+  =
+  \int\{\phi_t(u;\alpha)^2+\tau_t(\alpha)\lambda_t(u)\}\,\dd u.
+  \label{eq:p14-z-layerB}
+\]
+Assuming differentiation may pass through the integral,
+\[
+\begin{aligned}
+  \partial_i\widehat z_t
+  &=
+  \int
+  2\phi_t(u;\alpha)\partial_i\phi_t(u;\alpha)\,\dd u
+  +
+  \partial_i\tau_t(\alpha)\int\lambda_t(u)\,\dd u \\
+  &=
+  2\int
+  \phi_t(u;\alpha)\partial_i\phi_t(u;\alpha)\,\dd u
+  +
+  \partial_i\tau_t(\alpha).
+\end{aligned}
+  \label{eq:p14-layerB}
+\]
+If \(\lambda_t\) depends on \(\alpha\), the extra term
+\[
+  \tau_t\int\partial_i\lambda_t(u;\alpha)\,\dd u
+  \label{eq:p14-lambda-extra}
+\]
+must be included.
+
+\paragraph{Why this matters.}
+The normalizer derivative depends on the square-root TT derivative, not on a
+separate derivative of a normalized filter.  This is why the derivative path
+must track \(\partial_i\phi_t\).
+
+\subsection*{Layer C: derivative of the TT square root}
+
+The square-root TT is
+\[
+  \phi_t(u)
+  =
+  G_{t,1}(u_1)G_{t,2}(u_2)\cdots G_{t,D}(u_D).
+  \label{eq:p14-layerC-tt}
+\]
+The product rule gives
+\[
+  \partial_i\phi_t(u)
+  =
+  \sum_{k=1}^D
+  G_{t,1}(u_1)\cdots
+  \partial_iG_{t,k}(u_k)\cdots
+  G_{t,D}(u_D).
+  \label{eq:p14-layerC-product}
+\]
+With
+\[
+  G_{t,k}(u_k)
+  =
+  \sum_{a=1}^{n_k} C_{t,k,a}b_{t,k,a}(u_k),
+  \label{eq:p14-layerC-core}
+\]
+one has, for fixed basis functions,
+\[
+  \partial_iG_{t,k}(u_k)
+  =
+  \sum_{a=1}^{n_k}
+  (\partial_iC_{t,k,a})b_{t,k,a}(u_k).
+  \label{eq:p14-layerC-coredot}
+\]
+
+\paragraph{Why this matters.}
+The derivative of the high-dimensional function is obtained by differentiating
+one core at a time.  This is the same low-rank coupling idea as Section 3, now
+applied to sensitivities.
+
+\subsection*{Layer D: derivative of the mass contraction}
+
+The forward mass contraction is
+\[
+  R_{t,D}=1,\qquad
+  R_{t,k-1}
+  =
+  \sum_{a,b}
+  M_{t,k}[a,b]C_{t,k,a}R_{t,k}C_{t,k,b}^{\top}.
+  \label{eq:p14-layerD-R}
+\]
+Assuming fixed mass matrices, the differentiated contraction is
+\[
+\begin{aligned}
+  \partial_iR_{t,k-1}
+  =
+  \sum_{a,b}M_{t,k}[a,b]\Big[
+  &(\partial_iC_{t,k,a})R_{t,k}C_{t,k,b}^{\top}
+  +C_{t,k,a}(\partial_iR_{t,k})C_{t,k,b}^{\top}\\
+  &+C_{t,k,a}R_{t,k}(\partial_iC_{t,k,b})^{\top}
+  \Big],
+\end{aligned}
+  \label{eq:p14-layerD-Rdot}
+\]
+with \(\partial_iR_{t,D}=0\).
+
+\paragraph{Why this matters.}
+The scalar \(R_{t,0}\) used in the forward likelihood is differentiated by the
+same backward contraction.  This prevents the gradient from silently switching
+to another normalizer.
+
+\subsection*{Layer E: derivative of the core solve}
+
+For an interpolation branch,
+\[
+  A_{t,k}g_{t,k}=b_{t,k}.
+  \label{eq:p14-layerE-interp}
+\]
+Differentiating gives
+\[
+  A_{t,k}\partial_i g_{t,k}
+  =
+  \partial_i b_{t,k}
+  -
+  (\partial_iA_{t,k})g_{t,k}.
+  \label{eq:p14-layerE-interpdot}
+\]
+For a weighted least-squares branch,
+\[
+  g_{t,k}
+  =
+  \arg\min_g
+  \|W_{t,k}^{1/2}(A_{t,k}g-b_{t,k})\|_2^2,
+  \label{eq:p14-layerE-ls}
+\]
+the normal equations are
+\[
+  N_{t,k}g_{t,k}=A_{t,k}^{\top}W_{t,k}b_{t,k},
+  \qquad
+  N_{t,k}=A_{t,k}^{\top}W_{t,k}A_{t,k}.
+  \label{eq:p14-layerE-normal}
+\]
+With fixed \(W_{t,k}\),
+\[
+\begin{aligned}
+  N_{t,k}\partial_i g_{t,k}
+  =
+  &(\partial_i A_{t,k})^\top W_{t,k}
+  (b_{t,k}-A_{t,k}g_{t,k})\\
+  &+
+  A_{t,k}^{\top}W_{t,k}
+  (\partial_i b_{t,k}-(\partial_iA_{t,k})g_{t,k}).
+\end{aligned}
+  \label{eq:p14-layerE-lsdot}
+\]
+
+\paragraph{Why this matters.}
+The derivative of a core is not guessed.  It is obtained by differentiating
+the same linear algebra problem that produced the core.
+
+\subsection*{Layer F: derivative of the previous filter}
+
+The target at time \(t\) contains the previous filter:
+\[
+  q_t
+  =
+  \widehat p_{t-1}^{\TT}f_\alpha g_\alpha.
+  \label{eq:p14-layerF-q}
+\]
+Where the factors are positive,
+\[
+  \partial_i\log q_t
+  =
+  \partial_i\log\widehat p_{t-1}^{\TT}
+  +
+  \partial_i\log f_\alpha
+  +
+  \partial_i\log g_\alpha.
+  \label{eq:p14-layerF-logq}
+\]
+Using the stored numerator from \eqref{eq:p14-marginal-numerator},
+\[
+  \widehat p_{t-1}^{\TT}(v;\alpha)
+  =
+  \frac{a_{t-1}(v;\alpha)}{\widehat z_{t-1}(\alpha)},
+  \label{eq:p14-layerF-ratio}
+\]
+so
+\[
+  \partial_i\log\widehat p_{t-1}^{\TT}(v;\alpha)
+  =
+  \frac{\partial_i a_{t-1}(v;\alpha)}{a_{t-1}(v;\alpha)}
+  -
+  \frac{\partial_i\widehat z_{t-1}(\alpha)}
+       {\widehat z_{t-1}(\alpha)}.
+  \label{eq:p14-layerF-prev}
+\]
+The derivative \(\partial_i a_{t-1}\) is another marginal contraction, with
+one previous TT core differentiated at a time.
+
+\paragraph{Why this matters.}
+The gradient is recursive because the filter is recursive.  Time \(t\) cannot
+be differentiated correctly unless the derivative of the time \(t-1\) filter
+is carried forward.
+
+\begin{assumption}[Fixed-branch differentiability]
+The fixed-branch filtering assumptions hold.  The branch choices are fixed.
+The model densities, previous-filter numerator, coordinate maps, basis maps,
+core coefficients, defensive mass, and stabilizing constant are differentiable
+in \(\alpha_i\).  The displayed differentiations may pass through the finite
+contractions and integrals.  The fixed interpolation or least-squares systems
+are nonsingular, or a differentiable pseudoinverse branch is declared.
+\end{assumption}
+
+\begin{proposition}[Same-scalar fixed-branch gradient]
+Under the fixed-branch differentiability assumptions, the derivative of
+\[
+  \widehat\ell_T^{\TT}(\alpha)
+  =
+  \sum_{t=1}^T
+  \{\log\widehat z_t(\alpha)-c_t(\alpha)\}
+\]
+is
+\[
+  \partial_i\widehat\ell_T^{\TT}
+  =
+  \sum_{t=1}^T
+  \left[
+  \frac{\partial_iR_{t,0}+\partial_i\tau_t}
+       {R_{t,0}+\tau_t}
+  -
+  \partial_i c_t
+  \right],
+  \label{eq:p14-final-score}
+\]
+for the direct mass-contraction branch with fixed normalized
+\(\lambda_t\).  If \(\lambda_t\) is parameter-dependent, the additional term
+in \eqref{eq:p14-lambda-extra} must be included.
+\end{proposition}
+
+\begin{proof}
+Layer A proves the derivative of each log-normalizer contribution.  Layer B
+expresses \(\partial_i\widehat z_t\) in terms of
+\(\phi_t\), \(\partial_i\phi_t\), and \(\partial_i\tau_t\).  Layer C gives
+\(\partial_i\phi_t\) by differentiating one TT core at a time.  Layer D shows
+that the derivative of the square mass \(R_{t,0}\) is computed by the same
+mass-contraction recursion used in the forward pass, with product-rule terms.
+Layer E gives the core sensitivities for the fixed interpolation or fixed
+least-squares branch.  Layer F supplies the recursive derivative of the
+previous approximate filter inside \(q_t\).  Substituting
+\(\widehat z_t=R_{t,0}+\tau_t\) into Layer A gives
+\eqref{eq:p14-final-score}.
+\end{proof}
+
+\paragraph{Failure mode.}
+If the rank, pivot set, fitting points, branch signs, or least-squares system
+change with \(\alpha\), the derivative above remains the derivative of the
+frozen local branch, not of the adaptive code path.
+
+\section{Algorithmic Gradient Recipe}
+
+\paragraph{Inputs.}
+For each \(t\), provide
+\[
+  B_t,\quad \widehat p_{t-1}^{\TT},\quad f_\alpha,\quad g_\alpha,\quad
+  \partial_i\log f_\alpha,\quad \partial_i\log g_\alpha,\quad
+  y_t.
+\]
+The branch data \(B_t\) includes bases, ranks, fitting points, mass matrices,
+linear-system type, defensive density, defensive mass, shift rule, and
+factorization signs.
+
+\paragraph{Forward pass.}
+For \(t=1,\ldots,T\):
+\[
+  q_t=\widehat p_{t-1}^{\TT}f_\alpha g_\alpha,
+  \qquad
+  s_t=\exp(c_t/2)\sqrt{q_t}.
+\]
+Solve either \eqref{eq:p14-interpolation-system} or
+\eqref{eq:p14-ls-system} for the TT cores.  Compute
+\[
+  R_{t,0},\quad
+  \widehat z_t=R_{t,0}+\tau_t,\quad
+  \widehat\ell_t^{\TT}=\log\widehat z_t-c_t,
+\]
+and store \(a_t\) from \eqref{eq:p14-marginal-numerator}.
+
+\paragraph{Sensitivity pass.}
+For each parameter coordinate \(\alpha_i\) and time \(t\):
+\[
+  \partial_i\log q_t
+  =
+  \partial_i\log\widehat p_{t-1}^{\TT}
+  +
+  \partial_i\log f_\alpha
+  +
+  \partial_i\log g_\alpha.
+\]
+Differentiate the chosen core solve, producing \(\partial_iC_{t,k,a}\).
+Propagate \(\partial_iR_{t,k}\) backward with
+\eqref{eq:p14-layerD-Rdot}.  Form
+\[
+  \partial_i\widehat z_t
+  =
+  \partial_iR_{t,0}+\partial_i\tau_t
+\]
+and
+\[
+  \partial_i\widehat\ell_t^{\TT}
+  =
+  \frac{\partial_i\widehat z_t}{\widehat z_t}
+  -
+  \partial_i c_t.
+  \label{eq:p14-step-score}
+\]
+Carry the filter sensitivity forward through
+\[
+  \partial_i(\widehat q_t/\widehat z_t)
+  =
+  \frac{\partial_i\widehat q_t}{\widehat z_t}
+  -
+  \frac{\widehat q_t\,\partial_i\widehat z_t}{\widehat z_t^2},
+  \label{eq:p14-normalized-density-dot}
+\]
+then marginalize over \(x_{t-1}\).
+
+\paragraph{Finite-difference parity.}
+For a frozen branch \(B_0\), check
+\[
+  \frac{
+  \widehat\ell_T^{\TT}(\alpha+h e_i;B_0)
+  -
+  \widehat\ell_T^{\TT}(\alpha-h e_i;B_0)}
+  {2h}
+  \approx
+  \partial_i\widehat\ell_T^{\TT}(\alpha;B_0).
+  \label{eq:p14-parity}
+\]
+If the branch is not frozen, this test no longer checks the same derivative.
+
+\paragraph{Failure mode.}
+The most dangerous implementation error is a value-gradient mismatch: the
+forward pass computes one scalar, while the derivative pass differentiates a
+slightly different scalar.  The parity test is designed to catch that error.
+
+\section{What The Construction Gives And What Must Be Tested}
+
+Mathematically, the construction gives
+\[
+  \widehat q_t=\phi_t^2+\tau_t\lambda_t,\qquad
+  \widehat z_t=\int\widehat q_t,\qquad
+  \widehat p_t^{\TT}=\int\widehat q_t/\widehat z_t\,\dd x_{t-1}.
+\]
+Proposition 1 proves that this is a normalized approximate filter.  Proposition
+2 proves that, on a fixed branch,
+\[
+  \nabla_\alpha
+  \sum_t\{\log\widehat z_t-c_t\}
+\]
+is computed by differentiating the same branch.
+
+What must still be tested is numerical:
+\[
+  \|\widehat q_t-q_t\|,\qquad
+  \max_k r_{t,k},\qquad
+  \kappa(A_{t,k})\ \text{or}\ \kappa(N_{t,k}),\qquad
+  \text{finite-difference parity error}.
+\]
+These quantities answer different questions.  Approximation error tests
+whether the filter is accurate.  Rank growth tests whether the TT idea is
+efficient.  Conditioning tests whether the linear algebra is stable.  Parity
+tests whether the implemented gradient differentiates the same scalar.
+
+\paragraph{Why this matters.}
+The derivation makes Zhao--Cui-style TT filtering a credible candidate because
+it defines a normalized approximate filter and a fixed-branch gradient.  It
+does not by itself show that the candidate wins on the target model.  That
+requires numerical experiments and implementation tests.
+
+\appendix
+\section{Source And Code Anchors}
+
+The derivations above are written in BayesFilter notation.  The source anchors
+below record where the corresponding objects appear in the inspected sources.
+
+\begin{itemize}[leftmargin=*]
+\item Zhao--Cui equations (1)--(3): state-space model notation.
+\item Zhao--Cui equations (9)--(12) and Algorithm 1: sequential density over
+  \((x_t,\theta,x_{t-1})\), TT approximation, and integration architecture.
+\item Zhao--Cui equation (13) and nearby Lemma 1: squared-TT density
+  \(\phi^2+\tau\lambda\).
+\item Zhao--Cui Algorithm 2: sequential use of squared-TT approximations.
+\item Zhao--Cui Propositions 2 and 4: marginal and conditional constructions.
+\item Zhao--Cui Section 4.1: normalizer/evidence discussion.
+\item Cui--Dolgov Sections 2--3: squared inverse Rosenblatt and functional TT
+  transport substrate.
+\item Inspected MATLAB snapshot: the scalar path adds
+  \(\log(\texttt{sirt.z})-\texttt{const}\), and the TT marginalization stores a
+  normalizer of the form square-mass plus defensive mass.  These code
+  references show consistency of scalar structure; the mathematical
+  justification is the derivation in the main text.
+\end{itemize}
+
+\begin{thebibliography}{9}
+\bibitem{zhao-cui-2024}
+Zhao, Y. and Cui, T. (2024).
+\newblock Tensor-train methods for sequential state and parameter learning in
+state-space models.
+\newblock \emph{Journal of Machine Learning Research}, 25(244):1--51.
+
+\bibitem{cui-dolgov-2022}
+Cui, T. and Dolgov, S. (2022).
+\newblock Deep composition of tensor-trains using squared inverse Rosenblatt
+transports.
+\newblock \emph{Foundations of Computational Mathematics}, 22:1863--1922.
+\newblock DOI: 10.1007/s10208-021-09537-5.
+\end{thebibliography}
+
+\end{document}

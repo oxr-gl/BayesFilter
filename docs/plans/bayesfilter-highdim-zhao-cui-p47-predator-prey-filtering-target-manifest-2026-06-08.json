@@ -1,0 +1,87 @@
+{
+  "schema_version": "p47.predator_prey_filtering_target.v1",
+  "phase": "P47-M5",
+  "metadata_date": "2026-06-08",
+  "target_id": "predator_prey_reference_filtering",
+  "lower_rung_pass_token": "PASS_P47_M5_PREDATOR_PREY_REFERENCE_FILTERING",
+  "production_pass_token": "PASS_P47_M5_PREDATOR_PREY_PRODUCTION_FILTERING",
+  "target_name": "small additive-Gaussian RK4 predator-prey closure",
+  "target_class": "lower_rung_reference_filtering_not_production",
+  "state_law": "P30 RK4 predator-prey transition mean with additive Gaussian process noise on (P,Q)",
+  "observation_law": "full-state additive Gaussian observation closure",
+  "domain_policy": "diagnose_negative_after_noise",
+  "dimensions_tested": {
+    "state_dim": [
+      2
+    ],
+    "observation_dim": [
+      2
+    ],
+    "parameter_dim": [
+      6
+    ],
+    "horizon": 2
+  },
+  "promoted_observation_fixture": "near_rk4_replayable_two_observation_path",
+  "diagnostic_stress_fixture_not_promoted": {
+    "name": "p44_tense_two_observation_pair",
+    "observation_path": [
+      [
+        51.0,
+        4.6
+      ],
+      [
+        51.7,
+        5.1
+      ]
+    ],
+    "status": "diagnostic_transition_approximation_stress_not_reference_filtering_pass"
+  },
+  "reference_routes": {
+    "dense_reference": "small tensor-product dense quadrature on the declared RK4 additive-Gaussian closure target",
+    "cut4": "CUT4 diagnostic on the same additive-Gaussian structural closure",
+    "zhao_cui": "P46/P47 multistate retained-grid fixed-design TT route"
+  },
+  "m1_route_label": "documented-deviation fixed-design substitute",
+  "lower_rung_tolerances": {
+    "zhao_cui_vs_dense_log_likelihood_abs": 0.002,
+    "zhao_cui_vs_dense_log_normalizer_abs": 0.002,
+    "zhao_cui_vs_dense_prey_mean_abs": 0.00001,
+    "zhao_cui_vs_dense_predator_mean_abs": 0.00001,
+    "zhao_cui_vs_dense_covariance_abs": 0.00001,
+    "cut4_value_status": "finite_metadata_diagnostic_only_not_promotion",
+    "cut4_state_accuracy_status": "diagnostic_only_not_promotion"
+  },
+  "preconditioning_evidence_policy": {
+    "matched_budget_required": true,
+    "proxy_only_promotion_forbidden": true,
+    "proposal_or_preconditioner_metrics": "explanatory_only_unless_downstream_filtering_quality_passes"
+  },
+  "production_state": "blocked_until_separate_near_paper_or_paper_scale_row_runs_after_lower_rung_pass",
+  "production_prerequisites": [
+    "PASS_P47_M2_PAPER_SCALE_READINESS",
+    "PASS_P47_M5_PREDATOR_PREY_REFERENCE_FILTERING",
+    "reviewed production or near-paper-scale run manifest",
+    "downstream filtering value and state-quality metrics",
+    "matched budget and wall-time accounting if a preconditioning comparison is promoted"
+  ],
+  "nonclaims": [
+    "not production predator-prey filtering",
+    "not nonlinear preconditioning usefulness",
+    "not native or non-Gaussian predator-prey correctness beyond the declared additive-Gaussian closure",
+    "CUT4 state moments are diagnostic only in M5a",
+    "not adaptive MATLAB TT-cross/SIRT reproduction",
+    "no HMC readiness",
+    "no production score API",
+    "no S&P 500 reproduction"
+  ],
+  "veto_diagnostics": [
+    "parameter box drift",
+    "negative or nonfinite state values silently promoted",
+    "raw ESS or proposal metric promoted without downstream filtering quality",
+    "native and additive-Gaussian closure targets mixed",
+    "production token emitted from lower-rung evidence",
+    "M1 route label absent",
+    "finite output promoted as production correctness"
+  ]
+}

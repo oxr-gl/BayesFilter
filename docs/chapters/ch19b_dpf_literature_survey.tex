@@ -560,6 +560,83 @@ with pseudo-time evolution
   = A_t^{(i)}(\lambda)x^{(i)} + b_t^{(i)}(\lambda).
 \end{equation}
 
+For the Li--Coates PF-PF(LEDH) construction used in the next chapter,
+there is an additional implementation-facing distinction that must not be
+collapsed.  The local linearization is not a single deterministic affine map
+shared by all particles, and it is not computed from a cloud-level average.
+For particle $i$, Algorithm~1 of \citet{li2017particle} first builds a
+particle-specific predicted covariance $P^i$ and a zero-noise transition anchor
+\[
+  \bar\eta_0^i = g_k(x_{k-1}^i,0).
+\]
+It also samples an actual pre-flow proposal particle
+\[
+  \eta_0^i = g_k(x_{k-1}^i,v_k).
+\]
+During pseudo-time integration, the Jacobian used in the LEDH coefficients is
+evaluated at the moving auxiliary state $\bar\eta^i_\lambda$, not at a fixed
+global mean and not at another particle.  In the notation of
+\citet{li2017particle}, the local observation linearization is
+\begin{equation}
+\label{eq:bf-pff-li-coates-local-jacobian}
+  H^i(\lambda)
+  =
+  \left.
+  \frac{\partial h(\eta,0)}{\partial \eta}
+  \right|_{\eta=\bar\eta^i_\lambda},
+  \qquad
+  e^i(\lambda)
+  =
+  h(\bar\eta^i_\lambda,0)-H^i(\lambda)\bar\eta^i_\lambda .
+\end{equation}
+With the particle-specific prediction covariance $P^i$ held as the covariance
+input for that particle's flow step, the source-form LEDH coefficients are
+\begin{align}
+\label{eq:bf-pff-li-coates-ledh-A}
+  A^i(\lambda)
+  &=
+  -\frac{1}{2}
+  P^i H^i(\lambda)^\top
+  \bigl(\lambda H^i(\lambda)P^iH^i(\lambda)^\top+R\bigr)^{-1}
+  H^i(\lambda), \\
+\label{eq:bf-pff-li-coates-ledh-b}
+  b^i(\lambda)
+  &=
+  \bigl(I+2\lambda A^i(\lambda)\bigr)
+  \left[
+    \bigl(I+\lambda A^i(\lambda)\bigr)
+    P^i H^i(\lambda)^\top R^{-1}\{z_k-e^i(\lambda)\}
+    + A^i(\lambda)\bar\eta_0^i
+  \right].
+\end{align}
+The auxiliary anchor and the actual proposal particle are then migrated by the
+same particle-local affine update at each pseudo-time step:
+\begin{align}
+\label{eq:bf-pff-li-coates-aux-update}
+  \bar\eta^i_{\lambda_j}
+  &=
+  \bar\eta^i_{\lambda_{j-1}}
+  +\epsilon_j
+  \left[
+    A_j^i(\lambda_j)\bar\eta^i_{\lambda_{j-1}}
+    +b_j^i(\lambda_j)
+  \right],\\
+\label{eq:bf-pff-li-coates-actual-update}
+  \eta^i_{\lambda_j}
+  &=
+  \eta^i_{\lambda_{j-1}}
+  +\epsilon_j
+  \left[
+    A_j^i(\lambda_j)\eta^i_{\lambda_{j-1}}
+    +b_j^i(\lambda_j)
+  \right].
+\end{align}
+This auxiliary/actual split is the key source-faithfulness point for LEDH in
+PF-PF.  The auxiliary path determines the local linearization, while the actual
+path is the transported proposal particle whose density must later be corrected.
+Using a single global affine map, or linearizing every particle at a fixed
+cloud-level point, is therefore not Li--Coates Algorithm~1 LEDH.
+
 This construction explains both the attraction and the danger of LEDH.  The
 attraction is that each particle uses a local approximation intended to track
 nonlinear observation geometry more closely than a single global

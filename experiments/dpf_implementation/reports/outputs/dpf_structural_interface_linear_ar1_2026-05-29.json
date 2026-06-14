@@ -1,0 +1,290 @@
+{
+  "b_grid": [
+    0.35,
+    0.5,
+    0.65,
+    0.8,
+    0.95
+  ],
+  "backend": "tensorflow_tensorflow_probability",
+  "best_policy_by_z_distance": "none",
+  "comparator": "Exact Kalman reference for this linear-Gaussian structural AR(1) fixture only",
+  "created_at_utc": "2026-05-29T14:55:46Z",
+  "decision": "DPF_STRUCTURAL_INTERFACE_LINEAR_AR1_POLICY_MATCHED_KALMAN_GRID_MLE",
+  "kalman_at_true": {
+    "finite": true,
+    "gradient": -0.35086306423226066,
+    "value": 7.099395386722153
+  },
+  "kalman_grid_values": [
+    8.697582312501545,
+    7.4125848592667865,
+    7.099395386722153,
+    7.202733825788014,
+    7.508262328050101
+  ],
+  "kalman_mle_b_grid": 0.65,
+  "kalman_observed_information_b": 17.571348914003334,
+  "kalman_se_b": 0.23855990254515777,
+  "model_definition": {
+    "a": 0.55,
+    "b": 0.65,
+    "backend": "tensorflow_tensorflow_probability",
+    "c": 0.0,
+    "d": 0.0,
+    "fixture_generation_seed": 2026052903,
+    "horizon": 16,
+    "lambda": 0.35,
+    "model_checksum": "1261c35f383dcb68bb2d20906f525c747eba74c9bd77f31a0432176166cc8516",
+    "model_id": "structural_interface_linear_ar1_smoke",
+    "observation_checksum": "45bacfe533b05d53f5c7fe1f6cb0027261ef92286af32d215ac7af569ac627c0",
+    "observation_equation": "y_t = k_t + lambda m_t + eta_t",
+    "observation_scale": 0.18,
+    "rho": 0.82,
+    "sigma": 0.24,
+    "state_equation": "m_t=rho m_{t-1}+sigma eps_t; k_t=a k_{t-1}+b m_t+c m_t^2+d m_{t-1} m_t",
+    "structural_status": "toy non-DSGE structural split fixture"
+  },
+  "non_implications": [
+    "No nonlinear structural equivalence is concluded.",
+    "No DSGE or NAWM validation is concluded.",
+    "No production readiness is concluded.",
+    "No HMC readiness is concluded.",
+    "No posterior correctness is concluded."
+  ],
+  "num_particles": 96,
+  "policy_rows": [
+    {
+      "dpf_at_true": {
+        "finite": true,
+        "gradient": 0.633403472425357,
+        "value": 6.554399087799866
+      },
+      "dpf_diagnostics_at_true": {
+        "density_contract": "transition_and_proposal_density_on_stochastic_z_only_no_density_on_deterministic_s",
+        "finite": true,
+        "finite_corrected_log_weights": true,
+        "flow_logdet_contract": "forward_log_det_on_stochastic_z_block_only",
+        "max_completion_residual": 0.0,
+        "max_sinkhorn_residual": 0.0,
+        "min_ess": 4.361263462960859,
+        "resampling_count": 0,
+        "resampling_steps": 0
+      },
+      "dpf_grid_values_by_seed": [
+        [
+          7.719498172709276,
+          6.685734564983382,
+          6.554399087799866,
+          6.775867570313063,
+          7.155535265077621
+        ],
+        [
+          7.408645287244624,
+          5.707899736691834,
+          5.5006529124466494,
+          5.861572613760052,
+          6.432956764071105
+        ],
+        [
+          9.76720442192413,
+          8.21778769733511,
+          7.6856414125720205,
+          7.672198820587073,
+          7.900267848171477
+        ]
+      ],
+      "dpf_median_mle_b_grid": 0.65,
+      "dpf_mle_b_by_seed_grid": [
+        0.65,
+        0.65,
+        0.8
+      ],
+      "matches_kalman_grid_mle": true,
+      "mle_z_distance_b": 0.0,
+      "policy_id": "none"
+    },
+    {
+      "dpf_at_true": {
+        "finite": true,
+        "gradient": -0.014472143449953068,
+        "value": 6.46183289689537
+      },
+      "dpf_diagnostics_at_true": {
+        "density_contract": "transition_and_proposal_density_on_stochastic_z_only_no_density_on_deterministic_s",
+        "finite": true,
+        "finite_corrected_log_weights": true,
+        "flow_logdet_contract": "forward_log_det_on_stochastic_z_block_only",
+        "max_completion_residual": 0.0,
+        "max_sinkhorn_residual": 0.0,
+        "min_ess": 38.73123742372804,
+        "resampling_count": 16,
+        "resampling_steps": 16
+      },
+      "dpf_grid_values_by_seed": [
+        [
+          8.396842202513756,
+          7.394069683598809,
+          6.46183289689537,
+          7.094677509502475,
+          7.243957679826049
+        ],
+        [
+          7.839366545794783,
+          7.119165214969955,
+          6.899863429484179,
+          6.666514525081512,
+          6.827278006078346
+        ],
+        [
+          9.064528734097687,
+          7.464522386064843,
+          7.008946402411722,
+          7.144817047433834,
+          7.453135863728132
+        ]
+      ],
+      "dpf_median_mle_b_grid": 0.65,
+      "dpf_mle_b_by_seed_grid": [
+        0.65,
+        0.8,
+        0.65
+      ],
+      "matches_kalman_grid_mle": true,
+      "mle_z_distance_b": 0.0,
+      "policy_id": "categorical_ancestor"
+    },
+    {
+      "dpf_at_true": {
+        "finite": true,
+        "gradient": -4.100836252821147,
+        "value": 7.473746834382596
+      },
+      "dpf_diagnostics_at_true": {
+        "density_contract": "transition_and_proposal_density_on_stochastic_z_only_no_density_on_deterministic_s",
+        "finite": true,
+        "finite_corrected_log_weights": true,
+        "flow_logdet_contract": "forward_log_det_on_stochastic_z_block_only",
+        "max_completion_residual": 0.0,
+        "max_sinkhorn_residual": 6.661338147750939e-16,
+        "min_ess": 83.9449485417784,
+        "resampling_count": 16,
+        "resampling_steps": 16
+      },
+      "dpf_grid_values_by_seed": [
+        [
+          11.918731110167784,
+          8.635631565470359,
+          7.473746834382596,
+          7.169149546073979,
+          7.250518064178769
+        ],
+        [
+          11.670904111963708,
+          8.369126733961972,
+          7.211433959544318,
+          6.919571329768229,
+          7.016470234115693
+        ],
+        [
+          12.263802353658578,
+          8.903812166615216,
+          7.699081533113978,
+          7.37014719800427,
+          7.436711668317783
+        ]
+      ],
+      "dpf_median_mle_b_grid": 0.8,
+      "dpf_mle_b_by_seed_grid": [
+        0.8,
+        0.8,
+        0.8
+      ],
+      "matches_kalman_grid_mle": false,
+      "mle_z_distance_b": 0.62877289267674,
+      "policy_id": "sinkhorn_current_z"
+    },
+    {
+      "dpf_at_true": {
+        "finite": true,
+        "gradient": -4.133094039750198,
+        "value": 7.4848634282671
+      },
+      "dpf_diagnostics_at_true": {
+        "density_contract": "transition_and_proposal_density_on_stochastic_z_only_no_density_on_deterministic_s",
+        "finite": true,
+        "finite_corrected_log_weights": true,
+        "flow_logdet_contract": "forward_log_det_on_stochastic_z_block_only",
+        "max_completion_residual": 0.0,
+        "max_sinkhorn_residual": 4.310513751493161e-12,
+        "min_ess": 83.9449485417784,
+        "resampling_count": 16,
+        "resampling_steps": 16
+      },
+      "dpf_grid_values_by_seed": [
+        [
+          11.94123612680568,
+          8.652284612112478,
+          7.4848634282671,
+          7.1762280146864,
+          7.254975204587177
+        ],
+        [
+          11.69178752284904,
+          8.387415608181346,
+          7.224538779940984,
+          6.928244256570801,
+          7.022067244468333
+        ],
+        [
+          12.326094839984743,
+          8.947087967839124,
+          7.726965467466237,
+          7.387981941818149,
+          7.448347899193758
+        ]
+      ],
+      "dpf_median_mle_b_grid": 0.8,
+      "dpf_mle_b_by_seed_grid": [
+        0.8,
+        0.8,
+        0.8
+      ],
+      "matches_kalman_grid_mle": false,
+      "mle_z_distance_b": 0.62877289267674,
+      "policy_id": "sinkhorn_full_context"
+    }
+  ],
+  "question": "structural interface linear AR(1) exact Kalman vs DPF resampling policy ladder",
+  "reproducibility_digest": "04655339d8532d148041cf0e3c39456ffc22aaaa848b26b585e9efe4dc66ce09",
+  "resampling_policy_ladder": [
+    "none",
+    "categorical_ancestor",
+    "sinkhorn_current_z",
+    "sinkhorn_full_context"
+  ],
+  "run_manifest": {
+    "branch": "main",
+    "command": "CUDA_VISIBLE_DEVICES=-1 python -m experiments.dpf_implementation.tf_tfp.runners.run_structural_interface_linear_ar1_tf",
+    "commit": "1bf1f9d7492709182a84478f19bac1dac0d48050",
+    "cpu_only": true,
+    "cuda_visible_devices": "-1",
+    "dirty_state_summary": "M docs/chapters/ch33_highdim_nonlinear_filtering_foundations.tex\n M docs/chapters/ch34_highdim_gaussian_and_sparse_quadrature.tex\n M docs/chapters/ch35_highdim_particle_transport_tensor_filters.tex\n M docs/chapters/ch36_nonlinear_ssm_hmc_research_program.tex\n M docs/chapters/ch37_highdim_filtering_candidate_synthesis.tex\n M docs/main.pdf\n M docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-primary-source-ledger-2026-05-28.md\n M docs/plans/bayesfilter-student-dpf-baseline-master-program-2026-05-10.md\n M docs/plans/bayesfilter-student-dpf-baseline-reset-memo-2026-05-09.md\n M docs/references.bib\n M experiments/controlled_dpf_baseline/README.md\n?? .local_sources/\n?? AGENTS.md\n?? CLAUDE.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0-citation-coverage-register-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0-claim-extraction-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0-claim-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0-implementation-obligations-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0a-doc-patch-register-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0a-student-doc-crosswalk-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0a-student-doc-crosswalk-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0a-student-doc-crosswalk-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf1-classical-pf-baseline-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf1-classical-pf-spec-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf1-reference-test-contract-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf1-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf1-student-comparison-context-register-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf2-bias-proxy-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf2-component-spec-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf2-deferred-neural-path-register-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf2-differentiable-resampling-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf2-resampling-test-contract-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf2-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf3-excluded-flow-risk-register-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf3-flow-pfpf-spec-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf3-kernel-pff-exclusion-check-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf3-particle-flow-pfpf-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf3-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf4-differentiable-objective-gradient-contract-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf4-downstream-evidence-requirements-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf4-gradient-contract-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf4-objective-classification-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf4-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf5-benchmark-ladder-matrix-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf5-cpu-gpu-runtime-policy-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf5-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf5-seed-uncertainty-policy-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf5-validation-harness-benchmark-ladder-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf5-validation-harness-spec-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf6-production-boundary-api-review-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf6-production-boundary-decision-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf6-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf7-final-audit-implementation-handoff-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-final-audit-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-handoff-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-master-program-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-sv-test-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-master-program-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p0-scope-default-architecture-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p0-scope-default-architecture-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p1-ledh-math-contract-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p1-ledh-math-contract-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p10-final-audit-handoff-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p10-final-audit-handoff-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p2-affine-lgssm-edh-parity-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p2-affine-lgssm-edh-parity-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p3-nonlinear-local-linearization-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p3-nonlinear-local-linearization-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p4-pfpf-correction-logdet-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p4-pfpf-correction-logdet-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p5-tf-tfp-ledh-flow-implementation-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p5-tf-tfp-ledh-flow-implementation-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p6-integrated-ledh-pfpf-ot-runner-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p6-integrated-ledh-pfpf-ot-runner-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p7-gradient-tape-contract-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p7-gradient-tape-contract-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p8-lgssm-validation-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p8-lgssm-validation-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p9-range-bearing-validation-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p9-range-bearing-validation-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-ladder-master-program-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p0-scope-and-estimation-criteria-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p0-scope-and-estimation-criteria-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p1-lgssm-multiseed-regression-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p1-lgssm-multiseed-regression-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p2-range-bearing-stress-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p2-range-bearing-stress-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p3-cut4-differentiable-comparator-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p3-cut4-differentiable-comparator-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p4-stochastic-volatility-gradient-mle-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p4-stochastic-volatility-gradient-mle-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p5-structural-ar1-quadratic-completion-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p5-structural-ar1-quadratic-completion-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p6-particle-count-seed-ladder-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p6-particle-count-seed-ladder-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p7-final-audit-handoff-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p7-final-audit-handoff-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ot-backend-governance-correction-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-backend-governance-correction-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-master-program-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p0-scope-and-contract-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p0-scope-and-contract-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p1-lgssm-fixture-and-kalman-reference-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p1-lgssm-fixture-and-kalman-reference-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p2-range-bearing-ukf-reference-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p2-range-bearing-ukf-reference-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p3-finite-sinkhorn-resampler-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p3-finite-sinkhorn-resampler-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p4-integrated-dpf-runner-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p4-integrated-dpf-runner-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p5-gradient-contract-and-finite-difference-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p5-gradient-contract-and-finite-difference-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p6-lgssm-validation-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p6-lgssm-validation-result-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p7-range-bearing-validation-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p7-range-bearing-validation-result-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p8-final-audit-and-handoff-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p8-final-audit-and-handoff-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-master-program-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p0-scope-import-gate-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p0-scope-import-gate-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p1-lgssm-fixture-kalman-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p1-lgssm-fixture-kalman-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p2-range-bearing-ukf-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p2-range-bearing-ukf-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p3-sinkhorn-resampler-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p3-sinkhorn-resampler-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p4-integrated-dpf-runner-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p4-integrated-dpf-runner-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p5-gradient-tape-contract-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p5-gradient-tape-contract-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p6-lgssm-validation-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p6-lgssm-validation-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p7-range-bearing-validation-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p7-range-bearing-validation-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p8-final-audit-handoff-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p8-final-audit-handoff-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-rewrite-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-structural-ar1-linear-mle-test-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-structural-ar1-linear-mle-test-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-structural-ssm-interface-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-structural-ssm-interface-result-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1-source-intake-result-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1r-citation-venue-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1r-claim-support-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1r-literature-audit-redo-plan-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1r-literature-audit-redo-result-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1r-omission-risk-register-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1r-snowball-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1r-source-support-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1s-citation-venue-metadata-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1s-claim-support-closure-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1s-foundational-source-closure-plan-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1s-foundational-source-closure-result-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1s-omission-risk-adjudication-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1s-snowball-closure-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1s-source-closure-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1t-citation-venue-metadata-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1t-claim-support-closure-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1t-manual-pdf-source-closure-plan-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1t-manual-pdf-source-closure-result-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1t-omission-risk-update-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1t-source-closure-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1u-alternative-source-ledger-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1u-claim-support-update-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1u-omission-risk-update-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1u-rewrite-preparation-plan-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1u-rewrite-preparation-result-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1u-source-closure-ledger-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p2r-chapter-rewrite-plan-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p2r-chapter-rewrite-result-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p3-claude-block-review-prompt-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p3-industrial-defect-synthesis-ledger-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p3-industrial-defect-synthesis-plan-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p3-industrial-defect-synthesis-result-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p4-claude-review-ledger-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p4-derivation-obligation-ledger-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p4-industrial-worked-example-ledger-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p4-mathdevmcp-audit-ledger-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p4-professor-proof-synthesis-plan-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p4-professor-proof-synthesis-result-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p5-analytical-gradient-derivation-ledger-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p5-claude-review-ledger-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p5-mathdevmcp-audit-ledger-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p5-self-contained-exposition-ledger-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p5-self-contained-gradient-plan-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p5-self-contained-gradient-result-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p6-claude-review-ledger-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p6-mathdevmcp-audit-ledger-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p6-reader-checkpoint-ledger-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p6-reader-first-expansion-ledger-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p6-reader-first-expansion-plan-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p6-reader-first-expansion-result-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p6-running-example-ledger-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p7-gaussian-transport-tensor-claude-review-ledger-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p7-gaussian-transport-tensor-gradient-obligation-ledger-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p7-gaussian-transport-tensor-mathdevmcp-ledger-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p7-gaussian-transport-tensor-result-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p7-gaussian-transport-tensor-self-contained-gradient-ledger-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p7-gaussian-transport-tensor-self-contained-gradient-plan-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p7-gaussian-transport-tensor-source-anchor-ledger-2026-05-29.md\n?? docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-plan-2026-05-27.md\n?? docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-plan-audit-2026-05-27.md\n?? docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-result-2026-05-27.md\n?? docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-review-2026-05-27.md\n?? experiments/controlled_dpf_baseline/reports/controlled-dpf-baseline-final-archive-result.md\n?? experiments/dpf_implementation/",
+    "gpu_devices_visible": [],
+    "package_versions": {
+      "tensorflow": "2.19.1",
+      "tensorflow_probability": "0.25.0"
+    },
+    "pre_import_cuda_visible_devices": "-1",
+    "python_version": "3.11.14",
+    "wall_time_seconds": 10.769662169972435
+  },
+  "same_scalar_contract": "Kalman and structural-interface DPF evaluate negative log-likelihood/log-normalizer as a function of b on the same c=d=0 observations.",
+  "scalar_id": "structural_interface_linear_ar1_negative_log_likelihood_b_parameter_tf",
+  "seed_list": [
+    111,
+    222,
+    333
+  ],
+  "true_b": 0.65
+}

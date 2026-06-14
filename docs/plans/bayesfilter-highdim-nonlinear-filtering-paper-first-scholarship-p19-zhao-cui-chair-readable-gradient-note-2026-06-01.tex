@@ -1,0 +1,1442 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs,longtable,array}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{microtype}
+\usepackage{xcolor}
+
+\hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue}
+\allowdisplaybreaks
+
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{definition}{Definition}
+\newtheorem{assumption}{Assumption}
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+
+\newcommand{\R}{\mathbb R}
+\newcommand{\dd}{\,\mathrm d}
+\newcommand{\E}{\mathbb E}
+\newcommand{\widehatell}{\widehat\ell}
+\newcommand{\widehatZ}{\widehat Z}
+\newcommand{\widehatq}{\widehat q}
+\newcommand{\widehatp}{\widehat p}
+\newcommand{\dotwidehatZ}{\dot{\widehat Z}}
+\newcommand{\dotwidehatq}{\dot{\widehat q}}
+\newcommand{\dotwidehatp}{\dot{\widehat p}}
+\newcommand{\vecop}{\operatorname{vec}}
+\newcommand{\cond}{\,|\,}
+
+\title{A Chair-Readable Derivation of the Fixed-Branch Squared Tensor-Train Gradient}
+\author{BayesFilter Zhao--Cui Gradient Note}
+\date{2026-06-01}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note explains the analytical gradient used by the fixed-branch squared
+tensor-train filtering construction inspired by Zhao and Cui.  The purpose is
+not to introduce a new filtering method.  The purpose is to make one derivative
+claim understandable: after all approximation choices are frozen, the derivative
+computed by the backward calculation is the derivative of the same approximate
+normalizing-constant scalar computed by the forward calculation.  The exposition
+starts with scalar normalizing constants, then squared approximations, then a
+two-coordinate tensor-train warmup, then fixed linear solves, and only then the
+full tensor-train filtering derivative.
+\end{abstract}
+
+\tableofcontents
+
+\section{Motivation For The Panel Chair}
+
+The filtering algorithm produces, at each time \(t\), an approximate
+normalizing constant
+\[
+    \widehat Z_t(\beta)>0.
+    \tag{1}
+\]
+The parameter \(\beta\) is the model parameter at which we evaluate the
+approximate likelihood.  The total approximate log likelihood is
+\[
+    \widehatell_T(\beta)
+    =
+    \sum_{t=1}^{T}\log \widehat Z_t(\beta).
+    \tag{2}
+\]
+For a chemist, the closest familiar object is a partition function.  A
+partition function is an integral of a nonnegative weight.  Here
+\(\widehat Z_t(\beta)\) is also an integral of a nonnegative weight:
+\[
+    \widehat Z_t(\beta)
+    =
+    \int \widehat q_t(z;\beta)\dd z.
+    \tag{3}
+\]
+The variable \(z\) is a numerical coordinate, usually a transformed coordinate
+on a fixed box.  The function \(\widehat q_t\) is not the exact Bayesian
+density.  It is the squared tensor-train approximation used by the numerical
+filter.
+
+The panel cares about the gradient because parameter inference algorithms need
+to know how the approximate log likelihood changes when \(\beta\) changes:
+\[
+    \nabla_\beta \widehatell_T(\beta).
+    \tag{4}
+\]
+The delicate point is not the derivative of \(\log\).  The delicate point is
+that \(\widehat Z_t\) is produced by a complicated approximation algorithm.  If
+the approximation algorithm changes its grid, ranks, pivots, or scaling shifts
+when \(\beta\) changes, then the two likelihood evaluations may not be
+evaluations of the same mathematical formula.  A classical analytical
+derivative can only differentiate one declared formula.
+
+That is why this note uses a fixed branch.
+
+\begin{center}
+\fbox{\begin{minipage}{0.92\linewidth}
+\textbf{Fixed branch.}  Before differentiating, freeze the computational
+choices: coordinate domain, fitting points, basis functions, tensor-train
+ranks, sweep order, ridge parameter, defensive density, stabilizing shifts, and
+the rule for constructing every fitted core.  Do not freeze the fitted core
+values themselves.  Those core values are outputs of the fixed fitting
+equations, so they remain functions of \(\beta\).  Then differentiate the
+scalar defined by the saved choices and by the core values obtained from the
+same saved fitting equations.
+\end{minipage}}
+\end{center}
+
+The goal is therefore:
+\[
+    \text{differentiate the scalar actually computed by the saved forward pass.}
+    \tag{5}
+\]
+The goal is not:
+\[
+    \text{differentiate every possible adaptive version of the algorithm.}
+    \tag{6}
+\]
+
+\section{Warmup 1: A Normalizing Constant}
+
+Start with the simplest possible object.  Let
+\[
+    Z(\beta)=\int_\Omega q(z;\beta)\dd z,
+    \qquad
+    q(z;\beta)\ge 0,
+    \qquad
+    0<Z(\beta)<\infty.
+    \tag{7}
+\]
+The normalized density is
+\[
+    p(z;\beta)=\frac{q(z;\beta)}{Z(\beta)}.
+    \tag{8}
+\]
+The log normalizing constant is
+\[
+    L(\beta)=\log Z(\beta).
+    \tag{9}
+\]
+Assume that \(q(z;\beta)\) is differentiable in \(\beta\), and that we may move
+the derivative inside the integral:
+\[
+    \frac{\partial}{\partial\beta}
+    \int_\Omega q(z;\beta)\dd z
+    =
+    \int_\Omega
+    \frac{\partial q(z;\beta)}{\partial\beta}\dd z.
+    \tag{10}
+\]
+A sufficient condition is that, near the parameter value of interest, the
+absolute derivative is bounded by an integrable function:
+\[
+    \left|
+    \frac{\partial q(z;\beta)}{\partial\beta}
+    \right|
+    \le m(z),
+    \qquad
+    \int_\Omega m(z)\dd z<\infty.
+    \tag{11}
+\]
+Then the derivative of the log normalizer is
+\[
+\begin{aligned}
+    \frac{\partial L(\beta)}{\partial\beta}
+    &=
+    \frac{\partial}{\partial\beta}\log Z(\beta)\\
+    &=
+    \frac{1}{Z(\beta)}
+    \frac{\partial Z(\beta)}{\partial\beta}\\
+    &=
+    \frac{1}{Z(\beta)}
+    \int_\Omega
+    \frac{\partial q(z;\beta)}{\partial\beta}\dd z.
+\end{aligned}
+\tag{12}
+\]
+This is the first idea in the whole gradient.  Everything later is only a way
+to compute the numerator and denominator in (12) for the tensor-train
+approximation.
+
+For the sequential filter, the same formula is used at every time:
+\[
+    \frac{\partial\widehatell_T(\beta)}{\partial\beta}
+    =
+    \sum_{t=1}^{T}
+    \frac{1}{\widehat Z_t(\beta)}
+    \frac{\partial\widehat Z_t(\beta)}{\partial\beta}.
+    \tag{13}
+\]
+
+\section{Warmup 2: A Squared Approximation}
+
+The fixed-branch squared tensor-train approximation has the form
+\[
+    \widehat q(z;\beta)
+    =
+    e^{-c}\phi(z;\beta)^2+\tau\lambda(z).
+    \tag{14}
+\]
+Here:
+\[
+\begin{array}{ll}
+c & \text{is a frozen stabilizing shift},\\
+\tau>0 & \text{is a frozen defensive mass},\\
+\lambda(z)\ge0 & \text{is a frozen reference density with }\int\lambda=1,\\
+\phi(z;\beta) & \text{is the fitted square-root function.}
+\end{array}
+\tag{15}
+\]
+Because \(c,\tau,\lambda\) are frozen, the only object in (14) that changes
+with \(\beta\) is \(\phi\).  Differentiating (14) gives
+\[
+\begin{aligned}
+    \dot{\widehat q}(z;\beta)
+    &=
+    \frac{\partial}{\partial\beta}
+    \left[
+    e^{-c}\phi(z;\beta)^2+\tau\lambda(z)
+    \right]\\
+    &=
+    e^{-c}
+    \frac{\partial}{\partial\beta}\phi(z;\beta)^2
+    +
+    \frac{\partial}{\partial\beta}\tau\lambda(z)\\
+    &=
+    2e^{-c}\phi(z;\beta)\dot\phi(z;\beta).
+\end{aligned}
+\tag{16}
+\]
+The dot means \(\partial/\partial\beta\).
+
+The corresponding normalizer is
+\[
+\begin{aligned}
+    \widehat Z(\beta)
+    &=
+    \int \widehat q(z;\beta)\dd z\\
+    &=
+    e^{-c}\int \phi(z;\beta)^2\dd z
+    +
+    \tau\int\lambda(z)\dd z\\
+    &=
+    e^{-c}\int \phi(z;\beta)^2\dd z+\tau.
+\end{aligned}
+\tag{17}
+\]
+Using (16), its derivative is
+\[
+\begin{aligned}
+    \dot{\widehat Z}(\beta)
+    &=
+    \int \dot{\widehat q}(z;\beta)\dd z\\
+    &=
+    2e^{-c}
+    \int \phi(z;\beta)\dot\phi(z;\beta)\dd z.
+\end{aligned}
+\tag{18}
+\]
+Substitution into (12) gives
+\[
+    \frac{\partial}{\partial\beta}\log\widehat Z(\beta)
+    =
+    \frac{
+    2e^{-c}\int \phi(z;\beta)\dot\phi(z;\beta)\dd z}
+    {e^{-c}\int\phi(z;\beta)^2\dd z+\tau}.
+    \tag{19}
+\]
+
+If \(c\), \(\tau\), or \(\lambda\) changed with \(\beta\), then (16) would have
+extra terms:
+\[
+    \dot{\widehat q}
+    =
+    -\dot c\,e^{-c}\phi^2
+    +
+    2e^{-c}\phi\dot\phi
+    +
+    \dot\tau\,\lambda
+    +
+    \tau\dot\lambda.
+    \tag{20}
+\]
+The fixed-branch derivative does not use (20).  It uses the fixed-branch
+formula (16).  This is not a minor technicality.  It is the mathematical line
+between differentiating one saved scalar and differentiating a changing
+adaptive procedure.
+
+\section{Warmup 3: Two Coordinates, Rank One}
+
+Before a full tensor train, consider a two-coordinate rank-one function:
+\[
+    \phi(z_1,z_2;\beta)=h_1(z_1;\beta)h_2(z_2;\beta).
+    \tag{21}
+\]
+The square integral is
+\[
+\begin{aligned}
+    R(\beta)
+    &=
+    \int\!\!\int
+    \phi(z_1,z_2;\beta)^2\dd z_1\dd z_2\\
+    &=
+    \int\!\!\int
+    h_1(z_1;\beta)^2h_2(z_2;\beta)^2\dd z_1\dd z_2\\
+    &=
+    \left[\int h_1(z_1;\beta)^2\dd z_1\right]
+    \left[\int h_2(z_2;\beta)^2\dd z_2\right].
+\end{aligned}
+\tag{22}
+\]
+Define
+\[
+    R_1(\beta)=\int h_1(z_1;\beta)^2\dd z_1,
+    \qquad
+    R_2(\beta)=\int h_2(z_2;\beta)^2\dd z_2.
+    \tag{23}
+\]
+Then
+\[
+    R(\beta)=R_1(\beta)R_2(\beta).
+    \tag{24}
+\]
+Differentiate by the product rule:
+\[
+    \dot R(\beta)=\dot R_1(\beta)R_2(\beta)+R_1(\beta)\dot R_2(\beta).
+    \tag{25}
+\]
+Each one-dimensional derivative is
+\[
+    \dot R_1(\beta)=2\int h_1(z_1;\beta)\dot h_1(z_1;\beta)\dd z_1,
+    \tag{26}
+\]
+\[
+    \dot R_2(\beta)=2\int h_2(z_2;\beta)\dot h_2(z_2;\beta)\dd z_2.
+    \tag{27}
+\]
+Combining (25)--(27),
+\[
+\begin{aligned}
+    \dot R(\beta)
+    &=
+    2
+    \left[\int h_1\dot h_1\dd z_1\right]
+    \left[\int h_2^2\dd z_2\right]\\
+    &\quad+
+    2
+    \left[\int h_1^2\dd z_1\right]
+    \left[\int h_2\dot h_2\dd z_2\right].
+\end{aligned}
+\tag{28}
+\]
+This is the simplest version of the tensor-train mass derivative: when one
+factor changes, keep the other factors fixed and sum the contributions.
+
+\section{Warmup 4: Two Coordinates, Rank \texorpdfstring{\(R\)}{R}}
+
+Now let
+\[
+    \phi(z_1,z_2;\beta)
+    =
+    \sum_{r=1}^{R}h_{1r}(z_1;\beta)h_{2r}(z_2;\beta).
+    \tag{29}
+\]
+The square integral is
+\[
+\begin{aligned}
+    R(\beta)
+    &=
+    \int\!\!\int
+    \left[
+    \sum_{r=1}^{R}h_{1r}(z_1)h_{2r}(z_2)
+    \right]
+    \left[
+    \sum_{s=1}^{R}h_{1s}(z_1)h_{2s}(z_2)
+    \right]
+    \dd z_1\dd z_2\\
+    &=
+    \sum_{r=1}^{R}\sum_{s=1}^{R}
+    \left[\int h_{1r}(z_1)h_{1s}(z_1)\dd z_1\right]
+    \left[\int h_{2r}(z_2)h_{2s}(z_2)\dd z_2\right].
+\end{aligned}
+\tag{30}
+\]
+Define the two mass matrices
+\[
+    M_1[r,s]=\int h_{1r}(z_1)h_{1s}(z_1)\dd z_1,
+    \tag{31}
+\]
+\[
+    M_2[r,s]=\int h_{2r}(z_2)h_{2s}(z_2)\dd z_2.
+    \tag{32}
+\]
+Then
+\[
+    R(\beta)=\sum_{r,s}M_1[r,s]M_2[r,s].
+    \tag{33}
+\]
+This is the Frobenius inner product
+\[
+    R(\beta)=\langle M_1(\beta),M_2(\beta)\rangle_F.
+    \tag{34}
+\]
+Differentiate:
+\[
+    \dot R
+    =
+    \langle \dot M_1,M_2\rangle_F
+    +
+    \langle M_1,\dot M_2\rangle_F.
+    \tag{35}
+\]
+The derivative of a mass matrix entry is
+\[
+    \dot M_1[r,s]
+    =
+    \int
+    \dot h_{1r}(z_1)h_{1s}(z_1)
+    +
+    h_{1r}(z_1)\dot h_{1s}(z_1)
+    \dd z_1,
+    \tag{36}
+\]
+and similarly for \(M_2\).  The full tensor-train mass recursion is only this
+calculation repeated along a chain of coordinates.
+
+\section{Warmup 5: A Fixed Linear Solve}
+
+The fitted tensor-train cores are obtained from finite-dimensional least-squares
+updates.  One such update can be written
+\[
+    N(\beta)g(\beta)=d(\beta).
+    \tag{37}
+\]
+Here \(g\) is the vector of unknown core coefficients in the current update,
+\(N\) is the regularized normal matrix, and \(d\) is the right-hand side.
+Differentiate both sides:
+\[
+    \frac{\partial}{\partial\beta}\{N(\beta)g(\beta)\}
+    =
+    \frac{\partial d(\beta)}{\partial\beta}.
+    \tag{38}
+\]
+Use the product rule:
+\[
+    \dot N(\beta)g(\beta)+N(\beta)\dot g(\beta)=\dot d(\beta).
+    \tag{39}
+\]
+Move the first term to the right:
+\[
+    N(\beta)\dot g(\beta)=\dot d(\beta)-\dot N(\beta)g(\beta).
+    \tag{40}
+\]
+If \(N(\beta)\) is nonsingular, then
+\[
+    \dot g(\beta)=
+    N(\beta)^{-1}\left[\dot d(\beta)-\dot N(\beta)g(\beta)\right].
+    \tag{41}
+\]
+In computation, one should not form the inverse.  One solves the linear system
+(40) using the same numerical linear algebra used for the forward solve.
+
+The ridge term is important because the normal matrix has the form
+\[
+    N=A^\top W A+\rho I,
+    \qquad \rho>0.
+    \tag{42}
+\]
+If \(W\) is positive semidefinite, then
+\[
+    v^\top N v
+    =
+    v^\top A^\top W A v+\rho v^\top v
+    \ge
+    \rho\|v\|^2
+    \tag{43}
+\]
+for all \(v\).  Hence \(N\) is positive definite and nonsingular.  Without
+nonsingularity, the derivative of the solve may not be well defined.
+
+\section{The Fixed-Branch Forward Pass}
+
+At time \(t\), the fixed branch constructs a nonnegative approximation
+\[
+    \widehat q_t(z;\beta)
+    =
+    e^{-c_t}\phi_t(z;\beta)^2+\tau_t\lambda_t(z)
+    \tag{44}
+\]
+and its normalizer
+\[
+    \widehat Z_t(\beta)=\int \widehat q_t(z;\beta)\dd z.
+    \tag{45}
+\]
+The branch is the collection of structural choices that define the scalar as a
+function of \(\beta\).  These choices include the domain, fitting points, basis,
+ranks, sweep order, shift, defensive term, and ridge parameter.  The branch does
+not mean that the fitted numerical core values are held constant when
+\(\beta\) changes.  Instead,
+\[
+    C_{t,k}(\beta)
+    =
+    \text{the core obtained by the saved fitting rule at parameter }\beta.
+    \tag{45a}
+\]
+The derivative pass computes \(\dot C_{t,k}(\beta)\).  This distinction matters:
+freezing the core values would usually make the normalizer nearly constant and
+would not test the derivative of the fitted approximation.
+
+\begin{center}
+\begin{tabular}{p{0.27\linewidth}p{0.31\linewidth}p{0.31\linewidth}}
+\toprule
+Forward object & What is stored & Why it is needed later\\
+\midrule
+Domain map \(\Psi_t\) & Coordinate intervals and Jacobian & Evaluates the same transformed target at every derivative point\\
+Fitting points \(z^{(j)}\) & Deterministic point array and weights & Defines the least-squares equations\\
+Basis \(b_k\) & Basis family, degree, mass matrices & Evaluates cores and mass contractions\\
+Ranks \(R_k\) & Fixed rank vector & Fixes core dimensions\\
+Sweep order & Core update order and number of sweeps & Defines a finite composition of solve maps\\
+Shift \(c_t\) & One frozen scalar & Defines the same scaled square-root target\\
+Defensive term & \(\tau_t,\lambda_t\) & Ensures nonnegative density floor\\
+Cores \(C_{t,k}(\beta)\) & Parameter-dependent fitted coefficient arrays & Evaluate \(\phi_t\) and \(\widehat q_t\)\\
+Mass contractions & \(M_{t,>k}(\beta)\), \(M_{t,<k}(\beta)\) & Compute integrals and marginals\\
+Normalizer & \(\widehat Z_t\) & Adds \(\log\widehat Z_t\) to the scalar\\
+Carried filter & Numerator \(a_t\) and normalized \(\widehat p_t\) & Feeds the next time step\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The transformed target fitted at time \(t\) is
+\[
+    \widetilde q_t(z;\beta)
+    =
+    \widehat p_{t-1}(x_{t-1}(z);\beta)
+    f_\beta(x_t(z)\mid x_{t-1}(z))
+    g_\beta(y_t\mid x_t(z))
+    J_t(z).
+    \tag{46}
+\]
+The fitted square-root values are
+\[
+    y_j(\beta)
+    =
+    e^{c_t/2}\sqrt{\widetilde q_t(z^{(j)};\beta)}.
+    \tag{47}
+\]
+The tensor train is
+\[
+    \phi_t(z;\beta)
+    =
+    H_{t,1}(z_1;\beta)H_{t,2}(z_2;\beta)\cdots H_{t,D}(z_D;\beta),
+    \tag{48}
+\]
+where \(H_{t,k}(z_k)\in\R^{R_{k-1}\times R_k}\) and \(R_0=R_D=1\).
+
+The retained numerator for the next filter is
+\[
+    a_t(z_t;\beta)
+    =
+    \int \widehat q_t(z_t,z_{t-1};\beta)\dd z_{t-1}.
+    \tag{49}
+\]
+The retained normalized filter is
+\[
+    \widehat p_t(z_t;\beta)
+    =
+    \frac{a_t(z_t;\beta)}{\widehat Z_t(\beta)}.
+    \tag{50}
+\]
+If the filter is reported in physical coordinates, multiply by the appropriate
+change-of-variables factor.  The derivative logic is unchanged if the domain
+map is frozen.
+
+\section{The Fixed-Branch Derivative Pass}
+
+The derivative pass computes the derivative of each forward object that depends
+on \(\beta\).  It does not create a new branch.
+
+\begin{center}
+\begin{tabular}{p{0.32\linewidth}p{0.32\linewidth}p{0.26\linewidth}}
+\toprule
+Derivative object & Forward object differentiated & Formula source\\
+\midrule
+\(\dot{\widetilde q}_{t,j}\) & target value at fitting point & product rule\\
+\(\dot y_j\) & square-root fit value & chain rule\\
+\(\dot A_k,\dot N_k,\dot d_k\) & least-squares system & environment derivatives\\
+\(\dot C_{t,k}\) & fitted core & fixed linear solve\\
+\(\dot M_{t,>k}\) & mass contraction & product rule in core indices\\
+\(\dot{\widehat Z}_t\) & normalizer & squared-integral derivative\\
+\(\dot a_t\) & carried numerator & marginal contraction derivative\\
+\(\dot{\widehat p}_t\) & normalized carried filter & quotient rule\\
+\(\dot{\widetilde q}_{t+1}\) & next target & product rule using \(\dot{\widehat p}_t\)\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Target And Square-Root Target}
+
+Differentiate (46).  At fitting point \(z^{(j)}\), abbreviate
+\[
+    \widehat p_{t-1,j}=\widehat p_{t-1}(x_{t-1}^{(j)};\beta),
+    \quad
+    f_j=f_\beta(x_t^{(j)}\mid x_{t-1}^{(j)}),
+    \quad
+    g_j=g_\beta(y_t\mid x_t^{(j)}).
+    \tag{51}
+\]
+With \(J_{t,j}\) frozen, the derivative is
+\[
+\begin{aligned}
+    \dot{\widetilde q}_{t,j}
+    &=
+    J_{t,j}
+    \left[
+    \dot{\widehat p}_{t-1,j} f_j g_j
+    +
+    \widehat p_{t-1,j}\dot f_j g_j
+    +
+    \widehat p_{t-1,j} f_j\dot g_j
+    \right].
+\end{aligned}
+\tag{52}
+\]
+If the domain map depended on \(\beta\), an additional
+\(\widehat p f g\,\dot J\) term would appear.  That is outside the fixed branch
+used here.
+
+From (47),
+\[
+    \dot y_j
+    =
+    e^{c_t/2}
+    \frac{1}{2\sqrt{\widetilde q_{t,j}}}
+    \dot{\widetilde q}_{t,j},
+    \tag{53}
+\]
+provided \(\widetilde q_{t,j}>0\).  A numerical implementation should use a
+positive floor if the target is close to zero.  If such a floor is used, the
+flooring rule becomes part of the declared scalar.  For example,
+\[
+    y_j(\beta)
+    =
+    e^{c_t/2}\sqrt{\max\{\widetilde q_{t,j}(\beta),\varepsilon_{\rm floor}\}}
+    \tag{53a}
+\]
+has derivative zero through the floor whenever
+\(\widetilde q_{t,j}<\varepsilon_{\rm floor}\).  The formulas below describe
+the smooth positive-target case; a floored implementation must differentiate
+the floored scalar it actually evaluates.
+
+\subsection{Design Matrix And Core Solve}
+
+The design row is the first place where tensor-train notation can look more
+mysterious than it is.  Fix one sample point \(z^{(j)}\) and one core \(k\).
+All cores except core \(k\) are treated as the known left and right
+environments for this local least-squares update.  Write
+\[
+    L_{j,k}[a]
+    =
+    \left[
+    H_{1}(z_1^{(j)})\cdots H_{k-1}(z_{k-1}^{(j)})
+    \right]_{1a},
+    \tag{53b}
+\]
+\[
+    R_{j,k}[b]
+    =
+    \left[
+    H_{k+1}(z_{k+1}^{(j)})\cdots H_D(z_D^{(j)})
+    \right]_{b1}.
+    \tag{53c}
+\]
+The local core evaluated at \(z_k^{(j)}\) is
+\[
+    H_k(z_k^{(j)})[a,b]
+    =
+    \sum_{\ell=1}^{m_k}
+    C_k[a,\ell,b]\,b_k(z_k^{(j)})[\ell],
+    \tag{53d}
+\]
+where \(m_k\) is the number of one-dimensional basis functions in coordinate
+\(k\).  The value of the tensor train at this one point is therefore
+\[
+\begin{aligned}
+    \phi_t(z^{(j)};\beta)
+    &=
+    \sum_{a=1}^{R_{k-1}}
+    \sum_{b=1}^{R_k}
+    L_{j,k}[a]\,H_k(z_k^{(j)})[a,b]\,R_{j,k}[b]\\
+    &=
+    \sum_{a=1}^{R_{k-1}}
+    \sum_{\ell=1}^{m_k}
+    \sum_{b=1}^{R_k}
+    L_{j,k}[a]\,
+    b_k(z_k^{(j)})[\ell]\,
+    R_{j,k}[b]\,
+    C_k[a,\ell,b].
+\end{aligned}
+    \tag{53e}
+\]
+Equation (53e) is the whole reason the local fit is a linear least-squares
+problem.  At the fixed sample point, the unknown numbers are the entries of
+the core \(C_k\).  Every coefficient multiplying \(C_k[a,\ell,b]\) is already
+known from the branch and from the other cores.
+
+If \(g_k=\vecop(C_k)\) stacks entries in the order \((a,\ell,b)\), the row
+coefficient of \(g_k[a,\ell,b]\) is
+\[
+    A_{j,k}[a,\ell,b]
+    =
+    L_{j,k}[a]\,
+    b_k(z_k^{(j)})[\ell]\,
+    R_{j,k}[b].
+    \tag{53f}
+\]
+The compact Kronecker expression in (57) is just (53f) written without three
+sums:
+\[
+    A_{j,k}
+    =
+    R_{j,k}^{\top}\otimes b_k(z_k^{(j)})^\top\otimes L_{j,k}.
+    \tag{53g}
+\]
+To differentiate the row, keep the basis value fixed and differentiate the
+two environments:
+\[
+\begin{aligned}
+    \dot A_{j,k}[a,\ell,b]
+    &=
+    \dot L_{j,k}[a]\,
+    b_k(z_k^{(j)})[\ell]\,
+    R_{j,k}[b]\\
+    &\quad+
+    L_{j,k}[a]\,
+    b_k(z_k^{(j)})[\ell]\,
+    \dot R_{j,k}[b].
+\end{aligned}
+    \tag{53h}
+\]
+Equation (58) is (53h) written in the same Kronecker shorthand.  If the basis
+or fitting point moved with \(\beta\), there would be an additional term with
+\(\dot b_k(z_k^{(j)})\).  That term is absent because the branch keeps basis
+and fitting points fixed.
+
+For one core \(k\), the least-squares relation has rows
+\[
+    \phi_t(z^{(j)};\beta)=A_{j,k}(\beta)g_k(\beta),
+    \tag{54}
+\]
+where \(g_k=\vecop(C_{t,k})\).  Let
+\[
+    L_{j,k}
+    =
+    H_{1}(z_1^{(j)})\cdots H_{k-1}(z_{k-1}^{(j)}),
+    \tag{55}
+\]
+\[
+    R_{j,k}
+    =
+    H_{k+1}(z_{k+1}^{(j)})\cdots H_D(z_D^{(j)}).
+    \tag{56}
+\]
+Then
+\[
+    A_{j,k}
+    =
+    R_{j,k}^{\top}\otimes b_k(z_k^{(j)})^\top\otimes L_{j,k}.
+    \tag{57}
+\]
+Because basis values and fitting points are frozen,
+\[
+    \dot A_{j,k}
+    =
+    \dot R_{j,k}^{\top}\otimes b_k(z_k^{(j)})^\top\otimes L_{j,k}
+    +
+    R_{j,k}^{\top}\otimes b_k(z_k^{(j)})^\top\otimes \dot L_{j,k}.
+    \tag{58}
+\]
+The environments are differentiated by product rule:
+\[
+    \dot L_{j,1}=0,
+    \qquad
+    \dot L_{j,k+1}
+    =
+    \dot L_{j,k}H_k(z_k^{(j)})
+    +
+    L_{j,k}\dot H_k(z_k^{(j)}),
+    \tag{59}
+\]
+\[
+    \dot R_{j,D}=0,
+    \qquad
+    \dot R_{j,k-1}
+    =
+    \dot H_k(z_k^{(j)})R_{j,k}
+    +
+    H_k(z_k^{(j)})\dot R_{j,k}.
+    \tag{60}
+\]
+The local core matrix derivative is
+\[
+    \dot H_k(z_k^{(j)})[a,b]
+    =
+    \sum_{\ell}
+    \dot C_k[a,\ell,b]\,b_k(z_k^{(j)})[\ell].
+    \tag{61}
+\]
+
+The fixed ridge solve is
+\[
+    N_k g_k=d_k,
+    \qquad
+    N_k=A_k^\top W A_k+\rho I,
+    \qquad
+    d_k=A_k^\top W y.
+    \tag{62}
+\]
+Using (40),
+\[
+    N_k\dot g_k=\dot d_k-\dot N_k g_k,
+    \tag{63}
+\]
+where
+\[
+    \dot N_k=\dot A_k^\top W A_k+A_k^\top W\dot A_k,
+    \tag{64}
+\]
+\[
+    \dot d_k=\dot A_k^\top W y+A_k^\top W\dot y.
+    \tag{65}
+\]
+The derivative update is therefore another linear solve with the same
+left-hand matrix \(N_k\).  This is why the fixed branch is implementable: the
+forward pass and derivative pass use the same stored computational path.
+
+\subsection{Mass Contraction And Normalizer}
+
+The full right-mass recursion is the same idea as the rank-\(R\) warmup in
+(29)--(36).  In the warmup, \(M_1[r,s]\) stored the inner products of the
+first-coordinate factors and \(M_2[r,s]\) stored the inner products of the
+second-coordinate factors.  In the full tensor train, \(M_{>j}[b,b']\) plays
+the role of the already-integrated right factor, \(B_j[\ell,\ell']\) is the
+one-coordinate basis inner product, and the two copies of \(C_j\) are the two
+factors coming from squaring \(\phi_t\).
+
+The right mass contraction is
+\[
+    M_{>j-1}[a,a']
+    =
+    \sum_{b,b',\ell,\ell'}
+    C_j[a,\ell,b]
+    M_{>j}[b,b']
+    C_j[a',\ell',b']
+    B_j[\ell,\ell'].
+    \tag{66}
+\]
+Here \(B_j\) is the basis mass matrix.  It is frozen.  Differentiate (66):
+\[
+\begin{aligned}
+    \dot M_{>j-1}[a,a']
+    &=
+    \sum_{b,b',\ell,\ell'}
+    \dot C_j[a,\ell,b]
+    M_{>j}[b,b']
+    C_j[a',\ell',b']
+    B_j[\ell,\ell']\\
+    &\quad+
+    \sum_{b,b',\ell,\ell'}
+    C_j[a,\ell,b]
+    \dot M_{>j}[b,b']
+    C_j[a',\ell',b']
+    B_j[\ell,\ell']\\
+    &\quad+
+    \sum_{b,b',\ell,\ell'}
+    C_j[a,\ell,b]
+    M_{>j}[b,b']
+    \dot C_j[a',\ell',b']
+    B_j[\ell,\ell'].
+\end{aligned}
+\tag{67}
+\]
+Start from
+\[
+    M_{>D}=1,
+    \qquad
+    \dot M_{>D}=0.
+    \tag{68}
+\]
+Then (66)--(67) move from the right end of the chain to the left end.  The
+final square integral is
+\[
+    R_t(\beta)=\int\phi_t(z;\beta)^2\dd z=M_{>0}.
+    \tag{69}
+\]
+Its derivative is
+\[
+    \dot R_t(\beta)=\dot M_{>0}.
+    \tag{70}
+\]
+By (17)--(18),
+\[
+    \widehat Z_t(\beta)=e^{-c_t}R_t(\beta)+\tau_t,
+    \tag{71}
+\]
+\[
+    \dot{\widehat Z}_t(\beta)=e^{-c_t}\dot R_t(\beta).
+    \tag{72}
+\]
+
+\subsection{Carried Filter And Next Time Step}
+
+The carried numerator is
+\[
+    a_t(z_t;\beta)
+    =
+    \int \widehat q_t(z_t,z_{t-1};\beta)\dd z_{t-1}.
+    \tag{73}
+\]
+Its derivative is
+\[
+    \dot a_t(z_t;\beta)
+    =
+    \int \dot{\widehat q}_t(z_t,z_{t-1};\beta)\dd z_{t-1}.
+    \tag{74}
+\]
+For the squared part of the approximation, this marginal is another tensor
+contraction.  To make the formula concrete, suppose the retained coordinate is
+the last coordinate \(z_D=z_t\), and the previous-state coordinates are
+\(z_1,\ldots,z_{D-1}\).  First integrate out the previous-state coordinates by
+the same left-to-right mass recursion:
+\[
+    M_{<0}=1,
+    \qquad
+    M_{<j}[b,b']
+    =
+    \sum_{a,a',\ell,\ell'}
+    M_{<j-1}[a,a']\,
+    C_j[a,\ell,b]\,
+    C_j[a',\ell',b']\,
+    B_j[\ell,\ell']
+    \tag{74a}
+\]
+for \(j=1,\ldots,D-1\).  The derivative of this marginal environment is
+\[
+\begin{aligned}
+    \dot M_{<j}[b,b']
+    &=
+    \sum_{a,a',\ell,\ell'}
+    \dot M_{<j-1}[a,a']\,
+    C_j[a,\ell,b]\,
+    C_j[a',\ell',b']\,
+    B_j[\ell,\ell']\\
+    &\quad+
+    \sum_{a,a',\ell,\ell'}
+    M_{<j-1}[a,a']\,
+    \dot C_j[a,\ell,b]\,
+    C_j[a',\ell',b']\,
+    B_j[\ell,\ell']\\
+    &\quad+
+    \sum_{a,a',\ell,\ell'}
+    M_{<j-1}[a,a']\,
+    C_j[a,\ell,b]\,
+    \dot C_j[a',\ell',b']\,
+    B_j[\ell,\ell'].
+\end{aligned}
+    \tag{74b}
+\]
+Start with \(\dot M_{<0}=0\).  After the recursion reaches \(D-1\), the
+retained-coordinate numerator is the function
+\[
+\begin{aligned}
+    a_t(z_D;\beta)
+    &=
+    e^{-c_t}
+    \sum_{b,b',\ell,\ell'}
+    M_{<D-1}[b,b']\,
+    C_D[b,\ell,1]\,
+    C_D[b',\ell',1]\,
+    b_D(z_D)[\ell]\,
+    b_D(z_D)[\ell']\\
+    &\quad+
+    \tau_t
+    \int \lambda_t(z_D,z_{1:D-1})\dd z_{1:D-1}.
+\end{aligned}
+    \tag{74c}
+\]
+Its derivative, with \(c_t,\tau_t,\lambda_t\) and the basis fixed, is
+\[
+\begin{aligned}
+    \dot a_t(z_D;\beta)
+    &=
+    e^{-c_t}
+    \sum_{b,b',\ell,\ell'}
+    \dot M_{<D-1}[b,b']\,
+    C_D[b,\ell,1]\,
+    C_D[b',\ell',1]\,
+    b_D(z_D)[\ell]\,
+    b_D(z_D)[\ell']\\
+    &\quad+
+    e^{-c_t}
+    \sum_{b,b',\ell,\ell'}
+    M_{<D-1}[b,b']\,
+    \dot C_D[b,\ell,1]\,
+    C_D[b',\ell',1]\,
+    b_D(z_D)[\ell]\,
+    b_D(z_D)[\ell']\\
+    &\quad+
+    e^{-c_t}
+    \sum_{b,b',\ell,\ell'}
+    M_{<D-1}[b,b']\,
+    C_D[b,\ell,1]\,
+    \dot C_D[b',\ell',1]\,
+    b_D(z_D)[\ell]\,
+    b_D(z_D)[\ell'].
+\end{aligned}
+    \tag{74d}
+\]
+Equations (74a)--(74d) are the coding recipe behind the short integral
+identity (74).  If the retained state is not the last coordinate, reorder the
+coordinates or use left and right environments around the retained block; the
+same product-rule pattern applies.
+
+The normalized carried filter is
+\[
+    \widehat p_t(z_t;\beta)
+    =
+    \frac{a_t(z_t;\beta)}{\widehat Z_t(\beta)}.
+    \tag{75}
+\]
+Differentiate by quotient rule:
+\[
+    \dot{\widehat p}_t(z_t;\beta)
+    =
+    \frac{\dot a_t(z_t;\beta)}{\widehat Z_t(\beta)}
+    -
+    \frac{a_t(z_t;\beta)\dot{\widehat Z}_t(\beta)}
+    {\widehat Z_t(\beta)^2}.
+    \tag{76}
+\]
+This is the crucial bridge between time steps.  At time \(t+1\), the target
+contains \(\widehat p_t\), so its derivative contains
+\(\dot{\widehat p}_t\).  Without saving the carried-filter derivative, the
+next-step gradient is incomplete.
+
+\section{Proposition 1: The Fixed-Branch Recursion Is A Normalized Approximate Filter}
+
+\begin{proposition}
+Fix a parameter value \(\beta\), a time horizon \(T\), and fixed branch objects
+for all times.  Suppose that each approximate joint density
+\[
+    \widehat q_t(z_t,z_{t-1};\beta)
+    =
+    e^{-c_t}\phi_t(z_t,z_{t-1};\beta)^2
+    +
+    \tau_t\lambda_t(z_t,z_{t-1})
+    \tag{77}
+\]
+is nonnegative and integrable, and that
+\[
+    0<\widehat Z_t(\beta)
+    =
+    \int \widehat q_t(z_t,z_{t-1};\beta)\dd z_t\dd z_{t-1}
+    <\infty.
+    \tag{78}
+\]
+Define
+\[
+    \widehat p_t(z_t;\beta)
+    =
+    \frac{\int \widehat q_t(z_t,z_{t-1};\beta)\dd z_{t-1}}
+    {\widehat Z_t(\beta)}.
+    \tag{79}
+\]
+Then \(\widehat p_t(\cdot;\beta)\) is a normalized density in \(z_t\).  The
+recursion is a Bayesian filtering recursion for the declared approximate joint
+density \(\widehat q_t\), not a proof that \(\widehat q_t\) equals the exact
+Bayesian joint density.
+\end{proposition}
+
+\begin{proof}
+Nonnegativity follows immediately:
+\[
+    e^{-c_t}\phi_t^2\ge0,
+    \qquad
+    \tau_t\lambda_t\ge0.
+    \tag{80}
+\]
+Therefore \(\widehat q_t\ge0\).  By assumption,
+\(\widehat Z_t\) is positive and finite, so
+\[
+    \widehat p_t^{\rm joint}(z_t,z_{t-1};\beta)
+    =
+    \frac{\widehat q_t(z_t,z_{t-1};\beta)}
+    {\widehat Z_t(\beta)}
+    \tag{81}
+\]
+is a normalized joint density:
+\[
+\begin{aligned}
+    \int\!\!\int
+    \widehat p_t^{\rm joint}(z_t,z_{t-1};\beta)
+    \dd z_t\dd z_{t-1}
+    &=
+    \frac{1}{\widehat Z_t(\beta)}
+    \int\!\!\int
+    \widehat q_t(z_t,z_{t-1};\beta)
+    \dd z_t\dd z_{t-1}\\
+    &=
+    1.
+\end{aligned}
+\tag{82}
+\]
+The retained filter is the marginal of this normalized joint density:
+\[
+    \widehat p_t(z_t;\beta)
+    =
+    \int
+    \widehat p_t^{\rm joint}(z_t,z_{t-1};\beta)
+    \dd z_{t-1}.
+    \tag{83}
+\]
+Integrating (83) over \(z_t\),
+\[
+\begin{aligned}
+    \int \widehat p_t(z_t;\beta)\dd z_t
+    &=
+    \int
+    \left[
+    \int \widehat p_t^{\rm joint}(z_t,z_{t-1};\beta)
+    \dd z_{t-1}
+    \right]\dd z_t\\
+    &=
+    \int\!\!\int
+    \widehat p_t^{\rm joint}(z_t,z_{t-1};\beta)
+    \dd z_t\dd z_{t-1}\\
+    &=
+    1.
+\end{aligned}
+\tag{84}
+\]
+Thus \(\widehat p_t\) is normalized.  The proof used only the declared
+approximation \(\widehat q_t\).  It did not use the exact Bayesian density
+except as motivation for constructing \(\widehat q_t\).  Hence the theorem is a
+normalization theorem for the approximate filtering recursion.
+\end{proof}
+
+\section{Proposition 2: The Fixed-Branch Derivative Differentiates The Same Scalar}
+
+\begin{proposition}
+Fix the branch \(B=(B_1,\ldots,B_T)\).  Assume:
+\[
+    \widehatell_T(\beta;B)=\sum_{t=1}^T\log\widehat Z_t(\beta;B_t),
+    \tag{85}
+\]
+each \(\widehat Z_t\) is positive and finite, all model density evaluations are
+differentiable in \(\beta\), every least-squares update uses a fixed
+nonsingular ridge system, and differentiation under the finite-dimensional
+contractions and integrals is valid.  Then the derivative pass defined by
+(52)--(76) computes
+\[
+    \frac{\partial}{\partial\beta}
+    \widehatell_T(\beta;B).
+    \tag{86}
+\]
+\end{proposition}
+
+\begin{proof}
+The proof follows the computational graph of the fixed branch.
+
+First, the transformed target (46) is a product of the previous carried filter,
+transition density, observation density, and frozen Jacobian.  The product rule
+therefore gives (52).  If \(t=1\), the previous filter is the initial density;
+for \(t>1\), its derivative is supplied by the previous carried-filter
+derivative (76).
+
+Second, the fitted target values (47) are differentiable functions of
+\(\widetilde q_{t,j}\).  The chain rule gives (53).  The stabilizing shift
+\(c_t\) is frozen, so no \(\dot c_t\) term appears.
+
+Third, each core update is a fixed linear solve.  Equations (37)--(41) prove
+that differentiating the solve yields
+\[
+    N_k\dot g_k=\dot d_k-\dot N_k g_k.
+    \tag{87}
+\]
+Equations (54)--(65) identify \(N_k,d_k,\dot N_k,\dot d_k\) for the fixed
+least-squares update.  Since the number and order of solves are fixed, a finite
+composition of differentiable solve maps gives differentiable fitted cores.
+
+Fourth, the square integral \(R_t=\int\phi_t^2\) is computed by the mass
+recursion (66).  Its derivative is the product-rule recursion (67).  Therefore
+\[
+    \dot R_t=\frac{\partial}{\partial\beta}
+    \int\phi_t(z;\beta)^2\dd z.
+    \tag{88}
+\]
+With frozen \(c_t,\tau_t,\lambda_t\), (71)--(72) give the derivative of
+\(\widehat Z_t\).
+
+Fifth, the carried numerator and carried filter are defined by (73)--(75).
+Their derivatives are (74) and (76), obtained by differentiating under the
+integral and by the quotient rule.  This supplies the derivative object needed
+by the next time step.
+
+Finally, since each time contribution is \(\log\widehat Z_t(\beta;B_t)\),
+Warmup 1 gives
+\[
+    \frac{\partial}{\partial\beta}
+    \log\widehat Z_t(\beta;B_t)
+    =
+    \frac{\dot{\widehat Z}_t(\beta;B_t)}
+    {\widehat Z_t(\beta;B_t)}.
+    \tag{89}
+\]
+Summing (89) over \(t=1,\ldots,T\) gives (86).
+
+Every object differentiated in this proof is an object in the saved branch
+\(B\).  The proof never differentiates a changed rank, changed grid, changed
+shift, changed pivot set, or changed domain.  Therefore the derivative is the
+derivative of the same scalar \(\widehatell_T(\beta;B)\), not the derivative of
+an adaptive algorithm that chooses a new \(B\) when \(\beta\) changes.
+\end{proof}
+
+\section{What This Does Not Prove}
+
+The result above is deliberately narrow.
+
+It does not prove exact posterior accuracy:
+\[
+    \widehat q_t=q_t
+    \quad\text{is not claimed.}
+    \tag{90}
+\]
+It proves normalization and differentiation of the declared approximation.
+
+It does not prove ranks stay small:
+\[
+    R_k\ \text{moderate for all }k
+    \quad\text{is a diagnostic requirement, not a theorem here.}
+    \tag{91}
+\]
+It does not differentiate adaptive decisions:
+\[
+    \frac{\partial}{\partial\beta}
+    \{\text{chosen ranks, pivots, domains, shifts, fitting points}\}
+    \quad\text{is not part of the formula.}
+    \tag{92}
+\]
+It does not prove HMC convergence:
+\[
+    \text{correct local gradient of an approximate scalar}
+    \ne
+    \text{posterior sampling guarantee.}
+    \tag{93}
+\]
+
+These caveats make the result more honest, not weaker.  The fixed-branch
+gradient is a precise mathematical contract.  Empirical accuracy, rank
+stability, and sampling performance must be tested separately.
+
+\section{Finite-Difference Test}
+
+The finite-difference test checks that the value path and derivative path agree
+for the same branch.  Choose a base parameter \(\beta_0\).  Build the branch
+once and save the structural choices
+\[
+    \begin{aligned}
+    B=\{&
+    \text{domains, points, basis, ranks, sweeps, shifts,}\\
+    &\text{defensive terms, ridge parameters,}\\
+    &\text{deterministic initialization rules}\}.
+    \end{aligned}
+    \tag{94}
+\]
+Then evaluate the same scalar at perturbed parameters while reusing those
+structural choices and recomputing the parameter-dependent fitted values by the
+same fixed equations:
+\[
+    \widehatell_T(\beta_0+h e_i;B),
+    \qquad
+    \widehatell_T(\beta_0-h e_i;B).
+    \tag{95}
+\]
+That means the domains, points, ranks, shifts, and sweep order are unchanged,
+but the fitted core values
+\[
+    C_{t,k}(\beta_0+h e_i;B)
+    \quad\text{and}\quad
+    C_{t,k}(\beta_0-h e_i;B)
+    \tag{95a}
+\]
+are recomputed from the same saved fitting rule.  They are not copied from
+\(\beta_0\).
+The centered finite difference is
+\[
+    D_i(h)
+    =
+    \frac{
+    \widehatell_T(\beta_0+h e_i;B)
+    -
+    \widehatell_T(\beta_0-h e_i;B)}
+    {2h}.
+    \tag{96}
+\]
+Compare it to the analytical derivative
+\[
+    G_i=\partial_i\widehatell_T(\beta_0;B).
+    \tag{97}
+\]
+Record
+\[
+    e_i(h)=|D_i(h)-G_i|,
+    \tag{98}
+\]
+and
+\[
+    e_i^{\rm rel}(h)
+    =
+    \frac{|D_i(h)-G_i|}{1+|G_i|}.
+    \tag{99}
+\]
+Use a small schedule such as
+\[
+    h\in\{10^{-2},10^{-3},10^{-4},10^{-5}\}.
+    \tag{100}
+\]
+A healthy derivative check typically shows decreasing error over a range of
+\(h\), followed by roundoff or fitting-noise limitations.  If the error does
+not decrease on any reasonable range, the derivative path is not yet aligned
+with the value path.
+
+The branch identity check is mandatory:
+\[
+    B(\beta_0)=B(\beta_0+h e_i)=B(\beta_0-h e_i)=B.
+    \tag{101}
+\]
+If the implementation rebuilds ranks, points, shifts, or domains at the
+perturbed values, then (96) is no longer testing the derivative of
+\(\widehatell_T(\beta;B)\).  It is testing a different adaptive calculation.
+If the implementation copies the numerical cores from \(\beta_0\) without
+resolving the fixed fitting equations at the perturbed parameter, then it is
+also testing the wrong object.  The correct test freezes the branch choices but
+allows all differentiable outputs of those choices to change with \(\beta\).
+
+\section{Minimal Runnable Example}
+
+The smallest useful example should be nonlinear but one-dimensional:
+\[
+    x_t=\beta x_{t-1}+\sigma\epsilon_t,
+    \qquad
+    \epsilon_t\sim N(0,1),
+    \tag{102}
+\]
+\[
+    y_t=\sin(x_t)+\eta_t,
+    \qquad
+    \eta_t\sim N(0,r^2).
+    \tag{103}
+\]
+Use \(T=2\).  The first time step builds
+\[
+    q_1(x_1,x_0;\beta)
+    =
+    p_\beta(x_0)
+    f_\beta(x_1\mid x_0)
+    g_\beta(y_1\mid x_1).
+    \tag{104}
+\]
+It fits \(\phi_1\), computes
+\[
+    \widehat Z_1(\beta)=e^{-c_1}\int \phi_1(z_1,z_0;\beta)^2
+    \dd z_1\dd z_0+\tau_1,
+    \tag{105}
+\]
+and stores
+\[
+    \widehat p_1(z_1;\beta)
+    =
+    \frac{\int
+    \left[e^{-c_1}\phi_1(z_1,z_0;\beta)^2+\tau_1\lambda_1(z_1,z_0)\right]
+    \dd z_0}
+    {\widehat Z_1(\beta)}.
+    \tag{106}
+\]
+The second time step must call that stored object:
+\[
+    q_2(x_2,x_1;\beta)
+    =
+    \widehat p_1(x_1;\beta)
+    f_\beta(x_2\mid x_1)
+    g_\beta(y_2\mid x_2).
+    \tag{107}
+\]
+The scalar printed by the example is
+\[
+    \widehatell_2(\beta)
+    =
+    \log\widehat Z_1(\beta)
+    +
+    \log\widehat Z_2(\beta).
+    \tag{108}
+\]
+The script should print
+\[
+    \widehatell_2(\beta_0),
+    \qquad
+    \partial_\beta\widehatell_2(\beta_0),
+    \qquad
+    D(h),
+    \qquad
+    |D(h)-\partial_\beta\widehatell_2(\beta_0)|.
+    \tag{109}
+\]
+It should also print the branch manifest or manifest hash used for
+\(\beta_0\), \(\beta_0+h\), and \(\beta_0-h\).  The test passes only if those
+branch identifiers are identical and the derivative error has a stable
+decreasing window before numerical roundoff dominates.
+
+\section{Closing Summary}
+
+The fixed-branch gradient is built from five elementary ideas:
+\[
+\begin{array}{ll}
+\text{normalizer derivative} & \partial\log Z=\dot Z/Z,\\[2mm]
+\text{squared density derivative} & \partial(\phi^2)=2\phi\dot\phi,\\[2mm]
+\text{mass contraction derivative} & \text{differentiate every factor once},\\[2mm]
+\text{linear solve derivative} & N\dot g=\dot d-\dot N g,\\[2mm]
+\text{carried filter derivative} & \partial(a/Z)=\dot a/Z-a\dot Z/Z^2.
+\end{array}
+\tag{110}
+\]
+The tensor-train notation makes these ideas look large, but it does not change
+their nature.  Once the branch is fixed, the forward pass defines one scalar.
+The derivative pass differentiates that scalar.  What remains for empirical
+work is to test whether the approximation is accurate enough, stable enough,
+and useful enough for the target scientific model.
+
+\end{document}

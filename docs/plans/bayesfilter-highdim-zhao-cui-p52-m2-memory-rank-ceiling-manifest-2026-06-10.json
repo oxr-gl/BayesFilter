@@ -1,0 +1,222 @@
+{
+  "schema_version": "p52.rank_budget_preflight.v1",
+  "phase": "P52-M2",
+  "status": "PASS_P52_M2_MEMORY_RANK_CEILING",
+  "claim_class": "memory and rank feasibility forecast only",
+  "dimensions": [
+    18,
+    50,
+    100
+  ],
+  "rows": [
+    {
+      "dimension": 18,
+      "basis_size": 3,
+      "dtype_bytes": 8,
+      "effective_transition_rank_multiplier": 16,
+      "workspace_multiplier": 8,
+      "physical_cap_bytes": 34359738368,
+      "algorithm_cap_bytes": 17179869184,
+      "step_cap_bytes": 8589934592,
+      "candidate_ranks": [
+        2,
+        4,
+        8,
+        16,
+        32
+      ],
+      "reff_source": "conservative_declared_bound",
+      "claim_class": "memory and rank feasibility forecast only",
+      "r_max": 98,
+      "feasible_ranks": [
+        2,
+        4,
+        8,
+        16,
+        32
+      ],
+      "status": "PASS_P52_MEMORY_PREFLIGHT",
+      "blocker": null,
+      "forecasts": [
+        {
+          "rank": 2,
+          "state_memory_bytes": 1728,
+          "step_memory_bytes": 3538944,
+          "within_step_cap": true
+        },
+        {
+          "rank": 4,
+          "state_memory_bytes": 6912,
+          "step_memory_bytes": 14155776,
+          "within_step_cap": true
+        },
+        {
+          "rank": 8,
+          "state_memory_bytes": 27648,
+          "step_memory_bytes": 56623104,
+          "within_step_cap": true
+        },
+        {
+          "rank": 16,
+          "state_memory_bytes": 110592,
+          "step_memory_bytes": 226492416,
+          "within_step_cap": true
+        },
+        {
+          "rank": 32,
+          "state_memory_bytes": 442368,
+          "step_memory_bytes": 905969664,
+          "within_step_cap": true
+        }
+      ],
+      "nonclaims": [
+        "memory feasibility only",
+        "no filtering correctness",
+        "no HMC readiness",
+        "no d=100 filtering correctness"
+      ]
+    },
+    {
+      "dimension": 50,
+      "basis_size": 3,
+      "dtype_bytes": 8,
+      "effective_transition_rank_multiplier": 16,
+      "workspace_multiplier": 8,
+      "physical_cap_bytes": 34359738368,
+      "algorithm_cap_bytes": 17179869184,
+      "step_cap_bytes": 8589934592,
+      "candidate_ranks": [
+        2,
+        4,
+        8,
+        16,
+        32
+      ],
+      "reff_source": "conservative_declared_bound",
+      "claim_class": "memory and rank feasibility forecast only",
+      "r_max": 59,
+      "feasible_ranks": [
+        2,
+        4,
+        8,
+        16,
+        32
+      ],
+      "status": "PASS_P52_MEMORY_PREFLIGHT",
+      "blocker": null,
+      "forecasts": [
+        {
+          "rank": 2,
+          "state_memory_bytes": 4800,
+          "step_memory_bytes": 9830400,
+          "within_step_cap": true
+        },
+        {
+          "rank": 4,
+          "state_memory_bytes": 19200,
+          "step_memory_bytes": 39321600,
+          "within_step_cap": true
+        },
+        {
+          "rank": 8,
+          "state_memory_bytes": 76800,
+          "step_memory_bytes": 157286400,
+          "within_step_cap": true
+        },
+        {
+          "rank": 16,
+          "state_memory_bytes": 307200,
+          "step_memory_bytes": 629145600,
+          "within_step_cap": true
+        },
+        {
+          "rank": 32,
+          "state_memory_bytes": 1228800,
+          "step_memory_bytes": 2516582400,
+          "within_step_cap": true
+        }
+      ],
+      "nonclaims": [
+        "memory feasibility only",
+        "no filtering correctness",
+        "no HMC readiness",
+        "no d=100 filtering correctness"
+      ]
+    },
+    {
+      "dimension": 100,
+      "basis_size": 3,
+      "dtype_bytes": 8,
+      "effective_transition_rank_multiplier": 16,
+      "workspace_multiplier": 8,
+      "physical_cap_bytes": 34359738368,
+      "algorithm_cap_bytes": 17179869184,
+      "step_cap_bytes": 8589934592,
+      "candidate_ranks": [
+        2,
+        4,
+        8,
+        16,
+        32
+      ],
+      "reff_source": "conservative_declared_bound",
+      "claim_class": "memory and rank feasibility forecast only",
+      "r_max": 41,
+      "feasible_ranks": [
+        2,
+        4,
+        8,
+        16,
+        32
+      ],
+      "status": "PASS_P52_MEMORY_PREFLIGHT",
+      "blocker": null,
+      "forecasts": [
+        {
+          "rank": 2,
+          "state_memory_bytes": 9600,
+          "step_memory_bytes": 19660800,
+          "within_step_cap": true
+        },
+        {
+          "rank": 4,
+          "state_memory_bytes": 38400,
+          "step_memory_bytes": 78643200,
+          "within_step_cap": true
+        },
+        {
+          "rank": 8,
+          "state_memory_bytes": 153600,
+          "step_memory_bytes": 314572800,
+          "within_step_cap": true
+        },
+        {
+          "rank": 16,
+          "state_memory_bytes": 614400,
+          "step_memory_bytes": 1258291200,
+          "within_step_cap": true
+        },
+        {
+          "rank": 32,
+          "state_memory_bytes": 2457600,
+          "step_memory_bytes": 5033164800,
+          "within_step_cap": true
+        }
+      ],
+      "nonclaims": [
+        "memory feasibility only",
+        "no filtering correctness",
+        "no HMC readiness",
+        "no d=100 filtering correctness"
+      ]
+    }
+  ],
+  "nonclaims": [
+    "memory feasibility only",
+    "no filtering correctness",
+    "no production spatial SIR readiness",
+    "no HMC readiness",
+    "no GPU readiness",
+    "no d=100 filtering correctness"
+  ]
+}

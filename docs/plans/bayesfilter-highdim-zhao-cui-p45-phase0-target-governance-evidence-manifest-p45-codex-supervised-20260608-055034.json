@@ -1,0 +1,96 @@
+{
+  "schema_version": "p45.phase_evidence.v1",
+  "run_id": "p45-codex-supervised-20260608-055034",
+  "phase": "P45-M0",
+  "pass_token": "PASS_P45_M0_CODE_GOVERNANCE",
+  "status": "PASS_P45_M0_CODE_GOVERNANCE",
+  "artifact_paths": {
+    "result_note": "docs/plans/bayesfilter-highdim-zhao-cui-p45-phase0-target-governance-result-2026-06-08.md",
+    "claude_review_ledger": "docs/plans/bayesfilter-highdim-zhao-cui-p45-phase0-target-governance-claude-review-ledger-2026-06-08.md",
+    "evidence_manifest": "docs/plans/bayesfilter-highdim-zhao-cui-p45-phase0-target-governance-evidence-manifest-p45-codex-supervised-20260608-055034.json",
+    "target_registry": "docs/plans/bayesfilter-highdim-zhao-cui-p45-target-registry-2026-06-08.json",
+    "target_registry_tests": "tests/highdim/test_p45_target_registry.py",
+    "phase_gate": "scripts/p45_phase_gate.py"
+  },
+  "evidence_chain": {
+    "PHASE_PLAN_CONFIRMED": true,
+    "SKEPTICAL_AUDIT_RECORDED": true,
+    "CLAUDE_PLAN_OR_REPAIR_REVIEW_PASS": true,
+    "IMPLEMENTED": true,
+    "LOCAL_EVIDENCE_RUN": true,
+    "EVIDENCE_AUDIT_RECORDED": true,
+    "RESULT_NOTE_WRITTEN": true,
+    "CLAUDE_CODE_GOVERNANCE_PASS": true,
+    "TRACEABILITY_UPDATED_OR_NONCLAIM_RECORDED": true,
+    "PHASE_PASS": true
+  },
+  "evidence_contract": {
+    "question": "For each P45 model family, what exact target is being compared, and is a same-target CUT4--Zhao-Cui comparison authorized, blocked, or diagnostic-only?",
+    "baseline_or_comparator": "The P45-M0 target governance registry is checked against the P45 master/subplan. P44 diagnostic artifacts are source context only, not equality evidence.",
+    "primary_promotion_criterion": "Rows for generalized SV, spatial SIR, and predator-prey declare target identity, state law, observation law, parameterization, transformation/Jacobian terms, reference route, CUT4 route, Zhao-Cui route, panel convention, claim class, blocker class, route statuses, and nonclaims.",
+    "veto_diagnostics": [
+      "same-target comparison authorized without reference, CUT4, and Zhao-Cui routes all available",
+      "transformed generalized-SV residual represented as exact native likelihood",
+      "SIR or predator-prey closure represented as native model correctness",
+      "factorized panels represented as coupled multivariate TT"
+    ],
+    "explanatory_only_diagnostics": [
+      "JSON syntax validation",
+      "pytest registry semantic checks",
+      "compile check",
+      "diff whitespace check"
+    ],
+    "nonclaims": [
+      "no value/gradient correctness",
+      "no HMC readiness",
+      "no production score API",
+      "no native generalized-SV/SIR/predator-prey equality claim",
+      "no paper-scale Zhao-Cui reproduction"
+    ]
+  },
+  "commands": [
+    {
+      "purpose": "Validate P45-M0 target registry JSON syntax.",
+      "command": "python -m json.tool docs/plans/bayesfilter-highdim-zhao-cui-p45-target-registry-2026-06-08.json",
+      "exit_code": 0,
+      "log_path": "docs/plans/logs/p45-codex-supervised-20260608-055034-P45-M0-command0.log"
+    },
+    {
+      "purpose": "Run focused P45-M0 target registry semantic tests.",
+      "command": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp pytest -q tests/highdim/test_p45_target_registry.py",
+      "exit_code": 0,
+      "log_path": "docs/plans/logs/p45-codex-supervised-20260608-055034-P45-M0-command1.log"
+    },
+    {
+      "purpose": "Compile the P45 phase gate and focused M0 test file.",
+      "command": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp python -m compileall -q scripts/p45_phase_gate.py tests/highdim/test_p45_target_registry.py",
+      "exit_code": 0,
+      "log_path": "docs/plans/logs/p45-codex-supervised-20260608-055034-P45-M0-command2.log"
+    },
+    {
+      "purpose": "Check whitespace safety for the changed P45 artifacts.",
+      "command": "git diff --check -- docs/plans/bayesfilter-highdim-zhao-cui-p45-target-registry-2026-06-08.json tests/highdim/test_p45_target_registry.py scripts/p45_phase_gate.py",
+      "exit_code": 0,
+      "log_path": "docs/plans/logs/p45-codex-supervised-20260608-055034-P45-M0-command3.log"
+    }
+  ],
+  "diagnostics": {
+    "veto_status": "PASS",
+    "summary": "M0 blocks unsupported equality claims and makes native, diagnostic, approximation, closure, and factorized-panel boundaries executable through tests."
+  },
+  "review_loops": {
+    "claude_code_governance": {
+      "iterations": 2,
+      "verdict": "PASS_P45_M0_CODE_GOVERNANCE"
+    },
+    "repair": {
+      "iterations": 0,
+      "verdict": "N/A"
+    }
+  },
+  "long_run_controls": {
+    "long_run_used": false,
+    "resource_caps": "No long run; CPU-only document, registry, test, compile, and diff validation.",
+    "pre_mortem": "N/A"
+  }
+}

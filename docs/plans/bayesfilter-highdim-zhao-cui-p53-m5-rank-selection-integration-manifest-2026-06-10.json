@@ -1,0 +1,115 @@
+{
+  "schema_version": "p53.rank_selection_integration.v1",
+  "phase": "P53-M5",
+  "status": "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION",
+  "rank_selection": {
+    "route_id": "p53_spatial_sir_local_neighborhood_contraction",
+    "route_class": "scaling_route",
+    "admission_token": "PASS_P53_M4D_SCALING_ROUTE_ADMISSION",
+    "dimension": 18,
+    "basis_size": 3,
+    "effective_transition_rank_multiplier": 2916,
+    "candidate_ranks": [1, 2, 4, 8, 16, 32],
+    "feasible_ranks": [],
+    "selected_rank": null,
+    "status": "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION",
+    "blocker": "no candidate rank is below the hard memory ceiling",
+    "rank_mutation_allowed_in_likelihood": false,
+    "claim_class": "fixed_rank_selection_from_admitted_scaling_route_metadata",
+    "preflight": {
+      "dimension": 18,
+      "basis_size": 3,
+      "dtype_bytes": 8,
+      "effective_transition_rank_multiplier": 2916,
+      "workspace_multiplier": 8,
+      "physical_cap_bytes": 34359738368,
+      "algorithm_cap_bytes": 17179869184,
+      "step_cap_bytes": 8589934592,
+      "candidate_ranks": [1, 2, 4, 8, 16, 32],
+      "reff_source": "conservative_declared_bound",
+      "claim_class": "memory and rank feasibility forecast only",
+      "r_max": 0,
+      "feasible_ranks": [],
+      "status": "BLOCK_P52_RANK_BUDGET_EMPTY",
+      "blocker": "no candidate rank is below the hard memory ceiling",
+      "forecasts": [
+        {
+          "rank": 1,
+          "state_memory_bytes": 432,
+          "step_memory_bytes": 29386561536,
+          "within_step_cap": false
+        },
+        {
+          "rank": 2,
+          "state_memory_bytes": 1728,
+          "step_memory_bytes": 117546246144,
+          "within_step_cap": false
+        },
+        {
+          "rank": 4,
+          "state_memory_bytes": 6912,
+          "step_memory_bytes": 470184984576,
+          "within_step_cap": false
+        },
+        {
+          "rank": 8,
+          "state_memory_bytes": 27648,
+          "step_memory_bytes": 1880739938304,
+          "within_step_cap": false
+        },
+        {
+          "rank": 16,
+          "state_memory_bytes": 110592,
+          "step_memory_bytes": 7522959753216,
+          "within_step_cap": false
+        },
+        {
+          "rank": 32,
+          "state_memory_bytes": 442368,
+          "step_memory_bytes": 30091839012864,
+          "within_step_cap": false
+        }
+      ],
+      "nonclaims": [
+        "memory feasibility only",
+        "no filtering correctness",
+        "no HMC readiness",
+        "no d=100 filtering correctness"
+      ]
+    },
+    "nonclaims": [
+      "rank selection only",
+      "no filtering correctness",
+      "no d=18 spatial SIR result",
+      "no HMC readiness",
+      "no GPU readiness"
+    ]
+  },
+  "direct_d18_route_metadata_probe": {
+    "dimension": 18,
+    "compartments": 9,
+    "basis_order": 3,
+    "tt_rank_left": 1,
+    "tt_rank_right": 1,
+    "memory_cap_bytes": 34359738368,
+    "status": "BLOCK_LOCAL_SCALING_ROUTE_MEMORY_FORECAST_EXCEEDS_CAP",
+    "blocker": "local scaling route memory forecast exceeds cap"
+  },
+  "tokens_emitted": [
+    "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+  ],
+  "forbidden_tokens": [
+    "PASS_P53_M5_RANK_SELECTION_INTEGRATION",
+    "PASS_P53_M6_SPATIAL_SIR_D18",
+    "PASS_P53_M7_SPATIAL_SIR_D50_D100",
+    "PASS_P53_M8_INTEGRATION_CLOSEOUT"
+  ],
+  "nonclaims": [
+    "no rank selected",
+    "no d=18 spatial SIR run",
+    "no d=50 or d=100 spatial SIR run",
+    "no filtering correctness",
+    "no HMC readiness",
+    "no GPU readiness"
+  ]
+}

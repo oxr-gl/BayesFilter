@@ -1,0 +1,317 @@
+{
+  "consumed_artifacts": [
+    {
+      "path": "docs/plans/bayesfilter-dpf-filter-oracle-comparison-target-route-registry-2026-06-08.json",
+      "role": "historical_filter_oracle_registry"
+    },
+    {
+      "path": "experiments/dpf_implementation/reports/outputs/dpf_filter_oracle_comparison_p4_zhaocui_tt_route_classification_2026-06-08.json",
+      "role": "historical_p5_target_set"
+    },
+    {
+      "path": "experiments/dpf_implementation/reports/outputs/dpf_v2_ledh_pfpf_alg1_ukf_contracts_2026-06-10.json",
+      "role": "algorithm1_contracts"
+    },
+    {
+      "path": "experiments/dpf_implementation/reports/outputs/dpf_v2_ledh_pfpf_alg1_ukf_values_2026-06-10.json",
+      "role": "algorithm1_values"
+    },
+    {
+      "path": "experiments/dpf_implementation/reports/outputs/dpf_v2_ledh_pfpf_alg1_ukf_gradients_2026-06-10.json",
+      "role": "algorithm1_gradients"
+    }
+  ],
+  "created_at_utc": "2026-06-10T10:54:18Z",
+  "decision": "LOCAL_PASS_P5_FILTER_ORACLE_ALG1_UKF_STATISTICAL_CLOSENESS_DIAGNOSTIC_ONLY_PENDING_CLAUDE_REVIEW",
+  "evidence_contract": {
+    "baseline_comparator": "P0/P4 filter-oracle target registry for old eligible target set; P2-P4 Algorithm 1 UKF artifacts for current evidence.",
+    "not_concluded": [
+      "P5 does not certify Algorithm 1 statistical closeness.",
+      "P5 does not revive old dpf_ledh_pfpf_ot results as evidence.",
+      "P5 does not establish nonlinear P44 DPF value or gradient closeness.",
+      "P5 does not use Zhao-Cui, CUT4, SVD, UKF, or FilterFlow as a DPF correctness oracle.",
+      "P5 does not establish stochastic-resampling gradient correctness.",
+      "P5 does not establish HMC readiness, production readiness, GPU readiness, or paper-scale claims."
+    ],
+    "primary_criterion": "Each old dpf_ledh_pfpf_ot P5-eligible target has a replacement status.  Algorithm 1 rows include mandatory route fields and Monte Carlo uncertainty; rows without same-target adapters are blocked with concrete adapter items.",
+    "promotion_policy": "No P5 row is promoted because value and gradient tolerances remain N/A diagnostic-only or adapter-blocked."
+  },
+  "execution_mode": "PURE_PYTHON_CLASSIFICATION_ONLY",
+  "execution_route": "VISIBLE_IN_DIALOGUE",
+  "explanatory_diagnostics": {
+    "old_ledh_pfpf_ot_used_as_current_evidence": false,
+    "stochastic_score_claim": "not_claimed",
+    "value_closeness_used_to_promote_gradient": false,
+    "zhao_cui_used_as_p5_comparator": false
+  },
+  "gate_definition": {
+    "expected_targets": [
+      "lgssm_2d_h25_rich",
+      "p44_m2_cubic_additive_gaussian_panel",
+      "p44_m3_quadratic_observation_panel",
+      "p44_m4_nonlinear_transition_h2_panel"
+    ],
+    "local_decision_semantics": "LOCAL_PASS means the artifact satisfies local classification completeness and anti-revival checks before Claude review.  It does not certify statistical closeness.",
+    "p44_block_rule": "P44 targets remain BLOCKED_REQUIRES_ADAPTER unless a reviewed same-target Algorithm 1 adapter and numeric P5 band exist before execution.",
+    "promotion_rule": "finite execution is diagnostic-only without numeric predeclared bands"
+  },
+  "metadata_date": "2026-06-10",
+  "nonclaims": [
+    "P5 does not certify Algorithm 1 statistical closeness.",
+    "P5 does not revive old dpf_ledh_pfpf_ot results as evidence.",
+    "P5 does not establish nonlinear P44 DPF value or gradient closeness.",
+    "P5 does not use Zhao-Cui, CUT4, SVD, UKF, or FilterFlow as a DPF correctness oracle.",
+    "P5 does not establish stochastic-resampling gradient correctness.",
+    "P5 does not establish HMC readiness, production readiness, GPU readiness, or paper-scale claims."
+  ],
+  "phase": "P5",
+  "question": "Can the filter-oracle P5 rows that previously contained dpf_ledh_pfpf_ot be replaced by Algorithm 1 UKF evidence or reviewed target-route blockers?",
+  "reproducibility_digest": "4eb8a33409f5b78025abadb0ef27375d251ac4001be5047c67734c180de97b11",
+  "route_summaries": {
+    "blocked_rows": [
+      "p44_m2_cubic_additive_gaussian_panel",
+      "p44_m3_quadratic_observation_panel",
+      "p44_m4_nonlinear_transition_h2_panel"
+    ],
+    "diagnostic_rows": [
+      "lgssm_2d_h25_rich"
+    ],
+    "eligible_targets": [
+      "lgssm_2d_h25_rich",
+      "p44_m2_cubic_additive_gaussian_panel",
+      "p44_m3_quadratic_observation_panel",
+      "p44_m4_nonlinear_transition_h2_panel"
+    ],
+    "promoted_rows": [],
+    "row_count": 4,
+    "status_counts": {
+      "BLOCKED_REQUIRES_ADAPTER": 3,
+      "RERUN_ALG1_DIAGNOSTIC_ONLY": 1
+    }
+  },
+  "rows": [
+    {
+      "blockers": [],
+      "certification_band": "N/A_DIAGNOSTIC_ONLY_IN_P5",
+      "comparison_target_class": "exact_lgssm_oracle",
+      "downgrade_reasons": [
+        "P2/P5 numeric promotion bands are N/A diagnostic-only",
+        "P4 gradient seed count is diagnostic-only and below the old P5 minimum seed-count expectation",
+        "finite Algorithm 1 execution is not a statistical-closeness promotion criterion"
+      ],
+      "evidence_route_class": "SOURCE_ALGORITHM1_CORE",
+      "gradient_scalar": "fixed-branch sum of predictive log normalizers",
+      "gradient_statistics": {
+        "finite_count": 3,
+        "gradient_component_standard_error": [
+          0.8789267879165555,
+          0.4082857453229335
+        ],
+        "gradient_error_norm_ci95": [
+          -0.7605962460399422,
+          2.8921759846193282
+        ],
+        "gradient_error_norm_standard_error": 0.9318296506783853,
+        "gradient_reference_route": "exact_kalman_lgssm_gradient",
+        "mean_gradient": [
+          -1.3367731039550144,
+          0.16300966029458386
+        ],
+        "mean_gradient_error_norm": 1.065789869289693,
+        "particle_count": 16,
+        "seed_count": 3,
+        "source_json": "experiments/dpf_implementation/reports/outputs/dpf_v2_ledh_pfpf_alg1_ukf_gradients_2026-06-10.json"
+      },
+      "gradient_tolerance": "N/A_DIAGNOSTIC_ONLY_IN_P5",
+      "method_id": "ledh_pfpf_alg1_ukf_no_resampling_tf",
+      "nonclaims": [
+        "not a stochastic-resampling gradient claim",
+        "not a production or HMC-readiness claim"
+      ],
+      "old_coverage_route_id": "dpf_ledh_pfpf_ot",
+      "primary_promote_statistic": "N/A_DIAGNOSTIC_ONLY_IN_P5",
+      "promotion_status": "not_promoted",
+      "reference_route": "exact_kalman_for_lgssm",
+      "replacement_status": "RERUN_ALG1_DIAGNOSTIC_ONLY",
+      "route_fields": {
+        "core_resampling_route": "none",
+        "covariance_route": "per_particle_ukf_prediction_update",
+        "evidence_route_class": "SOURCE_ALGORITHM1_CORE",
+        "extension_resampling_route": "none",
+        "flow_anchor_route": "zero_noise_transition",
+        "flow_source_route": "li_coates_2017_algorithm1_ledh_pfpf",
+        "method_generation": "li_coates_algorithm1_ukf_covariance_lifecycle",
+        "prediction_covariance_route": "ukf_prediction_per_particle_covariance",
+        "previous_ledh_pfpf_ot_evidence_status": "quarantined",
+        "resampling_route": "none",
+        "update_covariance_route": "ukf_update_per_particle_covariance"
+      },
+      "stochastic_score_claim": "not_claimed",
+      "target_id": "lgssm_2d_h25_rich",
+      "value_scalar": "sum of per-step predictive log normalizers",
+      "value_statistics": {
+        "finite_count": 5,
+        "mean_value": -2.467853404191689,
+        "min_ess": 3.056368736456337,
+        "particle_count": 32,
+        "seed_count": 5,
+        "source_json": "experiments/dpf_implementation/reports/outputs/dpf_v2_ledh_pfpf_alg1_ukf_values_2026-06-10.json",
+        "value_ci95": [
+          -2.8712677939044045,
+          -2.0644390144789733
+        ],
+        "value_rmse_vs_reference": 0.41825736258132357,
+        "value_standard_error": 0.20582366822077328
+      },
+      "value_tolerance": "N/A_DIAGNOSTIC_ONLY_IN_P5"
+    },
+    {
+      "blockers": [
+        "reviewed same-target Algorithm 1 transition_sample/transition_log_density callbacks missing for this P44 target",
+        "reviewed same-target Algorithm 1 observation_mean/observation_jacobian/observation_log_density callbacks missing for this P44 target",
+        "numeric P5 value and gradient promotion bands not predeclared for this Algorithm 1 target",
+        "paired-seed evaluator variance and branch-decision artifacts missing for this target"
+      ],
+      "certification_band": "N/A_BLOCKED_REQUIRES_ADAPTER",
+      "comparison_target_class": "exact_or_dense_reference_available_but_no_algorithm1_same_target_adapter",
+      "downgrade_reasons": [],
+      "evidence_route_class": "N/A_BLOCKED_REQUIRES_ADAPTER",
+      "gradient_scalar": "N/A_BLOCKED_REQUIRES_ADAPTER",
+      "gradient_statistics": "N/A_BLOCKED_REQUIRES_ADAPTER",
+      "gradient_tolerance": "N/A_BLOCKED_REQUIRES_ADAPTER",
+      "method_id": "ledh_pfpf_alg1_ukf_no_resampling_tf",
+      "nonclaims": [
+        "adapter blocker is engineering status, not evidence against Algorithm 1",
+        "P44 dense or Zhao-Cui evidence is not an Algorithm 1 DPF result"
+      ],
+      "old_coverage_route_id": "dpf_ledh_pfpf_ot",
+      "primary_promote_statistic": "N/A_BLOCKED_REQUIRES_ADAPTER",
+      "promotion_status": "not_promoted",
+      "reference_route": "dense_refined_quadrature",
+      "replacement_status": "BLOCKED_REQUIRES_ADAPTER",
+      "route_fields": "N/A_BLOCKED_REQUIRES_ADAPTER",
+      "source_reference_artifacts": [
+        "docs/plans/bayesfilter-dpf-filter-oracle-comparison-p2-tiny-nonlinear-dense-oracle-result-2026-06-08.md",
+        "experiments/dpf_implementation/reports/outputs/dpf_filter_oracle_comparison_p2_tiny_nonlinear_dense_oracle_2026-06-08.json"
+      ],
+      "stochastic_score_claim": "not_claimed",
+      "target_id": "p44_m2_cubic_additive_gaussian_panel",
+      "value_scalar": "N/A_BLOCKED_REQUIRES_ADAPTER",
+      "value_statistics": "N/A_BLOCKED_REQUIRES_ADAPTER",
+      "value_tolerance": "N/A_BLOCKED_REQUIRES_ADAPTER"
+    },
+    {
+      "blockers": [
+        "reviewed same-target Algorithm 1 transition_sample/transition_log_density callbacks missing for this P44 target",
+        "reviewed same-target Algorithm 1 observation_mean/observation_jacobian/observation_log_density callbacks missing for this P44 target",
+        "numeric P5 value and gradient promotion bands not predeclared for this Algorithm 1 target",
+        "paired-seed evaluator variance and branch-decision artifacts missing for this target"
+      ],
+      "certification_band": "N/A_BLOCKED_REQUIRES_ADAPTER",
+      "comparison_target_class": "exact_or_dense_reference_available_but_no_algorithm1_same_target_adapter",
+      "downgrade_reasons": [],
+      "evidence_route_class": "N/A_BLOCKED_REQUIRES_ADAPTER",
+      "gradient_scalar": "N/A_BLOCKED_REQUIRES_ADAPTER",
+      "gradient_statistics": "N/A_BLOCKED_REQUIRES_ADAPTER",
+      "gradient_tolerance": "N/A_BLOCKED_REQUIRES_ADAPTER",
+      "method_id": "ledh_pfpf_alg1_ukf_no_resampling_tf",
+      "nonclaims": [
+        "adapter blocker is engineering status, not evidence against Algorithm 1",
+        "P44 dense or Zhao-Cui evidence is not an Algorithm 1 DPF result"
+      ],
+      "old_coverage_route_id": "dpf_ledh_pfpf_ot",
+      "primary_promote_statistic": "N/A_BLOCKED_REQUIRES_ADAPTER",
+      "promotion_status": "not_promoted",
+      "reference_route": "dense_refined_quadrature",
+      "replacement_status": "BLOCKED_REQUIRES_ADAPTER",
+      "route_fields": "N/A_BLOCKED_REQUIRES_ADAPTER",
+      "source_reference_artifacts": [
+        "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase3-quadratic-observation-result-2026-06-07.md"
+      ],
+      "stochastic_score_claim": "not_claimed",
+      "target_id": "p44_m3_quadratic_observation_panel",
+      "value_scalar": "N/A_BLOCKED_REQUIRES_ADAPTER",
+      "value_statistics": "N/A_BLOCKED_REQUIRES_ADAPTER",
+      "value_tolerance": "N/A_BLOCKED_REQUIRES_ADAPTER"
+    },
+    {
+      "blockers": [
+        "reviewed same-target Algorithm 1 transition_sample/transition_log_density callbacks missing for this P44 target",
+        "reviewed same-target Algorithm 1 observation_mean/observation_jacobian/observation_log_density callbacks missing for this P44 target",
+        "numeric P5 value and gradient promotion bands not predeclared for this Algorithm 1 target",
+        "paired-seed evaluator variance and branch-decision artifacts missing for this target"
+      ],
+      "certification_band": "N/A_BLOCKED_REQUIRES_ADAPTER",
+      "comparison_target_class": "exact_or_dense_reference_available_but_no_algorithm1_same_target_adapter",
+      "downgrade_reasons": [],
+      "evidence_route_class": "N/A_BLOCKED_REQUIRES_ADAPTER",
+      "gradient_scalar": "N/A_BLOCKED_REQUIRES_ADAPTER",
+      "gradient_statistics": "N/A_BLOCKED_REQUIRES_ADAPTER",
+      "gradient_tolerance": "N/A_BLOCKED_REQUIRES_ADAPTER",
+      "method_id": "ledh_pfpf_alg1_ukf_no_resampling_tf",
+      "nonclaims": [
+        "adapter blocker is engineering status, not evidence against Algorithm 1",
+        "P44 dense or Zhao-Cui evidence is not an Algorithm 1 DPF result"
+      ],
+      "old_coverage_route_id": "dpf_ledh_pfpf_ot",
+      "primary_promote_statistic": "N/A_BLOCKED_REQUIRES_ADAPTER",
+      "promotion_status": "not_promoted",
+      "reference_route": "dense_refined_quadrature",
+      "replacement_status": "BLOCKED_REQUIRES_ADAPTER",
+      "route_fields": "N/A_BLOCKED_REQUIRES_ADAPTER",
+      "source_reference_artifacts": [
+        "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase4-nonlinear-transition-result-2026-06-07.md"
+      ],
+      "stochastic_score_claim": "not_claimed",
+      "target_id": "p44_m4_nonlinear_transition_h2_panel",
+      "value_scalar": "N/A_BLOCKED_REQUIRES_ADAPTER",
+      "value_statistics": "N/A_BLOCKED_REQUIRES_ADAPTER",
+      "value_tolerance": "N/A_BLOCKED_REQUIRES_ADAPTER"
+    }
+  ],
+  "run_manifest": {
+    "branch": "main",
+    "command": "/home/chakwong/anaconda3/envs/tf-gpu/bin/python -m experiments.dpf_implementation.tf_tfp.runners.run_filter_oracle_comparison_p5_alg1_ukf_statistical_closeness_tf",
+    "commit": "26485010c28e11b3591da59b7ca375d4764c3d8d",
+    "cpu_gpu_status": "pure_python_classification_only; TensorFlow not imported",
+    "data_version": "P2-P4 Algorithm 1 artifacts plus historical filter-oracle target registry",
+    "dirty_state_digest": "fc8438e21c987ffa432275f320f122d484b1b7dd8c1da9b0cb042d4e1d468a70",
+    "dirty_state_line_count": 1568,
+    "json_path": "experiments/dpf_implementation/reports/outputs/dpf_filter_oracle_comparison_p5_alg1_ukf_statistical_closeness_2026-06-10.json",
+    "particle_counts": "consumed from P3/P4 only",
+    "plan_path": "docs/plans/bayesfilter-dpf-ledh-pfpf-alg1-ukf-ledh-pfpf-ot-rerun-p5-filter-oracle-statistical-closeness-subplan-2026-06-10.md",
+    "python_version": "3.11.14",
+    "report_path": "experiments/dpf_implementation/reports/dpf-filter-oracle-comparison-p5-alg1-ukf-statistical-closeness-2026-06-10.md",
+    "result_path": "docs/plans/bayesfilter-dpf-ledh-pfpf-alg1-ukf-ledh-pfpf-ot-rerun-p5-filter-oracle-statistical-closeness-result-2026-06-10.md",
+    "review_ledger_path": "docs/plans/bayesfilter-dpf-ledh-pfpf-alg1-ukf-ledh-pfpf-ot-rerun-claude-review-ledger-2026-06-10.md",
+    "seed_list": "consumed from P3/P4 only",
+    "tensorflow_imported": false,
+    "tensorflow_probability_imported": false,
+    "timestamp_utc": "2026-06-10T10:54:18Z",
+    "wall_time_seconds": 0.0139245823957026
+  },
+  "skeptical_plan_audit": {
+    "proxy_promotion_control": "Finite P3/P4 rows, finite differences, ESS, and particle ladders are diagnostic-only because P0/P2 froze no numeric P5 promotion band.",
+    "status": "PASS_FOR_CLASSIFICATION_ONLY_EXECUTION",
+    "stop_condition_control": "Every P5-eligible target is classified; P44 rows are blocked rather than silently omitted or ranked on unsupported adapters.",
+    "wrong_baseline_control": "Old dpf_ledh_pfpf_ot rows define historical coverage only.  LGSSM uses exact Kalman; P44 rows use the old P4 target registry only to identify same-target reference requirements."
+  },
+  "veto_diagnostics": {
+    "algorithm1_route_fields_missing": false,
+    "eligible_target_set_mismatch": false,
+    "finite_only_promoted": false,
+    "missing_monte_carlo_uncertainty_on_diagnostic_lgssm": false,
+    "old_ledh_pfpf_ot_used_as_current_method": false,
+    "p2_contract_not_ready": false,
+    "p3_values_not_ready": false,
+    "p44_row_promoted_without_same_target_adapter": false,
+    "p4_gradients_not_ready": false,
+    "registry_missing_expected_target": false,
+    "row_count_or_order_mismatch": false,
+    "stochastic_score_claimed": false,
+    "threshold_or_band_missing_without_na_reason": false,
+    "unsupported_comparator_promoted": false,
+    "value_used_to_promote_gradient": false,
+    "zhao_cui_used_as_p5_comparator": false
+  }
+}

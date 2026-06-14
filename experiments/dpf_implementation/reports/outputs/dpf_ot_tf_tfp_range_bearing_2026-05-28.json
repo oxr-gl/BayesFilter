@@ -1,0 +1,1115 @@
+{
+  "backend": "tensorflow_tensorflow_probability",
+  "created_at_utc": "2026-05-28T15:48:41Z",
+  "decision": "DPF_OT_TF_TFP_RANGE_BEARING_PASSED",
+  "model_definition": {
+    "A": [
+      [
+        1.0,
+        0.0,
+        0.1,
+        0.0
+      ],
+      [
+        0.0,
+        1.0,
+        0.0,
+        0.1
+      ],
+      [
+        0.0,
+        0.0,
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "P0": [
+      [
+        0.04,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.04,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.01,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.01
+      ]
+    ],
+    "Q": [
+      [
+        0.0015,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0015,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0008,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0008
+      ]
+    ],
+    "R": [
+      [
+        0.0144,
+        0.0
+      ],
+      [
+        0.0,
+        0.0016
+      ]
+    ],
+    "backend": "tensorflow_tensorflow_probability",
+    "fixture_generation_seed": 701,
+    "horizon": 20,
+    "initial_distribution": "x_0 ~ Normal(m0, P0)",
+    "m0": [
+      1.2,
+      0.7,
+      0.18,
+      -0.06
+    ],
+    "model_checksum": "6c605b90aeab2ff4798857eae01e01113b21dfa0f769b6579ce4b0b691752c92",
+    "model_id": "range_bearing_gaussian_tf_tfp_moderate",
+    "observation_checksum": "21a5c22a77895e3431db6004911854e5cbcddd65e3d460afc144a3dde59299e1",
+    "observation_equation": "y_t = [sqrt(px^2+py^2), atan2(py,px)] + r_t",
+    "reference_status": "UKF is approximate for this nonlinear fixture.",
+    "state_equation": "x_t = A x_{t-1} + q_t, q_t ~ Normal(0, Q)"
+  },
+  "non_implications": [
+    "No production readiness is concluded.",
+    "No public API readiness is concluded.",
+    "No HMC readiness is concluded.",
+    "No posterior correctness is concluded.",
+    "No learned or neural OT promotion is concluded.",
+    "No banking or model-risk claim is concluded.",
+    "No monograph claim is concluded without separate review.",
+    "UKF is approximate and proxy RMSE is not correctness evidence."
+  ],
+  "num_particles": 96,
+  "primary_metrics": {
+    "max_ot_sinkhorn_residual": 4.440892098500626e-16,
+    "median_bootstrap_latent_position_rmse": 0.07149138539801286,
+    "median_bootstrap_observation_proxy_rmse": 0.09654120366403485,
+    "median_bootstrap_state_rmse_to_ukf": 0.04928816435621779,
+    "median_ot_latent_position_rmse": 0.07566496675661072,
+    "median_ot_observation_proxy_rmse": 0.11491050363308848,
+    "median_ot_state_rmse_to_ukf": 0.06459801669123823
+  },
+  "question": "TF/TFP range-bearing OT-DPF relaxed resampling smoke with UKF approximate reference",
+  "reference": {
+    "finite": true,
+    "reference_id": "ukf_range_bearing_tf_approximate_reference",
+    "reference_status": "UKF is approximate for this nonlinear fixture, not ground truth."
+  },
+  "reproducibility_digest": "775a5ecc7df419cb0b8c4347b7e1d52a06f4051691aff7010110e4876b72a2e0",
+  "rows": [
+    {
+      "comparator_status": "UKF is approximate for the nonlinear fixture, not truth.",
+      "ess_by_time": [
+        5.093640465460578,
+        50.94812793368406,
+        27.891385489750938,
+        38.92369463699866,
+        45.723585987208175,
+        71.36328544737741,
+        38.13067391564349,
+        16.591963956821964,
+        19.501377594886968,
+        52.73711591729494,
+        34.08371843834851,
+        61.07237734095615,
+        55.95800179048303,
+        28.695250148271345,
+        45.36131642926556,
+        68.80842412934906,
+        28.119946419815392,
+        47.19798828915446,
+        7.914137561975597,
+        74.51219021965018
+      ],
+      "filtered_means": [
+        [
+          1.3655256849757427,
+          1.046585697540667,
+          0.19009935832936273,
+          -0.012263154579237667
+        ],
+        [
+          1.439445161212974,
+          1.099254574183063,
+          0.18983004464947237,
+          -0.0006115401069051543
+        ],
+        [
+          1.5079569921861045,
+          1.1385312055725905,
+          0.1942394676182071,
+          0.014762097415299137
+        ],
+        [
+          1.5059647270537517,
+          1.0617987670680469,
+          0.19395555080617213,
+          -0.011655262997563844
+        ],
+        [
+          1.4761413567813078,
+          1.0416585306049688,
+          0.1946910829589346,
+          -0.04000809895100497
+        ],
+        [
+          1.4769213137986321,
+          1.0448659434037628,
+          0.1843385906021598,
+          -0.048011372490280285
+        ],
+        [
+          1.4985930533460203,
+          0.9903469029892226,
+          0.19253382064556457,
+          -0.0744925005441033
+        ],
+        [
+          1.4844389279581154,
+          0.8991605392277283,
+          0.2108708596036596,
+          -0.08732984309928063
+        ],
+        [
+          1.5628998853964915,
+          0.8175624948288497,
+          0.20861272882296342,
+          -0.11897344428492794
+        ],
+        [
+          1.603850648345832,
+          0.7585998734012354,
+          0.18403648760981262,
+          -0.13874622276798038
+        ],
+        [
+          1.575366934084181,
+          0.8108033364030859,
+          0.2179382368834549,
+          -0.10813403752018949
+        ],
+        [
+          1.5680782798602801,
+          0.7699137415676048,
+          0.2195193250190465,
+          -0.12298489671121648
+        ],
+        [
+          1.6050220615345046,
+          0.7549873494889754,
+          0.22925345800417618,
+          -0.12271515732695894
+        ],
+        [
+          1.571606905793232,
+          0.6899665324210978,
+          0.21593449403530068,
+          -0.15418858442028113
+        ],
+        [
+          1.5530160100871444,
+          0.7261129165327707,
+          0.20197217369482107,
+          -0.14805388282999365
+        ],
+        [
+          1.5511822767540049,
+          0.7320126448027349,
+          0.196790968564327,
+          -0.1531771569284897
+        ],
+        [
+          1.5414466552712591,
+          0.7557290790166643,
+          0.20599055011686404,
+          -0.13839276453307786
+        ],
+        [
+          1.5463975695380034,
+          0.7848135942843518,
+          0.22734703371426312,
+          -0.14498378957362681
+        ],
+        [
+          1.7423535741376526,
+          0.807668953937049,
+          0.33803455513657626,
+          -0.07881820434464303
+        ],
+        [
+          1.7597146540180129,
+          0.7914922119309469,
+          0.3482545543709526,
+          -0.08473527065758435
+        ]
+      ],
+      "finite": true,
+      "latent_position_rmse": 0.0902008773160647,
+      "log_likelihood_estimate": 29.55371038208643,
+      "max_sinkhorn_residual": 0.0,
+      "method_id": "bootstrap_multinomial_pf_tf",
+      "model_checksum": "6c605b90aeab2ff4798857eae01e01113b21dfa0f769b6579ce4b0b691752c92",
+      "num_particles": 96,
+      "observation_checksum": "21a5c22a77895e3431db6004911854e5cbcddd65e3d460afc144a3dde59299e1",
+      "observation_proxy_rmse": 0.10139267041770926,
+      "resampling_count": 13,
+      "seed": 31,
+      "state_rmse_to_ukf": 0.05148967901432736
+    },
+    {
+      "comparator_status": "UKF is approximate for the nonlinear fixture, not truth.",
+      "ess_by_time": [
+        5.093640465460578,
+        79.09635702633354,
+        30.840756728856455,
+        69.2340109739544,
+        48.02165486611191,
+        30.56091297715237,
+        65.21318716861789,
+        12.761818850288428,
+        22.330209984586073,
+        29.018231741859612,
+        72.41933569402276,
+        49.61749944520461,
+        35.6280061557882,
+        56.042392480532015,
+        36.12302185004994,
+        89.24871433434696,
+        48.68231657593619,
+        20.851847169577137,
+        32.02098896987643,
+        73.92173304205855
+      ],
+      "filtered_means": [
+        [
+          1.3655256849757427,
+          1.046585697540667,
+          0.19009935832936273,
+          -0.012263154579237667
+        ],
+        [
+          1.3899187521585838,
+          1.0597534506021242,
+          0.18683982394981358,
+          -0.013477647130860086
+        ],
+        [
+          1.445797137129155,
+          1.0859950559588978,
+          0.1765249456871721,
+          -0.005960663645797619
+        ],
+        [
+          1.471828870110025,
+          1.0594486678769557,
+          0.17772491939433024,
+          -0.0012219233128941737
+        ],
+        [
+          1.457734864036904,
+          1.0567857836135888,
+          0.17166607861465105,
+          -0.00037138867307929396
+        ],
+        [
+          1.4645995156937457,
+          1.0493944028326925,
+          0.16183734755975285,
+          -0.018719575383405226
+        ],
+        [
+          1.48927228361499,
+          1.0192501967528615,
+          0.1608349358321614,
+          -0.016104959527309472
+        ],
+        [
+          1.4780852083753673,
+          0.9377823965284134,
+          0.14999164908191112,
+          -0.025316388849867637
+        ],
+        [
+          1.5154243847645175,
+          0.8949493110121425,
+          0.1386171005501907,
+          -0.02722673865470944
+        ],
+        [
+          1.5537785690648642,
+          0.8482474728117635,
+          0.1279110637471518,
+          -0.02519417621968541
+        ],
+        [
+          1.5523109255504848,
+          0.8586041522868171,
+          0.12779630957422894,
+          -0.027158198339620035
+        ],
+        [
+          1.5597567865242596,
+          0.8171908639901879,
+          0.12541317417522052,
+          -0.028070658065805547
+        ],
+        [
+          1.5894644217404252,
+          0.7796975249372603,
+          0.12823840547397153,
+          -0.03736586721743868
+        ],
+        [
+          1.5883302431965305,
+          0.7489536959861187,
+          0.12337347261755119,
+          -0.03401194885275216
+        ],
+        [
+          1.5742202713973192,
+          0.7574276914098785,
+          0.12780760785866513,
+          -0.027406036395501196
+        ],
+        [
+          1.5823189726033238,
+          0.7564330620712337,
+          0.12710936773285358,
+          -0.027294604676478842
+        ],
+        [
+          1.570811320044201,
+          0.7750492772782636,
+          0.1251545022907511,
+          -0.018395459549073366
+        ],
+        [
+          1.5459506574630326,
+          0.8029027591611096,
+          0.1273379853814667,
+          -0.02192787839547691
+        ],
+        [
+          1.5937468044124743,
+          0.7963725429322583,
+          0.13150668001504984,
+          -0.020473328280612393
+        ],
+        [
+          1.6153352469142566,
+          0.7758522555290757,
+          0.136632932053479,
+          -0.01821528081866403
+        ]
+      ],
+      "finite": true,
+      "latent_position_rmse": 0.09097323532094712,
+      "log_likelihood_estimate": 24.353949979507973,
+      "max_sinkhorn_residual": 4.440892098500626e-16,
+      "method_id": "ot_dpf_finite_sinkhorn_relaxed_tf",
+      "model_checksum": "6c605b90aeab2ff4798857eae01e01113b21dfa0f769b6579ce4b0b691752c92",
+      "num_particles": 96,
+      "observation_checksum": "21a5c22a77895e3431db6004911854e5cbcddd65e3d460afc144a3dde59299e1",
+      "observation_proxy_rmse": 0.11997615933006306,
+      "resampling_count": 10,
+      "seed": 31,
+      "state_rmse_to_ukf": 0.06459801669123823
+    },
+    {
+      "comparator_status": "UKF is approximate for the nonlinear fixture, not truth.",
+      "ess_by_time": [
+        5.043511320591238,
+        49.720203274405144,
+        15.788807754566136,
+        47.92531243090984,
+        48.70913288328212,
+        33.935941799376856,
+        67.14114753783373,
+        6.3751740662410095,
+        20.867255290194514,
+        38.66751575905494,
+        19.392741339873393,
+        70.94817097194046,
+        52.89234390458938,
+        24.302997609600176,
+        60.5819424355421,
+        39.40777399649617,
+        58.39335102585979,
+        25.02505882896676,
+        7.285221825896203,
+        62.9023766744564
+      ],
+      "filtered_means": [
+        [
+          1.3341677921714206,
+          1.012633433660479,
+          0.1980386828742613,
+          -0.054689658679317035
+        ],
+        [
+          1.3870017910224979,
+          1.0545155487998088,
+          0.24901254337155257,
+          -0.06620852628230353
+        ],
+        [
+          1.4615946290750799,
+          1.101438026694908,
+          0.3225710145557449,
+          -0.05286877603918044
+        ],
+        [
+          1.4704364617779113,
+          1.022497759432384,
+          0.2703596532122121,
+          -0.06507260399970927
+        ],
+        [
+          1.4296526093034734,
+          0.9815852278099894,
+          0.23151000585574188,
+          -0.07375842897328867
+        ],
+        [
+          1.437286150385268,
+          0.9946847638588906,
+          0.2421507098293316,
+          -0.08576729919576266
+        ],
+        [
+          1.4534384071005788,
+          0.9425615585855748,
+          0.24378968329726391,
+          -0.08518863074181202
+        ],
+        [
+          1.38621777717476,
+          0.8275477679577965,
+          0.13320235220245993,
+          -0.09643026147860412
+        ],
+        [
+          1.4665109913788656,
+          0.7938831271369315,
+          0.1981867986534426,
+          -0.09950687707995517
+        ],
+        [
+          1.5137679387063598,
+          0.7299197148649459,
+          0.25225097803637186,
+          -0.11431660679402376
+        ],
+        [
+          1.5067437912597814,
+          0.788002906968396,
+          0.19956029075854412,
+          -0.08242479043360679
+        ],
+        [
+          1.5183085859605572,
+          0.753377452281512,
+          0.20322699274157352,
+          -0.08309725731195529
+        ],
+        [
+          1.586222450506819,
+          0.7647932063004971,
+          0.22733786572292006,
+          -0.09801548060286404
+        ],
+        [
+          1.5475361730743176,
+          0.6978894941800742,
+          0.18992305104640084,
+          -0.11164473293178988
+        ],
+        [
+          1.5352194277564832,
+          0.7286176464411611,
+          0.19201881010612729,
+          -0.08720987863137711
+        ],
+        [
+          1.5507659533425204,
+          0.7442216074108403,
+          0.18990074393679002,
+          -0.07703273305884721
+        ],
+        [
+          1.5377108027628963,
+          0.7520412623465298,
+          0.17263872327694466,
+          -0.04675302111029675
+        ],
+        [
+          1.532010488774252,
+          0.7900154201900005,
+          0.18680219178760618,
+          -0.026595789217681947
+        ],
+        [
+          1.7065040483129232,
+          0.8243056484489228,
+          0.2539505958206574,
+          -0.008089198020397231
+        ],
+        [
+          1.7050241148672407,
+          0.787211575024121,
+          0.2429440156371935,
+          -0.031667155291973045
+        ]
+      ],
+      "finite": true,
+      "latent_position_rmse": 0.06804038827770555,
+      "log_likelihood_estimate": 31.313519790294794,
+      "max_sinkhorn_residual": 0.0,
+      "method_id": "bootstrap_multinomial_pf_tf",
+      "model_checksum": "6c605b90aeab2ff4798857eae01e01113b21dfa0f769b6579ce4b0b691752c92",
+      "num_particles": 96,
+      "observation_checksum": "21a5c22a77895e3431db6004911854e5cbcddd65e3d460afc144a3dde59299e1",
+      "observation_proxy_rmse": 0.09102466149591525,
+      "resampling_count": 12,
+      "seed": 43,
+      "state_rmse_to_ukf": 0.04640825770988171
+    },
+    {
+      "comparator_status": "UKF is approximate for the nonlinear fixture, not truth.",
+      "ess_by_time": [
+        5.043511320591238,
+        70.96784016520783,
+        19.72196606971341,
+        72.6370944248669,
+        53.09242834938413,
+        41.563902549378106,
+        69.27663463054898,
+        4.614837274645067,
+        26.969749047351677,
+        27.05404009907786,
+        63.3842191435082,
+        60.624145422851974,
+        47.03563770819912,
+        53.85283489624789,
+        39.094103288860005,
+        86.44142485704495,
+        41.012888081699806,
+        57.99841233873316,
+        34.205214792150876,
+        88.67748594187684
+      ],
+      "filtered_means": [
+        [
+          1.3341677921714206,
+          1.012633433660479,
+          0.1980386828742613,
+          -0.054689658679317035
+        ],
+        [
+          1.3661669563196241,
+          1.0211340755043508,
+          0.2022907501657265,
+          -0.06049332893785047
+        ],
+        [
+          1.417522303733979,
+          1.0562806693996263,
+          0.2042797338151615,
+          -0.052034012929645615
+        ],
+        [
+          1.4407219762224852,
+          1.0375964567180627,
+          0.20280111362704875,
+          -0.05188645781676948
+        ],
+        [
+          1.43486841515403,
+          1.0208121206290155,
+          0.20051528008202146,
+          -0.05385386589178994
+        ],
+        [
+          1.435636332161189,
+          1.0188756120831788,
+          0.19646389994027336,
+          -0.05797607455130093
+        ],
+        [
+          1.455720955130377,
+          0.9854010986972477,
+          0.1963963823461189,
+          -0.0604017449507292
+        ],
+        [
+          1.424565890529613,
+          0.8846536337352588,
+          0.19325989620444828,
+          -0.05014116528949527
+        ],
+        [
+          1.477274690211511,
+          0.8492158205567356,
+          0.1952150192716066,
+          -0.04896474267211922
+        ],
+        [
+          1.5091013757533676,
+          0.8002432378398052,
+          0.19274866213628408,
+          -0.05205366380277191
+        ],
+        [
+          1.5251403886294057,
+          0.8124040213362749,
+          0.19526038268250434,
+          -0.048174985874972126
+        ],
+        [
+          1.5377714894722574,
+          0.7774068857040557,
+          0.19577482658671214,
+          -0.04791779474797662
+        ],
+        [
+          1.585571800362685,
+          0.7769175173599812,
+          0.20636299398746427,
+          -0.06039478944685322
+        ],
+        [
+          1.5903036013441827,
+          0.7399988377786803,
+          0.20615435910522953,
+          -0.060480497382328566
+        ],
+        [
+          1.579594628471372,
+          0.7473356098101119,
+          0.21243014468053378,
+          -0.05831260142903602
+        ],
+        [
+          1.5999053296705565,
+          0.7524688464580567,
+          0.2101719383739979,
+          -0.05615712627860343
+        ],
+        [
+          1.5901841199089868,
+          0.7723611544721294,
+          0.19814965308575852,
+          -0.043296068739561745
+        ],
+        [
+          1.5904060999946275,
+          0.7937485481726857,
+          0.19651769725644436,
+          -0.040773369349432716
+        ],
+        [
+          1.6781110802983532,
+          0.7865015336097376,
+          0.19463314005717847,
+          -0.037944543127743445
+        ],
+        [
+          1.6968174612609441,
+          0.7777448508601907,
+          0.19557947322114919,
+          -0.04103599752343054
+        ]
+      ],
+      "finite": true,
+      "latent_position_rmse": 0.0698552445254811,
+      "log_likelihood_estimate": 29.229823024715976,
+      "max_sinkhorn_residual": 4.440892098500626e-16,
+      "method_id": "ot_dpf_finite_sinkhorn_relaxed_tf",
+      "model_checksum": "6c605b90aeab2ff4798857eae01e01113b21dfa0f769b6579ce4b0b691752c92",
+      "num_particles": 96,
+      "observation_checksum": "21a5c22a77895e3431db6004911854e5cbcddd65e3d460afc144a3dde59299e1",
+      "observation_proxy_rmse": 0.10908881818531631,
+      "resampling_count": 10,
+      "seed": 43,
+      "state_rmse_to_ukf": 0.05577670507880225
+    },
+    {
+      "comparator_status": "UKF is approximate for the nonlinear fixture, not truth.",
+      "ess_by_time": [
+        4.6332855977923275,
+        53.58782335961713,
+        16.73547118706803,
+        52.95435637393663,
+        19.895426884849847,
+        79.52406846833668,
+        54.65646819190975,
+        7.688796909147913,
+        8.799714466248883,
+        35.21229774047667,
+        46.161427209100076,
+        58.54350914888731,
+        38.44504648794779,
+        49.1274486456582,
+        42.67989979351142,
+        76.3889608180605,
+        47.14621982154535,
+        58.90223145358564,
+        20.18428661658677,
+        77.86145709113923
+      ],
+      "filtered_means": [
+        [
+          1.3363840305871206,
+          1.0093756281190716,
+          0.17207735095777804,
+          -0.02020300103451919
+        ],
+        [
+          1.385778156648078,
+          1.047723785923327,
+          0.16754273496067898,
+          0.002612840198757613
+        ],
+        [
+          1.4414316160906668,
+          1.0830081951365345,
+          0.17971503326752117,
+          0.018163410858771944
+        ],
+        [
+          1.4538581822723398,
+          1.0250595040619606,
+          0.17696762319120385,
+          0.016992725887101323
+        ],
+        [
+          1.4120861970935588,
+          0.9899331733598364,
+          0.14258062410637254,
+          0.0028785064520109906
+        ],
+        [
+          1.4244475177898086,
+          1.0068562579543405,
+          0.14507472927013718,
+          0.009393751034983473
+        ],
+        [
+          1.4390435783174162,
+          0.9575019415395792,
+          0.14715371172479622,
+          0.0011337203230399814
+        ],
+        [
+          1.360893400726872,
+          0.8378789408147369,
+          0.09944660636823824,
+          -0.03444822649498155
+        ],
+        [
+          1.4684695355109452,
+          0.8009957746983605,
+          0.10776423810912589,
+          -0.0368397069902495
+        ],
+        [
+          1.4972807345442563,
+          0.7530557629974348,
+          0.11415886613218776,
+          -0.051752902776745276
+        ],
+        [
+          1.4980906963278122,
+          0.8027224664437009,
+          0.0915019011030457,
+          -0.03325694710491821
+        ],
+        [
+          1.5072235776199105,
+          0.7646499363109814,
+          0.08070234519452621,
+          -0.06425436850082791
+        ],
+        [
+          1.5506283841253496,
+          0.7552416529272887,
+          0.0926384964352702,
+          -0.059990937702718655
+        ],
+        [
+          1.5254858481988318,
+          0.6950853132179572,
+          0.08837539183083115,
+          -0.095323867132943
+        ],
+        [
+          1.5160061803749596,
+          0.7255732947349494,
+          0.09091004006864703,
+          -0.08140931647044304
+        ],
+        [
+          1.5357887414405793,
+          0.7392860184718808,
+          0.09746966366687365,
+          -0.08431660304469785
+        ],
+        [
+          1.5254460642956045,
+          0.7588003762345781,
+          0.08415824753164894,
+          -0.07323024710293949
+        ],
+        [
+          1.518179028468204,
+          0.7895553483602281,
+          0.07402544947382993,
+          -0.0510143589276589
+        ],
+        [
+          1.6430623016685992,
+          0.7750169495725932,
+          0.1763439744764203,
+          -0.08277712918003334
+        ],
+        [
+          1.668338585635152,
+          0.7435264652750028,
+          0.17740911366094836,
+          -0.1000277854574757
+        ]
+      ],
+      "finite": true,
+      "latent_position_rmse": 0.07149138539801286,
+      "log_likelihood_estimate": 30.69658467479389,
+      "max_sinkhorn_residual": 0.0,
+      "method_id": "bootstrap_multinomial_pf_tf",
+      "model_checksum": "6c605b90aeab2ff4798857eae01e01113b21dfa0f769b6579ce4b0b691752c92",
+      "num_particles": 96,
+      "observation_checksum": "21a5c22a77895e3431db6004911854e5cbcddd65e3d460afc144a3dde59299e1",
+      "observation_proxy_rmse": 0.09654120366403485,
+      "resampling_count": 11,
+      "seed": 59,
+      "state_rmse_to_ukf": 0.04928816435621779
+    },
+    {
+      "comparator_status": "UKF is approximate for the nonlinear fixture, not truth.",
+      "ess_by_time": [
+        4.6332855977923275,
+        74.237116497269,
+        22.42761875809974,
+        75.9292036549277,
+        48.9053704415396,
+        41.85653769211193,
+        66.1569037601353,
+        17.36918480922827,
+        10.696885658010508,
+        38.057822244553826,
+        79.5549118719115,
+        48.90450635435281,
+        33.0557148874891,
+        56.26194621207143,
+        50.16927336190993,
+        41.17569598547529,
+        74.67854138469434,
+        29.628019897806766,
+        48.45005243290177,
+        29.487843387871894
+      ],
+      "filtered_means": [
+        [
+          1.3363840305871206,
+          1.0093756281190716,
+          0.17207735095777804,
+          -0.02020300103451919
+        ],
+        [
+          1.366688319887034,
+          1.022562986971744,
+          0.16908139899367128,
+          -0.022168738067075918
+        ],
+        [
+          1.416944769188221,
+          1.0536295234806983,
+          0.16958418550737733,
+          -0.016881717560709754
+        ],
+        [
+          1.4311764374654574,
+          1.0349654119883192,
+          0.16682183560315136,
+          -0.015020645690301123
+        ],
+        [
+          1.4160094689051288,
+          1.0174635906496252,
+          0.15493103681821593,
+          -0.01828874693745266
+        ],
+        [
+          1.4231090131984923,
+          1.0253051279702756,
+          0.1511572752279787,
+          -0.015489143460583863
+        ],
+        [
+          1.445300293992015,
+          0.9942335909855118,
+          0.15006597518744086,
+          -0.015555467001811516
+        ],
+        [
+          1.4395745484631561,
+          0.9377134387224579,
+          0.1387479121953037,
+          -0.013236578544912229
+        ],
+        [
+          1.4856426092234603,
+          0.8823073512697365,
+          0.1347673688678912,
+          -0.005973475559104016
+        ],
+        [
+          1.5117805845561378,
+          0.8475748900645282,
+          0.13931375905235413,
+          0.002016934296706279
+        ],
+        [
+          1.518370035631177,
+          0.8623896524504633,
+          0.1365271461351223,
+          -0.0002281750782628948
+        ],
+        [
+          1.5424470692781802,
+          0.8107034841605696,
+          0.14040418357982112,
+          -0.009133340261850791
+        ],
+        [
+          1.5805280999915863,
+          0.7941961651296814,
+          0.14475962849551077,
+          -0.015169246729343137
+        ],
+        [
+          1.58928878414566,
+          0.7601590617359539,
+          0.14724307370928413,
+          -0.020957526187618782
+        ],
+        [
+          1.5758347904355998,
+          0.7762519106833182,
+          0.14749144355487645,
+          -0.02108901505460356
+        ],
+        [
+          1.5878283235635955,
+          0.7698730395125806,
+          0.15008827428440547,
+          -0.024440378363115606
+        ],
+        [
+          1.5914461049251032,
+          0.7776513807536589,
+          0.14945166463131088,
+          -0.02319342484283616
+        ],
+        [
+          1.5893492964890457,
+          0.8143116178059385,
+          0.14629143750871973,
+          -0.024539177999996442
+        ],
+        [
+          1.6360384170205622,
+          0.8066982290781797,
+          0.14494845605818854,
+          -0.021596517253359763
+        ],
+        [
+          1.6575170271138115,
+          0.7638484479949845,
+          0.13936330602869595,
+          -0.03077346882822859
+        ]
+      ],
+      "finite": true,
+      "latent_position_rmse": 0.07566496675661072,
+      "log_likelihood_estimate": 25.126671138175194,
+      "max_sinkhorn_residual": 4.440892098500626e-16,
+      "method_id": "ot_dpf_finite_sinkhorn_relaxed_tf",
+      "model_checksum": "6c605b90aeab2ff4798857eae01e01113b21dfa0f769b6579ce4b0b691752c92",
+      "num_particles": 96,
+      "observation_checksum": "21a5c22a77895e3431db6004911854e5cbcddd65e3d460afc144a3dde59299e1",
+      "observation_proxy_rmse": 0.11491050363308848,
+      "resampling_count": 10,
+      "seed": 59,
+      "state_rmse_to_ukf": 0.06783211002160136
+    }
+  ],
+  "run_manifest": {
+    "branch": "main",
+    "command": "CUDA_VISIBLE_DEVICES=-1 python -m experiments.dpf_implementation.tf_tfp.runners.run_range_bearing_ot_dpf_tf",
+    "commit": "1bf1f9d7492709182a84478f19bac1dac0d48050",
+    "cpu_only": true,
+    "cuda_visible_devices": "-1",
+    "dirty_state_summary": "M docs/main.pdf\n M docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-primary-source-ledger-2026-05-28.md\n M docs/plans/bayesfilter-student-dpf-baseline-master-program-2026-05-10.md\n M docs/plans/bayesfilter-student-dpf-baseline-reset-memo-2026-05-09.md\n M experiments/controlled_dpf_baseline/README.md\n?? .local_sources/\n?? AGENTS.md\n?? CLAUDE.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0-citation-coverage-register-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0-claim-extraction-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0-claim-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0-implementation-obligations-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0a-doc-patch-register-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0a-student-doc-crosswalk-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0a-student-doc-crosswalk-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0a-student-doc-crosswalk-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf1-classical-pf-baseline-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf1-classical-pf-spec-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf1-reference-test-contract-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf1-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf1-student-comparison-context-register-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf2-bias-proxy-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf2-component-spec-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf2-deferred-neural-path-register-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf2-differentiable-resampling-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf2-resampling-test-contract-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf2-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf3-excluded-flow-risk-register-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf3-flow-pfpf-spec-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf3-kernel-pff-exclusion-check-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf3-particle-flow-pfpf-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf3-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf4-differentiable-objective-gradient-contract-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf4-downstream-evidence-requirements-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf4-gradient-contract-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf4-objective-classification-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf4-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf5-benchmark-ladder-matrix-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf5-cpu-gpu-runtime-policy-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf5-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf5-seed-uncertainty-policy-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf5-validation-harness-benchmark-ladder-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf5-validation-harness-spec-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf6-production-boundary-api-review-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf6-production-boundary-decision-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf6-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf7-final-audit-implementation-handoff-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-final-audit-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-handoff-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-master-program-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-sv-test-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-backend-governance-correction-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-backend-governance-correction-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-master-program-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p0-scope-and-contract-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p0-scope-and-contract-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p1-lgssm-fixture-and-kalman-reference-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p1-lgssm-fixture-and-kalman-reference-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p2-range-bearing-ukf-reference-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p2-range-bearing-ukf-reference-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p3-finite-sinkhorn-resampler-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p3-finite-sinkhorn-resampler-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p4-integrated-dpf-runner-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p4-integrated-dpf-runner-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p5-gradient-contract-and-finite-difference-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p5-gradient-contract-and-finite-difference-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p6-lgssm-validation-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p6-lgssm-validation-result-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p7-range-bearing-validation-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p7-range-bearing-validation-result-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p8-final-audit-and-handoff-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p8-final-audit-and-handoff-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-master-program-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p0-scope-import-gate-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p0-scope-import-gate-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p1-lgssm-fixture-kalman-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p1-lgssm-fixture-kalman-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p2-range-bearing-ukf-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p2-range-bearing-ukf-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p3-sinkhorn-resampler-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p3-sinkhorn-resampler-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p4-integrated-dpf-runner-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p4-integrated-dpf-runner-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p5-gradient-tape-contract-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p5-gradient-tape-contract-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p6-lgssm-validation-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p6-lgssm-validation-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p7-range-bearing-validation-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p7-range-bearing-validation-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p8-final-audit-handoff-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-rewrite-plan-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1-source-intake-result-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1r-citation-venue-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1r-claim-support-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1r-literature-audit-redo-plan-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1r-literature-audit-redo-result-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1r-omission-risk-register-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1r-snowball-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1r-source-support-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1s-citation-venue-metadata-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1s-claim-support-closure-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1s-foundational-source-closure-plan-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1s-foundational-source-closure-result-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1s-omission-risk-adjudication-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1s-snowball-closure-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1s-source-closure-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1t-citation-venue-metadata-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1t-claim-support-closure-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1t-manual-pdf-source-closure-plan-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1t-manual-pdf-source-closure-result-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1t-omission-risk-update-2026-05-28.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p1t-source-closure-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-plan-2026-05-27.md\n?? docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-plan-audit-2026-05-27.md\n?? docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-result-2026-05-27.md\n?? docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-review-2026-05-27.md\n?? experiments/controlled_dpf_baseline/reports/controlled-dpf-baseline-final-archive-result.md\n?? experiments/dpf_implementation/",
+    "gpu_devices_visible": [],
+    "package_versions": {
+      "tensorflow": "2.19.1",
+      "tensorflow_probability": "0.25.0"
+    },
+    "pre_import_cuda_visible_devices": "-1",
+    "python_version": "3.11.14",
+    "wall_time_seconds": 1.9088860901538283
+  },
+  "seed_list": [
+    31,
+    43,
+    59
+  ]
+}

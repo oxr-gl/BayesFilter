@@ -1,0 +1,68 @@
+{
+  "schema_version": "p51.native_generalized_sv_reference.v1",
+  "metadata_date": "2026-06-09",
+  "phase": "P51-M2",
+  "status": "PASS_P51_M2_NATIVE_GENERALIZED_SV_REFERENCE",
+  "source_artifacts": [
+    "docs/plans/bayesfilter-highdim-zhao-cui-p51-m2-native-generalized-sv-reference-subplan-2026-06-09.md",
+    "docs/plans/bayesfilter-highdim-zhao-cui-p50-m5-sv-generalized-sv-ladder-result-2026-06-09.md",
+    "docs/plans/bayesfilter-highdim-zhao-cui-p50-m5-sv-generalized-sv-ladder-manifest-2026-06-09.json",
+    "docs/plans/bayesfilter-highdim-zhao-cui-p45-target-registry-2026-06-08.json"
+  ],
+  "native_generalized_sv_same_target_reference": {
+    "source_gap": "native_generalized_sv_same_target_reference",
+    "p50_status": "BLOCKED_REFERENCE_MISSING",
+    "p51_status": "passed_low_dimensional_native_dense_reference",
+    "target_identity": "y_t = beta s_t + exp(h_t/2) epsilon_t",
+    "state": "(s_t, h_t)",
+    "observation_space": "raw y_t, not log-square transformed residual",
+    "reference_route": "dense tensor-product Legendre quadrature over the two latent state coordinates",
+    "parameterization": "theta=(atanh(rho_s), atanh(rho_h), log(sigma_s), log(sigma_h), log(beta))",
+    "gradient_route": "TensorFlow autodiff through the dense native reference",
+    "candidate_algorithm_status": {
+      "cut4": "not_evaluated_for_native_same_target",
+      "zhao_cui": "not_evaluated_for_native_same_target"
+    },
+    "promotion_class": "low_dimensional_same_target_reference_value_and_gradient",
+    "refinement_check": {
+      "coarse_order": 19,
+      "fine_order": 25,
+      "value_tolerance": "2e-3 absolute/relative",
+      "score_tolerance": "8e-3 absolute/relative"
+    }
+  },
+  "implemented_symbols": [
+    "bayesfilter.highdim.NativeGeneralizedSVSSM",
+    "bayesfilter.highdim.NativeGeneralizedSVDenseReferenceResult",
+    "bayesfilter.highdim.native_generalized_sv_dense_reference"
+  ],
+  "validation": {
+    "tests": [
+      "tests/highdim/test_p51_native_generalized_sv_reference.py",
+      "tests/highdim/test_p50_sv_generalized_sv_ladder.py",
+      "tests/highdim/test_p45_generalized_sv_comparison_blocker.py"
+    ],
+    "compileall": [
+      "bayesfilter/highdim/native_generalized_sv.py",
+      "bayesfilter/highdim/__init__.py",
+      "tests/highdim/test_p51_native_generalized_sv_reference.py"
+    ],
+    "diff_check_paths": [
+      "bayesfilter/highdim/native_generalized_sv.py",
+      "bayesfilter/highdim/__init__.py",
+      "tests/highdim/test_p51_native_generalized_sv_reference.py",
+      "docs/plans/bayesfilter-highdim-zhao-cui-p51-m2-native-generalized-sv-reference-manifest-2026-06-09.json",
+      "docs/plans/bayesfilter-highdim-zhao-cui-p51-m2-native-generalized-sv-reference-result-2026-06-09.md",
+      "docs/plans/bayesfilter-highdim-zhao-cui-p51-visible-execution-ledger-2026-06-09.md"
+    ]
+  },
+  "nonclaims": [
+    "no CUT4 same-target equality",
+    "no Zhao-Cui same-target equality",
+    "no HMC readiness",
+    "no production generalized SV readiness",
+    "no GPU readiness",
+    "no source-faithful adaptive TT/SIRT filtering",
+    "no S&P 500 reproduction"
+  ]
+}

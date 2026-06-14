@@ -656,12 +656,12 @@ baseline lane.
 
 ## Current Next Move
 
-The replicated EDH/PFPF panel is complete and is ready as a quarantined
-experimental baseline artifact.  The full-horizon EDH/PFPF sensitivity panel is
-also complete and is ready as a quarantined experimental baseline artifact.  The
-full-horizon EDH/PFPF confirmation panel is complete.  The clean-room
-controlled-baseline specification is also complete and ready for a separate
-student-lane implementation planning phase.
+No active next move remains for the archived student DPF experimental-baseline
+lane.  The replicated EDH/PFPF panel, full-horizon sensitivity panel,
+full-horizon confirmation panel, clean-room controlled-baseline specification,
+BayesFilter-owned controlled-baseline smoke, fixed-grid execution, and proxy
+comparison audit are complete.  The current decision is
+`student_dpf_controlled_baseline_archive_complete`.
 
 Completed replicated-panel plan:
 `docs/plans/bayesfilter-student-dpf-baseline-replicated-edh-pfpf-panel-plan-2026-05-11.md`.
@@ -693,6 +693,24 @@ Completed clean-room controlled-baseline specification audit:
 Completed clean-room controlled-baseline specification result:
 `docs/plans/bayesfilter-student-dpf-baseline-clean-room-controlled-baseline-spec-result-2026-05-13.md`.
 
+Completed controlled-baseline closeout plan:
+`docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-plan-2026-05-27.md`.
+
+Completed controlled-baseline closeout audit:
+`docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-plan-audit-2026-05-27.md`.
+
+Completed MP5 smoke result:
+`experiments/controlled_dpf_baseline/reports/controlled-dpf-baseline-smoke-result.md`.
+
+Completed MP6 fixed-grid result:
+`experiments/controlled_dpf_baseline/reports/controlled-dpf-baseline-fixed-grid-result.md`.
+
+Completed MP7 proxy comparison audit:
+`experiments/controlled_dpf_baseline/reports/controlled-dpf-baseline-comparison-audit.md`.
+
+Completed final archive result:
+`experiments/controlled_dpf_baseline/reports/controlled-dpf-baseline-final-archive-result.md`.
+
 The reason is concrete:
 
 - MP1 closed the largest linear particle-diagnostic asymmetry by adding MLCOE
@@ -721,15 +739,25 @@ The reason is concrete:
   contract, metric contract, first target settings, result schema, import/copy
   prohibitions, acceptance gates, and caveats for a later BayesFilter-owned
   experimental implementation.
+- the BayesFilter-owned controlled baseline completed MP5 smoke with 1/1 ok
+  record and no student implementation source import or execution.
+- the MP6 fixed first-target grid completed 15/15 planned records with no
+  blockers, failures, or runtime warnings.
+- the MP7 comparison audit found all three fixed-grid cells in the same
+  qualitative proxy regime as frozen student aggregate summaries under the fixed
+  2.0x rule, while preserving that student agreement is not a correctness
+  certificate.
+- the final closeout corrected a stale README authority pointer to a missing
+  MP5 implementation-plan file by citing existing specification and result
+  artifacts instead.
 
-The current decision is to write a separate clean-room implementation plan
-inside the student-baseline lane before writing code.  The implementation plan
-should target `experiments/controlled_dpf_baseline/`, stay out of production
-`bayesfilter/`, stay out of monograph rebuild/enrichment files, avoid vendored
-student edits, and implement only the fixed first target grid.  Kernel PFF,
-stochastic flow, DPF, dPFPF, neural OT, differentiable resampling, and HMC remain
-out of routine comparison unless later reproduction gates change their
-classifications.
+The current decision is to stop this lane as a complete quarantined archive.
+Kernel PFF, stochastic flow, DPF, dPFPF, neural OT, differentiable resampling,
+neural resampling, and HMC remain out of routine comparison unless later
+component-spec, clean-room-spec, or debug-gate plans change their
+classifications.  Any production `bayesfilter/` work, monograph use, HMC
+readiness claim, model-risk use, or banking use requires a separate plan and
+evidence contract.
 
 ## Stop Rules
 

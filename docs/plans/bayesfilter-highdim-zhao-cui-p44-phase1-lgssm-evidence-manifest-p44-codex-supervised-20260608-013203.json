@@ -1,0 +1,84 @@
+{
+  "schema_version": "p44.phase_evidence.v1",
+  "run_id": "p44-codex-supervised-20260608-013203",
+  "phase": "P44-M1",
+  "pass_token": "PASS_P44_M1_CODE_GOVERNANCE",
+  "status": "PASS_P44_M1_CODE_GOVERNANCE",
+  "artifact_paths": {
+    "result_note": "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase1-lgssm-result-2026-06-07.md",
+    "claude_review_ledger": "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase1-lgssm-claude-review-ledger-2026-06-07.md",
+    "evidence_manifest": "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase1-lgssm-evidence-manifest-p44-codex-supervised-20260608-013203.json",
+    "test_file": "tests/highdim/test_p44_lgssm_exact_baseline.py"
+  },
+  "evidence_chain": {
+    "PHASE_PLAN_CONFIRMED": true,
+    "SKEPTICAL_AUDIT_RECORDED": true,
+    "CLAUDE_PLAN_OR_REPAIR_REVIEW_PASS": true,
+    "IMPLEMENTED": true,
+    "LOCAL_EVIDENCE_RUN": true,
+    "EVIDENCE_AUDIT_RECORDED": true,
+    "RESULT_NOTE_WRITTEN": true,
+    "CLAUDE_CODE_GOVERNANCE_PASS": true,
+    "TRACEABILITY_UPDATED_OR_NONCLAIM_RECORDED": true,
+    "PHASE_PASS": true
+  },
+  "evidence_contract": {
+    "question": "For exact LGSSM fixtures in dimensions 1, 2, and 3, do CUT4 and the current Zhao--Cui/fixed-design TT artifact lane agree with exact Kalman value and diagnostic score in the same declared four-coordinate unconstrained parameterization?",
+    "baseline_or_comparator": "Exact Kalman value and score are the governing baseline; CUT4 uses the same affine structural target; the Zhao--Cui lane is the fixed-design TT retained-density artifact path on the exact highdim LGSSM value path.",
+    "primary_promotion_criterion": "Dims 1, 2, and 3 pass value equality, full TensorFlow autodiff score equality, and at least five deterministic directional score residual checks against exact Kalman.",
+    "veto_diagnostics": [
+      "likelihood convention mismatch",
+      "covariance or parameter transform mismatch",
+      "CUT4 padding changes the LGSSM physical target",
+      "scalar TT propagation helper mismatch promoted as M1 correctness evidence",
+      "nonfinite value, score, covariance, or normalizer"
+    ],
+    "explanatory_only_diagnostics": [
+      "TT artifact status",
+      "TT density normalizer",
+      "point counts",
+      "compile success",
+      "wall time"
+    ],
+    "nonclaims": [
+      "no HMC readiness",
+      "no production analytic score API",
+      "no paper-scale Zhao--Cui reproduction",
+      "no adaptive MATLAB TT-cross/SIRT reproduction",
+      "no independent TT-propagated LGSSM likelihood correctness"
+    ]
+  },
+  "commands": [
+    {
+      "purpose": "Run focused P44-M1 LGSSM value and score evidence for Kalman, CUT4, and fixed-design TT artifact lane.",
+      "command": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp pytest -q tests/highdim/test_p44_lgssm_exact_baseline.py",
+      "exit_code": 0,
+      "log_path": "docs/plans/logs/p44-codex-supervised-20260608-013203-P44-M1-command0.log"
+    },
+    {
+      "purpose": "Compile highdim package and the focused M1 test file.",
+      "command": "python -m compileall -q bayesfilter/highdim tests/highdim/test_p44_lgssm_exact_baseline.py",
+      "exit_code": 0,
+      "log_path": "docs/plans/logs/p44-codex-supervised-20260608-013203-P44-M1-command1.log"
+    }
+  ],
+  "diagnostics": {
+    "veto_status": "PASS",
+    "summary": "Local M1 evidence passes after reviewed inert CUT4 padding repair for dim 1. Zhao--Cui evidence is scoped to retained-density TT artifacts on the exact LGSSM path, with an explicit nonclaim for independent TT-propagated LGSSM likelihood."
+  },
+  "review_loops": {
+    "claude_code_governance": {
+      "iterations": 1,
+      "verdict": "PASS_P44_M1_CODE_GOVERNANCE"
+    },
+    "repair": {
+      "iterations": 2,
+      "verdict": "PASS_P44_M1_REPAIR_REVIEW"
+    }
+  },
+  "long_run_controls": {
+    "long_run_used": false,
+    "resource_caps": "No long run; focused local pytest and compile check only.",
+    "pre_mortem": "N/A"
+  }
+}

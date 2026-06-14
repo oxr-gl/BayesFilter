@@ -1,0 +1,84 @@
+{
+  "schema_version": "p44.phase_evidence.v1",
+  "run_id": "p44-codex-supervised-20260608-013203",
+  "phase": "P44-M8",
+  "pass_token": "PASS_P44_M8_CODE_GOVERNANCE",
+  "status": "PASS_P44_M8_CODE_GOVERNANCE",
+  "artifact_paths": {
+    "result_note": "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase8-integration-closeout-result-2026-06-07.md",
+    "claude_review_ledger": "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase8-integration-closeout-claude-review-ledger-2026-06-07.md",
+    "evidence_manifest": "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase8-integration-closeout-evidence-manifest-p44-codex-supervised-20260608-013203.json",
+    "audit_script": "scripts/p44_closeout_audit.py"
+  },
+  "evidence_chain": {
+    "PHASE_PLAN_CONFIRMED": true,
+    "SKEPTICAL_AUDIT_RECORDED": true,
+    "CLAUDE_PLAN_OR_REPAIR_REVIEW_PASS": true,
+    "IMPLEMENTED": true,
+    "LOCAL_EVIDENCE_RUN": true,
+    "EVIDENCE_AUDIT_RECORDED": true,
+    "RESULT_NOTE_WRITTEN": true,
+    "CLAUDE_CODE_GOVERNANCE_PASS": true,
+    "TRACEABILITY_UPDATED_OR_NONCLAIM_RECORDED": true,
+    "PHASE_PASS": true
+  },
+  "evidence_contract": {
+    "question": "Did the Codex-supervised P44 run produce a complete traceable evidence chain for M0--M7 while separating same-target passes from diagnostic-only passes and preserving blockers?",
+    "baseline_or_comparator": "The M0 target-governance matrix and every M0--M7 phase result, review ledger, evidence manifest, and command log are the governing closeout baseline. M8 introduces no new numerical comparator.",
+    "primary_promotion_criterion": "Every prior phase has a result note, Claude review verdict, evidence manifest, two command logs, pass token, and explicit claim class supported by terms in that phase's result note, Claude review ledger, and evidence manifest; same-target passes are separated from stress/diagnostic-only passes; remaining blockers are classified; no new numerical claim is introduced by closeout.",
+    "veto_diagnostics": [
+      "any phase result overclaims beyond its evidence class",
+      "missing command/result manifest",
+      "missing Claude review ledger",
+      "public API/HMC/paper-scale claims appear without separate evidence",
+      "claim-class or nonclaim boundaries appear only as hardcoded M8 summaries rather than as terms verified from prior phase artifacts"
+    ],
+    "explanatory_only_diagnostics": [
+      "JSON row dump from scripts/p44_closeout_audit.py",
+      "command wall time",
+      "dirty-worktree context"
+    ],
+    "artifact_preserving_result": "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase8-integration-closeout-result-2026-06-07.md plus docs/plans/bayesfilter-highdim-zhao-cui-p44-phase8-integration-closeout-evidence-manifest-p44-codex-supervised-20260608-013203.json and docs/plans/logs/p44-codex-supervised-20260608-013203-P44-M8-command0.log",
+    "nonclaims": [
+      "no HMC readiness",
+      "no production analytic score API",
+      "no paper-scale Zhao--Cui reproduction",
+      "no adaptive MATLAB TT-cross/SIRT reproduction",
+      "no exact native generalized-SV/SIR/predator-prey claim",
+      "no stable public API claim"
+    ]
+  },
+  "commands": [
+    {
+      "purpose": "Run P44 closeout traceability audit over M0--M7 result notes, review ledgers, evidence manifests, and command logs.",
+      "command": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp python scripts/p44_closeout_audit.py",
+      "exit_code": 0,
+      "log_path": "docs/plans/logs/p44-codex-supervised-20260608-013203-P44-M8-command0.log"
+    },
+    {
+      "purpose": "Compile the P44 closeout audit script.",
+      "command": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp python -m compileall -q scripts/p44_closeout_audit.py",
+      "exit_code": 0,
+      "log_path": "docs/plans/logs/p44-codex-supervised-20260608-013203-P44-M8-command1.log"
+    }
+  ],
+  "diagnostics": {
+    "veto_status": "NONCLAIM_RECORDED",
+    "summary": "Local M8 closeout audit found phase_count 8 and verified M0--M7 result notes, review ledgers, manifests, command logs, pass tokens, phase-pass evidence states, claim-class support terms in prior artifacts, common HMC/paper-scale nonclaim boundaries, global score/public API nonclaims from M8 closeout artifacts, and exact blocker classes implementation/numerical-reference/scientific-evidence/target-definition. M8 introduces no new numerical result and preserves blockers for M4 T4 Zhao--Cui, M3 CUT4 quadratic stress, M5/M6 native target equality, and M7 generalized-SV native target/reference."
+  },
+  "review_loops": {
+    "claude_code_governance": {
+      "iterations": 3,
+      "verdict": "PASS_P44_M8_CODE_GOVERNANCE"
+    },
+    "repair": {
+      "iterations": 2,
+      "verdict": "PASS_P44_M8_REPAIR_REVIEW"
+    }
+  },
+  "long_run_controls": {
+    "long_run_used": false,
+    "resource_caps": "No long run; closeout audit and compile check only.",
+    "pre_mortem": "N/A"
+  }
+}

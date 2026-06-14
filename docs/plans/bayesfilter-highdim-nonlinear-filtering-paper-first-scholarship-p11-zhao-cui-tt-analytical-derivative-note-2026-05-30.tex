@@ -1,0 +1,526 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{booktabs,longtable}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\TT}{\mathrm{TT}}
+\newcommand{\calI}{\mathcal{I}}
+\newcommand{\calB}{\mathcal{B}}
+\newcommand{\calM}{\mathcal{M}}
+\newcommand{\dotp}{\partial_i}
+
+\title{Fixed-Branch Analytical Derivative for the Zhao--Cui Tensor-Train Sequential Filter}
+\author{BayesFilter P11 Derivation Note}
+\date{2026-05-30}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note derives the analytical derivative of the scalar produced by a
+fixed-branch Zhao--Cui squared tensor-train sequential filter.  The derivative
+is for the declared approximate scalar
+\[
+  \widehat\ell_T^{\TT}(\alpha)
+  =
+  \sum_{t=1}^T \{\log \widehat z_t(\alpha)-c_t(\alpha)\},
+\]
+where \(\alpha\) is an external model parameter, \(\widehat z_t\) is the
+squared-TT/SIRT normalizer, and \(c_t\) is the stabilizing constant used in the
+companion code's \texttt{log(sirt.z)-const} accumulator.  The derivation is
+complete only for a frozen algorithmic branch: fixed variable ordering, fixed
+bases, fixed domains, fixed interpolation or cross sets, fixed ranks, fixed
+rounding decisions, fixed random/debug samples, fixed defensive term policy,
+fixed preconditioner choice, and fixed selected minimizer for \(c_t\).  It does
+not claim a complete derivative for the adaptive stochastic companion code.
+\end{abstract}
+
+\section{Anchors And Scope}
+
+The source construction is Zhao--Cui's sequential TT method.  Their Algorithm 1
+forms an unnormalized density
+\[
+  q_t(x_t,\vartheta,x_{t-1})
+  =
+  \widehat\pi_{t-1}(x_{t-1},\vartheta\mid y_{1:t-1})
+  f(x_t\mid x_{t-1},\vartheta)
+  g(y_t\mid x_t,\vartheta),
+  \tag{ZC-12}
+\]
+then reapproximates it by a TT and integrates the TT to obtain a normalizing
+constant.  Their squared-TT construction approximates the square root of an
+unnormalized density by
+\[
+  \sqrt{\pi(x)}
+  \approx
+  \phi(x)=H_1(x_1)\cdots H_m(x_m),
+\]
+and defines the nonnegative defensive approximation
+\[
+  \widehat\pi(x)=\phi(x)^2+\tau\lambda(x),\qquad
+  \widehat z=\int \widehat\pi(x)\,\dd x.
+  \tag{ZC-13}
+\]
+Algorithm 2 applies this construction to the sequential density \(q_t\), using
+the square-root TT \(\phi_t\) and defensive density
+\[
+  \widehat\pi_t(x_t,\vartheta,x_{t-1})
+  =
+  \phi_t(x_t,\vartheta,x_{t-1})^2
+  +
+  \tau_t\lambda(x_t)\lambda(\vartheta)\lambda(x_{t-1}).
+  \tag{ZC-16}
+\]
+Zhao--Cui Section 4.1 identifies the exact joint normalizer as evidence and
+explains that the algorithm approximates \(q_t\) because the exact marginal
+posterior entering the recursion is not directly evaluable.
+
+The inspected companion code implements the same scalar path through:
+\[
+\begin{array}{ll}
+\texttt{models/full\_sol.m} &
+  \texttt{sol.logmarginal\_likelihood += log(sirt.z)-const},\\
+\texttt{deep-tensor.dev/src/SIRT.m} &
+  \texttt{potential\_to\_density},\\
+\texttt{deep-tensor.dev/src/@TTSIRT/TTSIRT.m} &
+  \texttt{approx = TTFun(func,...)} ,\\
+\texttt{deep-tensor.dev/src/@TTSIRT/marginalise.m} &
+  \texttt{obj.z = obj.fun\_z + obj.tau}.
+\end{array}
+\]
+The P10 Octave audit snapshot under
+\texttt{third\_party/audit/zhao\_cui\_tensor\_ssm\_p10/source} shows that a
+reduced Kalman path reaches the TT/SIRT approximation, completes one ALS pass,
+and reports a finite log-marginal-likelihood accumulator.  That smoke is
+implementation evidence, not a proof of posterior accuracy.
+
+\paragraph{Parameter notation.}
+Zhao--Cui use \(\theta\) for the learned state-space parameter inside the
+sequential posterior.  This note writes that variable as \(\vartheta\).  The
+external parameter with respect to which we differentiate the approximate
+scalar is \(\alpha_i\), and \(\dot h\) means \(\partial_i h\).  If a future
+BayesFilter implementation samples \(\vartheta\) directly by HMC, it must first
+translate this external-parameter derivative into the chosen target
+parameterization.
+
+\section{Declared Scalar}
+
+Let
+\[
+  u_t=(x_t,\vartheta,x_{t-1})\in\R^D.
+\]
+At time \(t\), the unnormalized density supplied to the squared-TT step is
+\[
+  q_t(u_t;\alpha)
+  =
+  \widehat p_{t-1}^{\TT}(x_{t-1},\vartheta;\alpha)
+  f_\alpha(x_t\mid x_{t-1},\vartheta)
+  g_\alpha(y_t\mid x_t,\vartheta).
+  \label{eq:p11-qt}
+\]
+The previous approximation \(\widehat p_{t-1}^{\TT}\) is the marginal of the
+previous squared-TT density after normalization.  At \(t=1\), it is replaced by
+the prior and initial-state density used by the model.
+
+The code constructs an affine approximation coordinate
+\[
+  u_t = A_t r_t+b_t,
+  \label{eq:p11-affine}
+\]
+with \(A_t=\texttt{L\_temp}\) and \(b_t=\texttt{mu\_temp}\).  In the companion
+code, \(A_t\) and \(b_t\) are estimated from weighted samples and are therefore
+branch-changing unless frozen.  In this note they are fixed smooth branch
+objects.  The unshifted potential in \(r\)-coordinates is
+\[
+  V_{t,0}(r;\alpha)
+  =
+  -\log q_t(A_t r+b_t;\alpha)-\log|\det A_t|.
+  \label{eq:p11-v0}
+\]
+The code then chooses a stabilizing constant
+\[
+  c_t(\alpha)=V_{t,0}(r_{t,s^\star};\alpha)
+  \label{eq:p11-const}
+\]
+when the selected minimizer \(s^\star\) of the fixed random/debug grid is
+frozen and unique.  If the implementation freezes the numerical value of
+\(c_t\) instead, then \(\dot c_t=0\), but the differentiated scalar is a
+different declared scalar.  The shifted potential is
+\[
+  V_t(r;\alpha)=V_{t,0}(r;\alpha)-c_t(\alpha).
+  \label{eq:p11-v}
+\]
+
+The SIRT implementation approximates a square-root density in the reference
+coordinates used by the basis.  Let \(\rho_t(r;\alpha)\) denote the
+unnormalized reference-coordinate density after all fixed basis-domain
+Jacobian and reference-measure factors used by \texttt{SIRT.potential\_to\_density}
+have been included.  Then
+\[
+  \psi_t(r;\alpha)=\rho_t(r;\alpha)^{1/2}
+  \label{eq:p11-psi}
+\]
+is the function approximated by \texttt{TTFun}.  In the simplest affine and
+fixed-basis case,
+\[
+  \dot\psi_t(r;\alpha)
+  =
+  -\frac12\,\psi_t(r;\alpha)\,\dot V_t(r;\alpha),
+  \label{eq:p11-psi-derivative}
+\]
+with additional Jacobian or reference-density derivative terms only if the
+basis-domain map itself depends on \(\alpha\).
+
+The fixed-branch squared-TT approximation is
+\[
+  \phi_t(r;\alpha)
+  =
+  G_{t,1}(r_1;\alpha)\,
+  G_{t,2}(r_2;\alpha)\cdots
+  G_{t,D}(r_D;\alpha),
+  \label{eq:p11-tt-function}
+\]
+where \(G_{t,k}(r_k;\alpha)\in\R^{r_{k-1}\times r_k}\),
+\(r_0=r_D=1\), all ranks are fixed, and every basis/interpolation decision is
+fixed.  The defensive squared-TT normalizer is
+\[
+  \widehat z_t(\alpha)
+  =
+  \int \phi_t(r;\alpha)^2\,\dd \nu(r)
+  +
+  \tau_t(\alpha),
+  \label{eq:p11-z}
+\]
+where \(\nu\) is the fixed tensor-product basis/reference measure and
+\(\tau_t\) is the defensive mass term.  Thus the declared scalar is
+\[
+  \widehat\ell_T^{\TT}(\alpha)
+  =
+  \sum_{t=1}^T
+  \{\log \widehat z_t(\alpha)-c_t(\alpha)\}.
+  \label{eq:p11-scalar}
+\]
+
+\paragraph{Regularity assumptions.}
+The formulas below require the usual finite-dimensional sensitivity
+conditions on the frozen branch.  The transition and observation densities,
+the previous TT marginal, and the fixed coordinate maps are differentiable in
+\(\alpha\) on the evaluated domain; the normalizers \(R_{t,0}+\tau_t\) are
+finite and positive; the support does not change pathologically with
+\(\alpha\); the fixed local linear or least-squares systems are nonsingular
+or have a declared differentiable pseudoinverse branch; and differentiation
+may be interchanged with the finite contractions or with the stated integrals.
+If QR, SVD, Cholesky, or inverse-CDF solves are differentiated, their active
+rank, sign, bracket, and simple-spectrum branches are part of the fixed branch.
+
+\section{Derivative Of The Input Density}
+
+From \eqref{eq:p11-qt},
+\[
+  \dot{\log q_t}
+  =
+  \dot{\log \widehat p_{t-1}^{\TT}}
+  +
+  \dot{\log f_\alpha(x_t\mid x_{t-1},\vartheta)}
+  +
+  \dot{\log g_\alpha(y_t\mid x_t,\vartheta)}.
+  \label{eq:p11-logq-derivative}
+\]
+The model-score terms are ordinary transition and likelihood derivatives.  The
+recursive term is more delicate.  If
+\[
+  \widehat p_{t-1}^{\TT}(v;\alpha)
+  =
+  \frac{a_{t-1}(v;\alpha)}{\widehat z_{t-1}(\alpha)}
+  \]
+is the marginal density over \(v=(x_{t-1},\vartheta)\), then
+\[
+  \dot{\log \widehat p_{t-1}^{\TT}}(v;\alpha)
+  =
+  \frac{\dot a_{t-1}(v;\alpha)}{a_{t-1}(v;\alpha)}
+  -
+  \frac{\dot{\widehat z}_{t-1}(\alpha)}
+        {\widehat z_{t-1}(\alpha)}.
+  \label{eq:p11-prev-score}
+\]
+The marginal numerator \(a_{t-1}\) is computed by contracting the previous
+TT cores over the eliminated coordinates.  Its derivative is obtained by the
+same contraction with one differentiated core at a time, plus any derivative
+of \(\tau_{t-1}\lambda\) if the defensive term or reference density depends on
+\(\alpha\).
+
+If \(A_t\), \(b_t\), or the selected constant point \(r_{t,s^\star}\) depend
+smoothly on \(\alpha\), then
+\[
+\begin{aligned}
+  \dot V_{t,0}(r)
+  &=
+  -\dot{\log q_t}(u_t)
+  -
+  \nabla_{u}\log q_t(u_t)^\top
+      (\dot A_t r+\dot b_t)
+  -
+  \operatorname{tr}(A_t^{-1}\dot A_t),\\
+  \dot c_t
+  &=
+  \dot V_{t,0}(r_{t,s^\star})
+  +
+  \nabla_r V_{t,0}(r_{t,s^\star})^\top \dot r_{t,s^\star}.
+  \label{eq:p11-v-derivative}
+\end{aligned}
+\]
+For the companion code's random grid, \(r_{t,s^\star}\) is fixed after branch
+freezing, so \(\dot r_{t,s^\star}=0\).  If the minimizing index changes, the
+ordinary derivative is not the derivative of a single smooth branch.
+
+\section{Fixed-Branch TT Core Sensitivities}
+
+Equation \eqref{eq:p11-tt-function} gives the product-rule derivative
+\[
+  \dot\phi_t(r)
+  =
+  \sum_{k=1}^D
+  G_{t,1}(r_1)\cdots
+  \dot G_{t,k}(r_k)\cdots
+  G_{t,D}(r_D).
+  \label{eq:p11-tt-product-rule}
+\]
+The missing implementation object is therefore \(\dot G_{t,k}\) for each
+fixed core.  A fixed TT-cross or ALS branch can be written as a finite system
+of interpolation or least-squares equations.  Let \(g_{t,k}\) be the vector of
+free coefficients in core \(k\), with all ranks, basis functions, sample
+points, sweep order, and neighboring interfaces fixed.
+
+For an exact fixed interpolation equation,
+\[
+  A_{t,k}(\alpha)g_{t,k}(\alpha)=b_{t,k}(\alpha),
+  \label{eq:p11-core-linear}
+\]
+the sensitivity is
+\[
+  A_{t,k}\dot g_{t,k}
+  =
+  \dot b_{t,k}-\dot A_{t,k}g_{t,k}.
+  \label{eq:p11-core-linear-derivative}
+\]
+Here \(b_{t,k}\) consists of target square-root evaluations
+\(\psi_t(r^{(j)};\alpha)\) after subtracting or conditioning on the fixed
+left/right interfaces, and \(\dot b_{t,k}\) uses
+\eqref{eq:p11-psi-derivative}.  The matrix \(A_{t,k}\) contains basis
+evaluations and interface products; \(\dot A_{t,k}\) is zero only when the
+interfaces are held numerically fixed.  If interfaces from earlier core
+updates are differentiated, \(\dot A_{t,k}\) contains their sensitivities.
+
+For a weighted least-squares core update,
+\[
+  g_{t,k}
+  =
+  \arg\min_g \|W_{t,k}^{1/2}(A_{t,k}g-b_{t,k})\|_2^2,
+  \label{eq:p11-core-ls}
+\]
+with fixed weights and full-rank normal matrix
+\(N_{t,k}=A_{t,k}^\top W_{t,k}A_{t,k}\), the normal-equation derivative is
+\[
+\begin{aligned}
+  N_{t,k}\dot g_{t,k}
+  &=
+  \dot A_{t,k}^\top W_{t,k}(b_{t,k}-A_{t,k}g_{t,k})
+  +A_{t,k}^\top W_{t,k}(\dot b_{t,k}-\dot A_{t,k}g_{t,k}).
+  \label{eq:p11-core-ls-derivative}
+\end{aligned}
+\]
+If the residual vanishes, this reduces to the interpolation formula.  If rank
+truncation, pivot selection, enrichment samples, or ALS stopping change, then
+\eqref{eq:p11-core-linear-derivative}--\eqref{eq:p11-core-ls-derivative}
+describe only the derivative of the frozen local branch.
+
+\section{Normalizer Contraction And Its Derivative}
+
+Let \(\{b_{k,a}\}_{a=1}^{n_k}\) be the fixed one-dimensional basis on
+coordinate \(k\), and let
+\[
+  M_k[a,b]=\int b_{k,a}(r_k)b_{k,b}(r_k)\,\dd\nu_k(r_k)
+  \label{eq:p11-mass}
+\]
+be the one-dimensional mass matrix.  Write the coefficient core slices as
+\[
+  C_{t,k,a}(\alpha)\in\R^{r_{k-1}\times r_k}.
+\]
+Then
+\[
+  G_{t,k}(r_k;\alpha)=\sum_{a=1}^{n_k} C_{t,k,a}(\alpha)b_{k,a}(r_k).
+\]
+Define the right contractions
+\[
+  R_{t,D}=1,\qquad
+  R_{t,k-1}
+  =
+  \sum_{a,b=1}^{n_k}
+  M_k[a,b]\,
+  C_{t,k,a} R_{t,k} C_{t,k,b}^\top,
+  \quad k=D,\ldots,1.
+  \label{eq:p11-right-contraction}
+\]
+The square part of the normalizer is the scalar
+\[
+  z_{t,\phi}=R_{t,0}.
+  \label{eq:p11-zphi}
+\]
+This is the direct mass-matrix form of the normalizer.  The companion code's
+\texttt{@TTSIRT/marginalise.m} computes the same quantity in exact arithmetic
+through repeated mass-weighted QR contractions and then sets
+\[
+  \texttt{sirt.z}=\texttt{sirt.fun\_z}+\texttt{sirt.tau}.
+\]
+For a strict same-code-scalar derivative, one may differentiate the QR branch.
+For a cleaner implementation, compute both value and derivative by the direct
+contraction \eqref{eq:p11-right-contraction}; the scalar must then be declared
+as that contraction rather than as a black-box QR floating-point value.
+
+Because the basis is fixed in this note, \(\dot M_k=0\).  The contraction
+derivative is
+\[
+\begin{aligned}
+  \dot R_{t,k-1}
+  =
+  \sum_{a,b=1}^{n_k}M_k[a,b]\Big[
+  &\dot C_{t,k,a}R_{t,k}C_{t,k,b}^\top
+  +C_{t,k,a}\dot R_{t,k}C_{t,k,b}^\top \\
+  &+C_{t,k,a}R_{t,k}\dot C_{t,k,b}^\top
+  \Big],
+  \qquad k=D,\ldots,1.
+  \label{eq:p11-right-contraction-derivative}
+\end{aligned}
+\]
+Thus
+\[
+  \dot{\widehat z}_t
+  =
+  \dot R_{t,0}+\dot\tau_t.
+  \label{eq:p11-z-derivative}
+\]
+Equivalently, in integral notation,
+\[
+  \dot{\widehat z}_t
+  =
+  2\int \phi_t(r)\dot\phi_t(r)\,\dd\nu(r)+\dot\tau_t.
+  \label{eq:p11-z-integral-derivative}
+\]
+
+\section{Final Score}
+
+Combining \eqref{eq:p11-scalar} and \eqref{eq:p11-z-derivative}, the
+fixed-branch analytical score is
+\[
+  \boxed{
+  \dot{\widehat\ell}_T^{\TT}
+  =
+  \sum_{t=1}^T
+  \left[
+  \frac{\dot R_{t,0}+\dot\tau_t}
+       {R_{t,0}+\tau_t}
+  -
+  \dot c_t
+  \right].
+  }
+  \label{eq:p11-final-score}
+\]
+Every term in \eqref{eq:p11-final-score} is the derivative of the declared
+scalar only under the fixed-branch assumptions.  If an implementation uses
+the companion code's branch-changing choices, then the derivative is not an
+ordinary HMC gradient unless those choices are frozen, smoothed, marginalized,
+or moved outside the sampler.
+
+\section{Implementation Checklist}
+
+A future same-scalar prototype must implement the following objects.
+
+\begin{longtable}{@{}p{0.31\linewidth}p{0.58\linewidth}@{}}
+\toprule
+Object & Required derivative or declaration \\
+\midrule
+\endhead
+Model densities & \(\dot{\log f_\alpha}\), \(\dot{\log g_\alpha}\), and state
+gradients if \(A_t,b_t\) are differentiated. \\
+Previous TT marginal & \(a_{t-1}\), \(\dot a_{t-1}\), \(\widehat z_{t-1}\),
+\(\dot{\widehat z}_{t-1}\). \\
+Affine/preconditioner branch & Either fixed numerically, or derivatives
+\(\dot A_t,\dot b_t\) and \(\operatorname{tr}(A_t^{-1}\dot A_t)\). \\
+Stabilizing constant & Either branch derivative \(\dot c_t\) at the frozen
+selected grid point, or a renamed scalar with \(c_t\) fixed numerically. \\
+TT core construction & Fixed interpolation or least-squares equations and
+\(\dot G_{t,k}\) from \eqref{eq:p11-core-linear-derivative} or
+\eqref{eq:p11-core-ls-derivative}. \\
+Normalizer & Same value path and derivative path, preferably the direct mass
+contraction \eqref{eq:p11-right-contraction}. \\
+Branch diagnostics & Fixed ranks, fixed interpolation points, fixed samples,
+fixed truncation decisions, fixed QR/SVD signs, and finite positive
+normalizers. \\
+\bottomrule
+\end{longtable}
+
+\section{What Is Not Derived}
+
+This note does not derive the derivative of:
+\begin{itemize}[leftmargin=*]
+\item changing TT-cross interpolation sets or maxvol/pivot choices;
+\item random enrichment samples or debug-sample resampling;
+\item rank adaptation, SVD truncation rank changes, or sign flips at repeated
+  singular values;
+\item ESS-triggered reapproximation and sample doubling;
+\item nonunique minimizers in the stabilizing constant \(c_t\);
+\item the full MATLAB/Octave companion code as an HMC-ready backend.
+\end{itemize}
+Those operations can still be valuable for filtering and transport.  They are
+not, as stated, a smooth same-scalar gradient path for ordinary HMC.
+
+\section{Minimal Verification Protocol}
+
+For each external parameter coordinate \(\alpha_i\), a future implementation
+should run:
+\begin{enumerate}[leftmargin=*]
+\item value check: the scalar used by HMC is exactly
+  \(\sum_t\{\log \widehat z_t-c_t\}\);
+\item branch check: ranks, interpolation sets, sample arrays, selected
+  constant point, QR/SVD sign convention, and basis/domain maps are unchanged
+  under \(\alpha_i\pm h\);
+\item finite-difference parity:
+  \[
+    \frac{\widehat\ell_T^{\TT}(\alpha+h e_i)
+          -\widehat\ell_T^{\TT}(\alpha-h e_i)}{2h}
+    \approx
+    \dot{\widehat\ell}_T^{\TT}(\alpha);
+  \]
+\item failure check: if branch objects change, report branch-local derivative
+  failure rather than tuning HMC on the reported gradient.
+\end{enumerate}
+
+\section{Conclusion}
+
+The fixed-branch Zhao--Cui squared-TT scalar has a clear analytical derivative:
+differentiate the input density, differentiate the fixed TT core equations,
+contract the differentiated cores through the same mass matrices used by the
+normalizer, and subtract the derivative of the stabilizing constant used in
+the declared scalar.  This is enough for a future implementation plan.  It is
+not enough to claim that the adaptive companion code already supplies an HMC
+gradient.
+
+\begin{thebibliography}{9}
+\bibitem{zhao-cui-2024}
+Zhao, B. and Cui, T. (2024).
+\newblock Tensor-Train Methods for Sequential State and Parameter Learning in
+State-Space Models.
+\newblock \emph{Journal of Machine Learning Research}, 25(272):1--83.
+
+\bibitem{cui-dolgov-2022}
+Cui, T. and Dolgov, S. (2022).
+\newblock Deep Composition of Tensor-Trains Using Squared Inverse Rosenblatt
+Transports.
+\newblock \emph{Foundations of Computational Mathematics}, 22:1863--1922.
+\end{thebibliography}
+
+\end{document}

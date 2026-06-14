@@ -1,0 +1,61 @@
+Execute P44-M0: target governance matrix for the P44 overnight gated self-recovery run.
+
+Subplan:
+docs/plans/bayesfilter-highdim-zhao-cui-p44-phase0-target-governance-subplan-2026-06-07.md
+
+Runbook:
+docs/plans/bayesfilter-highdim-zhao-cui-p44-overnight-gated-self-recovery-runbook-2026-06-07.md
+
+Rules:
+- Perform and record the skeptical plan audit before implementation.
+- Preserve P42/P44 target, parameterization, baseline, and nonclaim governance.
+- Use CPU-only commands by default: CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp.
+- Treat prelaunch tracked-dirty paths as protected:
+  /home/chakwong/BayesFilter/docs/plans/logs/p44-overnight-gated-20260607-190941-prelaunch-dirty-tracked.txt
+- Do not modify protected already-dirty tracked files unless a human explicitly authorizes it.
+- If you encounter a fixable blocker, write a repair amendment/result note and run Claude repair review with explicit PASS before implementing the repair.
+- Review loops may run at most five iterations; max-five exhaustion without explicit PASS writes a stop note and does not authorize progression.
+- Create or update phase result and Claude review ledger artifacts under docs/plans.
+- The required current-run phase result note is:
+  docs/plans/bayesfilter-highdim-zhao-cui-p44-phase0-target-governance-result-2026-06-07.md
+- The required current-run phase Claude review ledger is:
+  docs/plans/bayesfilter-highdim-zhao-cui-p44-phase0-target-governance-claude-review-ledger-2026-06-07.md
+- The required current-run evidence manifest is:
+  docs/plans/bayesfilter-highdim-zhao-cui-p44-phase0-target-governance-evidence-manifest-p44-overnight-gated-20260607-190941.json
+- Both required artifacts must include:
+  run_id: `p44-overnight-gated-20260607-190941`
+- Both required artifacts' latest Status/status/Verdict line must equal:
+  `PASS_P44_M0_CODE_GOVERNANCE`
+- The evidence manifest must be JSON with schema_version
+  "p44.phase_evidence.v1", run_id "p44-overnight-gated-20260607-190941", phase "P44-M0", pass_token
+  "PASS_P44_M0_CODE_GOVERNANCE", status "PASS_P44_M0_CODE_GOVERNANCE", artifact_paths for result_note,
+  claude_review_ledger, and evidence_manifest, all ten evidence_chain states
+  set to true, a nonempty evidence_contract, at least one successful command,
+  diagnostics.veto_status of PASS or NONCLAIM_RECORDED, review_loops with
+  claude_code_governance.iterations between 1 and 5 and verdict "PASS_P44_M0_CODE_GOVERNANCE",
+  repair.iterations between 0 and 5, and long_run_controls with caps and
+  pre_mortem whenever long_run_used is true.
+- The phase result note must contain anchored machine-check markers:
+  p44_evidence_manifest: `docs/plans/bayesfilter-highdim-zhao-cui-p44-phase0-target-governance-evidence-manifest-p44-overnight-gated-20260607-190941.json`
+  p44_local_evidence_run: `COMPLETE`
+  p44_evidence_audit: `COMPLETE`
+  p44_result_note_substance: `COMPLETE`
+  p44_traceability_or_nonclaim: `COMPLETE`
+  p44_command_count: `<number of manifest commands>`
+  p44_long_run_used: `true` or `false`
+  and when p44_long_run_used is true, also:
+  p44_long_run_resource_caps: `COMPLETE`
+  p44_long_run_pre_mortem: `COMPLETE`
+- The phase Claude review ledger must contain anchored machine-check markers:
+  p44_evidence_manifest: `docs/plans/bayesfilter-highdim-zhao-cui-p44-phase0-target-governance-evidence-manifest-p44-overnight-gated-20260607-190941.json`
+  p44_claude_code_governance_verdict: `PASS_P44_M0_CODE_GOVERNANCE`
+  p44_claude_code_governance_iterations: `<1..5>`
+- Every manifest command must have a relative log_path. Each command log must
+  exist and contain:
+  p44_run_id: `p44-overnight-gated-20260607-190941`
+  p44_phase: `P44-M0`
+  p44_command_index: `<zero-based command index>`
+  p44_command_exit_code: `0`
+- Do not complete this phase unless the phase result/review artifacts contain exactly this pass token:
+  PASS_P44_M0_CODE_GOVERNANCE
+- If the phase requires human intervention, write a STOP result note with the exact reason and do not emit the pass token.

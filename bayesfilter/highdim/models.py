@@ -335,6 +335,8 @@ class SpatialSIRSSM:
     observation_covariance: tf.Tensor | None = None
     initial_covariance: tf.Tensor | None = None
     domain_policy: str = "diagnose_negative_after_noise"
+    rk4_variant: str = "classical"
+    process_noise_policy: str = "diagnose_negative_after_noise"
 
     def __post_init__(self) -> None:
         kappa = tf.convert_to_tensor(self.kappa, dtype=tf.float64)
@@ -397,6 +399,16 @@ class SpatialSIRSSM:
                 raise ValueError(f"{name}: {HighDimStatus.NONFINITE_VALUE.value}")
         if self.domain_policy != "diagnose_negative_after_noise":
             raise ValueError("SpatialSIRSSM first gate requires diagnose_negative_after_noise")
+        if self.rk4_variant not in ("classical", "zhao_cui_sir_step"):
+            raise ValueError("rk4_variant must be classical or zhao_cui_sir_step")
+        if self.process_noise_policy not in (
+            "diagnose_negative_after_noise",
+            "clip_susceptible_after_noise",
+        ):
+            raise ValueError(
+                "process_noise_policy must be diagnose_negative_after_noise "
+                "or clip_susceptible_after_noise"
+            )
         object.__setattr__(self, "kappa", kappa)
         object.__setattr__(self, "nu", nu)
         object.__setattr__(self, "initial_mean", initial_mean)
@@ -450,6 +462,23 @@ class SpatialSIRSSM:
         previous = _as_row_matrix(x_prev, self.state_dim(), "x_prev")
         next_values = _as_row_matrix(x_next, self.state_dim(), "x_next")
         return _mvn_log_prob(next_values, self.transition_mean(previous), self.process_covariance)
+
+    def transition_push_from_standard_normal(
+        self,
+        theta: tf.Tensor,
+        x_prev: tf.Tensor,
+        standard_normal_noise: tf.Tensor,
+        t: int,
+    ) -> tf.Tensor:
+        """Push states with declared process-noise policy for source parity tests."""
+
+        del theta, t
+        previous = _as_row_matrix(x_prev, self.state_dim(), "x_prev")
+        noise = _as_row_matrix(standard_normal_noise, self.state_dim(), "standard_normal_noise")
+        mean = self.transition_mean(previous)
+        process_chol = tf.linalg.cholesky(self.process_covariance)
+        pushed = mean + tf.linalg.matmul(noise, process_chol, transpose_b=True)
+        return self._apply_process_noise_policy(pushed)
 
     def observation_log_density(
         self,
@@ -505,6 +534,7 @@ class SpatialSIRSSM:
                 process_chol,
                 generator.normal([self.state_dim()], dtype=tf.float64),
             )
+            state = self._apply_process_noise_policy(state[tf.newaxis, :])[0]
             states.append(state)
             observations.append(
                 self.infectious_components(state)[0]
@@ -566,8 +596,10 @@ class SpatialSIRSSM:
             "neighbor_sets": self.neighbor_sets,
             "delta": self.delta,
             "rk4_internal_step": self.rk4_internal_step,
+            "rk4_variant": self.rk4_variant,
             "rk4_substeps": int(self._rk4_substeps),
             "domain_policy": self.domain_policy,
+            "process_noise_policy": self.process_noise_policy,
             "what_is_not_claimed": (
                 "production_tt_sirt_sir_filtering",
                 "paper_scale_j9_accuracy",
@@ -581,7 +613,10 @@ class SpatialSIRSSM:
         k1 = self._rhs(state)
         k2 = self._rhs(state + 0.5 * step * k1)
         k3 = self._rhs(state + 0.5 * step * k2)
-        k4 = self._rhs(state + step * k3)
+        if self.rk4_variant == "zhao_cui_sir_step":
+            k4 = self._rhs(state + 0.5 * step * k3)
+        else:
+            k4 = self._rhs(state + step * k3)
         return state + (step / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4)
 
     def _rhs(self, state: tf.Tensor) -> tf.Tensor:
@@ -604,6 +639,17 @@ class SpatialSIRSSM:
             [tf.shape(values)[0], self.state_dim()],
         )
 
+    def _apply_process_noise_policy(self, values: tf.Tensor) -> tf.Tensor:
+        state = _as_row_matrix(values, self.state_dim(), "values")
+        if self.process_noise_policy != "clip_susceptible_after_noise":
+            return state
+        susceptible = tf.maximum(state[:, 0::2], tf.constant(0.0, dtype=tf.float64))
+        infectious = state[:, 1::2]
+        return tf.reshape(
+            tf.stack([susceptible, infectious], axis=2),
+            [tf.shape(state)[0], self.state_dim()],
+        )
+
 
 def p30_spatial_sir_fixture_model(
     compartments: int,
@@ -622,6 +668,27 @@ def p30_spatial_sir_fixture_model(
         nu=tf.fill([int(compartments)], tf.constant(18.0, dtype=tf.float64)),
         initial_mean=tf.reshape(initial_pairs, [-1]),
         neighbor_sets=neighbor_sets,
+    )
+
+
+def zhao_cui_sir_austria_model() -> SpatialSIRSSM:
+    """Return the author-source ``eg3_sir/sir_austria`` callback contract."""
+
+    compartments = 9
+    j_values = tf.cast(tf.range(1, compartments + 1), tf.float64)
+    initial_pairs = tf.stack([486.0 + j_values, 14.0 - j_values], axis=1)
+    return SpatialSIRSSM(
+        kappa=tf.fill([compartments], tf.constant(0.1, dtype=tf.float64)),
+        nu=tf.fill([compartments], tf.constant(18.0, dtype=tf.float64)),
+        initial_mean=tf.reshape(initial_pairs, [-1]),
+        neighbor_sets=_zhao_cui_sir_austria_neighbor_sets(),
+        delta=0.02,
+        rk4_internal_step=0.005,
+        process_covariance=tf.eye(2 * compartments, dtype=tf.float64),
+        observation_covariance=100.0 * tf.eye(compartments, dtype=tf.float64),
+        initial_covariance=tf.eye(2 * compartments, dtype=tf.float64),
+        rk4_variant="zhao_cui_sir_step",
+        process_noise_policy="clip_susceptible_after_noise",
     )
 
 
@@ -974,3 +1041,21 @@ def _chain_neighbor_sets(compartments: int) -> tuple[tuple[int, ...], ...]:
             neighbors.append(index + 1)
         rows.append(tuple(neighbors))
     return tuple(rows)
+
+
+def _zhao_cui_sir_austria_neighbor_sets() -> tuple[tuple[int, ...], ...]:
+    raw_sets = (
+        (0, 1),
+        (0, 1, 2, 3),
+        (1, 2, 3, 4, 5),
+        (1, 2, 3, 4),
+        (2, 3, 4, 5, 6, 8),
+        (2, 4, 5, 6),
+        (4, 5, 6, 7, 8),
+        (6, 7),
+        (4, 6, 8),
+    )
+    return tuple(
+        tuple(neighbor for neighbor in neighbors if neighbor != index)
+        for index, neighbors in enumerate(raw_sets)
+    )

@@ -512,6 +512,240 @@ and smooth.  If the implementation changes degree, prunes points, floors
 covariances, or switches active subspaces while the sampler moves through
 parameter space, then the target itself has changed.
 
+\section{Transformed Stochastic Volatility and Gaussian-Mixture CUT4}
+\label{sec:bf-hd-sv-mixture-cut4}
+
+\paragraph{Why the direct CUT4 path is not the SV likelihood.}
+The scalar stochastic-volatility benchmark used in the Zhao--Cui validation
+line can be written as
+\begin{align}
+  X_t &= \gamma X_{t-1}+\sigma \eta_t,\qquad
+    \eta_t\sim\calN(0,1),\\
+  Y_t &= \beta \exp(X_t/2)\epsilon_t,\qquad
+    \epsilon_t\sim\calN(0,1).
+  \label{eq:bf-hd-sv-native}
+\end{align}
+The observation variance is state dependent:
+\[
+  Y_t\mid X_t=x_t \sim
+  \calN\{0,\beta^2\exp(x_t)\}.
+\]
+This is not the additive-Gaussian observation equation assumed at the start of
+this chapter.  Therefore a direct call to a Gaussian CUT4 observation update
+would test a different model.
+
+\paragraph{The log-squared transform.}
+For \(Y_t\ne0\), define
+\[
+  Z_t=\log(Y_t^2).
+\]
+Then \eqref{eq:bf-hd-sv-native} gives
+\begin{align}
+  Z_t
+  &= \log(\beta^2)+X_t+\log(\epsilon_t^2) \nonumber\\
+  &= \log(\beta^2)+X_t+U_t,
+  \qquad U_t=\log(\epsilon_t^2).
+  \label{eq:bf-hd-sv-log-square}
+\end{align}
+The transformed observation is additive, but the noise \(U_t\) is not Gaussian.
+Kim--Shephard--Chib use this transformed representation together with an
+approximating offset normal mixture and an importance reweighting correction in
+their likelihood-based SV framework
+\citep[Section~3, Table~4]{kim1998stochasticvolatility}.  The construction
+below uses only the approximating mixture as a BayesFilter comparator.  It does
+not implement the importance reweighting correction and therefore is not
+promoted as the exact native SV likelihood.
+
+In numerical code one often replaces \(Z_t=\log(Y_t^2)\) by
+\[
+  Z_t^{(c)}=\log(Y_t^2+c),\qquad c>0,
+  \label{eq:bf-hd-sv-log-square-offset}
+\]
+to avoid an infinite value when an observation is exactly zero.  This offset is
+a declared approximation and must appear in the run manifest.
+
+\paragraph{Gaussian-mixture approximation.}
+Let a finite mixture approximate the law of \(U_t\):
+\[
+  p_U(u)\approx \sum_{j=1}^J \pi_j
+  \varphi(u;m_j,v_j),
+  \qquad
+  \pi_j>0,\quad \sum_{j=1}^J\pi_j=1,\quad v_j>0.
+  \label{eq:bf-hd-sv-logchi-mixture}
+\]
+Kim--Shephard--Chib tabulate component locations \(a_j\) for the shifted
+variable \(U_t+1.2704\); equivalently, the component means for \(U_t\) itself
+are \(m_j=a_j-1.2704\).  The P39 implementation pins the following
+seven-component table and uses the effective means \(m_j\):
+\begin{equation}
+\begin{array}{c|rrrr}
+j & \pi_j & a_j & m_j=a_j-1.2704 & v_j\\
+\hline
+1 & 0.00730 & -10.12999 & -11.40039 & 5.79596\\
+2 & 0.10556 &  -3.97281 &  -5.24321 & 2.61369\\
+3 & 0.00002 &  -8.56686 &  -9.83726 & 5.17950\\
+4 & 0.04395 &   2.77786 &   1.50746 & 0.16735\\
+5 & 0.34001 &   0.61942 &  -0.65098 & 0.64009\\
+6 & 0.24566 &   1.79518 &   0.52478 & 0.34023\\
+7 & 0.25750 &  -1.08819 &  -2.35859 & 1.26261
+\end{array}
+\label{eq:bf-hd-sv-ksc-pinned-table}
+\end{equation}
+These constants are the declared BayesFilter approximation contract for this
+phase.  The code records them in the run diagnostics and tests only their
+finite-mixture consequences.  The implementation also checks that the shifted
+fixture has mean close to \(-1.2704\) and variance close to \(\pi^2/2\), the
+first two moments of \(\log\chi_1^2\).
+
+Introduce a discrete component \(S_t\in\{1,\ldots,J\}\) with
+\(\Pr(S_t=j)=\pi_j\).  Conditional on \(S_t=j\), the transformed observation is
+linear Gaussian:
+\begin{equation}
+  Z_t\mid X_t=x_t,S_t=j
+  \sim
+  \calN\{\log(\beta^2)+x_t+m_j,\;v_j\}.
+  \label{eq:bf-hd-sv-component-observation}
+\end{equation}
+This is the least-disruptive route back to the Gaussian quadrature machinery:
+each mixture component is an additive-Gaussian observation model, and the
+non-Gaussian skewness and tail shape enter through the mixture weights,
+locations, and variances rather than through a new non-Gaussian cubature rule.
+
+\paragraph{Component CUT4 update.}
+CUT4 denotes the named conjugate unscented transform family of
+Adurthi--Singla--Singh.  The BayesFilter implementation used in this phase is
+the positive-weight SVD-placed CUT4-G rule from
+Chapter~\ref{ch:bf-svd-sigma-point}.  Its code diagnostics report polynomial
+degree \(5\).  For an augmented stochastic integration dimension \(q\ge3\),
+the rule uses
+\[
+  N_{\rm CUT4}=2q+2^q
+\]
+standard-normal points and weights to approximate Gaussian expectations in the
+projection moments.  Each component update below feeds the conditional
+Gaussian model for component \(j\) into that rule and obtains a component log
+normalizer and Gaussian retained moments.  CUT4 exactness is a statement about
+Gaussian polynomial integration for the implemented point rule
+\citep{adurthi2012cut,adurthi2012cutfiltering}; it is not by itself a proof
+that the collapsed SV posterior is exact.
+
+Suppose that before observing \(Z_t\) the predictive approximation is
+\[
+  X_t\mid Z_{1:t-1}\approx\calN(m_t^-,P_t^-).
+\]
+For component \(j\), apply a Gaussian projection update using the observation
+map
+\[
+  h_j(x)=\log(\beta^2)+x+m_j,
+  \qquad R_j=v_j.
+\]
+Let the component CUT4 update return
+\[
+  \ell_{tj},\qquad m_{tj},\qquad P_{tj},
+  \label{eq:bf-hd-sv-component-cut4}
+\]
+where \(\ell_{tj}\) is the approximate component log normalizer and
+\((m_{tj},P_{tj})\) is the component Gaussian posterior.  The mixture
+normalizer is
+\begin{equation}
+  \ell_t
+  =
+  \log\sum_{j=1}^J \pi_j\exp(\ell_{tj}),
+  \label{eq:bf-hd-sv-mixture-normalizer}
+\end{equation}
+and the posterior component weights are
+\begin{equation}
+  \alpha_{tj}
+  =
+  \frac{\pi_j\exp(\ell_{tj})}{\sum_{k=1}^J\pi_k\exp(\ell_{tk})}.
+  \label{eq:bf-hd-sv-component-weights}
+\end{equation}
+If the filter is forced back to a single Gaussian for the next prediction, the
+retained moments are
+\begin{align}
+  m_t &= \sum_{j=1}^J \alpha_{tj}m_{tj},\\
+  P_t &=
+  \sum_{j=1}^J \alpha_{tj}
+  \{P_{tj}+(m_{tj}-m_t)(m_{tj}-m_t)^\top\}.
+  \label{eq:bf-hd-sv-mixture-moment-collapse}
+\end{align}
+Equations \eqref{eq:bf-hd-sv-mixture-normalizer}--\eqref{eq:bf-hd-sv-mixture-moment-collapse}
+are exact for the finite mixture approximation and the component Gaussian
+updates they are given.  The approximations are the mixture replacement for
+the log-chi-square law, the CUT4 component integration when the transition or
+observation is nonlinear, and the collapse of the mixture posterior back to
+one Gaussian.
+
+\paragraph{Simple SV recursion.}
+For the simple SV model \eqref{eq:bf-hd-sv-native}, the prediction before
+component updates is
+\[
+  m_t^-=\gamma m_{t-1},\qquad
+  P_t^-=\gamma^2P_{t-1}+\sigma^2,
+  \label{eq:bf-hd-sv-simple-predict}
+\]
+with the stationary initial variance \(P_0^-=\sigma^2/(1-\gamma^2)\) when
+\(|\gamma|<1\).  Because \eqref{eq:bf-hd-sv-component-observation} is linear in
+\(x_t\), the component update is Kalman-exact for the finite mixture model; a
+CUT4 implementation should agree with a dense transformed-mixture reference on
+small scalar fixtures.  Agreement with the native likelihood is a separate
+question, because the finite mixture is only an approximation to
+\(\log(\epsilon_t^2)\).  These scalar fixtures validate the transformation,
+mixture bookkeeping, log-sum-exp normalization, moment collapse, and CUT4
+reduction to the Gaussian component update.  They do not establish
+CUT4-specific accuracy for a nonlinear conditional component; that would
+require a same-target nonlinear transformed-mixture fixture.
+
+\paragraph{Generalized SV after Chib--Nardari--Shephard.}
+Chib--Nardari--Shephard extend the SV likelihood program to generalized models
+with heavy-tailed observation errors, exogenous variables in observation and
+volatility equations, and jump components \citep{chib2002mcmcsv}.  In
+BayesFilter notation, a broad transformed observation template is
+\begin{equation}
+  Z_t
+  =
+  a_\theta(w_t)
+  + b_\theta(w_t)^\top X_t
+  + c_\theta(w_t,S_t,J_t)
+  + E_t,
+  \qquad
+  E_t\mid S_t,J_t\sim\calN(0,R_{S_t,J_t}),
+  \label{eq:bf-hd-sv-generalized-template}
+\end{equation}
+where \(w_t\) are exogenous covariates, \(S_t\) is a mixture component, and
+\(J_t\) denotes an optional jump or tail-state indicator.  Conditional on the
+discrete indicators, \eqref{eq:bf-hd-sv-generalized-template} again has an
+additive-Gaussian observation form.  The CUT4 recipe is therefore the same:
+run a component update for each declared discrete component, combine
+normalizers by log-sum-exp, and collapse retained moments only after recording
+the mixture weights.
+
+This generalized template is a derivation route, not an implementation claim.
+To promote a particular CNS-style model, the project must first inspect the
+relevant Chib--Nardari--Shephard primary-source equations and then specify the
+component state space, priors, jump/tail indicators, exogenous regressors,
+mixture table, and whether an exact correction or reweighting step is used.
+
+\paragraph{Comparison with TT filtering.}
+The existing scalar SV TT lane approximates the native SV value path on a tiny
+two-observation fixture.  The Gaussian-mixture CUT4 lane approximates the
+transformed mixture model.  These are adjacent but not identical algorithms.
+They can be compared as an explanatory approximation gap.  They become a
+same-target equivalence comparison only after a TT lane is built for the same
+transformed mixture likelihood, with the same offset, mixture table, horizon,
+and parameter values.
+
+\paragraph{Claim boundary.}
+The phrase "CUT4 for SV" is too broad unless the target is named.  In this
+chapter it means
+\[
+  \hbox{CUT4 component updates inside a transformed finite-mixture SV
+  approximation.}
+\]
+It does not mean exact native SV filtering, KSC importance reweighting,
+paper-scale S\&P 500 validation, generalized CNS estimation, or a production
+default for HMC.
+
 \section{Tensor-Product Gauss-Hermite Quadrature Filtering (GHQF)}
 \label{sec:bf-hd-tensor-product-ghq}
 

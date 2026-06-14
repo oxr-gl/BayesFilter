@@ -1,0 +1,669 @@
+from __future__ import annotations
+
+import numpy as np
+import tensorflow as tf
+
+from pathlib import Path
+
+from experiments.dpf_implementation.tf_tfp.filters.ledh_pfpf_alg1_ukf_tf import (
+    METHOD_GENERATION,
+    apply_classical_resampling_state_tf,
+    algorithm1_route_identifiers,
+    ledh_alg1_coefficients_tf,
+    li_coates_ledh_alg1_time_step_tf,
+    run_ledh_pfpf_alg1_ukf_tf,
+    ukf_predict_additive_tf,
+    ukf_update_additive_tf,
+    validate_algorithm1_route_identifiers,
+    validate_pseudo_time_steps_tf,
+)
+
+
+DTYPE = tf.float64
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_ukf_prediction_matches_linear_kalman_and_deterministic_edge() -> None:
+    transition_matrix = tf.constant([[0.9, 0.2], [-0.1, 0.7]], dtype=DTYPE)
+    x_prev = tf.constant([0.3, -0.4], dtype=DTYPE)
+    p_prev = tf.constant([[0.6, 0.1], [0.1, 0.4]], dtype=DTYPE)
+    q = tf.zeros([2, 2], dtype=DTYPE)
+
+    def transition_mean(points: tf.Tensor, _t: int) -> tf.Tensor:
+        return tf.linalg.matmul(points, transition_matrix, transpose_b=True)
+
+    result = ukf_predict_additive_tf(
+        previous_state=x_prev,
+        previous_covariance=p_prev,
+        transition_mean_fn=transition_mean,
+        process_noise_covariance=q,
+        time_index=0,
+        covariance_floor=0.0,
+    )
+
+    expected_mean = tf.linalg.matvec(transition_matrix, x_prev)
+    expected_covariance = transition_matrix @ p_prev @ tf.transpose(transition_matrix)
+    np.testing.assert_allclose(result.mean.numpy(), expected_mean.numpy(), atol=1e-12)
+    np.testing.assert_allclose(result.covariance.numpy(), expected_covariance.numpy(), atol=1e-12)
+
+
+def test_ukf_update_matches_identity_observation_kalman() -> None:
+    mean = tf.constant([0.2, -0.1], dtype=DTYPE)
+    covariance = tf.constant([[0.5, 0.05], [0.05, 0.3]], dtype=DTYPE)
+    observation = tf.constant([0.4, -0.2], dtype=DTYPE)
+    r = tf.linalg.diag(tf.constant([0.2, 0.4], dtype=DTYPE))
+
+    def observation_mean(points: tf.Tensor, _t: int) -> tf.Tensor:
+        return tf.identity(points)
+
+    result = ukf_update_additive_tf(
+        predicted_mean=mean,
+        predicted_covariance=covariance,
+        observation=observation,
+        observation_mean_fn=observation_mean,
+        observation_covariance=r,
+        time_index=0,
+        covariance_floor=0.0,
+    )
+
+    innovation_covariance = covariance + r
+    gain = tf.transpose(tf.linalg.solve(innovation_covariance, tf.transpose(covariance)))
+    expected_mean = mean + tf.linalg.matvec(gain, observation - mean)
+    expected_covariance = covariance - gain @ innovation_covariance @ tf.transpose(gain)
+    np.testing.assert_allclose(result.mean.numpy(), expected_mean.numpy(), atol=1e-12)
+    np.testing.assert_allclose(result.covariance.numpy(), expected_covariance.numpy(), atol=1e-12)
+
+
+def test_ledh_coefficients_use_zero_noise_anchor_and_predicted_covariance() -> None:
+    predicted_covariance = tf.constant([[0.7]], dtype=DTYPE)
+    observation_covariance = tf.constant([[0.2]], dtype=DTYPE)
+    auxiliary_state = tf.constant([0.5], dtype=DTYPE)
+    zero_noise_anchor = tf.constant([0.1], dtype=DTYPE)
+    observation = tf.constant([0.4], dtype=DTYPE)
+
+    def observation_mean(points: tf.Tensor, _t: int) -> tf.Tensor:
+        values = tf.reshape(tf.cast(points, DTYPE), [-1, 1])
+        return 2.0 * values + 0.3
+
+    def observation_jacobian(point: tf.Tensor, _t: int) -> tf.Tensor:
+        del point
+        return tf.constant([[2.0]], dtype=DTYPE)
+
+    coefficients = ledh_alg1_coefficients_tf(
+        auxiliary_state=auxiliary_state,
+        zero_noise_anchor=zero_noise_anchor,
+        predicted_covariance=predicted_covariance,
+        observation=observation,
+        observation_mean_fn=observation_mean,
+        observation_jacobian_fn=observation_jacobian,
+        observation_covariance=observation_covariance,
+        lambda_value=tf.constant(0.25, dtype=DTYPE),
+        time_index=0,
+        covariance_floor=0.0,
+    )
+
+    h = 2.0
+    p = 0.7
+    r = 0.2
+    lam = 0.25
+    e = 0.3
+    a = -0.5 * p * h * (lam * h * p * h + r) ** -1 * h
+    b = (1.0 + 2.0 * lam * a) * (
+        (1.0 + lam * a) * p * h * (1.0 / r) * (0.4 - e)
+        + a * 0.1
+    )
+    np.testing.assert_allclose(coefficients["A"].numpy(), [[a]], atol=1e-12)
+    np.testing.assert_allclose(coefficients["b"].numpy(), [b], atol=1e-12)
+
+
+def test_time_step_uses_per_particle_covariances_and_det_product() -> None:
+    ancestors = tf.constant([[0.0], [1.0]], dtype=DTYPE)
+    previous_covariances = tf.constant([[[0.1]], [[0.4]]], dtype=DTYPE)
+    pre_flow = tf.constant([[0.1], [1.2]], dtype=DTYPE)
+    observation = tf.constant([0.25], dtype=DTYPE)
+    eps = tf.constant([0.5, 0.5], dtype=DTYPE)
+
+    def transition_mean(points: tf.Tensor, _t: int) -> tf.Tensor:
+        return tf.identity(tf.reshape(points, [-1, 1]))
+
+    def transition_log_density(x_next: tf.Tensor, x_prev: tf.Tensor, _t: int) -> tf.Tensor:
+        residual = tf.reshape(x_next - x_prev, [-1])
+        return -0.5 * residual * residual
+
+    def process_covariance(_x_prev: tf.Tensor, _t: int) -> tf.Tensor:
+        return tf.constant([[0.05]], dtype=DTYPE)
+
+    def observation_mean(points: tf.Tensor, _t: int) -> tf.Tensor:
+        values = tf.reshape(points, [-1, 1])
+        return values
+
+    def observation_jacobian(_point: tf.Tensor, _t: int) -> tf.Tensor:
+        return tf.constant([[1.0]], dtype=DTYPE)
+
+    def observation_covariance(_t: int) -> tf.Tensor:
+        return tf.constant([[0.2]], dtype=DTYPE)
+
+    result = li_coates_ledh_alg1_time_step_tf(
+        ancestors=ancestors,
+        previous_covariances=previous_covariances,
+        pre_flow_particles=pre_flow,
+        observation=observation,
+        transition_mean_fn=transition_mean,
+        transition_log_density_fn=transition_log_density,
+        observation_mean_fn=observation_mean,
+        observation_jacobian_fn=observation_jacobian,
+        process_noise_covariance_fn=process_covariance,
+        observation_covariance_fn=observation_covariance,
+        time_index=0,
+        pseudo_time_steps=eps,
+        covariance_floor=0.0,
+    )
+
+    assert result.predicted_covariances.shape == (2, 1, 1)
+    np.testing.assert_allclose(
+        result.predicted_covariances.numpy()[:, 0, 0],
+        np.array([0.15, 0.45]),
+        atol=1e-12,
+    )
+    assert not np.allclose(result.forward_log_det.numpy()[0], result.forward_log_det.numpy()[1])
+    assert result.diagnostics["flow_anchor_route"] == "zero_noise_transition"
+    assert result.diagnostics["finite_forward_log_det"]
+
+
+def test_pseudo_time_steps_must_be_positive_and_sum_to_one() -> None:
+    np.testing.assert_allclose(
+        validate_pseudo_time_steps_tf(tf.constant([0.25, 0.75], dtype=DTYPE)).numpy(),
+        [0.25, 0.75],
+    )
+
+    with np.testing.assert_raises(ValueError):
+        validate_pseudo_time_steps_tf(tf.constant([0.25, 0.5], dtype=DTYPE))
+
+    with np.testing.assert_raises(ValueError):
+        validate_pseudo_time_steps_tf(tf.constant([1.0, 0.0], dtype=DTYPE))
+
+
+def test_auxiliary_and_actual_paths_replay_same_affine_trace() -> None:
+    ancestors = tf.constant([[-0.3], [0.4]], dtype=DTYPE)
+    previous_covariances = tf.constant([[[0.2]], [[0.5]]], dtype=DTYPE)
+    pre_flow = tf.constant([[-0.24], [0.31]], dtype=DTYPE)
+    observation = tf.constant([0.2], dtype=DTYPE)
+
+    def transition_mean(points: tf.Tensor, _t: int) -> tf.Tensor:
+        return 0.9 * tf.reshape(points, [-1, 1]) + 0.1
+
+    def transition_log_density(x_next: tf.Tensor, x_prev: tf.Tensor, t: int) -> tf.Tensor:
+        residual = tf.reshape(x_next - transition_mean(x_prev, t), [-1])
+        return -0.5 * residual * residual / 0.08
+
+    def process_covariance(_x_prev: tf.Tensor, _t: int) -> tf.Tensor:
+        return tf.constant([[0.04]], dtype=DTYPE)
+
+    def observation_mean(points: tf.Tensor, _t: int) -> tf.Tensor:
+        values = tf.reshape(points, [-1, 1])
+        return values + 0.05 * tf.square(values)
+
+    def observation_jacobian(point: tf.Tensor, _t: int) -> tf.Tensor:
+        value = tf.reshape(tf.cast(point, DTYPE), [-1])[0]
+        return tf.reshape(1.0 + 0.1 * value, [1, 1])
+
+    def observation_covariance(_t: int) -> tf.Tensor:
+        return tf.constant([[0.15]], dtype=DTYPE)
+
+    result = li_coates_ledh_alg1_time_step_tf(
+        ancestors=ancestors,
+        previous_covariances=previous_covariances,
+        pre_flow_particles=pre_flow,
+        observation=observation,
+        transition_mean_fn=transition_mean,
+        transition_log_density_fn=transition_log_density,
+        observation_mean_fn=observation_mean,
+        observation_jacobian_fn=observation_jacobian,
+        process_noise_covariance_fn=process_covariance,
+        observation_covariance_fn=observation_covariance,
+        time_index=0,
+        pseudo_time_steps=tf.constant([0.4, 0.6], dtype=DTYPE),
+    )
+
+    for i in range(2):
+        auxiliary = result.auxiliary_anchors[i]
+        actual = pre_flow[i]
+        for j, eps in enumerate(tf.unstack(result.pseudo_time_steps)):
+            a_matrix = result.flow_matrices_by_particle_step[i, j]
+            b_vector = result.flow_offsets_by_particle_step[i, j]
+            auxiliary = auxiliary + eps * (tf.linalg.matvec(a_matrix, auxiliary) + b_vector)
+            actual = actual + eps * (tf.linalg.matvec(a_matrix, actual) + b_vector)
+
+        np.testing.assert_allclose(
+            auxiliary.numpy(),
+            result.auxiliary_terminal_states.numpy()[i],
+            atol=1e-12,
+        )
+        np.testing.assert_allclose(
+            actual.numpy(),
+            result.post_flow_particles.numpy()[i],
+            atol=1e-12,
+        )
+
+
+def test_scalar_determinant_product_matches_manual_ledh_steps() -> None:
+    ancestors = tf.constant([[0.2]], dtype=DTYPE)
+    previous_covariances = tf.constant([[[0.3]]], dtype=DTYPE)
+    pre_flow = tf.constant([[0.25]], dtype=DTYPE)
+    observation = tf.constant([0.15], dtype=DTYPE)
+    eps = tf.constant([0.25, 0.75], dtype=DTYPE)
+
+    def transition_mean(points: tf.Tensor, _t: int) -> tf.Tensor:
+        return tf.identity(tf.reshape(points, [-1, 1]))
+
+    def transition_log_density(x_next: tf.Tensor, x_prev: tf.Tensor, _t: int) -> tf.Tensor:
+        residual = tf.reshape(x_next - x_prev, [-1])
+        return -0.5 * residual * residual
+
+    def process_covariance(_x_prev: tf.Tensor, _t: int) -> tf.Tensor:
+        return tf.constant([[0.05]], dtype=DTYPE)
+
+    def observation_mean(points: tf.Tensor, _t: int) -> tf.Tensor:
+        values = tf.reshape(points, [-1, 1])
+        return 1.4 * values + 0.1
+
+    def observation_jacobian(_point: tf.Tensor, _t: int) -> tf.Tensor:
+        return tf.constant([[1.4]], dtype=DTYPE)
+
+    def observation_covariance(_t: int) -> tf.Tensor:
+        return tf.constant([[0.3]], dtype=DTYPE)
+
+    result = li_coates_ledh_alg1_time_step_tf(
+        ancestors=ancestors,
+        previous_covariances=previous_covariances,
+        pre_flow_particles=pre_flow,
+        observation=observation,
+        transition_mean_fn=transition_mean,
+        transition_log_density_fn=transition_log_density,
+        observation_mean_fn=observation_mean,
+        observation_jacobian_fn=observation_jacobian,
+        process_noise_covariance_fn=process_covariance,
+        observation_covariance_fn=observation_covariance,
+        time_index=0,
+        pseudo_time_steps=eps,
+        covariance_floor=0.0,
+    )
+
+    p = float(result.predicted_covariances.numpy()[0, 0, 0])
+    h = 1.4
+    r = 0.3
+    manual = 0.0
+    lam = 0.0
+    for step in (0.25, 0.75):
+        lam += step
+        a = -0.5 * p * h * (lam * h * p * h + r) ** -1 * h
+        manual += np.log(abs(1.0 + step * a))
+    np.testing.assert_allclose(result.forward_log_det.numpy()[0], manual, atol=1e-12)
+
+
+def test_forward_log_det_matches_autodiff_jacobian_of_actual_map() -> None:
+    ancestor = tf.constant([[0.2]], dtype=DTYPE)
+    previous_covariances = tf.constant([[[0.3]]], dtype=DTYPE)
+    observation = tf.constant([0.15], dtype=DTYPE)
+    eps = tf.constant([0.25, 0.75], dtype=DTYPE)
+
+    def transition_mean(points: tf.Tensor, _t: int) -> tf.Tensor:
+        return tf.identity(tf.reshape(points, [-1, 1]))
+
+    def transition_log_density(x_next: tf.Tensor, x_prev: tf.Tensor, _t: int) -> tf.Tensor:
+        residual = tf.reshape(x_next - x_prev, [-1])
+        return -0.5 * residual * residual
+
+    def process_covariance(_x_prev: tf.Tensor, _t: int) -> tf.Tensor:
+        return tf.constant([[0.05]], dtype=DTYPE)
+
+    def observation_mean(points: tf.Tensor, _t: int) -> tf.Tensor:
+        values = tf.reshape(points, [-1, 1])
+        return 1.4 * values + 0.1
+
+    def observation_jacobian(_point: tf.Tensor, _t: int) -> tf.Tensor:
+        return tf.constant([[1.4]], dtype=DTYPE)
+
+    def observation_covariance(_t: int) -> tf.Tensor:
+        return tf.constant([[0.3]], dtype=DTYPE)
+
+    pre_flow_scalar = tf.Variable(0.25, dtype=DTYPE)
+    with tf.GradientTape() as tape:
+        result = li_coates_ledh_alg1_time_step_tf(
+            ancestors=ancestor,
+            previous_covariances=previous_covariances,
+            pre_flow_particles=tf.reshape(pre_flow_scalar, [1, 1]),
+            observation=observation,
+            transition_mean_fn=transition_mean,
+            transition_log_density_fn=transition_log_density,
+            observation_mean_fn=observation_mean,
+            observation_jacobian_fn=observation_jacobian,
+            process_noise_covariance_fn=process_covariance,
+            observation_covariance_fn=observation_covariance,
+            time_index=0,
+            pseudo_time_steps=eps,
+            covariance_floor=0.0,
+        )
+        post_flow_scalar = result.post_flow_particles[0, 0]
+
+    jacobian = tape.gradient(post_flow_scalar, pre_flow_scalar)
+    assert jacobian is not None
+    np.testing.assert_allclose(
+        tf.math.log(tf.abs(jacobian)).numpy(),
+        result.forward_log_det.numpy()[0],
+        atol=1e-12,
+    )
+
+
+def test_nonlinear_fixture_produces_particle_indexed_covariance_variation() -> None:
+    ancestors = tf.constant([[-0.4], [0.2], [0.8]], dtype=DTYPE)
+    previous_covariances = tf.fill([3, 1, 1], tf.constant(0.2, dtype=DTYPE))
+    pre_flow = ancestors + tf.constant([[0.02], [-0.01], [0.03]], dtype=DTYPE)
+    observation = tf.constant([0.3], dtype=DTYPE)
+
+    def transition_mean(points: tf.Tensor, _t: int) -> tf.Tensor:
+        values = tf.reshape(points, [-1, 1])
+        return values + 0.15 * tf.square(values)
+
+    def transition_log_density(x_next: tf.Tensor, x_prev: tf.Tensor, t: int) -> tf.Tensor:
+        residual = tf.reshape(x_next - transition_mean(x_prev, t), [-1])
+        return -0.5 * residual * residual / 0.05
+
+    def process_covariance(x_prev: tf.Tensor, _t: int) -> tf.Tensor:
+        value = tf.reshape(tf.cast(x_prev, DTYPE), [-1])[0]
+        return tf.reshape(0.04 + 0.02 * tf.square(value), [1, 1])
+
+    def observation_mean(points: tf.Tensor, _t: int) -> tf.Tensor:
+        values = tf.reshape(points, [-1, 1])
+        return values + 0.1 * tf.square(values)
+
+    def observation_jacobian(point: tf.Tensor, _t: int) -> tf.Tensor:
+        value = tf.reshape(tf.cast(point, DTYPE), [-1])[0]
+        return tf.reshape(1.0 + 0.2 * value, [1, 1])
+
+    def observation_covariance(_t: int) -> tf.Tensor:
+        return tf.constant([[0.12]], dtype=DTYPE)
+
+    result = li_coates_ledh_alg1_time_step_tf(
+        ancestors=ancestors,
+        previous_covariances=previous_covariances,
+        pre_flow_particles=pre_flow,
+        observation=observation,
+        transition_mean_fn=transition_mean,
+        transition_log_density_fn=transition_log_density,
+        observation_mean_fn=observation_mean,
+        observation_jacobian_fn=observation_jacobian,
+        process_noise_covariance_fn=process_covariance,
+        observation_covariance_fn=observation_covariance,
+        time_index=0,
+        pseudo_time_steps=tf.constant([0.5, 0.5], dtype=DTYPE),
+    )
+
+    diagonal = result.predicted_covariances.numpy()[:, 0, 0]
+    assert bool(tf.reduce_all(tf.math.is_finite(result.predicted_covariances)).numpy())
+    assert float(np.max(diagonal) - np.min(diagonal)) > 1e-4
+
+
+def test_resampling_gathers_covariances_with_particles() -> None:
+    particles = tf.constant([[0.0], [1.0], [2.0]], dtype=DTYPE)
+    covariances = tf.reshape(tf.constant([0.1, 0.2, 0.3], dtype=DTYPE), [3, 1, 1])
+    indices = tf.constant([2, 0, 2], dtype=tf.int32)
+
+    resampled_particles, resampled_covariances = apply_classical_resampling_state_tf(
+        particles=particles,
+        covariances=covariances,
+        ancestor_indices=indices,
+    )
+
+    np.testing.assert_allclose(resampled_particles.numpy()[:, 0], [2.0, 0.0, 2.0])
+    np.testing.assert_allclose(resampled_covariances.numpy()[:, 0, 0], [0.3, 0.1, 0.3])
+
+
+def test_route_identifier_rejects_old_ledh_pfpf_ot_claim() -> None:
+    route = algorithm1_route_identifiers(resampling_route="none")
+    assert route["method_generation"] == METHOD_GENERATION
+    validate_algorithm1_route_identifiers(route)
+
+    bad = dict(route)
+    bad["flow_source_route"] = "dpf_ledh_pfpf_ot"
+    with np.testing.assert_raises(ValueError):
+        validate_algorithm1_route_identifiers(bad)
+
+
+def test_algorithm1_module_does_not_import_numpy_or_old_ledh_pfpf_ot_route() -> None:
+    text = (
+        ROOT
+        / "experiments"
+        / "dpf_implementation"
+        / "tf_tfp"
+        / "filters"
+        / "ledh_pfpf_alg1_ukf_tf.py"
+    ).read_text(encoding="utf-8")
+
+    assert "import numpy" not in text
+    assert "from numpy" not in text
+    assert "ledh_pfpf_ot_tf" not in text
+    assert "run_ledh_pfpf_ot_tf" not in text
+
+
+def test_small_filter_run_is_finite_and_records_route_identifiers() -> None:
+    observations = tf.constant([[0.1], [0.2]], dtype=DTYPE)
+    initial_covariance = tf.constant([[0.3]], dtype=DTYPE)
+
+    def initial_sample(num_particles: int, _seed: int) -> tf.Tensor:
+        return tf.reshape(tf.linspace(tf.constant(-0.2, DTYPE), tf.constant(0.2, DTYPE), num_particles), [-1, 1])
+
+    def transition_mean(points: tf.Tensor, _t: int) -> tf.Tensor:
+        return 0.8 * tf.reshape(points, [-1, 1])
+
+    def transition_sample(ancestors: tf.Tensor, _seed: int, t: int) -> tf.Tensor:
+        offsets = tf.reshape(tf.cast(tf.range(tf.shape(ancestors)[0]), DTYPE), [-1, 1])
+        centered = offsets - tf.reduce_mean(offsets)
+        return transition_mean(ancestors, t) + 0.02 * centered
+
+    def transition_log_density(x_next: tf.Tensor, x_prev: tf.Tensor, t: int) -> tf.Tensor:
+        residual = tf.reshape(x_next - transition_mean(x_prev, t), [-1])
+        variance = tf.constant(0.04, DTYPE)
+        return -0.5 * (tf.math.log(2.0 * np.pi * variance) + residual * residual / variance)
+
+    def observation_mean(points: tf.Tensor, _t: int) -> tf.Tensor:
+        values = tf.reshape(points, [-1, 1])
+        return tf.square(values) + values
+
+    def observation_jacobian(point: tf.Tensor, _t: int) -> tf.Tensor:
+        value = tf.reshape(tf.cast(point, DTYPE), [-1])[0]
+        return tf.reshape(2.0 * value + 1.0, [1, 1])
+
+    def observation_log_density(x: tf.Tensor, y: tf.Tensor, t: int) -> tf.Tensor:
+        residual = tf.reshape(y, [1])[0] - tf.reshape(observation_mean(x, t), [-1])
+        variance = tf.constant(0.05, DTYPE)
+        return -0.5 * (tf.math.log(2.0 * np.pi * variance) + residual * residual / variance)
+
+    def process_covariance(_x_prev: tf.Tensor, _t: int) -> tf.Tensor:
+        return tf.constant([[0.04]], dtype=DTYPE)
+
+    def observation_covariance(_t: int) -> tf.Tensor:
+        return tf.constant([[0.05]], dtype=DTYPE)
+
+    result = run_ledh_pfpf_alg1_ukf_tf(
+        observations=observations,
+        initial_sample=initial_sample,
+        initial_covariance=initial_covariance,
+        transition_sample=transition_sample,
+        transition_mean_fn=transition_mean,
+        transition_log_density_fn=transition_log_density,
+        observation_mean_fn=observation_mean,
+        observation_jacobian_fn=observation_jacobian,
+        observation_log_density_fn=observation_log_density,
+        process_noise_covariance_fn=process_covariance,
+        observation_covariance_fn=observation_covariance,
+        seed=11,
+        num_particles=5,
+        pseudo_time_steps=tf.constant([0.5, 0.5], dtype=DTYPE),
+    )
+
+    assert result.finite
+    assert result.route_identifiers["method_generation"] == METHOD_GENERATION
+    assert result.particle_covariances_by_time.shape == (2, 5, 1, 1)
+    assert result.resampling_diagnostics[0]["flow_source_route"] == "li_coates_2017_algorithm1_ledh_pfpf"
+
+
+def test_corrected_log_weight_matches_manual_pfpf_formula() -> None:
+    observations = tf.constant([[0.18]], dtype=DTYPE)
+    initial_covariance = tf.constant([[0.25]], dtype=DTYPE)
+    pseudo_time_steps = tf.constant([0.4, 0.6], dtype=DTYPE)
+
+    def initial_sample(num_particles: int, _seed: int) -> tf.Tensor:
+        assert num_particles == 2
+        return tf.constant([[-0.2], [0.25]], dtype=DTYPE)
+
+    def transition_mean(points: tf.Tensor, _t: int) -> tf.Tensor:
+        return 0.85 * tf.reshape(points, [-1, 1]) + 0.05
+
+    def transition_sample(ancestors: tf.Tensor, _seed: int, t: int) -> tf.Tensor:
+        del t
+        offsets = tf.constant([[0.03], [-0.02]], dtype=DTYPE)
+        return transition_mean(ancestors, 0) + offsets
+
+    def transition_log_density(x_next: tf.Tensor, x_prev: tf.Tensor, t: int) -> tf.Tensor:
+        residual = tf.reshape(x_next - transition_mean(x_prev, t), [-1])
+        variance = tf.constant(0.07, dtype=DTYPE)
+        return -0.5 * (tf.math.log(2.0 * np.pi * variance) + residual * residual / variance)
+
+    def observation_mean(points: tf.Tensor, _t: int) -> tf.Tensor:
+        values = tf.reshape(points, [-1, 1])
+        return values + 0.1 * tf.square(values)
+
+    def observation_jacobian(point: tf.Tensor, _t: int) -> tf.Tensor:
+        value = tf.reshape(tf.cast(point, DTYPE), [-1])[0]
+        return tf.reshape(1.0 + 0.2 * value, [1, 1])
+
+    def observation_log_density(x: tf.Tensor, y: tf.Tensor, t: int) -> tf.Tensor:
+        residual = tf.reshape(y, [1])[0] - tf.reshape(observation_mean(x, t), [-1])
+        variance = tf.constant(0.11, dtype=DTYPE)
+        return -0.5 * (tf.math.log(2.0 * np.pi * variance) + residual * residual / variance)
+
+    def process_covariance(_x_prev: tf.Tensor, _t: int) -> tf.Tensor:
+        return tf.constant([[0.07]], dtype=DTYPE)
+
+    def observation_covariance(_t: int) -> tf.Tensor:
+        return tf.constant([[0.11]], dtype=DTYPE)
+
+    run_result = run_ledh_pfpf_alg1_ukf_tf(
+        observations=observations,
+        initial_sample=initial_sample,
+        initial_covariance=initial_covariance,
+        transition_sample=transition_sample,
+        transition_mean_fn=transition_mean,
+        transition_log_density_fn=transition_log_density,
+        observation_mean_fn=observation_mean,
+        observation_jacobian_fn=observation_jacobian,
+        observation_log_density_fn=observation_log_density,
+        process_noise_covariance_fn=process_covariance,
+        observation_covariance_fn=observation_covariance,
+        seed=17,
+        num_particles=2,
+        pseudo_time_steps=pseudo_time_steps,
+        resampling_route="none",
+    )
+
+    ancestors = initial_sample(2, 17)
+    pre_flow = transition_sample(ancestors, 17, 0)
+    step = li_coates_ledh_alg1_time_step_tf(
+        ancestors=ancestors,
+        previous_covariances=tf.tile(initial_covariance[tf.newaxis, :, :], [2, 1, 1]),
+        pre_flow_particles=pre_flow,
+        observation=observations[0],
+        transition_mean_fn=transition_mean,
+        transition_log_density_fn=transition_log_density,
+        observation_mean_fn=observation_mean,
+        observation_jacobian_fn=observation_jacobian,
+        process_noise_covariance_fn=process_covariance,
+        observation_covariance_fn=observation_covariance,
+        time_index=0,
+        pseudo_time_steps=pseudo_time_steps,
+    )
+    previous_log_weights = tf.fill([2], -tf.math.log(tf.constant(2.0, dtype=DTYPE)))
+    manual = (
+        previous_log_weights
+        + transition_log_density(step.post_flow_particles, ancestors, 0)
+        + observation_log_density(step.post_flow_particles, observations[0], 0)
+        - step.pre_flow_log_density
+        + step.forward_log_det
+    )
+
+    np.testing.assert_allclose(
+        run_result.corrected_log_weights_by_time.numpy()[0],
+        manual.numpy(),
+        atol=1e-12,
+    )
+
+
+def test_fixed_branch_gradient_smoke_for_no_resampling_path() -> None:
+    observations = tf.constant([[0.1], [0.2]], dtype=DTYPE)
+    initial_covariance = tf.constant([[0.3]], dtype=DTYPE)
+
+    def value_for_scale(scale: tf.Tensor) -> tf.Tensor:
+        def initial_sample(num_particles: int, _seed: int) -> tf.Tensor:
+            base = tf.linspace(tf.constant(-0.2, DTYPE), tf.constant(0.2, DTYPE), num_particles)
+            return tf.reshape(base, [-1, 1])
+
+        def transition_mean(points: tf.Tensor, _t: int) -> tf.Tensor:
+            return scale * tf.reshape(points, [-1, 1])
+
+        def transition_sample(ancestors: tf.Tensor, _seed: int, t: int) -> tf.Tensor:
+            offsets = tf.reshape(tf.cast(tf.range(tf.shape(ancestors)[0]), DTYPE), [-1, 1])
+            centered = offsets - tf.reduce_mean(offsets)
+            return transition_mean(ancestors, t) + 0.02 * centered
+
+        def transition_log_density(x_next: tf.Tensor, x_prev: tf.Tensor, t: int) -> tf.Tensor:
+            residual = tf.reshape(x_next - transition_mean(x_prev, t), [-1])
+            variance = tf.constant(0.04, DTYPE)
+            return -0.5 * (tf.math.log(2.0 * np.pi * variance) + residual * residual / variance)
+
+        def observation_mean(points: tf.Tensor, _t: int) -> tf.Tensor:
+            values = tf.reshape(points, [-1, 1])
+            return tf.square(values) + values
+
+        def observation_jacobian(point: tf.Tensor, _t: int) -> tf.Tensor:
+            value = tf.reshape(tf.cast(point, DTYPE), [-1])[0]
+            return tf.reshape(2.0 * value + 1.0, [1, 1])
+
+        def observation_log_density(x: tf.Tensor, y: tf.Tensor, t: int) -> tf.Tensor:
+            residual = tf.reshape(y, [1])[0] - tf.reshape(observation_mean(x, t), [-1])
+            variance = tf.constant(0.05, DTYPE)
+            return -0.5 * (tf.math.log(2.0 * np.pi * variance) + residual * residual / variance)
+
+        def process_covariance(_x_prev: tf.Tensor, _t: int) -> tf.Tensor:
+            return tf.constant([[0.04]], dtype=DTYPE)
+
+        def observation_covariance(_t: int) -> tf.Tensor:
+            return tf.constant([[0.05]], dtype=DTYPE)
+
+        result = run_ledh_pfpf_alg1_ukf_tf(
+            observations=observations,
+            initial_sample=initial_sample,
+            initial_covariance=initial_covariance,
+            transition_sample=transition_sample,
+            transition_mean_fn=transition_mean,
+            transition_log_density_fn=transition_log_density,
+            observation_mean_fn=observation_mean,
+            observation_jacobian_fn=observation_jacobian,
+            observation_log_density_fn=observation_log_density,
+            process_noise_covariance_fn=process_covariance,
+            observation_covariance_fn=observation_covariance,
+            seed=13,
+            num_particles=5,
+            pseudo_time_steps=tf.constant([0.5, 0.5], dtype=DTYPE),
+            resampling_route="none",
+        )
+        return result.log_likelihood_estimate
+
+    scale = tf.Variable(0.8, dtype=DTYPE)
+    with tf.GradientTape() as tape:
+        value = value_for_scale(scale)
+    gradient = tape.gradient(value, scale)
+
+    assert gradient is not None
+    assert bool(tf.math.is_finite(value).numpy())
+    assert bool(tf.math.is_finite(gradient).numpy())

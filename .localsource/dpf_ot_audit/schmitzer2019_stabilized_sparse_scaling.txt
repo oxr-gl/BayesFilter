@@ -1,0 +1,2609 @@
+STABILIZED SPARSE SCALING ALGORITHMS FOR ENTROPY REGULARIZED
+TRANSPORT PROBLEMS
+BERNHARD SCHMITZER
+
+arXiv:1610.06519v2 [math.OC] 11 Feb 2019
+
+Abstract. Scaling algorithms for entropic transport-type problems have become a very popular numerical method,
+encompassing Wasserstein barycenters, multi-marginal problems, gradient flows and unbalanced transport. However, a
+standard implementation of the scaling algorithm has several numerical limitations: the scaling factors diverge and convergence becomes impractically slow as the entropy regularization approaches zero. Moreover, handling the dense kernel
+matrix becomes unfeasible for large problems. To address this, we combine several modifications: A log-domain stabilized
+formulation, the well-known ε-scaling heuristic, an adaptive truncation of the kernel and a coarse-to-fine scheme. This
+permits the solution of larger problems with smaller regularization and negligible truncation error. A new convergence
+analysis of the Sinkhorn algorithm is developed, working towards a better understanding of ε-scaling. Numerical examples
+illustrate efficiency and versatility of the modified algorithm.
+
+1. Introduction.
+1.1. Motivation and Related Work.
+Applications of Optimal Transport. Optimal transport (OT) is a classical optimization problem dating back to the seminal work of Monge and Kantorovich (see monographs [47, 39] for introduction and
+historical context). The induced Wasserstein distances lift a metric from a ‘base’ space (X, d) to probability measures over X. This is a powerful analytical tool, for example to study PDEs as gradient flows in
+Wasserstein space [24, 3]. With the increase of computational resources, OT has also become a popular
+numerical tool in image processing, computer vision and machine learning (e.g. [38, 42, 32, 18, 20]).
+Many ideas have been presented to extend Wasserstein distances to general non-negative measures.
+We refer to [26, 13, 31, 15] and references therein for some context. A transport-type distance for general
+multi-channel signals is proposed in [46].
+Computational Optimal Transport. To this day, the computational effort to solve OT problems remains the principal bottleneck in many applications. In particular large problems, or even multi-marginal
+problems, remain challenging both in terms of runtime and memory demand.
+For the linear assignment problem and discrete transport problems there are (combinatorial) algorithms based on the finite dimensional linear programming formulation by Kantorovich, such as the
+Hungarian method [28], the auction algorithm [9], the network simplex [2] and more [22]. Typically,
+they work for (almost) arbitrary cost functions, but do not scale well for large, dense problems. On
+the other hand, there are more geometric solvers, relying on the polar decomposition [11], that tend to
+be more efficient. There is the famous fluid dynamic formulation by Benamou and Brenier [5], explicit
+computation of the polar decomposition [23], semi-discrete solvers [34, 30], and solvers of the MongeAmpère equation [8, 7] among many others. However, these only work on very specific cost functions,
+most notably the squared Euclidean distance. In a compromise between efficiency and flexibility, several
+discrete coarse-to-fine solvers have been proposed that adaptively select sparse sub-problems [41, 35, 40].
+Entropy Regularization for Optimal Transport. In [27] entropy regularization of the linear assignment
+problem is considered to allow application of smooth optimization techniques or the Sinkhorn matrix scaling algorithm [44]. For sufficiently small regularization the true optimal assignment can be extracted from
+the approximate solution. For increased numerical stability, the Sinkhorn algorithm is also reformulated
+in the log-domain. Similarly, in [17] the Sinkhorn algorithm is applied to solve an entropy regularized
+approximation of the discrete optimal transport problem. It is demonstrated that for moderate regularization strengths the algorithm is trivial to parallelize, easy to implement on GPUs and fast. Besides,
+it is shown that moderate regularization can actually be beneficial for classification applications. Regularization also makes the optimization problem more well-behaved (e.g. uniqueness of optimal coupling,
+optimal objective differentiable as function of marginal distributions), which led to the first practical
+numerical method for approximate computation of Wasserstein barycenters [19]. Today, this approach is
+widely used, for instance [45, 37, 46, 33].
+More recently, the Sinkhorn algorithm has been extended to more general transport-type problems,
+such as multi-marginal problems and direct computation of Wasserstein barycenters [6], gradient flows [36]
+and unbalanced transport problems [14], resulting in a family of Sinkhorn-like diagonal scaling algorithms.
+Convergence of the discrete regularized problem towards the unregularized limit is studied in [16].
+1
+
+In a continuous setting, this is related to the Schrödinger problem and the lazy gas experiment (see [29]
+for a review and a very general convergence proof). [12] provides a simpler and direct analysis for the
+2-Wasserstein distance on Rd and studies the limit of entropy regularized gradient flows.
+Convergence Speed of Sinkhorn Algorithm. In [21] the convergence rate of the Sinkhorn algorithm is
+studied for positive kernel matrices, yielding a global linear convergence rate of the marginals in terms of
+Hilbert’s projective metric. However, applied to entropy regularized optimal transport, the contraction
+factor tends to one exponentially, as the regularization approaches zero. Thus, running the algorithm with
+this particular measure of convergence is often not practically feasible. In [25] the local convergence rate
+of the Sinkhorn algorithm near the solution is examined, based on a linearization of the iterations. This
+bound is tighter and more accurately describes the behaviour of the algorithm close to convergence. But
+these estimates do not apply when one starts far from the optimal solution, which is the usual case for small
+regularization parameters. In [27] a comparison is made between the Sinkhorn algorithm and the auction
+algorithm. In particular the role of the entropy regularization parameter is related to the slack parameter
+ε of the auction algorithm and it is pointed out that convergence of both algorithms becomes slower, as
+these parameters approach zero (but small parameters are required for good approximate solutions). For
+the auction algorithm this can provably be remedied by ε-scaling, where the ε parameter is gradually
+decreased during optimization. Analogously, it is suggested to gradually decrease entropy regularization
+during the Sinkhorn algorithm to accelerate optimization. Consequently, in the following we will also
+refer to the entropy regularization parameter as ε and to the gradual reduction scheme as ε-scaling. The
+ideas of [27] are refined in [43]. In particular, the latter proves convergence of a modified algorithm with
+‘deformed iterations’ where ε is gradually decreased during the iterations, similar to ε-scaling. They
+show that the primal iterate converges to the unregularized solution if the decrease is sufficiently slow.
+Unfortunately, the number of iterations to reach a given value of ε increases exponentially, as ε decreases.
+Thus it is “mostly interesting from the theoretical point of view” [43, p. 8].
+Limitations of Entropic Transport. Despite its considerable merits, there are some fundamental constraints to the naive entropy regularization approach. Entropy introduces some blur in the optimal
+assignment. While this may sometimes be beneficial (see above), in many applications it is considered
+a nuisance (e.g. it quickly smears distinct features in gradient flows), and one would like to run the
+scaling algorithm with as little regularization as possible. However, a standard implementation has some
+major numerical limitations, becoming increasingly severe as the regularization approaches zero. The
+diagonal scaling factors diverge in the limit of vanishing regularization, leading to numerical overflow
+and instabilities. Moreover, the algorithm requires an increasing number of iterations to converge. In
+practice this can often be remedied by ε-scaling, but its efficiency is not yet well understood theoretically.
+Therefore, numerically this limit is difficult to reach. In addition, naively storing the dense kernel matrix
+requires just as much memory as storing the full cost matrix in standard linear programming solvers
+and multiplications with the kernel matrix become increasingly slow. Thus, effective heuristics to avoid
+storing of, and multiplication by, the dense kernel matrix have been conceived, such as efficient Gaussian
+convolutions or approximation by a pre-factored heat kernel [45]. However, these remedies only work for
+particular (although relevant) problems, and do not solve the issues of blur and diverging scaling factors.
+1.2. Contribution and Outline. In Section 2 we recall the framework for transport-type problems
+and corresponding scaling algorithms for their entropy regularized counterparts, as put forward in [14].
+The main contributions of this article are twofold: In Section 3 we propose to combine four modifications
+of the Sinkhorn algorithm to address issues with numerical instability, slow convergence and large kernel
+matrices. In Section 4 a new convergence analysis for the Sinkhorn algorithm is derived, based on an
+analogy to the auction algorithm. The two sections can be read independently from each other. The
+modifications used in Section 3 are:
+• Section 3.1: A log-domain stabilization of the Sinkhorn algorithm, as described in [14]. It allows
+to numerically run the algorithm at small regularizations while largely retaining the simple matrix
+scaling structure.
+• Section 3.2: The well-known ε-scaling heuristic, to reduce the number of required iterations.
+• Section 3.3: Sparsification of the kernel matrix by adaptive truncation, to reduce memory demand
+and accelerate iterations. We quantify the error induced by truncation and propose a truncation
+scheme which reliably yields small error bounds that are easy to evaluate. While truncation has
+2
+
+been proposed elsewhere (e.g. [33]), to the best of our knowledge the present article gives the
+first concrete bounds for the inflicted error.
+• Section 3.4: A multi-scale scheme, inspired, for instance, by [41, 40, 35]. This serves two purposes:
+First, it allows for a more efficient computation of the truncated kernel. Second, we propose to
+combine the coarse-to-fine approach with simultaneous ε-scaling, which drastically reduces the
+number of variables during early stages of ε-scaling, without losing significant precision.
+We emphasize that each modification builds on the previous ones (see Remark 10) and only combining
+all four leads to an algorithm that can solve large problems with significantly less runtime, memory and
+regularization, as compared to the naive algorithm. The adaptations extend to the more general scaling
+algorithms for transport-type problems presented in [14].
+In Section 4 we develop a new convergence analysis of the Sinkhorn algorithm, based on analogy to
+the auction algorithm, different from the Hilbert metric approach of [21]. The structure of Section 4 is:
+• Section 4.1: The classical auction algorithm for the linear assignment problem is recalled.
+• Section 4.2: A slightly modified asymmetric variant of the Sinkhorn algorithm is given and a
+bound is derived for the number of iterations until a prescribed accuracy is reached. As for the
+auction algorithm, for fixed ε the maximal number of iterations scales as O(1/ε). This is in
+good agreement with numerical experiments (cf. Section 5.2). To avoid the difficulties with slow
+convergence in Hilbert’s projective metric (cf. Section 1.1) we choose a weaker, but reasonable,
+measure of convergence (cf. Remark 5).
+• Section 4.3: We prove stability of optimal dual solutions of entropy regularized OT under changes
+of the regularization parameter. This also implies stability of dual solutions in the limit of
+vanishing regularization and therefore complements results of [16] (see also Remark 7).
+• Section 4.4: Our eventual goal is a better theoretical understanding of the ε-scaling heuristic and
+its efficiency. We show that the above stability result is an important step and discuss missing
+steps for a full proof. To our knowledge (with the exception of [43], see above), these are the first
+theoretical results towards ε-scaling for the Sinkhorn algorithm.
+Numerical experiments confirm the efficiency of the modified algorithm (Section 5.2). Examples for
+unbalanced optimal transport, barycenters, and Wasserstein gradient flows illustrate that the modified
+algorithms retain the versatility of the diagonal scaling algorithms presented in [6, 36, 14] (Section 5.3).
+
+1.3. Notation and Preliminaries. We assume that the reader has a basic knowledge of convex
+optimization, such as convex conjugation, Fenchel–Rockafellar duality and primal-dual gaps (cf. [4]).
+Throughout this article, we will consider transport problems between two discrete finite spaces X
+and Y . For a discrete, finite space Z (typically X, Y or X ×Y ) we identify functions and measures over Z
+with vectors in R|Z| , which we simply denote by RZ . For v ∈ RZ , z ∈ Z we write v(z) for the component
+of v corresponding to z (subscript notation is reserved for other purposes). The standard Euclidean inner
+product is denoted by h·, ·i. The sets of vectors with positive and strictly positive entries are denoted by
+Z
+RZ
++ and R++ . The probability simplex over Z is denoted by P(Z). We write R := R ∪ {−∞, +∞} for
+the extended real line and RZ for the space of vectors with possibly infinite components.
+For a, b ∈ RZ the operators and denote pointwise multiplication and division, e.g. a b ∈ RZ ,
+(a b)(z) := a(z) · b(z) for z ∈ Z. The functions exp and log are extended to RZ by pointwise application
+to all components: exp(a)(z) := exp(a(z)). We write a ≥ b if a(z) ≥ b(z) for all z ∈ Z, a ≥ 0 if a(z) ≥ 0
+for all z ∈ Z (and likewise for ≤, > and <). For a ∈ R, aZ denotes the vector in RZ with all entries
+being a. We write max a and min a for the maximal and minimal entry
+P of a.
+For µ ∈ RZ and a subset A ⊂ Z we also use the notation µ(A) := z∈A µ(z), analogous to measures.
+We say µ ∈ RZ is absolutely continuous w.r.t. ν ∈ RZ
++ and write µ  ν when [ν(z) = 0] ⇒ [µ(z) = 0].
+This is the discrete special case of absolute continuity for measures. The set spt µ := {z ∈ Z : µ(z) 6= 0}
+is called support of µ. The power set of Z is denoted by 2Z .
+For a subset C ⊂ RZ the indicator function of C over RZ is given by ιC (v) = 0 if v ∈ C and +∞ else.
+In particular, for v, w ∈ RZ one finds ι{v} (w) = 0 if v = w and +∞ otherwise. Moreover, we merely write
+ι+ for ιRZ+ . For v ∈ RZ we introduce the short notation ι≤v : RZ → R with ι≤v (w) = 0 if w(z) ≤ v(z) for
+all z ∈ Z and +∞ otherwise.
+3
+
+The projection matrices PX ∈ RX×(X×Y ) and PY ∈ RY ×(X×Y ) are given by
+(
+(
+0
+1
+if
+x
+=
+x
+,
+1 if y = y 0 ,
+PY (y, (x0 , y 0 )) :=
+PX (x, (x0 , y 0 )) :=
+0 else.
+0 else.
+They act on some π ∈ RX×Y as follows:
+(PX π)(x) =
+
+X
+
+π(x, y) = π({x} × Y ),
+
+(PY π)(y) =
+
+y∈Y
+
+X
+
+π(x, y) = π(X × {y}).
+
+x∈X
+
+That is, they give the X and Y marginal in the sense of measures. Conversely, for some v ∈ RX , w ∈ RY
+>
+we find (P>
+X v)(x, y) = v(x) and (PY w)(x, y) = w(y).
+Definition 1 (Kullback–Leibler Divergence). For µ, ν ∈ RZ the Kullback–Leibler divergence of µ
+w.r.t. ν is given by
+P
+
+
+ z∈Z: µ(z) log µ(z) − µ(Z) + ν(Z) if µ, ν ≥ 0, µ  ν ,
+ν(z)
+µ(z)>0
+(1.1)
+KL(µ|ν) :=
++∞
+else.
+P
+The convex conjugate w.r.t. the first argument is given by KL∗ (α|ν) = z∈Z (exp(α(z)) − 1) · ν(z). The
+KL divergence plays a central role in this article and is used on various different base spaces. Sometimes,
+when referring to the KL divergence on a space Z, we will add a subscript KLZ for clarification.
+Definition 2 (KL Proximal Step). For a convex, lower semicontinuous function f : RZ → R and
+a step size τ > 0 the proximal step operator for the Kullback–Leibler divergence is given by
+
+prox1/τ f : RZ → RZ ,
+µ 7→ argmin τ1 KL(ν|µ) + f (ν) .
+(1.2)
+ν∈RZ
+
+A unique minimizer exists, if there is some ν ∈ RZ , ν  µ such that f (ν) 6= ±∞. Throughout this article
+we shall always assume that this is the case.
+For Sect. 4 we require the following Lemma.
+Lemma 3 (Softmax and Softmin). For a parameter ε > 0 and a ∈ RZ let
+!
+!
+X
+X
+softmax(a, ε) := ε log
+exp(a(z)/ε) ,
+softmin(a, ε) := −ε log
+exp(−a(z)/ε) .
+z∈Z
+
+z∈Z
+
+For ε, λ > 0 and a, b ∈ RZ one has the relations
+(1.3a)
+
+max(a) ≤ softmax(a, ε) ≤ max(a) + ε log |Z|,
+
+(1.3b)
+
+min(a) − ε log |Z| ≤ softmin(a, ε) ≤ min(a),
+
+(1.3c)
+
+min(a − b) − λ log |Z| ≤ softmax(a, ε) − softmax(b, λ) ≤ max(a − b) + ε log |Z|,
+
+(1.3d)
+
+min(a − b) − ε log |Z| ≤ softmin(a, ε) − softmin(b, λ) ≤ max(a − b) + λ log |Z|.
+
+Proof. The first line follows immediately from 0 ≤ exp(a(z)/ε) ≤ exp(max a/ε). Line three then
+follows from min(a − b) ≤ max(a) − max(b) ≤ max(a − b). The second and fourth line are implied by
+softmin(a, ε) = − softmax(−a, ε).
+2. Entropy Regularized Transport-Type Problems and Diagonal Scaling Algorithms.
+2.1. Transport-Type Problems. For two probability measures µ ∈ P(X) and ν ∈ P(Y ) the set
+Π(µ, ν) := {π ∈ P(X × Y ) : PX π = µ, PY π = ν} is called the couplings or transport plans between µ
+and ν. A coupling π describes a rearrangement of the mass of µ into ν, π(x, y) can be interpreted as the
+mass taken from x to y. Let c ∈ RX×Y be a cost function, such that the cost of taking one unit of mass
+from x ∈ X to y ∈ Y is given by c(x, y). The cost inflicted by a coupling π is then given by hc, πi and
+4
+
+the optimal transport problem between µ and ν is given by min{hc, πi |π ∈ Π(µ, ν)}. This means, we are
+looking for the most cost-efficient mass rearrangement between µ and ν. Note that for π ∈ RX×Y one
+can write ιΠ(µ,ν) (π) = ι{µ} (PX π) + ι{ν} (PY π) + ι+ (π) where the first two terms represent the marginal
+constraints and the last term ensures that π is non-negative. Then we can reformulate the problem as
+min ι{µ} (PX π) + ι{ν} (PY π) + hc, πi + ι+ (π) .
+
+(2.1)
+
+π∈RX×Y
+
+Recently it has been proposed to replace the constraints PX π = µ and PY π = ν by soft constraints.
+This allows meaningful comparison between measures of different total mass. Such formulations were
+studied e.g. in [31] (see also [14] for more context). A particularly relevant choice for the soft constraints
+is the Kullback–Leibler divergence. A corresponding ‘unbalanced’ transport problem is given by
+min λ · KL(PX π|µ) + λ · KL(PY π|ν) + hc, πi + ι+ (π) .
+
+(2.2)
+
+π∈RX×Y
+
+where λ > 0 is a weighting parameter. Note that neither µ, ν nor π need to be probability measures in
+this case and each may have different total mass.
+When X = Y is a metric space with metric d, for λ = 1 and the cost function c = d2 , the square
+root of the optimal value of (2.2) yields the so called Gaussian Hellinger–Kantorovich (GHK) distance
+on RX
++ , introduced in [31]. Similarly, for the cost function
+(
+
+− log [cos(d(x, y))]2
+if d(x, y) < π/2
+(2.3)
+c(x, y) :=
++∞
+else.
+one obtains the Wasserstein–Fisher–Rao (WFR) distance (or Hellinger–Kantorovich distance), introduced
+independently and simultaneously in [26, 13, 31]. WFR is the length distance induced by GHK [31].
+Problems (2.1) and (2.2) share a common structure: in both we optimize over non-negative measures
+π on the product space X × Y , there is a linear cost term hc, πi and two functions act on the marginals of
+π. They are prototypical examples of a family of transport-type optimization problems with a common
+functional structure that was introduced in [14]. The general structure is given in the following definition.
+Definition 4 (Generic Transport-Type Problem). For two convex marginal functions FX : RX →
+R, FY : RY → R and a cost function c ∈ RX×Y the primal transport-type problem is given by:
+(2.4a)
+
+min E(π)
+
+π∈RX×Y
+
+with
+
+E(π) := FX (PX π) + FY (PY π) + hc, πi + ι+ (π)
+
+The corresponding dual problem is given by:
+(2.4b)
+
+max
+
+(α,β)∈(RX ,RY )
+
+J(α, β)
+
+with
+
+>
+∗
+J(α, β) := −FX
+(−α) − FY∗ (−β) − ι≤c (P>
+X α + PY β)
+
+>
+The indicator function ι≤c (P>
+X α + PY β) denotes the classical optimal transport dual constraint α(x) +
+β(y) ≤ c(x, y) for all (x, y) ∈ X × Y (see Section 1.3).
+
+This family also covers Wasserstein gradient flows and the structure can be extended to multiple
+couplings to describe barycenter and multi-marginal problems (see [6, 14] for details). As indicated, the
+standard optimal transport problem (2.1) is obtained as a special case.
+Definition 5 (Standard Optimal Transport). Problem (2.1) is a special case of Def. 4 with FX :=
+ι{µ} and FY := ι{ν} . The primal and dual functional are given by:
+(2.5a)
+(2.5b)
+
+E(π) = ι{µ} (PX π) + ι{ν} (PY π) + hc, πi + ι+ (π)
+
+>
+J(α, β) = hα, µi + hβ, νi − ι≤c (P>
+X α + PY β)
+
+Likewise, we can proceed for the unbalanced transport problem (2.2).
+Definition 6 (Unbalanced Optimal Transport with KL Fidelity). Problem (2.2) is a special case
+of Def. 4 with FX := λ · KL(·|µ) and FY := λ · KL(·|ν). The primal and dual functional are given by:
+(2.6)
+(2.7)
+
+E(π) = λ · KL(PX π|µ) + λ · KL(PY π|ν) + hc, πi + ι+ (π)
+>
+J(α, β) = −λ · KL∗ (−α/λ) − λ · KL∗ (−β/λ) − ι≤c (P>
+X α + PY β)
+
+5
+
+2.2. Entropy Regularization and Diagonal Scaling Algorithms. Now we apply entropy regularization to the above transport-type problems (see Sect. 1.1 for references) and replace the nonnegativity constraint in (2.4a) by the Kullback–Leibler divergence. For this we need to select some
+reference measure ρ ∈ RX×Y
+. We then replace the term ι+ (π) in (2.4a) by ε · KL(π|ρ), where ε > 0 is a
++
+regularization parameter. Then one typically ‘pulls’ the linear cost term into the KL divergence:
+
+hc, πi + ε KL(π|ρ) = ε KL(π|K) + ε · ρ(X × Y ) − K(X × Y )
+where K ∈ RX×Y
+with K(x, y) := exp(−c(x, y)/ε) · ρ(x, y) .
++
+
+(2.8)
+
+with the convention exp(−∞) = 0. K is called the kernel associated with c and the regularization
+parameter ε. For convenience we formally introduce the function
+getK : R++ → RX×Y ,
+
+(2.9)
+
+ε 7→ exp(−c/ε)
+
+ρ.
+
+We obtain the regularized equivalent to Def. 4.
+Definition 7 (Regularized Generic Formulation).
+(2.10a)
+(2.10b)
+
+min E(π)
+
+with
+
+J(α, β)
+
+with
+
+X×Y
+π∈R+
+
+max
+
+(α,β)∈(RX ,RY )
+
+E(π) := FX (PX π) + FY (PY π) + ε KL(π|K)
+
+
+>
+∗
+J(α, β) := −FX
+(−α) − FY∗ (−β) − ε KL∗ [P>
+X α + PY β]/ε K
+
+Primal optimizers π † have the form
+(2.11)
+
+π † = diag(exp(α† /ε)) K diag(exp(β † /ε))
+
+where (α† , β † ) are dual optimizers. Conversely, for dual optimizers (α† , β † ), π † constructed as above is
+primal optimal [14].
+Intuitively we see the relation between (2.4) and (2.10) as ε → 0. For example, the term ε KL∗ [P>
+Xα +
+
+>
+>
+PY β]/ε K in (2.10b) can be interpreted as a smooth barrier function for the dual constraint PX α+P>
+Yβ ≤
+c in (2.4b). We refer to Sect. 1.1 for references to rigorous convergence results.
+Under suitable assumptions problem (2.10b) can be solved by alternating optimization in α and β
+(see [14] for details). For fixed β, consider the KL∗ -term:
+
+
+X
+>
+K(x, y) (exp(β(y)/ε) − 1) .
+KL∗X×Y [P>
+α
++
+P
+β]/ε
+K
+= KL∗X (α/ε|K exp(β/ε)) +
+X
+Y
+(x,y)∈X×Y
+
+Note that the last term is constant w.r.t. α. Therefore, optimizing (2.10b) over α, for fixed β corresponds
+to maximizing
+(2.12)
+
+∗
+JX (α) = −FX
+(−α) − ε KL∗X (α/ε|K exp(β/ε)) ,
+
+where K exp(β/ε) denotes standard matrix vector multiplication. The corresponding primal problem
+consists of minimizing
+(2.13)
+
+EX (σ) = FX (σ) + ε KLX (σ|K exp(β/ε)) .
+
+This is a proximal step of FX for the KL divergence with step size 1/ε (see Def. 2). So, by using the
+PD-optimality conditions between (2.12) and (2.13) (see e.g. [4, Thm. 19.1]), for a given β the primal
+optimizer σ † of (2.13) and the dual optimizer α† of (2.12) are given by
+(2.14)
+
+σ † = proxε FX (K exp(β/ε)),
+
+α† = ε log(σ †
+
+(K exp(β/ε))),
+
+Analogously, optimization w.r.t. β for fixed α is related to KL proximal steps of FY . Starting from some
+initial β (0) , we can iterate alternating optimization to obtain a sequence β (0) , α(1) , β (1) , α(2) , . . . as follows:
+(2.15a)
+(2.15b)
+
+
+
+α(`+1) := ε log proxε FX (K exp(β (`) /ε)) [K exp(β (`) /ε)] ,
+
+
+β (`+1) := ε log proxε FY (K > exp(α(`+1) /ε)) [K > exp(α(`+1) /ε)] .
+6
+
+The algorithm becomes somewhat simpler when it is formulated in terms of the effective variables
+(2.16)
+
+u := exp(α/ε) ,
+
+v := exp(β/ε) .
+
+For more convenient notation we introduce the proxdiv operator of a function F and step size 1/ε:
+proxdivε F : σ 7→ proxε F (σ)
+
+(2.17)
+
+σ
+
+The iterations then become:
+(2.18)
+
+v (`+1) := proxdivε FY (K > u(`+1) ) .
+
+u(`+1) := proxdivε FX (K v (`) ) ,
+
+The primal-dual relation (2.11) then becomes π † = diag(u† ) K diag(v † ), which is why u and v are often
+referred to as diagonal scaling factors.
+Remark 1. Throughout this article, we will refer to the arguments of the dual functionals (2.4b) and
+(2.10b) as dual variables and denote them with (α, β). The effective, exponentiated variables, introduced
+in (2.16), will be denoted by (u, v) and referred to as scaling factors.
+For future reference let us state the full scaling algorithm.
+Algorithm 1 (Scaling Algorithm).
+1: function ScalingAlgorithm(ε,v (0) )
+2:
+K ← getK(ε); v ← v (0)
+3:
+repeat
+4:
+u ← proxdivε FX (K v);
+5:
+until stopping criterion
+6:
+return (u, v)
+7: end function
+
+// compute kernel, see (2.9); initialize scaling variable
+
+v ← proxdivε FY (K > u)
+
+The stopping criterion is typically a bound on the primal-dual gap between dual iterates (α, β) =
+ε log(u, v) and primal iterate π = diag(u) K diag(v), an error bound on the marginals of π (for standard
+optimal transport) or a pre-determined number of iterations.
+With alternating iterations (2.15) or (2.18) a large family of functionals of form (2.10a) can be
+optimized, as long as the KL proximal steps of FX and FY can be computed efficiently. A particularly
+relevant sub-family is, where FX and FY are separable and are a sum of pointwise functions. Then the
+KL steps decompose into pointwise one-dimensional KL steps, see [14, Section 3.4] for details.
+Since Section 4 focusses on the special case of entropy regularized optimal transport, let us explicitly
+state the corresponding functional and iterations.
+Definition 8 (Entropic Optimal Transport). For marginals µ ∈ P(X), ν ∈ P(Y ) and a cost
+function c ∈ RX×Y the entropy regularized optimal transport problem is obtained from Def. 7 by setting
+FX := ι{µ} , FY := ι{ν} (see Definition 5 for the unregularized functional). We find:
+(2.19a)
+(2.19b)
+
+E(π) = ι{µ} (PX π) + ι{ν} (PY π) + ε KL(π|K)
+
+
+>
+J(α, β) = hα, µi + hβ, νi − ε KL∗ [P>
+X α + PY β]/ε K
+
+The proximal steps of FX and FY are trivial (if K has non-empty columns and rows) and we recover the
+famous Sinkhorn iterations:
+(2.20a)
+
+proxdivε FX (σ) = µ
+
+(2.20b)
+
+u(`+1) = µ
+
+σ,
+
+proxdivε FY (σ) = ν
+
+(K v (`) ) ,
+
+v (`+1) = ν
+
+σ,
+(K > u(`+1) ) .
+
+3. Stabilized Sparse Multi-Scale Algorithm. Throughout this section we combine four adaptions to the Algorithm 1 to overcome the limitations of a naive implementation outlined in Section 1.1.
+7
+
+3.1. Log-Domain Stabilization. When running Algorithm 1 with small regularization parameter
+ε, entries in the kernel K, and the scaling factors u and v may become both very small and very large,
+leading to numerical difficulties. However, under suitable conditions (e.g. standard optimal transport,
+finite cost function) it can be shown that the optimal dual variables (α, β) remain finite and have a stable
+limit as ε → 0 ([16], see also Remark 7). In [27, 43] and others it was proposed to formulate the Sinkhorn
+iterations directly in terms of the dual variables, instead of the scaling factors. For example, an update
+of α would be performed as follows:
+(3.1a)
+(3.1b)
+
+ψ (`+1) (x, y) = −c(x, y) + β (`) (y), ψ̃ (`+1) (x, y) = ψ (`+1) (x, y) − max
+ψ (`+1) (x, y 0 )
+y 0 ∈Y
+X
+
+α(`+1) (x) = ε log µ(x) − ε log
+exp(ψ̃ (`+1) (x, y)/ε) · ρ(x, y) − max ψ (`+1) (x, y)
+y∈Y
+
+y∈Y
+
+Subtracting the maximum from ψ (`+1) avoids large arguments in the exponential function. While this
+resolves the issue of extreme scaling factors, it perturbs the simple matrix multiplication structure of the
+algorithm and requires many additional evaluations of exp and log in each iteration.
+As an alternative, we employ the redundant parametrization of the iterations as proposed in[14]. The
+scaling factors (u, v), (2.16), are written as
+(3.2)
+
+u = ũ
+
+exp(α̂/ε) ,
+
+v = ṽ
+
+exp(β̂/ε) .
+
+Our goal is to formulate iterations (2.18) directly in terms of (ũ, ṽ), while keeping (α̂, β̂) unchanged during
+most iterations. The role of (α̂, β̂) is to occasionally ‘absorb’ the large values of (u, v) such that (ũ, ṽ)
+remain bounded. This leads to two types of iterations: stabilized iterations, during which only (ũ, ṽ)
+are changed, and absorption iterations, during which (ũ, ṽ) are absorbed into (α̂, β̂). In this way, we
+can combine the simplicity of the scaling algorithm in terms of the scaling factor formulation with the
+numerical stability of the iterations in the log-domain formulation (3.1).
+Analogous to the function getK, (2.9), we define the stabilized kernel as
+(3.3a)
+(3.3b)
+
+getK : RX × RY × R++ → RX×Y ,
+
+(α, β, ε) 7→ diag(exp(α/ε)) getK(ε) diag(exp(β/ε)),
+
+
+[getK(α, β, ε)](x, y) = exp − 1ε [c(x, y) − α(x) − β(y)] · ρ(x, y) .
+
+The second line, (3.3b), should be used for numerical evaluation such that extreme values in (α, β) and
+c can cancel before exponentiation. Moreover, we introduce a stabilized version of the proxdiv operator:
+(3.4)
+
+proxdivε F : (σ, γ) 7→ proxε F (exp(−γ/ε) σ)
+
+σ
+
+Note that the regular version of the proxdiv operator, (2.17), is a special case of the stabilized variant
+with γ = 0. With K = getK(ε) and K = getK(α̂, β̂, ε) we observe that
+(3.5a)
+(3.5b)
+
+proxdivε F (K ṽ, α̂) = proxdivε F (K v)
+>
+
+>
+
+proxdivε F (K ũ, β̂) = proxdivε F (K u)
+
+exp(α̂/ε),
+exp(β̂/ε) .
+
+For a threshold parameter τ > 0 we formally state the stabilized variant of Algorithm 1.
+Algorithm 2 (Stabilized Scaling Algorithm).
+1: function ScalingAlgorithmStabilized(ε,α(0) ,β (0) )
+2:
+3:
+4:
+5:
+6:
+7:
+8:
+
+(α̂, β̂) ← (α(0) , β (0) ); (ũ, ṽ) ← (1X , 1Y ); K ← getK(α̂, β̂, ε)
+repeat
+while [kũk∞ ≤ τ ] ∧ [kṽk∞ ≤ τ ] do
+ũ ← proxdivε FX (K ṽ, α̂); ṽ ← proxdivε FY (K> ũ, β̂)
+end while
+(α̂, β̂) ← (α̂, β̂) + ε · log(ũ, ṽ); (ũ, ṽ) ← (1X , 1Y ); K ← getK(α̂, β̂, ε)
+until stopping criterion
+8
+
+// stabilized iteration
+// absorption iteration
+
+(α̂, β̂) ← (α̂, β̂) + ε · log(ũ, ṽ)
+10:
+return (α̂, β̂)
+11: end function
+9:
+
+Any successive combination of stabilized iterations and absorption iterations in Algorithm 2 is mathematically equivalent to Algorithm 1, in the sense that they produce the same iterates (keep in mind
+(3.2–3.5)). But numerically, with finite floating point precision, combining both types of iterations can
+make a significant difference. In practice one can run several stabilized iterations in a row, occasionally
+checking whether (ũ, ṽ) become too large or too small (see line 4), and perform an absorption iteration
+if required. This inflicts less computational overhead than the direct log-domain formulation (3.1) and
+largely preserves the simple matrix multiplication structure of the scaling algorithms.
+In the definitions for the stabilized kernel, (3.3b), and proxdiv-operator, (3.4), there still appear
+exponentials of the form exp(·/ε), which may explode as ε → 0. Extending the max-argument trick in
+(3.1) to more general scaling algorithms entails similar questions. In the examples studied in Section 5
+and those given in [14] we find however, that evaluation of the exponential exp(−γ/ε) can be avoided.
+For the special case of standard optimal transport ε no longer appears in the stabilized step.
+3.2. ε-Scaling. It is empirically and theoretically well-known (cf. Section 1.1) that convergence of
+Algorithm 1 becomes slow as ε → 0. A popular heuristic remedy is the so-called ε-scaling, where one
+subsequently solves the regularized problem with gradually decreasing values for ε. Let E = (ε1 , ε2 , . . . , εn )
+be a list of decreasing positive parameters. We extend Algorithm 2 as follows:
+Algorithm 3 (Scaling Algorithm with ε-Scaling).
+1: function ScalingAlgorithmεScaling(E,α(0) ,β (0) )
+2:
+(α, β) ← (α(0) , β (0) )
+3:
+for ε ∈ E do
+// iterate over list, form largest to smallest
+4:
+(α, β) ← ScalingAlgorithmStabilized(ε,α,β)
+5:
+end for
+6:
+return (α, β)
+7: end function
+The dual variable β is kept constant while changing ε, not the scaling factor v, because the optimal dual
+variables (α, β) usually have a stable limit as ε → 0, while the scaling factors (u, v) diverge (see Sect. 1.1
+and also Theorem 20).
+So far, very little is known theoretically about the behaviour of ε-scaling for the Sinkhorn algorithm
+(cf. Section 1.1). Empirically, it is shown in Sect. 5.2 that ε-scaling is highly efficient and the number of
+required iterations does not increase exponentially. We observe that indeed it behaves similar as in the
+auction algorithm, as discussed in [27]. We work towards a theoretical quantification of this in Sect. 4.
+Motivated by this, in practice we recommend a geometric decrease of ε and choose εk = ε0 · λk such
+that εn is the desired final value, ε0 is on the order of the maximal values in the cost function c and
+λ ∈ (0, 1) is a geometric scaling factor, typically in [0.5, 0.75]. If λ is too small, iterations will start far
+from convergence after each change of ε, increasing the risk of numerical instabilities and requiring more
+iterations. On the other hand, if λ is too large, many stages of ε-scaling have to be performed, increasing
+numerical overhead.
+3.3. Kernel Truncation. Storing the dense kernel K and computing dense matrix multiplications
+during the scaling iterations (2.18) requires a lot of memory and time on large problems. For several
+problems with particular structure, remedies have been proposed (Sect. 1.1). But these do not comprise
+non-standard cost functions, as the one used for the Wasserstein-Fisher-Rao distance, (2.3). Moreover
+they are not compatible with the log-stabilization (Section 3.1), thus a certain level of blur cannot be
+avoided. We are looking for a more flexible method to accelerate solving.
+For many unregularized transport problems the optimal coupling π † is concentrated on a sparse
+subset of X × Y . In fact, this is the underlying mechanism for the efficiency of most solvers discussed
+in Section 1.1. For the regularized problems the optimal coupling will usually be dense. This is due to
+the diverging derivative of the KL divergence at zero. However, as ε → 0, the optimal coupling quickly
+converges to an unregularized solution (see Sect. 1.1, in particular [16, Thm. 5.8]). As ε → 0, large parts
+9
+
+of the coupling will approach zero exponentially fast.
+So while we will not be able to exactly solve the full problem, by solving suitable sparse sub-problems,
+we may still expect a reasonable approximation. We formalize the concept of a sparse sub-problem.
+Definition 9 (Sparse Sub-Problems). Let FX and FY be marginal functions and c be a cost function
+as in Definition 4 and let N ⊂ X × Y . We introduce:
+(
+(
+c(x, y) if (x, y) ∈ N ,
+K(x, y) if (x, y) ∈ N ,
+(3.6)
+ĉ(x, y) :=
+K̂(x, y) :=
++∞
+else.
+0
+else.
+We call problems (2.4a) and (2.4b) with c replaced by ĉ the problems restricted to N . This corresponds to
+adding the constraint spt π ⊂ N to the primal problem, and only enforcing the constraint α(x) + β(y) ≤
+c(x, y) on (x, y) ∈ N in the dual problem. The entropy regularized variants of the restricted problems are
+obtained through replacing K by K̂ in (2.10a) and (2.10b).
+Clearly, when N is sparse, then so is K̂ and the restricted regularized problem can be solved faster and
+with less memory. We now quantify the error inflicted by restriction.
+Proposition 10 (Restricted Kernel and Duality Gap). Let ε > 0 and N ⊂ X × Y . Let E and J
+be unrestricted regularized primal and dual functionals with kernel K, as given in Definition 7, and let Ê
+and Jˆ be the functionals of the problems restricted to N , with sparse kernel K̂ (see Def. 9).
+Further, let (α, β) be a pair of dual variables, let u = exp(α/ε), v = exp(β/ε) be the corresponding
+scaling factors and let π = diag(u) K̂ diag(v) be the corresponding (restricted) primal coupling.
+Then we find for the primal-dual gap between π and (α, β):
+X
+ˆ β) + ε
+(3.7)
+E(π) − J(α, β) = Ê(π) − J(α,
+u(x) K(x, y) v(y) .
+(x,y)∈(X×Y )\N
+
+Proof. For the primal score we find:
+E(π) = FX (PX π) + FY (PY π) + ε
+
+h
+
+X
+
+π(x, y) log
+
+
+
+π(x,y)
+K(x,y)
+
+
+
+− π(x, y) + K(x, y)
+
+i
+
+(x,y)∈X×Y
+
+X
+
+= Ê(π) + ε
+
+h
+
+(x,y)∈(X×Y )\N
+
+π(x, y) log
+|
+
+
+
+π(x,y)
+K(x,y)
+
+{z
+
+=0
+
+
+
+i
+− π(x, y) +K(x, y)
+}
+
+Analogously, for the dual score we get:
+∗
+J(α, β) = −FX
+(−α) − FY∗ (−β) − ε
+
+X
+
+K(x, y) · (exp([α(x) + β(y)]/ε) − 1)
+
+(x,y)∈X×Y
+
+ˆ β) − ε
+= J(α,
+
+X
+(x,y)∈(X×Y )\N
+
+
+
+K(x, y) · exp([α(x) + β(y)]/ε) −1
+|
+{z
+}
+=u(x) v(y)
+
+ˆ β) + ε
+Together we obtain E(π) − J(α, β) = Ê(π) − J(α,
+
+P
+
+(x,y)∈(X×Y )\N u(x) K(x, y) v(y).
+
+That is, the primal-dual gap for the original full functionals is equal to the gap for the truncated functionals plus the ‘mass’ that we have chopped off by truncating K to K̂, when using the scaling factors u and
+v. If some N were known, on which most mass of the optimal π † is concentrated, it would be sufficient
+to solve the problem restricted to N , to get a good approximate solution. The remaining challenge is,
+how to identify N without knowing π † before.
+We propose an iterative re-estimation of N , based on current dual iterates and to combine this with
+the log-stabilized iteration scheme (Section 3.1) and the computation of the stabilized kernel, (3.3b). For
+a threshold parameter θ > 0 we define the following functions:
+(3.8)
+(3.9)
+
+getN (α, β, ε, θ) := {(x, y) ∈ X × Y : exp(− 1ε [c(x, y) − α(x) − β(y)]) ≥ θ}
+(
+exp(− 1ε [c(x, y) − α(x) − β(y)]) ρ(x, y) if (x, y) ∈ getN (α, β, ε, θ) ,
+[getK̂(α, β, ε, θ)](x, y) :=
+0
+else.
+10
+
+getK̂ can be used instead of getK in Algorithm 2. We refer to this as absorption iteration with truncation.
+For this combination one finds a simple bound for the primal-dual gap comparison of Proposition 10.
+Proposition 11 (Simple Duality Gap Estimate for Absorption Iterations with Truncation). For a
+regularized problem as in Definition 7 with functionals E and J, let (u, v) be a pair of diagonal scaling
+factors and (α, β) = ε · log(u, v), let (α̂, β̂) a pair of dual variables and (ũ, ṽ) a pair of relative scaling
+factors such that u = ũ · exp(α̂/ε) and v = ṽ · exp(β̂/ε).
+Let further N = getN (α̂, β̂, ε, θ), K = getK̂(α̂, β̂, ε, θ), let Ê and Jˆ be the functionals restricted to N
+ˆ β)+kũk∞ ·kṽk∞ ·θ ·ρ(X ×Y ).
+(see Def. 9) and π = diag(ũ) K diag(ṽ). Then E(π)−J(α, β) ≤ Ê(π)− J(α,
+Proof. By virtue of Proposition 10
+X
+
+ˆ β) +
+E(π) − J(α, β) = Ê(π) − J(α,
+
+u(x) K(x, y) v(y) .
+
+(x,y)∈(X×Y )\N
+
+For (x, y) ∈ (X × Y ) \ N one has exp(− 1ε [c(x, y) − α̂(x) − β̂(y)]) < θ and therefore
+
+
+u(x) K(x, y) v(y) = ũ(x) exp − 1ε [c(x, y) − α̂(x) − β̂(y)] · ρ(x, y) · ṽ(y)
+≤ ũ(x) ṽ(y) θ ρ(x, y) .
+The result follows by bounding ũ(x) ≤ kũk∞ , ṽ(y) ≤ kṽk∞ and summing over (X × Y ) \ N .
+This implies that in Algorithm 2 with truncation the additional duality gap error due to the sparse kernel
+is bounded by kũ(`) k∞ · kṽ (`) k∞ · θ · ρ(X × Y ). In particular, before every stabilized iteration the error
+is bounded by τ 2 · θ · ρ(X × Y ) and after every absorption iteration it is bounded by θ · ρ(X × Y ). This
+bound is easy to evaluate and does not require to sum over (X × Y ) \ N , as the exact expression in
+Proposition 10. We find that in practice this truncation error bound can be kept much smaller than the
+ˆ β).
+remaining primal-dual gap Ê(π) − J(α,
+In general the stabilized iteration scheme with truncation might not converge. However, by Proposition 11, if one regularly performs an absorption iteration before kũ(`) k∞ · kṽ (`) k∞ becomes too large, the
+potential oscillations in the primal iterates and primal and dual functionals are numerically negligible.
+3.4. Multi-Scale Scheme. Finally, we propose to combine the stabilized sparse iterations with a
+hierarchical multi-scale scheme, analogous to the ideas in [34, 41, 35].
+This serves two purposes: First, a hierarchical representation of the problem allows to determine
+the truncated sparse stabilized kernel getK̂, (3.9), with a coarse-to-fine tree search, without explicitly
+testing all pairs (x, y) ∈ X × Y . The second reason is to make the combination of ε-scaling (Algorithm 3)
+with the truncated stabilized scheme more efficient. For a fixed threshold θ, while ε is large, the support
+of the truncated kernel getK̂ will contain many variables. At the same time, due to the blur induced
+by the regularization, the primal iterates will not provide a sharply resolved assignment. Solving the
+problems with large ε-value on a coarser grid reduces the number of required variables, without losing
+much spatial accuracy. As ε decreases, so does the number of variables in getK̂ (since the exponential
+function decreases faster), and the resolution of X and Y can be increased. Therefore, it is reasonable
+to coordinate the reduction of ε with increasing the spatial resolution of the transport problem, until the
+desired regularization and resolution are attained.
+We will now briefly recall the hierarchical representation of a transport problem from [41].
+Definition 12 (Hierarchical Partition and Multi-Scale Measure Approximation [41]). For a discrete
+set X a hierarchical partition is an ordered tuple (X0 , . . . , XI ) of partitions of X where X0 = {{x} : x ∈ X}
+is the trivial partition of X into singletons and each subsequent level is generated by merging cells S
+from the
+previous level, i.e. for i ∈ {1, . . . , I} and any x ∈ Xi there exists some X̂ ⊂ Xi−1 such that x = x̂∈X̂ x̂.
+For simplicity we assume that the coarsest level is the trivial partition into one set: XI = {X}. We call
+I > 0 the depth of X .
+SI
+This implies a directed tree graph with vertex set i=0 Xi . For i, j ∈ {0, . . . , I}, i < j we say x ∈ Xi
+is a descendant of x0 ∈ Xj when x ⊂ x0 . We call x a child of x0 for i = j − 1, and a leaf for i = 0.
+For some µ ∈ RX its multi-scale measure approximation is the tuple (µ0 , . . . , µI ) of measures µi ∈ RXi
+11
+
+S
+defined by µi (X̂ ) = µ( x∈X̂ x) for all subsets X̂ ⊂ Xi and i = 0, . . . I. For convenience we often identify
+X with the finest partition level X0 and µ with µ0 .
+Definition 13 (Hierarchical Dual Variables and Costs [41]). Let X and Y be discrete sets with
+hierarchical partitions X = (X0 , . . . , XI ), Y = (Y0 , . . . , YI ) of depth I, let α ∈ RX and β ∈ RY be
+functions over X and Y , and let c ∈ RX×Y be a cost function.
+Then we define the extension α̂ = (α̂0 , . . . , α̂I ) of α onto the full partition X by
+(
+α(x)
+if i = 0 and x = {x} for some x ∈ X,
+(3.10)
+α̂i (x) = max α(x) =
+x∈x
+maxx0 ∈children(x) α̂i−1 (x0 ) if i > 0,
+for i ∈ {0, . . . , I} and x ∈ Xi and analogous for β̂ and β. Similarly, define an extension ĉ of c by
+ĉi (x, y) =
+
+(3.11)
+
+min
+
+(x,y)∈x×y
+
+c(x, y)
+
+for i ∈ {0, . . . , I}, x ∈ Xi and y ∈ Yi .
+For i ∈ {0, . . . , I}, x ∈ x ∈ Xi , y ∈ y ∈ Yi we find
+(3.12)
+
+ĉi (x, y) − α̂i (x) − β̂i (y) ≤ c(x, y) − α(x) − β(y) .
+
+Now we can implement a hierarchical tree-search for getN (and analogously getK̂).
+Algorithm 4 (Hierarchical Search for getN ).
+1: function getN (α,β,ε,θ)
+2:
+(α̂, β̂) ← hierarchical extensions of (α, β)
+3:
+N ← ScallCell(α̂,β̂,ε,θ,I,{X},{Y })
+4: end function
+
+// see (3.10)
+// call on coarsest partition level
+
+5: function ScanCell(α̂,β̂,ε,θ,i,x,y)
+6:
+N0 ← ∅
+
+// temporary variable for result
+7:
+if ĉi (x, y) − α̂i (x) − β̂i (y) ≤ −ε · log θ then
+// if cell cannot be ruled out at this level
+8:
+if i > 0 then
+// if not yet at finest level, check on all children
+9:
+for (x0 , y0 ) ∈ children(x) × children(y) do
+10:
+N 0 ← N 0 ∪ ScanCell(α̂,β̂,ε,θ,i − 1,x0 ,y0 )
+11:
+end for
+12:
+else
+// if at finest level, add variable
+13:
+N 0 ← N 0 ∪ (x × y)
+// recall x = {x}, y = {y} for some (x, y) ∈ X × Y at i = 0
+14:
+end if
+15:
+end if
+16:
+return N 0
+17: end function
+From (3.12) follows directly that Algorithm 4 implements (3.8).
+In many applications the discrete sets X and Y are point clouds in Rd and the hierarchical partitions
+are 2d -trees over X and Y (see e.g. [40]). The cost function c is often originally defined on the whole
+product space Rd × Rd (such as the squared Euclidean distance). For the validity of Algorithm 4 it
+suffices if ĉi (x, y) ≤ min(x,y)∈x×y c(x, y). This allows to avoid computing (and storing) the full cost
+matrix c ∈ RX×Y and the explicit minimizations in (3.11). c and lower bounds on ĉi can be computed
+on-demand directly using the tree-structure.
+The second purpose of the multi-scale scheme is the combination with ε-scaling. As explained above,
+the purpose is to reduce the number of variables while ε is large. For an illustration see Fig. 1. For
+this, we divide the list E of regularization parameters ε into multiple lists (E0 , . . . , EI ), with the largest
+values in EI and the smallest (and final) values in E0 , and sorted from largest to smallest within each Ei .
+Then, for every i from I down to 0 we perform ε-scaling with list Ei at hierarchical level i, using the dual
+solution at each level as initialization at the next stage. The full algorithm, combining log-stabilization,
+ε-scaling, kernel truncation and the multi-scale scheme, is sketched next.
+12
+
+ε = 1280 L2 , |N | = 57659
+
+ε = 80 L2 , |N | = 20060
+
+ε = 5 L2 , |N | = 5263
+
+i =4, |N | = 225
+
+i =2, |N | = 1253
+
+i =0, |N | = 5263
+
+Fig. 1. ε-scaling, truncated kernels and multi-scale scheme. X = Y is a uniform one-dimensional grid, representing
+[0, 1], |X| = 256, h = 256−1 . µ and ν are smooth mixtures of Gaussians. Top row Density of optimal coupling π † on X 2
+for various ε. |N | is the number of variables in the truncated, stabilized kernel for fixed θ = 10−10 . As ε decreases, so
+does |N |, since π † becomes more concentrated. Bottom row Optimal couplings for same ε as top row, but for different
+levels i of hierarchical partitions. i and ε were chosen to keep number of variables per x ∈ X approximately constant. For
+high ε (and i) |N | is now dramatically lower. While π † is ‘pixelated’ for high i, due to blur, it provides roughly the same
+spatial information as the top row. Images in third column are identical.
+
+Algorithm 5 (Full Algorithm).
+1: function ScalingAlgorithmFull((E0 , . . . , EI ),θ)
+2:
+i = I; (α, β) ← ((0), (0))
+// initialize scale counter and dual variables
+3:
+while i ≥ 0 do
+4:
+// solve problem at scale i with ε-scaling over Ei
+5:
+for ε ∈ Ei do
+// iterate over list, from largest to smallest
+6:
+(α, β) ← ScalingAlgorithmStabilized(i,ε,θ,α,β)
+7:
+end for
+8:
+i←i−1
+9:
+if i ≥ 0 then
+// refine dual variables
+10:
+(α, β) ← RefineDuals(i,α,β)
+11:
+end if
+12:
+end while
+13:
+return (α, β)
+14: end function
+Note: ScalingAlgorithmStabilized refers to calling Algorithm 2 for solving the problem at scale i,
+with getK replaced by getK̂, (3.9), with threshold θ, implemented according to Algorithm 4. Accordingly,
+two arguments i and θ were added. RefineDuals initializes the dual variables (α, β) at level i by setting
+the values at x to the previous values at parent(x) for all cells x in Xi .
+Remark 2 (Hierarchical Representation of FX , FY ). To solve the problem at hierarchical scale i, not
+only do we need a coarse version of c, as given in (3.11). In addition we need hierarchical versions of
+the marginal functions FX , FY , see (2.10). An appropriate choice is often clear from the context of the
+problem. For example, for an optimal transport problem between µ and ν, see Def. 8, we set FXi = ι{µi } ,
+where µi is taken from the multi-scale measure approximation of µ (see Def. 12). For the unbalanced
+transport problem with KL fidelity, Def. 6, we use FXi = λ · KLXi (·|µi ).
+This completes the modifications of the diagonal scaling algorithm. Their usefulness will be demonstrated numerically in Sect. 5.
+4. Analogy between Sinkhorn and Auction Algorithm. In this section we develop a new
+complexity analysis of the Sinkhorn algorithm and examine the efficiency of ε-scaling. In [27] an intuitive
+similarity between the Sinkhorn algorithm for the entropy regularized linear assignment problem and the
+13
+
+auction algorithm was pointed out. This similarity motivates our approach.
+In this section we only consider the standard Sinkhorn algorithm (as opposed to general scaling
+algorithms), since the auction algorithm solves the linear assignment problem and assumptions on fixed
+marginals µ, ν are required for our analysis.
+The auction algorithm is briefly recalled in Section 4.1. In Section 4.2 we introduce an asymmetric
+variant of the Sinkhorn algorithm, that is more similar to the original auction algorithm and provide an
+analogous worst-case estimate for the number of iterations until a given precision is achieved. A stability
+result for the dual optimal solutions under change of the regularization parameter ε is given in Section
+4.3 and we discuss how it relates to ε-scaling in Sect. 4.4.
+4.1. Auction Algorithm. For the sake of self-containedness, in this section we briefly recall the
+auction algorithm and its basic properties. Note that compared to the original presentation (e.g. [9]) we
+flipped the overall sign for compatibility with the notion of optimal transport.
+In the following we consider a linear assignment problem, i.e. an optimal transport problem between
+Y
+two discrete sets X, Y with equal cardinality |X| = |Y | = N where the marginals µ ∈ RX
++ , ν ∈ R+ are the
+X×Y
+counting measures. For simplicity we assume that the cost function c ∈ R+
+is finite and non-negative.
+The main loop of the auction algorithm is divided into two parts: During the bidding phase, elements
+of X that are unassigned determine their locally most attractive counterpart in Y (taking into account the
+current dual variables) and submit a bid for them. During the assignment phase, all elements of Y that
+received at least one bid, pick the most attractive one and change the current assignment accordingly. A
+formal description is given in the following.
+Algorithm 6 (Auction Algorithm).
+1: function AuctionAlgorithm(β (0) )
+2:
+π ← 0X×Y ; β ← β (0)
+// initialize variables: ‘empty’ primal coupling, zero dual variable
+3:
+while π(X × Y ) < N do
+
+B(y) ← ∅ for all y ∈ Y
+// start bidding phase: initialize empty bid lists
+for x ∈ {x0 ∈ X : π({x0 } × Y ) = 0} do
+// iterate over unassigned x
+y ← argminy0 ∈Y [c(x, y 0 ) − β(y 0 )]
+// pick some element from argmin
+α(x) ← c(x, y) − β(y)
+// set dual variable
+B(y) ← B(y) ∪ {x}
+// submit bid to y, i.e. add x to bid list of y
+end for
+10:
+for y ∈ {y 0 ∈ Y : B(y 0 ) 6= ∅} do
+// assignment phase: iterate over all y that received bids
+11:
+π(·, y) ← 0
+// set column of coupling to zero
+12:
+x ← argminx0 ∈B(y) [c(x0 , y) − α(x0 )]
+// find best bidder, pick one if multiple
+13:
+β(y) ← c(x, y) − α(x) − ε; π(x, y) ← 1
+// update dual variable and coupling
+14:
+end for
+15:
+end while
+16:
+return (π, (α, β))
+17: end function
+4:
+5:
+6:
+7:
+8:
+9:
+
+Remark 3. In the above algorithm, line 7 is usually replaced by α(x) ← miny0 ∈Y \{y} [c(x, y 0 )−β(y 0 )],
+which in practice may reduce the number of iterations. It does not affect the following worst-case analysis
+however, therefore we keep the simpler version.
+We briefly summarize the main properties of the algorithm.
+Proposition 14. With ε > 0 and β (0) = 0Y , Algorithm 6 has the following properties:
+(i) α is increasing, β is decreasing.
+(ii) After each assignment phase one finds α(x) + β(y) ≤ c(x, y) and [π(x, y) > 0] ⇒ [α(x) + β(y) ≥
+c(x, y) − ε]. The latter property is called ε-complementary slackness.
+(iii) The primal iterate satisfies PX π ≤ µ and PY π ≤ ν.
+(iv) The algorithm terminates after at most N · (C/ε + 1) iterations, where C = max c.
+For a proof see for example [9]. From ε-complementary slackness we deduce the following result.
+Corollary 15. Upon convergence, the primal-dual gap of π and (α, β), cf. Def. 5, is bounded by
+hc, πi − (hµ, αi + hν, βi) ≤ N · ε. If c is integer and ε < 1/N , then the final primal coupling is optimal.
+14
+
+Remark 4 (ε-Scaling for the Auction Algorithm). During the auction algorithm it may happen that
+several elements in X compete for the same target y ∈ Y , leading to the minimal decrease of β(y) by ε
+in each iteration. This phenomenon has been dubbed ‘price haggling’ [10] and can cause poor practical
+performance of the algorithm, close to the worst-case iteration bound. The impact of price haggling can be
+reduced by the ε-scaling technique, where the algorithm is successively run with a sequence of decreasing
+values for ε, each time using the final value of β as initialization of the next run (see also Algorithm 3).
+With this technique the factor C/ε in the iteration bound can essentially be reduced to a factor log(C/ε).
+An analysis of the ε-scaling technique for more general min-cost-flow problems can be found in [10].
+4.2. Asymmetric Sinkhorn Algorithm and Iteration Bound. We now introduce a slightly
+modified variant of the standard Sinkhorn algorithm, derive an iteration bound and make a comparison
+with the auction algorithm. We emphasize that this modification is primarily made to facilitate theoretical
+study of the algorithm and to understand why convergence becomes slow as ε → 0. We do not advocate
+its merits in an actual implementation.
+For µ ∈ P(X), ν ∈ P(Y ) and a cost function c ∈ RX×Y
+we consider the entropic optimal transport
++
+problem (Def. 8). Set the reference measure ρ for regularization, see (2.8), to the product measure
+ρ(x, y) = µ(x) · ν(y). We state the modified Sinkhorn algorithm with parameter qtarget ∈ (0, 1) that
+measures how much mass has to be assigned.
+Algorithm 7 (Asymmetric Sinkhorn Algorithm).
+1: function AsymmetricSinkhorn(ε,v (0) ,qtarget )
+2:
+K ← getK(ε); v = v (0)
+// compute kernel, initialize scaling factor
+3:
+repeat
+4:
+u ← µ (K v); v̂ ← ν (K > u)
+5:
+v ← min{v, v̂}
+// element-wise minimum
+6:
+π ← diag(u) K diag(v); q ← π(X × Y )
+// update coupling and ‘assigned mass’-fraction q
+7:
+until q ≥ qtarget
+8:
+return (π, (u, v))
+9: end function
+The only differences to the standard Sinkhorn algorithm (given by Algorithm 1 with proxdiv-operators
+(2.20)) lie in line 5 and in the choice of the specific stopping criterion (see Remark 5 for a discussion). In
+the standard algorithm one would set v ← v̂. The modification implies that v is monotonously decreasing,
+which implies the following result for Algorithm 7 in the spirit of Proposition 14. This monotonicity is
+crucial for bounding the number of iterations (see also Remark 6).
+Throughout this section, for clarity, we enumerate the iterates u, v, as well as the auxiliary variables
+v̂, π and q in Algorithm 7, starting with v (0) and proceeding with (u(1) , v (1) , v̂ (1) , π (1) , q (1) ), . . ., similar
+to formulas (2.18) and the corresponding dual variable iterates (α(`) , β (`) , β̂ (`) ) = ε · log(u(`) , v (`) , v̂ (`) ).
+Proposition 16 (Monotonicity of Asymmetric Sinkhorn Algorithm).
+(i) u and α = ε log u are increasing, v and β = ε log v are decreasing, q is increasing.
+(ii) PX π ≤ µ and PY π ≤ ν. We say π is sub-feasible.
+(iii) There exists some y ∗ ∈ Y such that v(y ∗ ) = v (0) (y ∗ ) for all iterations.
+Proof. By construction we have v (`+1) ≤ v (`) . Consequently K v (`+1) ≤ K v (`) and thus u(`+1) ≥ u(`)
+and eventually v̂ (`+1) ≤ v̂ (`) .
+After updating u(`+1) the row constraints are satisfied. That is PX diag(u(`+1) ) K diag(v (`) ) = µ.
+Since v (`+1) is only decreased (i.e. if the corresponding column constraint is violated from above), afterwards the iterate π (`+1) is sub-feasible.
+Since v̂ (`) is decreasing, it follows that if v (`) (y) = v̂ (`) (y) for some y ∈ Y , then v (k) (y) = v̂ (k) (y) for
+all k ≥ `. Let Y (`) = {y ∈ Y : v (`) (y) = v̂ (`) (y)}. Then Y (`) ⊂ Y (`+1) . Conversely, if y ∈
+/ Y (`) , then
+(`)
+(`)
+(`)
+(0)
+v (y) < v̂ (y) and therefore v (y) = v (y).
+Let now q (`) (y) := v (`) (y) [K > u(`) ](y). If y ∈ Y (`+1) , then q (`+1) (y) = ν(y) ≥ q (`) (y) (as q (`) (y) can
+never exceed ν(y)). If y ∈
+/ Y (`+1) , then P
+v (`+1) (y) = v (`) (y) = v (0) (y) and since u(`) is increasing, we find
+(`+1)
+(`)
+(`+1)
+q
+(y) ≥ q (y). We obtain q
+= y∈Y q (`+1) (y) ≥ q (`) .
+When Y (`) 6= Y , there exists some y ∗ ∈ Y with y ∗ ∈
+/ Y (k) , v (k) (y ∗ ) = v (0) (y ∗ ) for k ∈ {1, . . . , `}. If
+15
+
+Y (`) = Y , then v̂ (`) = v (`) ≤ v (`−1) . By construction one has (u(`) )> K v (`−1) = µ(X) and (u(`) )> K v̂ (`) =
+ν(Y ) = µ(X). So if Y (`) = Y , in fact v (`) = v (`−1) . Consequently, there exists some y ∗ ∈ Y with
+v (`) (y ∗ ) = v (0) (y ∗ ) for all iterations.
+Let us further investigate the increments of the dual variable iterates α(`) = ε log(u(`) ).
+Lemma 17 (Minimal Increment of α(`) ). For ` ≥ 1 have α(`+1) − α(`) , µ ≥ ε (1 − q (`) ).
+Proof. Recall that π (`) = diag(u(`) ) K diag(v (`) ), and introduce π 0(`) = diag(u(`+1) ) K diag(v (`) ).
+Consider the following evaluations of the dual functional:
+J(α(`) , β (`) ) = hα(`) , µi + hβ (`) , νi − ε · π (`) (X × Y ) + ε · K(X × Y )
+J(α(`+1) , β (`) ) = hα(`+1) , µi + hβ (`) , νi − ε · π 0(`) (X × Y ) + ε · K(X × Y )
+Note that π (`) (X × Y ) = q (`) , π 0(`) (X × Y ) = 1 and since going from α(`) to α(`+1) corresponds to a
+block-wise dual maximization have J(α(`+1) , β (`) ) ≥ J(α(`) , β (`) ). The claim follows.
+With these tools we can bound the total number of iterations to reach a given precision.
+Proposition 18 (Iteration Bound for the Asymmetric Sinkhorn Algorithm). Initializing with β (0) =
+0Y ⇔ v (0) = 1Y , for a given qtarget ∈ (0, 1) the number of iterations n necessary to achieve q (n) ≥ qtarget
+is bounded by n ≤ 2 + ε·(1−qCtarget ) where C = max c. Moreover, u(`) , µ ≤ exp(C/ε) for all iterates ` ≥ 1.
+Proof. Let us look at the first ‘bid’ α(1) . With c ≥ 0 we have
+(4.1) α(1) (x) = ε log
+
+
+
+µ(x)
+[K v (0) ](x)
+
+
+= ε log
+
+1
+P
+ν(y)
+exp(−c(x,
+y)/ε)
+y∈Y
+
+!
+≥ ε log
+
+1
+P
+
+y∈Y ν(y)
+
+!
+= 0.
+
+By virtue of Proposition 16 get q (`) ≤ q (n) for ` ≤ n. With Lemma 17 this implies hα(n) − α(1) , µi ≥
+Pn−1
+(`)
+(n)
+) and with (4.1)
+`=1 ε · (1 − q ) ≥ ε · (n − 1) · (1 − q
+hα(n) , µi ≥ ε · (n − 1) · (1 − q (n) ) .
+
+(4.2)
+
+From Proposition 16 we know that there is some y ∗ ∈ Y with v (`) (y ∗ ) = 1 ≤ v̂ (`+1) (y ∗ ) for all iterates
+` ≥ 0. So
+1 ≤ v̂ (`+1) (y ∗ ) =
+
+ν(y ∗ )
+[K > u(`+1) ](y ∗ )
+
+1
+
+,
+1
+exp
+−
+[c(x,
+y ∗ ) − α(`+1) (x)] µ(x)
+x∈X
+ε
+
+=P
+
+from which we infer exp(−C/ε) · exp(α(`+1) /ε), µ ≤ 1, i.e. u(`+1) , µ ≤ exp(C/ε). With Jensen’s
+inequality we eventually find α(`+1) , µ ≤ C for ` ≥ 0.
+C
+Combining this with (4.2) we obtain n ≤ 1 + ε (1−q
+So, as long as q (n) < qtarget we have
+(n) ) .
+n < 1 + ε (1−qCtarget ) . By contraposition we know that there is some n ≤ 2 + ε (1−qCtarget ) such that
+q (n) ≥ qtarget .
+And finally, we formally establish convergence of the iterates.
+Corollary 19 (Convergence of Asymmetric Algorithm). Ignoring the stopping criterion, the iterates (u(`) , v (`) ) of the asymmetric Algorithm 7 converge to a solution of the scaling problem and q (`) → 1.
+Proof. With the upper bound u(`) , µ ≤ exp(C/ε) (Proposition 18) we obtain the pointwise lower
+bound v (`) (y) ≥ exp(−C/ε) for all ` ≥ 0. Since v (`) is pointwise decreasing, it converges to some limit
+v (∞) ≥ exp(−C/ε) > 0.
+The map f : v (`) 7→ v (`+1) is continuous for v (`) > 0. With v (`) → v (∞) and v (`+1) = f (v (`) ) → v (∞)
+have f (v (∞) ) = v (∞) which implies that v (∞) (together with the corresponding u(∞) = µ (K v (∞) ))
+solves the scaling problem. This implies convergence of q (`) to 1.
+Remark 5 (On the Stopping Criterion and Relation to [21]). The criterion q ≥ qtarget is motivated
+by Lemma 17, to provide a minimal increment of α during iterations. 1 − q measures the mass that is
+16
+
+still missing and is equal to the L1 error between the marginals of π and the desired marginals µ and ν.
+In pathological cases the dual variables (α, β) may still be far from optimizers, even though q ≥ qtarget
+(see Example 1). In [21, Lemma 2] linear convergence of the marginals in the Hilbert projective metric
+is proven. This is a stricter measure of convergence, less prone to ‘premature’ termination. However,
+for small ε the contraction factor is roughly 1 − 4 exp(−C/ε), which is impractical. The scaling O(1/ε)
+predicted by Proposition 18 is consistent with numerical observations when one uses the L1 or L∞ marginal
+error as stopping criterion (Sect. 5.2). Therefore we consider the q-criterion to be a reasonable measure
+for convergence, as long as one keeps 1 − qtarget  δ (Example 1).
+Example 1. We consider the 1 × 2 toy problem with the following parameters:
+>
+>
+
+µ= 1 ,
+ν = 1−δ δ ,
+c= 0 C ,
+K = 1−δ
+
+δ · e−C/ε
+
+
+
+for some C > 0, δ ∈ (0, 1) and some regularization strength ε > 0. And we consider the scaling factors
+>
+>
+>
+(one for X, two choices for Y ): u = 1 , v1 = 1 1 , v2 = 1 eC/ε . Let πi = diag(u) K diag(vi )
+and corresponding total masses qi , i = 1, 2. We find:
+
+
+π1 = 1 − δ δ · e−C/ε ,
+q1 = 1 − δ (1 − e−C/ε ),
+π2 = 1 − δ δ ,
+q2 = 1.
+π2 and (α, β2 ) = ε log(u, v2 ) are primal and dual solutions. π1 is sub-feasible (see Proposition 16). For
+fixed ε > 0, as δ → 0, q1 tends to 1 (but is strictly smaller), i.e. the pair (u, v1 ) has almost converged in
+the q-measure sense, but the distance between β1 = ε log v1 and the actual solution β2 is C.
+Remark 6 (Analogy to Auction Algorithm). For now assume |X| = |Y | = N and µ, ν are normalized counting measures. Then line 4 in Algorithm 7, expressed in dual variables, becomes
+α(x) ← softmin({c(x, y) − β(y)|y ∈ Y }, ε) + ε log N ,
+β̂(y) ← softmin({c(x, y) − α(x)|x ∈ X}, ε) + ε log N .
+These are formally similar to the corresponding lines 7 and 13 in Algorithm 6. We can interpret the uupdate in Algorithm 7 as x not just submitting a bid to the best candidate y, but to all candidates, weighted
+by the attractiveness (recall that in the Sinkhorn algorithm, a change in the dual variable directly implies
+a change in the primal iterate via (2.11)). Conversely, in line 5, y does not only accept the best bid, but
+bids from all candidates, again weighted by price. If there are too many bids (i.e. if v̂(y) < v(y)), β(y)
+decreases and thereby rejects superfluous offers.
+Consequently, in Algorithm 7 one can observe that points in X compete for the mass in Y in a way
+similar to the auction algorithm by repeatedly increasing their prices until a different target seems more
+attractive or other competitors lose interest. In both algorithms the minimal increment is related to the
+parameter ε which leads to iteration bounds that are proportional to 1/ε (Props. 14 and 18). An attempt
+to mimic the analysis of ε-scaling is made in Section 4.4 (cf. Remark 9).
+One can interpret the standard Sinkhorn algorithm with v ← v̂ as y submitting a ‘counter-bid’ if it
+has not received enough bids. Such a symmetrization has also been discussed for the auction algorithm.
+But then the complexity analysis based on monotonous dual variables breaks down, and the algorithm may
+even run indefinitely (see ‘down iterations’ in [10]).
+4.3. Stability of Dual Solutions. The main result of this section is Theorem 20, which provides stability of dual solutions to entropy regularized optimal transport (Def. 8) under changes of the
+regularization parameter ε. Its implications for ε-scaling are discussed in Sect. 4.4.
+We consider a similar setup as in Sect. 4.2: µ ∈ P(X), ν ∈ P(Y ), c ∈ RX×Y
+. Again, the reference
++
+measure ρ for regularization, see (2.8), is chosen to be the product measure ρ(x, y) = µ(x) · ν(y). For
+Theorem 20 we introduce an additional assumption on µ and ν. The necessity of this assumption can be
+demonstrated by counter-examples similar to Example 1.
+Assumption 1 (Atomic Mass). For µ ∈ P(X), ν ∈ P(Y ) there is some M ∈ N such that µ = r/M ,
+ν = s/M for r ∈ NX , s ∈ NY .
+Theorem 20 (Stability of Dual Solutions under ε-Scaling). Let max{|X|, |Y |} ≤ N < ∞ and let µ
+and ν satisfy Assumption 1 for some M ∈ N. For two regularization parameters ε1 > ε2 > 0, let (α1 , β1 )
+17
+
+and (α2 , β2 ) be maximizers of the corresponding dual regularized optimal transport problems (Def. 8) and
+let ∆α = α2 − α1 and ∆β = β2 − β1 . Then
+(4.3a)
+
+max ∆α − min ∆α ≤ ε1 · N · (4 log N + 24 log M ),
+
+(4.3b)
+
+max ∆β − min ∆β ≤ ε1 · N · (4 log N + 24 log M ).
+
+Remark 7 (Relation to [16] and Motivation). [16] studies the convergence of entropy regularized
+linear programs to the unregularized variant and can be used to understand the limit of entropy regularized
+optimal transport (Def. 8). To apply [16], the constraint matrix must have full rank and the set of optimal
+solutions to (2.5b) must be bounded. When the cost c is finite this is achieved by arbitrarily fixing one
+dual variable, e.g. α(x0 ) = 0, and removing the corresponding column from the dual constraint matrix.
+The slight difference in the definition of the entropy (or the dual exponential barrier) can be absorbed into
+a change of variables which converges to the identity in the limit ε → 0.
+Then [16, Props. 3.1 and 3.2] imply that the optimal solutions of (2.19b) remain bounded and converge
+to a particular solution of (2.5b) as ε → 0. Furthermore, [16] provides statements about the convergence
+of the optimal couplings (Prop. 4.1) and the asymptotic behaviour (Thm. 5.8).
+The bounds derived in [16] depend on the geometry of the primal and dual feasible polytopes of (2.5),
+i.e. on the transport cost function c. In contrast, the bound of Thm. 20 does not depend on c. The
+motivation for deriving such a bound is the implication for ε-scaling, see Section 4.4. Note that Thm. 20
+also implies that the optimal dual variables remain bounded as ε → 0.
+Remark 8 (Proof Strategy). The proof requires several auxiliary definitions and lemmas. The estimate consists of two contributions: One stems from following paths within connected components of
+what we call assignment graph (defined in the following lemma), using the primal-dual relation (2.11).
+This reasoning is analogous to the proof strategy for ε-scaling in the auction algorithm (see [10]). However, between different connected components (2.11) is too weak to yield useful estimates. So a second
+contribution arises from a stability analysis of effective diagonal problems (in Lemmas 22 and 23).
+Lemma 21 (Assignment Graph). For two feasible couplings π1 , π2 ∈ Π(µ, ν) and a threshold M −1 ≥
+1 the corresponding assignment graph is a bipartite directed graph with vertex sets (X, Y ) and the set of
+directed edges
+E = {(x, y) ∈ X × Y : π2 (x, y) ≥ µ(x) · ν(y)/M } t {(y, x) ∈ Y × X : π1 (x, y) ≥ µ(x) · ν(y)/M }
+where (a, b) ∈ E indicates a directed edge from a → b.
+The assignment graph has the following properties:
+(i) Every node has at least one incoming and one outgoing edge.
+(ii) Let X0 ⊂ X, Y0 ⊂ Y such that there are no outgoing edges from (X0 , Y0 ) to the rest of the vertices,
+then |µ(X0 ) − ν(Y0 )| < 1/M . This is also true when there are no incoming edges from the rest of
+the vertices. If µ and ν are atomic, with atom size 1/M (see Assumption 1), then µ(X0 ) = ν(Y0 ).
+(iii) Let µ and ν be atomic, with atom size 1/M . Let {(Xi , Yi )}R
+i=1 be the vertex sets of the strongly
+connected components of the assignment graph, for some R ∈ N (taking into account the orientation
+R
+of the edges). Then the sets {Xi }R
+i=1 and {Yi }i=1 are partitions of X and Y , and µ(Xi ) = ν(Yi ) for
+i = 1, . . . , R.
+P
+Proof. Assume, a node x ∈ X had no outgoing edge. Then y∈Y π2 (x, y) < µ(x)/M ≤ µ(x). This
+contradicts π2 ∈ Π(µ, ν). Existence of incoming edges follows analogously.
+Let X̂0 = X \ X0 , Ŷ0 = Y \ Y0 . If (X0 , Y0 ) has no outgoing edges, then
+X
+X
+X
+X
+1
+1
+,
+π1 (x, y) <
+µ(x) · ν(y)/M ≤ M
+.
+π2 (x, y) <
+µ(x) · ν(y)/M ≤ M
+x∈X0 ,
+y∈Ŷ0
+
+x∈X0 ,
+y∈Ŷ0
+
+x∈X̂0 ,
+y∈Y0
+
+x∈X̂0 ,
+y∈Y0
+
+Since π1 , π2 ∈ Π(µ, ν), the first inequality implies µ(X0 ) = π2 (X0 × Y ) = π2 (X0 × Y0 ) + π2 (X0 × Ŷ0 ) <
+ν(Y0 ) + 1/M and the second inequality implies ν(Y0 ) < µ(X0 ) + 1/M , i.e. |µ(X0 ) − ν(Y0 )| < 1/M . With
+Assumption 1 for atom size 1/M , this implies µ(X0 ) = ν(Y0 ). The statement about incoming edges
+follows from µ(X̂0 ) = 1 − µ(X0 ) and ν(Ŷ0 ) = 1 − ν(Y0 ).
+18
+
+Every node in (X, Y ) is part of at least one strongly connected component (containing at least the
+node itself). If two strongly connected components have a common element, they are identical. Hence,
+the strongly connected components form partitions of X and Y . For some x ∈ X (or y ∈ Y ), let Xout ⊂ X
+and Yout ⊂ Y be the set of nodes that can be reached from x, let Xin ⊂ X and Yin ⊂ Y be the set of nodes
+from which one can reach x and let (Xcon = Xout ∩ Xin , Ycon = Yout ∩ Yin ) be the strongly connected
+component of x. Clearly (Xout , Yout ) has no outgoing edges. Hence, by (ii) one has µ(Xout ) = ν(Yout ).
+Moreover, (Xout \ Xin , Yout \ Yin ) has no outgoing edges, hence µ(Xout \ Xin ) = ν(Yout \ Yin ), from which
+follows that µ(Xcon ) = ν(Ycon ).
+R
+Lemma 22 (Reduction to Effective Diagonal Problem). Let {Xi }R
+i=1 and {Yi }i=1 be partitions of
+R
+X and Y , for some R ∈ N, with µ(Xi ) = ν(Yi ) for i = 1, . . . , R. Let {yi }i=1 ⊂ Y such that yi ∈
+Yi . Let (α† , β † ) be optimizers for the dual entropy regularized optimal transport problem (Def. 8) for a
+regularization parameter ε > 0.
+Consider the following functional over RR :
+
+Jˆ : RR → R,
+
+β̂ 7→ −ε
+
+R
+X
+
+h
+i
+
+exp − 1ε d(i, j) + β̂(i) − β̂(j)
+
+i,j=1
+
+where d ∈ RR×R with
+
+(4.4)
+
+
+
+X
+
+
+
+exp − 1ε c(x, y) − α† (x) − β † (yi ) − β † (y) + β † (yj ) · µ(x) · ν(y)
+d(i, j) = −ε log 
+
+.
+x∈Xi
+y∈Yj
+
+ˆ Conversely, if β̂ †† is a maximizer of J,
+ˆ
+Then β̂ † ∈ RR , given by β̂ † (i) = β † (yi ), is a maximizer of J.
+††
+†
+then there is a constant b ∈ R, such that β̂ (i) = β̂ (i) + b for all i ∈ 1, . . . , R.
+Proof. We define the functional Jˆ : RR → R as follows:
+Jˆ : β̂ 7→ J
+
+  
+ 
+α̃
+−BX
++
+β̂
+BY
+β̃
+
+where J denotes the dual functional of entropy regularized optimal transport (2.19b), and
+• α̃ ∈ RX with α̃(x) = α† (x) + β † (yi ) when x ∈ Xi ;
+• β̃ ∈ RY with β̃(y) = β † (y) − β † (yj ) when y ∈ Yj ;
+• BX ∈ RX×R with BX (x, i) = 1 if x ∈ Xi and 0 else;
+• BY ∈ RY ×R with BY (y, j) = 1 if y ∈ Yj and 0 else.
+Then one has
+ †   
+
+α̃
+α
+−BX
+=
++
+β̂ † .
+BY
+β†
+β̃
+Since maximizing Jˆ corresponds to maximizing J over an affine subspace, clearly β̂ † is a maximizer of
+ˆ Since Jˆ inherits the invariance of J under constant shifts, any β̂ †† of the form given above, is also a
+J.
+maximizer. Consequently, we may add the constraint β̂(1) = 0, which does not change the optimal value.
+With this added constraint the functional becomes strictly convex, which implies a unique optimizer.
+Hence, any optimizer of the unconstrained functional can be written in the form of β̂ †† .
+ˆ β̂). We find
+Let us now give a more explicit expression of J(
+R
+h
+i
+D
+E
+
+X
+X
+ˆ β̂) = B > ν − B > µ, β̂ − ε
+J(
+exp − 1ε c(x, y) − α̃(x) + β̂(i) − β̃(y) − β̂(j) · µ(x) · ν(y)
+Y
+X
+i,j=1 x∈Xi
+y∈Yj
+
+D
+
+E
+
++ hµ, α̃i + ν, β̃ + ε · K(X × Y ) .
+19
+
+Note that the second line is constant
+
+h w.r.t. β̂. Since µ(X
+i i ) = ν(Yi ) the linear term vanishes and we can
+PR
+1
+ˆ
+write J(β̂) = −ε
+exp − d(i, j) + β̂(i) − β̂(j) + const with coefficients d ∈ RR×R , as given
+i,j=1
+
+ε
+
+above. The constant offset does not affect minimization.
+Lemma 23 (Effective Diagonal Problem and Stability).
+d ∈ RR×R consider the following functional:
+Jˆε,d (β) =
+
+(4.5)
+
+R
+X
+
+For a parameter ε > 0 and a real matrix
+
+exp ([−d(i, j) − β(i) + β(j)] /ε)
+
+i,j=1
+
+Minimizers of Jˆε,d exist.
+Let ε1 ≥ ε2 > 0 be two parameters and d1 , d2 ∈ RR×R two real matrices. Let β1† and β2† be
+minimizers of Jˆε1 ,d1 and Jˆε2 ,d2 , let ∆d = d2 − d1 , ∆β = β2† − β1† . Let the matrix w ∈ RR×R be given by
+w(i, j) = max{−∆d(i, j), ∆d(j, i)}. Then max ∆β − min ∆β ≤ maxdiam(w) + 2 ε1 R log R, where
+(k−1
+)
+X
+maxdiam(w) = max
+w(ji , ji+1 ) : k ∈ {2, . . . , R}, ji ∈ {1, . . . , R} for i = 1, . . . , k, all ji distinct. .
+i=1
+
+That is, maxdiam(w) is the length of the longest cycle-less path in {1, . . . , R} with edge lengths w.
+The proofs of Theorem 20 and Lemma 23 can be found in Appendix A.
+4.4. Application To ε-Scaling. Assuming that we know the dual solution for some ε1 > 0, then
+Theorem 20 allows to bound the number of iterations of Algorithm 7 for some smaller ε2 ∈ (0, ε1 ),
+independently of bounds on the cost function c. This may have implications for the efficiency of ε-scaling
+(see Remark 9).
+Proposition 24 (Single ε-Scaling Step). Consider the set-up of Theorem 20. In particular, let
+ε1 > ε2 > 0 be two regularization parameters, let (α1 , β1 ), (α2 , β2 ) be corresponding optimizers of (2.19b).
+If Algorithm 7 is initialized with v (0) = exp(β1 /ε2 ), with regularization ε2 , and for a given qtarget ∈ (0, 1),
+the number of iterations n necessary to achieve q (n) ≥ qtarget is bounded by
+n≤2+
+
+(4.6)
+
+ε1 N · (4 log N + 24 log M ) + log M
+.
+ε2
+1 − qtarget
+
+Proof. For the optimal scaling factor u1 of the ε1 -problem we find:
+
+−1
+X
+
+u1 (x) := exp(α1 (x)/ε1 ) =
+exp − ε11 [c(x, y) − β1 (y)] ν(y)
+y∈Y
+
+
+
+
+This implies u1 (x)−1 ν(y)−1 ≥ exp − ε11 [c(x, y) − β1 (y)] for all (x, y) ∈ X × Y . With this we can bound
+the first iterate of the ε2 -run of the algorithm by:
+(1)
+
+u
+
+(x) =
+
+X
+
+exp
+
+
+
+
+
+− ε12 [c(x, y) − β1 (y)]
+
+−1  X
+−1 
+ ε1
+ε
+− ε1
+u1 (x) ε2
+2
+ν(y)
+≥
+(u1 (x) ν(y))
+ν(y)
+≥
+M
+
+y∈Y
+
+y∈Y
+
+where we have used ν(y) ≥ 1/M , Assumption 1. Eventually we find α(1) (x) ≥ α1 (x) − ε1 log M .
+By monotonicity of the iterates we have β2 ≤ β (`) ≤ β (0) = β1 and β (`) (y 0 ) = β1 (y 0 ) for a suitable
+0
+y ∈ Y (Proposition 14). Consequently max ∆β = 0. Then, from Theorem 20, we obtain β2 (y) − β1 (y) ≥
+min ∆β ≥ −ε1 · A where A = N · (4 log N + 24 log M ). With this we can bound the u-iterates:
+X
+
+
+−1
+u(`) (x) ≤ u2 (x) := exp(α2 (x)/ε2 ) =
+exp − ε12 [c(x, y) − β2 (y)] ν(y)
+y∈Y
+
+≤
+
+X
+
+
+−1
+
+
+exp − ε12 [c(x, y) − β1 (y)] ν(y)
+exp εε21 A
+
+
+y∈Y
+
+20
+
+With convexity of s 7→ sε1 /ε2 and Jensen’s inequality we get
+u(`) (x) ≤
+
+X
+
+
+−ε1 /ε2
+
+
+
+
+
+exp εε21 A = u1 (x)ε1 /ε2 exp εε21 A
+exp − ε11 [c(x, y) − β1 (y)] ν(y)
+
+y∈Y
+
+and finally α(`) (x) ≤ α1 (x) + ε1 A. We summarize: α(`) (x) − α(0) (x) ≤ ε1 (A + log M ). Now using
+A+log M
+Lemma 17 and arguing as in Proposition 18, we find that there is some n ≤ 2 + εε21 1−q
+such that
+target
+q (n) ≥ qtarget .
+Let now C = max c for a cost function c ≥ 0, let ε̂ > 0 be the desired final regularization parameter,
+pick some λ ∈ (0, 1) and let k ∈ N such that ε̂ · λ−k ≥ C. Let E = (ε̂ · λ−k , ε̂ · λ−k+1 , . . . , ε̂) be a list of
+decreasing regularization parameters.
+Remark 9. Now we combine Algorithm 7 with ε-scaling, (cf. Algorithm 3). For ε = ε̂ · λ−k ≥ C,
+1
+iterations. It is tempting to deduce from
+according to Proposition 18 it will take at most 2 + 1−qtarget
+Proposition 24 that for each subsequent value of ε at most 2 + λ (1−qAtarget ) iterations are required, with
+A = N · (4 log N + 24 log M ) + log M . For N > 1 the total number of iterations would then be bounded by
+(2 + λ (1−qAtarget ) ) · (k + 1). For fixed λ the step parameter k scales like log(C/ε̂). Consequently, the total
+number of iterations would be bounded by O(log(C/ε̂)) w.r.t. the cost function and regularization, which
+would be analogous to ε-scaling for the auction algorithm (Remark 4).
+There is an obvious gap in this reasoning: Theorem 20 assumes that β1 is known exactly, while
+Algorithm 7 only provides an approximate result. From Example 1 we learn that in extreme cases this
+difference can be substantial and disrupt the efficiency of ε-scaling. Thus, additional assumptions on the
+problem are required to make the above argument rigorous.
+However, as discussed in Remark 5, in practice we usually observe that approximate iterates are
+sufficient and we can therefore hope that ε-scaling does indeed serve its purpose.
+5. Numerical Examples. Now we present a series of numerical experiments to confirm the usefulness of the modifications proposed in Sect. 3. We show that runtime and memory usage are reduced
+substantially. At the same time the adapted algorithm is still as versatile as the basic version of [14],
+Algorithm 1. But Algorithm 5 can solve larger problems at lower regularization, yielding very sharp
+results. We give examples for unbalanced transport, barycenters and Wasserstein gradient flows. The
+code used for the numerical experiments is available from the author’s website.1
+5.1. Setup. We transport measures on [0, 1]d for d ∈ {1, 2, 3}, represented by discrete equidistant
+Cartesian grids. The distance between neighbouring grid points is denoted by h. For the squared
+2
+d
+Euclidean
+is a Gaussian kernel with approximate
+√ distance cost function c(x, y) = |x − y| , x, y ∈ R , K
+width ε. Therefore, it is useful to measure ε in units of h2 . For ε = h2 the blur induced by the
+entropy smoothing is on the length scale of one pixel. With the enhanced scaling algorithm we solve most
+problems in this section with ε = 0.1 · h2 , leaving very little blur and giving a good approximation of the
+original unregularized problem (see Fig. 4).
+Unless stated otherwise, we use the following settings: Test measures are mixtures of Gaussians, with
+randomized means and variances. The cost function is the squared Euclidean distance. ρ is the product
+measure µ ⊗ ν for optimal transport problems and the discretized Lebesgue measure on the product
+space for problems with variable marginals. For standard optimal transport the stopping criterion is
+the L∞ error between prescribed marginals (µ, ν) and marginals of the primal iterate π (and likewise
+for Wasserstein barycenters). For all other models the primal-dual gap is used. We set θ = 10−20 for
+truncating the kernel and τ = 102 as upper bound for (ũ, ṽ) (cf. (3.9), Algorithm 2, line 4), implying a
+bound of 10−16 · ρ(X × Y ) for the truncation error, which is many orders of magnitude below prescribed
+marginal accuracies or primal-dual gaps. The hierarchical partitions in the coarse-to-fine scheme are
+2d -trees, where each layer i is a coarser d-dimensional grid with grid constant hi . For combination with
+ε-scaling (Algorithm 5) we choose the lists Ei , i > 0, such that for the smallest εi in each Ei we have
+roughly εi /h2i ≈ 1. On the finest scale, we go down to the desired final value of ε. All reported run-times
+were obtained on a single core of an Intel Xeon E5-2697 processor at 2.7 GHz.
+1 https://github.com/bernhard-schmitzer
+
+21
+
+105
+
+104
+2
+
+100 h2 /ε
+runtime/s
+
+iterations
+
+3000 h /ε
+104
+
+102
+
+103
+10−1
+
+100
+ε/h2
+
+(i) log-domain
+
+100
+
+101
+(ii) + ε-scaling
+
+10−1
+
+100
+ε/h2
+
+(iii) + truncation
+
+101
+(iv) + multi-scale
+
+Fig. 2. Efficiency of enhancements: average number of iterations and runtime for different ε and algorithms. X = Y
+are 2-d 64 × 64 grids. (i) log-domain stabilized, Algorithm 2, (ii) with ε-scaling, Algorithm 3, (iii) with sparse stabilized
+kernel, (3.9), (iv) with multi-scale scheme, Algorithm 5. (ii) and (iii) need same number of iterations, but the sparse
+kernel requires less time. The naive implementation, Algorithm 1, requires same number of iterations as (i), but numerical
+overflow occurs at approximately ε ≤ 3 h2 .
+
+5.2. Efficiency of Enhanced Algorithm. The numerical efficiency of the subsequent modifications presented in Sect. 3, applied to the standard Sinkhorn algorithm, is illustrated in Fig. 2. While the
+stabilized algorithm (i) is not yet faster than the naive implementation, it can robustly solve the problem
+for all given values of ε. The required number of iterations scales like O(1/ε), in good agreement with the
+complexity analysis of Sect. 4.2. With ε-scaling (ii) the number of iterations is decreased substantially.
+Replacing the dense kernel with the adaptive truncated sparse kernel (iii) does not change the number
+of required iterations, but saves time and memory. With the multi-scale scheme the required number of
+iterations is slightly increased, since the initial dual variables obtained at a coarser level are only approximate solutions. But by reducing the number of variables during the early ε-scaling stages, the runtime
+is further decreased (cf. Fig. 1). The combination of all modifications leads to an average total speed-up
+of more than two orders of magnitude on this problem type.
+10−1
+
+2-d
+3-d
+
+102
+
+10
+
+101
+
+|X| · 10−3
+err=1E-5
+err=1E-6
+err=1E-7
+LP
+
+100
+10−1
+
+|N |/|X × Y |
+
+runtime/s
+
+103
+
+104
+
+12/|X|
+ε/h2 = 0.1
+
+−2
+
+ε/h2 = 1.8
+LP
+
+10−3
+10−4
+
+105
+
+104
+
+|X|
+
+105
+|X|
+
+Fig. 3. Average runtime and sparsity of Algorithm 5 for transporting test-images of different size (up to 5122 pixels
+for 2-d, 643 for 3-d). Stopping criterion: L∞ -marginal error, for different accuracy limits, final ε = 0.1 · h2 . Performance
+of the adaptive sparse linear programming solver [40] given for comparison (LP). As expected, runtime increases with
+required accuracy. The runtime of the scaling algorithm scales more favourably (approximately linear) with |X| and is
+competitive for large instances. The number of variables scales as O(1/|X|), suggesting that the number of variables per
+x ∈ X is roughly constant. For the final ε = 0.1 · h2 , the sparsity of the truncated kernel is comparable to [40]. For
+ε = 1.8 · h2 , the largest value in E0 (the list for the finest scale), more variables are required.
+
+A runtime benchmark and study of the sparsity of the truncated kernel are given in Fig. 3. The
+runtime scales approximately linear with |X| and for large problems the algorithm becomes faster than
+the adaptive sparse linear programming solver [40]. The final number of variables in the sparse kernel
+is comparable with the number of variables in [40], for higher values of ε, during scaling, more memory
+is required (cf. Fig. 4). This underlines again the importance of the coarse-to-fine scheme (Sect. 3.4).
+22
+
+It should be noted, that Fig. 2 shows results for 64 × 64 images, the smallest image size in Fig. 3. For
+larger images the runtime difference between (i-iv) would be even larger, but due to time and memory
+constraints, only (iv) can be run practically.
+100
+
+102
+10−1
+
+100
+ε/h2
+
+101
+
+0.6
+dual subopt.
+
+|N |/|X|
+
+runtime/s
+
+103
+
+80
+60
+10−1
+
+100
+ε/h2
+
+101
+
+0.4
+0.2
+0.0
+
+10−1
+
+100
+ε/h2
+
+101
+
+Fig. 4. Different final values for ε in Algorithm 5. X = Y are 2-d 256 × 256 grids. Left Average number of variables
+in truncated kernel per x ∈ X. For ε = 0.1 · h2 only about 10 variables per x ∈ X are required. As expected, this number
+increases with ε (cf. Fig. 1). Center For large ε, the runtime decreases with ε, since the number of variables decreases
+(cf. left plot). For smaller ε, the runtime increases again, since more stages of ε-scaling are required. Right The optimal
+regularized dual variables were transformed into feasible unregularized dual variables, by decreasing each α(x) until all
+dual constraints α(x) + β(y) ≤ c(x, y) were met, (2.5b). The sub-optimality of these dual variables is shown. As expected
+(see Sect. 1.1) they converge towards a dual optimizer. Absolute optimal value was between 100 and 400 for the used test
+problems, i.e. for small ε, sub-optimality is small compared to total scale.
+
+The impact of different final values for ε is outlined in Fig. 4. As expected, the number of variables in
+the truncated kernel increases with ε. This leads to two competing trends in the overall runtime: For large
+ε, the kernel truncation is less efficient, leading to an increase with ε. For small ε, the number of variables
+is very small, but more and more stages of ε-scaling are necessary, increasing the runtime as ε decreases
+further. Convergence of the regularized optimal dual variables to the unregularized optimal duals is
+exemplified in the right panel, justifying the use of the approximate entropy regularization technique
+for transport-type problems. While one may consider the dual sub-optimality at ε ≈ 30 h2 sufficiently
+accurate, we point out that the corresponding primal coupling still contains considerable blur (cf. Fig. 1)
+and that due to less sparsity the runtime is actually higher than for ε ≈ h2 .
+As illustrated by Figs. 3 and 4, by choosing the threshold for the stopping criterion and the desired
+final ε, one can tune between required precision and available runtime.
+Remark 10 (Interplay of Modifications). The numerical findings presented in Figs. 2-4 underline
+how each of the modifications discussed in Sect. 3 builds on the previous ones and that all four of them
+are required for an efficient algorithm. The log-domain stabilization is an indispensable prerequisite for
+running the scaling algorithms with small regularization. However, for small ε, convergence tends to
+become extremely slow (cf. Fig. 2), therefore ε-scaling is needed to reduce the number of iterations. For
+small ε, kernel truncation significantly reduces the number of variables and accelerates the algorithm
+(cf. Figs. 2 and 4). However, for large ε (which must be passed during ε-scaling), far fewer variables are
+truncated and the algorithm cannot be run on large problems. This can be avoided by using the coarse-tofine scheme, completing the algorithm. In principle it is possible, only to combine log-domain stabilization
+with kernel truncation, and to skip ε-scaling and the coarse-to-fine scheme. While this tends to solve the
+stability and memory issues, convergence is still impractically slow.
+5.3. Versatility. The framework of scaling algorithms developed in [14], see Sect. 2, allows to solve
+more general transport-type problems for which the enhancements of Sect. 3 still apply. We now give
+some examples to demonstrate this flexibility. The scope of the following examples is similar to [14], but
+with Algorithm 5 one can solve larger problems with smaller regularization.
+KL Fidelity and Wasserstein-Fisher-Rao distance. For the marginal function FX (σ) = λ · KLX (σ|µ)
+with a given reference measure µ ∈ RX
++ and a weight λ > 0, see Def. 6, one obtains for the (stabilized)
+proxdiv operator
+
+
+λ
+λ
+α
+(µ ν) λ+ε .
+(5.1)
+proxdivε FX (σ, α) = exp − λ+ε
+proxdivε FX (σ) = (µ ν) λ+ε ,
+A proof is given in [14]. Compared to the standard Sinkhorn algorithm, the only modification is the
+pointwise power of the iterates. As λ → ∞ the Sinkhorn iterations are recovered. In the stabilized oper23
+
+t = 0.0
+
+t = 0.2
+
+t = 0.4
+
+t = 0.6
+
+t = 0.8
+
+t = 1.0
+
+Fig. 5. Geodesic for Wasserstein-Fisher-Rao distance on [0, 1]2 , approximated by a 256 × 256 grid, computed as
+barycenters between end-points with varying weights. Mass that travels further, is decreased during transport to save cost.
+(0, 4, 0)
+
+(1, 3, 0) (0, 3, 1)
+
+(2, 2, 0) (1, 2, 1) (0, 2, 2)
+
+(3, 1, 0) (2, 1, 1) (1, 1, 2) (0, 1, 3)
+
+ε = 2 h2
+
+ε = 0.1 h2
+
+(4, 0, 0) (3, 0, 1) (2, 0, 2) (1, 0, 3) (0, 0, 4)
+
+Fig. 6. Barycenters in Wasserstein space over [0, 1]2 , computed on 256 × 256 grids for ε = 0.1 h2 . Left Weights
+4 · (λ1 , λ2 , λ3 ) for shown barycenters. Center ‘Barycentric triangle’ spanned by a ring, a diamond and a square for
+weights on the left. Right Close-up of the λ = (1, 2, 1)/4 barycenter for ε = 2 h2 (as reported in [6]) and ε = 0.1 h2 ,
+computed with the adapted algorithm. The ε = 0.1 h2 version is much sharper, revealing discretization artifacts.
+
+
+−α
+ator only the exponential exp λ+ε
+needs to be evaluated, which remains bounded as ε → 0. Algorithm
+5 performs similarly with KL-fidelity as with fixed marginal constraints, allowing to efficiently solve large
+unbalanced transport problems. Since the truncation scheme can also be used with non-standard cost
+functions such as (2.3), this includes in particular the Wasserstein-Fisher-Rao (WFR) distance. Fig. 5
+shows a geodesic for the WFR distance, to intuitively illustrate its properties. The geodesic has been
+computed as weighted barycenters between its endpoints (see below). For a direct dynamic formulation
+we refer to [26, 13, 31]. For the relation to the KL soft-marginal formulation, Def. 6, see [31, 15].
+Wasserstein barycenters. Wasserstein barycenters as a natural generalization of the Riemannian center of mass have been studied in [1]. The computation of entropy regularized Wasserstein barycenters
+with a Sinkhorn-type scaling algorithm has been presented in [6], an alternative numerical approach can
+be found in [19]. The iterations can be considered as a special case of the framework in [14]. Here, we
+very briefly recall the iterations. Derivations and proofs can be found in [6].
+We want to compute the (entropy regularized) Wasserstein barycenter of a tuple (µ1 , . . . , µn ) ∈ RX×n
+over a common base space X = Y with metric d with non-negative weights (λ1 , . . . , λn ) that sum to one.
+The primal functional can be written as an optimization problem over a tuple (πi )ni=1 = (π1 , . . . , πn ) ∈
+R(X×X)×n of couplings, which requires a slight generalization of Def. 7, see [14]. It is given by
+E((πi )i ) = F1 ((PX πi )i ) + F2 ((PY πi )i ) +
+
+(5.2)
+
+n
+X
+
+λi KL(πi |K)
+
+i=1
+
+where
+F1 ((νi )i ) =
+
+n
+X
+i=1
+
+(
+ι{µi } (νi ),
+
+F2 ((νi )i ) =
+
+0
+if ∃ σ ∈ RX s.t. [σ = νi ∀ i = 1, . . . , n],
++∞ else.
+
+and K is the kernel (2.8) over X × X for the cost c = d2 . When an optimizer (πi† )i is found, the common
+second marginal of all πi† is the sought-after barycenter. To solve (5.2) one considers again a suitable dual
+24
+
+Fig. 7. Comparison of different barycenters models: First column Corner points of barycentric triangle. Each
+measure consists of three ‘groups’. Second column Wasserstein-Fisher-Rao barycenter for λ = (1, 2, 1)/4 for ε = 0.1 h2 .
+Third column Wasserstein barycenter between normalized reference measures for ε = 0.1 h2 . Unlike the ‘unbalanced’
+barycenters, here mass must be transferred between the different ‘groups’ of the reference measures. Fourth column
+Gaussian Hellinger-Kantorovich barycenter for ε = 6.55 h2 , as computed with Gaussian convolution without log-domain
+stabilization.
+
+problem and uses alternating optimization. Updates corresponding to F1 decompose into independent
+standard Sinkhorn iterations for each marginal, the update for F2 couples all marginals, see [6, 14]. The
+adaptations from Sect. 3 remain applicable. A barycentric triangle computed with Algorithm 5 is shown
+in Fig. 6. The log-domain stabilization allows to reach a lower final regularization ε as for example in
+[6]. Regularization can be made so small that discretization artifacts become visible. While this may not
+look entirely pleasing, it clearly gives a better approximation to the unregularized problem and illustrates
+that with log-domain stabilization entropy regularized numerical methods can produce sharp results.
+Wasserstein-Fisher-Rao barycenters. Similarly one can define barycenters for transport distances
+with KL marginal fidelity, which includes the Gaussian Hellinger-Kantorovich (GHK) distance and the
+Wasserstein-Fisher-Rao (WFR) distance (Def. 6). The primal functional is given by (5.2) with
+F1 ((νi )i ) = Λ ·
+
+n
+X
+
+λi KL(νi |µi ) ,
+
+F2 ((νi )i ) = inf Λ ·
+σ∈RX
+
+i=1
+
+n
+X
+
+λi KL(νi |σ) ,
+
+i=1
+
+where Λ > 0 is a global weight of the KL-fidelity. When a primal optimizer is found, the minimizing σ
+in F2 yields the sought-after barycenter. We refer to [14] for details. Partial optimization corresponding
+to F1 can again be done separately for each marginal, leading to KL fidelity updates as given by (5.1).
+The update corresponding to F2 is again coupled [14], adaptations from Sect. 3 remain applicable.
+Wasserstein Gradient Flows. In [36] diagonal scaling algorithms were extended to compute proximal steps for entropy regularized optimal transport to approximate gradient flows in Wasserstein space
+(cf. Sect. 1.1). This was then subsumed into the general framework of [14]. Here we given an example
+for the porous medium equation, for more details we refer to [36, 14]. Let
+X  µ(x) 
+X
+(5.3)
+µ 7→
+u L(x) L(x) +
+v(x) µ(x)
+F : P(X) → R,
+x∈X
+
+x∈X
+
+where u(s) = s2 , L is the discretized Lebesgue measure on X ⊂ Rd and v : X → R is a potential. Then,
+for some initial µ(0) ∈ P(X) and a time step size τ > 0 we iteratively construct a sequence (µ(`) )` where
+µ(`+1) is given by the proximal step of F with step size τ w.r.t. the entropy regularized Wasserstein
+distance on X from reference point µ(`) . Based on Def. 8, µ(`+1) can be computed as follows:
+
+(5.4)
+π (`+1) := argmin ι{µ(`) } (PX π) + 2 τ · F (PY π) + ε KL(π|K) ,
+µ(`+1) := PY π (`+1) ,
+π∈P(X 2 )
+
+where K is the kernel w.r.t. the squared Euclidean distance on X. Then introduce the time-continuous
+interpolation µ : R+ → P(X), t 7→ µ(`) when t ∈ [τ · `, τ · (` + 1)). Consider now the limit (τ, ε) → 0
+in a way such that ε| log ε| ≤ τ 2 . Then, up to discretization, the function µ converges to a solution
+25
+
+t = 1.0E-3
+
+t = 2.0E-3
+
+µ(t, (x1 , 0.5))
+
+t = 0.0E-3
+
+t = 0.0E-3
+t = 2.0E-3
+t = 4.0E-3
+
+1.0
+0.5
+0.0
+0.00
+
+t = 4.0E-3
+
+t = 5.0E-3
+µ(t, (x1 , 0.5))
+
+t = 3.0E-3
+
+0.25
+
+0.50
+x1
+
+0.75
+
+1.00
+
+0.2
+ε = 1E-5
+ε = 1E-4
+
+0.1
+
+0.0
+0.10
+
+0.15
+x1
+
+0.20
+
+Fig. 8. Left Entropic Wasserstein gradient flow for the porous media equation on [0, 1]2 , approximated by a 256 × 256
+grid with ε = 10−5 ≈ 0.66 h2 , τ = 2 · 10−4 . The energy is given by (5.3) with v((x1 , x2 )) = 100 · x1 if x = (x1 , x2 ) ∈ Ω,
+v(x) = +∞ otherwise and Ω = [0, 1]2 \ Ω̂ where Ω̂ is a ‘barrier’ indicated by the white rectangles. Top Right Cross section
+of density at different times along x2 = 0.5. Bottom Right Close-up for t = 4 · 10−3 for different values of regularization
+ε. For ε = 10−5 the compact support of µ, a characteristic feature of the porous media equation, is numerically well
+preserved. Without log-domain stabilization, for ε = 10−4 the entropic blur quickly distorts this feature.
+
+of the porous media PDE ∂t µ = ∆(µ2 ) + div(µ · ∇v). A proof is given in [12]. Problem (5.4) is an
+instance of Def. 7 and can be solved by alternating dual optimization [14]. A numerical example is shown
+in Fig. 8. As in the previous experiments, Algorithm 5 allows to use log-domain stabilization on large
+problems, producing sharp results. In this example, the compact support of the porous media equation
+is numerically well preserved.
+6. Conclusion. Scaling algorithms for entropy regularized transport-type problems have become a
+wide-spread numerical tool. Naive implementations have some severe numerical limitations, in particular
+for small regularization and on large problems. In this article, we proposed an enhanced variant of
+the standard scaling algorithm to address these issues: Diverging scaling factors and slow convergence
+are remedied by log-domain stabilization and ε-scaling. Required runtime and memory are significantly
+reduced by adaptive kernel truncation and a coarse-to-fine scheme. A new convergence analysis for the
+Sinkhorn algorithm was developed. Numerical examples showed the efficiency of the enhanced algorithm,
+confirmed the scaling predicted by the convergence analysis and demonstrated that the algorithm can
+produce sharp results on a wide range of transport-type problems. Potential directions for future research
+are the more detailed study of ε-scaling, a more systematic understanding of the stability of the log-domain
+stabilization and application to multi-marginal problems.
+Acknowledgements. Lénaïc Chizat, Luca Nenna and Gabriel Peyré are thanked for stimulating
+discussions. Bernhard Schmitzer was supported by the European Research Council (project SIGMAVision).
+Appendix A. Additional Proofs.
+A.1. Proof of Lemma 23. First, we establish existence of minimizers. For some ε > 0, d ∈ RR×R
+the functional β 7→ Jˆε,d (β) is convex and bounded from below. Further, it is invariant under adding the
+same constant to all components of β. Hence, the optimal value minβ Jˆε,d (β) is not changed by adding
+the constraint β(1) = 0. With this added constraint the functional becomes strictly convex and coercive
+in the remaining variables, hence a unique minimizer exists. The full set of minimizers is then obtained
+via constant shifts.
+The first order optimality condition for the functional yields for the i-th component of β:
+
+
+1
+β(i) =
+softmax(−d(i, j) + β(j), ε) + softmin(d(j, i) + β(j), ε) ,
+j:j6=i
+j:j6=i
+2
+where the subscript j : j 6= i denotes that softmax is taken only over components {1, . . . , R} \ {i}.
+Finiteness of d ensures that this expression is meaningful. Let i1 ∈ {1, . . . , R} be an index where ∆β is
+maximal, i.e. ∆β(i1 ) = max ∆β.
+26
+
+From the optimality conditions for βa (i1 ), a = 1, 2, and (1.3) we obtain:
+
+
+1
+†
+†
+†
+βa (i1 ) =
+softmax(−da (i1 , j) + βa (j), εa ) + softmin(da (j, i1 ) + βa (j), εa ) ,
+j:j6=i1
+2 j:j6=i1
+
+
+1
+∆β(i1 ) ≤
+max (−∆d(i1 , j) + ∆β(j)) + max (∆d(j, i1 ) + ∆β(j)) + (ε1 + ε2 ) · log R
+j:j6=i1
+2 j:j6=i1
+≤ max (w(i1 , j) + ∆β(j)) + ε1 log R
+j:j6=i1
+
+where w(i, j) = max{−∆d(i, j), ∆d(j, i)}. This implies there is some i2 ∈ {1, . . . , R} \ {i1 } with
+∆β(i2 ) ≥ ∆β(i1 ) − w(i1 , i2 ) − ε1 · log R .
+We will call the index i2 a child of i1 . We now repeat this reasoning to derive lower bounds for other
+entries of ∆β. For this we must ‘remove’ the index i2 from the problem, defining a reduced problem. Let
+I1 = {i1 , i2 } and let I2 = {1, . . . , R} \ I1 . We will keep all variables of β with indices in I2 , but describe
+all variables with indices in I1 by a single reduced variable. For this we consider vectors in R1+|I2 | , where
+we index the entries by {i1 } ∪ I2 . One can think of this as a vector in RR , where we have ‘crossed out’
+entries corresponding to I1 and replaced them by a single effective entry, indexed with i1 . For a = 1, 2 we
+consider the reduced functionals Jˆa : β̂ 7→ Jˆεa ,da (β̃a +B β̂) where β̃a ∈ RR is a constant offset, β̂ ∈ R1+|I2 |
+is the reduced variable and B ∈ RR×(1+|I2 |) is a matrix that implements the parametrization. We set
+
+(
+
+1 if j ∈ I1 , k = i1 ,
+†
+†
+βa (j) − βa (i1 ) if j ∈ I1 ,
+B(j, k) = 1 if j = k ∈ I2 ,
+β̃a (j) =
+
+0
+else,
+
+0 else.
+So the reduced functionals are given by
+X
+X
+Jˆa (β̂) =
+exp([−da (j, k) − β̃a (j) + β̃a (k)]/εa ) +
+exp([−da (j, k) − β̃a (j) − β̂(i1 ) + β̂(k)]/εa )
+j∈I1 ,
+k∈I1
+
++
+
+j∈I1 ,
+k∈I2
+
+X
+
+exp([−da (j, k) − β̂(j) + β̃a (k) + β̂(i1 )]/εa ) +
+
+j∈I2 ,
+k∈I1
+
+=
+
+X
+
+X
+
+exp([−da (j, k) − β̂(j) + β̂(k)]/εa )
+
+j∈I2 ,
+k∈I2
+
+exp([−Da (j, k) − β̂(j) + β̂(k)]/εa )
+
+j∈{i1 }∪I2 ,
+k∈{i1 }∪I2
+2
+
+with the reduced coefficient matrix Da ∈ R(1+|I2 |) with entries
+
+
+
+
+softmin
+d
+(r,
+s)
++
+β̃
+(r)
+−
+β̃
+(s),
+ε
+r∈I1 , s∈I1
+a
+a
+a
+a
+
+
+
+
+
+
+softmin
+r∈I1 da (r, k) + β̃a (r), εa
+
+
+Da (j, k) =
+
+
+softmin
+d
+(j,
+s)
+−
+β̃
+(s),
+ε
+s∈I1
+a
+a
+a
+
+
+
+
+da (j, k)
+
+if j = i1 , k = i1 ,
+if j = i1 , k ∈ I2 ,
+if j ∈ I2 , k = i1 ,
+if j ∈ I2 , k ∈ I2 .
+
+Consider the reduced variables β̂a† ∈ R1+|I2 | with entries
+(
+βa† (i1 ) if j = i1 ,
+†
+β̂a (j) =
+βa† (j) if j ∈ I2 .
+Then βa† = β̃a + B β̂a† and therefore β̂a† are minimizers of Jˆa . Note also that β̂2† (j) − β̂1† (j) = ∆β(j) for
+j ∈ {i1 } ∪ I2 . Using the optimality conditions for the reduced functionals and arguing as above, we find
+∆β(i1 ) ≤ max(W (i1 , k) + ∆β(k)) + ε1 log R
+k∈I2
+
+27
+
+where W (i1 , k) = max{−∆D(i1 , k), ∆D(k, i1 )} for k ∈ I2 and ∆D = D2 − D1 . With (1.3) we find
+−∆D(i1 , k) ≤ max(−∆d(j, k) − ∆β(j) + ∆β(i1 )) + ε2 log R ,
+j∈I1
+
+∆D(k, i1 ) ≤ max(∆d(k, j) − ∆β(j) + ∆β(i1 )) + ε1 log R
+j∈I1
+
+and eventually W (i1 , k) ≤ maxj∈I1 (w(j, k) − ∆β(j)) + ∆β(i1 ) + max{ε1 , ε2 } · log R. So there is some
+index i3 ∈ I2 such that
+∆β(i3 ) ≥ min (−w(j, i3 ) + ∆β(j)) − 2ε1 log R .
+j∈I1
+
+The index i3 will be called a child of the minimizing index j ∈ I1 on the r.h.s. (or one of the minimizing
+indices). Then we add i3 to the set I1 and repeat the argument with the reduced functional, to obtain
+an index i4 and repeat this until I1 contains all indices.
+Since we assign every new index ik that is added to I1 as a child to one parent node in I1 , this also
+constructs a tree graph with root node i1 (finiteness of d and consequently D implies that this graph is
+connected). For an index ik let (i1 , i2 , . . . , ik ) be the unique path from the root to ik . Then
+∆β(ik ) ≥ −
+
+k
+X
+
+w(ij−1 , ij ) + ∆β(i1 ) − 2 (k − 1) ε1 log R ≥ − maxdiam(w) + ∆β(i1 ) − 2 ε1 R log R .
+
+j=2
+
+Since ∆β(i1 ) = max ∆β the result follows.
+A.2. Proof of Theorem 20. Let π1 , π2 be the primal optimizers associated with (α1 , β1 ) and
+(α2 , β2 ) and consider the assignment graph for π1 and π2 and threshold 1/M (see Lemma 21). Let
+{(Xi , Yi )}R
+i=1 be the strongly connected components of the assignment graph. By virtue of Lemma
+21(iii), µ(Xi ) = ν(Yi ) for i = 1, . . . , R. Pick some representatives {yi }R
+i=1 ⊂ Y such that yi ∈ Yi for
+i = 1, . . . , R.
+For a = 1, 2, let now Jˆa be the reduced effective diagonal functionals, defined in Lemma 22, corresponding to spaces (X, Y ), marginals (µ, ν), parameters εa , cost c, the partitions given by the strongly
+connected components and the representatives {yi }R
+i=1 . Let da be the corresponding effective coefficients
+(finite, since c is finite), let β̂a† be two corresponding maximizers and let ∆d = d2 − d1 , ∆β̂ = β̂2† − β̂1† .
+By virtue of Lemma 23 one has max ∆β̂ − min ∆β̂ ≤ maxdiam(w) + 2 ε1 R log R, where w ∈ RR×R with
+w(i, j) = max{−∆d(i, j), ∆d(j, j)}.
+Now we derive some estimates on ∆d. Consider once more the assignment graph for π1 , π2 and
+threshold 1/M . For every edge y → x we have (using (2.11))
+α1 (x) + β1 (y) − c(x, y) ≥ −ε1 log M .
+Moreover, from the marginal conditions we find π2 (x, y) ≤ ν(y), which implies
+α2 (x) + β2 (y) − c(x, y) ≤ ε2 log M.
+Combining the two estimates, we obtain ∆α(x) + ∆β(y) ≤ (ε1 + ε2 ) log M ≤ 2ε1 log M := L. Similarly,
+for edges x → y we obtain ∆α(x) + ∆β(y) ≥ −(ε1 + ε2 ) log M ≥ −L. Let now (y1 , x1 , . . . , yk ) be an
+alternating path in (X, Y ), then, by combining the above inequalities we find ∆β(yj+1 ) ≥ ∆β(yj ) − 2 · L
+for j = 1, . . . , k − 1 and eventually
+∆β(yk ) − ∆β(y1 ) ≥ −2 · (k − 1) · L .
+Similarly, for a path (x1 , y2 , x2 , . . . , yk ) get ∆α(x1 )+∆β(yk ) ≥ −(2 k−1)·L, and for a path (y1 , x1 , . . . , yk ,
+xk ) get ∆α(xk ) + ∆β(y1 ) ≤ (2 k − 1) · L.
+Consider now a partition cell (Xi , Yi ) and let yi ∈ Yi be the selected ‘representative’, as described
+above. For every y ∈ Yi there is a path to and from yi with at most 2(|Yi | − 1) edges, for every x ∈ Xi
+28
+
+there is a path to and from yi with at most 2 |Yi | − 1 edges. With ∆α̃(x) = ∆α(x) + ∆β(yi ) and
+∆β̃(y) = ∆β(y) − ∆β(yi ) we therefore obtain
+|∆α̃(x)| ≤ (2 |Yi | − 1) · L,
+
+|∆β̃(y)| ≤ 2 (|Yi | − 1) · L.
+
+We recall (4.4)
+
+
+da (i, j) = softmin c(x, y) − α̃a (x) − β̃a (y) − εa log(µ(x) ν(y)), εa
+x∈Xi ,
+y∈Yj
+
+and get
+
+
+
+∆d(i, j) ≤ max −∆α̃(x) − ∆β̃(y) − ∆ε · log µ(x) ν(y) + ε1 · log |Xi | |Yj |
+x∈Xi ,
+y∈Yj
+
+
+≤ 4 |Yi | L + ε1 · log |Xi | |Yj |
+
+
+
+∆d(i, j) ≥ min −∆α̃(x) − ∆β̃(y) − ∆ε · log µ(x) ν(y) − ε2 · log |Xi | |Yj |
+x∈Xi ,
+y∈Yj
+
+
+≥ −4 |Yi | L − ε2 · log |Xi | |Yj |
+where we used |∆ε log(µ(x) ν(y))| ≤ 2ε1 log M = L. From this follows that w(i, j) ≤ 8 max{|Yi |, |Yj |} ·
+ε1 log M + 2 ε1 log N , which in turn implies that maxdiam(w) ≤ 16 ε1 N log M + 2 ε1 R log N .
+Recall that ∆β̂ = β̂2† − β̂1† , where β̂a† , a = 1, 2, are the optimizers of the effective diagonal problems.
+Then from Lemma 23, and by bounding R ≤ N we obtain that
+max ∆β̂ − min ∆β̂ ≤ ε1 N (4 log N + 16 log M )
+and finally with max ∆β − min ∆β ≤ max ∆β̃ − min ∆β̃ + max ∆β̂ − min ∆β̂ we get
+max ∆β − min ∆β ≤ ε1 N (4 log N + 24 log M ),
+and analogously we get the equivalent bound for ∆α.
+REFERENCES
+[1] M. Agueh and G. Carlier, Barycenters in the Wasserstein space, SIAM J. Math. Anal., 43 (2011), pp. 904–924.
+[2] R. K. Ahuja, T. L. Magnanti, and J. B. Orlin., Network Flows: Theory, Algorithms, and Applications, PrenticeHall, Inc., 1993.
+[3] L. Ambrosio, N. Gigli, and G. Savaré, Gradient Flows in Metric Spaces and in the Space of Probability Measures,
+Lectures in Mathematics, Birkhäuser Boston, 2005.
+[4] H. H. Bauschke and P. L. Combettes, Convex Analysis and Monotone Operator Theory in Hilbert Spaces, CMS
+Books in Mathematics, Springer, 1st ed., 2011.
+[5] J.-D. Benamou and Y. Brenier, A computational fluid mechanics solution to the Monge-Kantorovich mass transfer
+problem, Numerische Mathematik, 84 (2000), pp. 375–393.
+[6] J.-D. Benamou, G. Carlier, M. Cuturi, L. Nenna, and G. Peyré, Iterative Bregman projections for regularized
+transportation problems, SIAM J. Sci. Comput., 37 (2015), pp. A1111–A1138, https://hal.archives-ouvertes.fr/
+hal-01096124.
+[7] J.-D. Benamou, F. Collino, and J.-M. Mirebeau, Monotone and consistent discretization of the Monge–Ampère
+operator. arxiv:1409.6694.
+[8] J.-D. Benamou, B. D. Froese, and A. M. Oberman, Numerical solution of the optimal transportation problem
+using the Monge–Ampère equation, Journal of Computational Physics, 260 (2014), pp. 107–126.
+[9] D. P. Bertsekas, The auction algorithm: A distributed relaxation method for the assignment problem, Annals of
+Operations Research, 14 (1988), pp. 105–123.
+[10] D. P. Bertsekas and J. Eckstein, Dual coordinate step methods for linear network flow problems, Mathematical
+Programming, Series B, 42 (1988), pp. 203–243.
+[11] Y. Brenier, Polar factorization and monotone rearrangement of vector-valued functions, Comm. Pure Appl. Math.,
+44 (1991), pp. 375–417.
+[12] G. Carlier, V. Duval, G. Peyré, and B. Schmitzer, Convergence of entropic schemes for optimal transport and
+gradient flows, SIAM J. Math. Anal., 49 (2017), pp. 1385–1418.
+29
+
+[13] L. Chizat, G. Peyré, B. Schmitzer, and F.-X. Vialard, An interpolating distance between optimal transport
+and Fisher–Rao metrics, Found. Comp. Math., (2016).
+[14] L. Chizat, G. Peyré, B. Schmitzer, and F.-X. Vialard, Scaling algorithms for unbalanced optimal transport
+problems, Math. Comp., 87 (2018), pp. 2563–2609, https://doi.org/10.1090/mcom/3303.
+[15] L. Chizat, G. Peyré, B. Schmitzer, and F.-X. Vialard, Unbalanced optimal transport: Dynamic and Kantorovich formulations, J. Funct. Anal., 27 (2018), pp. 3090–3123, https://doi.org/10.1016/j.jfa.2018.03.008.
+[16] R. Cominetti and J. San Martin, Asymptotic analysis of the exponential penalty trajectory in linear programming,
+Mathematical Programming, 67 (1992), pp. 169–187.
+[17] M. Cuturi, Sinkhorn distances: Lightspeed computation of optimal transportation distances, in Advances in Neural
+Information Processing Systems 26 (NIPS 2013), 2013, pp. 2292–2300.
+[18] M. Cuturi and D. Avis, Ground metric learning, Journal of Machine Learning Research, 15 (2014), pp. 533–564.
+[19] M. Cuturi and A. Doucet, Fast computation of Wasserstein barycenters, in International Conference on Machine
+Learning, 2014.
+[20] J. H. Fitschen, F. Laus, and G. Steidl, Transport between RGB images motivated by dynamic optimal transport,
+J. Math. Imaging Vis., (2016).
+[21] J. Franklin and J. Lorenz, On the scaling of multidimensional matrices, Linear Algebra and its Applications,
+114–115 (1989), pp. 717–735.
+[22] A. V. Goldberg and R. E. Tarjan, Finding minimum-cost circulations by successive approximation, Math. Oper.
+Res., 15 (1990), pp. 430–466.
+[23] S. Haker, L. Zhu, A. Tannenbaum, and S. Angenent, Optimal mass transport for registration and warping, Int.
+J. Comp. Vision, 60 (2004), pp. 225–240.
+[24] R. Jordan, D. Kinderlehrer, and F. Otto, The variational formulation of the Fokker-Planck equation, SIAM
+J. Math. Anal., 29 (1998), pp. 1–17.
+[25] P. A. Knight, The Sinkhorn-Knopp algorithm: Convergence and applications, SIAM. J. Matrix Anal. & Appl., 30
+(2008), pp. 261–275.
+[26] S. Kondratyev, L. Monsaingeon, and D. Vorotnikov, A new optimal transport distance on the space of finite
+Radon measures, Adv. Differential Equations, 21 (2016), pp. 1117–1164.
+[27] J. Kosowsky and A. Yuille, The invisible hand algorithm: Solving the assignment problem with statistical physics,
+Neural Networks, 7 (1994), pp. 477–490.
+[28] H. W. Kuhn, The Hungarian method for the assignment problem, Naval Research Logistics, 2 (1955), pp. 83–97.
+[29] C. Léonard, From the Schrödinger problem to the Monge–Kantorovich problem, Journal of Functional Analysis, 262
+(2012), pp. 1879–1920.
+[30] B. Lévy, A numerical algorithm for L2 semi-discrete optimal transport in 3D, ESAIM Math. Model. Numer. Anal.,
+49 (2015), pp. 1693–1715.
+[31] M. Liero, A. Mielke, and G. Savaré, Optimal entropy-transport problems and a new Hellinger–Kantorovich
+distance between positive measures. arxiv:1508.07941, 2015.
+[32] J. Maas, M. Rumpf, C. Schönlieb, and S. Simon, A generalized model for optimal transport of images including
+dissipation and density modulation, ESAIM Math. Model. Numer. Anal., 49 (2015), pp. 1745–1769.
+[33] M. Mandad, D. Cohen-Steiner, L. Kobbelt, P. Alliez, and M. Desbrun, Variance-minimizing transport plans
+for inter-surface mapping. https://hal.inria.fr/hal-01519006/, 2017.
+[34] Q. Mérigot, A multiscale approach to optimal transport, Computer Graphics Forum, 30 (2011), pp. 1583–1592.
+[35] A. M. Oberman and Y. Ruan, An efficient linear programming method for optimal transportation. arxiv:1509.03668,
+2015.
+[36] G. Peyré, Entropic approximation of Wasserstein gradient flows, SIAM J. Imaging Sci., 8 (2015), pp. 2323–2351.
+[37] J. Rabin and N. Papadakis, Convex color image segmentation with optimal transport distances, in Scale Space and
+Variational Methods (SSVM 2015), 2015, pp. 256–268.
+[38] Y. Rubner, C. Tomasi, and L. J. Guibas, The earth mover’s distance as a metric for image retrieval, Int. J.
+Comp. Vision, 40 (2000), pp. 99–121.
+[39] F. Santambrogio, Optimal Transport for Applied Mathematicians, vol. 87 of Progress in Nonlinear Differential
+Equations and Their Applications, Birkhäuser Boston, 2015.
+[40] B. Schmitzer, A sparse multi-scale algorithm for dense optimal transport, J. Math. Imaging Vis., 56 (2016), pp. 238–
+259.
+[41] B. Schmitzer and C. Schnörr, A hierarchical approach to optimal transport, in Scale Space and Variational
+Methods (SSVM 2013), 2013, pp. 452–464.
+[42] B. Schmitzer and C. Schnörr, Globally optimal joint image segmentation and shape matching based on Wasserstein
+modes, J. Math. Imaging Vis., 52 (2015), pp. 436–458, https://doi.org/10.1007/s10851-014-0546-8.
+[43] M. Sharify, S. Gaubert, and L. Grigori, Solution of the optimal assignment problem by diagonal scaling algorithms. arxiv:1104.3830v2, 2013.
+[44] R. D. Sinkhorn and P. J. Knopp, Concerning nonnegative matrices and doubly stochastic matrices, Pacific J.
+Math, 21 (1967), pp. 343–348.
+[45] J. Solomon, F. de Goes, G. Peyré, M. Cuturi, A. Butscher, A. Nguyen, T. Du, and L. Guibas, Convolutional Wasserstein distances: Efficient optimal transportation on geometric domains, ACM Transactions on
+Graphics (Proc. of SIGGRAPH 2015), 34 (2015), pp. 66:1–66:11, http://hal.archives-ouvertes.fr/hal-01188953.
+[46] M. Thorpe, S. Park, S. Kolouri, G. K. Rohde, and D. Slepčev, A transportation Lp distance for signal
+analysis, J. Math. Imaging Vis., (2017), https://doi.org/10.1007/s10851-017-0726-4.
+[47] C. Villani, Optimal Transport: Old and New, vol. 338 of Grundlehren der mathematischen Wissenschaften, Springer,
+2009.
+30
+
+

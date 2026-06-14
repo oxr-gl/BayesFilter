@@ -1,0 +1,104 @@
+{
+  "run_id": "dpf-v2-algorithm-full-comparison-live-20260608-012812",
+  "metadata_date": "2026-06-07",
+  "phase": "P0",
+  "status": "PASS_P0_READY_FOR_P1",
+  "decision": "PASS_P0_READY_FOR_P1",
+  "question": "Are the governance, artifact, non-oracle, and stop-condition rules strong enough to launch the full BF/FilterFlow algorithm comparison for bootstrap-OT and LEDH-PFPF-OT across all V2 rows?",
+  "required_v2_model_ids": [
+    "lgssm_2d_h25_rich",
+    "sv_1d_h18_rich",
+    "range_bearing_4d_h20_rich",
+    "structural_ar1_quadratic_h16",
+    "spatial_sir_j3_rk4",
+    "predator_prey_rk4"
+  ],
+  "governance_gate_status_by_row": {
+    "lgssm_2d_h25_rich": "PASS",
+    "sv_1d_h18_rich": "PASS",
+    "range_bearing_4d_h20_rich": "PASS",
+    "structural_ar1_quadratic_h16": "PASS",
+    "spatial_sir_j3_rk4": "PASS",
+    "predator_prey_rk4": "PASS"
+  },
+  "primary_criterion_status": {
+    "additive_program_not_closed_v2_reinterpretation": "PASS",
+    "all_phase_subplans_exist": "PASS",
+    "master_phase_table_paths_exist": "PASS",
+    "six_v2_rows_preserved_in_order": "PASS",
+    "expected_v2_model_ids_match_fixture": "PASS",
+    "filterflow_mutation_forbidden_and_current_checkout_clean": "PASS",
+    "student_code_out_of_scope": "PASS",
+    "full_success_requires_all_rows_and_gradient_knobs": "PASS",
+    "cpu_only_tensorflow_policy_recorded": "PASS",
+    "artifact_contract_recorded": "PASS"
+  },
+  "veto_diagnostics": {
+    "missing_phase_path": "PASS",
+    "old_v2_deterministic_closeout_substituted": "PASS",
+    "oracle_treatment_allowed": "PASS",
+    "finite_difference_gradient_promotion_allowed": "PASS",
+    "post_result_contract_weakening_allowed": "PASS",
+    "filterflow_mutation": "PASS",
+    "student_command_or_student_metric": "PASS",
+    "unexecuted_required_row_allowed_for_full_success": "PASS"
+  },
+  "explanatory_only_diagnostics": {
+    "root_head": "137f6ba5a03ebab199c8ab4699354d50bd560123",
+    "filterflow_head": "1e5fbc288c1c11fc18ba01bb4842832e2088b800",
+    "filterflow_status_short_line_count": 0,
+    "root_status_short_line_count": 1178,
+    "untracked_docs_experiments_scripts_line_count": 1249,
+    "protected_prelaunch_dirty_tracked_files": [
+      "docs/chapters/ch34_highdim_gaussian_and_sparse_quadrature.tex",
+      "docs/plans/bayesfilter-student-dpf-baseline-master-program-2026-05-10.md",
+      "docs/plans/bayesfilter-student-dpf-baseline-reset-memo-2026-05-09.md",
+      "docs/references.bib",
+      "experiments/controlled_dpf_baseline/README.md",
+      "experiments/student_dpf_baselines/reports/outputs/student_baseline_panel_2026-05-10.json"
+    ],
+    "tensorflow_commands_run": false,
+    "student_implementation_commands_run": false,
+    "numerical_values_or_gradients_computed": false
+  },
+  "source_checksums": {
+    "master_program_sha256": "40cdaa54f60f1e947f51996d73f4f87a801d38e906488dccbf47264939630b9b",
+    "live_execution_plan_sha256": "aa897522b7f013563f733d3d4672774cb5ffec96540d8f79e84e564efd8e07da",
+    "p0_subplan_sha256": "c33e5ad03ae3a16c9ec12458087fcb17b002465ded2e69d466ece6b76ccc9558",
+    "common_model_suite_tf_sha256": "c1caf4ef9896126031b396f591aea03e6f3a4014bfab799a93bcfba543f532b8",
+    "live_gate_script_sha256": "e993b8b424d1dcf6a4289507419b70b0f7316f3c6dfa60747ea16a92f28c31d6",
+    "filterflow_prelaunch_file_sha256_manifest_sha256": "31a848a733aa9d14b071a2f5efc3fe33d9d36dfeed39f301ad110ab731970636",
+    "protected_dirty_worktree_manifest_sha256": "649d0604457b3a74402b19c80babb6785e2bac17910d7fc5ce03a51ca6f682ca",
+    "protected_dirty_index_manifest_sha256": "7ba1e424094e4f9087a4c1b9c246b1b7c68173b43b926d252c799ce826d550e7",
+    "p0_governance_check_log_sha256": "961174739736f23ddf41d29655e48abf140dae34e7608de455aed13d7b48ac6a"
+  },
+  "phase_subplan_paths": {
+    "P0": "docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p0-governance-subplan-2026-06-07.md",
+    "P1": "docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p1-architecture-subplan-2026-06-07.md",
+    "P2": "docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p2-bootstrap-ot-contracts-subplan-2026-06-07.md",
+    "P3": "docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p3-bootstrap-ot-values-subplan-2026-06-07.md",
+    "P4": "docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p4-bootstrap-ot-gradients-subplan-2026-06-07.md",
+    "P5": "docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p5-ledh-pfpf-ot-contracts-subplan-2026-06-07.md",
+    "P6": "docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p6-ledh-pfpf-ot-values-subplan-2026-06-07.md",
+    "P7": "docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p7-ledh-pfpf-ot-gradients-subplan-2026-06-07.md",
+    "P8": "docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p8-closeout-subplan-2026-06-07.md"
+  },
+  "artifacts": {
+    "local_skeptical_phase_audit": "docs/plans/logs/dpf-v2-algorithm-full-comparison-live-20260608-012812/P0-local-skeptical-phase-audit.md",
+    "command_log": "docs/plans/logs/dpf-v2-algorithm-full-comparison-live-20260608-012812/P0-governance-check.log",
+    "command_manifest": "docs/plans/logs/dpf-v2-algorithm-full-comparison-live-20260608-012812/P0-command-manifest.json",
+    "json": "experiments/dpf_implementation/reports/outputs/dpf_v2_algorithm_full_comparison_p0_governance_2026-06-07.json",
+    "markdown_report": "experiments/dpf_implementation/reports/dpf-v2-algorithm-full-comparison-p0-governance-2026-06-07.md",
+    "result_ledger": "docs/plans/bayesfilter-dpf-v2-algorithm-full-bf-filterflow-comparison-p0-governance-result-2026-06-07.md"
+  },
+  "non_claims": [
+    "P0 does not establish any BayesFilter value match.",
+    "P0 does not establish any FilterFlow value match.",
+    "P0 does not establish any gradient match.",
+    "P0 does not establish filtering correctness.",
+    "P0 does not establish scientific correctness of bootstrap-OT or LEDH-PFPF-OT.",
+    "P0 does not make a student implementation claim.",
+    "P0 does not make a TT/SIRT, dense quadrature, paper-table, simulated-truth, GPU, HMC, DSGE, scalability, deployment, or production-readiness claim."
+  ],
+  "next_allowed_action": "Proceed to P1 only after the live shell supervisor records a read-only reviewer PASS for P0."
+}

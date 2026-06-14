@@ -1,0 +1,173 @@
+{
+  "artifact": "filterflow_py311_compat_2026-05-30",
+  "date": "2026-05-30",
+  "repo": "/home/chakwong/BayesFilter",
+  "plan": "docs/plans/bayesfilter-dpf-filterflow-py311-compat-plan-2026-05-30.md",
+  "result": "docs/plans/bayesfilter-dpf-filterflow-py311-compat-result-2026-05-30.md",
+  "report": "experiments/dpf_implementation/reports/filterflow-py311-compat-2026-05-30.md",
+  "filterflow": {
+    "path": ".localsource/filterflow",
+    "upstream_commit": "5d8300ba247c4c17e1a301a22560c24fd0670bfe",
+    "branch": "bayesfilter-py311-compat",
+    "changed_files": [
+      "scripts/base.py",
+      "scripts/simple_linear_common.py",
+      "scripts/simple_linear_smoothness.py"
+    ]
+  },
+  "claude_review": {
+    "plan_iterations": [
+      {
+        "iteration": 1,
+        "status": "REJECT",
+        "codex_audit": "Agreed; added wrapper-level dense/masked triangular-solve equivalence checks and exact upstream commit gate."
+      },
+      {
+        "iteration": 2,
+        "status": "ACCEPT",
+        "codex_audit": "Accepted for the two SciPy wrapper changes."
+      },
+      {
+        "iteration": 3,
+        "status": "ACCEPT",
+        "codex_audit": "Accepted after Python 3.11 inspect.getargspec pykalman blocker required a minimal single-site shim."
+      }
+    ],
+    "result_iterations": [
+      {
+        "iteration": 1,
+        "status": "REJECT",
+        "codex_audit": "Agreed; added exact command ledger, raw status/diff evidence, and removed stale pending status."
+      },
+      {
+        "iteration": 2,
+        "status": "REJECT",
+        "codex_audit": "Agreed as bookkeeping-only; artifacts showed only the prior rejection and no current review iteration."
+      },
+      {
+        "iteration": 3,
+        "status": "ACCEPT",
+        "codex_audit": "Accepted; Claude noted the wrapper-equivalence command is summarized, but the cases, outputs, and cross-artifact consistency are sufficient for compatibility-only evidence."
+      }
+    ]
+  },
+  "source_gate": {
+    "pre_patch_branch_status": "## master...origin/master",
+    "pre_patch_commit": "5d8300ba247c4c17e1a301a22560c24fd0670bfe",
+    "post_patch_branch_status": "## bayesfilter-py311-compat\n M scripts/base.py\n M scripts/simple_linear_common.py\n M scripts/simple_linear_smoothness.py",
+    "diff_summary": "3 files changed, 13 insertions(+), 5 deletions(-)",
+    "diff_check": "pass"
+  },
+  "command_ledger": {
+    "py_compile": "python -m py_compile .localsource/filterflow/scripts/base.py .localsource/filterflow/scripts/simple_linear_common.py .localsource/filterflow/scripts/simple_linear_smoothness.py",
+    "wrapper_equivalence": ".localenv/filterflow-py311/bin/python -c 'exec(\"\"\"... dense/upper/masked FakeKF triangular-solve equivalence check ...\"\"\")'",
+    "import_check": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=.cache/filterflow-mpl PYTHONPATH=.localsource/filterflow .localenv/filterflow-py311/bin/python -c \"from scripts.simple_linear_common import get_data; from scripts.simple_linear_comparison import main; print('import_ok')\"",
+    "kalman": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=.cache/filterflow-mpl PYTHONPATH=.localsource/filterflow .localenv/filterflow-py311/bin/python -c \"from scripts.simple_linear_comparison import main; from scripts.simple_linear_common import ResamplingMethodsEnum; main(ResamplingMethodsEnum.KALMAN, 0.5, T=150, batch_size=100, n_particles=25, data_seed=111, filter_seed=555, savefig=False)\"",
+    "pf": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=.cache/filterflow-mpl PYTHONPATH=.localsource/filterflow .localenv/filterflow-py311/bin/python -c \"from scripts.simple_linear_comparison import main; from scripts.simple_linear_common import ResamplingMethodsEnum; main(ResamplingMethodsEnum.MULTINOMIAL, 0.5, T=150, batch_size=100, n_particles=25, data_seed=111, filter_seed=555, savefig=False)\"",
+    "regularized_template": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=.cache/filterflow-mpl PYTHONPATH=.localsource/filterflow .localenv/filterflow-py311/bin/python -c \"from scripts.simple_linear_comparison import main; from scripts.simple_linear_common import ResamplingMethodsEnum; main(ResamplingMethodsEnum.REGULARIZED, 0.5, T=150, batch_size=100, n_particles=25, data_seed=111, filter_seed=555, savefig=False, resampling_kwargs=dict(epsilon=EPS, scaling=0.9, convergence_threshold=1e-3))\""
+  },
+  "environment": {
+    "path": ".localenv/filterflow-py311",
+    "python": "3.11.14",
+    "numpy": "1.26.4",
+    "scipy": "1.17.1",
+    "tensorflow": "2.19.1",
+    "tensorflow_probability": "0.25.0",
+    "pykalman": "0.9.5",
+    "cpu_only_env": "CUDA_VISIBLE_DEVICES=-1",
+    "matplotlib_cache": ".cache/filterflow-mpl"
+  },
+  "compatibility_checks": {
+    "py_compile": "pass",
+    "simple_linear_import_without_caller_shim": "pass",
+    "triangular_solve_equivalence": [
+      {"wrapper": "scripts.base", "case": "dense_lower", "status": "pass"},
+      {"wrapper": "scripts.base", "case": "dense_upper", "status": "pass"},
+      {"wrapper": "scripts.base", "case": "masked_lower", "status": "pass"},
+      {"wrapper": "scripts.simple_linear_smoothness", "case": "dense_lower", "status": "pass"},
+      {"wrapper": "scripts.simple_linear_smoothness", "case": "dense_upper", "status": "pass"},
+      {"wrapper": "scripts.simple_linear_smoothness", "case": "masked_lower", "status": "pass"}
+    ]
+  },
+  "simple_linear_lgssm_settings": {
+    "state_dimension": 2,
+    "observation_dimension": 2,
+    "true_transition_matrix": "0.5 * I_2",
+    "transition_covariance": "I_2",
+    "observation_matrix": "I_2",
+    "observation_covariance": "0.1 * I_2",
+    "theta_grid": [
+      [0.25, 0.25],
+      [0.5, 0.5],
+      [0.75, 0.75]
+    ],
+    "T": 150,
+    "batch_size": 100,
+    "n_particles": 25,
+    "data_seed": 111,
+    "filter_seed": 555,
+    "resampling_neff": 0.5
+  },
+  "runs": [
+    {
+      "method": "KALMAN",
+      "status": "pass",
+      "printed_quantity": "loglikelihood / T",
+      "rows": [
+        {"theta": 0.25, "value": -3.052},
+        {"theta": 0.5, "value": -2.958},
+        {"theta": 0.75, "value": -3.015}
+      ]
+    },
+    {
+      "method": "MULTINOMIAL",
+      "status": "pass",
+      "printed_quantity": "final_state.log_likelihoods / T",
+      "rows": [
+        {"theta": 0.25, "mean": -4.077, "std": 0.176},
+        {"theta": 0.5, "mean": -3.818, "std": 0.153},
+        {"theta": 0.75, "mean": -3.938, "std": 0.198}
+      ]
+    },
+    {
+      "method": "REGULARIZED",
+      "epsilon": 0.25,
+      "status": "pass",
+      "printed_quantity": "final_state.log_likelihoods / T",
+      "rows": [
+        {"theta": 0.25, "mean": -4.077, "std": 0.179},
+        {"theta": 0.5, "mean": -3.815, "std": 0.155},
+        {"theta": 0.75, "mean": -3.93, "std": 0.193}
+      ]
+    },
+    {
+      "method": "REGULARIZED",
+      "epsilon": 0.5,
+      "status": "pass",
+      "printed_quantity": "final_state.log_likelihoods / T",
+      "rows": [
+        {"theta": 0.25, "mean": -4.078, "std": 0.179},
+        {"theta": 0.5, "mean": -3.817, "std": 0.154},
+        {"theta": 0.75, "mean": -3.938, "std": 0.19}
+      ]
+    },
+    {
+      "method": "REGULARIZED",
+      "epsilon": 0.75,
+      "status": "pass",
+      "printed_quantity": "final_state.log_likelihoods / T",
+      "rows": [
+        {"theta": 0.25, "mean": -4.078, "std": 0.178},
+        {"theta": 0.5, "mean": -3.818, "std": 0.154},
+        {"theta": 0.75, "mean": -3.943, "std": 0.189}
+      ]
+    }
+  ],
+  "not_concluded": [
+    "full Corenflos Section 5.1 reproduction",
+    "BayesFilter OT-DPF correctness",
+    "posterior correctness",
+    "production readiness"
+  ],
+  "next_action": "Use the bayesfilter-py311-compat filterflow branch for the matched cross-implementation LGSSM audit."
+}

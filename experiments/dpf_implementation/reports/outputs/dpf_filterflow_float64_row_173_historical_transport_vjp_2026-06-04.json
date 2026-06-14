@@ -1,0 +1,4053 @@
+{
+  "bayesfilter_history": {
+    "backend": "tensorflow_tensorflow_probability",
+    "cpu_only_manifest": {
+      "cuda_visible_devices": "-1",
+      "gpu_devices_visible": [],
+      "pre_import_cuda_visible_devices": "-1"
+    },
+    "cumulative_transport_vjp_diag": [
+      182090.64027914507,
+      -12406.684509265919
+    ],
+    "history_length": 94,
+    "resampling_flags": [
+      [
+        false
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ]
+    ],
+    "settings": {
+      "T": 100,
+      "dtype": "float64",
+      "mesh_index": 173,
+      "n_particles": 50,
+      "target_time_index": 93,
+      "theta": [
+        0.9710526315789474,
+        0.9842105263157894
+      ],
+      "transport_backward": "FilterFlow custom gradient clips d_transport to [-1,1]"
+    },
+    "status": "executed",
+    "stderr_excerpt": "",
+    "target_scalar": -141.71711568080488,
+    "total_gradient_diag": [
+      9110.446610302024,
+      56.9898732897215
+    ]
+  },
+  "comparator_drift": false,
+  "created_at_utc": "2026-06-04T15:16:07Z",
+  "decision": "filterflow_float64_row_173_historical_transport_h3_upstreams_or_masks_diverge",
+  "decision_table": [
+    {
+      "decision": "filterflow_float64_row_173_historical_transport_h3_upstreams_or_masks_diverge",
+      "main_uncertainty": "single row and target time; no global gradient claim",
+      "next_justified_action": "inspect first historical upstream or clip-mask divergence",
+      "not_concluded": "correctness, posterior correctness, production readiness, global gradient agreement",
+      "primary_criterion_status": "h3_transport_upstreams_or_masks_diverge_historically",
+      "veto_diagnostic_status": "{'all_vetoes_clear': True, 'comparator_drift': False, 'path_boundary_clean': True, 'scalar_value_gate_pass': True, 'all_resampling_flags_match': True, 'all_transport_vjps_finite': True, 'all_upstreams_finite': True, 'cpu_only_parent': True}"
+    }
+  ],
+  "evidence_contract": {
+    "artifact": "experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_row_173_historical_transport_vjp_2026-06-04.json",
+    "baseline": "local canonical executable float64 FilterFlow reference",
+    "explanatory_diagnostics": [
+      "top per-time VJP deltas",
+      "clip counts",
+      "historical upstream tensor deltas",
+      "clip-mask mismatch counts",
+      "residual norm reduction"
+    ],
+    "not_concluded": [
+      "No correctness claim is made for either implementation.",
+      "No analytic gradient correctness is concluded.",
+      "No posterior correctness is concluded.",
+      "No global gradient agreement is concluded.",
+      "No full mesh or surface agreement is concluded.",
+      "No production readiness or public API readiness is concluded."
+    ],
+    "primary_criterion": "full scalar-gradient residual minus cumulative transport VJP delta",
+    "question": "Do accumulated historical transport VJP deltas reconstruct row 173?",
+    "veto_diagnostics": [
+      "comparator drift",
+      "resampling flag mismatch",
+      "scalar value mismatch",
+      "non-finite transport VJPs",
+      "CPU-only policy failure",
+      "path boundary contamination"
+    ]
+  },
+  "filterflow_fingerprint_final": {
+    "branch_ref_exists": true,
+    "branch_string_status": "descriptive_only",
+    "diff_digest": "12ae32cb1ec02d01eda3581b127c1fee3b0dc53572ed6baf239721a03d82e126",
+    "head_commit": "1e5fbc288c1c11fc18ba01bb4842832e2088b800",
+    "package_manifest_digest": "51fe9cee75a907b7fe54709b2ebbbc48470a8e6291967dbb10bebf00ebef7a86",
+    "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+    "provenance_note": "Comparator identity is HEAD commit plus local-diff/status fingerprint; branch string is descriptive only.",
+    "python_version": "Python 3.11.14",
+    "status": "current_local_patched_checkout",
+    "status_branch": "## bayesfilter-py311-float64-reference",
+    "status_short": "",
+    "symbolic_head": "bayesfilter-py311-float64-reference"
+  },
+  "filterflow_fingerprint_initial": {
+    "branch_ref_exists": true,
+    "branch_string_status": "descriptive_only",
+    "diff_digest": "12ae32cb1ec02d01eda3581b127c1fee3b0dc53572ed6baf239721a03d82e126",
+    "head_commit": "1e5fbc288c1c11fc18ba01bb4842832e2088b800",
+    "package_manifest_digest": "51fe9cee75a907b7fe54709b2ebbbc48470a8e6291967dbb10bebf00ebef7a86",
+    "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+    "provenance_note": "Comparator identity is HEAD commit plus local-diff/status fingerprint; branch string is descriptive only.",
+    "python_version": "Python 3.11.14",
+    "status": "current_local_patched_checkout",
+    "status_branch": "## bayesfilter-py311-float64-reference",
+    "status_short": "",
+    "symbolic_head": "bayesfilter-py311-float64-reference"
+  },
+  "filterflow_history": {
+    "backend": "executable_filterflow_subprocess",
+    "cpu_only_manifest": {
+      "cuda_visible_devices": "-1",
+      "gpu_devices_visible": [],
+      "pre_import_cuda_visible_devices": "-1"
+    },
+    "cumulative_transport_vjp_diag": [
+      182094.5135869977,
+      -12406.717812937466
+    ],
+    "history_length": 94,
+    "resampling_flags": [
+      [
+        false
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ],
+      [
+        true
+      ]
+    ],
+    "settings": {
+      "T": 100,
+      "dtype": "float64",
+      "mesh_index": 173,
+      "n_particles": 50,
+      "target_time_index": 93,
+      "theta": [
+        0.9710526315789474,
+        0.9842105263157894
+      ],
+      "transport_backward": "FilterFlow custom gradient clips d_transport to [-1,1]"
+    },
+    "status": "executed",
+    "stderr_excerpt": "t computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.\n2026-06-04 23:11:18.030781: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:467] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered\nWARNING: All log messages before absl::InitializeLog() is called are written to STDERR\nE0000 00:00:1780585878.041756     119 cuda_dnn.cc:8579] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered\nE0000 00:00:1780585878.044662     119 cuda_blas.cc:1407] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered\nW0000 00:00:1780585878.054625     119 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.\nW0000 00:00:1780585878.054678     119 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.\nW0000 00:00:1780585878.054682     119 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.\nW0000 00:00:1780585878.054684     119 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.\n2026-06-04 23:11:18.057813: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.\nTo enable the following instructions: SSE4.1 SSE4.2 AVX AVX2 AVX512F AVX512_VNNI AVX512_BF16 AVX_VNNI FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.\n2026-06-04 23:11:20.554737: E external/local_xla/xla/stream_executor/cuda/cuda_platform.cc:51] failed call to cuInit: INTERNAL: CUDA error: Failed call to cuInit: UNKNOWN ERROR (100)\n",
+    "target_scalar": -141.71711568701727,
+    "total_gradient_diag": [
+      9105.143875898348,
+      57.123649814928335
+    ]
+  },
+  "filterflow_status": {
+    "branch": "bayesfilter-py311-float64-reference",
+    "commit": "1e5fbc288c1c11fc18ba01bb4842832e2088b800",
+    "dtype": "float64",
+    "expected_commit": "1e5fbc288c1c11fc18ba01bb4842832e2088b800",
+    "marker_path": "/home/chakwong/BayesFilter/.localsource/filterflow/BAYESFILTER_FLOAT64_REFERENCE.md",
+    "path": "/home/chakwong/BayesFilter/.localsource/filterflow",
+    "status_branch": "## bayesfilter-py311-float64-reference",
+    "status_short": ""
+  },
+  "historical_transport_comparison": {
+    "all_resampling_flags_match": true,
+    "all_transport_vjps_finite": true,
+    "all_upstreams_finite": true,
+    "cumulative_transport_vjp_delta": [
+      -3.8733078526274767,
+      0.03330367154740088
+    ],
+    "explained_fraction_by_max_abs_norm": -0.7304359520518555,
+    "full_gradient_delta": [
+      5.302734403676368,
+      -0.1337765252068337
+    ],
+    "history_length": 94,
+    "interpretation": "historical_transport_upstreams_or_masks_diverge",
+    "max_abs_clipped_upstream_delta": 0.038257926126621045,
+    "max_abs_full_gradient_delta": 5.302734403676368,
+    "max_abs_raw_upstream_delta": 3.8853325680154285,
+    "max_abs_reconstruction_residual": 9.176042256303845,
+    "max_abs_transport_vjp_delta": 4.463208271430858,
+    "reconstruction_residual": [
+      9.176042256303845,
+      -0.16708019675423458
+    ],
+    "rows": [
+      {
+        "bayesfilter_clip_count": 0.0,
+        "bayesfilter_resampling_flag": [
+          false
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 0.0,
+        "filterflow_resampling_flag": [
+          false
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 0.0,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 0.0,
+        "raw_upstream_sum_delta": 0.0,
+        "resampling_flags_match": true,
+        "time_index": 0,
+        "transport_vjp_delta": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 1473.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 3.954877492162723e-08,
+        "clipped_upstream_sum_delta": -2.0459715665416267e-07,
+        "filterflow_clip_count": 1473.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 1.3157036571342928e-10,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 4.684715726455124e-08,
+        "raw_upstream_sum_delta": -9.234666925525548e-07,
+        "resampling_flags_match": true,
+        "time_index": 1,
+        "transport_vjp_delta": [
+          5.432503058511173e-11,
+          -1.3157036571342928e-10
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 1361.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 2.513628860612016e-09,
+        "clipped_upstream_sum_delta": 1.0072113354187007e-06,
+        "filterflow_clip_count": 1361.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 1.5400473785120994e-08,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 7.629577858381253e-09,
+        "raw_upstream_sum_delta": 6.364929936164554e-07,
+        "resampling_flags_match": true,
+        "time_index": 2,
+        "transport_vjp_delta": [
+          -1.5400473785120994e-08,
+          6.605452185226568e-09
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2175.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 2.0968495828554978e-08,
+        "clipped_upstream_sum_delta": -5.289824048515523e-07,
+        "filterflow_clip_count": 2175.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 6.2076352946860425e-09,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 2.393387488197618e-08,
+        "raw_upstream_sum_delta": -4.501890255553809e-06,
+        "resampling_flags_match": true,
+        "time_index": 3,
+        "transport_vjp_delta": [
+          1.6469741126456938e-09,
+          6.2076352946860425e-09
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2250.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 1.6373074895881246e-08,
+        "clipped_upstream_sum_delta": -4.971710418910646e-07,
+        "filterflow_clip_count": 2250.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 8.836611442575304e-09,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 1.1667735577702842e-07,
+        "raw_upstream_sum_delta": 4.0786153210348175e-05,
+        "resampling_flags_match": true,
+        "time_index": 4,
+        "transport_vjp_delta": [
+          8.836611442575304e-09,
+          6.66349819766765e-09
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2315.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 3.720594832223867e-08,
+        "clipped_upstream_sum_delta": -1.3654139676688715e-06,
+        "filterflow_clip_count": 2315.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 1.7201509194819664e-07,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 2.7254220569261633e-07,
+        "raw_upstream_sum_delta": -0.00010749817095345726,
+        "resampling_flags_match": true,
+        "time_index": 5,
+        "transport_vjp_delta": [
+          1.7201509194819664e-07,
+          -2.8644958405266152e-08
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2450.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 4.7638221811752146e-08,
+        "clipped_upstream_sum_delta": 2.2308594194164755e-06,
+        "filterflow_clip_count": 2450.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 1.9314904164957625e-07,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 1.5955937087142047e-06,
+        "raw_upstream_sum_delta": 9.939073004794352e-05,
+        "resampling_flags_match": true,
+        "time_index": 6,
+        "transport_vjp_delta": [
+          -9.285164992434147e-08,
+          1.9314904164957625e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2429.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 1.1498815943866703e-07,
+        "clipped_upstream_sum_delta": -4.0863907146970746e-07,
+        "filterflow_clip_count": 2429.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 2.800478853259847e-07,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 1.1933585675194536e-07,
+        "raw_upstream_sum_delta": -1.2046250144726045e-05,
+        "resampling_flags_match": true,
+        "time_index": 7,
+        "transport_vjp_delta": [
+          2.800478853259847e-07,
+          2.692346257049394e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2289.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 8.46458592107524e-09,
+        "clipped_upstream_sum_delta": -6.798009379027636e-08,
+        "filterflow_clip_count": 2289.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 2.0372635844978504e-07,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 1.963860185583144e-07,
+        "raw_upstream_sum_delta": -2.2161444851245826e-05,
+        "resampling_flags_match": true,
+        "time_index": 8,
+        "transport_vjp_delta": [
+          2.0372635844978504e-07,
+          -1.0739597655629041e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2376.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 2.135172938455554e-08,
+        "clipped_upstream_sum_delta": 1.1063010345035984e-06,
+        "filterflow_clip_count": 2376.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 1.8402727235411476e-06,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 2.135172938455554e-08,
+        "raw_upstream_sum_delta": 1.1183078154120007e-05,
+        "resampling_flags_match": true,
+        "time_index": 9,
+        "transport_vjp_delta": [
+          1.435181729902979e-06,
+          -1.8402727235411476e-06
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2499.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 4.135921471970505e-08,
+        "clipped_upstream_sum_delta": -4.135921471970505e-08,
+        "filterflow_clip_count": 2499.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 7.316543815250043e-09,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 1.3797568954032613e-07,
+        "raw_upstream_sum_delta": -1.838618457616903e-05,
+        "resampling_flags_match": true,
+        "time_index": 10,
+        "transport_vjp_delta": [
+          7.316543815250043e-09,
+          4.221369920287543e-09
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2450.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 1.1473632266501e-08,
+        "clipped_upstream_sum_delta": 5.539816003707898e-07,
+        "filterflow_clip_count": 2450.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 1.662300235238945e-07,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 1.1473632266501e-08,
+        "raw_upstream_sum_delta": 1.822877266244305e-06,
+        "resampling_flags_match": true,
+        "time_index": 11,
+        "transport_vjp_delta": [
+          -1.662300235238945e-07,
+          -1.266158236035153e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 2.2349553319145343e-08,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 1.4243096480015538e-08,
+        "raw_upstream_sum_delta": -1.7289149001342707e-06,
+        "resampling_flags_match": true,
+        "time_index": 12,
+        "transport_vjp_delta": [
+          2.2349553319145343e-08,
+          7.286985237442423e-09
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 3.165740736221778e-08,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 6.712433275879448e-09,
+        "raw_upstream_sum_delta": 5.462856571547547e-07,
+        "resampling_flags_match": true,
+        "time_index": 13,
+        "transport_vjp_delta": [
+          3.165740736221778e-08,
+          -8.605280044093888e-09
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2400.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 9.671426992596821e-10,
+        "clipped_upstream_sum_delta": -7.202145846374464e-08,
+        "filterflow_clip_count": 2400.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 1.2284471040402423e-07,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 1.3550391031458275e-08,
+        "raw_upstream_sum_delta": -6.276484377787384e-07,
+        "resampling_flags_match": true,
+        "time_index": 14,
+        "transport_vjp_delta": [
+          -1.2284471040402423e-07,
+          1.966718343737739e-09
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2450.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 4.0597358808014405e-10,
+        "clipped_upstream_sum_delta": -2.0007714041092584e-08,
+        "filterflow_clip_count": 2450.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 8.743816977130336e-07,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 1.5483557547213422e-08,
+        "raw_upstream_sum_delta": 2.95007088413346e-06,
+        "resampling_flags_match": true,
+        "time_index": 15,
+        "transport_vjp_delta": [
+          8.743816977130336e-07,
+          -6.675218804375049e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 3.124647736285624e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 2.3432185969340935e-08,
+        "raw_upstream_sum_delta": -3.6274577341899317e-06,
+        "resampling_flags_match": true,
+        "time_index": 16,
+        "transport_vjp_delta": [
+          3.124647736285624e-05,
+          -1.4830133991949879e-05
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 8.911807071854128e-06,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 2.1676405026482826e-07,
+        "raw_upstream_sum_delta": 8.029333316006415e-06,
+        "resampling_flags_match": true,
+        "time_index": 17,
+        "transport_vjp_delta": [
+          8.911807071854128e-06,
+          -1.5366656214155228e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2443.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 8.750099422805135e-09,
+        "clipped_upstream_sum_delta": 3.8472779551046443e-07,
+        "filterflow_clip_count": 2443.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 6.777988454587103e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 7.463280127240068e-08,
+        "raw_upstream_sum_delta": -6.742441520546372e-06,
+        "resampling_flags_match": true,
+        "time_index": 18,
+        "transport_vjp_delta": [
+          -6.777988454587103e-05,
+          1.0459225084247237e-05
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 2.0467068679863587e-06,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 4.66682763544668e-08,
+        "raw_upstream_sum_delta": 8.076693367442545e-06,
+        "resampling_flags_match": true,
+        "time_index": 19,
+        "transport_vjp_delta": [
+          2.0467068679863587e-06,
+          -2.3789974079591047e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2400.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 2.4254807051704574e-09,
+        "clipped_upstream_sum_delta": 1.1163575119876867e-08,
+        "filterflow_clip_count": 2400.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 1.8578950403025374e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 4.072956016898388e-08,
+        "raw_upstream_sum_delta": -2.796547216965539e-06,
+        "resampling_flags_match": true,
+        "time_index": 20,
+        "transport_vjp_delta": [
+          -1.8578950403025374e-05,
+          2.6396524432925617e-06
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 1.0521639524085913e-06,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 1.56877263179922e-07,
+        "raw_upstream_sum_delta": 1.2721577492325054e-05,
+        "resampling_flags_match": true,
+        "time_index": 21,
+        "transport_vjp_delta": [
+          -1.0521639524085913e-06,
+          9.164578607112617e-08
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 7.151757586143503e-08,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 4.6638191975034715e-08,
+        "raw_upstream_sum_delta": -8.670477159133938e-06,
+        "resampling_flags_match": true,
+        "time_index": 22,
+        "transport_vjp_delta": [
+          -7.151757586143503e-08,
+          8.318522759509506e-09
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 9.712482551549328e-08,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 9.379567700307234e-08,
+        "raw_upstream_sum_delta": 1.7894405319740514e-05,
+        "resampling_flags_match": true,
+        "time_index": 23,
+        "transport_vjp_delta": [
+          9.712482551549328e-08,
+          3.633867962093973e-08
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2450.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 6.2000656275706945e-09,
+        "clipped_upstream_sum_delta": 3.09090341876761e-07,
+        "filterflow_clip_count": 2450.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 4.9739534233594895e-06,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 8.877795920625431e-08,
+        "raw_upstream_sum_delta": 7.564579407870475e-06,
+        "resampling_flags_match": true,
+        "time_index": 24,
+        "transport_vjp_delta": [
+          4.9739534233594895e-06,
+          -1.5745824555324361e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 4.205607183394022e-06,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 6.80561072385899e-07,
+        "raw_upstream_sum_delta": -8.447480186379863e-05,
+        "resampling_flags_match": true,
+        "time_index": 25,
+        "transport_vjp_delta": [
+          -4.205607183394022e-06,
+          4.001981039891689e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2337.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 2.9623251962540564e-08,
+        "clipped_upstream_sum_delta": 1.1618003539215493e-06,
+        "filterflow_clip_count": 2337.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 1.3744446732744109e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 4.187037916381087e-08,
+        "raw_upstream_sum_delta": -5.141904181327206e-06,
+        "resampling_flags_match": true,
+        "time_index": 26,
+        "transport_vjp_delta": [
+          1.3744446732744109e-05,
+          2.63748532347563e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 8.702832019480411e-06,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 7.596059958814294e-08,
+        "raw_upstream_sum_delta": 1.999990320866729e-05,
+        "resampling_flags_match": true,
+        "time_index": 27,
+        "transport_vjp_delta": [
+          8.702832019480411e-06,
+          -1.0948946567168605e-06
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 4.618327511707321e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 1.0635153557814192e-07,
+        "raw_upstream_sum_delta": -3.349614790781885e-05,
+        "resampling_flags_match": true,
+        "time_index": 28,
+        "transport_vjp_delta": [
+          4.618327511707321e-05,
+          5.899697015365746e-06
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 3.472553316896665e-06,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 9.935388334270101e-08,
+        "raw_upstream_sum_delta": 1.0355531117056671e-05,
+        "resampling_flags_match": true,
+        "time_index": 29,
+        "transport_vjp_delta": [
+          3.472553316896665e-06,
+          -5.122936030943492e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 4.3360232666600496e-06,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 7.766161047584319e-08,
+        "raw_upstream_sum_delta": -2.5395520838245034e-05,
+        "resampling_flags_match": true,
+        "time_index": 30,
+        "transport_vjp_delta": [
+          -4.3360232666600496e-06,
+          5.558887608003715e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 0.00023180879770734464,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 2.6340035219618585e-07,
+        "raw_upstream_sum_delta": 9.042638645206935e-06,
+        "resampling_flags_match": true,
+        "time_index": 31,
+        "transport_vjp_delta": [
+          0.00023180879770734464,
+          -2.76310674536262e-05
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 2.0769066395587288e-06,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 2.1628903823511791e-07,
+        "raw_upstream_sum_delta": -3.8951743360549074e-05,
+        "resampling_flags_match": true,
+        "time_index": 32,
+        "transport_vjp_delta": [
+          -2.0769066395587288e-06,
+          1.7979985500460316e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 0.00023073184956956538,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 1.2705994834050216e-07,
+        "raw_upstream_sum_delta": 3.923419485940549e-05,
+        "resampling_flags_match": true,
+        "time_index": 33,
+        "transport_vjp_delta": [
+          0.00023073184956956538,
+          -2.7004151647247454e-05
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 2.2912154236109927e-06,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 2.3732347642635432e-07,
+        "raw_upstream_sum_delta": -2.72451282770092e-05,
+        "resampling_flags_match": true,
+        "time_index": 34,
+        "transport_vjp_delta": [
+          2.2912154236109927e-06,
+          -4.321274786889262e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 3.2910891150095267e-06,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 3.7152778986637713e-07,
+        "raw_upstream_sum_delta": -6.904155200793127e-05,
+        "resampling_flags_match": true,
+        "time_index": 35,
+        "transport_vjp_delta": [
+          3.2910891150095267e-06,
+          -5.014254753632486e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 2.8299100449658e-06,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 1.3582490510088974e-06,
+        "raw_upstream_sum_delta": 0.0003023714006777922,
+        "resampling_flags_match": true,
+        "time_index": 36,
+        "transport_vjp_delta": [
+          2.8299100449658e-06,
+          -4.441167789082101e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2450.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 2.7769978538927376e-08,
+        "clipped_upstream_sum_delta": -1.3830709811868402e-06,
+        "filterflow_clip_count": 2450.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 5.5738358923917986e-06,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 6.669308163509413e-07,
+        "raw_upstream_sum_delta": -0.0003904202058352402,
+        "resampling_flags_match": true,
+        "time_index": 37,
+        "transport_vjp_delta": [
+          5.5738358923917986e-06,
+          -5.681649355437912e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 1.04100831777032e-06,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 5.9866511037398595e-06,
+        "raw_upstream_sum_delta": 0.001201337642113609,
+        "resampling_flags_match": true,
+        "time_index": 38,
+        "transport_vjp_delta": [
+          1.04100831777032e-06,
+          -3.752158157510621e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 6.1520549934357405e-06,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 3.339303160032614e-05,
+        "raw_upstream_sum_delta": -0.003469316217659113,
+        "resampling_flags_match": true,
+        "time_index": 39,
+        "transport_vjp_delta": [
+          6.1520549934357405e-06,
+          -6.687819222861435e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2450.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 1.9223199771989385e-06,
+        "clipped_upstream_sum_delta": 9.595652070881755e-05,
+        "filterflow_clip_count": 2450.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 1.2266551038919715e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 3.58171466245949e-05,
+        "raw_upstream_sum_delta": 0.011118973839945756,
+        "resampling_flags_match": true,
+        "time_index": 40,
+        "transport_vjp_delta": [
+          1.2266551038919715e-05,
+          -5.514919827476206e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 1.9194258129573427e-06,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 5.5153032803900714e-05,
+        "raw_upstream_sum_delta": -0.031099410112260584,
+        "resampling_flags_match": true,
+        "time_index": 41,
+        "transport_vjp_delta": [
+          -1.9194258129573427e-06,
+          -3.668750885310601e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 1.6966658790806832e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 0.00016919221803846085,
+        "raw_upstream_sum_delta": 0.0864602097445526,
+        "resampling_flags_match": true,
+        "time_index": 42,
+        "transport_vjp_delta": [
+          1.6966658790806832e-05,
+          -3.7765701677017205e-08
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 1.2806911172447144e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 0.0010672900132249197,
+        "raw_upstream_sum_delta": -0.2512387528610418,
+        "resampling_flags_match": true,
+        "time_index": 43,
+        "transport_vjp_delta": [
+          -1.2806911172447144e-05,
+          8.462069445158704e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2450.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 7.562634617697128e-05,
+        "clipped_upstream_sum_delta": -0.0037735049637515616,
+        "filterflow_clip_count": 2450.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 0.11814065691032738,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 0.0004043180958888115,
+        "raw_upstream_sum_delta": -0.31208523840387775,
+        "resampling_flags_match": true,
+        "time_index": 44,
+        "transport_vjp_delta": [
+          -0.11814065691032738,
+          0.00513701345207096
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 1.4104120964475442e-06,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 0.0011110268147973557,
+        "raw_upstream_sum_delta": 0.8633703120073211,
+        "resampling_flags_match": true,
+        "time_index": 45,
+        "transport_vjp_delta": [
+          -1.4104120964475442e-06,
+          4.4334782955957053e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 1.8627792087499984e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 0.006187247177876998,
+        "raw_upstream_sum_delta": -2.389257807613008,
+        "resampling_flags_match": true,
+        "time_index": 46,
+        "transport_vjp_delta": [
+          -1.8627792087499984e-05,
+          1.0311081837244274e-06
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 6.861593647045083e-06,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 0.006941124237442864,
+        "raw_upstream_sum_delta": 6.550974005607053,
+        "resampling_flags_match": true,
+        "time_index": 47,
+        "transport_vjp_delta": [
+          6.861593647045083e-06,
+          -1.258847532881191e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 2.9391048883553594e-07,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 0.020387363826650073,
+        "raw_upstream_sum_delta": -17.896774173229772,
+        "resampling_flags_match": true,
+        "time_index": 48,
+        "transport_vjp_delta": [
+          2.9099464882165194e-07,
+          -2.9391048883553594e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 3.725463648152072e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 0.1156377474275132,
+        "raw_upstream_sum_delta": 48.67631454253094,
+        "resampling_flags_match": true,
+        "time_index": 49,
+        "transport_vjp_delta": [
+          -3.725463648152072e-05,
+          1.3557735201175092e-06
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 9.488733212492662e-06,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 0.9577901580405523,
+        "raw_upstream_sum_delta": -127.26307690319584,
+        "resampling_flags_match": true,
+        "time_index": 50,
+        "transport_vjp_delta": [
+          9.488733212492662e-06,
+          -6.156203369300783e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 5.848775572303566e-06,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 3.8853325680154285,
+        "raw_upstream_sum_delta": 276.9609688870665,
+        "resampling_flags_match": true,
+        "time_index": 51,
+        "transport_vjp_delta": [
+          5.848775572303566e-06,
+          -4.763841303656591e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2450.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.038257926126621045,
+        "clipped_upstream_sum_delta": -1.9092531867589029,
+        "filterflow_clip_count": 2450.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 4.463208271430858,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 0.06167895758798991,
+        "raw_upstream_sum_delta": -32.150265266150306,
+        "resampling_flags_match": true,
+        "time_index": 52,
+        "transport_vjp_delta": [
+          -4.463208271430858,
+          0.053972612751095994
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 7.67166966397781e-06,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 0.4052660943005151,
+        "raw_upstream_sum_delta": 118.18998536927191,
+        "resampling_flags_match": true,
+        "time_index": 53,
+        "transport_vjp_delta": [
+          7.67166966397781e-06,
+          -1.0846338227565866e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2450.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.020636594767113714,
+        "clipped_upstream_sum_delta": -1.0298565098502492,
+        "filterflow_clip_count": 2450.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 0.8647824981858321,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 0.029784651025892117,
+        "raw_upstream_sum_delta": -10.621317429470436,
+        "resampling_flags_match": true,
+        "time_index": 54,
+        "transport_vjp_delta": [
+          0.8647824981858321,
+          -0.028376664074812652
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2450.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0013693174724487278,
+        "clipped_upstream_sum_delta": -0.06824236009233808,
+        "filterflow_clip_count": 2450.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 0.17764483727114566,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 0.011599830915031362,
+        "raw_upstream_sum_delta": -0.8448525008236254,
+        "resampling_flags_match": true,
+        "time_index": 55,
+        "transport_vjp_delta": [
+          -0.17764483727114566,
+          0.004255516741068277
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2450.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.00019018711646417996,
+        "clipped_upstream_sum_delta": 0.009486233108798606,
+        "filterflow_clip_count": 2450.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 0.006358362881655921,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 0.0007412603212770819,
+        "raw_upstream_sum_delta": 0.025349789971968364,
+        "resampling_flags_match": true,
+        "time_index": 56,
+        "transport_vjp_delta": [
+          -0.006358362881655921,
+          -0.00040296663766525853
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2400.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 1.0120558726622875e-05,
+        "clipped_upstream_sum_delta": -0.00023062004998164465,
+        "filterflow_clip_count": 2400.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 0.026126328603822913,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 2.086730913575252e-05,
+        "raw_upstream_sum_delta": -0.011145874457629268,
+        "resampling_flags_match": true,
+        "time_index": 57,
+        "transport_vjp_delta": [
+          0.026126328603822913,
+          -0.0012003851655606468
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 8.812291980575537e-06,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 9.148309459305892e-05,
+        "raw_upstream_sum_delta": 0.003130664951099593,
+        "resampling_flags_match": true,
+        "time_index": 58,
+        "transport_vjp_delta": [
+          8.812291980575537e-06,
+          -4.949923777530785e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2450.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 3.025331850148305e-06,
+        "clipped_upstream_sum_delta": 0.00015096347413767752,
+        "filterflow_clip_count": 2450.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 0.0012818548574387023,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 5.0734338969959936e-06,
+        "raw_upstream_sum_delta": 0.0016876630595996645,
+        "resampling_flags_match": true,
+        "time_index": 59,
+        "transport_vjp_delta": [
+          -0.0012818548574387023,
+          4.2169275872083745e-05
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2450.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 1.3507117507804978e-07,
+        "clipped_upstream_sum_delta": -6.741635921236888e-06,
+        "filterflow_clip_count": 2450.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 0.0017966039376915433,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 3.28797881365972e-07,
+        "raw_upstream_sum_delta": -0.0002841033669189197,
+        "resampling_flags_match": true,
+        "time_index": 60,
+        "transport_vjp_delta": [
+          0.0017966039376915433,
+          -5.474679039707553e-05
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 0.00029818488201271975,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 1.712190112357348e-06,
+        "raw_upstream_sum_delta": 0.0006381221563005468,
+        "resampling_flags_match": true,
+        "time_index": 61,
+        "transport_vjp_delta": [
+          0.00029818488201271975,
+          -8.340787644556258e-06
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 2.2900339445186546e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 3.6688093700831814e-06,
+        "raw_upstream_sum_delta": -0.000547959096502737,
+        "resampling_flags_match": true,
+        "time_index": 62,
+        "transport_vjp_delta": [
+          -2.2900339445186546e-05,
+          9.84700051276377e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 2.6734057428257074e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 1.896557392910836e-06,
+        "raw_upstream_sum_delta": -1.601357361380451e-05,
+        "resampling_flags_match": true,
+        "time_index": 63,
+        "transport_vjp_delta": [
+          -2.6734057428257074e-05,
+          5.829216718211683e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 8.605833500041626e-06,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 6.757969988058221e-07,
+        "raw_upstream_sum_delta": 5.909710115625799e-05,
+        "resampling_flags_match": true,
+        "time_index": 64,
+        "transport_vjp_delta": [
+          8.605833500041626e-06,
+          -1.263991123323649e-06
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 2.516690074116923e-06,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 1.1470990557427285e-06,
+        "raw_upstream_sum_delta": -0.00017058008276649161,
+        "resampling_flags_match": true,
+        "time_index": 65,
+        "transport_vjp_delta": [
+          2.516690074116923e-06,
+          -1.4046361229702597e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 2.7823684831673745e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 5.509819857252296e-06,
+        "raw_upstream_sum_delta": -3.724267104399104e-05,
+        "resampling_flags_match": true,
+        "time_index": 66,
+        "transport_vjp_delta": [
+          -2.7823684831673745e-05,
+          5.006917831451574e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 2.9568656827905215e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 5.229330781730823e-07,
+        "raw_upstream_sum_delta": -0.00012036641213075683,
+        "resampling_flags_match": true,
+        "time_index": 67,
+        "transport_vjp_delta": [
+          -2.9568656827905215e-05,
+          5.870577979294467e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 2.864093221432995e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 2.744187912462337e-06,
+        "raw_upstream_sum_delta": 7.714116953749794e-05,
+        "resampling_flags_match": true,
+        "time_index": 68,
+        "transport_vjp_delta": [
+          -2.864093221432995e-05,
+          5.376118679123465e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 2.7098482405563118e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 1.4187474448590365e-06,
+        "raw_upstream_sum_delta": 0.0001547614762262839,
+        "resampling_flags_match": true,
+        "time_index": 69,
+        "transport_vjp_delta": [
+          -2.7098482405563118e-05,
+          2.780675458780024e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 2.696878146934978e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 5.821926833959878e-07,
+        "raw_upstream_sum_delta": -6.778728697698355e-05,
+        "resampling_flags_match": true,
+        "time_index": 70,
+        "transport_vjp_delta": [
+          -2.696878146934978e-05,
+          4.6214324811444385e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 3.169327828800306e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 1.8298724171472713e-06,
+        "raw_upstream_sum_delta": -0.00013913984998836781,
+        "resampling_flags_match": true,
+        "time_index": 71,
+        "transport_vjp_delta": [
+          3.169327828800306e-05,
+          -7.369079639829579e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 7.998555634003424e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 9.830864087234659e-07,
+        "raw_upstream_sum_delta": -9.947140175547986e-05,
+        "resampling_flags_match": true,
+        "time_index": 72,
+        "transport_vjp_delta": [
+          -7.998555634003424e-05,
+          5.498740563325555e-06
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 3.95480510633206e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 7.328244180371257e-07,
+        "raw_upstream_sum_delta": 0.000184861265164038,
+        "resampling_flags_match": true,
+        "time_index": 73,
+        "transport_vjp_delta": [
+          -3.95480510633206e-05,
+          1.135040577082691e-06
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 3.802427181653911e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 2.3379654976452002e-06,
+        "raw_upstream_sum_delta": -9.002958449855214e-06,
+        "resampling_flags_match": true,
+        "time_index": 74,
+        "transport_vjp_delta": [
+          -3.802427181653911e-05,
+          1.1304374538667616e-06
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 2.654476702446118e-06,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 3.7359548343829374e-07,
+        "raw_upstream_sum_delta": -7.021427336439956e-06,
+        "resampling_flags_match": true,
+        "time_index": 75,
+        "transport_vjp_delta": [
+          -2.654476702446118e-06,
+          3.9742303670209367e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 7.057646803332318e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 1.445067027816549e-06,
+        "raw_upstream_sum_delta": 6.718113170656181e-05,
+        "resampling_flags_match": true,
+        "time_index": 76,
+        "transport_vjp_delta": [
+          -7.057646803332318e-05,
+          1.809138211683603e-06
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 3.5200288607484254e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 1.388872078678105e-06,
+        "raw_upstream_sum_delta": -0.00012653611004198595,
+        "resampling_flags_match": true,
+        "time_index": 77,
+        "transport_vjp_delta": [
+          -3.5200288607484254e-05,
+          9.233409059561382e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 1.2516504284576513e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 6.719485895700927e-06,
+        "raw_upstream_sum_delta": 0.0005710047119791284,
+        "resampling_flags_match": true,
+        "time_index": 78,
+        "transport_vjp_delta": [
+          -1.2516504284576513e-05,
+          1.1017585848094313e-06
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 3.6824691051151603e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 2.9013393742616245e-05,
+        "raw_upstream_sum_delta": -0.0035452735575276506,
+        "resampling_flags_match": true,
+        "time_index": 79,
+        "transport_vjp_delta": [
+          -3.6824691051151603e-05,
+          7.004555300227366e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2450.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 2.386835749046412e-07,
+        "clipped_upstream_sum_delta": -1.1909842742352517e-05,
+        "filterflow_clip_count": 2450.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 6.39513018541038e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 1.1786335107899504e-06,
+        "raw_upstream_sum_delta": -0.0002184040623783856,
+        "resampling_flags_match": true,
+        "time_index": 80,
+        "transport_vjp_delta": [
+          -6.39513018541038e-05,
+          2.212496156062116e-06
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 4.8155407966987696e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 7.846431344660232e-07,
+        "raw_upstream_sum_delta": 0.00012625788813735994,
+        "resampling_flags_match": true,
+        "time_index": 81,
+        "transport_vjp_delta": [
+          -4.8155407966987696e-05,
+          1.5352161426562816e-06
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 4.177835762675386e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 2.415354629192734e-06,
+        "raw_upstream_sum_delta": -0.00019044583176253127,
+        "resampling_flags_match": true,
+        "time_index": 82,
+        "transport_vjp_delta": [
+          -4.177835762675386e-05,
+          7.214928245957708e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 3.129065953544341e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 1.513575398348621e-06,
+        "raw_upstream_sum_delta": 0.00029736760418686004,
+        "resampling_flags_match": true,
+        "time_index": 83,
+        "transport_vjp_delta": [
+          -3.129065953544341e-05,
+          6.131600116532354e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 4.593324956658762e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 9.182782292782576e-06,
+        "raw_upstream_sum_delta": -0.0010377640911638508,
+        "resampling_flags_match": true,
+        "time_index": 84,
+        "transport_vjp_delta": [
+          -4.593324956658762e-05,
+          1.1814595382020343e-06
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 4.4277001506998204e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 4.126536794046842e-06,
+        "raw_upstream_sum_delta": 0.0015679270457908956,
+        "resampling_flags_match": true,
+        "time_index": 85,
+        "transport_vjp_delta": [
+          -4.4277001506998204e-05,
+          1.2182129012217047e-06
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 0.00017444394688936882,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 4.461609364625474e-06,
+        "raw_upstream_sum_delta": -0.0009655380510231737,
+        "resampling_flags_match": true,
+        "time_index": 86,
+        "transport_vjp_delta": [
+          -0.00017444394688936882,
+          6.17197730434782e-06
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 2.5927663045877125e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 5.459406111185672e-06,
+        "raw_upstream_sum_delta": 0.0005825479175278758,
+        "resampling_flags_match": true,
+        "time_index": 87,
+        "transport_vjp_delta": [
+          2.5927663045877125e-05,
+          -3.190999109392578e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 3.0407800295506604e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 1.41563663191846e-06,
+        "raw_upstream_sum_delta": -0.0001867963155657293,
+        "resampling_flags_match": true,
+        "time_index": 88,
+        "transport_vjp_delta": [
+          -3.0407800295506604e-05,
+          8.78772652868065e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 3.281906174379401e-06,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 3.6198341604176676e-06,
+        "raw_upstream_sum_delta": 0.00010864672012544929,
+        "resampling_flags_match": true,
+        "time_index": 89,
+        "transport_vjp_delta": [
+          -3.281906174379401e-06,
+          5.540266556636197e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 3.0105860787443817e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 1.0267047855450073e-05,
+        "raw_upstream_sum_delta": -0.0006674113554190342,
+        "resampling_flags_match": true,
+        "time_index": 90,
+        "transport_vjp_delta": [
+          -3.0105860787443817e-05,
+          4.5509183621561533e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 6.008615127939265e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 1.7318884601991158e-06,
+        "raw_upstream_sum_delta": 0.00016206299099863486,
+        "resampling_flags_match": true,
+        "time_index": 91,
+        "transport_vjp_delta": [
+          -6.008615127939265e-05,
+          -4.1831856378848897e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 4.950677430315409e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 2.2457875843429065e-06,
+        "raw_upstream_sum_delta": 0.0001273953970226671,
+        "resampling_flags_match": true,
+        "time_index": 92,
+        "transport_vjp_delta": [
+          -4.950677430315409e-05,
+          1.7982122244575294e-06
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2200.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 1.74666986707539e-08,
+        "clipped_upstream_sum_delta": -1.9912844623354298e-06,
+        "filterflow_clip_count": 2200.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 0.0008782294207776431,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 3.360472966562611e-08,
+        "raw_upstream_sum_delta": -8.271588089039938e-06,
+        "resampling_flags_match": true,
+        "time_index": 93,
+        "transport_vjp_delta": [
+          0.0008782294207776431,
+          -3.587239052649238e-05
+        ]
+      }
+    ],
+    "scalar_delta": 6.2123888255882775e-09,
+    "status": "compared",
+    "top_transport_vjp_delta_rows": [
+      {
+        "bayesfilter_clip_count": 2450.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.038257926126621045,
+        "clipped_upstream_sum_delta": -1.9092531867589029,
+        "filterflow_clip_count": 2450.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 4.463208271430858,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 0.06167895758798991,
+        "raw_upstream_sum_delta": -32.150265266150306,
+        "resampling_flags_match": true,
+        "time_index": 52,
+        "transport_vjp_delta": [
+          -4.463208271430858,
+          0.053972612751095994
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2450.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.020636594767113714,
+        "clipped_upstream_sum_delta": -1.0298565098502492,
+        "filterflow_clip_count": 2450.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 0.8647824981858321,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 0.029784651025892117,
+        "raw_upstream_sum_delta": -10.621317429470436,
+        "resampling_flags_match": true,
+        "time_index": 54,
+        "transport_vjp_delta": [
+          0.8647824981858321,
+          -0.028376664074812652
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2450.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0013693174724487278,
+        "clipped_upstream_sum_delta": -0.06824236009233808,
+        "filterflow_clip_count": 2450.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 0.17764483727114566,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 0.011599830915031362,
+        "raw_upstream_sum_delta": -0.8448525008236254,
+        "resampling_flags_match": true,
+        "time_index": 55,
+        "transport_vjp_delta": [
+          -0.17764483727114566,
+          0.004255516741068277
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2450.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 7.562634617697128e-05,
+        "clipped_upstream_sum_delta": -0.0037735049637515616,
+        "filterflow_clip_count": 2450.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 0.11814065691032738,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 0.0004043180958888115,
+        "raw_upstream_sum_delta": -0.31208523840387775,
+        "resampling_flags_match": true,
+        "time_index": 44,
+        "transport_vjp_delta": [
+          -0.11814065691032738,
+          0.00513701345207096
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2400.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 1.0120558726622875e-05,
+        "clipped_upstream_sum_delta": -0.00023062004998164465,
+        "filterflow_clip_count": 2400.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 0.026126328603822913,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 2.086730913575252e-05,
+        "raw_upstream_sum_delta": -0.011145874457629268,
+        "resampling_flags_match": true,
+        "time_index": 57,
+        "transport_vjp_delta": [
+          0.026126328603822913,
+          -0.0012003851655606468
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2450.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.00019018711646417996,
+        "clipped_upstream_sum_delta": 0.009486233108798606,
+        "filterflow_clip_count": 2450.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 0.006358362881655921,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 0.0007412603212770819,
+        "raw_upstream_sum_delta": 0.025349789971968364,
+        "resampling_flags_match": true,
+        "time_index": 56,
+        "transport_vjp_delta": [
+          -0.006358362881655921,
+          -0.00040296663766525853
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2450.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 1.3507117507804978e-07,
+        "clipped_upstream_sum_delta": -6.741635921236888e-06,
+        "filterflow_clip_count": 2450.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 0.0017966039376915433,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 3.28797881365972e-07,
+        "raw_upstream_sum_delta": -0.0002841033669189197,
+        "resampling_flags_match": true,
+        "time_index": 60,
+        "transport_vjp_delta": [
+          0.0017966039376915433,
+          -5.474679039707553e-05
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2450.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 3.025331850148305e-06,
+        "clipped_upstream_sum_delta": 0.00015096347413767752,
+        "filterflow_clip_count": 2450.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 0.0012818548574387023,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 5.0734338969959936e-06,
+        "raw_upstream_sum_delta": 0.0016876630595996645,
+        "resampling_flags_match": true,
+        "time_index": 59,
+        "transport_vjp_delta": [
+          -0.0012818548574387023,
+          4.2169275872083745e-05
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2200.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 1.74666986707539e-08,
+        "clipped_upstream_sum_delta": -1.9912844623354298e-06,
+        "filterflow_clip_count": 2200.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 0.0008782294207776431,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 3.360472966562611e-08,
+        "raw_upstream_sum_delta": -8.271588089039938e-06,
+        "resampling_flags_match": true,
+        "time_index": 93,
+        "transport_vjp_delta": [
+          0.0008782294207776431,
+          -3.587239052649238e-05
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 0.00029818488201271975,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 1.712190112357348e-06,
+        "raw_upstream_sum_delta": 0.0006381221563005468,
+        "resampling_flags_match": true,
+        "time_index": 61,
+        "transport_vjp_delta": [
+          0.00029818488201271975,
+          -8.340787644556258e-06
+        ]
+      }
+    ],
+    "total_clip_mask_mismatch_count": 0,
+    "upstream_or_mask_delta_rows": [
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 2.8299100449658e-06,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 1.3582490510088974e-06,
+        "raw_upstream_sum_delta": 0.0003023714006777922,
+        "resampling_flags_match": true,
+        "time_index": 36,
+        "transport_vjp_delta": [
+          2.8299100449658e-06,
+          -4.441167789082101e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2450.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 2.7769978538927376e-08,
+        "clipped_upstream_sum_delta": -1.3830709811868402e-06,
+        "filterflow_clip_count": 2450.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 5.5738358923917986e-06,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 6.669308163509413e-07,
+        "raw_upstream_sum_delta": -0.0003904202058352402,
+        "resampling_flags_match": true,
+        "time_index": 37,
+        "transport_vjp_delta": [
+          5.5738358923917986e-06,
+          -5.681649355437912e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 1.04100831777032e-06,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 5.9866511037398595e-06,
+        "raw_upstream_sum_delta": 0.001201337642113609,
+        "resampling_flags_match": true,
+        "time_index": 38,
+        "transport_vjp_delta": [
+          1.04100831777032e-06,
+          -3.752158157510621e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 6.1520549934357405e-06,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 3.339303160032614e-05,
+        "raw_upstream_sum_delta": -0.003469316217659113,
+        "resampling_flags_match": true,
+        "time_index": 39,
+        "transport_vjp_delta": [
+          6.1520549934357405e-06,
+          -6.687819222861435e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2450.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 1.9223199771989385e-06,
+        "clipped_upstream_sum_delta": 9.595652070881755e-05,
+        "filterflow_clip_count": 2450.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 1.2266551038919715e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 3.58171466245949e-05,
+        "raw_upstream_sum_delta": 0.011118973839945756,
+        "resampling_flags_match": true,
+        "time_index": 40,
+        "transport_vjp_delta": [
+          1.2266551038919715e-05,
+          -5.514919827476206e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 1.9194258129573427e-06,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 5.5153032803900714e-05,
+        "raw_upstream_sum_delta": -0.031099410112260584,
+        "resampling_flags_match": true,
+        "time_index": 41,
+        "transport_vjp_delta": [
+          -1.9194258129573427e-06,
+          -3.668750885310601e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 1.6966658790806832e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 0.00016919221803846085,
+        "raw_upstream_sum_delta": 0.0864602097445526,
+        "resampling_flags_match": true,
+        "time_index": 42,
+        "transport_vjp_delta": [
+          1.6966658790806832e-05,
+          -3.7765701677017205e-08
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 1.2806911172447144e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 0.0010672900132249197,
+        "raw_upstream_sum_delta": -0.2512387528610418,
+        "resampling_flags_match": true,
+        "time_index": 43,
+        "transport_vjp_delta": [
+          -1.2806911172447144e-05,
+          8.462069445158704e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2450.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 7.562634617697128e-05,
+        "clipped_upstream_sum_delta": -0.0037735049637515616,
+        "filterflow_clip_count": 2450.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 0.11814065691032738,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 0.0004043180958888115,
+        "raw_upstream_sum_delta": -0.31208523840387775,
+        "resampling_flags_match": true,
+        "time_index": 44,
+        "transport_vjp_delta": [
+          -0.11814065691032738,
+          0.00513701345207096
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 1.4104120964475442e-06,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 0.0011110268147973557,
+        "raw_upstream_sum_delta": 0.8633703120073211,
+        "resampling_flags_match": true,
+        "time_index": 45,
+        "transport_vjp_delta": [
+          -1.4104120964475442e-06,
+          4.4334782955957053e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 1.8627792087499984e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 0.006187247177876998,
+        "raw_upstream_sum_delta": -2.389257807613008,
+        "resampling_flags_match": true,
+        "time_index": 46,
+        "transport_vjp_delta": [
+          -1.8627792087499984e-05,
+          1.0311081837244274e-06
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 6.861593647045083e-06,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 0.006941124237442864,
+        "raw_upstream_sum_delta": 6.550974005607053,
+        "resampling_flags_match": true,
+        "time_index": 47,
+        "transport_vjp_delta": [
+          6.861593647045083e-06,
+          -1.258847532881191e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 2.9391048883553594e-07,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 0.020387363826650073,
+        "raw_upstream_sum_delta": -17.896774173229772,
+        "resampling_flags_match": true,
+        "time_index": 48,
+        "transport_vjp_delta": [
+          2.9099464882165194e-07,
+          -2.9391048883553594e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 3.725463648152072e-05,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 0.1156377474275132,
+        "raw_upstream_sum_delta": 48.67631454253094,
+        "resampling_flags_match": true,
+        "time_index": 49,
+        "transport_vjp_delta": [
+          -3.725463648152072e-05,
+          1.3557735201175092e-06
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 9.488733212492662e-06,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 0.9577901580405523,
+        "raw_upstream_sum_delta": -127.26307690319584,
+        "resampling_flags_match": true,
+        "time_index": 50,
+        "transport_vjp_delta": [
+          9.488733212492662e-06,
+          -6.156203369300783e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 5.848775572303566e-06,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 3.8853325680154285,
+        "raw_upstream_sum_delta": 276.9609688870665,
+        "resampling_flags_match": true,
+        "time_index": 51,
+        "transport_vjp_delta": [
+          5.848775572303566e-06,
+          -4.763841303656591e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2450.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.038257926126621045,
+        "clipped_upstream_sum_delta": -1.9092531867589029,
+        "filterflow_clip_count": 2450.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 4.463208271430858,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 0.06167895758798991,
+        "raw_upstream_sum_delta": -32.150265266150306,
+        "resampling_flags_match": true,
+        "time_index": 52,
+        "transport_vjp_delta": [
+          -4.463208271430858,
+          0.053972612751095994
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2500.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0,
+        "clipped_upstream_sum_delta": 0.0,
+        "filterflow_clip_count": 2500.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 7.67166966397781e-06,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 0.4052660943005151,
+        "raw_upstream_sum_delta": 118.18998536927191,
+        "resampling_flags_match": true,
+        "time_index": 53,
+        "transport_vjp_delta": [
+          7.67166966397781e-06,
+          -1.0846338227565866e-07
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2450.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.020636594767113714,
+        "clipped_upstream_sum_delta": -1.0298565098502492,
+        "filterflow_clip_count": 2450.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 0.8647824981858321,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 0.029784651025892117,
+        "raw_upstream_sum_delta": -10.621317429470436,
+        "resampling_flags_match": true,
+        "time_index": 54,
+        "transport_vjp_delta": [
+          0.8647824981858321,
+          -0.028376664074812652
+        ]
+      },
+      {
+        "bayesfilter_clip_count": 2450.0,
+        "bayesfilter_resampling_flag": [
+          true
+        ],
+        "clip_count_delta": 0.0,
+        "clip_mask_mismatch_count": 0,
+        "clipped_upstream_finite": true,
+        "clipped_upstream_max_abs_delta": 0.0013693174724487278,
+        "clipped_upstream_sum_delta": -0.06824236009233808,
+        "filterflow_clip_count": 2450.0,
+        "filterflow_resampling_flag": [
+          true
+        ],
+        "finite": true,
+        "max_abs_transport_vjp_delta": 0.17764483727114566,
+        "raw_upstream_finite": true,
+        "raw_upstream_max_abs_delta": 0.011599830915031362,
+        "raw_upstream_sum_delta": -0.8448525008236254,
+        "resampling_flags_match": true,
+        "time_index": 55,
+        "transport_vjp_delta": [
+          -0.17764483727114566,
+          0.004255516741068277
+        ]
+      }
+    ]
+  },
+  "hypothesis_classification": "h3_transport_upstreams_or_masks_diverge_historically",
+  "hypothesis_reason": "historical upstream or clip-mask deltas exceed tolerance",
+  "json_path": "experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_row_173_historical_transport_vjp_2026-06-04.json",
+  "model_contract": {
+    "comparison_scope": "all historical transport nodes through target time only",
+    "data_seed": 123,
+    "dtype": "float64",
+    "filter_seed": 1234,
+    "mesh_index": 173,
+    "num_particles": 50,
+    "target_time_index": 93,
+    "theta": [
+      0.9710526315789474,
+      0.9842105263157894
+    ]
+  },
+  "non_implications": [
+    "No correctness claim is made for either implementation.",
+    "No analytic gradient correctness is concluded.",
+    "No posterior correctness is concluded.",
+    "No global gradient agreement is concluded.",
+    "No full mesh or surface agreement is concluded.",
+    "No production readiness or public API readiness is concluded."
+  ],
+  "path_boundary_manifest": {
+    "dsge_nawm_code_used": false,
+    "filterflow_source_mutated": false,
+    "highdim_lane_used_or_edited": false,
+    "monograph_chapters_used_or_edited": false,
+    "production_bayesfilter_code_used": false,
+    "student_or_vendored_code_used_as_authority": false,
+    "tests_code_used": false
+  },
+  "plan_path": "docs/plans/bayesfilter-dpf-filterflow-float64-row-173-historical-transport-vjp-plan-2026-06-04.md",
+  "question": "row_173_time_93_historical_transport_vjp_residual_reconstruction",
+  "reference_policy": {
+    "branch": "bayesfilter-py311-float64-reference",
+    "commit": "1e5fbc288c1c11fc18ba01bb4842832e2088b800",
+    "dtype": "float64",
+    "fixed_target_sinkhorn": "local BayesFilter diagnostic/comparator only",
+    "future_comparator": "filterflow_float64_reference_branch",
+    "local_reference_status": "BayesFilter audit reference code, not pristine upstream",
+    "transition_covariance": "I_2 executable reproduction setting",
+    "upstream_base": "5d8300ba247c4c17e1a301a22560c24fd0670bfe"
+  },
+  "report_path": "experiments/dpf_implementation/reports/dpf-filterflow-float64-row-173-historical-transport-vjp-2026-06-04.md",
+  "reproducibility_digest": "d87863b3c24c4281f71219973468208b131fb9e36ba2f2d4fdc7ba3fdd26aa48",
+  "result_path": "docs/plans/bayesfilter-dpf-filterflow-float64-row-173-historical-transport-vjp-result-2026-06-04.md",
+  "run_manifest": {
+    "branch": "main",
+    "command": "CUDA_VISIBLE_DEVICES=-1 python -m experiments.dpf_implementation.tf_tfp.runners.run_filterflow_float64_row_173_historical_transport_vjp_probe_tf",
+    "commit": "7ccb9c39883471c2d5ec2891cbf33b9ed436bada",
+    "cpu_only": true,
+    "cuda_visible_devices": "-1",
+    "data_seed": 123,
+    "dirty_state_summary": "M docs/plans/bayesfilter-student-dpf-baseline-master-program-2026-05-10.md\n M docs/plans/bayesfilter-student-dpf-baseline-reset-memo-2026-05-09.md\n M docs/references.bib\n M experiments/controlled_dpf_baseline/README.md\n?? .cache/\n?? .claude/\n?? .local_sources/\n?? .localenv/\n?? .localsource/\n?? AGENTS.md\n?? CLAUDE.md\n?? bayesfilter/highdim/\n?? docs/plans/bayesfilter-dpf-1d-filterflow-agreement-governance-plan-2026-06-02.md\n?? docs/plans/bayesfilter-dpf-1d-filterflow-agreement-governance-result-2026-06-02.md\n?? docs/plans/bayesfilter-dpf-1d-lgssm-horizon-ladder-plan-2026-06-01.md\n?? docs/plans/bayesfilter-dpf-1d-lgssm-horizon-ladder-result-2026-06-01.md\n?? docs/plans/bayesfilter-dpf-1d-lgssm-step-gradient-comparison-plan-2026-06-01.md\n?? docs/plans/bayesfilter-dpf-1d-lgssm-step-gradient-comparison-result-2026-06-01.md\n?? docs/plans/bayesfilter-dpf-1d-lgssm-step-gradient-comparison-review-loop-2026-06-01.md\n?? docs/plans/bayesfilter-dpf-1d-to-smoothness-filterflow-agreement-ladder-plan-2026-06-02.md\n?? docs/plans/bayesfilter-dpf-1d-to-smoothness-filterflow-agreement-ladder-result-2026-06-02.md\n?? docs/plans/bayesfilter-dpf-1d-to-smoothness-filterflow-agreement-ladder-review-loop-2026-06-02.md\n?? docs/plans/bayesfilter-dpf-1d-to-smoothness-lgssm-continuation-ladder-plan-2026-06-02.md\n?? docs/plans/bayesfilter-dpf-1d-to-smoothness-lgssm-continuation-ladder-result-2026-06-02.md\n?? docs/plans/bayesfilter-dpf-1d-to-smoothness-lgssm-continuation-ladder-review-loop-2026-06-02.md\n?? docs/plans/bayesfilter-dpf-annealed-transport-reference-alignment-plan-2026-05-31.md\n?? docs/plans/bayesfilter-dpf-annealed-transport-reference-alignment-result-2026-05-31.md\n?? docs/plans/bayesfilter-dpf-annealed-transport-reference-alignment-review-loop-2026-05-31.md\n?? docs/plans/bayesfilter-dpf-annealed-transport-remaining-gaps-closure-plan-2026-06-01.md\n?? docs/plans/bayesfilter-dpf-annealed-transport-remaining-gaps-closure-result-2026-06-01.md\n?? docs/plans/bayesfilter-dpf-annealed-transport-remaining-gaps-closure-review-loop-2026-06-01.md\n?? docs/plans/bayesfilter-dpf-exact-arithmetic-continuation-debug-plan-2026-06-02.md\n?? docs/plans/bayesfilter-dpf-exact-arithmetic-continuation-debug-result-2026-06-02.md\n?? docs/plans/bayesfilter-dpf-filterflow-final-gaps-closure-plan-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-final-gaps-closure-result-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-branch-reference-plan-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-branch-reference-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-continuation-debug-plan-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-continuation-debug-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-custom-transport-gradient-plan-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-custom-transport-gradient-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-full-2d-no-replay-plan-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-full-2d-no-replay-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-full-surface-window-coverage-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-optimal-proposal-dtype-fix-plan-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-optimal-proposal-dtype-fix-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-post-r3-continuation-plan-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-post-r3-continuation-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-reference-probe-plan-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-reference-probe-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-adjacent-boundary-plan-2026-06-04.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-adjacent-boundary-result-2026-06-04.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-adjacent-boundary-review-loop-2026-06-04.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-direct-theta-hypothesis-plan-2026-06-04.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-direct-theta-hypothesis-result-2026-06-04.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-direct-theta-hypothesis-review-loop-2026-06-04.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-full-matrix-gradient-parameterization-plan-2026-06-04.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-full-matrix-gradient-parameterization-result-2026-06-04.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-full-path-gradient-scan-plan-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-full-path-gradient-scan-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-gradient-debug-summary-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-gradient-localization-plan-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-gradient-localization-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-historical-transport-vjp-plan-2026-06-04.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-historical-transport-vjp-result-2026-06-04.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-historical-transport-vjp-review-loop-2026-06-04.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-post-update-route-hypotheses-plan-2026-06-04.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-post-update-route-hypotheses-result-2026-06-04.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-post-update-route-hypotheses-review-loop-2026-06-04.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-proposal-boundary-gradient-localization-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-scalar-additivity-route-plan-2026-06-04.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-scalar-additivity-route-result-2026-06-04.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-time-92-vjp-decomposition-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-time-93-transport-jacobian-probe-plan-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-time-93-transport-jacobian-probe-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-time-93-vjp-decomposition-plan-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-time-93-vjp-decomposition-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-time-94-vjp-decomposition-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-transport-upstream-clipping-plan-2026-06-04.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-transport-upstream-clipping-result-2026-06-04.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-transport-upstream-clipping-review-loop-2026-06-04.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-vjp-decomposition-plan-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-row-173-vjp-decomposition-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-row-244-gradient-localization-plan-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-row-244-gradient-localization-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-row-gradient-discrepancy-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-plan-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-0-19-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-100-119-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-120-139-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-140-159-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-160-179-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-180-199-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-20-39-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-200-219-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-220-239-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-240-259-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-260-279-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-280-299-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-300-319-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-320-339-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-340-359-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-360-379-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-380-399-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-40-59-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-60-79-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-full-surface-rows-80-99-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-localization-plan-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-localization-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-surface-plan-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-gradient-surface-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-scalar-surface-plan-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-float64-smoothness-scalar-surface-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-full-comparison-plan-2026-05-31.md\n?? docs/plans/bayesfilter-dpf-filterflow-full-comparison-result-2026-05-31.md\n?? docs/plans/bayesfilter-dpf-filterflow-gap-closure-plan-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-gap-closure-program-plan-2026-05-31.md\n?? docs/plans/bayesfilter-dpf-filterflow-gap-closure-program-result-2026-05-31.md\n?? docs/plans/bayesfilter-dpf-filterflow-gap-closure-result-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-legacy-env-reproduction-plan-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-legacy-env-reproduction-result-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-lgssm-cross-implementation-audit-plan-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-lgssm-cross-implementation-audit-result-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-lgssm-matched-cross-audit-plan-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-lgssm-matched-cross-audit-result-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-py311-compat-plan-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-py311-compat-result-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-r3-float64-trace-replay-plan-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-r3-float64-trace-replay-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-r3-proposal-trace-replay-plan-2026-06-02.md\n?? docs/plans/bayesfilter-dpf-filterflow-r3-proposal-trace-replay-result-2026-06-02.md\n?? docs/plans/bayesfilter-dpf-filterflow-r3-transport-internals-audit-plan-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-r3-transport-internals-audit-result-2026-06-03.md\n?? docs/plans/bayesfilter-dpf-filterflow-transport-component-audit-plan-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-filterflow-transport-component-audit-result-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0-citation-coverage-register-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0-claim-extraction-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0-claim-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0-implementation-obligations-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0a-doc-patch-register-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0a-student-doc-crosswalk-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0a-student-doc-crosswalk-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf0a-student-doc-crosswalk-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf1-classical-pf-baseline-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf1-classical-pf-spec-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf1-reference-test-contract-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf1-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf1-student-comparison-context-register-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf2-bias-proxy-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf2-component-spec-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf2-deferred-neural-path-register-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf2-differentiable-resampling-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf2-resampling-test-contract-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf2-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf3-excluded-flow-risk-register-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf3-flow-pfpf-spec-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf3-kernel-pff-exclusion-check-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf3-particle-flow-pfpf-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf3-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf4-differentiable-objective-gradient-contract-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf4-downstream-evidence-requirements-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf4-gradient-contract-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf4-objective-classification-ledger-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf4-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf5-benchmark-ladder-matrix-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf5-cpu-gpu-runtime-policy-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf5-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf5-seed-uncertainty-policy-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf5-validation-harness-benchmark-ladder-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf5-validation-harness-spec-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf6-production-boundary-api-review-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf6-production-boundary-decision-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf6-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-dpf7-final-audit-implementation-handoff-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-final-audit-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-handoff-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-master-program-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-implementation-sv-test-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-master-program-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p0-scope-default-architecture-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p0-scope-default-architecture-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p1-ledh-math-contract-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p1-ledh-math-contract-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p10-final-audit-handoff-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p10-final-audit-handoff-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p2-affine-lgssm-edh-parity-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p2-affine-lgssm-edh-parity-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p3-nonlinear-local-linearization-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p3-nonlinear-local-linearization-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p4-pfpf-correction-logdet-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p4-pfpf-correction-logdet-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p5-tf-tfp-ledh-flow-implementation-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p5-tf-tfp-ledh-flow-implementation-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p6-integrated-ledh-pfpf-ot-runner-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p6-integrated-ledh-pfpf-ot-runner-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p7-gradient-tape-contract-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p7-gradient-tape-contract-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p8-lgssm-validation-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p8-lgssm-validation-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p9-range-bearing-validation-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-p9-range-bearing-validation-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-ladder-master-program-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p0-scope-and-estimation-criteria-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p0-scope-and-estimation-criteria-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p1-lgssm-multiseed-regression-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p1-lgssm-multiseed-regression-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p2-range-bearing-stress-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p2-range-bearing-stress-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p3-cut4-differentiable-comparator-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p3-cut4-differentiable-comparator-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p4-stochastic-volatility-gradient-mle-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p4-stochastic-volatility-gradient-mle-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p5-structural-ar1-quadratic-completion-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p5-structural-ar1-quadratic-completion-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p6-particle-count-seed-ladder-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p6-particle-count-seed-ladder-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p7-final-audit-handoff-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-nonlinear-ssm-evidence-p7-final-audit-handoff-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-ot-backend-governance-correction-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-backend-governance-correction-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-master-program-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p0-scope-and-contract-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p0-scope-and-contract-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p1-lgssm-fixture-and-kalman-reference-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p1-lgssm-fixture-and-kalman-reference-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p2-range-bearing-ukf-reference-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p2-range-bearing-ukf-reference-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p3-finite-sinkhorn-resampler-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p3-finite-sinkhorn-resampler-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p4-integrated-dpf-runner-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p4-integrated-dpf-runner-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p5-gradient-contract-and-finite-difference-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p5-gradient-contract-and-finite-difference-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p6-lgssm-validation-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p6-lgssm-validation-result-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p7-range-bearing-validation-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p7-range-bearing-validation-result-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p8-final-audit-and-handoff-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-implementation-p8-final-audit-and-handoff-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-resampling-math-source-audit-plan-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-ot-resampling-math-source-audit-result-2026-05-30.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-master-program-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p0-scope-import-gate-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p0-scope-import-gate-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p1-lgssm-fixture-kalman-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p1-lgssm-fixture-kalman-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p2-range-bearing-ukf-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p2-range-bearing-ukf-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p3-sinkhorn-resampler-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p3-sinkhorn-resampler-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p4-integrated-dpf-runner-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p4-integrated-dpf-runner-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p5-gradient-tape-contract-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p5-gradient-tape-contract-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p6-lgssm-validation-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p6-lgssm-validation-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p7-range-bearing-validation-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p7-range-bearing-validation-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p8-final-audit-handoff-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-p8-final-audit-handoff-result-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-ot-tf-tfp-rewrite-plan-2026-05-28.md\n?? docs/plans/bayesfilter-dpf-r1-filterflow-exact-arithmetic-plan-2026-06-02.md\n?? docs/plans/bayesfilter-dpf-r1-filterflow-exact-arithmetic-result-2026-06-02.md\n?? docs/plans/bayesfilter-dpf-r1-observation-path-mismatch-hypothesis-plan-2026-06-02.md\n?? docs/plans/bayesfilter-dpf-r1-observation-path-mismatch-hypothesis-result-2026-06-02.md\n?? docs/plans/bayesfilter-dpf-r1-observation-path-mismatch-hypothesis-review-loop-2026-06-02.md\n?? docs/plans/bayesfilter-dpf-r1-time3-observation-logprob-audit-plan-2026-06-02.md\n?? docs/plans/bayesfilter-dpf-r1-time3-observation-logprob-audit-result-2026-06-02.md\n?? docs/plans/bayesfilter-dpf-structural-ar1-linear-mle-test-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-structural-ar1-linear-mle-test-result-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-structural-ssm-interface-plan-2026-05-29.md\n?? docs/plans/bayesfilter-dpf-structural-ssm-interface-result-2026-05-29.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p34-zhao-cui-reference-implementation-audit-result-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase-subplans-claude-review-ledger-2026-06-04.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase0-design-contract-claude-review-ledger-2026-06-04.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase0-design-contract-result-2026-06-04.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase0-design-contract-subplan-2026-06-04.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase1-basis-tt-algebra-claude-review-ledger-2026-06-04.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase1-basis-tt-algebra-result-2026-06-04.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase1-basis-tt-algebra-subplan-2026-06-04.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase2-squared-density-transport-claude-review-ledger-2026-06-04.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase2-squared-density-transport-result-2026-06-04.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase2-squared-density-transport-subplan-2026-06-04.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase3-fixed-branch-fitting-claude-review-ledger-2026-06-04.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase3-fixed-branch-fitting-result-2026-06-04.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase3-fixed-branch-fitting-subplan-2026-06-04.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase4-filtering-value-path-claude-review-ledger-2026-06-04.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase4-filtering-value-path-result-2026-06-04.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase4-filtering-value-path-subplan-2026-06-04.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase5-fixed-branch-derivatives-result-2026-06-04.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase5-fixed-branch-derivatives-subplan-2026-06-04.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase6-stress-performance-subplan-2026-06-04.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-phase7-public-api-decision-subplan-2026-06-04.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-zhao-cui-production-implementation-claude-review-ledger-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p35-zhao-cui-production-implementation-plan-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p36-phase-specific-hardened-addenda-claude-review-ledger-2026-06-04.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p36-phase-specific-hardened-implementation-addenda-2026-06-04.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p36-subplan-hardening-claude-review-ledger-2026-06-04.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-p36-subplan-hardening-plan-2026-06-04.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-claude-review-ledger-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-code-audit-ledger-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-code-audit-promotion-plan-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-filtering-scalar-ledger-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-gradient-feasibility-ledger-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-mathdevmcp-ledger-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-octave-compatibility-plan-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-octave-compatibility-result-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-paper-code-crosswalk-ledger-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-reproducibility-ledger-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p11-zhao-cui-tt-analytical-derivative-note-2026-05-30.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p11-zhao-cui-tt-analytical-derivative-note-2026-05-30.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p11-zhao-cui-tt-analytical-derivative-plan-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p11-zhao-cui-tt-analytical-derivative-result-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p11-zhao-cui-tt-claude-review-ledger-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p11-zhao-cui-tt-derivation-ledger-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p11-zhao-cui-tt-mathdevmcp-ledger-2026-05-30.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-claim-support-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-claude-review-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-coverage-and-omission-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-mathdevmcp-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-proposition-proof-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-self-contained-proof-expansion-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-self-contained-proof-expansion-note-2026-05-31.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-self-contained-proof-expansion-note-2026-05-31.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-self-contained-proof-expansion-plan-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-self-contained-proof-expansion-result-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-source-anchor-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p12-zhao-cui-tt-source-support-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-claude-review-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-discrepancy-report-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-human-readable-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-human-readable-note-2026-05-31.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-human-readable-note-2026-05-31.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-human-readable-plan-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-human-readable-result-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-mathdevmcp-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-proposition-humanization-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-reader-comprehension-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p13-zhao-cui-tt-source-support-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-claude-review-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-discrepancy-report-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-gradient-teaching-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-mathdevmcp-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-pedagogical-math-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-pedagogical-math-note-2026-05-31.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-pedagogical-math-note-2026-05-31.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-pedagogical-math-plan-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-pedagogical-math-result-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-reader-panel-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p14-zhao-cui-tt-source-support-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-algorithm-choices-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-backward-snowball-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-citation-venue-metadata-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-claim-support-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-claude-review-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-discrepancy-report-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-fixed-branch-minimal-example-2026-05-31.py\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-forward-snowball-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-gradient-derivation-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-implementable-fixed-branch-spec-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-implementable-fixed-branch-spec-note-2026-05-31.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-implementable-fixed-branch-spec-note-2026-05-31.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-implementable-fixed-branch-spec-plan-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-implementable-fixed-branch-spec-result-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-mathdevmcp-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-omitted-paper-risk-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-reference-example-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p15-zhao-cui-tt-source-support-ledger-2026-05-31.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-annotated-reconstruction-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-annotated-reconstruction-note-2026-06-01.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-annotated-reconstruction-note-2026-06-01.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-annotated-reconstruction-plan-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-annotated-reconstruction-result-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-backward-snowball-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-bayesfilter-translation-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-citation-venue-metadata-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-claim-support-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-claude-review-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-code-crosswalk-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-discrepancy-report-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-equation-by-equation-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-fixed-branch-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-forward-snowball-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-gradient-derivation-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-mathdevmcp-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-omitted-paper-risk-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p16-zhao-cui-source-support-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-claude-review-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-discrepancy-report-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-fixed-branch-derivative-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-full-annotated-reconstruction-note-2026-06-01.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-full-annotated-reconstruction-note-2026-06-01.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-full-equation-inventory-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-full-equation-reconstruction-plan-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-full-equation-reconstruction-result-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-mathdevmcp-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-section1-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-section2-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-section3-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-section5-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p17-zhao-cui-source-support-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-backward-snowball-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-citation-venue-metadata-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-claim-support-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-claude-review-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-discrepancy-report-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-eight-issue-control-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-equation-count-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-fixed-branch-gradient-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-forward-snowball-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-omitted-paper-risk-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-section1-source-unit-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-section2-source-unit-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-section3-source-unit-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-section5-source-unit-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-source-support-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-true-annotated-companion-note-2026-06-01.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-true-annotated-companion-note-2026-06-01.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-true-annotation-inventory-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-true-annotation-plan-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-true-annotation-result-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p19-zhao-cui-chair-readable-gradient-note-2026-06-01.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p19-zhao-cui-chair-readable-gradient-note-2026-06-01.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p19-zhao-cui-chair-readable-gradient-plan-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p19-zhao-cui-chair-readable-gradient-result-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p19-zhao-cui-claude-review-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p19-zhao-cui-discrepancy-report-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p19-zhao-cui-finite-difference-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p19-zhao-cui-fixed-branch-scalar-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p19-zhao-cui-gradient-equation-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p19-zhao-cui-gradient-teaching-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p19-zhao-cui-mathdevmcp-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p20-zhao-cui-claude-review-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p20-zhao-cui-discrepancy-report-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p20-zhao-cui-equation-and-size-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p20-zhao-cui-integrated-companion-gradient-note-2026-06-01.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p20-zhao-cui-integrated-companion-gradient-note-2026-06-01.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p20-zhao-cui-integrated-companion-gradient-plan-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p20-zhao-cui-integrated-companion-gradient-result-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p20-zhao-cui-merge-ledger-2026-06-01.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p21-zhao-cui-chair-guide-reference-implementation-claude-review-ledger-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p21-zhao-cui-chair-guide-reference-implementation-note-2026-06-02.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p21-zhao-cui-chair-guide-reference-implementation-note-2026-06-02.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p21-zhao-cui-chair-guide-reference-implementation-plan-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p21-zhao-cui-chair-guide-reference-implementation-result-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p21-zhao-cui-chair-teachability-ledger-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p21-zhao-cui-discrepancy-report-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p21-zhao-cui-equation-to-specification-ledger-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p21-zhao-cui-finite-difference-protocol-ledger-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p21-zhao-cui-fixed-branch-implementation-ready-spec-ledger-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p21-zhao-cui-full-algorithm-gap-register-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p21-zhao-cui-implementation-readiness-ledger-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p22-zhao-cui-claude-review-ledger-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p22-zhao-cui-discrepancy-report-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p22-zhao-cui-implementation-specification-ledger-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p22-zhao-cui-integrated-readable-companion-note-2026-06-02.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p22-zhao-cui-integrated-readable-companion-note-2026-06-02.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p22-zhao-cui-integrated-readable-companion-plan-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p22-zhao-cui-integrated-readable-companion-result-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p22-zhao-cui-integration-ledger-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p22-zhao-cui-readable-orientation-ledger-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p23-zhao-cui-chemist-implementation-gap-closure-note-2026-06-02.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p23-zhao-cui-chemist-implementation-gap-closure-note-2026-06-02.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p23-zhao-cui-chemist-implementation-gap-closure-plan-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p23-zhao-cui-chemist-implementation-gap-closure-result-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p23-zhao-cui-claude-review-ledger-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p23-zhao-cui-discrepancy-report-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p23-zhao-cui-eleven-gap-ledger-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p23-zhao-cui-p22-preservation-ledger-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p24-zhao-cui-backward-snowball-ledger-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p24-zhao-cui-chair-gap-ledger-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p24-zhao-cui-citation-ledger-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p24-zhao-cui-citation-venue-metadata-ledger-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p24-zhao-cui-claim-support-ledger-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p24-zhao-cui-claude-review-ledger-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p24-zhao-cui-discrepancy-report-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p24-zhao-cui-forward-snowball-ledger-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p24-zhao-cui-human-facing-cleanup-ledger-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p24-zhao-cui-human-facing-companion-note-2026-06-02.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p24-zhao-cui-human-facing-companion-note-2026-06-02.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p24-zhao-cui-human-facing-companion-plan-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p24-zhao-cui-human-facing-companion-result-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p24-zhao-cui-implementation-gap-ledger-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p24-zhao-cui-omitted-paper-risk-ledger-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p24-zhao-cui-source-support-ledger-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p25-zhao-cui-chair-implementation-bridge-note-2026-06-02.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p25-zhao-cui-chair-implementation-bridge-note-2026-06-02.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p25-zhao-cui-chair-implementation-bridge-plan-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p25-zhao-cui-chair-implementation-bridge-result-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p25-zhao-cui-claim-support-ledger-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p25-zhao-cui-claude-review-ledger-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p25-zhao-cui-discrepancy-report-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p25-zhao-cui-five-gap-closure-ledger-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p25-zhao-cui-source-support-ledger-2026-06-02.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p26-zhao-cui-chemist-gap-ledger-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p26-zhao-cui-claude-review-ledger-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p26-zhao-cui-discrepancy-report-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p26-zhao-cui-human-facing-cleanup-ledger-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p26-zhao-cui-implementation-gap-ledger-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p26-zhao-cui-panel-readable-implementation-note-2026-06-03.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p26-zhao-cui-panel-readable-implementation-note-2026-06-03.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p26-zhao-cui-panel-readable-implementation-plan-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p26-zhao-cui-panel-readable-implementation-result-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p27-zhao-cui-claude-review-ledger-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p27-zhao-cui-discrepancy-report-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p27-zhao-cui-large-scale-validation-note-2026-06-03.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p27-zhao-cui-large-scale-validation-note-2026-06-03.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p27-zhao-cui-large-scale-validation-plan-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p27-zhao-cui-large-scale-validation-result-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p27-zhao-cui-validation-ledger-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p28-chair-reader-ledger-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p28-claude-review-ledger-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p28-discrepancy-report-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p28-equation-audit-ledger-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p28-implementation-readiness-ledger-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p28-mathdevmcp-ledger-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p28-notation-dimension-ledger-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p28-numerical-sanity-test-ledger-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p28-source-fidelity-ledger-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p28-submission-audit-plan-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p28-submission-audit-result-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p29-algorithm-provenance-ledger-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p29-claude-review-ledger-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p29-critical-equation-audit-plan-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p29-critical-equation-audit-result-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p29-discrepancy-report-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p29-kr-preconditioning-jacobian-ledger-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p29-mass-normalizer-ledger-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p29-mathdevmcp-ledger-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p29-notation-shape-contract-ledger-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p29-proposition2-derivative-ledger-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p30-alg5c2-claude-review-ledger-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p30-alg5c2-expansion-plan-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p30-alg5c2-mathdevmcp-ledger-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p30-alg5c2-result-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p30-alg5c2-source-ledger-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p30-zhao-cui-alg5c2-expanded-note-2026-06-03.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p30-zhao-cui-alg5c2-expanded-note-2026-06-03.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p31-fixed-sgqf-claude-review-ledger-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p31-fixed-sgqf-gradient-ledger-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p31-fixed-sgqf-mathdevmcp-ledger-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p31-fixed-sgqf-result-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p31-fixed-sgqf-source-ledger-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p31-fixed-sgqf-standalone-note-2026-06-03.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p31-fixed-sgqf-standalone-note-2026-06-03.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p31-fixed-sgqf-standalone-plan-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-academic-report-master-program-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-fixed-sgqf-claude-review-ledger-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-fixed-sgqf-discrepancy-report-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-fixed-sgqf-expanded-companion-note-2026-06-03.pdf\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-fixed-sgqf-expanded-companion-note-2026-06-03.tex\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-fixed-sgqf-expanded-companion-plan-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-fixed-sgqf-expanded-companion-result-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-fixed-sgqf-gradient-ledger-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-fixed-sgqf-mathdevmcp-ledger-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-fixed-sgqf-source-support-ledger-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-fixed-sgqf-validation-ledger-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-panel-standard-upgrade-plan-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-scholarly-grounding-and-engineering-exposition-remediation-plan-2026-06-04.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-subplan-conclusion-and-panel-positioning-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-subplan-gradient-path-implementation-completeness-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-subplan-neighboring-method-comparison-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-subplan-opening-and-conceptual-spine-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-subplan-value-path-implementation-completeness-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-subplan-worked-example-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p32-substantial-scholarly-remediation-plan-2026-06-04.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p33-basis-confidence-claude-review-ledger-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p33-basis-confidence-mathdevmcp-ledger-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p33-basis-confidence-plan-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p33-basis-confidence-result-2026-06-03.md\n?? docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p33-basis-confidence-source-ledger-2026-06-03.md\n?? docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-plan-2026-05-27.md\n?? docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-plan-audit-2026-05-27.md\n?? docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-result-2026-05-27.md\n?? docs/plans/bayesfilter-student-dpf-baseline-controlled-closeout-review-2026-05-27.md\n?? experiments/controlled_dpf_baseline/reports/controlled-dpf-baseline-final-archive-result.md\n?? experiments/dpf_implementation/\n?? tests/highdim/\n?? third_party/",
+    "filter_seed": 1234,
+    "gpu_devices_visible": [],
+    "json_path": "experiments/dpf_implementation/reports/outputs/dpf_filterflow_float64_row_173_historical_transport_vjp_2026-06-04.json",
+    "package_versions": {
+      "tensorflow": "2.19.1",
+      "tensorflow_probability": "0.25.0"
+    },
+    "plan_path": "docs/plans/bayesfilter-dpf-filterflow-float64-row-173-historical-transport-vjp-plan-2026-06-04.md",
+    "pre_import_cuda_visible_devices": "-1",
+    "python_version": "3.11.14",
+    "report_path": "experiments/dpf_implementation/reports/dpf-filterflow-float64-row-173-historical-transport-vjp-2026-06-04.md",
+    "result_path": "docs/plans/bayesfilter-dpf-filterflow-float64-row-173-historical-transport-vjp-result-2026-06-04.md",
+    "target_time_index": 93,
+    "wall_time_seconds": 290.35949748405255
+  },
+  "veto_status_table": {
+    "all_resampling_flags_match": true,
+    "all_transport_vjps_finite": true,
+    "all_upstreams_finite": true,
+    "all_vetoes_clear": true,
+    "comparator_drift": false,
+    "cpu_only_parent": true,
+    "path_boundary_clean": true,
+    "scalar_value_gate_pass": true
+  }
+}

@@ -1,0 +1,121 @@
+{
+  "artifact_role": "runner_manifest_path",
+  "consumed_artifacts": {
+    "p59_9a_status": "PASS_P59_9A_AUTHOR_SIR_36D_TARGET_FIT_PREP",
+    "p59_9b_status": "PASS_P59_9B_SOURCE_ROUTE_STEP_SPEC_ASSEMBLY",
+    "p59_9c_route_decision": "full_route_selected",
+    "p59_9c_status": "PASS_P59_9C_PRECONDITIONED_ROUTE_INTEGRATION"
+  },
+  "manifest_path": "docs/plans/bayesfilter-highdim-zhao-cui-p59-9d-runner-readiness-manifest-2026-06-11.json",
+  "nonclaims": [
+    "no P59-9e validation has been run",
+    "no d18 filtering accuracy claim",
+    "no same-route rank convergence claim",
+    "no d50 or d100 scaling claim",
+    "no HMC production readiness claim",
+    "no adaptive Zhao-Cui parity claim"
+  ],
+  "p58_manifest": {
+    "has_author_sir_callback": true,
+    "has_fixed_ttsirt_fit_artifacts": true,
+    "has_fixed_ttsirt_transports": true,
+    "has_frozen_reference_samples": true,
+    "has_m9_runner_manifest_path": true,
+    "has_previous_marginal_evidence": true,
+    "has_sequential_retained_carry": true,
+    "has_source_route_step_specs": true,
+    "m9_comparator_tier": "d18_execution_only",
+    "pipeline_kind": "author_sir_fixed_ttsirt_source_route",
+    "preconditioned_route_required": false,
+    "preconditioned_route_status": "not_required_author_sir_mainscript_selects_full_sol",
+    "rank_policy_status": "PASS_P57_M7_SOURCE_FAITHFUL_RANK_UKF_CALIBRATION",
+    "route_class": "fixed_ttsirt_source_route",
+    "runner_manifest_path": "docs/plans/bayesfilter-highdim-zhao-cui-p59-9d-runner-readiness-manifest-2026-06-11.json",
+    "source_anchors": [
+      "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/full_sol.m:21-25",
+      "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/full_sol.m:26-30",
+      "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/full_sol.m:32-39",
+      "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/full_sol.m:54-87",
+      "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/full_sol.m:101-130"
+    ],
+    "storage_kind": "source_transport_object",
+    "target_id": "zhao_cui_sir_austria_d18",
+    "transition_interface": "sample_propagation",
+    "uses_contract_test_double": false,
+    "uses_rank_memory_proxy_as_comparator": false,
+    "uses_ukf_as_comparator": false
+  },
+  "p58_readiness": {
+    "allowed_comparator_tiers": [
+      "d18_execution_only",
+      "d18_same_route_rank_convergence",
+      "d18_correctness_candidate"
+    ],
+    "blockers": [],
+    "family": "P58M9SourceRoutePipelineReadiness",
+    "manifest": {
+      "has_author_sir_callback": true,
+      "has_fixed_ttsirt_fit_artifacts": true,
+      "has_fixed_ttsirt_transports": true,
+      "has_frozen_reference_samples": true,
+      "has_m9_runner_manifest_path": true,
+      "has_previous_marginal_evidence": true,
+      "has_sequential_retained_carry": true,
+      "has_source_route_step_specs": true,
+      "m9_comparator_tier": "d18_execution_only",
+      "pipeline_kind": "author_sir_fixed_ttsirt_source_route",
+      "preconditioned_route_required": false,
+      "preconditioned_route_status": "not_required_author_sir_mainscript_selects_full_sol",
+      "rank_policy_status": "PASS_P57_M7_SOURCE_FAITHFUL_RANK_UKF_CALIBRATION",
+      "route_class": "fixed_ttsirt_source_route",
+      "runner_manifest_path": "docs/plans/bayesfilter-highdim-zhao-cui-p59-9d-runner-readiness-manifest-2026-06-11.json",
+      "source_anchors": [
+        "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/full_sol.m:21-25",
+        "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/full_sol.m:26-30",
+        "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/full_sol.m:32-39",
+        "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/full_sol.m:54-87",
+        "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/full_sol.m:101-130"
+      ],
+      "storage_kind": "source_transport_object",
+      "target_id": "zhao_cui_sir_austria_d18",
+      "transition_interface": "sample_propagation",
+      "uses_contract_test_double": false,
+      "uses_rank_memory_proxy_as_comparator": false,
+      "uses_ukf_as_comparator": false
+    },
+    "nonclaims": [
+      "no d18 correctness without comparator-tier result",
+      "no d50 or d100 scaling claim",
+      "no HMC readiness",
+      "no adaptive Zhao-Cui parity",
+      "no S&P 500 reproduction"
+    ],
+    "ready_for_phase9_launch": true,
+    "required_assembly_flags": [
+      "has_author_sir_callback",
+      "has_fixed_ttsirt_fit_artifacts",
+      "has_fixed_ttsirt_transports",
+      "has_frozen_reference_samples",
+      "has_source_route_step_specs",
+      "has_sequential_retained_carry",
+      "has_previous_marginal_evidence",
+      "has_m9_runner_manifest_path"
+    ],
+    "status": "PASS_P58_M9_SOURCE_ROUTE_PIPELINE_READY_FOR_PHASE9_LAUNCH"
+  },
+  "pipeline_phase": "P59-9d",
+  "ready_for_validation_ladder": true,
+  "runner_command": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp python scripts/p59_author_sir_m9_runner_manifest.py --output docs/plans/bayesfilter-highdim-zhao-cui-p59-9d-runner-readiness-manifest-2026-06-11.json",
+  "schema_version": "bayesfilter.p59_9d.runner_manifest.v1",
+  "sequential_status": "sequential_fixed_hmc_source_loop",
+  "source_anchors": [
+    "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/full_sol.m:21-25",
+    "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/full_sol.m:26-30",
+    "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/full_sol.m:32-39",
+    "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/full_sol.m:54-87",
+    "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/full_sol.m:101-130"
+  ],
+  "status": "PASS_P59_9D_RUNNER_MANIFEST_PATH",
+  "step_spec_count": 2,
+  "target_id": "zhao_cui_sir_austria_d18"
+}

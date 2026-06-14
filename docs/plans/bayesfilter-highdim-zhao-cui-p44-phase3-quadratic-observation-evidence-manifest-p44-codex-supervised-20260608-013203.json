@@ -1,0 +1,90 @@
+{
+  "schema_version": "p44.phase_evidence.v1",
+  "run_id": "p44-codex-supervised-20260608-013203",
+  "phase": "P44-M3",
+  "pass_token": "PASS_P44_M3_CODE_GOVERNANCE",
+  "status": "PASS_P44_M3_CODE_GOVERNANCE",
+  "artifact_paths": {
+    "result_note": "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase3-quadratic-observation-result-2026-06-07.md",
+    "claude_review_ledger": "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase3-quadratic-observation-claude-review-ledger-2026-06-07.md",
+    "evidence_manifest": "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase3-quadratic-observation-evidence-manifest-p44-codex-supervised-20260608-013203.json",
+    "test_file": "tests/highdim/test_p44_quadratic_observation.py",
+    "repair_amendment": "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase3-quadratic-observation-repair-amendment-2026-06-08.md"
+  },
+  "evidence_chain": {
+    "PHASE_PLAN_CONFIRMED": true,
+    "SKEPTICAL_AUDIT_RECORDED": true,
+    "CLAUDE_PLAN_OR_REPAIR_REVIEW_PASS": true,
+    "IMPLEMENTED": true,
+    "LOCAL_EVIDENCE_RUN": true,
+    "EVIDENCE_AUDIT_RECORDED": true,
+    "RESULT_NOTE_WRITTEN": true,
+    "CLAUDE_CODE_GOVERNANCE_PASS": true,
+    "TRACEABILITY_UPDATED_OR_NONCLAIM_RECORDED": true,
+    "PHASE_PASS": true
+  },
+  "evidence_contract": {
+    "question": "For the quadratic additive-Gaussian observation model x_t = rho x_{t-1} + eta_t, y_t = x_t^2 + epsilon_t, do dense quadrature, CUT4, and Zhao--Cui/fixed-design scalar TT expose the expected multimodality stress in dimensions 1, 2, and 3?",
+    "baseline_or_comparator": "Dense scalar quadrature order 281 summed across independent product-panel coordinates is the governing baseline after order-181 refinement and explicit symmetric-mode coverage checks.",
+    "primary_promotion_criterion": "Dims 1, 2, and 3 pass structural timing moment checks, symmetric-mode coverage, dense refinement, tight Zhao--Cui value/score gaps, finite/bounded CUT4 stress-gap checks, and at least five deterministic directional score residuals per dimension.",
+    "veto_diagnostics": [
+      "dense grid misses the symmetric mode",
+      "dense reference has no refinement check",
+      "one-mode approximation is promoted as full target correctness",
+      "score checks are performed near a symmetry-induced stationary point without absolute and directional tolerances",
+      "CUT4 point count exceeds the phase cap",
+      "CUT4 stress gap is hidden or described as small-error accuracy"
+    ],
+    "explanatory_only_diagnostics": [
+      "TensorFlow warning logs",
+      "wall time",
+      "CUT4 point count",
+      "CUT4 polynomial degree",
+      "fixed-design TT fit details",
+      "approximation-gap magnitudes after passing the stated gate"
+    ],
+    "artifact_preserving_result": "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase3-quadratic-observation-result-2026-06-07.md plus docs/plans/bayesfilter-highdim-zhao-cui-p44-phase3-quadratic-observation-evidence-manifest-p44-codex-supervised-20260608-013203.json and docs/plans/logs/p44-codex-supervised-20260608-013203-P44-M3-command0.log",
+    "nonclaims": [
+      "no exact CUT4 nonlinear likelihood claim",
+      "no CUT4 accuracy promotion for symmetric multimodal quadratic observations",
+      "no production analytic score API",
+      "no HMC readiness",
+      "no long-horizon posterior recovery",
+      "no coupled multivariate TT claim",
+      "no paper-scale Zhao--Cui reproduction"
+    ]
+  },
+  "commands": [
+    {
+      "purpose": "Run focused P44-M3 quadratic observation multimodality stress evidence for dense reference, CUT4, and Zhao--Cui/fixed-design scalar TT lane.",
+      "command": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp pytest -q -s tests/highdim/test_p44_quadratic_observation.py",
+      "exit_code": 0,
+      "log_path": "docs/plans/logs/p44-codex-supervised-20260608-013203-P44-M3-command0.log"
+    },
+    {
+      "purpose": "Compile highdim package and the focused M3 test file.",
+      "command": "python -m compileall -q bayesfilter/highdim tests/highdim/test_p44_quadratic_observation.py",
+      "exit_code": 0,
+      "log_path": "docs/plans/logs/p44-codex-supervised-20260608-013203-P44-M3-command1.log"
+    }
+  ],
+  "diagnostics": {
+    "veto_status": "NONCLAIM_RECORDED",
+    "summary": "Dense order-181 versus order-281 refinement passed at numerical-noise scale and symmetric-mode masses are about 0.42 on both sides. CUT4 is finite but records a large same-target stress gap up to dim-3 value gap 3.607512e-01 and relative score error 4.637075e-01. Zhao--Cui/fixed-design scalar TT remains tight with dim-3 value gap 2.756965e-04 and relative score error 3.598171e-04."
+  },
+  "review_loops": {
+    "claude_code_governance": {
+      "iterations": 1,
+      "verdict": "PASS_P44_M3_CODE_GOVERNANCE"
+    },
+    "repair": {
+      "iterations": 1,
+      "verdict": "PASS_P44_M3_REPAIR_REVIEW"
+    }
+  },
+  "long_run_controls": {
+    "long_run_used": false,
+    "resource_caps": "No long run; focused local pytest and compile check only.",
+    "pre_mortem": "N/A"
+  }
+}

@@ -1,0 +1,275 @@
+{
+  "schema_version": "filter_bench.dpf_filter_coverage.v1",
+  "metadata_date": "2026-06-10",
+  "phase": "FILTER_BENCH_P5",
+  "status": "PASS_FILTER_BENCH_P5_DPF_FILTERS",
+  "target_registry": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-target-registry-2026-06-10.json",
+  "reference_oracles": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-reference-oracles-2026-06-10.json",
+  "adapter_schema": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-adapter-schema-2026-06-10.json",
+  "smoke_payloads": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-dpf-filter-smoke-payloads-2026-06-10.json",
+  "minimal_matrix": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-dpf-minimal-matrix-2026-06-10.json",
+  "purpose": "P5 DPF adapter coverage and supersession guard. Current DPF cells use only bootstrap_dpf_current and ledh_pfpf_alg1_ukf_current; historical LEDH-PFPF-OT records are quarantined and cannot supply current benchmark evidence.",
+  "current_algorithm_ids": [
+    "bootstrap_dpf_current",
+    "ledh_pfpf_alg1_ukf_current"
+  ],
+  "historical_algorithm_ids": [
+    "ledh_pfpf_ot_historical"
+  ],
+  "cell_status_vocabulary": [
+    "READY_VALUE_WITH_STOCHASTIC_GRADIENT_STATUS",
+    "READY_FIXED_BRANCH_DIAGNOSTIC",
+    "READY_DIAGNOSTIC_ONLY",
+    "ADAPTER_REQUIRED_WITH_REASON",
+    "BLOCKED_VALUE_ROUTE",
+    "HISTORICAL_ONLY_NOT_EVIDENCE"
+  ],
+  "reason_code_vocabulary": [
+    "NONE",
+    "STOCHASTIC_GRADIENT_DIAGNOSTIC",
+    "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+    "RESAMPLING_GRADIENT_NOT_VALID",
+    "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS",
+    "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET",
+    "ADAPTER_REQUIRED_PRODUCTION_TARGET",
+    "DIAGNOSTIC_ROW_NOT_PROMOTION",
+    "NO_THETA_GRADIENT_DIM0",
+    "REFERENCE_GRADIENT_NOT_AVAILABLE",
+    "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION",
+    "HISTORICAL_LEDHPFPF_OT_SUPERSEDED",
+    "PREVIOUS_LEDHPFPF_OT_EVIDENCE_QUARANTINED"
+  ],
+  "current_route_contract": {
+    "bootstrap_dpf_current": {
+      "implementation_boundary": "experiments.dpf_implementation.tf_tfp.filters.bootstrap_pf_tf.run_bootstrap_particle_filter_tf",
+      "route_kind": "plain_bootstrap_particle_filter",
+      "resampling_policy": "stateless_multinomial_when_ess_below_threshold",
+      "gradient_policy": "value path may be evaluated; gradients through stochastic resampling are not valid benchmark gradients and must be reported by status."
+    },
+    "ledh_pfpf_alg1_ukf_current": {
+      "implementation_boundary": "experiments.dpf_implementation.tf_tfp.filters.ledh_pfpf_alg1_ukf_tf.run_ledh_pfpf_alg1_ukf_tf",
+      "method_generation": "li_coates_algorithm1_ukf_covariance_lifecycle",
+      "flow_source_route": "li_coates_2017_algorithm1_ledh_pfpf",
+      "covariance_route": "per_particle_ukf_prediction_update",
+      "flow_anchor_route": "zero_noise_transition",
+      "previous_ledh_pfpf_ot_evidence_status": "quarantined",
+      "default_resampling_route": "none",
+      "gradient_policy": "fixed-branch no-resampling gradients are diagnostic unless P6/P8 classify the row as benchmark-gradient eligible; classical resampling gradients are not valid benchmark gradients."
+    }
+  },
+  "algorithms": [
+    {
+      "algorithm_id": "bootstrap_dpf_current",
+      "algorithm_family": "particle_filter_current",
+      "route_boundary": "Current bootstrap DPF means TensorFlow bootstrap particle filter, not old bootstrap-OT. Any transport or OT artifact is historical unless a later reviewed extension row admits it explicitly.",
+      "adapter_paths": [
+        "experiments/dpf_implementation/tf_tfp/filters/bootstrap_pf_tf.py::run_bootstrap_particle_filter_tf"
+      ],
+      "row_groups": [
+        {
+          "row_ids": [
+            "lgssm_exact_kalman_dim_1_2_3"
+          ],
+          "cell_status": "READY_VALUE_WITH_STOCHASTIC_GRADIENT_STATUS",
+          "value_status_when_run": "VALID",
+          "gradient_status_when_run": "RESAMPLING_GRADIENT_NOT_VALID",
+          "reason_codes": [
+            "STOCHASTIC_GRADIENT_DIAGNOSTIC",
+            "RESAMPLING_GRADIENT_NOT_VALID"
+          ],
+          "required_diagnostics": [
+            "seed_list",
+            "particle_count",
+            "mc_standard_error",
+            "effective_sample_size_min",
+            "resampling_count"
+          ],
+          "evidence_tests": [
+            "tests/highdim/test_filtering_value_gradient_benchmark_adapter_schema.py::test_filter_bench_adapter_fixture_keeps_dpf_current_and_historical_distinct",
+            "tests/highdim/test_filtering_value_gradient_benchmark_dpf_filters.py::test_filter_bench_dpf_current_route_implementations_are_guarded"
+          ]
+        },
+        {
+          "row_ids": [
+            "p44_cubic_additive_gaussian_dim_1_2_3",
+            "p44_quadratic_observation_dim_1_2_3",
+            "p44_nonlinear_transition_h2_dim_1_2_3",
+            "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3",
+            "sv_exact_transformed_actual_nongaussian_dim_1_2_3",
+            "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3",
+            "native_generalized_sv_dense_lower_rung_dim_2",
+            "spatial_sir_lower_rung_j1_dim_2",
+            "predator_prey_lower_rung_dim_2",
+            "predator_prey_production_tuned_h25_dim_2"
+          ],
+          "cell_status": "ADAPTER_REQUIRED_WITH_REASON",
+          "value_status_when_run": "NOT_RUN",
+          "gradient_status_when_run": "NOT_RUN",
+          "reason_codes": [
+            "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+          ],
+          "required_diagnostics": [
+            "missing_callback_bundle",
+            "same_target_reference_binding"
+          ],
+          "evidence_tests": [
+            "tests/highdim/test_filtering_value_gradient_benchmark_dpf_filters.py::test_filter_bench_dpf_coverage_has_full_current_algorithm_by_target_matrix"
+          ]
+        },
+        {
+          "row_ids": [
+            "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18"
+          ],
+          "cell_status": "BLOCKED_VALUE_ROUTE",
+          "value_status_when_run": "BLOCKED_VALUE_ROUTE",
+          "gradient_status_when_run": "BLOCKED_VALUE_ROUTE",
+          "reason_codes": [
+            "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+          ],
+          "required_diagnostics": [
+            "blocked_token"
+          ],
+          "evidence_tests": [
+            "tests/highdim/test_p53_m5_rank_selection_integration.py::test_p53_m5_result_manifest_preserves_blocker_and_forbids_downstream_tokens"
+          ]
+        }
+      ],
+      "nonclaims": [
+        "bootstrap_dpf_current is not bootstrap-OT",
+        "stochastic or resampling gradients are not certified",
+        "P5 coverage is not filter ranking"
+      ]
+    },
+    {
+      "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+      "algorithm_family": "particle_filter_current",
+      "route_boundary": "Current LEDH-PFPF means Li-Coates Algorithm 1 with per-particle UKF covariance lifecycle and no historical OT evidence. Default current route is no-resampling source core; classical resampling may be represented only with explicit invalid-gradient status.",
+      "adapter_paths": [
+        "experiments/dpf_implementation/tf_tfp/filters/ledh_pfpf_alg1_ukf_tf.py::run_ledh_pfpf_alg1_ukf_tf"
+      ],
+      "route_identifiers_required": {
+        "method_generation": "li_coates_algorithm1_ukf_covariance_lifecycle",
+        "flow_source_route": "li_coates_2017_algorithm1_ledh_pfpf",
+        "covariance_route": "per_particle_ukf_prediction_update",
+        "flow_anchor_route": "zero_noise_transition",
+        "previous_ledh_pfpf_ot_evidence_status": "quarantined"
+      },
+      "row_groups": [
+        {
+          "row_ids": [
+            "lgssm_exact_kalman_dim_1_2_3",
+            "p44_cubic_additive_gaussian_dim_1_2_3",
+            "p44_quadratic_observation_dim_1_2_3",
+            "p44_nonlinear_transition_h2_dim_1_2_3"
+          ],
+          "cell_status": "READY_FIXED_BRANCH_DIAGNOSTIC",
+          "value_status_when_run": "VALID",
+          "gradient_status_when_run": "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+          "reason_codes": [
+            "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+            "PREVIOUS_LEDHPFPF_OT_EVIDENCE_QUARANTINED"
+          ],
+          "required_diagnostics": [
+            "seed_list",
+            "particle_count",
+            "mc_standard_error",
+            "effective_sample_size_min",
+            "resampling_route",
+            "route_identifiers"
+          ],
+          "evidence_tests": [
+            "tests/test_ledh_pfpf_alg1_ukf_tf.py::test_small_filter_run_is_finite_and_records_route_identifiers",
+            "tests/test_ledh_pfpf_alg1_ukf_tf.py::test_fixed_branch_gradient_smoke_for_no_resampling_path",
+            "tests/test_ledh_pfpf_alg1_ukf_tf.py::test_route_identifier_rejects_old_ledh_pfpf_ot_claim"
+          ]
+        },
+        {
+          "row_ids": [
+            "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3"
+          ],
+          "cell_status": "READY_DIAGNOSTIC_ONLY",
+          "value_status_when_run": "NOT_RUN",
+          "gradient_status_when_run": "NOT_RUN",
+          "reason_codes": [
+            "DIAGNOSTIC_ROW_NOT_PROMOTION",
+            "ADAPTER_REQUIRED_CURRENT_DPF_CALLBACKS"
+          ],
+          "required_diagnostics": [
+            "diagnostic_only_scope",
+            "missing_horizon4_algorithm1_callback_bundle"
+          ],
+          "evidence_tests": [
+            "tests/highdim/test_filtering_value_gradient_benchmark_reference_oracles.py::test_filter_bench_reference_oracles_do_not_promote_approximate_filters_to_truth"
+          ]
+        },
+        {
+          "row_ids": [
+            "sv_exact_transformed_actual_nongaussian_dim_1_2_3",
+            "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3",
+            "native_generalized_sv_dense_lower_rung_dim_2",
+            "spatial_sir_lower_rung_j1_dim_2",
+            "predator_prey_lower_rung_dim_2",
+            "predator_prey_production_tuned_h25_dim_2"
+          ],
+          "cell_status": "ADAPTER_REQUIRED_WITH_REASON",
+          "value_status_when_run": "NOT_RUN",
+          "gradient_status_when_run": "NOT_RUN",
+          "reason_codes": [
+            "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+          ],
+          "required_diagnostics": [
+            "missing_same_target_algorithm1_callback_bundle",
+            "same_target_reference_binding"
+          ],
+          "evidence_tests": [
+            "tests/highdim/test_filtering_value_gradient_benchmark_dpf_filters.py::test_filter_bench_dpf_coverage_has_full_current_algorithm_by_target_matrix"
+          ]
+        },
+        {
+          "row_ids": [
+            "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18"
+          ],
+          "cell_status": "BLOCKED_VALUE_ROUTE",
+          "value_status_when_run": "BLOCKED_VALUE_ROUTE",
+          "gradient_status_when_run": "BLOCKED_VALUE_ROUTE",
+          "reason_codes": [
+            "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+          ],
+          "required_diagnostics": [
+            "blocked_token"
+          ],
+          "evidence_tests": [
+            "tests/highdim/test_p53_m5_rank_selection_integration.py::test_p53_m5_result_manifest_preserves_blocker_and_forbids_downstream_tokens"
+          ]
+        }
+      ],
+      "nonclaims": [
+        "Algorithm 1 UKF LEDH-PFPF is not the superseded historical OT route",
+        "fixed-branch diagnostic gradients are not stochastic-resampling gradient certification",
+        "P5 coverage is not statistical-closeness evidence"
+      ]
+    }
+  ],
+  "historical_quarantine_records": [
+    {
+      "algorithm_id": "ledh_pfpf_ot_historical",
+      "evidence_role": "historical_only",
+      "current_evidence": false,
+      "reason_codes": [
+        "HISTORICAL_LEDHPFPF_OT_SUPERSEDED"
+      ],
+      "replacement_current_algorithm_id": "ledh_pfpf_alg1_ukf_current",
+      "nonclaims": [
+        "not current Algorithm 1 evidence",
+        "not a P5 benchmark cell"
+      ]
+    }
+  ],
+  "global_nonclaims": [
+    "P5 is an adapter coverage and status-preservation gate, not a full benchmark.",
+    "No DPF gradient is certified by P5.",
+    "Old LEDH-PFPF-OT is historical-only.",
+    "Adapter-required cells are engineering gaps, not evidence against a scientific method.",
+    "No HMC, GPU, or Bayesian-estimation readiness is claimed."
+  ]
+}

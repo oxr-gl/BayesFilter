@@ -16,6 +16,7 @@ from bayesfilter.highdim.diagnostics import (
     freeze_mapping,
 )
 from bayesfilter.highdim.fixed_branch import BranchIdentity, BranchManifest
+from bayesfilter.highdim.bases import ProductBasis
 from bayesfilter.highdim.tt import FunctionalTT, TTContractedRepresentation
 
 
@@ -88,6 +89,7 @@ class SquaredTTMarginal:
     measure_convention: MeasureConvention
     branch_identity: BranchIdentity
     diagnostics: Mapping[str, object] | None = None
+    density: "SquaredTTDensity | None" = None
 
     def __post_init__(self) -> None:
         normalizer = tf.convert_to_tensor(self.normalizer, dtype=tf.float64)
@@ -97,6 +99,13 @@ class SquaredTTMarginal:
             raise TypeError("branch_identity must be a BranchIdentity")
         object.__setattr__(self, "normalizer", normalizer)
         object.__setattr__(self, "diagnostics", freeze_mapping(self.diagnostics))
+        if self.density is not None and not isinstance(self.density, SquaredTTDensity):
+            raise TypeError("density must be a SquaredTTDensity")
+
+    def normalized_retained_density_values(self, points: tf.Tensor) -> tf.Tensor:
+        if self.density is None:
+            raise NotImplementedError("marginal density evaluator is unavailable")
+        return self.density.normalized_marginal_density_values(self.keep_axes, points)
 
 
 @dataclass(frozen=True)
@@ -205,6 +214,7 @@ class SquaredTTDensity:
         dimension = len(self.sqrt_tt.cores)
         if any(axis < 0 or axis >= dimension for axis in axes):
             raise IndexError("keep_axes contains an out-of-range axis")
+        _validate_source_marginal_axes(axes, dimension)
         integrated = tuple(axis for axis in range(dimension) if axis not in axes)
         contracted = self.sqrt_tt.contract_axes(integrated)
         diagnostics = {
@@ -212,8 +222,9 @@ class SquaredTTDensity:
             "keep_axes": axes,
             "integrated_axes": integrated,
             "normalizer": self.normalizer(),
-            "semantics": "squared_density_marginal_metadata",
-            "note": "contracted_density is retained square-root metadata; squared marginal values are evaluated by grid integration in conditional_density",
+            "semantics": "source_style_squared_tt_marginal",
+            "source_anchor": "@TTSIRT/marginalise.m mass-matrix recursion",
+            "note": "normalized_retained_density_values uses paired-core mass contractions; grid integration is diagnostic only",
         }
         return SquaredTTMarginal(
             keep_axes=axes,
@@ -222,7 +233,103 @@ class SquaredTTDensity:
             measure_convention=self.measure_convention,
             branch_identity=contracted.branch_identity,
             diagnostics=diagnostics,
+            density=self,
         )
+
+    def normalized_marginal_density_values(
+        self,
+        keep_axes: Sequence[int],
+        points: tf.Tensor,
+    ) -> tf.Tensor:
+        axes = tuple(sorted(set(int(axis) for axis in keep_axes)))
+        dimension = len(self.sqrt_tt.cores)
+        if any(axis < 0 or axis >= dimension for axis in axes):
+            raise IndexError("keep_axes contains an out-of-range axis")
+        _validate_source_marginal_axes(axes, dimension)
+        values = tf.convert_to_tensor(points, dtype=tf.float64)
+        if values.shape.rank == 1 and len(axes) == 1:
+            values = values[:, tf.newaxis]
+        if values.shape.rank != 2 or values.shape[1] != len(axes):
+            raise ValueError(f"points: {HighDimStatus.INVALID_SHAPE.value}")
+        if not bool(tf.reduce_all(tf.math.is_finite(values)).numpy()):
+            raise ValueError(HighDimStatus.NONFINITE_VALUE.value)
+        numerator = self._source_style_marginal_unnormalized_values(axes, values)
+        normalized = numerator / self.normalizer()
+        if not bool(tf.reduce_all(tf.math.is_finite(normalized)).numpy()):
+            raise ValueError(HighDimStatus.NONFINITE_VALUE.value)
+        return normalized
+
+    def _source_style_marginal_unnormalized_values(
+        self,
+        keep_axes: tuple[int, ...],
+        points: tf.Tensor,
+    ) -> tf.Tensor:
+        active_measure = self.measure_convention.mass_measure
+        n_points = tf.shape(points)[0]
+        vector = tf.ones([n_points, 1], dtype=tf.float64)
+        point_axis = {axis: index for index, axis in enumerate(keep_axes)}
+        for axis, core in enumerate(self.sqrt_tt.cores):
+            if axis in point_axis:
+                basis_values = self.sqrt_tt.product_basis.evaluate_axis(
+                    axis,
+                    points[:, point_axis[axis]],
+                )
+                matrices = tf.einsum(
+                    "nl,nm,alb,AmB->naAbB",
+                    basis_values,
+                    basis_values,
+                    core.values,
+                    core.values,
+                )
+            else:
+                paired = tf.einsum(
+                    "alb,A mB,lm->aAbB",
+                    core.values,
+                    core.values,
+                    self.sqrt_tt.product_basis.bases[axis].mass_matrix(active_measure),
+                )
+                matrices = tf.broadcast_to(
+                    paired[tf.newaxis, :, :, :, :],
+                    [
+                        n_points,
+                        core.left_rank,
+                        core.left_rank,
+                        core.right_rank,
+                        core.right_rank,
+                    ],
+                )
+            matrices = tf.reshape(
+                matrices,
+                [
+                    n_points,
+                    core.left_rank * core.left_rank,
+                    core.right_rank * core.right_rank,
+                ],
+            )
+            vector = tf.einsum("na,nab->nb", vector, matrices)
+        sqrt_square = tf.reshape(vector, [n_points])
+        defensive = self._defensive_marginal_values(keep_axes, points)
+        return sqrt_square + self.tau * defensive
+
+    def _defensive_marginal_values(
+        self,
+        keep_axes: tuple[int, ...],
+        points: tf.Tensor,
+    ) -> tf.Tensor:
+        if keep_axes == tuple(range(len(self.sqrt_tt.cores))):
+            return tf.exp(self.defensive_density.log_density(points))
+        if isinstance(self.defensive_density, TensorProductReferenceDensity):
+            retained_basis = ProductBasis(
+                [self.sqrt_tt.product_basis.bases[axis] for axis in keep_axes],
+                self.measure_convention,
+            )
+            retained_reference = TensorProductReferenceDensity(
+                retained_basis,
+                self.measure_convention,
+                floor=self.defensive_density.floor,
+            )
+            return tf.exp(retained_reference.log_density(points))
+        raise NotImplementedError("source-style defensive marginal requires tensor-product reference density")
 
     def conditional_density(
         self,
@@ -385,6 +492,15 @@ def _points_with_prefix_axis_grid(
             else:
                 columns.append(suffix_points[:, dim - axis - 1])
     return tf.stack(columns, axis=1)
+
+
+def _validate_source_marginal_axes(axes: tuple[int, ...], dimension: int) -> None:
+    if not axes:
+        return
+    prefix = tuple(range(len(axes)))
+    suffix = tuple(range(dimension - len(axes), dimension))
+    if axes != prefix and axes != suffix:
+        raise NotImplementedError("source-style marginal currently supports retained prefix or suffix axes")
 
 
 def _trapezoid_integral(grid: tf.Tensor, values: tf.Tensor) -> tf.Tensor:

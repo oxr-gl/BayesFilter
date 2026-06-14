@@ -1,0 +1,243 @@
+{
+  "schema_version": "p47.paper_scale_readiness.v1",
+  "phase": "P47-M2",
+  "metadata_date": "2026-06-08",
+  "status": "READINESS_ONLY",
+  "pass_token": "PASS_P47_M2_PAPER_SCALE_READINESS",
+  "supervisor": "Codex",
+  "reviewer": "Claude read-only",
+  "source_registry": "docs/plans/bayesfilter-highdim-zhao-cui-p47-target-registry-2026-06-08.json",
+  "s_and_p_500_reproduction_in_scope": false,
+  "prerequisite_tokens_observed": [
+    "PASS_P47_M0_GOVERNANCE",
+    "PASS_P47_M1_ADAPTIVE_ROUTE"
+  ],
+  "m1_route_label_required": "documented-deviation fixed-design substitute",
+  "m1_route_decision_source": "P46 bounded multistate fixed-design TT adapter passed; no adaptive MATLAB TT-cross/SIRT reproduction evidence exists.",
+  "claim_boundary": {
+    "claim_class": "FEASIBILITY_ONLY_NO_CORRECTNESS_PROMOTION",
+    "primary_question": "Is BayesFilter ready to attempt source-governed synthetic/model-suite paper-like filtering runs, excluding S&P 500, under explicit caps and guardrails?",
+    "allowed_claims": [
+      "phase-governed readiness manifest exists",
+      "candidate rows have explicit eligibility states and resource caps",
+      "future production attempts have stop conditions and lower-rung prerequisites"
+    ],
+    "forbidden_claims": [
+      "finite output implies correctness",
+      "paper-scale filtering correctness is established",
+      "production spatial SIR filtering is established",
+      "production predator-prey filtering is established",
+      "score API or HMC readiness is established",
+      "adaptive MATLAB TT-cross/SIRT reproduction is established",
+      "S&P 500 real-data reproduction is in scope"
+    ],
+    "forbidden_tokens": [
+      "PASS_P47_M4_SPATIAL_SIR_PRODUCTION_FILTERING",
+      "PASS_P47_M5_PREDATOR_PREY_PRODUCTION_FILTERING",
+      "PASS_P47_M6_SCORE_HMC_READINESS",
+      "PASS_ADAPTIVE_MATLAB_TT_CROSS_SIRT_REPRODUCTION"
+    ]
+  },
+  "global_resource_caps": {
+    "default_execution": "CPU-only unless a phase-specific trusted GPU plan passes",
+    "environment": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp",
+    "max_wall_time_seconds_per_smoke": 300,
+    "max_wall_time_seconds_per_near_paper_candidate": 3600,
+    "max_memory_gb_per_cpu_run": 16,
+    "max_ladder_axis_changes_per_run": 1,
+    "required_first_run": "cheapest lower-rung smoke before any larger horizon, dimension, rank, or basis ladder"
+  },
+  "branch_policy": {
+    "route_label": "documented-deviation fixed-design substitute",
+    "adaptive_reproduction_claim_allowed": false,
+    "fixed_branch_replay_required_for_scores": true,
+    "branch_hash_required_for_zhao_cui_rows": true,
+    "fit_residual_promotion_allowed": false
+  },
+  "candidate_rows": [
+    {
+      "target_id": "generalized_sv_same_target_equality",
+      "model_family": "generalized_stochastic_volatility",
+      "phase_gate": "P47-M3",
+      "readiness_state": "eligible_for_lower_rung_target_definition_and_equality_gate",
+      "production_state": "not_a_production_filtering_row",
+      "m1_route_label": "documented-deviation fixed-design substitute",
+      "required_before_correctness_claim": [
+        "declared native, transformed, KSC-mixture, or separately reviewed approximation target",
+        "same unconstrained parameterization across reference, CUT4, and Zhao-Cui routes",
+        "value and gradient equality against exact, dense/refined, Kalman, or separately reviewed reference"
+      ],
+      "resource_caps": {
+        "initial_dimensions": [
+          1,
+          2,
+          3
+        ],
+        "initial_horizon_max": 16,
+        "initial_grid_order_max": 7,
+        "initial_rank_max": 16
+      },
+      "stop_conditions": [
+        "CUT4 and Zhao-Cui target identities differ",
+        "gradient parameterization differs",
+        "native generalized-SV claim is inferred from transformed diagnostic alone",
+        "nonfinite value or gradient appears"
+      ],
+      "nonclaims": [
+        "no native generalized-SV production claim",
+        "no HMC readiness",
+        "no S&P 500 reproduction"
+      ]
+    },
+    {
+      "target_id": "spatial_sir_reference_equality",
+      "model_family": "spatial_sir",
+      "phase_gate": "P47-M4a",
+      "readiness_state": "eligible_for_lower_rung_reference_equality_gate",
+      "production_state": "production_blocked_until_M2_and_M4a_pass",
+      "m1_route_label": "documented-deviation fixed-design substitute",
+      "required_before_correctness_claim": [
+        "declared spatial SIR closure or native target",
+        "small-J dense/refined reference with observed and unobserved state diagnostics",
+        "same target and parameterization across reference, CUT4, and Zhao-Cui routes"
+      ],
+      "resource_caps": {
+        "initial_sites_max": 3,
+        "initial_horizon_max": 8,
+        "initial_grid_order_max": 5,
+        "initial_rank_max": 16,
+        "near_paper_sites_candidate": 9
+      },
+      "stop_conditions": [
+        "infectious-coordinate Gaussian closure is described as native SIR correctness",
+        "lower-rung equality is promoted as production filtering",
+        "domain policy for negative states is missing",
+        "unclassified rank, conditioning, memory, or time failure occurs"
+      ],
+      "nonclaims": [
+        "no native SIR correctness",
+        "no production spatial SIR filtering",
+        "no S&P 500 reproduction"
+      ]
+    },
+    {
+      "target_id": "spatial_sir_production_filtering",
+      "model_family": "spatial_sir",
+      "phase_gate": "P47-M4b",
+      "readiness_state": "resource_caps_defined_but_correctness_blocked",
+      "production_state": "blocked_until_PASS_P47_M4_SPATIAL_SIR_REFERENCE_EQUALITY",
+      "m1_route_label": "documented-deviation fixed-design substitute",
+      "required_before_correctness_claim": [
+        "PASS_P47_M2_PAPER_SCALE_READINESS",
+        "PASS_P47_M4_SPATIAL_SIR_REFERENCE_EQUALITY",
+        "production or near-paper-scale row preserving the declared lower-rung target"
+      ],
+      "resource_caps": {
+        "near_paper_sites_candidate": 9,
+        "near_paper_horizon_max": 25,
+        "near_paper_rank_max": 32,
+        "max_wall_time_seconds": 3600
+      },
+      "stop_conditions": [
+        "M4a token absent",
+        "production row changes target from lower-rung row without reviewed amendment",
+        "finite production output is treated as correctness"
+      ],
+      "nonclaims": [
+        "M2 does not emit PASS_P47_M4_SPATIAL_SIR_PRODUCTION_FILTERING",
+        "finite production manifest alone is not correctness"
+      ]
+    },
+    {
+      "target_id": "predator_prey_reference_filtering",
+      "model_family": "predator_prey",
+      "phase_gate": "P47-M5a",
+      "readiness_state": "eligible_for_lower_rung_reference_filtering_gate",
+      "production_state": "production_blocked_until_M2_and_M5a_pass",
+      "m1_route_label": "documented-deviation fixed-design substitute",
+      "required_before_correctness_claim": [
+        "declared additive-Gaussian RK closure or native target",
+        "small dense/refined reference with filtering value and state-quality metrics",
+        "same target and parameterization across reference, CUT4, and Zhao-Cui routes"
+      ],
+      "resource_caps": {
+        "initial_state_dim_max": 3,
+        "initial_horizon_max": 8,
+        "initial_grid_order_max": 5,
+        "initial_rank_max": 16
+      },
+      "stop_conditions": [
+        "proposal or preconditioner metric is promoted as filtering correctness",
+        "lower-rung filtering is promoted as production filtering",
+        "target changes between reference, CUT4, and Zhao-Cui",
+        "nonfinite value or gradient appears"
+      ],
+      "nonclaims": [
+        "no nonlinear preconditioning usefulness claim",
+        "no production predator-prey filtering",
+        "no native predator-prey correctness unless separately reviewed"
+      ]
+    },
+    {
+      "target_id": "predator_prey_production_filtering",
+      "model_family": "predator_prey",
+      "phase_gate": "P47-M5b",
+      "readiness_state": "resource_caps_defined_but_correctness_blocked",
+      "production_state": "blocked_until_PASS_P47_M5_PREDATOR_PREY_REFERENCE_FILTERING",
+      "m1_route_label": "documented-deviation fixed-design substitute",
+      "required_before_correctness_claim": [
+        "PASS_P47_M2_PAPER_SCALE_READINESS",
+        "PASS_P47_M5_PREDATOR_PREY_REFERENCE_FILTERING",
+        "production or near-paper-scale row preserving the declared lower-rung target"
+      ],
+      "resource_caps": {
+        "near_paper_horizon_max": 25,
+        "near_paper_rank_max": 32,
+        "max_wall_time_seconds": 3600
+      },
+      "stop_conditions": [
+        "M5a token absent",
+        "production row changes target from lower-rung row without reviewed amendment",
+        "finite production output is treated as correctness"
+      ],
+      "nonclaims": [
+        "M2 does not emit PASS_P47_M5_PREDATOR_PREY_PRODUCTION_FILTERING",
+        "finite production manifest alone is not correctness"
+      ]
+    }
+  ],
+  "ladder_policy": {
+    "axis_order": [
+      "implementation smoke",
+      "horizon",
+      "dimension_or_sites",
+      "grid_order_or_basis_size",
+      "rank",
+      "replication_seed"
+    ],
+    "one_axis_at_a_time": true,
+    "promotion_requires_model_specific_reference_gate": true,
+    "finite_outputs_are_explanatory_only": true
+  },
+  "veto_diagnostics": [
+    "S&P 500 data or claims appear",
+    "PASS_P47_M0_GOVERNANCE or PASS_P47_M1_ADAPTIVE_ROUTE prerequisite is absent",
+    "M1 route label is absent or hidden behind generic Zhao-Cui wording",
+    "paper-scale result lacks lower-rung guardrail",
+    "finite paper-scale output is promoted as correctness",
+    "simultaneous unplanned ladder-axis changes occur",
+    "rank, conditioning, memory, or time failure is unclassified"
+  ],
+  "explanatory_only_diagnostics": [
+    "wall time",
+    "memory",
+    "point count",
+    "TT rank",
+    "basis size",
+    "fit residual",
+    "holdout residual",
+    "branch hash",
+    "trajectory plot",
+    "finite feasibility output"
+  ]
+}

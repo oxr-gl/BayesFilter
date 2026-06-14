@@ -1,0 +1,151 @@
+{
+  "schema_version": "filter_bench.dpf_filter_smoke_payloads.v1",
+  "metadata_date": "2026-06-10",
+  "phase": "FILTER_BENCH_P5",
+  "status": "PASS_FILTER_BENCH_P5_DPF_FILTERS",
+  "adapter_schema": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-adapter-schema-2026-06-10.json",
+  "coverage_manifest": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-dpf-filter-coverage-2026-06-10.json",
+  "purpose": "P2-shaped DPF smoke payloads for P5 adapter coverage. Values are representation fixtures and route/status evidence only; they are not benchmark performance evidence.",
+  "payloads": [
+    {
+      "payload_schema_version": "filter_bench.adapter_payload.v1",
+      "algorithm_id": "bootstrap_dpf_current",
+      "algorithm_family": "particle_filter_current",
+      "target_id": "lgssm_exact_kalman_dim_2",
+      "registry_row_id": "lgssm_exact_kalman_dim_1_2_3",
+      "model_id": "p44_m1_lgssm_diagonal",
+      "dimension": 2,
+      "horizon": 3,
+      "theta_id": "p1_lgssm_theta_v1",
+      "theta_dimension": 4,
+      "observation_id": "p1_lgssm_obs_dim2_v1",
+      "value": -3.487,
+      "gradient": null,
+      "value_status": "VALID",
+      "gradient_status": "RESAMPLING_GRADIENT_NOT_VALID",
+      "reference_type": "exact",
+      "evidence_role": "current_benchmark_candidate",
+      "reason_codes": [
+        "RESAMPLING_GRADIENT_NOT_VALID"
+      ],
+      "diagnostics": {
+        "target_registry_status": "PASS_FILTER_BENCH_P1_TARGET_REGISTRY",
+        "adapter_contract": "filter_bench.adapter_payload.v1",
+        "current_evidence": true,
+        "source_backend": "tensorflow",
+        "mc_standard_error": 0.21,
+        "particle_count": 32,
+        "seed_list": [101, 202, 303],
+        "seed_count": 3,
+        "effective_sample_size_min": 11.4,
+        "resampling_policy": "stateless_multinomial_when_ess_below_threshold",
+        "resampling_count": 1,
+        "gradient_semantics": "resampling_gradient_not_valid"
+      },
+      "runtime_seconds": 0.034,
+      "random_seed": 101,
+      "artifact_path": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-dpf-filter-smoke-payloads-2026-06-10.json",
+      "nonclaims": [
+        "fixture payload only",
+        "not bootstrap-OT",
+        "no DPF gradient certification"
+      ]
+    },
+    {
+      "payload_schema_version": "filter_bench.adapter_payload.v1",
+      "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+      "algorithm_family": "particle_filter_current",
+      "target_id": "p44_cubic_additive_gaussian_dim_2",
+      "registry_row_id": "p44_cubic_additive_gaussian_dim_1_2_3",
+      "model_id": "p44_m2_cubic_additive_gaussian_factorized",
+      "dimension": 2,
+      "horizon": 2,
+      "theta_id": "p1_p44_m2_theta_v1",
+      "theta_dimension": 5,
+      "observation_id": "p1_p44_m2_obs_dim2_v1",
+      "value": -4.887,
+      "gradient": null,
+      "value_status": "VALID",
+      "gradient_status": "FIXED_BRANCH_GRADIENT_DIAGNOSTIC",
+      "reference_type": "dense_numerical",
+      "evidence_role": "current_benchmark_candidate",
+      "reason_codes": [
+        "FIXED_BRANCH_GRADIENT_DIAGNOSTIC"
+      ],
+      "diagnostics": {
+        "target_registry_status": "PASS_FILTER_BENCH_P1_TARGET_REGISTRY",
+        "adapter_contract": "filter_bench.adapter_payload.v1",
+        "current_evidence": true,
+        "source_backend": "tensorflow",
+        "mc_standard_error": 0.008,
+        "particle_count": 32,
+        "seed_list": [101, 202, 303],
+        "seed_count": 3,
+        "effective_sample_size_min": 29.7,
+        "resampling_policy": "no_resampling_source_faithful_alg1_ukf",
+        "resampling_count": 0,
+        "gradient_semantics": "fixed_branch_gradient_diagnostic",
+        "route_identifiers": {
+          "method_generation": "li_coates_algorithm1_ukf_covariance_lifecycle",
+          "flow_source_route": "li_coates_2017_algorithm1_ledh_pfpf",
+          "covariance_route": "per_particle_ukf_prediction_update",
+          "flow_anchor_route": "zero_noise_transition",
+          "resampling_route": "none",
+          "previous_ledh_pfpf_ot_evidence_status": "quarantined"
+        }
+      },
+      "runtime_seconds": 0.052,
+      "random_seed": 101,
+      "artifact_path": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-dpf-filter-smoke-payloads-2026-06-10.json",
+      "nonclaims": [
+        "fixture payload only",
+        "current source-faithful Algorithm 1 route",
+        "fixed-branch diagnostic gradient is not certification"
+      ]
+    },
+    {
+      "payload_schema_version": "filter_bench.adapter_payload.v1",
+      "algorithm_id": "ledh_pfpf_ot_historical",
+      "algorithm_family": "historical_only",
+      "target_id": "p44_quadratic_observation_dim_3",
+      "registry_row_id": "p44_quadratic_observation_dim_1_2_3",
+      "model_id": "p44_m3_quadratic_observation_factorized",
+      "dimension": 3,
+      "horizon": 2,
+      "theta_id": "historical_ledh_pfpf_ot_theta_snapshot",
+      "theta_dimension": 4,
+      "observation_id": "historical_ledh_pfpf_ot_obs_snapshot",
+      "value": null,
+      "gradient": null,
+      "value_status": "HISTORICAL_ONLY_NOT_EVIDENCE",
+      "gradient_status": "HISTORICAL_ONLY_NOT_EVIDENCE",
+      "reference_type": "dense_numerical",
+      "evidence_role": "historical_only",
+      "reason_codes": [
+        "HISTORICAL_LEDHPFPF_OT_SUPERSEDED"
+      ],
+      "diagnostics": {
+        "target_registry_status": "PASS_FILTER_BENCH_P1_TARGET_REGISTRY",
+        "adapter_contract": "filter_bench.adapter_payload.v1",
+        "current_evidence": false,
+        "source_backend": "historical_experiment",
+        "historical_supersession": "superseded by ledh_pfpf_alg1_ukf_current"
+      },
+      "runtime_seconds": null,
+      "random_seed": null,
+      "artifact_path": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-dpf-filter-smoke-payloads-2026-06-10.json",
+      "nonclaims": [
+        "historical-only fixture",
+        "not current Algorithm 1 evidence",
+        "not a benchmark performance cell"
+      ]
+    }
+  ],
+  "nonclaims": [
+    "no filter accuracy result",
+    "no benchmark ranking",
+    "no DPF gradient certification",
+    "old LEDH-PFPF-OT remains historical-only",
+    "no HMC/GPU/Bayesian-estimation readiness"
+  ]
+}

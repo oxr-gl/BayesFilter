@@ -1,0 +1,69 @@
+{
+  "schema_version": "p53.scaling_route_admission.v1",
+  "phase": "P53-M4D",
+  "status": "PASS_P53_M4D_SCALING_ROUTE_ADMISSION",
+  "admission_scope": "rank_selection_and_dimension_phase_entry_not_filtering_correctness",
+  "route": {
+    "route_id": "p53_spatial_sir_local_neighborhood_contraction",
+    "route_class": "scaling_route",
+    "selected_design": "local-neighborhood sparse transition contraction",
+    "covariance_scope": "diagonal_process_covariance",
+    "route_width_bound_name": "R_eff",
+    "basis_order": 3,
+    "tt_rank_metadata": {
+      "left": 2,
+      "right": 2
+    },
+    "example_j3_R_eff": 2916,
+    "example_j3_memory_forecast_bytes": 139968
+  },
+  "prerequisite_evidence": {
+    "P53-M4A": {
+      "artifact": "docs/plans/bayesfilter-highdim-zhao-cui-p53-m4a-scaling-route-choice-derivation-manifest-2026-06-10.json",
+      "required_status": "PASS_P53_M4A_SCALING_ROUTE_DERIVATION",
+      "evidence_class": "scaling_route_choice_derivation"
+    },
+    "P53-M4B": {
+      "artifact": "docs/plans/bayesfilter-highdim-zhao-cui-p53-m4b-scaling-route-implementation-manifest-2026-06-10.json",
+      "required_status": "PASS_P53_M4B_SCALING_ROUTE_IMPLEMENTATION",
+      "evidence_class": "scaling_route_implementation"
+    },
+    "P53-M4C": {
+      "artifact": "docs/plans/bayesfilter-highdim-zhao-cui-p53-m4c-scaling-route-tieout-manifest-2026-06-10.json",
+      "required_status": "PASS_P53_M4C_SCALING_ROUTE_TIEOUT",
+      "evidence_class": "scaling_route_tieout"
+    }
+  },
+  "admission_checks": [
+    "M4A, M4B, and M4C pass statuses exist",
+    "route_id, route_class, and selected_design are consistent across M4A, M4B, and M4C",
+    "M4B exposes R_eff and memory metadata",
+    "M4C ties the selected route to dense lower-rung references on J=1/J=2/J=3",
+    "old PASS_P53_M4_SCALING_ROUTE_GATE is not used",
+    "P53-M8 closeout still requires P53-M5, P53-M6, and P53-M7 outcomes"
+  ],
+  "downstream_phase_admission": {
+    "P53-M5": "admitted_after_PASS_P53_M4D_SCALING_ROUTE_ADMISSION",
+    "P53-M6": "blocked_until_PASS_P53_M5_RANK_SELECTION_INTEGRATION",
+    "P53-M7": "blocked_until_PASS_P53_M6_SPATIAL_SIR_D18",
+    "P53-M8": "blocked_until_PASS_P53_M5_M6_M7_OUTCOMES"
+  },
+  "tokens_emitted": [
+    "PASS_P53_M4D_SCALING_ROUTE_ADMISSION"
+  ],
+  "forbidden_tokens": [
+    "PASS_P53_M5_RANK_SELECTION_INTEGRATION",
+    "PASS_P53_M6_SPATIAL_SIR_D18",
+    "PASS_P53_M7_SPATIAL_SIR_D50_D100",
+    "PASS_P53_M8_INTEGRATION_CLOSEOUT",
+    "PASS_P53_M4_SCALING_ROUTE_GATE"
+  ],
+  "nonclaims": [
+    "no rank-selection result",
+    "no d=18 spatial SIR result",
+    "no d=50 or d=100 spatial SIR result",
+    "no production retained-TT contraction correctness",
+    "no HMC readiness",
+    "no GPU readiness"
+  ]
+}

@@ -1,0 +1,108 @@
+{
+  "schema_version": "p47.score_hmc_readiness.v1",
+  "phase": "P47-M6",
+  "metadata_date": "2026-06-08",
+  "pass_token": "PASS_P47_M6_SCORE_HMC_READINESS",
+  "claim_scope": "evidence_class_readiness_table_not_production_hmc",
+  "m1_route_label": "documented-deviation fixed-design substitute",
+  "rows": [
+    {
+      "target_id": "generalized_sv_lower_rung_ksc_mixture_target",
+      "evidence_class": "lower_rung",
+      "upstream_tokens": [
+        "PASS_P47_M3_GENERALIZED_SV_EQUALITY"
+      ],
+      "p42_tiers_passed": [
+        "TIER_1_LOCAL_VALUE_AND_DIRECTIONAL_SCORE"
+      ],
+      "api_status": "passed_experimental_subpackage_score_contract",
+      "hmc_status": "blocked_tier2_tier3_not_run",
+      "promoted_claim": "lower-rung experimental score API contract for the declared KSC mixture SV target",
+      "forbidden_claims": [
+        "production score API",
+        "production HMC readiness",
+        "native generalized-SV HMC readiness",
+        "stable top-level public API"
+      ],
+      "m1_route_label": "documented-deviation fixed-design substitute"
+    },
+    {
+      "target_id": "spatial_sir_lower_rung_reference_filtering",
+      "evidence_class": "lower_rung",
+      "upstream_tokens": [
+        "PASS_P47_M4_SPATIAL_SIR_REFERENCE_EQUALITY"
+      ],
+      "p42_tiers_passed": [],
+      "api_status": "blocked_missing_score_evidence",
+      "hmc_status": "blocked_missing_score_evidence",
+      "promoted_claim": "no score or HMC readiness claim; filtering row remains lower-rung value/state evidence",
+      "forbidden_claims": [
+        "production score API",
+        "lower-rung HMC readiness",
+        "production HMC readiness",
+        "native SIR score correctness"
+      ],
+      "m1_route_label": "documented-deviation fixed-design substitute"
+    },
+    {
+      "target_id": "spatial_sir_production_filtering",
+      "evidence_class": "production",
+      "upstream_tokens": [
+        "PASS_P47_M4_SPATIAL_SIR_PRODUCTION_FILTERING"
+      ],
+      "p42_tiers_passed": [],
+      "api_status": "blocked_missing_production_filtering_token",
+      "hmc_status": "blocked_missing_production_filtering_token",
+      "promoted_claim": "no production score or HMC readiness claim",
+      "forbidden_claims": [
+        "production score API",
+        "production HMC readiness"
+      ],
+      "m1_route_label": "documented-deviation fixed-design substitute"
+    },
+    {
+      "target_id": "predator_prey_lower_rung_reference_filtering",
+      "evidence_class": "lower_rung",
+      "upstream_tokens": [
+        "PASS_P47_M5_PREDATOR_PREY_REFERENCE_FILTERING"
+      ],
+      "p42_tiers_passed": [],
+      "api_status": "blocked_missing_score_evidence",
+      "hmc_status": "blocked_missing_score_evidence",
+      "promoted_claim": "no score or HMC readiness claim; filtering row remains lower-rung value/state evidence",
+      "forbidden_claims": [
+        "production score API",
+        "lower-rung HMC readiness",
+        "production HMC readiness",
+        "nonlinear preconditioning usefulness"
+      ],
+      "m1_route_label": "documented-deviation fixed-design substitute"
+    },
+    {
+      "target_id": "predator_prey_production_filtering",
+      "evidence_class": "production",
+      "upstream_tokens": [
+        "PASS_P47_M5_PREDATOR_PREY_PRODUCTION_FILTERING"
+      ],
+      "p42_tiers_passed": [],
+      "api_status": "blocked_missing_production_filtering_token",
+      "hmc_status": "blocked_missing_production_filtering_token",
+      "promoted_claim": "no production score or HMC readiness claim",
+      "forbidden_claims": [
+        "production score API",
+        "production HMC readiness",
+        "nonlinear preconditioning usefulness"
+      ],
+      "m1_route_label": "documented-deviation fixed-design substitute"
+    }
+  ],
+  "nonclaims": [
+    "no production HMC readiness",
+    "no production score API",
+    "lower-rung rows are not production",
+    "no stable top-level public API",
+    "no Tier 2 statistical-scale promotion",
+    "no Tier 3 Hamiltonian or leapfrog promotion",
+    "no S&P 500 reproduction"
+  ]
+}

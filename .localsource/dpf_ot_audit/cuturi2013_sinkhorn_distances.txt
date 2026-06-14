@@ -1,0 +1,657 @@
+Sinkhorn Distances:
+Lightspeed Computation of Optimal Transport
+
+Marco Cuturi
+Graduate School of Informatics, Kyoto University
+mcuturi@i.kyoto-u.ac.jp
+
+Abstract
+Optimal transport distances are a fundamental family of distances for probability
+measures and histograms of features. Despite their appealing theoretical properties, excellent performance in retrieval tasks and intuitive formulation, their computation involves the resolution of a linear program whose cost can quickly become prohibitive whenever the size of the support of these measures or the histograms’ dimension exceeds a few hundred. We propose in this work a new family
+of optimal transport distances that look at transport problems from a maximumentropy perspective. We smooth the classic optimal transport problem with an
+entropic regularization term, and show that the resulting optimum is also a distance which can be computed through Sinkhorn’s matrix scaling algorithm at a
+speed that is several orders of magnitude faster than that of transport solvers. We
+also show that this regularized distance improves upon classic optimal transport
+distances on the MNIST classification problem.
+
+1 Introduction
+Choosing a suitable distance to compare probabilities is a key problem in statistical machine learning. When little is known on the probability space on which these probabilities are supported, various
+information divergences with minimalistic assumptions have been proposed to play that part, among
+which the Hellinger, χ2 , total variation or Kullback-Leibler divergences. When the probability
+space is a metric space, optimal transport distances (Villani, 2009, §6), a.k.a. earth mover’s (EMD)
+in computer vision (Rubner et al., 1997), define a more powerful geometry to compare probabilities.
+This power comes, however, with a heavy computational price tag. No matter what the algorithm
+employed – network simplex or interior point methods – the cost of computing optimal transport
+distances scales at least in O(d3 log(d)) when comparing two histograms of dimension d or two
+point clouds each of size d in a general metric space (Pele and Werman, 2009, §2.1).
+In the particular case that the metric probability space of interest can be embedded in Rn and n is
+small, computing or approximating optimal transport distances can become reasonably cheap. Indeed, when n = 1, their computation only requires O(d log d) operations. When n ≥ 2, embeddings
+of measures can be used to approximate them in linear time (Indyk and Thaper, 2003; Grauman and
+Darrell, 2004; Shirdhonkar and Jacobs, 2008) and network simplex solvers can be modified to run
+in quadratic time (Gudmundsson et al., 2007; Ling and Okada, 2007). However, the distortions of
+such embeddings (Naor and Schechtman, 2007) as well as the exponential increase of costs incurred
+by such modifications as n grows make these approaches inapplicable when n exceeds 4. Outside of
+the perimeter of these cases, computing a single distance between a pair of measures supported by
+a few hundred points/bins in an arbitrary metric space can take more than a few seconds on a single
+CPU. This issue severely hinders the applicability of optimal transport distances in large-scale data
+analysis and goes as far as putting into question their relevance within the field of machine learning,
+where high-dimensional histograms and measures in high-dimensional spaces are now prevalent.
+1
+
+We show in this paper that another strategy can be employed to speed-up optimal transport, and even
+potentially define a better distance in inference tasks. Our strategy is valid regardless of the metric
+characteristics of the original probability space. Rather than exploit properties of the metric probability space of interest (such as embeddability in a low-dimensional Euclidean space) we choose to
+focus directly on the original transport problem, and regularize it with an entropic term. We argue
+that this regularization is intuitive given the geometry of the optimal transport problem and has,
+in fact, been long known and favored in transport theory to predict traffic patterns (Wilson, 1969).
+From an optimization point of view, this regularization has multiple virtues, among which that of
+turning the transport problem into a strictly convex problem that can be solved with matrix scaling
+algorithms. Such algorithms include Sinkhorn’s celebrated fixed point iteration (1967), which is
+known to have a linear convergence (Franklin and Lorenz, 1989; Knight, 2008). Unlike other iterative simplex-like methods that need to cycle through complex conditional statements, the execution
+of Sinkhorn’s algorithm only relies on matrix-vector products. We propose a novel implementation
+of this algorithm that can compute simultaneously the distance of a single point to a family of points
+using matrix-matrix products, and which can therefore be implemented on GPGPU architectures.
+We show that, on the benchmark task of classifying MNIST digits, regularized distances perform
+better than standard optimal transport distances, and can be computed several orders of magnitude
+faster.
+This paper is organized as follows: we provide reminders on optimal transport theory in Section 2,
+introduce Sinkhorn distances in Section 3 and provide algorithmic details in Section 4. We follow
+with an empirical study in Section 5 before concluding.
+
+2 Reminders on Optimal Transport
+Transport Polytope and Interpretation as a Set of Joint Probabilities In what follows, h·, ·i
+stands for the Frobenius dot-product. For two probability vectors r and c in the simplex Σd := {x ∈
+Rd+ : xT 1d = 1}, where 1d is the d dimensional vector of ones, we write U (r, c) for the transport
+polytope of r and c, namely the polyhedral set of d × d matrices,
+U (r, c) := {P ∈ Rd×d
+| P 1d = r, P T 1d = c}.
++
+U (r, c) contains all nonnegative d × d matrices with row and column sums r and c respectively.
+U (r, c) has a probabilistic interpretation: for X and Y two multinomial random variables taking
+values in {1, · · · , d}, each with distribution r and c respectively, the set U (r, c) contains all possible
+joint probabilities of (X, Y ). Indeed, any matrix P ∈ U (r, c) can be identified with a joint probability for (X, Y ) such that p(X = i, Y = j) = pij . We define the entropy h and the Kullback-Leibler
+divergences of P, Q ∈ U (r, c) and a marginals r ∈ Σd as
+h(r) = −
+
+d
+X
+i=1
+
+ri log ri ,
+
+h(P ) = −
+
+d
+X
+
+pij log pij ,
+
+KL(P kQ) =
+
+X
+ij
+
+i,j=1
+
+pij log
+
+pij
+.
+qij
+
+Optimal Transport Distance Between r and c Given a d × d cost matrix M , the cost of mapping
+r to c using a transport matrix (or joint probability) P can be quantified as hP, M i. The problem
+defined in Equation (1)
+(1)
+dM (r, c) := min hP, M i.
+P ∈U(r,c)
+
+is called an optimal transport (OT) problem between r and c given cost M . An optimal table P ⋆
+for this problem can be obtained, among other approaches, with the network simplex (Ahuja et al.,
+1993, §9). The optimum of this problem, dM (r, c), is a distance between r and c (Villani, 2009,
+§6.1) whenever the matrix M is itself a metric matrix, namely whenever M belongs to the cone of
+distance matrices (Avis, 1980; Brickell et al., 2008):
+M = {M ∈ Rd×d
+: ∀i, j ≤ d, mij = 0 ⇔ i = j, ∀i, j, k ≤ d, mij ≤ mik + mkj }.
++
+For a general matrix M , the worst case complexity of computing that optimum scales in O(d3 log d)
+for the best algorithms currently proposed, and turns out to be super-cubic in practice as well (Pele
+and Werman, 2009, §2.1).
+2
+
+3 Sinkhorn Distances: Optimal Transport with Entropic Constraints
+Entropic Constraints on Joint Probabilities The following information theoretic inequality
+(Cover and Thomas, 1991, §2) for joint probabilities
+∀r, c ∈ Σd , ∀P ∈ U (r, c), h(P ) ≤ h(r) + h(c),
+is tight, since the independence table rcT (Good, 1963) has entropy h(rcT ) = h(r) + h(c). By the
+concavity of entropy, we can introduce the convex set
+Uα (r, c) := {P ∈ U (r, c) | KL(P krcT ) ≤ α} = {P ∈ U (r, c) | h(P ) ≥ h(r)+h(c)−α} ⊂ U (r, c).
+These two definitions are indeed equivalent, since one can easily check that KL(P krcT ) = h(r) +
+h(c) − h(P ), a quantity which is also the mutual information I(XkY ) of two random variables
+(X, Y ) should they follow the joint probability P (Cover and Thomas, 1991, §2). Hence, the set of
+tables P whose Kullback-Leibler divergence to rcT is constrained to lie below a certain threshold
+can be interpreted as the set of joint probabilities P in U (r, c) which have sufficient entropy with
+respect to h(r) and h(c), or small enough mutual information. For reasons that will become clear in
+Section 4, we call the quantity below the Sinkhorn distance of r and c:
+Definition 1 (Sinkhorn Distance). dM,α (r, c) := min hP, M i
+P ∈Uα (r,c)
+
+Why consider an entropic constraint in optimal transport? The first reason is computational, and is
+detailed in Section 4. The second reason is built upon the following intuition. As a classic result
+of linear optimization, the OT problem is always solved on a vertex of U (r, c). Such a vertex is
+a sparse d × d matrix with only up to 2d − 1 non-zero elements (Brualdi, 2006, §8.1.3). From a
+probabilistic perspective, such vertices are quasi-deterministic joint probabilities, since if pij > 0,
+then very few probabilities pij ′ for j 6= j ′ will be non-zero in general. Rather than considering
+such outliers of U (r, c) as the basis of OT distances, we propose to restrict the search for low cost
+joint probabilities to tables with sufficient smoothness. Note that this is equivalent to considering
+the maximum-entropy principle (Jaynes, 1957; Darroch and Ratcliff, 1972) if we were to maximize
+entropy while keeping the transportation cost constrained.
+Before proceeding to the description of the properties of Sinkhorn distances, we note that Ferradans
+et al. (2013) have recently explored similar ideas. They relax and penalize (through graph-based
+norms) the original transport problem to avoid undesirable properties exhibited by the original optima in the problem of color matching. Combined, their idea and ours suggest that many more
+smooth regularizers will be worth investigating to solve the the OT problem, driven by either or both
+computational and modeling motivations.
+Metric Properties of Sinkhorn Distances When α is large enough, the Sinkhorn distance coincides with the classic OT distance. When α = 0, the Sinkhorn distance has a closed form and
+becomes a negative definite kernel if one assumes that M is itself a negative definite distance, or
+equivalently a Euclidean distance matrix1 .
+Property 1. For α large enough, the Sinkhorn distance dM,α is the transport distance dM .
+Proof. Since for any P ∈ U (r, c), h(P ) is lower bounded by 21 (h(r) + h(c)), we have that for α
+large enough Uα (r, c) = U (r, c) and thus both quantities coincide.
+Property 2 (Independence Kernel). dM,0 = rT M c. If M is a Euclidean distance matrix, dM,0 is a
+negative definite kernel and e−tdM,0 , the independence kernel, is positive definite for all t > 0.
+The proof is provided in the appendix. Beyond these two extreme cases, the main theorem of this
+section states that Sinkhorn distances are symmetric and satisfy triangle inequalities for all possible
+values of α. Since for α small enough dM,α (r, r) > 0 for any r such that h(r) > 0, Sinkhorn
+distances cannot satisfy the coincidence axiom (d(x, y) = 0 ⇔ x = y holds for all x, y). However,
+multiplying dM,α by 1r6=c suffices to recover the coincidence property if needed.
+Theorem 1. For all α ≥ 0 and M ∈ M, dM,α is symmetric and satisfies all triangle inequalities.
+The function (r, c) 7→ 1r6=c dM,α (r, c) satisfies all three distance axioms.
+1
+∃n, ∃ϕ1 , · · · , ϕd ∈ Rn such that mij = kϕi − ϕj k22 . Recall that, in that case, M raised to power t
+element-wise, [mtij ], 0 < t < 1 is also a Euclidean distance matrix (Berg et al., 1984, p.78,§3.2.10).
+
+3
+
+U (r, c)
+
+M
+
+P λmax
+machine-precision
+limit
+
+λ=0
+
+rcT
+
+λ→∞
+
+Uα(r, c)
+
+Pα
+P
+
+λ
+
+Pα= argmin hP, M i
+
+P⋆
+⋆
+
+P = argminhP, M i
+
+P⋆
+
+P ∈Uα (r,c)
+
+P
+
+P ∈U(r,c)
+
+λ
+
+= argminhP, M i− λ1 h(P )
+P ∈U(r,c)
+
+Rd×d
+
+Figure 1: Transport polytope U (r, c) and Kullback-Leibler ball Uα (r, c) of level α centered
+around rcT . This drawing implicitly assumes that the optimal transport P ⋆ is unique. The Sinkhorn
+distance dM,α (r, c) is equal to hPα , M i, the minimum of the dot product with M on that ball. For α
+large enough, both objectives coincide, as Uα (r, c) gradually overlaps with U (r, c) in the vicinity
+of P ⋆ . The dual-sinkhorn distance dλM (r, c), the minimum of the transport problem regularized by
+minus the entropy divided by λ, reaches its minimum at a unique solution P λ , forming a regularization path for varying λ from rcT to P ⋆ . For a given value of α, and a pair (r, c) there exists
+λ ∈ [0, ∞] such that both dλM (r, c) and dM,α (r, c) coincide. dλM can be efficiently computed using
+Sinkhorn’s fixed point iteration (1967). Although the convergence to P ⋆ of this fixed point iteration
+is theoretically guaranteed as λ → ∞, the procedure cannot work beyond a problem-dependent
+value λmax beyond which some entries of e−λM are represented as zeroes in memory.
+The gluing lemma (Villani, 2009, p.19) is key to proving that OT distances are indeed distances. We
+propose a variation of this lemma to prove our result:
+Lemma 1 (Gluing Lemma With Entropic Constraint). Let α ≥P0 and x, y, z ∈ Σd . Let P ∈
+p q
+Uα (x, y) and Q ∈ Uα (y, z). Let S be the d × d defined as sik := j ijyjjk . Then S ∈ Uα (x, z).
+The proof is provided in the appendix. We can prove the triangle inequality for dM,α by using the
+same proof strategy than that used for classic transport distances:
+Proof of Theorem 1. The symmetry of dM,α is a direct result of M ’s symmetry. Let x, y, z be three
+elements in Σd . Let P ∈ Uα (x, y) and Q ∈ Uα (y, z) be two optimal solutions for dM,α (x, y) and
+dM,α (y, z) respectively. Using the matrix S of Uα (x, z) provided in Lemma 1, we proceed with the
+following chain of inequalities:
+X
+X pij qjk
+X
+pij qjk
+dM,α (x, z) = min hP, M i ≤ hS, M i =
+mik
+≤
+(mij + mjk )
+P ∈Uα (x,z)
+y
+yj
+j
+j
+ik
+ijk
+X
+X qjk X
+X
+X pij
+pij qjk
+pij qjk
+=
+mij
+mij pij
++ mjk
+=
++
+mjk qjk
+yj
+yj
+yj
+yj
+ij
+i
+ijk
+k
+jk
+X
+X
+mij pij +
+mjk qjk = dM,α (x, y) + dM,α (y, z). 
+=
+ij
+
+jk
+
+4 Computing Regularized Transport with Sinkhorn’s Algorithm
+We consider in this section a Lagrange multiplier for the entropy constraint of Sinkhorn distances:
+For λ > 0, dλM (r, c) := hP λ , M i, where P λ = argmin hP, M i −
+P ∈U(r,c)
+
+1
+h(P ).
+λ
+
+(2)
+
+By duality theory we have that to each α corresponds a λ ∈ [0, ∞] such that dM,α (r, c) = dλM (r, c)
+holds for that pair (r, c). We call dλM the dual-Sinkhorn divergence and show that it can be computed
+4
+
+for a much cheaper cost than the original distance dM . Figure 1 summarizes the relationships between dM , dM,α and dλM . Since the entropy of P λ decreases monotonically with λ, computing dM,α
+can be carried out by computing dλM with increasing values of λ until h(P λ ) reaches h(r)+h(c)−α.
+We do not consider this problem here and only use the dual-Sinkhorn divergence in our experiments.
+Computing dλM with Matrix Scaling Algorithms Adding an entropy regularization to the optimal transport problem enforces a simple structure on the optimal regularized transport P λ :
+Lemma 2. For λ > 0, the solution P λ is unique and has the form P λ = diag(u)K diag(v),
+where u and v are two non-negative vectors of Rd uniquely defined up to a multiplicative factor and
+K := e−λM is the element-wise exponential of −λM .
+Proof. The existence and unicity of P λ follows from the boundedness of U (r, c) and the strict
+convexity of minus the entropy. The fact that P λ can be written as a rescaled version of K is a well
+known fact in transport theory (Erlander and Stewart, 1990, §3.3): let L(P, α, β) be the Lagrangian
+of Equation (2) with dual variables α, β ∈ Rd for the two equality constraints in U (r, c):
+X1
+pij log pij + pij mij + αT (P 1d − r) + β T (P T 1d − c).
+L(P, α, β) =
+λ
+ij
+For any couple (i, j), (∂L/∂pij = 0) ⇒ pij = e−1/2−λαi e−λmij e−1/2−λβj . Since K is
+strictly positive, Sinkhorn’s theorem (1967) states that there exists a unique matrix of the form
+diag(u)K diag(v) that belongs to U (r, c), where u, v ≥ 0d . P λ is thus necessarily that matrix,
+and can be computed with Sinkhorn’s fixed point iteration (u, v) ← (r./Kv, c./K ′ u). 
+Given K and marginals r and c, one only needs to iterate Sinkhorn’s update a sufficient number
+of times to converge to P λ . One can show that these successive updates carry out iteratively the
+projection of K on U (r, c) in the Kullback-Leibler sense. This fixed point iteration can be written
+as a single update u ← r./K(c./K ′ u). When r > 0d , diag(1./r)K can be stored in a d × d matrix
+K̃ to save one Schur vector product operation with the update u ← 1./(K̃(c./K ′ u)). This can be
+easily ensured by selecting the positive indices of r, as seen in the first line of Algorithm 1.
+Algorithm 1 Computation of d = [dλM (r, c1 ), · · · , dλM (r, cN )], using Matlab syntax.
+Input M, λ, r, C := [c1 , · · · , cN ].
+I = (r > 0); r = r(I); M = M (I, :); K = exp(−λM )
+u = ones(length(r), N )/length(r);
+K̃ = bsxfun(@rdivide, K, r) % equivalent to K̃ = diag(1./r)K
+while u changes or any other relevant stopping criterion do
+u = 1./(K̃(C./(K ′ u)))
+end while
+v = C./(K ′ u)
+d = sum(u. ∗ ((K. ∗ M )v)
+Parallelism, Convergence and Stopping Criteria As can be seen right above, Sinkhorn’s algorithm can be vectorized and generalized to N target histograms c1 , · · · , cN . When N = 1 and C
+is a vector in Algorithm 1, we recover the simple iteration mentioned in the proof of Lemma 2.
+When N > 1, the computations for N target histograms can be simultaneously carried out by updating a single matrix of scaling factors u ∈ Rd×N
+instead of updating a scaling vector u ∈ Rd+ .
++
+This important observation makes the execution of Algorithm 1 particularly suited to GPGPU platforms. Despite ongoing research in that field (Bieling et al., 2010) such speed ups have not been yet
+achieved on complex iterative procedures such as the network simplex. Using Hilbert’s projective
+metric, Franklin and Lorenz (1989) prove that the convergence of the scaling factor u (as well as v)
+is linear, with a rate bounded above by κ(K)2 , where
+p
+θ(K) − 1
+Kil Kjm
+κ(K) = p
+.
+< 1, and θ(K) = max
+i,j,l,m Kjl Kim
+θ(K) + 1
+The upper bound κ(K) tends to 1 as λ grows, and we do observe a slower convergence as P λ gets
+closer to the optimal vertex P ⋆ (or the optimal facet of U (r, c) if it is not unique). Different stopping
+criteria can be used for Algorithm 1. We consider two in this work, which we detail below.
+5
+
+5 Experimental Results
+MNIST Digits We test the performance of
+dual-Sinkhorn divergences on the MNIST
+digits dataset. Each image is converted
+to a vector of intensities on the 20 × 20
+pixel grid, which are then normalized to
+sum to 1. We consider a subset of N ∈
+{3, 5, 12, 17, 25} × 103 points in the dataset.
+For each subset, we provide mean and standard deviation of classification error using
+a 4 fold (3 test, 1 train) cross validation
+(CV) scheme repeated 6 times, resulting
+in 24 different experiments. Given a distance d, we form the kernel e−d/t , where
+t > 0 is chosen by CV on each training fold within {1, q10 (d), q20 (d), q50 (d)},
+where qs is the s% quantile of a subset of
+distances observed in that fold. We regularize non-positive definite kernel matrices Figure 2: Average test errors with shaded confiresulting from this computation by adding dence intervals. Errors are computed using 1/4 of the
+a sufficiently large diagonal term. SVM’s dataset for train and 3/4 for test. Errors are averaged
+were run with Libsvm (one-vs-one) for mul- over 4 folds × 6 repeats = 24 experiments.
+ticlass classification. We select the regularization C in 10{−2,0,4} using 2 folds/2 repeats CV on the training fold. We consider the Hellinger,
+χ2 , total variation and squared Euclidean (Gaussian kernel) distances. M is the 400 × 400 matrix
+of Euclidean distances between the 20 × 20 bins in the grid. We also tried Mahalanobis distances
+on this example using exp(-tM.ˆ2), t>0 as well as its inverse, with varying values of t, but
+none of these results proved competitive. For the Independence kernel we considered [maij ] where
+a ∈ {0.01, 0.1, 1} is chosen by CV on each training fold. We select λ in {5, 7, 9, 11} × 1/q50 (M )
+where q50 (M (:)) is the median distance between pixels. We set the number of fixed-point iterations
+to an arbitrary number of 20 iterations. In most (though not all) folds, the value λ = 9 comes up as
+the best setting. The dual-Sinkhorn divergence beats by a safe margin all other distances, including
+the classic optimal transport distance, here labeled as EMD.
+
+Distribution of (Sinkhorn−EMD)/EMD
+
+Does the Dual-Sinkhorn Divergence Converge to the EMD? We study the converDeviation of Sinkhorn’s Distance
+to EMD on subset of MNIST Data
+gence of the dual-Sinkhorn divergence towards classic optimal transport distances as
+1.4
+λ grows. Because of the regularization in
+1.2
+Equation (2), dλM (r, c) is necessarily larger
+than dM (r, c), and we expect this gap to de1
+crease as λ increases. Figure 3 illustrates
+this by plotting the boxplot of the distri0.8
+butions of (dλM (r, c) − dM (r, c))/dM (r, c)
+over 402 pairs of images from the MNIST
+0.6
+database. dλM typically approximates the
+0.4
+EMD with a high accuracy when λ exceeds
+50 (median relative gap of 3.4% and 1.2%
+0.2
+for 50 and 100 respectively). For this experiment as well as all the other experiments be1
+5
+9
+15
+25
+50
+100
+λ
+low, we compute a vector of N divergences
+d at each iteration, and stop when none of
+the N values of d varies more in absolute Figure 3: Decrease of the gap between the dualvalue than a 1/100th of a percent i.e. we stop Sinkhorn divergence and the EMD as a function of
+λ on a subset of the MNIST dataset.
+when kdt ./dt−1 − 1k∞ < 1e − 4.
+
+6
+
+Avg. Execution Time per Distance (in s.)
+
+Several Orders of Magnitude Faster
+Computational Speed for Histograms of
+We measure the computational speed of
+Varying Dimension Drawn Uniformly on the Simplex
+(log log scale)
+classic optimal transport distances vs. that
+of dual-Sinkhorn divergences using RubFastEMD
+2
+Rubner’s emd
+10
+ner et al.’s (1997) and Pele and WerSink. CPU λ=50
+man’s (2009) publicly available impleSink. GPU λ=50
+mentations. We pick a random distance
+Sink. CPU λ=10
+matrix M by generating a random graph
+Sink. GPU λ=10
+0
+10
+Sink. CPU λ=1
+of d vertices with edge presence probabilSink. GPU λ=1
+ity 1/2 and edge weights uniformly distributed between 0 and 1. M is the all−2
+pairs shortest-path matrix obtained from
+10
+this connectivity matrix using the FloydWarshall algorithm (Ahuja et al., 1993,
+§5.6). Using this procedure, M is likely
+−4
+10
+to be an extreme ray of the cone M (Avis,
+1980, p.138). The elements of M are
+then normalized to have unit median. We
+64
+128
+256
+512
+1024
+2048
+implemented Algorithm 1 in matlab, and
+Histogram Dimension
+use emd mex and emd hat gd metric
+mex/C files. The EMD distances and Figure 4: Average computational time required to comSinkhorn CPU are run on a single core pute a distance between two histograms sampled uni(2.66 Ghz Xeon). Sinkhorn GPU is run formly in the d dimensional simplex for varying values
+on a NVidia Quadro K5000 card. We con- of d. Dual-Sinkhorn divergences are run both on a sinsider λ in {1, 10, 50}. λ = 1 results in gle CPU and on a GPU card.
+a relatively dense matrix K, with results
+comparable to that of the Independence kernel, while for λ = 10 or 50 K = e−λM has very small
+values. Rubner et al.’s implementation cannot be run for histograms larger than d = 512. As can be
+expected, the competitive advantage of dual-Sinkhorn divergences over EMD solvers increases with
+the dimension. Using a GPU results in a speed-up of an additional order of magnitude.
+Empirical Complexity To provide an accurate picture of the actual cost of the algorithm,
+we replicate the experiments above but focus
+now on the number of iterations (matrix-matrix
+products) typically needed to obtain the convergence of a set of N divergences from a given
+point r, all uniformly sampled on the simplex.
+As can be seen in Figure 5, the number of iterations required for vector d to converge increases as e−λM becomes diagonally dominant.
+However, the total number of iterations does
+not seem to vary with respect to the dimension. This observation can explain why we do
+observe a quadratic (empirical) time complexity O(d2 ) with respect to the dimension d in
+Figure 4 above. These results suggest that the
+costly action of keeping track of the actual approximation error (computing variations in d) Figure 5: The influence of λ on the number of
+is not required, and that simply predefining a iterations required to converge on histograms unifixed number of iterations can work well and formly sampled from the simplex.
+yield even additional speedups.
+
+6 Conclusion
+We have shown that regularizing the optimal transport problem with an entropic penalty opens the
+door for new numerical approaches to compute OT. This regularization yields speed-ups that are
+effective regardless of any assumptions on the ground metric M . Based on preliminary evidence, it
+7
+
+seems that dual-Sinkhorn divergences do not perform worse than the EMD, and may in fact perform
+better in applications. Dual-Sinkhorn divergences are parameterized by a regularization weight λ
+which should be tuned having both computational and performance objectives in mind, but we have
+not observed a need to establish a trade-off between both. Indeed, reasonably small values of λ seem
+to perform better than large ones.
+Acknowledgements The author would like to thank: Zaid Harchaoui for suggesting the title of this
+paper and highlighting the connection between the mutual information of P and its Kullback-Leibler
+divergence to rcT ; Lieven Vandenberghe, Philip Knight, Sanjeev Arora, Alexandre d’Aspremont
+and Shun-Ichi Amari for fruitful discussions; reviewers for anonymous comments.
+
+7 Appendix: Proofs
+Proof of Property 1. The set U1 (r, c) contains all joint probabilities P for which h(P ) = h(r) +
+h(c). In that case (Cover and Thomas, 1991, Theorem 2.6.6) applies and U1 (r, c) can only be
+equal to the singleton {rcT }. If M is negative definite, there exists vectors (ϕ1 , · · · , ϕd ) in some
+Euclidean space Rn such that mij = kϕi − ϕj k22 through (Berg et al., 1984, §3.3.2). We thus have
+that
+X
+X
+X
+X
+hri ϕi , cj ϕj i
+ci kϕi k2 ) − 2
+ri kϕi k2 +
+ri cj kϕi − ϕj k2 = (
+rT M c =
+i
+
+i
+
+ij
+T
+
+T
+
+ij
+
+T
+
+= r u + c u − 2r Kc
+P
+P
+where ui = kφi k2 and Kij = hϕi , ϕj i. We used the fact that
+ri =
+ci = 1 to go from the
+first to the second equality. rT M c is thus a n.d. kernel because it is the sum of two n.d. kernels: the
+first term (rT u + cT u) is the sum of the same function evaluated separately on r and c, and thus a
+negative definite kernel (Berg et al., 1984, §3.2.10); the latter term −2rT Ku is negative definite as
+minus a positive definite kernel (Berg et al., 1984, Definition §3.1.1).
+Remark. The proof above suggests a faster way to compute the Independence kernel. Given a matrix
+M , one can indeed pre-compute the vector of norms u as well as a Cholesky factor L of K above
+to preprocess a dataset of histograms by premultiplying each observations ri by L and only store
+Lri as well as precomputing its diagonal term riT u. Note that the independence kernel is positive
+definite on histograms with the same 1-norm, but is no longer positive definite for arbitrary vectors.
+Proof of Lemma 1. Let T be the a probability distribution on {1, · · · , d}3 whose coefficients are
+defined as
+pij qjk
+tijk :=
+,
+(3)
+yj
+for all indices j such that yj > 0. For indices j such that yj = 0, all values tijk are set to 0.
+P
+Let S := [ j tijk ]ik . S is a transport matrix between x and z. Indeed,
+X qjk X
+X
+XX
+X X pij qjk
+X qjk
+=
+yj =
+qjk = zk (column sums)
+sijk =
+pij =
+yj
+yj i
+yj
+j
+j
+i
+j
+j
+i
+j
+X pij
+X pij X
+X
+X X pij qjk
+XX
+pij = xi (row sums)
+qjk =
+=
+yj =
+sijk =
+yj
+yj
+yj
+j
+j
+j
+j
+j
+k
+
+k
+
+k
+
+We now prove that h(S) ≥ h(x) + h(z) − α. Let (X, Y, Z) be three random variables jointly
+distributed as T . Since by definition of T in Equation (3)
+p(X, Y, Z) = p(X, Y )p(Y, Z)/p(Y ) = p(X)p(Y |X)p(Z|Y ),
+the triplet (X, Y, Z) is a Markov chain X → Y → Z (Cover and Thomas, 1991, Equation 2.118)
+and thus, by virtue of the data processing inequality (Cover and Thomas, 1991, Theorem 2.8.1), the
+following inequality between mutual informations applies:
+I(X; Y ) ≥ I(X; Z), namely
+
+h(X, Z) − h(X) − h(Z) ≥ h(X, Y ) − h(X) − h(Y ) ≥ −α.
+
+8
+
+References
+Ahuja, R., Magnanti, T., and Orlin, J. (1993). Network Flows: Theory, Algorithms and Applications. Prentice
+Hall.
+Avis, D. (1980). On the extreme rays of the metric cone. Canadian Journal of Mathematics, 32(1):126–144.
+Berg, C., Christensen, J., and Ressel, P. (1984). Harmonic Analysis on Semigroups. Number 100 in Graduate
+Texts in Mathematics. Springer Verlag.
+Bieling, J., Peschlow, P., and Martini, P. (2010). An efficient gpu implementation of the revised simplex method.
+In Parallel Distributed Processing, 2010 IEEE International Symposium on, pages 1–8.
+Brickell, J., Dhillon, I., Sra, S., and Tropp, J. (2008). The metric nearness problem. SIAM J. Matrix Anal. Appl,
+30(1):375–396.
+Brualdi, R. A. (2006). Combinatorial matrix classes, volume 108. Cambridge University Press.
+Cover, T. and Thomas, J. (1991). Elements of Information Theory. Wiley & Sons.
+Darroch, J. N. and Ratcliff, D. (1972). Generalized iterative scaling for log-linear models. The Annals of
+Mathematical Statistics, 43(5):1470–1480.
+Erlander, S. and Stewart, N. (1990). The gravity model in transportation analysis: theory and extensions. Vsp.
+Ferradans, S., Papadakis, N., Rabin, J., Peyré, G., Aujol, J.-F., et al. (2013). Regularized discrete optimal
+transport. In International Conference on Scale Space and Variational Methods in Computer Vision, pages
+1–12.
+Franklin, J. and Lorenz, J. (1989). On the scaling of multidimensional matrices. Linear Algebra and its
+applications, 114:717–735.
+Good, I. (1963). Maximum entropy for hypothesis formulation, especially for multidimensional contingency
+tables. The Annals of Mathematical Statistics, pages 911–934.
+Grauman, K. and Darrell, T. (2004). Fast contour matching using approximate earth mover’s distance. In IEEE
+Conf. Vision and Patt. Recog., pages 220–227.
+Gudmundsson, J., Klein, O., Knauer, C., and Smid, M. (2007). Small manhattan networks and algorithmic
+applications for the earth movers distance. In Proceedings of the 23rd European Workshop on Computational
+Geometry, pages 174–177.
+Indyk, P. and Thaper, N. (2003). Fast image retrieval via embeddings. In 3rd International Workshop on
+Statistical and Computational Theories of Vision (at ICCV).
+Jaynes, E. T. (1957). Information theory and statistical mechanics. Phys. Rev., 106:620–630.
+Knight, P. A. (2008). The sinkhorn-knopp algorithm: convergence and applications. SIAM Journal on Matrix
+Analysis and Applications, 30(1):261–275.
+Ling, H. and Okada, K. (2007). An efficient earth mover’s distance algorithm for robust histogram comparison.
+IEEE transactions on Patt. An. and Mach. Intell., pages 840–853.
+Naor, A. and Schechtman, G. (2007). Planar earthmover is not in l1 . SIAM J. Comput., 37(3):804–826.
+Pele, O. and Werman, M. (2009). Fast and robust earth mover’s distances. In ICCV’09.
+Rubner, Y., Guibas, L., and Tomasi, C. (1997). The earth movers distance, multi-dimensional scaling, and
+color-based image retrieval. In Proceedings of the ARPA Image Understanding Workshop, pages 661–668.
+Shirdhonkar, S. and Jacobs, D. (2008). Approximate earth movers distance in linear time. In CVPR 2008,
+pages 1–8. IEEE.
+Sinkhorn, R. (1967). Diagonal equivalence to matrices with prescribed row and column sums. The American
+Mathematical Monthly, 74(4):402–405.
+Villani, C. (2009). Optimal transport: old and new, volume 338. Springer Verlag.
+Wilson, A. G. (1969). The use of entropy maximising models, in the theory of trip distribution, mode split and
+route split. Journal of Transport Economics and Policy, pages 108–126.
+
+9
+
+

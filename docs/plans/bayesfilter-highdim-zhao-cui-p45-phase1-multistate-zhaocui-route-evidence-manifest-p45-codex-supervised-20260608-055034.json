@@ -1,0 +1,88 @@
+{
+  "schema_version": "p45.phase_evidence.v1",
+  "run_id": "p45-codex-supervised-20260608-055034",
+  "phase": "P45-M1",
+  "pass_token": "PASS_P45_M1_CODE_GOVERNANCE",
+  "status": "PASS_P45_M1_CODE_GOVERNANCE",
+  "artifact_paths": {
+    "result_note": "docs/plans/bayesfilter-highdim-zhao-cui-p45-phase1-multistate-zhaocui-route-result-2026-06-08.md",
+    "claude_review_ledger": "docs/plans/bayesfilter-highdim-zhao-cui-p45-phase1-multistate-zhaocui-route-claude-review-ledger-2026-06-08.md",
+    "evidence_manifest": "docs/plans/bayesfilter-highdim-zhao-cui-p45-phase1-multistate-zhaocui-route-evidence-manifest-p45-codex-supervised-20260608-055034.json",
+    "blocker_tests": "tests/highdim/test_p45_multistate_zhaocui_route.py",
+    "target_registry": "docs/plans/bayesfilter-highdim-zhao-cui-p45-target-registry-2026-06-08.json"
+  },
+  "evidence_chain": {
+    "PHASE_PLAN_CONFIRMED": true,
+    "SKEPTICAL_AUDIT_RECORDED": true,
+    "CLAUDE_PLAN_OR_REPAIR_REVIEW_PASS": true,
+    "IMPLEMENTED": true,
+    "LOCAL_EVIDENCE_RUN": true,
+    "EVIDENCE_AUDIT_RECORDED": true,
+    "RESULT_NOTE_WRITTEN": true,
+    "CLAUDE_CODE_GOVERNANCE_PASS": true,
+    "TRACEABILITY_UPDATED_OR_NONCLAIM_RECORDED": true,
+    "PHASE_PASS": true
+  },
+  "evidence_contract": {
+    "question": "Can a reviewed fixed-design TT route evaluate the same tiny multistate likelihood and score target as CUT4 and a dense/refined reference?",
+    "baseline_or_comparator": "Current highdim nonlinear Zhao-Cui/fixed-design TT implementation in bayesfilter/highdim/filtering.py compared against P45-M1 route requirements.",
+    "primary_promotion_criterion": "Either implement and test a multistate/factorized fixed-design TT route, or record an executable blocker that prevents M2--M4 equality promotion.",
+    "veto_diagnostics": [
+      "scalar-only state_dim == 1 route silently reused for state dimension 2",
+      "TT fit residual treated as likelihood correctness",
+      "gradients cross adaptive fitting branches without diagnostic-only labeling",
+      "dense reference absent for equality claim"
+    ],
+    "explanatory_only_diagnostics": [
+      "pytest blocker tests",
+      "compile check",
+      "diff whitespace check",
+      "TFP deprecation warnings"
+    ],
+    "nonclaims": [
+      "no multistate TT adapter",
+      "no generalized-SV/SIR/predator-prey equality",
+      "no HMC readiness",
+      "no production score API"
+    ]
+  },
+  "commands": [
+    {
+      "purpose": "Run P45-M0/M1 focused governance and multistate-route blocker tests.",
+      "command": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp pytest -q tests/highdim/test_p45_target_registry.py tests/highdim/test_p45_multistate_zhaocui_route.py",
+      "exit_code": 0,
+      "log_path": "docs/plans/logs/p45-codex-supervised-20260608-055034-P45-M1-command0.log"
+    },
+    {
+      "purpose": "Compile the P45 phase gate and focused P45 tests.",
+      "command": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp python -m compileall -q scripts/p45_phase_gate.py tests/highdim/test_p45_target_registry.py tests/highdim/test_p45_multistate_zhaocui_route.py",
+      "exit_code": 0,
+      "log_path": "docs/plans/logs/p45-codex-supervised-20260608-055034-P45-M1-command1.log"
+    },
+    {
+      "purpose": "Check whitespace safety for the changed P45 M1 artifacts.",
+      "command": "git diff --check -- tests/highdim/test_p45_multistate_zhaocui_route.py tests/highdim/test_p45_target_registry.py scripts/p45_phase_gate.py",
+      "exit_code": 0,
+      "log_path": "docs/plans/logs/p45-codex-supervised-20260608-055034-P45-M1-command2.log"
+    }
+  ],
+  "diagnostics": {
+    "veto_status": "NONCLAIM_RECORDED",
+    "summary": "M1 passes as a governed blocker: current nonlinear Zhao-Cui/fixed-design TT route remains scalar-only and cannot support multistate equality claims for M2--M4."
+  },
+  "review_loops": {
+    "claude_code_governance": {
+      "iterations": 1,
+      "verdict": "PASS_P45_M1_CODE_GOVERNANCE"
+    },
+    "repair": {
+      "iterations": 0,
+      "verdict": "N/A"
+    }
+  },
+  "long_run_controls": {
+    "long_run_used": false,
+    "resource_caps": "No long run; CPU-only focused tests and artifact validation.",
+    "pre_mortem": "N/A"
+  }
+}

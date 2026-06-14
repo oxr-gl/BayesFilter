@@ -1,0 +1,968 @@
+A nonparametric ensemble transform
+method for Bayesian inference
+Article
+Published Version
+
+Reich, S. (2013) A nonparametric ensemble transform method
+for Bayesian inference. SIAM Journal on Scientific Computing,
+35 (4). A2013-A2024. ISSN 1095-7197 doi:
+10.1137/130907367 Available at
+https://centaur.reading.ac.uk/33551/
+
+It is advisable to refer to the publisher’s version if you intend to cite from the
+work. See Guidance on citing .
+To link to this article DOI: http://dx.doi.org/10.1137/130907367
+Publisher: Society for Industrial and Applied Mathematics
+
+All outputs in CentAUR are protected by Intellectual Property Rights law,
+including copyright law. Copyright and IPR is retained by the creators or other
+copyright holders. Terms and conditions for use of this material are defined in
+the End User Agreement .
+
+www.reading.ac.uk/centaur
+CentAUR
+Central Archive at the University of Reading
+
+Reading’s research outputs online
+
+Downloaded 08/15/13 to 134.225.101.25. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+SIAM J. SCI. COMPUT.
+Vol. 35, No. 4, pp. A2013–A2024
+
+c 2013 Society for Industrial and Applied Mathematics
+
+
+A NONPARAMETRIC ENSEMBLE TRANSFORM METHOD FOR
+BAYESIAN INFERENCE∗
+SEBASTIAN REICH†
+Abstract. Many applications, such as intermittent data assimilation, lead to a recursive application of Bayesian inference within a Monte Carlo context. Popular data assimilation algorithms
+include sequential Monte Carlo methods and ensemble Kalman ﬁlters (EnKFs). These methods diﬀer
+in the way Bayesian inference is implemented. Sequential Monte Carlo methods rely on importance
+sampling combined with a resampling step, while EnKFs utilize a linear transformation of Monte
+Carlo samples based on the classic Kalman ﬁlter. While EnKFs have proven to be quite robust even
+for small ensemble sizes, they are not consistent since their derivation relies on a linear regression
+ansatz. In this paper, we propose another transform method, which does not rely on any a priori
+assumptions on the underlying prior and posterior distributions. The new method is based on solving
+an optimal transportation problem for discrete random variables.
+Key words. Bayesian inference, Monte Carlo method, sequential data assimilation, linear
+programming, resampling
+AMS subject classifications. 65C05, 62M20, 93E11, 62F15, 86A22
+DOI. 10.1137/130907367
+
+1. Introduction. This paper is concerned with a particular implementation of
+Monte Carlo methods for Bayesian inference and its application to ﬁltering and intermittent data assimilation [8]. More speciﬁcally, we consider the problem of estimating
+posterior expectation values under the assumption that a ﬁnite-size ensemble {xfi }M
+i=1
+from the (generally unknown) prior distribution πX f is available. A standard approach for obtaining such estimators relies on the idea of importance sampling based
+on the likelihood πY (y0 |xfi ) of the samples xfi with regard to a given observation y0
+[6, 2, 3]. If applied recursively, it is necessary to combine importance sampling with
+a resampling step such as monomial or systematic resampling [2, 9]. More recently
+the ensemble Kalman ﬁlter (EnKF) has been introduced [7], which transforms the
+a M
+prior ensemble {xfi }M
+i=1 into an uniformly weighted posterior ensemble {xi }i=1 using
+the classic Kalman update step of linear ﬁltering [8]. The EnKF leads, however, to a
+biased estimator even in the limit M → ∞ [10]. In this paper, we propose a nonrandom ensemble transform (ET) method which is based on ﬁnite-dimensional optimal
+transportation in form of linear programming [17, 5]. We provide numerical and theoretical evidence that the new ET method leads to consistent posterior estimators.
+The new transform method can be applied to intermittent data assimilation, leading
+to a novel implementation of particle ﬁlters. We demonstrate this possibility for the
+chaotic Lorenz-63 model [12].
+An outline of the paper is as follows. In section 2, Monte Carlo importance sampling is summarized in the context of Bayesian inference. Subsequently, importance
+sampling is put into the context of linear programming in section 3. This leads to
+∗ Submitted to the journal’s Methods and Algorithms for Scientiﬁc Computing section January
+25, 2013; accepted for publication (in revised form) May 13, 2013; published electronically August
+6, 2013.
+http://www.siam.org/journals/sisc/35-4/90736.html
+† Institut für Mathematik, Universität Potsdam, Am Neuen Palais 10, D-14469 Potsdam,
+Germany, and Department of Mathematics and Statistics, University of Reading, Whiteknights,
+PO Box 220, Reading RG6 6AX, UK (sreich@math.uni-potsdam.de).
+
+A2013
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+Downloaded 08/15/13 to 134.225.101.25. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+A2014
+
+SEBASTIAN REICH
+
+a novel resampling method which maximizes the correlation between the prior and
+posterior ensemble members. We propose a further modiﬁcation which turns the
+resampling step into a deterministic and linear transformation. Convergence of the
+proposed transformation step is demonstrated numerically by means of two examples.
+A theoretical convergence result is formulated based on results in [13]. Finally, the
+application to sequential Monte Carlo methods is discussed in section 4 and a novel
+ET ﬁlter is proposed. Numerical results are presented for the Lorenz-63 model.
+2. Bayesian inference and importance sampling. We summarize the importance sampling approach to Bayesian inference. Given a prior (or in the context
+of dynamic models, forecast) random variable X f : Ω → RNx , we denote its probability density function (PDF) by πX f (x), x ∈ RNx , and consider the assimilation of
+an observed y0 ∈ RNy with likelihood function πY (y|x). According to Bayes’ theorem
+the analyzed, posterior PDF is given by
+(2.1)
+
+πY (y0 |x)πX f (x)
+.
+π (y0 |x)πX f (x)dx
+RN x Y
+
+πX a (x|y0 ) = 
+
+Typically, the forecast random variable X f and its PDF are not available explicitly. Instead one assumes that an ensemble of forecasts xfi ∈ RNx , i = 1, . . . , M ,
+is given, which mathematically are considered as realizations Xif (ω), ω ∈ Ω, of M
+independent (or dependent) random variables Xif : Ω → RNx with law πX f . Then
+the expectation value ḡ f = EX f [g] of a function g : RNx → R with respect to the
+prior PDF πX f (x) can be estimated according to
+ḠfM =
+
+M
+
+1 
+g(Xif )
+M i=1
+
+with realization
+f
+ḡM
+= ḠfM (ω) =
+
+M
+M
+1 
+1 
+g(Xif (ω)) =
+g(xfi )
+M i=1
+M i=1
+
+for the ensemble {xfi = Xif (ω)}M
+i=1 . The estimator is unbiased for any M > 0 and its
+variance vanishes as M → ∞ provided the variance of g is ﬁnite.
+Following the idea of importance sampling [11], one obtains the following estimator with respect to the posterior PDF πX a (x|y0 ) using the forecast ensemble:
+a
+ḡM
+=
+
+M
+
+i=1
+
+wi g(xfi )
+
+with weights
+(2.2)
+
+πY (y0 |xfi )
+wi = M
+.
+f
+i=1 πY (y0 |xi )
+
+The estimator is no longer unbiased for ﬁnite M but remains consistent. Here an estimator is called consistent if the root mean square (RMS) error between the estimator
+a
+and the exact expectation value ḡ a = EX a [g] vanishes as M → ∞.
+ḡM
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+Downloaded 08/15/13 to 134.225.101.25. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+ENSEMBLE TRANSFORM METHOD FOR BAYESIAN INFERENCE
+
+A2015
+
+3. An ET method based on linear programming. Alternatively to importance sampling, we may attempt to transform the samples xfi = Xif (ω) with
+Xif ∼ πX f into samples x̂ai which follow the posterior distribution πX a (x|y0 ). Then
+we are back to an estimator
+a
+=
+ḡM
+
+M
+
+1 
+g(x̂ai )
+M i=1
+
+with equal weights for posterior expectation values. For univariate random variables
+X f and X a with PDFs πX f and πX a , respectively, the transformation is characterized
+by
+FX a (x̂ai ) = FX f (xfi ),
+
+(3.1)
+
+where FX f and FX a denote the cumulative distribution functions of X f and X a ,
+respectively, e.g.,
+ x
+πX f (x )dx .
+FX f (x) =
+−∞
+
+Equation (3.1) requires knowledge of the associated PDFs, and its extension to multivariate random variables is nontrivial. In this section, we propose an alternative approach that does not require explicit knowledge of the underlying PDFs and that easily
+generalizes to multivariate random variables. To obtain the desired transformation we
+utilize the idea of optimal transportation [18] with respect to an appropriate distance
+d(x, x ) in RNx . More precisely, we ﬁrst seek a coupling between two discrete random
+variables Z f : Ω → Z and Z a : Ω → Z with realizations in Z = {xf1 , . . . , xfM } and
+probability vector pf = (1/M, . . . , 1/M )T for Z f and pa = (w1 , . . . , wM )T for Z a , respectively. A coupling between Z f and Z a is an M × M matrix T with non-negative
+entries tij = (T)ij ≥ 0 such that
+(3.2)
+
+M
+
+
+tij = 1/M,
+
+i=1
+
+M
+
+
+tij = wi .
+
+j=1
+
+We now aim for the coupling T∗ that minimizes the expected distance
+(3.3)
+
+EZ f Z a [d(z f , z a )] =
+
+M
+
+i,j=1
+
+tij d(xfi , xfj ).
+
+The desired coupling T∗ is characterized by a linear programming problem [17]. Since
+(3.2) leads to 2M − 1 independent constraints the matrix T∗ contains at most 2M − 1
+nonzero entries.
+In this paper, we use the squared Euclidean distance, i.e.,
+(3.4)
+
+d(xfi , xfj ) = xfi − xfj 2 .
+
+We recall that minimizing the expected distance with respect to the squared Euclidean
+distance is equivalent to maximizing EZ f Z a [(z f )T z a ] since
+EZ f Z a [z f − z a 2 ] = EZ f [z f 2 ] + EZ a [z a 2 ] − 2EZ f Z a [z f , z a ]
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+Downloaded 08/15/13 to 134.225.101.25. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+A2016
+
+SEBASTIAN REICH
+
+with z f , z a = (z f )T z a . Furthermore, the optimal coupling T∗ satisﬁes cyclical
+monotonicity [19], which is deﬁned as follows. Let S denote the support of T∗ ,
+i.e., the set of all (xfi , xfj ) ∈ Z × Z such that t∗ij > 0; then
+(3.5)
+
+f
+a
+z1a , z2f − z1f + z2a , z3f − z2f + · · · + zK
+, z1f − zK
+≤0
+
+for any set of pairs (zif , zia ) ∈ S, k = 1, . . . , K, and any integer K > 1. Any set
+S ⊂ RNx × RNx with this property is called cyclically monotone [19]. Furthermore,
+a standard result of convex analysis states (see Theorem 2.27 in [18]) that there is a
+convex function ψ : RNx → R such that S is contained in the subdiﬀerential of ψ, i.e.,
+S ⊂ ∂ψ.
+We next introduce the Markov chain P ∈ RM×M on Z via
+P = M T∗
+with the property that
+pa = Ppf .
+Given realizations xfj , j = 1, . . . , M , from the prior PDF, a Monte Carlo resampling
+step proceeds now as follows: Solve (3.3) for an optimal coupling matrix T∗ and deﬁne
+discrete random variables
+⎞
+⎛
+p1j
+⎟
+⎜
+(3.6)
+Zja ∼ ⎝ ... ⎠
+pMj
+for j = 1, . . . , M . Here pij denotes the (i, j)th entry of P. A new ensemble of size
+M is ﬁnally obtained by collecting a single realization from each random variable Zja ,
+i.e.,
+xaj := Zja (ω)
+for j = 1, . . . , M . This ensemble of equally weighted samples allows for the approximation of expectation values with respect to the posterior distribution πX a (x|y0 ).
+The outlined procedure leads to a particular instance of resampling with replacement [2, 9]. The main diﬀerence from techniques such as monomial or systematic
+resampling is that the resampling is chosen such that the expected distance (3.3)
+between the prior and posterior samples is minimized.
+We now propose a further modiﬁcation which replaces the random resampling
+step by a linear transformation in the prior ensemble.
+This transformation exactly
+
+f
+w
+x
+preserves the posterior ensemble mean x̄aM = M
+i=1 i i and is based on the observation that
+(3.7)
+
+x̄aj = EZja [z] =
+
+M
+
+i=1
+
+pij xfi
+
+should provide a suﬃcient representation of the random variable Zja . Hence we propose the deterministic transformation
+(3.8)
+
+xaj := x̄aj =
+
+M
+
+i=1
+
+pij xfi ,
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+ENSEMBLE TRANSFORM METHOD FOR BAYESIAN INFERENCE
+
+A2017
+
+Downloaded 08/15/13 to 134.225.101.25. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+j = 1, . . . , M . The hope is that
+a
+ḡM
+=
+
+(3.9)
+
+M
+
+1 
+g(x̄aj )
+M j=1
+
+still provides a consistent estimator for EX a [g] as M → ∞. For the special case
+g(x) = x it is easy to verify that indeed
+x̄aM =
+
+M
+M M
+M
+
+
+1  a
+1 
+xj =
+pij xfi =
+t∗ij xfi =
+wi xfi .
+M j=1
+M j=1 i=1
+i,j
+i=1
+
+Before investigating the theoretical properties of the proposed transformation
+(3.8) we consider two numerical examples which indicate that (3.8) indeed leads to a
+consistent approximation to (3.1) in the limit M → ∞.
+Example. We take the univariate Gaussian with mean x̄ = 1 and variance σ 2 = 2
+as prior random variable X f . Realizations of X f are generated using
+xfi =
+
+√
+2 erf −1 (2ui − 1),
+
+ui =
+
+i−1
+1
++
+2M
+M
+
+for i = 1, . . . , M . The likelihood function is
+1
+πY (y|x) = √ exp
+4π
+
+−(y − x)2
+4
+
+with assumed observed value y0 = 0.1. Bayes’ formula yields a posterior distribution
+which is Gaussian with mean x̄ = 0.55 and variance σ 2 = 1. The prior and posterior
+realizations from the transform method are shown for M = 10 in Figure 3.1. We also
+display the analytic transform, which is a straight line in case of Gaussian distributions, and the approximate transform using linear programming in Figure 3.2. The
+1
+prior
+posterior
+
+0.8
+0.6
+0.4
+0.2
+0
+−0.2
+−0.4
+−0.6
+−0.8
+−1
+−2
+
+−1
+
+0
+
+1
+realizations x
+
+2
+
+3
+
+4
+
+i
+
+Fig. 3.1. Prior xfi
+
+and posterior xa
+i realizations from the transform method for M = 10.
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+A2018
+
+SEBASTIAN REICH
+
+analytic transformation
+Linear programming transformation
+
+2
+analysed particle locations
+
+1.5
+1
+0.5
+0
+−0.5
+−1
+−1.5
+−2
+
+−1
+
+0
+
+1
+
+2
+
+3
+
+4
+
+forecast particle locations
+Fig. 3.2. Exact and numerical ET map for M = 10. The Gaussian case leads to the exact
+transformation being linear. The numerical approximation deviates from linearity mostly in both its
+tails.
+
+structure of nonzero entries of the Markov chain matrix P for M = 40 is displayed in
+Figure 3.3, which shows a banded structure of local interactions. The staircase-like
+arrangement is due to cyclical monotonicity of the support of T∗ . More generally,
+one obtains the posterior estimates for the ﬁrst four moments displayed in Table 3.1,
+which indicate convergences as M → ∞.
+M=40 particles
+0
+5
+10
+forecast particle index
+
+Downloaded 08/15/13 to 134.225.101.25. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+2.5
+
+15
+20
+25
+30
+35
+40
+0
+
+10
+20
+30
+analysed particle index
+
+40
+
+Fig. 3.3. Nonzero entries in the matrix P for M = 40, i.e., the support of the coupling. There
+are a total of 2M − 1 = 79 nonzero entries. The banded structure reveals the spatial locality and the
+cyclical monotonicity [18, 19] of the resampling step.
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+Downloaded 08/15/13 to 134.225.101.25. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+ENSEMBLE TRANSFORM METHOD FOR BAYESIAN INFERENCE
+
+A2019
+
+Table 3.1
+Estimated posterior first- to fourth-order moments from the ET method applied to a Gaussian
+scalar Bayesian inference problem.
+
+M = 10
+M = 40
+M = 100
+
+x̄
+0.5361
+0.5473
+0.5493
+
+σ2
+1.0898
+1.0241
+1.0098
+
+E[(X − x̄)3 ]
+−0.0137
+0.0058
+−0.0037
+
+E[(X − x̄)4 ]
+2.3205
+2.7954
+2.9167
+
+Example. As a further (non-Gaussian) example we consider a uniform prior on
+the interval [0, 1] and use samples xfi = ui with the ui ’s as deﬁned in the previous
+example. Given the observed value y0 = 0.1, the posterior PDF is
+
+1
+−(x−0.1)2 /4
+, x ∈ [0, 1],
+0.9427... e
+πX a (x|0.1) =
+0,
+else.
+The resulting posterior mean is x̄ ≈ 0.4836 and its variance is σ 2 ≈ 0.0818. The
+third and fourth moments are 0.0016 and 0.0122, respectively. The transform method
+yields the posterior estimates for the ﬁrst four moments displayed in Table 3.2, which
+again indicate convergences as M → ∞.
+We now proceed with a theoretical investigation of the transformation (3.8). Our
+convergence result is based on the following lemma and general results from [13].
+Lemma 3.1. The set Ŝ consisting of all pairs (xfj , xaj ), j = 1, . . . , M , with x̄aj
+defined by (3.7), is cyclically monotone.
+Proof. Let I(j) denote the set of indices i for which pij > 0. Since T∗ is cyclically
+monotone, (3.5) holds for sequences containing a term of type xfi , xfj − xfj with
+i ∈ I(j). By linearity of xfi , xfj − xfj in each of its two arguments, (3.5) then also
+applies to linear combinations giving rise to
+M
+
+i=1
+
+
+
+f
+a
+pij z1a , z2f − z1f + z2a , z3f − z2f + · · · + xfi , xfj − xfj + · · · + zK
+, z1f − zK
+
+f
+a
+= z1a , z2f − z1f + z2a , z3f − z2f + · · · + x̄aj , xfj − xfj + · · · + zK
+, z1f − zK
+≤0
+
+M
+since i=1 pij = 1. The same procedure can be applied to all indices k ∈ {1, . . . , K}
+resulting in
+f
+f
+a
+z̄1a , z2f − z1f + z̄2a , z3f − z2f + · · · + z̄ka , zk+1
+− zkf + · · · + z̄K
+, z1f − zK
+≤ 0,
+f
+where zk+1
+:= xfj and z̄ka := x̄aj if zkf = xfj . Hence the set Ŝ is cyclically
+monotone.
+f
+Theorem 3.2. Assume that the ensemble XM
+= {xfi }M
+i=1 consists of realization
+from M independent and identically distributed random variables Xif : Ω → RNx with
+
+Table 3.2
+Estimated posterior first- to fourth-order moments from the ET method applied to a nonGaussian scalar Bayesian inference problem.
+
+M = 10
+M = 40
+M = 100
+
+x̄
+0.4838
+0.4836
+0.4836
+
+σ2
+0.0886
+0.0838
+0.0825
+
+E[(X − x̄)3 ]
+0.0014
+0.0016
+0.0016
+
+E[(X − x̄)4 ]
+0.0114
+0.0121
+0.0122
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+Downloaded 08/15/13 to 134.225.101.25. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+A2020
+
+SEBASTIAN REICH
+
+a
+a
+PDF πX f . Define the set XM
+= {x̄aj }M
+j=1 with the x̄j ’s given by (3.7). Then the
+f
+a
+→ XM
+, defined for fixed M by
+associated maps ΨM : XM
+
+x̄aj = ΨM (xfj ),
+
+j = 1, . . . , M,
+
+converge weakly to a map Ψ : RNx → RNx for M → ∞. Furthermore, the random
+variable defined by X a = Ψ(X f ) has distribution (2.1) and the expected distance
+between X a and X f is minimized among all such mappings.
+Proof. The maps ΨM deﬁne a sequence of couplings between discrete random
+f
+a
+variables on Z f = XM
+and Z a = XM
+, which satisfy cyclical monotonicity according
+to Lemma 3.1. We may now follow the proof of Theorem 6 in [13] to conclude that
+these couplings converge weakly to a continuous coupling, i.e., a probability measure
+μX̃ f X̃ a on RNx × RNx with marginals πX̃ f and πX̃ a , respectively. By construction it
+is clear that πX̃ f = πX f . We still need to show that πX̃ a (x) = πX a (x|y0 ) and that
+the support of μX̃ f X̃ a is the graph of a map Ψ̃. The later property follows from the
+fact that μX̃ f X̃ a is cyclically monotone and that the probability measure for X f is
+absolutely continuous with respect to the Lebesgue measure on RNx . Hence the main
+theorem of [13] can be applied to guarantee the existence and uniqueness of the map
+Ψ. Alternatively, the coupling deﬁned by the matrix T∗ also gives rise to a potential
+ψM such that
+S ⊂ ∂ψM
+due to cyclical monotonicity, i.e., the support S of T∗ is included in the subdiﬀerential
+of ψM for all M . Since ∂ψM (x) is a nonempty convex compact set, we also have
+Ŝ ⊂ ∂ψM
+for the cyclically monotone set Ŝ deﬁned in Lemma 3.1. Furthermore, since T∗
+couples πX f and πX a (x|y0 ) as M → ∞ by construction, this then also implies that
+πX̃ a (x) = πX a (x|y0 ). The coupling μX̃ f X̃ a solves the Monge–Kantorovitch problem
+with cost c(x, y) = x − y2 [18, 19].
+Theorem 3.2 implies that (3.9) indeed provides a consistent estimator for expectation values EX a [g] of functions g with bounded variation. We cannot, however,
+expect (3.9) to be unbiased for ﬁnite ensemble sizes M .
+One may replace the uniform probabilities
+in pf by an appropriate random vector
+M
+f T
+pf = (w1f , . . . , wM
+) , i.e., wif ≥ 0 and i=1 wif = 1. To clarify the notation we write
+a T
+) for the posterior weights according to Bayes’ formula. The
+pa = (w1a , . . . , wM
+linear programming problem (3.3) is adjusted accordingly and one obtains an optimal
+coupling T∗ and an induced Markov chain P with entries
+pij =
+
+tij
+wjf
+
+.
+
+Hence the transform method (3.3) is now replaced by
+x̄aj =
+
+(3.10)
+
+M
+
+i=1
+
+pij xfi
+
+and the posterior ensemble mean satisﬁes
+x̄aM =
+
+M
+
+j=1
+
+wjf x̄aj =
+
+M 
+M
+
+j=1 i=1
+
+wjf
+
+tij
+
+M
+
+
+wj
+
+i=1
+
+xf =
+f i
+
+wia xfi
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+ENSEMBLE TRANSFORM METHOD FOR BAYESIAN INFERENCE
+
+A2021
+
+Downloaded 08/15/13 to 134.225.101.25. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+as desired. More generally, posterior expectation values are given by
+a
+ḡM
+=
+
+M
+
+i=1
+
+wif g(xai ).
+
+4. Application to sequential data assimilation. We now apply the proposed ET method (3.3) to sequential state estimation for ordinary diﬀerential equation
+models
+(4.1)
+
+ẋ = f (x)
+
+with given PDF π0 for the initial conditions x(0) ∈ RNx at time t = 0. Hence we
+treat solutions x(t) as realizations of the random variables Xt , t ≥ 0, determined by
+the ﬂow of (4.1) and the initial PDF π0 .
+We assume the availability of observations y(tk ) ∈ RNy at discrete times tk =
+kΔtobs , k > 0, in intervals of Δtobs > 0. The observations satisfy the stochastic
+forward model
+Y (tk ) = h(xref (tk )) + Ξk ,
+where Ξk : Ω → RNy represent independent and identically distributed centered
+Gaussian random variables with covariance matrix R ∈ RNy ×Ny , h : RNx → RNy
+is the forward map, and xref (t) ∈ RNx denotes the desired reference solution. The
+forward model gives rise to the likelihood
+πY (y|x) =
+
+1
+(2π)Ny /2 |R|1/2
+
+1
+exp − (y − h(x))T R−1 (y − h(x)) .
+2
+
+A particle ﬁlter starts from an ensemble {xi (0)}M
+i=1 of M realizations from the
+initial PDF π0 . We evolve this ensemble of realizations under the model dynamics
+(4.1) till the ﬁrst observation yobs (Δtobs ) becomes available, at which point we apply
+the proposed ET method to the forecast ensemble members xfi = xi (Δtobs ). If one
+furthermore collects these prior realizations into an Nx × M matrix
+Xf = [xf1 · · · xfM ],
+then, for given observation y0 = y(Δtobs ), the ET method (3.10) leads to the posterior
+realizations simply given by
+(4.2)
+
+Xa = Xf P,
+
+[xa1 · · · xaM ] = Xa ,
+
+where P is the Markov chain induced by the associated linear programming problem.
+The analyzed ensemble members xai , i = 1, . . . , M , are now being used as new initial
+conditions for the model (4.1), and the process of alternating between propagation
+under model dynamics and assimilation of data is repeated for all k > 1.
+It should be noted that a transformation similar to (4.2) arises from the ensemble
+square root ﬁlter (ESRF) [7]. However, the transform matrix P ∈ RM×M used here
+is obtained in a completely diﬀerent manner and does not rely on the assumption of
+the PDFs being Gaussian. We mention the work of [10] for an alternative approach
+to modify EnKFs in order to make them consistent with non-Gaussian distributions.
+Ensemble inﬂation has become a popular technique for increasing the robustness
+of EnKFs [7]. Ensemble inﬂation simply replaces the forecast ensemble deviations
+δxfi := xfi − x̄fM by αδxfi with α > 1. A related technique is particle rejuvenation
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+SEBASTIAN REICH
+
+for sequential particle ﬁlters, where independent realizations ξi of a Gaussian with
+mean zero and covariance matrix B ∈ RNx ×Nx are added to the resampled ensemble
+members xai . Particle rejuvenation also increases the ensemble spread but in addition
+avoids the creation of identical ensemble members under resampling. Particle rejuvenation can also be implemented for the proposed ET particle ﬁlter with the covariance
+matrix B determined by
+B=
+
+M
+
+τ
+(xf − x̄fM )(xfi − x̄fM )T .
+M − 1 i=1 i
+
+Here τ > 0 is the bandwidth
+√ parameter, which is formally related to the ensemble
+inﬂation factor α by α = 1 + τ .
+We now provide a numerical example and compare an ESRF implementation with
+a particle ﬁlter using the new ET method.
+Example. We consider the Lorenz-63 model [12]
+ẋ = σ(y − x),
+ẏ = x(ρ − z) − y,
+ż = xy − βz
+in the parameter and data assimilation setting of [1]. In particular, the state vector
+is x = (x, y, z)T ∈ R3 and we observe all three variables every Δtobs = 0.12 time
+units with a measurement error variance R = 8 in each observed solution component.
+The equations are integrated in time by the implicit midpoint rule with step-size
+Δt = 0.01. We implement an ESRF [7], a sequential importance-resampling (SIR)
+particle ﬁlter, and the new ET ﬁlter for ensemble sizes M = 10, 20, 50, 75, 100, 200,
+and we process a total of 2000 observations. The ESRF is furthermore implemented
+with optimized ensemble inﬂation factors α. Particle rejuvenation is used for both
+particle ﬁlters with τ = 0.5 for the smallest ensemble size and τ = 0.05 for M = 200.
+Both the SIR and the ET particle ﬁlter lead to ﬁlter divergence for M = 10, while the
+ESRF is stable for all given choices of M . The time averaged RMS errors over 2000
+assimilation steps can be found in Figure 4.1. It is evident that the new ET ﬁlter
+2.6
+ESRF
+ETPF
+SIR
+
+2.4
+2.2
+time averaged RMS error
+
+Downloaded 08/15/13 to 134.225.101.25. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+A2022
+
+2
+1.8
+1.6
+1.4
+1.2
+1
+0.8
+0
+
+50
+
+100
+ensemble size
+
+150
+
+200
+
+Fig. 4.1. Time averaged RMS errors for the Lorenz-63 model in the setting of [1] for an ESRF,
+the SIR particle filter, and the new ET filter for increasing ensemble sizes M .
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+Downloaded 08/15/13 to 134.225.101.25. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+ENSEMBLE TRANSFORM METHOD FOR BAYESIAN INFERENCE
+
+A2023
+
+leads to much lower RMS errors for M ≥ 50 compared to the ESRF. The behavior of
+the SIR and the ET particle ﬁlters is similar for M ≥ 100. However, for M = 20 and
+M = 50, the ET particle ﬁlter clearly outperforms the SIR ﬁlter. We may conclude
+that the ET particle ﬁlter might provide a viable alternative to both the ESRF and
+the SIR ﬁlter in a range of intermediate ensemble sizes. Our results also compare
+favorably to the ones displayed in [1] for the rank histogram ﬁlter [1] and the EnKF
+with perturbed observations [7].
+5. Conclusions. We have explored the application of linear programming and
+optimal transportation to Bayesian inference and particle ﬁlters. We have demonstrated theoretically as well as numerically that the proposed ET method allows us
+to reproduce posterior expectation values in the limit M → ∞ and a convergence
+to the associated continuum optimal transport problem [18, 19]. The application of
+continuous optimal transportation to Bayesian inference has been discussed by [14],
+[15, 16], [5]. However, a direct application of continuous optimal transportation to
+Bayesian inference in high-dimensional state spaces RNx seems currently out of reach
+and eﬃcient numerical techniques need to be developed.
+Our numerical experiments indicate that the ET particle ﬁlter might be able to ﬁll
+the performance gap between EnKFs and SIR particle ﬁlters as ensemble sizes increase
+from relatively small to relatively large. It remains to investigate what modiﬁcations
+are required (such as localization [7]) in order to implement the proposed ET method
+even if the ensemble sizes M are much smaller than the dimension of state space Nx (or
+the dimension of the attractor of (4.1) in the case of intermittent data assimilation).
+A standard MATLAB implementation of the simplex algorithm was used for
+solving the linear programming problems in this paper. More eﬃcient algorithms
+such as the auction algorithm [4] should be considered in future implementations of
+the ET method (3.3).
+We ﬁnally mention that the ET particle ﬁlter can be extended from the classic importance sampling considered in this paper to Bayesian inference for weighted
+Gaussian mixtures as prior distributions.
+Acknowledgments. I would like to thank Yann Brenier and Jacques Vanneste
+for inspiring discussions on the subject of this paper during an Oberwolfach workshop
+in 2010. The paper beneﬁted furthermore from additional discussions with Wilhelm
+Stannat and Dan Crisan at another Oberwolfach workshop in 2012.
+REFERENCES
+[1] J. Anderson, A non-Gaussian ensemble filter update for data assimilation, Monthly Weather
+Rev., 138 (2010), pp. 4186–4198.
+[2] M. Arulampalam, S. Maskell, N. Gordon, and T. Clapp, A tutorial on particle filters for
+online nonlinear/non-Gaussian Bayesian tracking, IEEE Trans. Signal Process., 50 (2002),
+pp. 174–188.
+[3] A. Bain and D. Crisan, Fundamentals of Stochastic Filtering, Stoch. Model. Appl. Probab.,
+Springer-Verlag, New York, 2008.
+[4] D. Bertsekas and D. Castanon, The auction algorithm for the transportation problem, Ann.
+Oper. Res., 20 (1989), pp. 67–96.
+[5] C. Cotter and S. Reich, Ensemble filter techniques for intermittent data assimilation, Large
+Scale Inverse Problems. Computational Methods and Applications in the Earth Sciences,
+Radon Ser. Comput. Appl. Math., Walter de Gruyter, Berlin, 13 (2013), pp. 91–134.
+[6] A. Doucet, N. de Freitas, and N. Gordon, eds., Sequential Monte Carlo Methods in Practice, Springer-Verlag, New York, 2001.
+[7] G. Evensen, Data Assimilation. The Ensemble Kalman Filter, Springer-Verlag, New York,
+2006.
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+Downloaded 08/15/13 to 134.225.101.25. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+A2024
+
+SEBASTIAN REICH
+
+[8] A. Jazwinski, Stochastic Processes and Filtering Theory, Academic Press, New York, 1970.
+[9] H. Künsch, Recursive Monte Carlo Filter: Algorithms and Theoretical Analysis, Ann. Statist.,
+33 (2005), pp. 1983–2021.
+[10] J. Lei and P. Bickel, A moment matching ensemble filter for nonlinear and non-Gaussian
+data assimilation, Monthly Weather Rev., 139 (2011), pp. 3964–3973.
+[11] J. Liu, Monte Carlo Strategies in Scientific Computing, Springer-Verlag, New York, 2001.
+[12] E. Lorenz, Deterministic non-periodic flows, J. Atmospheric Sci., 20 (1963), pp. 130–141.
+[13] R. McCann, Existence and uniqueness of monotone measure-preserving maps, Duke Math. J.,
+80 (1995), pp. 309–323.
+[14] T. E. Moselhy and Y. Marzouk, Bayesian inference with optimal maps, J. Comput. Phys.,
+231 (2012), pp. 7815–7850.
+[15] S. Reich, A dynamical systems framework for intermittent data assimilation, BIT, 51 (2011),
+pp. 235–249.
+[16] S. Reich, A Gaussian mixture ensemble transform filter, Quart. J. Roy. Meterolog. Soc., 138
+(2012), pp. 222–233.
+[17] G. Strang, Introduction to Applied Mathematics, 2nd ed., Wellesley Cambridge Press,
+Wellesley, MA, 1986.
+[18] C. Villani, Topics in Optimal Transportation, AMS, Providence, RI, 2003.
+[19] C. Villani, Optimal Transportation: Old and New, Springer-Verlag, Heidelberg, 2009.
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+

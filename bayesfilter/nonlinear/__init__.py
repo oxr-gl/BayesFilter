@@ -1,5 +1,26 @@
 """TensorFlow nonlinear filtering backends and sigma-point rules."""
 
+from bayesfilter.nonlinear.fixed_sgqf_tf import (
+    TFFixedSGQF1DLevelRule,
+    TFFixedSGQFAffineModel,
+    TFFixedSGQFBranchConfig,
+    TFFixedSGQFBranchHash,
+    TFFixedSGQFBranchIdentity,
+    TFFixedSGQFBranchManifest,
+    TFFixedSGQFCloud,
+    TFFixedSGQFNonlinearModel,
+    TFFixedSGQFOneStepOracle,
+    TFFixedSGQFStepFailure,
+    TFFixedSGQFStepResult,
+    TFFixedSGQFValueResult,
+    tf_fixed_sgqf_active_multi_indices,
+    tf_fixed_sgqf_branch_identity,
+    tf_fixed_sgqf_cloud,
+    tf_fixed_sgqf_combination_coefficient,
+    tf_fixed_sgqf_filter,
+    tf_fixed_sgqf_p47_one_step_oracle,
+    tf_standard_normal_ghq_level_rule,
+)
 from bayesfilter.nonlinear.sigma_points_tf import (
     TFSigmaPointDiagnostics,
     TFSigmaPointRule,
@@ -15,6 +36,12 @@ from bayesfilter.nonlinear.svd_cut_tf import (
     tf_svd_cut4_filter,
     tf_svd_cut4_log_likelihood,
 )
+from bayesfilter.nonlinear.fixed_sgqf_derivatives_tf import (
+    TFFixedSGQFDerivatives,
+    TFFixedSGQFScoreResult,
+    tf_fixed_sgqf_same_branch_signature,
+    tf_fixed_sgqf_score,
+)
 from bayesfilter.nonlinear.svd_sigma_point_derivatives_tf import (
     TFStructuralFirstDerivatives,
     TFSmoothEighFactorFirstDerivatives,
@@ -25,11 +52,34 @@ from bayesfilter.nonlinear.svd_sigma_point_derivatives_tf import (
 )
 
 __all__ = [
+    "TFFixedSGQF1DLevelRule",
+    "TFFixedSGQFAffineModel",
+    "TFFixedSGQFBranchConfig",
+    "TFFixedSGQFBranchHash",
+    "TFFixedSGQFBranchIdentity",
+    "TFFixedSGQFBranchManifest",
+    "TFFixedSGQFCloud",
+    "TFFixedSGQFNonlinearModel",
+    "TFFixedSGQFOneStepOracle",
+    "TFFixedSGQFDerivatives",
+    "TFFixedSGQFScoreResult",
+    "TFFixedSGQFStepFailure",
+    "TFFixedSGQFStepResult",
+    "TFFixedSGQFValueResult",
     "TFStructuralFirstDerivatives",
     "TFSmoothEighFactorFirstDerivatives",
     "TFSigmaPointDiagnostics",
     "TFSigmaPointRule",
     "TFSigmaPointValueBackend",
+    "tf_fixed_sgqf_active_multi_indices",
+    "tf_fixed_sgqf_branch_identity",
+    "tf_fixed_sgqf_cloud",
+    "tf_fixed_sgqf_combination_coefficient",
+    "tf_fixed_sgqf_filter",
+    "tf_fixed_sgqf_p47_one_step_oracle",
+    "tf_fixed_sgqf_same_branch_signature",
+    "tf_fixed_sgqf_score",
+    "tf_standard_normal_ghq_level_rule",
     "tf_svd_sigma_point_filter",
     "tf_svd_sigma_point_log_likelihood",
     "tf_svd_sigma_point_log_likelihood_with_rule",

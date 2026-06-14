@@ -1,0 +1,1049 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{hyperref}
+\usepackage{microtype}
+\usepackage{xcolor}
+
+\hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue}
+\allowdisplaybreaks
+
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{definition}{Definition}
+\numberwithin{equation}{section}
+
+\newcommand{\R}{\mathbb R}
+\newcommand{\E}{\mathbb E}
+\newcommand{\N}{\mathcal N}
+\newcommand{\dd}{\,\mathrm d}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\vecop}{\operatorname{vec}}
+\newcommand{\sgq}{\operatorname{SGQ}}
+\newcommand{\chol}{\operatorname{chol}}
+\newcommand{\ellhat}{\widehat\ell}
+\newcommand{\bfone}{\mathbf 1}
+
+\title{A Standalone Companion To Fixed Sparse-Grid Quadrature Filtering And Its Analytical Gradient}
+\author{Chak Wong}
+\date{2026-06-03}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note develops fixed sparse-grid quadrature filtering as a standalone
+high-dimensional filtering proposal.  The construction starts from the
+sparse-grid quadrature nonlinear filter of Jia, Xin, and Cheng
+\cite{jia2012sparsegrid}, expands the Gaussian projection and sparse-grid
+formulas in BayesFilter notation, and then defines a fixed approximate
+likelihood scalar with an analytical same-scalar gradient.  The scalar is a
+deterministic Gaussian-projection likelihood: it is a candidate fixed target
+for HMC experiments when branch diagnostics remain stable, but it is not the
+exact nonlinear filtering likelihood and it does not store the full posterior
+density.  The final section compares this proposal with the Zhao--Cui squared
+tensor-train proposal \cite{zhao2024ttsequential}: fixed SGQF is transparent
+and fixed-rule differentiable, while squared TT is a richer non-Gaussian
+density approximation.
+\end{abstract}
+
+\tableofcontents
+
+\section{What This Note Computes}
+\label{sec:p31-computes}
+
+The object computed here is deliberately narrow.  At time \(t\), before
+observing \(y_t\), the filter carries one Gaussian approximation
+\begin{equation}
+  X_{t-1}\mid y_{1:t-1}
+  \approx
+  \N(m_{t-1},P_{t-1}).
+  \label{eq:p31-carried-gaussian}
+\end{equation}
+It then uses a deterministic sparse-grid quadrature rule to approximate the
+Gaussian moments needed by a Kalman-style projection update.  The output after
+observing \(y_t\) is again only
+\begin{equation}
+  X_t\mid y_{1:t}
+  \approx
+  \N(m_t,P_t),
+  \label{eq:p31-output-gaussian}
+\end{equation}
+together with the approximate Gaussian innovation log likelihood
+\begin{equation}
+  \ellhat_t
+  =
+  -\frac12
+  \left\{
+  \log\det S_t+v_t^\top S_t^{-1}v_t+n_y\log(2\pi)
+  \right\}.
+  \label{eq:p31-innovation-loglik-opening}
+\end{equation}
+The fixed-SGQF proposal is to use the sum
+\begin{equation}
+  \ellhat_T^{\rm FSGQ}(\theta)=\sum_{t=1}^T \ellhat_t^{\rm FSGQ}(\theta)
+  \label{eq:p31-total-fixed-scalar-opening}
+\end{equation}
+as a deterministic approximate likelihood scalar and to differentiate that
+same scalar analytically.
+
+This note therefore computes an approximate likelihood and a Gaussian
+projection recursion.  It does not compute the full nonlinear posterior law.
+Sparse-grid exactness is exactness of a quadrature formula for selected
+Gaussian-weighted polynomial integrands.  It is not a guarantee that the
+posterior is Gaussian, unimodal, or accurately represented by \((m_t,P_t)\).
+
+\paragraph{A scalar cell that keeps us honest.}
+Let
+\begin{equation}
+  X\sim\N(0,P),\qquad Y=X^2+\varepsilon,\qquad
+  \varepsilon\sim\N(0,R).
+  \label{eq:p31-quadratic-cell}
+\end{equation}
+For \(y>0\) and small \(R\), the exact posterior density is proportional to
+\begin{equation}
+  \exp\!\left[-\frac{x^2}{2P}
+  -\frac{(y-x^2)^2}{2R}\right],
+  \label{eq:p31-quadratic-posterior}
+\end{equation}
+which can have two separated lobes near \(+\sqrt y\) and \(-\sqrt y\).  A
+Gaussian projection filter can compute accurate moments of \(X^2\), but after
+the update it still stores only one Gaussian.  This is not a bug in the
+quadrature rule.  It is the modeling choice in \eqref{eq:p31-output-gaussian}.
+
+The same limitation explains the role of fixed SGQF in the high-dimensional
+program.  It is a transparent fixed approximate likelihood target with a
+well-defined gradient.  It is not the non-Gaussian density approximation lane;
+that role belongs to squared tensor-train filtering.
+
+\section{State-Space Model And Exact Filtering Recursion}
+\label{sec:p31-ssm}
+
+Use the additive-noise state-space model
+\begin{align}
+  X_t &= f_\theta(X_{t-1})+\eta_t,
+  &
+  \eta_t&\sim\N(0,Q_\theta),
+  \label{eq:p31-state-model}\\
+  Y_t &= h_\theta(X_t)+\varepsilon_t,
+  &
+  \varepsilon_t&\sim\N(0,R_\theta),
+  \label{eq:p31-observation-model}
+\end{align}
+with \(X_t\in\R^{n_x}\), \(Y_t\in\R^{n_y}\), and parameter \(\theta\in\R^p\).
+The exact Bayesian prediction and update are
+\begin{align}
+  p_\theta(x_t\mid y_{1:t-1})
+  &=
+  \int p_\theta(x_t\mid x_{t-1})
+       p_\theta(x_{t-1}\mid y_{1:t-1})\dd x_{t-1},
+  \label{eq:p31-exact-prediction}\\
+  p_\theta(x_t\mid y_{1:t})
+  &=
+  \frac{
+  g_\theta(y_t\mid x_t)
+  p_\theta(x_t\mid y_{1:t-1})}
+  {\int g_\theta(y_t\mid x_t)
+  p_\theta(x_t\mid y_{1:t-1})\dd x_t}.
+  \label{eq:p31-exact-update}
+\end{align}
+These are the conceptual filtering equations used by Gaussian approximation
+filters in Jia, Xin, and Cheng \cite[Section 2]{jia2012sparsegrid}.  In
+nonlinear models, the integrals in \eqref{eq:p31-exact-prediction} and
+\eqref{eq:p31-exact-update} usually do not close in finite-dimensional form.
+Fixed SGQF replaces those exact densities by a Gaussian moment projection.
+
+\section{Gaussian Projection From Moments}
+\label{sec:p31-gaussian-projection}
+
+Assume the predictive state is represented by
+\begin{equation}
+  X_t^-\sim\N(m_t^-,P_t^-).
+  \label{eq:p31-predictive-gaussian}
+\end{equation}
+Let
+\begin{equation}
+  Z_t=h_\theta(X_t^-)
+  \label{eq:p31-predicted-observation}
+\end{equation}
+be the noiseless predicted observation.  The Gaussian projection needs
+\begin{align}
+  \bar z_t &= \E[Z_t],
+  \label{eq:p31-zbar}\\
+  S_t &= R_\theta+\E[(Z_t-\bar z_t)(Z_t-\bar z_t)^\top],
+  \label{eq:p31-S}\\
+  C_{xz,t}&=\E[(X_t^- -m_t^-)(Z_t-\bar z_t)^\top].
+  \label{eq:p31-Cxz}
+\end{align}
+Given these moments, define
+\begin{align}
+  v_t&=y_t-\bar z_t,
+  &
+  K_t&=C_{xz,t}S_t^{-1},
+  \label{eq:p31-v-K}\\
+  m_t&=m_t^-+K_tv_t,
+  &
+  P_t&=P_t^- - K_tS_tK_t^\top.
+  \label{eq:p31-projection-update}
+\end{align}
+
+\begin{proposition}[Affine projection]
+\label{prop:p31-affine-projection}
+Among estimators of \(X_t^-\) of the form \(a+B Y_t\), the minimum mean-square
+estimator under the moments in
+\eqref{eq:p31-zbar}--\eqref{eq:p31-Cxz} uses \(B=C_{xz,t}S_t^{-1}\).  Storing
+the resulting mean and covariance as a Gaussian gives
+\eqref{eq:p31-projection-update}.
+\end{proposition}
+
+\begin{proof}
+Center \(\widetilde X=X_t^- -m_t^-\) and
+\(\widetilde Y=Y_t-\bar z_t\).  The squared-error objective for
+\(m_t^-+B\widetilde Y\) is
+\begin{equation}
+  J(B)=\E\|\widetilde X-B\widetilde Y\|^2
+  =
+  \tr(P_t^-)-2\tr(BC_{xz,t}^\top)+\tr(BS_tB^\top).
+  \label{eq:p31-affine-objective}
+\end{equation}
+Differentiating gives \(\nabla_BJ=-2C_{xz,t}+2BS_t\).  If \(S_t\) is
+nonsingular, the stationary point is \(B=C_{xz,t}S_t^{-1}\).  Substitution gives
+the residual covariance \(P_t^- - C_{xz,t}S_t^{-1}C_{xz,t}^\top\), which equals
+\eqref{eq:p31-projection-update}.
+\end{proof}
+
+The approximation has two layers.  First, the moments
+\eqref{eq:p31-zbar}--\eqref{eq:p31-Cxz} may be approximated by quadrature.
+Second, the resulting posterior information is compressed to one Gaussian.
+
+\section{One-Dimensional Gaussian Quadrature And Tensor Products}
+\label{sec:p31-ghq}
+
+Let \(\xi\sim\N(0,1)\).  A one-dimensional standard-normal quadrature rule at
+level \(\ell\) is a set of nodes and weights
+\begin{equation}
+  I_\ell[\psi]
+  =
+  \sum_{a=1}^{s_\ell}\omega_{\ell,a}\psi(\zeta_{\ell,a})
+  \approx
+  \int_{\R}\psi(\xi)\phi(\xi)\dd \xi.
+  \label{eq:p31-univariate-rule}
+\end{equation}
+For a multi-index \(\mathbf i=(i_1,\ldots,i_b)\), the corresponding tensor rule
+is
+\begin{equation}
+  I_{\mathbf i}[F]
+  =
+  (I_{i_1}\otimes\cdots\otimes I_{i_b})[F].
+  \label{eq:p31-tensor-rule}
+\end{equation}
+Its nodes and weights are
+\begin{align}
+  \xi^{\mathbf i,\alpha}
+  &=
+  (\zeta_{i_1,\alpha_1},\ldots,\zeta_{i_b,\alpha_b}),
+  \label{eq:p31-tensor-node}\\
+  w^{\mathbf i,\alpha}
+  &=
+  \prod_{j=1}^b\omega_{i_j,\alpha_j},
+  \qquad
+  \alpha_j\in\{1,\ldots,s_{i_j}\}.
+  \label{eq:p31-tensor-weight}
+\end{align}
+A full tensor-product rule is simple but expensive: if every coordinate uses
+\(s\) nodes, then \(M=s^b\).  Jia, Xin, and Cheng introduce the sparse-grid
+combination to reduce this point count for fixed accuracy level
+\cite[Section 3]{jia2012sparsegrid}.
+
+\section{Sparse-Grid Rule Reconstructed}
+\label{sec:p31-sgq-reconstruction}
+
+For dimension \(b\) and level \(L\), define the level band
+\begin{equation}
+  \mathcal A_{b,L}
+  =
+  \{\mathbf i\in\mathbb N^b: L\le |\mathbf i|\le L+b-1\},
+  \qquad |\mathbf i|=\sum_{j=1}^b i_j.
+  \label{eq:p31-level-band}
+\end{equation}
+For each \(\mathbf i\in\mathcal A_{b,L}\), set
+\begin{equation}
+  c_{\mathbf i}
+  =
+  (-1)^{L+b-1-|\mathbf i|}
+  \binom{b-1}{L+b-1-|\mathbf i|}.
+  \label{eq:p31-smolyak-coeff}
+\end{equation}
+The sparse-grid quadrature approximation is
+\begin{equation}
+  A_{b,L}[F]
+  =
+  \sum_{\mathbf i\in\mathcal A_{b,L}}
+  c_{\mathbf i}I_{\mathbf i}[F].
+  \label{eq:p31-smolyak-rule}
+\end{equation}
+This is the BayesFilter notation for the Jia--Xin--Cheng sparse-grid formula
+\cite[Eq. 26--29]{jia2012sparsegrid}.  Their notation groups indices by
+\(|\mathbf i|=b+q\); the band \(q=L-b,\ldots,L-1\) is equivalent to
+\eqref{eq:p31-level-band}.
+
+\paragraph{From formula to cloud.}
+Equation \eqref{eq:p31-smolyak-rule} is not yet an implementation object.  The
+same node can appear in several tensor rules.  The fixed cloud is the
+accumulated dictionary
+\begin{equation}
+  D[\xi]
+  =
+  \sum_{\substack{\mathbf i,\alpha:
+  \xi^{\mathbf i,\alpha}=\xi}}
+  c_{\mathbf i}w^{\mathbf i,\alpha}.
+  \label{eq:p31-node-dictionary}
+\end{equation}
+After merging duplicate standardized nodes, enumerate the nonzero entries as
+\begin{equation}
+  \mathcal C_{b,L}
+  =
+  \{(\xi^{(r)},w_r)\}_{r=1}^{M_{b,L}}.
+  \label{eq:p31-fixed-cloud}
+\end{equation}
+Jia, Xin, and Cheng describe this point-and-weight generation in Algorithm 1
+\cite[Algorithm 1]{jia2012sparsegrid}.  For the fixed BayesFilter scalar, the
+cloud \(\mathcal C_{b,L}\), the one-dimensional rules, the merge tolerance, and
+the accumulated signed weights are part of the mathematical target.
+
+\paragraph{Source exactness and point count.}
+The source exactness statement is a quadrature statement: under the univariate
+conditions in \citet[Theorem 3.1]{jia2012sparsegrid}, the sparse-grid rule
+inherits a polynomial exactness level.  This does not imply exact nonlinear
+posterior filtering.  The point-count statements in
+\citet[Proposition 3.1--3.2]{jia2012sparsegrid} are fixed-level statements.
+They support the claim that sparse grids can grow polynomially in dimension
+for fixed level, not the claim that a given fixed level is accurate for every
+high-dimensional nonlinear posterior.
+
+\paragraph{UKF relation.}
+Jia, Xin, and Cheng prove that an unscented-transform point set is a member of
+the SGQF family at level 2 under their parameterization
+\cite[Theorem 3.2]{jia2012sparsegrid}.  In this note, the relation is used only
+as orientation: fixed SGQF generalizes the idea of deterministic Gaussian
+moment points, but the selected BayesFilter target is the declared fixed cloud
+\eqref{eq:p31-fixed-cloud}.
+
+\section{A Toy Fixed Grid With Duplicate Merging}
+\label{sec:p31-toy-grid}
+
+This section makes the sparse-grid cloud concrete.  Take \(b=2\) and \(L=2\).
+Use
+\begin{equation}
+  I_1:\quad (0,1),
+  \qquad
+  I_2:\quad
+  \left\{(-\sqrt3,1/6),(0,2/3),(\sqrt3,1/6)\right\},
+  \label{eq:p31-toy-univariate}
+\end{equation}
+which is the familiar three-point standard-normal rule at level 2.  The band
+\(\mathcal A_{2,2}\) contains
+\begin{equation}
+  (1,1),\qquad (1,2),\qquad (2,1),
+  \label{eq:p31-toy-indices}
+\end{equation}
+with coefficients
+\begin{equation}
+  c_{(1,1)}=-1,\qquad c_{(1,2)}=1,\qquad c_{(2,1)}=1.
+  \label{eq:p31-toy-coefficients}
+\end{equation}
+Before merging, the node \((0,0)\) appears three times.  Its accumulated weight
+is
+\begin{equation}
+  -1+\frac23+\frac23=\frac13.
+  \label{eq:p31-toy-origin-weight}
+\end{equation}
+The four axis nodes each receive weight \(1/6\).  The merged cloud is
+\begin{center}
+\begin{tabular}{ccc}
+\toprule
+node \(\xi\) & accumulated weight & source components \\
+\midrule
+\((0,0)\) & \(1/3\) & \((1,1),(1,2),(2,1)\) \\
+\((-\sqrt3,0)\) & \(1/6\) & \((2,1)\) \\
+\((\sqrt3,0)\) & \(1/6\) & \((2,1)\) \\
+\((0,-\sqrt3)\) & \(1/6\) & \((1,2)\) \\
+\((0,\sqrt3)\) & \(1/6\) & \((1,2)\) \\
+\bottomrule
+\end{tabular}
+\end{center}
+The weights sum to one:
+\begin{equation}
+  \frac13+4\cdot\frac16=1.
+  \label{eq:p31-toy-weight-total}
+\end{equation}
+This toy cloud illustrates two implementation rules that are easy to get
+wrong.  First, duplicate nodes must be accumulated before the cloud is used.
+Second, signed sparse-grid coefficients are applied before accumulation; a
+future level or a different univariate family can produce negative accumulated
+weights, so covariance matrices require explicit diagnostics.
+
+\section{FixedSGQF Filtering Value Path}
+\label{sec:p31-value-path}
+
+Fix a standardized sparse-grid cloud
+\begin{equation}
+  \mathcal C=\{(\xi^{(r)},w_r)\}_{r=1}^M,
+  \qquad
+  \xi^{(r)}\in\R^{n_x},
+  \quad
+  w_r\in\R.
+  \label{eq:p31-cloud-for-filter}
+\end{equation}
+The cloud is frozen before likelihood evaluation.  The value path has two
+quadrature stages at each time.
+
+\subsection{Prediction Stage}
+
+Let \(P_{t-1}=C_{t-1}C_{t-1}^\top\) on the declared square-root branch.  Place
+the previous Gaussian cloud:
+\begin{equation}
+  \chi_{t-1}^{(r)}
+  =
+  m_{t-1}+C_{t-1}\xi^{(r)}.
+  \label{eq:p31-pred-placed-points}
+\end{equation}
+Push points through the transition:
+\begin{equation}
+  a_t^{(r)}=f_\theta(\chi_{t-1}^{(r)}).
+  \label{eq:p31-transition-points}
+\end{equation}
+The predicted Gaussian is
+\begin{align}
+  m_t^-&=\sum_{r=1}^Mw_ra_t^{(r)},
+  \label{eq:p31-pred-mean}\\
+  P_t^-&=Q_\theta+\sum_{r=1}^Mw_r
+  (a_t^{(r)}-m_t^-)(a_t^{(r)}-m_t^-)^\top.
+  \label{eq:p31-pred-cov}
+\end{align}
+After \eqref{eq:p31-pred-cov}, the implementation replaces \(P_t^-\) by
+\((P_t^-+P_t^{-\top})/2\) and checks the declared positive-definite branch.
+For the differentiable lane in this note, there is no adaptive jitter, floor,
+clipping, pivot, or eigenvalue repair inside the scalar.  If the check fails,
+the value path returns a veto rather than quietly changing the scalar.
+
+\subsection{Observation Stage}
+
+Factor \(P_t^-=C_t^-(C_t^-)^\top\) on the declared branch and place the
+predictive cloud:
+\begin{equation}
+  \chi_t^{(r)}
+  =
+  m_t^-+C_t^-\xi^{(r)}.
+  \label{eq:p31-obs-placed-points}
+\end{equation}
+Evaluate the observation map:
+\begin{equation}
+  z_t^{(r)}=h_\theta(\chi_t^{(r)}).
+  \label{eq:p31-obs-values}
+\end{equation}
+Then compute
+\begin{align}
+  \bar z_t&=\sum_{r=1}^Mw_rz_t^{(r)},
+  \label{eq:p31-obs-mean}\\
+  \Delta_t^{(r)}&=z_t^{(r)}-\bar z_t,
+  \label{eq:p31-obs-centered}\\
+  S_t&=R_\theta+\sum_{r=1}^Mw_r
+  \Delta_t^{(r)}\Delta_t^{(r)\top},
+  \label{eq:p31-obs-cov}\\
+  C_{xz,t}&=\sum_{r=1}^Mw_r
+  (\chi_t^{(r)}-m_t^-)\Delta_t^{(r)\top}.
+  \label{eq:p31-cross-cov}
+\end{align}
+The innovation and log likelihood are
+\begin{align}
+  v_t&=y_t-\bar z_t,
+  \label{eq:p31-innovation}\\
+  \ellhat_t^{\rm FSGQ}
+  &=
+  -\frac12
+  \left\{\log\det S_t+v_t^\top S_t^{-1}v_t+n_y\log(2\pi)\right\}.
+  \label{eq:p31-fsgq-loglik}
+\end{align}
+If \(S_t\) is not positive definite on the declared branch, the value path
+returns a veto.  If it passes, the Gaussian projection update is
+\begin{align}
+  K_t&=C_{xz,t}S_t^{-1},
+  \label{eq:p31-kalman-gain}\\
+  m_t&=m_t^-+K_tv_t,
+  \label{eq:p31-filter-mean}\\
+  P_t&=P_t^- - K_tS_tK_t^\top.
+  \label{eq:p31-filter-cov}
+\end{align}
+
+\section{The Saved Scalar And Same-Scalar Contract}
+\label{sec:p31-same-scalar}
+
+The derivative in this note is meaningful only for the scalar actually
+evaluated.  A fixed-SGQF branch is the tuple
+\begin{equation}
+\begin{aligned}
+  \mathcal B
+  =
+  (&y_{1:T},\ \text{observation preprocessing},\
+  m_0(\theta),P_0(\theta),\dot m_0,\dot P_0,\\
+  &\mathcal C,\ \text{one-dimensional rules},\
+  \text{duplicate-merge tolerance},\
+  C(\cdot),\\
+  &\text{symmetrize-then-veto rule},\
+  f_\theta,h_\theta,Q_\theta,R_\theta).
+\end{aligned}
+  \label{eq:p31-branch-tuple}
+\end{equation}
+The fixed scalar is
+\begin{equation}
+  \ellhat_T^{\rm FSGQ}(\theta;\mathcal B)
+  =
+  \sum_{t=1}^T \ellhat_t^{\rm FSGQ}(\theta;\mathcal B),
+  \label{eq:p31-fixed-scalar}
+\end{equation}
+where every term is computed by
+\eqref{eq:p31-pred-placed-points}--\eqref{eq:p31-filter-cov}.  The same
+\(\mathcal B\) must be used for values, gradients, and finite differences.
+Changing the grid level, active index set, duplicate-merge tolerance,
+Cholesky pivot, observation preprocessing, initial-condition policy, eigenvalue
+floor, covariance clipping, or point pruning changes the scalar.  The
+derivative formulas below cover the open branch where the symmetrized
+covariances pass the Cholesky and positive-definite checks without repair.  If
+a jitter, floor, clipping, or pivoting map is desired, it must be declared as a
+different scalar with its own derivative or stop rule.
+
+\section{Analytical Gradient Of The Fixed Scalar}
+\label{sec:p31-gradient}
+
+Differentiate with respect to parameter component \(\theta_i\).  A dot denotes
+\(\partial_i\), for example \(\dot m_t=\partial_i m_t\).  The data \(y_t\) are
+recorded and do not depend on \(\theta\).
+
+\subsection{Square-Root Branch}
+
+For the default unpivoted Cholesky branch, \(P=LL^\top\) with positive diagonal
+and \(C(P)=L\).  Given symmetric \(\dot P\), set
+\begin{equation}
+  A=L^{-1}\dot P L^{-\top}.
+  \label{eq:p31-chol-A}
+\end{equation}
+Define the lower-triangular operator
+\begin{equation}
+  \Phi(A)_{jk}
+  =
+  \begin{cases}
+  A_{jk}, & j>k,\\
+  A_{jj}/2, & j=k,\\
+  0, & j<k.
+  \end{cases}
+  \label{eq:p31-chol-Phi}
+\end{equation}
+Then
+\begin{equation}
+  \dot L=L\Phi(A).
+  \label{eq:p31-chol-derivative}
+\end{equation}
+Indeed, \(\Phi(A)+\Phi(A)^\top=A\), so
+\begin{equation}
+  \dot LL^\top+L\dot L^\top
+  =
+  L\{\Phi(A)+\Phi(A)^\top\}L^\top
+  =
+  \dot P.
+  \label{eq:p31-chol-check}
+\end{equation}
+If a different square-root map is used, the implementation must provide
+\(\dot C=DC(P)[\dot P]\) for the same branch.
+
+\subsection{Prediction Sensitivities}
+
+From \eqref{eq:p31-pred-placed-points},
+\begin{equation}
+  \dot\chi_{t-1}^{(r)}
+  =
+  \dot m_{t-1}+\dot C_{t-1}\xi^{(r)}.
+  \label{eq:p31-dot-pred-place}
+\end{equation}
+From \eqref{eq:p31-transition-points},
+\begin{equation}
+  \dot a_t^{(r)}
+  =
+  D_xf_\theta(\chi_{t-1}^{(r)})\dot\chi_{t-1}^{(r)}
+  +\partial_i f_\theta(\chi_{t-1}^{(r)}).
+  \label{eq:p31-dot-transition}
+\end{equation}
+The predicted mean derivative is
+\begin{equation}
+  \dot m_t^-=\sum_{r=1}^M w_r\dot a_t^{(r)}.
+  \label{eq:p31-dot-pred-mean}
+\end{equation}
+Let
+\begin{equation}
+  d_t^{(r)}=a_t^{(r)}-m_t^-,
+  \qquad
+  \dot d_t^{(r)}=\dot a_t^{(r)}-\dot m_t^-.
+  \label{eq:p31-pred-centered}
+\end{equation}
+Then
+\begin{equation}
+  \dot P_t^-
+  =
+  \dot Q_\theta
+  +
+  \sum_{r=1}^M w_r
+  \left\{
+  \dot d_t^{(r)}d_t^{(r)\top}
+  +d_t^{(r)}\dot d_t^{(r)\top}
+  \right\}.
+  \label{eq:p31-dot-pred-cov}
+\end{equation}
+
+\subsection{Observation Sensitivities}
+
+Differentiate \eqref{eq:p31-obs-placed-points}:
+\begin{equation}
+  \dot\chi_t^{(r)}
+  =
+  \dot m_t^-+\dot C_t^-\xi^{(r)}.
+  \label{eq:p31-dot-obs-place}
+\end{equation}
+Then
+\begin{equation}
+  \dot z_t^{(r)}
+  =
+  D_xh_\theta(\chi_t^{(r)})\dot\chi_t^{(r)}
+  +\partial_i h_\theta(\chi_t^{(r)}).
+  \label{eq:p31-dot-obs-value}
+\end{equation}
+The observation mean, residual, and centered residual derivatives are
+\begin{align}
+  \dot{\bar z}_t&=\sum_{r=1}^M w_r\dot z_t^{(r)},
+  \label{eq:p31-dot-zbar}\\
+  \dot v_t&=-\dot{\bar z}_t,
+  \label{eq:p31-dot-v}\\
+  \dot\Delta_t^{(r)}&=\dot z_t^{(r)}-\dot{\bar z}_t.
+  \label{eq:p31-dot-Delta}
+\end{align}
+Differentiate \(S_t\) and \(C_{xz,t}\):
+\begin{align}
+  \dot S_t
+  &=
+  \dot R_\theta
+  +
+  \sum_{r=1}^M w_r
+  \left\{
+  \dot\Delta_t^{(r)}\Delta_t^{(r)\top}
+  +\Delta_t^{(r)}\dot\Delta_t^{(r)\top}
+  \right\},
+  \label{eq:p31-dot-S}\\
+  \dot C_{xz,t}
+  &=
+  \sum_{r=1}^M w_r
+  \left\{
+  (\dot\chi_t^{(r)}-\dot m_t^-)\Delta_t^{(r)\top}
+  +(\chi_t^{(r)}-m_t^-)\dot\Delta_t^{(r)\top}
+  \right\}.
+  \label{eq:p31-dot-Cxz}
+\end{align}
+
+\subsection{Innovation Score}
+
+\begin{proposition}[Fixed Gaussian innovation score]
+\label{prop:p31-innovation-score}
+Assume \(S_t\) is positive definite and the active branch is differentiable.
+Let \(u_t\) solve
+\begin{equation}
+  S_tu_t=v_t.
+  \label{eq:p31-score-solve}
+\end{equation}
+Then the derivative of \eqref{eq:p31-fsgq-loglik} is
+\begin{equation}
+  \dot\ellhat_t^{\rm FSGQ}
+  =
+  -\frac12
+  \left[
+  \tr(S_t^{-1}\dot S_t)
+  +2\dot v_t^\top u_t
+  -u_t^\top\dot S_tu_t
+  \right].
+  \label{eq:p31-score}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+Use
+\begin{equation}
+  \dd\log\det S=\tr(S^{-1}\dd S)
+  \label{eq:p31-d-logdet}
+\end{equation}
+and
+\begin{equation}
+  \dd S^{-1}=-S^{-1}(\dd S)S^{-1}.
+  \label{eq:p31-d-inverse}
+\end{equation}
+Therefore, with \(u=S^{-1}v\),
+\begin{equation}
+  \dd(v^\top S^{-1}v)
+  =
+  2(\dd v)^\top u-u^\top(\dd S)u.
+  \label{eq:p31-d-quadratic}
+\end{equation}
+Substitute \(\dd S=\dot S_t\) and \(\dd v=\dot v_t\) into
+\eqref{eq:p31-innovation-loglik-opening}.
+\end{proof}
+
+\subsection{Posterior Sensitivity Propagation}
+
+The gradient must also propagate \(\dot m_t\) and \(\dot P_t\) into the next
+time step.  Differentiate \(K_t=C_{xz,t}S_t^{-1}\):
+\begin{equation}
+  \dot K_t
+  =
+  \dot C_{xz,t}S_t^{-1}
+  -K_t\dot S_tS_t^{-1}.
+  \label{eq:p31-dot-K}
+\end{equation}
+Then
+\begin{align}
+  \dot m_t
+  &=
+  \dot m_t^-+\dot K_tv_t+K_t\dot v_t,
+  \label{eq:p31-dot-m}\\
+  \dot P_t
+  &=
+  \dot P_t^-
+  -\dot K_tS_tK_t^\top
+  -K_t\dot S_tK_t^\top
+  -K_tS_t\dot K_t^\top.
+  \label{eq:p31-dot-P}
+\end{align}
+Equations \eqref{eq:p31-dot-pred-place}--\eqref{eq:p31-dot-P} define the
+value-and-gradient recursion for the fixed scalar
+\eqref{eq:p31-fixed-scalar}.
+
+\section{One Boxed Mathematical Algorithm}
+\label{sec:p31-boxed-algorithm}
+
+\fbox{\begin{minipage}{0.94\linewidth}
+\textbf{FixedSGQF value and gradient for one saved branch.}
+
+\begin{enumerate}[leftmargin=0.22in]
+\item Choose dimension \(b=n_x\), level \(L\), one-dimensional rules
+\(I_\ell\), and merge tolerance.  Build and save the cloud
+\(\mathcal C=\{(\xi^{(r)},w_r)\}_{r=1}^M\) by
+\eqref{eq:p31-level-band}--\eqref{eq:p31-fixed-cloud}.
+\item Save \(y_{1:T}\), observation preprocessing, \(m_0(\theta),P_0(\theta)\),
+their sensitivity policy, the factor map \(C(P)\), the symmetrize-then-veto
+rule, and model derivative routines.
+\item Initialize \(m_0,P_0\) and \(\dot m_0,\dot P_0\) for each parameter
+component.
+\item For \(t=1,\ldots,T\), run the prediction value equations
+\eqref{eq:p31-pred-placed-points}--\eqref{eq:p31-pred-cov} and prediction
+sensitivity equations \eqref{eq:p31-dot-pred-place}--\eqref{eq:p31-dot-pred-cov}.
+\item If \(P_t^-\) violates the saved branch or veto policy, stop and report
+the branch failure.
+\item Run the observation value equations
+\eqref{eq:p31-obs-placed-points}--\eqref{eq:p31-fsgq-loglik} and observation
+sensitivity equations \eqref{eq:p31-dot-obs-place}--\eqref{eq:p31-dot-S}.
+\item If \(S_t\) violates the saved positive-definite branch, stop and report
+the branch failure.
+\item Add the score \eqref{eq:p31-score} to the running gradient and add
+\(\ellhat_t^{\rm FSGQ}\) to the running scalar.
+\item Update \(m_t,P_t,\dot m_t,\dot P_t\) using
+\eqref{eq:p31-kalman-gain}--\eqref{eq:p31-filter-cov} and
+\eqref{eq:p31-dot-K}--\eqref{eq:p31-dot-P}.
+\end{enumerate}
+\end{minipage}}
+
+\section{Implementation Contract}
+\label{sec:p31-implementation-contract}
+
+\begin{center}
+\small
+\begin{tabular}{p{0.18\linewidth}p{0.30\linewidth}p{0.16\linewidth}p{0.24\linewidth}}
+\toprule
+object & definition & shape & reuse \\
+\midrule
+\(\xi^{(r)}\) & standardized sparse-grid node & \(n_x\) & value and gradient \\
+\(w_r\) & accumulated signed weight after duplicate merge & scalar & value and gradient \\
+\(C_{t-1},C_t^-\) & saved covariance factors on declared branch & \(n_x\times n_x\) & value, gradient, diagnostics \\
+\(\chi_{t-1}^{(r)}\) & previous placed point & \(n_x\) & transition value and derivative \\
+\(a_t^{(r)}\) & transition image & \(n_x\) & prediction moments \\
+\(\chi_t^{(r)}\) & predictive placed point & \(n_x\) & observation value and derivative \\
+\(z_t^{(r)}\) & observation image & \(n_y\) & observation moments \\
+\(\bar z_t,S_t,C_{xz,t}\) & Gaussian projection moments & \(n_y\), \(n_y\times n_y\), \(n_x\times n_y\) & likelihood and update \\
+\(v_t,K_t\) & innovation and gain & \(n_y\), \(n_x\times n_y\) & likelihood, update, gradient \\
+\(\dot \chi,\dot a,\dot z\) & point sensitivities & matching value objects & gradient only \\
+\(\dot m,\dot P,\dot S,\dot C_{xz}\) & moment and filter sensitivities & matching value objects & gradient and next step \\
+data record & \(y_{1:T}\), preprocessing, missing-data policy if any & metadata & value, gradient, finite difference \\
+initial law & \(m_0(\theta),P_0(\theta),\dot m_0,\dot P_0\) & \(n_x,n_x\times n_x\) & value and gradient start \\
+branch record & cloud, merge tolerance, factor branch, symmetrize-then-veto rule & metadata & same-scalar finite difference \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Finite-Difference Same-Scalar Check}
+\label{sec:p31-fd}
+
+The finite-difference check must call the same value routine with the same
+saved branch \(\mathcal B\).  For parameter component \(i\), use
+\begin{equation}
+  D_i(h)
+  =
+  \frac{
+  \ellhat_T^{\rm FSGQ}(\theta+he_i;\mathcal B)
+  -
+  \ellhat_T^{\rm FSGQ}(\theta-he_i;\mathcal B)}
+  {2h}.
+  \label{eq:p31-central-diff}
+\end{equation}
+Use the step ladder
+\begin{equation}
+  h\in\{10^{-1},10^{-2},10^{-3},10^{-4},10^{-5}\}\,
+  \max\{1,|\theta_i|\}.
+  \label{eq:p31-fd-ladder}
+\end{equation}
+For every \(h\), the \(+\!h\) and \(-\!h\) evaluations must reuse the same
+cloud, preprocessing, initial-condition policy, factor branch, merge tolerance,
+and symmetrize-then-veto rule.  If either side hits a different branch or
+returns a veto, that row is marked branch-invalid and is not interpreted as a
+derivative check.  For valid rows, compare \(D_i(h)\) against the analytical
+score \(G_i\) by
+\begin{equation}
+  e_i(h)=
+  \frac{|D_i(h)-G_i|}
+  {\max\{1,|D_i(h)|,|G_i|\}}.
+  \label{eq:p31-fd-relative-error}
+\end{equation}
+The diagnostic passes when at least two consecutive valid rows have
+\(e_i(h)\le 10^{-5}\) and the smaller-step row is no worse than ten times the
+larger-step row.  This is a numerical diagnostic, not a theorem: failure means
+one of three things is likely.  The derivative formula is wrong, the value and
+gradient paths are not using the same scalar, or the branch is too nonsmooth or
+ill-conditioned at that point.
+
+\paragraph{A scalar numerical trace.}
+Let \(X\sim\N(0,1)\), \(h_\theta(x)=\theta x\), \(R=1\), and \(y=2\).  Any
+fixed Gaussian rule with exact second moment gives
+\begin{equation}
+  \bar z=0,\qquad S(\theta)=1+\theta^2,\qquad
+  \ellhat(\theta)
+  =
+  -\frac12\left\{\log(1+\theta^2)+\frac{4}{1+\theta^2}+\log(2\pi)\right\}.
+  \label{eq:p31-fd-toy-likelihood}
+\end{equation}
+At \(\theta=1\),
+\begin{equation}
+  G
+  =
+  -\frac12
+  \left\{
+  \frac{2}{2}
+  -
+  \frac{4\cdot2}{2^2}
+  \right\}
+  =
+  0.5.
+  \label{eq:p31-fd-toy-gradient}
+\end{equation}
+Central differences give:
+\begin{center}
+\begin{tabular}{rrrr}
+\toprule
+\(h\) & \(D(h)\) & \(G\) & \(|D(h)-G|\) \\
+\midrule
+\(10^{-1}\) & 0.5008108250 & 0.5 & \(8.10825\times10^{-4}\) \\
+\(10^{-2}\) & 0.5000083311 & 0.5 & \(8.33108\times10^{-6}\) \\
+\(10^{-3}\) & 0.5000000833 & 0.5 & \(8.33331\times10^{-8}\) \\
+\(10^{-4}\) & 0.5000000008 & 0.5 & \(8.33722\times10^{-10}\) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{A cloud-sensitive nonlinear trace.}
+The previous trace tests the innovation-score algebra.  To exercise the fixed
+cloud, use the two-dimensional level-2 cloud in Section~\ref{sec:p31-toy-grid}
+and the nonlinear observation
+\begin{equation}
+  h_\theta(x_1,x_2)=\theta(x_1^2+x_2^2),
+  \qquad
+  X\sim\N(0,I_2),\qquad R=1,\qquad y=3.
+  \label{eq:p31-cloud-sensitive-model}
+\end{equation}
+For the merged cloud in Section~\ref{sec:p31-toy-grid},
+\begin{equation}
+  \sum_r w_r(x_{1,r}^2+x_{2,r}^2)=2,
+  \qquad
+  \sum_r w_r(x_{1,r}^2+x_{2,r}^2)^2=6.
+  \label{eq:p31-cloud-sensitive-moments}
+\end{equation}
+Therefore
+\begin{equation}
+  \bar z(\theta)=2\theta,\qquad
+  S(\theta)=1+2\theta^2,\qquad
+  v(\theta)=3-2\theta,
+  \label{eq:p31-cloud-sensitive-likelihood-objects}
+\end{equation}
+if the parameter scales the whole nonlinear observation linearly.  To exercise
+the parameter through placed nonlinear values more sharply, set instead
+\begin{equation}
+  h_\theta(x_1,x_2)=\theta^2(x_1^2+x_2^2),
+  \label{eq:p31-cloud-sensitive-square-param}
+\end{equation}
+which gives
+\begin{equation}
+  \bar z(\theta)=2\theta^2,\qquad
+  S(\theta)=1+2\theta^4,\qquad
+  v(\theta)=3-2\theta^2.
+  \label{eq:p31-cloud-sensitive-square-objects}
+\end{equation}
+At \(\theta=1\), the score from \eqref{eq:p31-score} is
+\begin{equation}
+  G
+  =
+  -\frac12
+  \left[
+    \frac{8}{3}
+    +2(-4)\frac{1}{3}
+    -\frac{1}{3^2}8
+  \right]
+  =
+  \frac49.
+  \label{eq:p31-cloud-sensitive-score}
+\end{equation}
+Central differences for the saved cloud scalar give:
+\begin{center}
+\begin{tabular}{rrrr}
+\toprule
+\(h\) & \(D(h)\) & \(G\) & \(|D(h)-G|\) \\
+\midrule
+\(10^{-1}\) & 0.5200303321 & 0.4444444444 & \(7.55859\times10^{-2}\) \\
+\(10^{-2}\) & 0.4452146703 & 0.4444444444 & \(7.70226\times10^{-4}\) \\
+\(10^{-3}\) & 0.4444521481 & 0.4444444444 & \(7.70369\times10^{-6}\) \\
+\(10^{-4}\) & 0.4444445215 & 0.4444444444 & \(7.70368\times10^{-8}\) \\
+\bottomrule
+\end{tabular}
+\end{center}
+This example depends on the merged sparse-grid fourth moment in
+\eqref{eq:p31-cloud-sensitive-moments}.  A duplicate-merge bug or a different
+saved cloud changes \(S(\theta)\), \(G\), and the finite-difference table.
+
+\section{Diagnostics, Accuracy, Memory, And Performance Tests}
+\label{sec:p31-validation}
+
+Fixed SGQF should be tested as an approximate deterministic likelihood, not as
+an exact posterior method.  The minimum validation suite is:
+
+\begin{enumerate}[leftmargin=0.24in]
+\item \textbf{Construction checks.}  Verify duplicate-node accumulation,
+weight totals, signed-weight counts, and deterministic cloud reproduction for
+small \((b,L)\) cases such as Section~\ref{sec:p31-toy-grid}.
+\item \textbf{Linear-Gaussian recovery.}  For affine \(f_\theta,h_\theta\),
+the Gaussian projection recursion should match the Kalman filter up to
+quadrature and floating-point tolerance.
+\item \textbf{Quadratic scalar cell.}  Use \eqref{eq:p31-quadratic-cell} to
+show both the moment accuracy and the posterior-shape limitation.
+\item \textbf{Same-scalar finite differences.}  Run
+\eqref{eq:p31-central-diff} for representative parameters and step sizes.
+\item \textbf{Signed-weight stability.}  Record the minimum eigenvalues of
+symmetrized \(P_t^-\), \(S_t\), and \(P_t\), plus any branch veto.
+\item \textbf{Memory and runtime scaling.}  Record \(M_{b,L}\), model
+evaluations, wall time, and peak memory as \(b,L,T\) change.
+\item \textbf{Accuracy ladder.}  Compare fixed SGQF against tensor-product GHQ
+in small dimension, Kalman truth in linear-Gaussian models, and particle or TT
+diagnostics in nonlinear models where those references are available.
+\end{enumerate}
+
+Passing these checks supports the statement that the implementation evaluates
+and differentiates the declared approximate scalar.  It does not prove exact
+posterior accuracy.
+
+\section{Adaptive Sparse Grids As Grid Design}
+\label{sec:p31-adaptive}
+
+Singh et al. \cite{singh2018adaptive} choose sparse-grid indices adaptively by
+using admissible index sets, local error indicators, active and old index
+sets, a global error estimate, and a tolerance.  That is useful for designing a
+cloud before inference.  For HMC, however, the live target cannot silently
+change its grid as \(\theta\) moves.  The safe interpretation is
+\begin{equation}
+  \text{adaptive pilot chooses a cloud}
+  \quad\Longrightarrow\quad
+  \text{freeze the cloud}
+  \quad\Longrightarrow\quad
+  \text{run FixedSGQF}.
+  \label{eq:p31-adaptive-to-fixed}
+\end{equation}
+If the adaptive index set is rerun inside the likelihood, the value path is a
+piecewise-defined algorithm with discrete changes.  The formulas in
+Section~\ref{sec:p31-gradient} do not differentiate those changes.
+
+\section{Relation To Zhao--Cui Squared TT}
+\label{sec:p31-comparison}
+
+Fixed SGQF and Zhao--Cui squared TT solve different parts of the high-dimensional
+filtering problem.
+
+\begin{center}
+\small
+\begin{tabular}{p{0.22\linewidth}p{0.34\linewidth}p{0.34\linewidth}}
+\toprule
+question & Fixed SGQF & Zhao--Cui squared TT \\
+\midrule
+stored object & one Gaussian mean/covariance and an approximate innovation scalar & nonnegative TT approximation of filtering/posterior densities \\
+main strength & deterministic fixed cloud, transparent scalar, analytical same-scalar gradient & richer non-Gaussian density representation and conditional maps \\
+main limitation & Gaussian projection cannot store multimodality or skewed posterior shape & adaptive TT-cross/rank changes are not globally smooth; implementation is heavier \\
+gradient lane & differentiates fixed Gaussian-projection likelihood & fixed-branch derivative differentiates a declared TT approximate scalar \\
+best use & fast approximate likelihood, baseline, local diagnostic, candidate fixed target when branch diagnostics stay stable & high-dimensional non-Gaussian filtering and smoothing proposal \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The proposal is therefore not to replace Zhao--Cui with fixed SGQF.  The
+proposal is to carry two honest candidates: a transparent fixed-rule Gaussian
+projection likelihood with a same-scalar gradient, and a richer squared-TT
+density approximation for the cases where Gaussian projection is too weak.
+
+\section{Where Each Construction Comes From}
+\label{sec:p31-source-map}
+
+\begin{center}
+\small
+\begin{tabular}{p{0.34\linewidth}p{0.28\linewidth}p{0.28\linewidth}}
+\toprule
+construction & support & use in this note \\
+\midrule
+state-space and conceptual filtering equations & \citet[Section 2]{jia2012sparsegrid} & Sections~\ref{sec:p31-ssm}--\ref{sec:p31-gaussian-projection} \\
+Gaussian approximation filter moment structure & \citet[Eq. 15--23]{jia2012sparsegrid} plus Proposition~\ref{prop:p31-affine-projection} & moment projection and update equations \\
+one-dimensional and tensor-product Gaussian quadrature & \citet[Section 2.2.1]{jia2012sparsegrid} & Section~\ref{sec:p31-ghq} \\
+sparse-grid formula and index band & \citet[Eq. 26--29]{jia2012sparsegrid} & Section~\ref{sec:p31-sgq-reconstruction} \\
+point/weight generation and duplicate accumulation & \citet[Algorithm 1]{jia2012sparsegrid} & fixed cloud \(\mathcal C\) and toy grid \\
+quadrature exactness and UKF relation & \citet[Theorems 3.1--3.2]{jia2012sparsegrid} & source-scope orientation, not posterior guarantee \\
+adaptive sparse-grid mechanics & \citet[Section 3]{singh2018adaptive} & offline grid-design interpretation \\
+fixed scalar and analytical gradient & BayesFilter project derivation & Sections~\ref{sec:p31-same-scalar}--\ref{sec:p31-gradient} \\
+comparison with squared TT & Zhao--Cui companion note and \citet{zhao2024ttsequential} & Section~\ref{sec:p31-comparison} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Conclusion}
+\label{sec:p31-conclusion}
+
+FixedSGQF is now a well-defined standalone proposal: choose and save a
+sparse-grid cloud, evaluate the Gaussian projection likelihood, differentiate
+that same saved scalar, and reject branch changes that would make the value and
+gradient disagree.  Its intellectual virtue is clarity.  Its mathematical
+limitation is also clear: it is still a Gaussian projection filter.  That
+honesty is what makes it a useful companion to the Zhao--Cui squared-TT lane
+rather than a weaker substitute for it.
+
+\bibliographystyle{plainnat}
+\bibliography{../references}
+
+\end{document}

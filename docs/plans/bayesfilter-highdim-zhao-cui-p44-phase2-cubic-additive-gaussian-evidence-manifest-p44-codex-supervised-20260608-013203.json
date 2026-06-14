@@ -1,0 +1,89 @@
+{
+  "schema_version": "p44.phase_evidence.v1",
+  "run_id": "p44-codex-supervised-20260608-013203",
+  "phase": "P44-M2",
+  "pass_token": "PASS_P44_M2_CODE_GOVERNANCE",
+  "status": "PASS_P44_M2_CODE_GOVERNANCE",
+  "artifact_paths": {
+    "result_note": "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase2-cubic-additive-gaussian-result-2026-06-07.md",
+    "claude_review_ledger": "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase2-cubic-additive-gaussian-claude-review-ledger-2026-06-07.md",
+    "evidence_manifest": "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase2-cubic-additive-gaussian-evidence-manifest-p44-codex-supervised-20260608-013203.json",
+    "test_file": "tests/highdim/test_p44_cubic_additive_gaussian.py",
+    "repair_amendment": "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase2-cubic-additive-gaussian-repair-amendment-2026-06-08.md"
+  },
+  "evidence_chain": {
+    "PHASE_PLAN_CONFIRMED": true,
+    "SKEPTICAL_AUDIT_RECORDED": true,
+    "CLAUDE_PLAN_OR_REPAIR_REVIEW_PASS": true,
+    "IMPLEMENTED": true,
+    "LOCAL_EVIDENCE_RUN": true,
+    "EVIDENCE_AUDIT_RECORDED": true,
+    "RESULT_NOTE_WRITTEN": true,
+    "CLAUDE_CODE_GOVERNANCE_PASS": true,
+    "TRACEABILITY_UPDATED_OR_NONCLAIM_RECORDED": true,
+    "PHASE_PASS": true
+  },
+  "evidence_contract": {
+    "question": "For the cubic additive-Gaussian observation model x_t = rho x_{t-1} + eta_t, y_t = x_t + a x_t^3 + epsilon_t, do CUT4 and the Zhao--Cui/fixed-design scalar TT lane produce bounded value and diagnostic score errors against a refined dense quadrature reference in dimensions 1, 2, and 3?",
+    "baseline_or_comparator": "Dense scalar quadrature order 241 summed across independent product-panel coordinates is the governing baseline after order-161 refinement; exact Kalman is used only for the nested a=0 value and shared-score sanity check.",
+    "primary_promotion_criterion": "Dims 1, 2, and 3 pass dense refinement, nested a=0 Kalman value and shared-score checks, finite CUT4/Zhao--Cui values and scores, explicit CUT4 approximation-gap bounds, tighter Zhao--Cui bounds, and at least five deterministic directional score residuals per dimension.",
+    "veto_diagnostics": [
+      "dense reference has no refinement check",
+      "cubic transform or observation-noise target mismatch",
+      "nested linear check treats the cubic-coordinate derivative as Kalman-shared",
+      "CUT4 target metadata does not record same-target approximation status",
+      "active innovation floors or nonfinite value/score",
+      "tolerance or target change without reviewed repair amendment"
+    ],
+    "explanatory_only_diagnostics": [
+      "TensorFlow warning logs",
+      "wall time",
+      "CUT4 point count",
+      "CUT4 polynomial degree",
+      "fixed-design TT fit details",
+      "approximation-gap magnitudes after passing the stated gate"
+    ],
+    "artifact_preserving_result": "docs/plans/bayesfilter-highdim-zhao-cui-p44-phase2-cubic-additive-gaussian-result-2026-06-07.md plus docs/plans/bayesfilter-highdim-zhao-cui-p44-phase2-cubic-additive-gaussian-evidence-manifest-p44-codex-supervised-20260608-013203.json and docs/plans/logs/p44-codex-supervised-20260608-013203-P44-M2-command0.log",
+    "nonclaims": [
+      "no exact CUT4 nonlinear likelihood claim",
+      "no production analytic score API",
+      "no HMC readiness",
+      "no long-horizon stability",
+      "no paper-scale Zhao--Cui reproduction",
+      "no adaptive MATLAB TT-cross/SIRT reproduction"
+    ]
+  },
+  "commands": [
+    {
+      "purpose": "Run focused P44-M2 cubic additive-Gaussian value and score evidence for dense reference, CUT4, and Zhao--Cui/fixed-design scalar TT lane.",
+      "command": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp pytest -q -s tests/highdim/test_p44_cubic_additive_gaussian.py",
+      "exit_code": 0,
+      "log_path": "docs/plans/logs/p44-codex-supervised-20260608-013203-P44-M2-command0.log"
+    },
+    {
+      "purpose": "Compile highdim package and the focused M2 test file.",
+      "command": "python -m compileall -q bayesfilter/highdim tests/highdim/test_p44_cubic_additive_gaussian.py",
+      "exit_code": 0,
+      "log_path": "docs/plans/logs/p44-codex-supervised-20260608-013203-P44-M2-command1.log"
+    }
+  ],
+  "diagnostics": {
+    "veto_status": "PASS",
+    "summary": "Dense order-161 versus order-241 refinement passed at approximately 1e-14 scale. CUT4 remains a bounded same-target approximation with dim-3 value gap 1.541071e-02 and relative score error 2.326626e-02. Zhao--Cui/fixed-design scalar TT remained tighter with dim-3 value gap 3.496295e-04 and relative score error 9.991846e-04."
+  },
+  "review_loops": {
+    "claude_code_governance": {
+      "iterations": 3,
+      "verdict": "PASS_P44_M2_CODE_GOVERNANCE"
+    },
+    "repair": {
+      "iterations": 3,
+      "verdict": "PASS_P44_M2_REPAIR_REVIEW"
+    }
+  },
+  "long_run_controls": {
+    "long_run_used": false,
+    "resource_caps": "No long run; focused local pytest and compile check only.",
+    "pre_mortem": "N/A"
+  }
+}

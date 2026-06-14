@@ -1,0 +1,52 @@
+{
+  "schema_version": "p53.lower_rung_dense_tieout.v1",
+  "phase": "P53-M3",
+  "status": "PASS_P53_M3_LOWER_RUNG_DENSE_TIEOUT",
+  "route_class": "lower_rung_dense_equivalent",
+  "claim_class": "interface_tieout_only_not_scaling",
+  "phase_evidence_class": "lower_rung_dense_tieout_not_scaling",
+  "baseline": {
+    "dense_reference": "bayesfilter.highdim.filtering._multistate_pairwise_transition_between_grids_log_density",
+    "candidate": "bayesfilter.highdim.transition_route.lower_rung_streaming_predictive_log_density",
+    "model_family": "SpatialSIRSSM",
+    "compartments": [
+      1,
+      2,
+      3
+    ],
+    "state_dimensions": [
+      2,
+      4,
+      6
+    ]
+  },
+  "tolerances": {
+    "predictive_log_density_atol": 1e-10,
+    "one_step_log_increment_atol": 1e-10,
+    "current_gradient_atol": 1e-08
+  },
+  "checks": [
+    "predictive log density against dense retained-grid transition",
+    "one-step likelihood increment downstream assembly check after dense retained-grid predictive tie-out",
+    "current-point TensorFlow gradient against dense retained-grid transition",
+    "route metadata remains lower_rung_dense_equivalent",
+    "no scaling-route token emitted"
+  ],
+  "tokens_emitted": [
+    "PASS_P53_M3_LOWER_RUNG_DENSE_TIEOUT"
+  ],
+  "forbidden_tokens": [
+    "PASS_P53_M4D_SCALING_ROUTE_ADMISSION",
+    "PASS_P53_M5_RANK_SELECTION_INTEGRATION",
+    "PASS_P53_M6_SPATIAL_SIR_D18",
+    "PASS_P53_M7_SPATIAL_SIR_D50_D100"
+  ],
+  "nonclaims": [
+    "no scaling-route readiness",
+    "no d=18 spatial SIR readiness",
+    "no d=50 or d=100 spatial SIR readiness",
+    "no filtering correctness beyond the declared lower-rung transition/predictive tie-out",
+    "no HMC readiness",
+    "no GPU readiness"
+  ]
+}

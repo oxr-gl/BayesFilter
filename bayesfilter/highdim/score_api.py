@@ -1,4 +1,4 @@
-"""Experimental score API contracts for P47 evidence-class readiness."""
+"""Score API contracts for high-dimensional evidence-class readiness."""
 
 from __future__ import annotations
 
@@ -13,12 +13,34 @@ from bayesfilter.highdim.fixed_branch import BranchHash, BranchIdentity, BranchM
 
 
 _ALLOWED_EVIDENCE_CLASSES = frozenset({"lower_rung", "production"})
+_ALLOWED_STABLE_SCORE_ROUTE_LABELS = frozenset(
+    {
+        "hmc_compatible_deterministic_filtering",
+        "gradient_calibration_diagnostic",
+        "documented-deviation fixed-design substitute",
+    }
+)
 _ALLOWED_HMC_STATUSES = frozenset(
     {
         "blocked_tier2_tier3_not_run",
         "blocked_missing_score_evidence",
         "blocked_missing_production_filtering_token",
         "not_requested",
+    }
+)
+_P49_ALLOWED_GRADIENT_HMC_STATUSES = frozenset(
+    {
+        "blocked_tier2_tier3_not_run",
+        "blocked_missing_score_evidence",
+        "not_requested",
+        "promoted",
+    }
+)
+_P49_ALLOWED_HMC_TIERS = frozenset(
+    {
+        "TIER_1_LOCAL_VALUE_AND_DIRECTIONAL_SCORE",
+        "TIER_2_SHORT_CHAIN_DIAGNOSTICS",
+        "TIER_3_HAMILTONIAN_LEAPFROG_FOR_HMC",
     }
 )
 
@@ -73,6 +95,69 @@ class ExperimentalScoreAPIResult:
         object.__setattr__(self, "log_likelihood", value)
         object.__setattr__(self, "score", score)
         object.__setattr__(self, "diagnostics", freeze_mapping(self.diagnostics))
+
+
+@dataclass(frozen=True)
+class HighDimScoreAPIResult:
+    """Stable subpackage-scoped value/score API result.
+
+    The contract is intentionally scoped to ``bayesfilter.highdim``.  A finite
+    scalar value and score do not imply HMC readiness or a root-level
+    ``bayesfilter`` public API export.
+    """
+
+    target_id: str
+    evidence_class: str
+    route_label: str
+    parameterization: str
+    theta: tf.Tensor
+    log_likelihood: tf.Tensor
+    score: tf.Tensor
+    branch_identity: BranchIdentity
+    status: HighDimStatus
+    diagnostics: Mapping[str, object]
+
+    def __post_init__(self) -> None:
+        target_id = _require_text("target_id", self.target_id)
+        evidence_class = _require_text("evidence_class", self.evidence_class)
+        if evidence_class not in _ALLOWED_EVIDENCE_CLASSES:
+            raise ValueError("evidence_class must be lower_rung or production")
+        route_label = _require_text("route_label", self.route_label)
+        if route_label not in _ALLOWED_STABLE_SCORE_ROUTE_LABELS:
+            raise ValueError("invalid stable score route label")
+        parameterization = _require_text("parameterization", self.parameterization)
+        theta = tf.convert_to_tensor(self.theta, dtype=tf.float64)
+        value = tf.convert_to_tensor(self.log_likelihood, dtype=tf.float64)
+        score = tf.convert_to_tensor(self.score, dtype=tf.float64)
+        if theta.shape.rank != 1 or score.shape != theta.shape or value.shape.rank != 0:
+            raise ValueError(f"score API result: {HighDimStatus.INVALID_SHAPE.value}")
+        if not bool(
+            tf.reduce_all(tf.math.is_finite(theta)).numpy()
+            and tf.math.is_finite(value).numpy()
+            and tf.reduce_all(tf.math.is_finite(score)).numpy()
+        ):
+            raise ValueError(f"score API result: {HighDimStatus.NONFINITE_VALUE.value}")
+        if not isinstance(self.branch_identity, BranchIdentity):
+            raise TypeError("branch_identity must be BranchIdentity")
+        if not isinstance(self.status, HighDimStatus):
+            raise TypeError("status must be HighDimStatus")
+        diagnostics = freeze_mapping(self.diagnostics)
+        if diagnostics.get("api_scope") != "bayesfilter.highdim":
+            raise ValueError("stable score API result must declare bayesfilter.highdim scope")
+        if diagnostics.get("stable_subpackage_api") is not True:
+            raise ValueError("stable score API result must declare stable subpackage API")
+        if diagnostics.get("stable_top_level_api") is not False:
+            raise ValueError("stable score API result must not claim stable top-level API")
+        if diagnostics.get("hmc_readiness") != "not_claimed":
+            raise ValueError("stable score API result must not claim HMC readiness")
+        object.__setattr__(self, "target_id", target_id)
+        object.__setattr__(self, "evidence_class", evidence_class)
+        object.__setattr__(self, "route_label", route_label)
+        object.__setattr__(self, "parameterization", parameterization)
+        object.__setattr__(self, "theta", theta)
+        object.__setattr__(self, "log_likelihood", value)
+        object.__setattr__(self, "score", score)
+        object.__setattr__(self, "diagnostics", diagnostics)
 
 
 @dataclass(frozen=True)
@@ -187,6 +272,83 @@ class ScoreReadinessManifest:
         }
 
 
+@dataclass(frozen=True)
+class GradientLaneEvidenceContract:
+    """P49 boundary for deterministic gradient-bearing adaptation evidence."""
+
+    route_label: str
+    branch_replay_status: str
+    value_gradient_status: str
+    likelihood_variance_calibration_status: str
+    hmc_readiness_status: str
+    source_fidelity_claim: bool
+    differentiates_adaptive_random_branch: bool
+    required_hmc_tiers: tuple[str, ...]
+    nonclaims: tuple[str, ...]
+
+    def __post_init__(self) -> None:
+        route_label = _require_text("route_label", self.route_label)
+        if route_label != "gradient_bearing_adaptation":
+            raise ValueError("gradient lane must use gradient_bearing_adaptation route label")
+        branch_replay = _require_text("branch_replay_status", self.branch_replay_status)
+        value_gradient = _require_text("value_gradient_status", self.value_gradient_status)
+        variance = _require_text(
+            "likelihood_variance_calibration_status",
+            self.likelihood_variance_calibration_status,
+        )
+        hmc = _require_text("hmc_readiness_status", self.hmc_readiness_status)
+        required_hmc_tiers = tuple(str(item).strip() for item in self.required_hmc_tiers)
+        if hmc not in _P49_ALLOWED_GRADIENT_HMC_STATUSES:
+            raise ValueError("unknown P49 gradient-lane HMC readiness status")
+        if any(not item for item in required_hmc_tiers):
+            raise ValueError("required_hmc_tiers must contain nonempty tiers")
+        unknown_tiers = sorted(set(required_hmc_tiers).difference(_P49_ALLOWED_HMC_TIERS))
+        if unknown_tiers:
+            raise ValueError(f"unknown HMC tier: {', '.join(unknown_tiers)}")
+        nonclaims = _text_tuple("nonclaims", self.nonclaims)
+        if self.source_fidelity_claim:
+            raise ValueError("gradient evidence cannot claim source-faithful filtering")
+        if self.differentiates_adaptive_random_branch:
+            raise ValueError("adaptive random source branches need a separate differentiability contract")
+        if hmc == "promoted" and not required_hmc_tiers:
+            raise ValueError("HMC readiness promotion requires explicit HMC tiers")
+        text = " ".join(nonclaims).lower()
+        for required in (
+            "no source-faithful filtering claim",
+            "no hmc readiness by default",
+        ):
+            if required not in text:
+                raise ValueError(f"missing nonclaim: {required}")
+        object.__setattr__(self, "route_label", route_label)
+        object.__setattr__(self, "branch_replay_status", branch_replay)
+        object.__setattr__(self, "value_gradient_status", value_gradient)
+        object.__setattr__(self, "likelihood_variance_calibration_status", variance)
+        object.__setattr__(self, "hmc_readiness_status", hmc)
+        object.__setattr__(self, "source_fidelity_claim", bool(self.source_fidelity_claim))
+        object.__setattr__(
+            self,
+            "differentiates_adaptive_random_branch",
+            bool(self.differentiates_adaptive_random_branch),
+        )
+        object.__setattr__(self, "required_hmc_tiers", required_hmc_tiers)
+        object.__setattr__(self, "nonclaims", nonclaims)
+
+    def manifest_payload(self) -> Mapping[str, object]:
+        return {
+            "route_label": self.route_label,
+            "branch_replay_status": self.branch_replay_status,
+            "value_gradient_status": self.value_gradient_status,
+            "likelihood_variance_calibration_status": self.likelihood_variance_calibration_status,
+            "hmc_readiness_status": self.hmc_readiness_status,
+            "source_fidelity_claim": bool(self.source_fidelity_claim),
+            "differentiates_adaptive_random_branch": bool(
+                self.differentiates_adaptive_random_branch
+            ),
+            "required_hmc_tiers": self.required_hmc_tiers,
+            "nonclaims": self.nonclaims,
+        }
+
+
 def evaluate_experimental_score_api(
     target_id: str,
     evidence_class: str,
@@ -242,6 +404,66 @@ def evaluate_experimental_score_api(
             **dict(diagnostics or {}),
             "fixed_branch_only": True,
             "experimental_subpackage_only": True,
+            "stable_top_level_api": False,
+            "hmc_readiness": "not_claimed",
+        },
+    )
+
+
+def evaluate_highdim_score_api(
+    target_id: str,
+    evidence_class: str,
+    route_label: str,
+    parameterization: str,
+    theta: tf.Tensor,
+    value_fn: Callable[[tf.Tensor], tf.Tensor],
+    diagnostics: Mapping[str, object] | None = None,
+) -> HighDimScoreAPIResult:
+    """Evaluate a deterministic scalar value function and its score.
+
+    This is the stable ``bayesfilter.highdim`` subpackage contract for
+    fixed, deterministic, TensorFlow float64 score evaluations.  It is not a
+    root-level ``bayesfilter`` export and it does not certify HMC readiness.
+    """
+
+    theta_tensor = tf.convert_to_tensor(theta, dtype=tf.float64)
+    if theta_tensor.shape.rank != 1:
+        raise ValueError(f"theta: {HighDimStatus.INVALID_SHAPE.value}")
+    with tf.GradientTape() as tape:
+        tape.watch(theta_tensor)
+        value = tf.convert_to_tensor(value_fn(theta_tensor), dtype=tf.float64)
+    score = tape.gradient(value, theta_tensor)
+    if score is None:
+        raise ValueError("score gradient is None")
+    payload = {
+        "target_id": target_id,
+        "evidence_class": evidence_class,
+        "route_label": route_label,
+        "parameterization": parameterization,
+        "theta": theta_tensor,
+        "log_likelihood": value,
+        "score": score,
+        "api_scope": "bayesfilter.highdim",
+        "stable_subpackage_api": True,
+        "stable_top_level_api": False,
+        "hmc_readiness": "not_claimed",
+    }
+    manifest = BranchManifest("highdim_score_api_result.v1", payload)
+    identity = BranchIdentity(manifest=manifest, hash=manifest.sha256())
+    return HighDimScoreAPIResult(
+        target_id=target_id,
+        evidence_class=evidence_class,
+        route_label=route_label,
+        parameterization=parameterization,
+        theta=theta_tensor,
+        log_likelihood=value,
+        score=score,
+        branch_identity=identity,
+        status=HighDimStatus.OK,
+        diagnostics={
+            **dict(diagnostics or {}),
+            "api_scope": "bayesfilter.highdim",
+            "stable_subpackage_api": True,
             "stable_top_level_api": False,
             "hmc_readiness": "not_claimed",
         },

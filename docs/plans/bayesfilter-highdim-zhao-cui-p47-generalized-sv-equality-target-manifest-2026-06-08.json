@@ -1,0 +1,60 @@
+{
+  "schema_version": "p47.generalized_sv_equality_target.v1",
+  "phase": "P47-M3",
+  "metadata_date": "2026-06-08",
+  "pass_token": "PASS_P47_M3_GENERALIZED_SV_EQUALITY",
+  "target_id": "generalized_sv_same_target_equality",
+  "target_name": "lower-rung independent-panel KSC finite-mixture transformed SV",
+  "target_class": "reviewed_approximation_not_native_generalized_sv",
+  "observation_transform": "z_ti = log(y_ti^2 + 1e-8)",
+  "state_law": "independent scalar AR(1) volatility coordinates h_ti",
+  "observation_law": "z_ti - log(beta_i^2) - h_ti follows pinned seven-component KSC Gaussian mixture",
+  "parameterization": "theta_i = (Phi^{-1}(gamma_i), log(beta_i)); sigma_i fixed",
+  "dimensions_tested": [
+    1,
+    2,
+    3
+  ],
+  "horizon_tested": 2,
+  "reference_routes": {
+    "cut4_reference": "component-enumerated Kalman mixture and dense scalar quadrature for the same KSC target",
+    "zhao_cui_reference": "dense scalar quadrature for the same KSC target",
+    "native_sv_boundary": "exact native/transformed SV is a separate target and remains a nonclaim here"
+  },
+  "candidate_routes": {
+    "cut4": "bayesfilter.highdim.independent_panel_sv_mixture_cut4_filter",
+    "zhao_cui": "bayesfilter.highdim.independent_panel_sv_mixture_zhaocui_tt_filter"
+  },
+  "m1_route_label": "documented-deviation fixed-design substitute",
+  "p42_tier": "TIER_1_LOCAL_VALUE_AND_DIRECTIONAL_SCORE",
+  "directional_score_checks_minimum": 5,
+  "tolerances": {
+    "cut4_vs_kalman_value_abs": 2e-06,
+    "cut4_vs_kalman_score_abs": 2e-08,
+    "cut4_vs_dense_value_abs": 0.002,
+    "cut4_vs_dense_score_abs": 0.005,
+    "cut4_vs_zhao_cui_value_abs": 0.002,
+    "cut4_vs_zhao_cui_score_abs": 0.005,
+    "zhao_cui_vs_dense_value_abs": 0.02,
+    "zhao_cui_vs_dense_score_abs": 0.05
+  },
+  "nonclaims": [
+    "not exact native SV likelihood",
+    "not native generalized SV/CNS estimator",
+    "not KSC importance reweighting",
+    "not coupled multivariate Zhao-Cui TT",
+    "not adaptive MATLAB TT-cross/SIRT reproduction",
+    "no HMC readiness",
+    "no production score API",
+    "no paper-scale validation",
+    "no S&P 500 reproduction"
+  ],
+  "veto_diagnostics": [
+    "native and KSC mixture targets are mixed",
+    "gradient parameterization mismatch",
+    "M1 route label absent",
+    "value pass promoted to HMC readiness",
+    "nonfinite value or gradient",
+    "same-target claim made for native generalized SV"
+  ]
+}

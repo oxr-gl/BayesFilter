@@ -1,0 +1,133 @@
+{
+  "schema_version": "p51.gap_scope_preflight.v1",
+  "metadata_date": "2026-06-09",
+  "phase": "P51-M0",
+  "status": "PASS_P51_M0_GAP_SCOPE_PREFLIGHT",
+  "source_artifacts": [
+    "docs/plans/bayesfilter-highdim-zhao-cui-p50-m9-integration-closeout-result-2026-06-09.md",
+    "docs/plans/bayesfilter-highdim-zhao-cui-p50-integration-closeout-manifest-2026-06-09.json",
+    "docs/plans/bayesfilter-highdim-zhao-cui-p51-gap-closure-master-program-2026-06-09.md",
+    "docs/plans/bayesfilter-highdim-zhao-cui-p51-visible-gated-execution-runbook-2026-06-09.md"
+  ],
+  "actionable_gaps": [
+    {
+      "id": "native_generalized_sv_same_target_reference",
+      "source_phase": "P50-M5",
+      "p51_phase": "P51-M2",
+      "required_outcome": "same-target reference pass or reviewed blocker"
+    },
+    {
+      "id": "spatial_sir_production_route_architecture",
+      "source_phase": "P50-M6",
+      "p51_phase": "P51-M3",
+      "required_outcome": "same blocked production-row route preflight pass or reviewed blocker"
+    },
+    {
+      "id": "predator_prey_production_accuracy_tuning",
+      "source_phase": "P50-M6",
+      "p51_phase": "P51-M4",
+      "required_outcome": "same blocked horizon-25 production-row tuning pass or reviewed blocker"
+    },
+    {
+      "id": "hmc_tier2_tier3_sampler_evidence",
+      "source_phase": "P50-M7",
+      "p51_phase": "P51-M5/P51-M6",
+      "required_outcome": "Tier 2 and Tier 3 pass separately or reviewed blockers"
+    },
+    {
+      "id": "stable_top_level_score_api",
+      "source_phase": "P50-M7/P50-M9",
+      "p51_phase": "P51-M1",
+      "required_outcome": "original top-level row closed, partially closed with BLOCKED_PUBLIC_API_DECISION, or blocked",
+      "split": {
+        "subpackage_contract_lane": {
+          "scope": "bayesfilter.highdim score API contract",
+          "may_pass_without_root_export": true,
+          "allowed_outcome": "stable subpackage value/gradient/metadata contract"
+        },
+        "root_public_export_lane": {
+          "scope": "root-level bayesfilter public API export",
+          "requires_separate_policy_approval": true,
+          "unapproved_outcome": "BLOCKED_PUBLIC_API_DECISION"
+        }
+      }
+    },
+    {
+      "id": "smoother_if_latent_path_inference_becomes_target",
+      "source_phase": "P50-M8",
+      "p51_phase": "P51-M7",
+      "required_outcome": "deferred future-target decision or separate reviewed latent-path program"
+    }
+  ],
+  "explicit_non_goals_not_gaps": [
+    "adaptive TT/SIRT source-faithful filtering",
+    "S&P 500 reproduction"
+  ],
+  "route_labels": [
+    "hmc_compatible_deterministic_filtering",
+    "gradient_calibration_diagnostic",
+    "model_ladder_diagnostic",
+    "hmc_readiness_tier",
+    "smoothing_boundary",
+    "historical_source_context"
+  ],
+  "required_phase_tokens": {
+    "P51-M0": ["PASS_P51_M0_GAP_SCOPE_PREFLIGHT", "BLOCK_P51_M0_GAP_SCOPE_PREFLIGHT"],
+    "P51-M1": ["PASS_P51_M1_STABLE_SCORE_API", "BLOCK_P51_M1_STABLE_SCORE_API"],
+    "P51-M2": [
+      "PASS_P51_M2_NATIVE_GENERALIZED_SV_REFERENCE",
+      "BLOCK_P51_M2_NATIVE_GENERALIZED_SV_REFERENCE"
+    ],
+    "P51-M3": [
+      "PASS_P51_M3_SPATIAL_SIR_ROUTE_PREFLIGHT",
+      "BLOCK_P51_M3_SPATIAL_SIR_ROUTE_PREFLIGHT"
+    ],
+    "P51-M4": [
+      "PASS_P51_M4_PREDATOR_PREY_PRODUCTION_TUNING",
+      "BLOCK_P51_M4_PREDATOR_PREY_PRODUCTION_TUNING"
+    ],
+    "P51-M5": ["PASS_P51_M5_HMC_TIER2_LEAPFROG", "BLOCK_P51_M5_HMC_TIER2_LEAPFROG"],
+    "P51-M6": ["PASS_P51_M6_HMC_TIER3_SHORT_CHAIN", "BLOCK_P51_M6_HMC_TIER3_SHORT_CHAIN"],
+    "P51-M7": [
+      "PASS_P51_M7_SMOOTHING_FUTURE_TARGET",
+      "BLOCK_P51_M7_SMOOTHING_FUTURE_TARGET"
+    ],
+    "P51-M8": ["PASS_P51_M8_INTEGRATION_CLOSEOUT", "BLOCK_P51_M8_INTEGRATION_CLOSEOUT"]
+  },
+  "approval_assumptions": {
+    "claude_readonly_review": "approved via escalated claude -p calls",
+    "cpu_only_validation": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp",
+    "narrow_python_diagnostics": "allowed only with exact paths recorded before execution",
+    "gpu_runs": "not approved",
+    "network_fetches": "not approved",
+    "package_installation": "not approved",
+    "detached_execution": "not approved"
+  },
+  "stop_conditions": [
+    "project-direction decision not already in reviewed P51 plan",
+    "package installation, network fetch, credentials, or external runtime setup",
+    "destructive git or filesystem action",
+    "changing pass/fail criteria after seeing results",
+    "changing default backend or numerical policy",
+    "modifying unrelated dirty user work",
+    "GPU or special-hardware claims without trusted-context evidence",
+    "continuing after Claude and Codex do not converge after five review rounds"
+  ],
+  "invalid_stop_reasons": [
+    "fixable local test failure",
+    "concrete Claude revision request",
+    "missing artifact metadata, route labels, commands, tokens, or wording",
+    "wrong focused test subset",
+    "unrelated dirty worktree file",
+    "stalled Claude prompt when a narrower read-only prompt can be tried"
+  ],
+  "nonclaims": [
+    "no gap closure from M0 alone",
+    "no algorithmic correctness",
+    "no HMC readiness",
+    "no production readiness",
+    "no smoothing support",
+    "no source-faithful adaptive TT/SIRT filtering",
+    "no S&P 500 reproduction"
+  ]
+}

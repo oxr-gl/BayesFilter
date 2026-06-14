@@ -1,0 +1,1119 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,mathtools,amsthm}
+\usepackage{booktabs,longtable,array}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\TT}{\mathrm{TT}}
+\newcommand{\ones}{\mathbf 1}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\radinv}{\operatorname{radinv}}
+\newcommand{\vecop}{\operatorname{vec}}
+
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{assumption}{Assumption}
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+
+% The specification cross-references many displayed formulas.  Number all
+% display math so references point to visible equations rather than section
+% numbers.
+\renewcommand{\[}{\begin{equation}}
+\renewcommand{\]}{\end{equation}}
+
+\title{An Implementable Fixed-Branch Squared Tensor-Train Filter}
+\author{BayesFilter P15 Zhao--Cui TT Specification}
+\date{2026-05-31}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note specifies one concrete fixed-branch squared tensor-train filtering
+algorithm and its analytical same-scalar gradient.  It is inspired by the
+sequential squared tensor-train construction of Zhao and Cui, but it is not a
+description of every adaptive choice in their research code.  The purpose is
+more modest and more operational: define a single value path that a reader can
+implement without opening any other source.  The fixed path uses affine domain
+maps, normalized Legendre bases, deterministic Halton fitting points, fixed
+ranks, ridge alternating least squares, a uniform defensive density, a frozen
+shift, explicit squared-TT marginalization, and a finite-difference parity
+test.  The resulting scalar is an approximate likelihood; the gradient derived
+here differentiates that approximate scalar on the saved branch.
+\end{abstract}
+
+\tableofcontents
+
+\section{What This Specification Implements}
+
+The algorithm in this note takes a state-space model and produces an
+approximate filtering likelihood.  The model has state \(x_t\), optional static
+parameter \(\vartheta\), observation \(y_t\), transition density
+\(f_\alpha(x_t\mid x_{t-1},\vartheta)\), and observation density
+\(g_\alpha(y_t\mid x_t,\vartheta)\).  The external parameter \(\alpha\) is the
+quantity with respect to which the approximate likelihood will be
+differentiated.
+
+At each time \(t\), the method constructs an approximation to the unnormalized
+filtering density over the augmented variable
+\[
+  r_t=(x_t,\vartheta,x_{t-1})\in\R^D.
+\]
+The approximation has the form
+\[
+  \widehat q_t(z;\alpha;B_t)
+  =
+  \phi_t(z;\alpha;B_t)^2+\tau_t 2^{-D},
+  \qquad z\in[-1,1]^D,
+  \label{eq:p15-qhat}
+\]
+where \(B_t\) denotes the fixed branch data.  The square-root tensor train
+\(\phi_t\) is fitted by a fully specified fixed-rank ridge ALS procedure.  The
+defensive term \(\tau_t2^{-D}\) is a small uniform density floor on the
+reference box.
+
+The one-step approximate evidence contribution is
+\[
+  \widehat z_t(\alpha;B_t)
+  =
+  \int_{[-1,1]^D}\widehat q_t(z;\alpha;B_t)\,\dd z
+  =
+  R_{t,0}(\alpha;B_t)+\tau_t,
+  \label{eq:p15-zhat}
+\]
+and the declared approximate log-likelihood is
+\[
+  \widehat\ell_T^{\TT}(\alpha;B)
+  =
+  \sum_{t=1}^T
+  \{\log(R_{t,0}(\alpha;B_t)+\tau_t)-c_t\}.
+  \label{eq:p15-declared-scalar}
+\]
+The constants \(c_t\) are frozen stabilizing shifts stored in the branch.  The
+gradient derived below is the derivative of \eqref{eq:p15-declared-scalar} for
+the saved branch \(B=(B_1,\ldots,B_T)\).  It is not the derivative of an
+adaptive algorithm whose ranks, fitting points, shifts, domains, or
+truncations change with \(\alpha\).
+
+This distinction matters.  A filtering algorithm may adapt its numerical
+representation as the parameter changes.  That can be useful for accuracy, but
+then the formula being evaluated changes.  A classical analytical gradient
+must differentiate one declared formula.  P15 therefore freezes the branch
+objects and differentiates the resulting approximate scalar.
+
+\section{State-Space Filtering Object And Approximate Likelihood}
+
+Assume that before observing \(y_t\), the previous approximate filter is a
+normalized density \(\widehat p_{t-1}(x_{t-1},\vartheta;\alpha)\).  The exact
+Bayesian one-step unnormalized joint density would be
+\[
+  q_t(r_t;\alpha)
+  =
+  \widehat p_{t-1}(x_{t-1},\vartheta;\alpha)
+  f_\alpha(x_t\mid x_{t-1},\vartheta)
+  g_\alpha(y_t\mid x_t,\vartheta).
+  \label{eq:p15-qt}
+\]
+Its integral is
+\[
+  Z_t(\alpha)
+  =
+  \int q_t(x_t,\vartheta,x_{t-1};\alpha)
+  \,\dd x_t\,\dd\vartheta\,\dd x_{t-1}.
+  \label{eq:p15-exact-Z}
+\]
+Integrating first over \(x_{t-1}\) gives the prediction density, and then
+integrating against the likelihood gives the innovation evidence:
+\[
+\begin{aligned}
+  Z_t(\alpha)
+  &=
+  \int g_\alpha(y_t\mid x_t,\vartheta)
+  \left[
+  \int f_\alpha(x_t\mid x_{t-1},\vartheta)
+       \widehat p_{t-1}(x_{t-1},\vartheta;\alpha)\,\dd x_{t-1}
+  \right]\dd x_t\,\dd\vartheta .
+\end{aligned}
+  \label{eq:p15-filtering-integral}
+\]
+The updated filter is the marginal
+\[
+  p_t(x_t,\vartheta;\alpha)
+  =
+  \int
+  \frac{q_t(x_t,\vartheta,x_{t-1};\alpha)}
+       {Z_t(\alpha)}
+  \,\dd x_{t-1}.
+  \label{eq:p15-exact-filter-marginal}
+\]
+
+The P15 method replaces \(q_t\) by a nonnegative finite-dimensional
+approximation \(\widehat q_t\), integrates \(\widehat q_t\) to get
+\(\widehat z_t\), and marginalizes \(\widehat q_t/\widehat z_t\) to get the
+next approximate filter.  Thus the connection to filtering is not decorative:
+the tensor train is only a way to compute the two integrals in
+\eqref{eq:p15-filtering-integral} and \eqref{eq:p15-exact-filter-marginal}.
+
+\section{Fixed Computational Domain And Reference Measure}
+
+Choose a hyperrectangle
+\[
+  \Omega_t=\prod_{k=1}^D[\ell_{t,k},u_{t,k}]
+\]
+with finite endpoints.  The reference coordinate is \(z\in[-1,1]^D\).  Define
+\[
+  a_{t,k}=\frac{u_{t,k}+\ell_{t,k}}2,\qquad
+  h_{t,k}=\frac{u_{t,k}-\ell_{t,k}}2,\qquad
+  r_{t,k}=a_{t,k}+h_{t,k}z_k.
+  \label{eq:p15-affine-map}
+\]
+Let \(\Psi_t(z)\) denote this affine map.  The Jacobian determinant is
+\[
+  J_t=\prod_{k=1}^D h_{t,k}.
+  \label{eq:p15-jacobian}
+\]
+The transformed unnormalized density is
+\[
+  \widetilde q_t(z;\alpha)=q_t(\Psi_t(z);\alpha)J_t.
+  \label{eq:p15-transformed-q}
+\]
+
+\begin{proposition}[Affine-domain transformation]
+For any integrable \(q_t\) on \(\Omega_t\),
+\[
+  \int_{\Omega_t}q_t(r;\alpha)\,\dd r
+  =
+  \int_{[-1,1]^D}\widetilde q_t(z;\alpha)\,\dd z.
+  \label{eq:p15-change-vars}
+\]
+\end{proposition}
+
+\begin{proof}
+Equation \eqref{eq:p15-affine-map} is diagonal affine.  Hence
+\(\dd r=J_t\,\dd z\).  Substituting \(r=\Psi_t(z)\) gives
+\[
+  \int_{\Omega_t}q_t(r;\alpha)\,\dd r
+  =
+  \int_{[-1,1]^D}q_t(\Psi_t(z);\alpha)J_t\,\dd z,
+\]
+which is \eqref{eq:p15-change-vars}.
+\end{proof}
+
+For the fixed-branch derivative, \(\ell_{t,k},u_{t,k},a_{t,k},h_{t,k}\), and
+\(J_t\) are frozen.  If a future implementation adapts the box with
+\(\alpha\), that is a different scalar and requires additional boundary and
+Jacobian derivatives.
+
+\section{Legendre Basis, Evaluation Recurrence, And Mass Matrices}
+
+On each coordinate, use normalized Legendre functions
+\[
+  b_{k,a}(z)=\sqrt{\frac{2a+1}{2}}\,P_a(z),
+  \qquad a=0,\ldots,p_k-1,
+  \label{eq:p15-legendre-basis}
+\]
+where \(P_a\) is the degree-\(a\) Legendre polynomial.  The implementation
+evaluates them by
+\[
+  P_0(z)=1,\qquad P_1(z)=z,
+  \label{eq:p15-legendre-start}
+\]
+\[
+  (a+1)P_{a+1}(z)=(2a+1)zP_a(z)-aP_{a-1}(z),
+  \qquad a\ge1.
+  \label{eq:p15-legendre-recurrence}
+\]
+For a vector \(z_k^{(1)},\ldots,z_k^{(N)}\), store the basis matrix
+\[
+  B_k[j,a]=b_{k,a}(z_k^{(j)}).
+  \label{eq:p15-basis-matrix}
+\]
+
+\begin{proposition}[Legendre mass matrix]
+The one-dimensional mass matrix
+\[
+  M_k[a,b]=\int_{-1}^{1}b_{k,a}(z)b_{k,b}(z)\,\dd z
+  \label{eq:p15-mass}
+\]
+equals the identity matrix.
+\end{proposition}
+
+\begin{proof}
+Legendre orthogonality gives
+\[
+  \int_{-1}^{1}P_a(z)P_b(z)\,\dd z
+  =
+  \frac{2}{2a+1}\mathbf 1_{\{a=b\}}.
+\]
+Multiplying by the normalization constants in \eqref{eq:p15-legendre-basis}
+gives
+\[
+  M_k[a,b]
+  =
+  \sqrt{\frac{2a+1}{2}}\sqrt{\frac{2b+1}{2}}
+  \frac{2}{2a+1}\mathbf 1_{\{a=b\}}
+  =
+  \mathbf 1_{\{a=b\}}.
+\]
+\end{proof}
+
+This identity is why the P15 reference path uses normalized Legendre bases.
+Mass contractions then become ordinary Euclidean coefficient contractions.
+
+\section{Tensor-Train Functions And Squared-TT Densities}
+
+A scalar function on the reference box is represented by cores
+\[
+  C_{k,a}\in\R^{r_{k-1}\times r_k},\qquad r_0=r_D=1,
+  \label{eq:p15-core-coefficients}
+\]
+and one-dimensional matrix-valued factors
+\[
+  G_k(z_k)=\sum_{a=0}^{p_k-1}C_{k,a}b_{k,a}(z_k).
+  \label{eq:p15-G-factor}
+\]
+The tensor-train function is
+\[
+  \phi(z)=G_1(z_1)G_2(z_2)\cdots G_D(z_D),
+  \label{eq:p15-tt-function}
+\]
+where the product is a \(1\times1\) scalar.
+
+The density approximation uses the square
+\[
+  \widehat q_t(z)=\phi_t(z)^2+\tau_t2^{-D}.
+  \label{eq:p15-square-density}
+\]
+The square guarantees nonnegativity.  The uniform term prevents a zero density
+floor on the compact reference box.  It does not make a bad fit accurate; it
+only ensures that the approximate density remains a proper nonnegative object
+after normalization.
+
+\section{Fixed Fitting Design Points}
+
+The fitting design is deterministic.  Let \(p_1,\ldots,p_D\) be the first
+\(D\) primes.  If
+\[
+  j=\sum_{m=0}^{M(j,p)}d_m p^m,\qquad d_m\in\{0,\ldots,p-1\},
+\]
+define the radical inverse
+\[
+  \radinv_p(j)=\sum_{m=0}^{M(j,p)}d_m p^{-(m+1)}.
+  \label{eq:p15-radinv}
+\]
+For \(j=1,\ldots,N_{\rm fit}\), the fitting point is
+\[
+  z_k^{(j)}=2\radinv_{p_k}(j)-1,\qquad k=1,\ldots,D.
+  \label{eq:p15-halton}
+\]
+The least-squares weight matrix is
+\[
+  W=\frac1{N_{\rm fit}}I.
+  \label{eq:p15-uniform-W}
+\]
+The points, primes, and weights are saved branch objects.  They are not
+resampled when evaluating \(\widehat\ell_T^{\TT}(\alpha\pm h e_i;B)\) in a
+finite-difference check.
+
+\section{Fixed-Rank Ridge ALS Construction Of The Square-Root TT}
+
+The target values at the fixed design points are
+\[
+  y_j(\alpha)
+  =
+  \exp(c_t/2)\sqrt{\widetilde q_t(z^{(j)};\alpha)},
+  \qquad j=1,\ldots,N_{\rm fit}.
+  \label{eq:p15-target-y}
+\]
+The stabilizing shift \(c_t\) is frozen and defined at a nominal value
+\(\alpha_0\) by
+\[
+  c_t=-\max_{1\le j\le N_{\rm fit}}\log \widetilde q_t(z^{(j)};\alpha_0).
+  \label{eq:p15-shift}
+\]
+The target values therefore remain numerically moderate near the branch point.
+The shift enters the declared scalar as \(-c_t\), as in
+\eqref{eq:p15-declared-scalar}.
+
+Fix ranks \(r_0=r_D=1\) and \(r_1,\ldots,r_{D-1}\).  Fix ridge
+\(\rho>0\), number of bidirectional ALS sweeps \(S\), and the following exact
+initialization.  Let \(e^{(m)}_1\) be the first coordinate vector in
+\(\R^m\).  The constant slice of core \(k\) is
+\[
+  C_{k,0}^{(0)}
+  =
+  \gamma_k\, e^{(r_{k-1})}_1 (e^{(r_k)}_1)^\top,
+  \qquad
+  C_{k,a}^{(0)}=0\quad(a\ge1),
+  \label{eq:p15-initialization}
+\]
+where
+\[
+  \gamma_1=\bar y,\qquad
+  \gamma_k=1\quad(k=2,\ldots,D),\qquad
+  \bar y=\frac1{N_{\rm fit}}\sum_{j=1}^{N_{\rm fit}}y_j.
+  \label{eq:p15-ybar}
+\]
+Thus only the first rank channel is active initially.  All other rank channels
+start at zero and can become nonzero only through the declared ridge ALS
+updates.  This convention fixes the branch even when ranks exceed one.
+
+During an ALS update of core \(k\), all other cores are fixed.  Define the left
+environment
+\[
+  L_j^{(k)}=G_1(z_1^{(j)})\cdots G_{k-1}(z_{k-1}^{(j)})
+  \in\R^{1\times r_{k-1}}
+  \label{eq:p15-left-env}
+\]
+and the right environment
+\[
+  R_j^{(k)}=G_{k+1}(z_{k+1}^{(j)})\cdots G_D(z_D^{(j)})
+  \in\R^{r_k\times1}.
+  \label{eq:p15-right-env}
+\]
+If \(g_k=\vecop(C_{k,0},\ldots,C_{k,p_k-1})\) is ordered
+lexicographically in \((\ell_{\rm left},a,\ell_{\rm right})\), with the right
+rank varying fastest, then the row that maps \(g_k\) to \(\phi(z^{(j)})\) is
+\[
+  A_{j,\cdot}^{(k)}
+  =
+  (R_j^{(k)})^\top\otimes
+  b_k(z_k^{(j)})^\top\otimes
+  L_j^{(k)}.
+  \label{eq:p15-als-row}
+\]
+The fixed ridge update is
+\[
+  N_k g_k=d_k,\qquad
+  N_k=(A^{(k)})^\top W A^{(k)}+\rho I,\qquad
+  d_k=(A^{(k)})^\top W y.
+  \label{eq:p15-ridge-normal}
+\]
+The algorithm applies updates for \(k=1,\ldots,D\) and then
+\(k=D,\ldots,1\), repeated for exactly \(S\) sweeps.  There is no rank
+adaptation, no pivot selection, and no truncation in the declared branch.
+
+\section{Normalizer, Defensive Density, Shift, And Approximate Log-Likelihood}
+
+The defensive density is uniform:
+\[
+  \lambda(z)=2^{-D},\qquad
+  \int_{[-1,1]^D}\lambda(z)\,\dd z=1.
+  \label{eq:p15-uniform-lambda}
+\]
+Choose an \(\epsilon_\tau>0\) and set
+\[
+  \tau_t=\epsilon_\tau 2^D.
+  \label{eq:p15-tau}
+\]
+This makes the defensive floor equal to \(\epsilon_\tau\):
+\[
+  \tau_t 2^{-D}=\epsilon_\tau.
+  \label{eq:p15-floor}
+\]
+For the primary P15 scalar, \(\tau_t\) and \(c_t\) are fixed branch constants,
+so
+\[
+  \partial_i\tau_t=0,\qquad \partial_i c_t=0.
+  \label{eq:p15-tau-c-derivatives}
+\]
+
+To integrate \(\phi_t^2\), start with \(R_D=1\) and compute backward
+\[
+  R_{k-1}
+  =
+  \sum_{a,b=0}^{p_k-1}
+  M_k[a,b]\,
+  C_{k,a}R_kC_{k,b}^{\top}.
+  \label{eq:p15-R-recursion}
+\]
+Because \(M_k=I\), this becomes
+\[
+  R_{k-1}
+  =
+  \sum_{a=0}^{p_k-1}
+  C_{k,a}R_kC_{k,a}^{\top}.
+  \label{eq:p15-R-legendre}
+\]
+
+\begin{proposition}[Squared-TT mass contraction]
+The recursion \eqref{eq:p15-R-recursion} satisfies
+\[
+  R_0=\int_{[-1,1]^D}\phi_t(z)^2\,\dd z.
+  \label{eq:p15-R0-integral}
+\]
+\end{proposition}
+
+\begin{proof}
+For the last coordinate,
+\[
+  \int G_D(z_D)G_D(z_D)^\top\,\dd z_D
+  =
+  \sum_{a,b}C_{D,a}C_{D,b}^\top
+  \int b_{D,a}(z_D)b_{D,b}(z_D)\,\dd z_D,
+\]
+which is \(R_{D-1}\).  Suppose \(R_k\) equals the suffix integral over
+coordinates \(k+1,\ldots,D\).  Multiplying by \(G_k(z_k)\) on the left and
+\(G_k(z_k)^\top\) on the right and integrating \(z_k\) gives exactly
+\eqref{eq:p15-R-recursion}.  Induction to \(k=1\) gives
+\eqref{eq:p15-R0-integral}.
+\end{proof}
+
+Thus
+\[
+  \widehat z_t=R_0+\tau_t,\qquad
+  \widehat\ell_t^{\TT}=\log(R_0+\tau_t)-c_t.
+  \label{eq:p15-step-ell}
+\]
+
+\section{Marginalization In Squared-TT Form And The Next Filter Object}
+
+Let \(K\) be the set of kept coordinates, such as \(x_t,\vartheta\), and
+\(O\) the set of old-state coordinates to integrate out.  Define square cores
+\[
+  H_k(z_k)=G_k(z_k)\otimes G_k(z_k).
+  \label{eq:p15-square-core}
+\]
+Their coefficient slices are
+\[
+  H_{k,(a,b)}=C_{k,a}\otimes C_{k,b}.
+  \label{eq:p15-square-core-coeff}
+\]
+For an integrated coordinate \(k\in O\), replace \(H_k\) by
+\[
+  \mathcal I_k
+  =
+  \int_{-1}^{1}H_k(z_k)\,\dd z_k
+  =
+  \sum_{a,b}M_k[a,b]\,C_{k,a}\otimes C_{k,b}.
+  \label{eq:p15-integrated-square-core}
+\]
+For a kept coordinate \(k\in K\), evaluate \(H_k(z_k)\).  Contract the chain
+in the original order, using \(\mathcal I_k\) for integrated coordinates.  The
+square-term marginal numerator is
+\[
+  a_t^{\rm sq}(z_K)
+  =
+  \int \phi_t(z)^2\,\dd z_O.
+  \label{eq:p15-square-marginal}
+\]
+The defensive contribution is
+\[
+  a_t^{\rm def}(z_K)
+  =
+  \tau_t 2^{-D}\int_{[-1,1]^{|O|}}1\,\dd z_O
+  =
+  \tau_t2^{-|K|}.
+  \label{eq:p15-defensive-marginal}
+\]
+The stored numerator and filter are
+\[
+  a_t(z_K)=a_t^{\rm sq}(z_K)+\tau_t2^{-|K|},
+  \qquad
+  \widehat p_t(z_K)=a_t(z_K)/\widehat z_t.
+  \label{eq:p15-filter-object}
+\]
+
+\begin{proposition}[Squared-TT marginalization]
+Equation \eqref{eq:p15-filter-object} is the marginal of
+\(\widehat q_t/\widehat z_t\) over the old coordinates.
+\end{proposition}
+
+\begin{proof}
+For the square part, expand \(\phi_t^2\) as the product of square cores
+\eqref{eq:p15-square-core}.  Fubini's theorem allows each integrated
+coordinate \(k\in O\) to be replaced by \(\mathcal I_k\) in
+\eqref{eq:p15-integrated-square-core}.  Kept coordinates are not integrated
+and therefore remain as functions of \(z_K\).  This gives
+\eqref{eq:p15-square-marginal}.  The uniform defensive density is constant, so
+integrating \(|O|\) coordinates multiplies it by \(2^{|O|}\), giving
+\eqref{eq:p15-defensive-marginal}.  Dividing by \(\widehat z_t\) normalizes the
+marginal.
+\end{proof}
+
+The next-step fitting routine needs pointwise values.  The saved filter object
+therefore stores a concrete contraction scheme.  First build the square-core
+coefficient slices
+\[
+  \mathcal H_{k,ab}=C_{k,a}\otimes C_{k,b}
+  \in\R^{(r_{k-1}^2)\times(r_k^2)}.
+  \label{eq:p15-H-coeff-shape}
+\]
+For an integrated coordinate define the constant matrix
+\[
+  Q_k=\sum_{a,b}M_k[a,b]\mathcal H_{k,ab}.
+  \label{eq:p15-Qk}
+\]
+For a kept coordinate and a point \(z_k\), define
+\[
+  E_k(z_k)=\sum_{a,b}b_{k,a}(z_k)b_{k,b}(z_k)\mathcal H_{k,ab}.
+  \label{eq:p15-Ek}
+\]
+Now set
+\[
+  T_k(z_K)=
+  \begin{cases}
+    E_k(z_k), & k\in K,\\
+    Q_k, & k\in O.
+  \end{cases}
+  \label{eq:p15-Tk}
+\]
+The square marginal is the scalar chain contraction
+\[
+  a_t^{\rm sq}(z_K)=T_1(z_K)T_2(z_K)\cdots T_D(z_K).
+  \label{eq:p15-a-sq-chain}
+\]
+The object also stores prefix and suffix contractions
+\[
+  P_0=1,\quad P_k=P_{k-1}T_k,
+  \qquad
+  S_D=1,\quad S_{k-1}=T_kS_k,
+  \label{eq:p15-prefix-suffix}
+\]
+so that an implementation can evaluate the numerator in one left-to-right
+pass and, when needed, reuse environments for derivatives.  The value and
+log-value evaluators are
+\[
+  a_t(z_K)=a_t^{\rm sq}(z_K)+\tau_t2^{-|K|},
+  \qquad
+  \log\widehat p_t(z_K)=\log a_t(z_K)-\log\widehat z_t.
+  \label{eq:p15-log-filter-eval}
+\]
+
+For derivatives, store
+\[
+  \dot{\mathcal H}_{k,ab}
+  =
+  \dot C_{k,a}\otimes C_{k,b}
+  +
+  C_{k,a}\otimes \dot C_{k,b},
+  \label{eq:p15-Hcoeff-dot}
+\]
+then build \(\dot Q_k\) and \(\dot E_k(z_k)\) by replacing
+\(\mathcal H\) with \(\dot{\mathcal H}\) in \eqref{eq:p15-Qk} and
+\eqref{eq:p15-Ek}.  The derivative of the square marginal is
+\[
+  \dot a_t^{\rm sq}(z_K)
+  =
+  \sum_{m=1}^D
+  P_{m-1}\,\dot T_m\,S_m,
+  \label{eq:p15-adot-chain}
+\]
+where \(\dot T_m=\dot E_m\) for kept coordinates and \(\dot T_m=\dot Q_m\)
+for integrated coordinates.  The defensive kept term is fixed, so
+\[
+  \dot a_t(z_K)=\dot a_t^{\rm sq}(z_K),
+  \qquad
+  \partial_i\log\widehat p_t(z_K)
+  =
+  \frac{\dot a_t(z_K)}{a_t(z_K)}
+  -
+  \frac{\dot{\widehat z}_t}{\widehat z_t}.
+  \label{eq:p15-log-filter-dot-eval}
+\]
+Equations \eqref{eq:p15-H-coeff-shape}--\eqref{eq:p15-log-filter-dot-eval}
+are the exact saved-filter representation used by the two-step reference
+example.
+
+\section{Saved Branch Data Structures}
+
+The implementation must save the following objects.
+
+\begin{longtable}{p{0.25\linewidth}p{0.68\linewidth}}
+\toprule
+Object & Required fields \\
+\midrule
+\texttt{DomainMap} & lower bounds \(\ell_k\), upper bounds \(u_k\), centers
+\(a_k\), half-widths \(h_k\), \(\log J\).\\
+\texttt{Basis1D} & degree \(p_k\), Legendre recurrence evaluator, mass matrix
+\(M_k=I\).\\
+\texttt{FitDesign} & Halton points, coordinate primes, uniform weights,
+\(N_{\rm fit}\).\\
+\texttt{TTCore} & array with shape \((r_{k-1},p_k,r_k)\).\\
+\texttt{TTFunction} & ordered cores, basis objects, evaluation routine.\\
+\texttt{SquaredTTDensity} & root TT, \(\tau_t\), uniform defensive density,
+\(c_t\), \(R_0\), \(\widehat z_t\), square-core environments.\\
+\texttt{FilterObject} & numerator representation \(a_t\), normalizer
+\(\widehat z_t\), value, log-value, derivative, and log-derivative evaluators.\\
+\texttt{BranchObject} & ordering, domain maps, basis degrees, ranks, design
+points, weights, ridge, sweep count, initialization, shift, \(\tau_t\),
+vectorization order, saved ALS systems.\\
+\texttt{SensitivityObject} & derivatives of target values, cores, environments,
+normalizers, marginal numerator, and score terms.\\
+\bottomrule
+\end{longtable}
+
+Saving these objects is not optional.  Without them, an implementation cannot
+prove that the derivative pass differentiates the same scalar as the forward
+pass.
+
+\section{Forward Filtering Algorithm In Pseudocode}
+
+\begin{enumerate}[label=\textbf{F\arabic*.},leftmargin=*]
+\item Choose and save \(B_t\): domain map, Legendre degrees, ranks, Halton
+points, weights, ridge, sweep count, initialization rule, \(\epsilon_\tau\),
+and \(c_t\).
+\item At each fitting point \(z^{(j)}\), compute
+\[
+  \widetilde q_t(z^{(j)};\alpha)
+  =
+  \widehat p_{t-1}(\Psi_{t,{\rm old}}(z^{(j)});\alpha)
+  f_\alpha(\Psi_{t,x}(z^{(j)})\mid \Psi_{t,{\rm old}}(z^{(j)}))
+  g_\alpha(y_t\mid \Psi_{t,x}(z^{(j)}))
+  J_t.
+\]
+\item Form \(y_j=\exp(c_t/2)\sqrt{\widetilde q_t(z^{(j)};\alpha)}\).
+\item Run exactly \(S\) bidirectional ridge ALS sweeps using
+\eqref{eq:p15-als-row} and \eqref{eq:p15-ridge-normal}.
+\item Compute \(R_0\) by \eqref{eq:p15-R-recursion} and
+\(\widehat z_t=R_0+\tau_t\).
+\item Add \(\log\widehat z_t-c_t\) to the approximate log-likelihood.
+\item Build and save the next \texttt{FilterObject} by
+\eqref{eq:p15-filter-object}.
+\end{enumerate}
+
+\section{Derivative Of Target Values And Previous-Filter Evaluations}
+
+For a positive density value,
+\[
+  y_j=\exp(c_t/2)\sqrt{\widetilde q_j},
+  \qquad
+  \dot y_j=\frac12 y_j\,\partial_i\log\widetilde q_j,
+  \label{eq:p15-ydot}
+\]
+because \(c_t\) is frozen.  Here and below a dot denotes
+\(\partial_i\).  At time \(t\),
+\[
+  \partial_i\log\widetilde q_t
+  =
+  \partial_i\log\widehat p_{t-1}
+  +
+  \partial_i\log f_\alpha
+  +
+  \partial_i\log g_\alpha,
+  \label{eq:p15-logqdot}
+\]
+since the branch domain Jacobian is fixed.
+
+The previous filter derivative is evaluated from its saved numerator:
+\[
+  \widehat p_{t-1}(z_K)=a_{t-1}(z_K)/\widehat z_{t-1},
+  \qquad
+  \partial_i\log\widehat p_{t-1}
+  =
+  \frac{\dot a_{t-1}}{a_{t-1}}
+  -
+  \frac{\dot{\widehat z}_{t-1}}{\widehat z_{t-1}}.
+  \label{eq:p15-prev-filter-dot}
+\]
+This is the operational reason for saving derivative environments for the
+next filter object.
+
+In code, the evaluation routine for a new kept-coordinate point performs:
+\begin{enumerate}[label=\textbf{E\arabic*.},leftmargin=*]
+\item Evaluate the kept-coordinate basis vectors \(b_k(z_k)\).
+\item Build \(E_k(z_k)\) and \(\dot E_k(z_k)\) from
+\eqref{eq:p15-Ek} and the derivative analogue.
+\item Use stored \(Q_k,\dot Q_k\) for integrated coordinates.
+\item Form \(T_k,\dot T_k\), prefix products \(P_k\), and suffix products
+\(S_k\) by \eqref{eq:p15-prefix-suffix}.
+\item Compute \(a_t\), \(\dot a_t\), \(\log\widehat p_t\), and
+\(\partial_i\log\widehat p_t\) by
+\eqref{eq:p15-log-filter-eval} and \eqref{eq:p15-log-filter-dot-eval}.
+\end{enumerate}
+No hidden tensor-train operation remains in this evaluator; it is only matrix
+products in the squared ranks.
+
+\section{Derivative Through Fixed ALS Sweeps}
+
+Each stored ALS update solves
+\[
+  N g=d,\qquad N=A^\top W A+\rho I,\qquad d=A^\top W y.
+  \label{eq:p15-Ngd}
+\]
+For the fixed branch, \(W\), \(\rho\), ranks, and fitting points are fixed.
+The matrices \(A\) may still depend on \(\alpha\) because their rows contain
+environments from other cores, and those cores depend on previous ALS updates.
+Differentiating gives
+\[
+  \dot N=\dot A^\top W A+A^\top W\dot A,
+  \qquad
+  \dot d=\dot A^\top W y+A^\top W\dot y.
+  \label{eq:p15-Nd-dot}
+\]
+
+\begin{proposition}[Fixed-rank ridge ALS solve derivative]
+If \(N\) is nonsingular, the derivative of the stored update is
+\[
+  N\dot g=\dot d-\dot N g.
+  \label{eq:p15-gdot}
+\]
+\end{proposition}
+
+\begin{proof}
+Differentiate \(Ng=d\).  The product rule gives
+\[
+  \dot N g+N\dot g=\dot d.
+\]
+Rearranging gives \eqref{eq:p15-gdot}.  The ridge term helps make \(N\)
+nonsingular, but the implementation must still monitor conditioning.
+\end{proof}
+
+The derivative of the design row follows from
+\[
+  A_{j,\cdot}^{(k)}
+  =
+  (R_j^{(k)})^\top\otimes b_k(z_k^{(j)})^\top\otimes L_j^{(k)}.
+\]
+The basis values are fixed, so
+\[
+  \dot A_{j,\cdot}^{(k)}
+  =
+  (\dot R_j^{(k)})^\top\otimes b_k(z_k^{(j)})^\top\otimes L_j^{(k)}
+  +
+  (R_j^{(k)})^\top\otimes b_k(z_k^{(j)})^\top\otimes \dot L_j^{(k)}.
+  \label{eq:p15-Adot-row}
+\]
+The environments use ordinary product rules.  For example,
+\[
+  \dot L_j^{(k)}
+  =
+  \sum_{m<k}
+  G_1\cdots \dot G_m\cdots G_{k-1}.
+  \label{eq:p15-Ldot}
+\]
+
+\section{Derivative Of Mass Contractions, Marginals, And The Likelihood Scalar}
+
+Differentiate the mass contraction \eqref{eq:p15-R-recursion}.  With fixed
+mass matrices,
+\[
+\begin{aligned}
+  \dot R_{k-1}
+  =
+  \sum_{a,b}M_k[a,b]\Big[
+  &\dot C_{k,a}R_kC_{k,b}^{\top}
+  +C_{k,a}\dot R_kC_{k,b}^{\top}  \\
+  &+C_{k,a}R_k\dot C_{k,b}^{\top}
+  \Big],
+\end{aligned}
+  \label{eq:p15-Rdot}
+\]
+with \(\dot R_D=0\).  Therefore
+\[
+  \dot{\widehat z}_t=\dot R_0+\dot\tau_t=\dot R_0.
+  \label{eq:p15-zdot}
+\]
+
+For the marginal numerator, differentiate the square core:
+\[
+  \dot H_k(z_k)=\dot G_k(z_k)\otimes G_k(z_k)+G_k(z_k)\otimes \dot G_k(z_k).
+  \label{eq:p15-Hdot}
+\]
+Integrated environments are differentiated by the concrete chain rule
+\eqref{eq:p15-adot-chain}.  In array form, the stored matrices have shapes
+\[
+  Q_k,\dot Q_k,E_k,\dot E_k
+  \in
+  \R^{r_{k-1}^2\times r_k^2},
+  \qquad
+  P_k\in\R^{1\times r_k^2},
+  \qquad
+  S_k\in\R^{r_k^2\times1}.
+  \label{eq:p15-env-shapes}
+\]
+The defensive kept term is fixed, so its derivative is zero in the primary P15
+branch.
+
+\begin{proposition}[Normalized approximate filtering]
+If \(\phi_t\) is measurable, \(\tau_t>0\), and \(R_0<\infty\), then
+\[
+  \widehat p_t(z_K)=a_t(z_K)/\widehat z_t
+\]
+is a nonnegative normalized density on the kept coordinates.
+\end{proposition}
+
+\begin{proof}
+The density \(\widehat q_t=\phi_t^2+\tau_t2^{-D}\) is nonnegative and has
+finite positive integral \(\widehat z_t=R_0+\tau_t\).  Hence
+\(\widehat q_t/\widehat z_t\) is a normalized joint density on
+\([-1,1]^D\).  The marginal over \(z_K\) is nonnegative and integrates to one
+by Tonelli's theorem.
+\end{proof}
+
+\begin{proposition}[Same-scalar fixed-branch gradient]
+For the saved branch \(B\), the gradient algorithm differentiates exactly
+\[
+  \widehat\ell_T^{\TT}(\alpha;B)
+  =
+  \sum_{t=1}^T
+  \{\log(R_{t,0}(\alpha;B_t)+\tau_t)-c_t\}.
+\]
+For one parameter coordinate,
+\[
+  \partial_i\widehat\ell_T^{\TT}(\alpha;B)
+  =
+  \sum_{t=1}^T
+  \frac{\partial_iR_{t,0}(\alpha;B_t)}
+       {R_{t,0}(\alpha;B_t)+\tau_t}.
+  \label{eq:p15-final-gradient}
+\]
+\end{proposition}
+
+\begin{proof}
+For the primary branch, \(\dot\tau_t=\dot c_t=0\).  Differentiating the
+\(t\)-th summand gives
+\[
+  \partial_i\{\log(R_{t,0}+\tau_t)-c_t\}
+  =
+  \frac{\dot R_{t,0}}{R_{t,0}+\tau_t}.
+\]
+The cores that determine \(R_{t,0}\) are obtained by a fixed finite sequence
+of differentiable ridge solves.  Proposition 3 gives the derivative of each
+solve, and \eqref{eq:p15-Rdot} gives the derivative of the mass contraction.
+The previous-filter dependence is included through
+\eqref{eq:p15-prev-filter-dot}.  Therefore the derivative is the derivative of
+the same scalar computed by the forward pass.
+\end{proof}
+
+\section{Complete Gradient Algorithm In Pseudocode}
+
+\begin{enumerate}[label=\textbf{G\arabic*.},leftmargin=*]
+\item Run the forward filter and save every branch object, ALS system, core,
+environment, \(R_0\), \(\widehat z_t\), and marginal numerator object.
+\item For a parameter coordinate \(\alpha_i\), evaluate
+\(\partial_i\log f_\alpha\) and \(\partial_i\log g_\alpha\) at fitting points.
+\item At \(t=1\), use the prior derivative.  At \(t>1\), evaluate
+\(\partial_i\log\widehat p_{t-1}\) by \eqref{eq:p15-prev-filter-dot}.
+\item Form \(\dot y_j\) by \eqref{eq:p15-ydot}.
+\item Replay the fixed ALS sweeps.  At every core update, form
+\(\dot A\), \(\dot N\), \(\dot d\), and solve \eqref{eq:p15-gdot}.
+\item Compute \(\dot R_0\) by \eqref{eq:p15-Rdot}.
+\item Add \(\dot R_0/(R_0+\tau_t)\) to the score.
+\item Build derivative environments for the next \texttt{FilterObject}: save
+\(\mathcal H_{k,ab}\), \(\dot{\mathcal H}_{k,ab}\), \(Q_k\), \(\dot Q_k\),
+\(\widehat z_t\), \(\dot{\widehat z}_t\), and \(\tau_t2^{-|K|}\).  Its
+evaluation routine is exactly \textbf{E1}--\textbf{E5}.
+\end{enumerate}
+
+This recipe is intentionally replay based.  It is longer than simply applying
+automatic differentiation, but every derivative is tied to a stored object in
+the forward pass.
+
+\section{Numerical Stabilization And Failure Diagnostics}
+
+The implementation must report:
+\[
+  \frac{\|A g-y\|_2}{\|y\|_2},\qquad
+  \max_k r_k,\qquad
+  \max_{\text{ALS updates}}\kappa(N_k),
+  \qquad
+  \frac{\tau_t}{R_0+\tau_t}.
+  \label{eq:p15-diagnostics}
+\]
+It must also report whether any fitted or marginal numerator evaluation is
+nonfinite.  A large residual means the square-root density was not fitted
+well.  A large condition number means the fixed linear algebra is unstable.
+An overly large defensive-mass ratio means the uniform floor is dominating the
+filter.  These diagnostics can veto a run, but they do not prove posterior
+accuracy when they look good.
+
+\section{Finite-Difference Parity Test}
+
+For the saved branch \(B_0\), test the scalar
+\[
+  \widehat\ell_T^{\TT}(\alpha;B_0)
+  =
+  \sum_t\{\log(R_{t,0}(\alpha;B_0)+\tau_t)-c_t\}.
+  \label{eq:p15-parity-scalar}
+\]
+For each tested coordinate \(i\), compute
+\[
+  D_i(h)=
+  \frac{
+  \widehat\ell_T^{\TT}(\alpha_0+h e_i;B_0)
+  -
+  \widehat\ell_T^{\TT}(\alpha_0-h e_i;B_0)}
+  {2h},
+  \label{eq:p15-centered-difference}
+\]
+using
+\[
+  h\in\{10^{-3},10^{-4},10^{-5},10^{-6}\}\max(1,|\alpha_{0,i}|).
+  \label{eq:p15-h-ladder}
+\]
+Report
+\[
+  e_i(h)=
+  \frac{|D_i(h)-\partial_i\widehat\ell_T^{\TT}(\alpha_0;B_0)|}
+       {1+|D_i(h)|+|\partial_i\widehat\ell_T^{\TT}(\alpha_0;B_0)|}.
+  \label{eq:p15-parity-error}
+\]
+The branch objects, fitting points, ranks, shift, defensive mass, and sweep
+count must remain unchanged at \(\alpha_0\pm h e_i\).  If the smallest
+\(e_i(h)\) is larger than \(10^{-4}\) in the minimal example, the reference
+implementation fails the same-scalar test.
+
+\section{Minimal Runnable Example}
+
+The P15 reference script implements a two-step scalar nonlinear model:
+\[
+  x_0\sim N(0,\sigma_0^2),\qquad
+  x_1\mid x_0\sim N(\alpha x_0,\sigma_\eta^2),
+  \label{eq:p15-toy-transition}
+\]
+\[
+  y_1\mid x_1\sim N(x_1^2,\sigma_\epsilon^2).
+  \label{eq:p15-toy-observation}
+\]
+The second step uses the saved approximate filter from the first step:
+\[
+  \widehat p_1(x_1;\alpha)=a_1(x_1;\alpha)/\widehat z_1(\alpha),
+  \qquad
+  x_2\mid x_1\sim N(\alpha x_1,\sigma_\eta^2),
+  \qquad
+  y_2\mid x_2\sim N(x_2^2,\sigma_\epsilon^2).
+  \label{eq:p15-toy-step2}
+\]
+Thus the example exercises the recursive carry-forward object, not only the
+one-step normalizer.
+
+At each step the augmented variable is \(r=(x_t,x_{t-1})\), so \(D=2\).  The
+script uses \([-3,3]^2\), degree \(5\), \(N_{\rm fit}=96\), fixed rank one,
+ridge \(10^{-8}\), five bidirectional sweeps, and
+\(\epsilon_\tau=10^{-10}\).  The parameter is \(\alpha\).
+
+The derivative of the transformed log density is
+\[
+  \partial_\alpha\log\widetilde q(z;\alpha)
+  =
+  \frac{(x_1-\alpha x_0)x_0}{\sigma_\eta^2},
+  \label{eq:p15-toy-logqdot}
+\]
+because the prior, likelihood, and fixed Jacobian do not depend on
+\(\alpha\).  The script then applies \eqref{eq:p15-ydot},
+\eqref{eq:p15-gdot}, and \eqref{eq:p15-final-gradient}.
+
+At the second step, the derivative of the transformed log density includes the
+saved-filter term:
+\[
+  \partial_\alpha\log\widetilde q_2
+  =
+  \partial_\alpha\log\widehat p_1(x_1;\alpha)
+  +
+  \frac{(x_2-\alpha x_1)x_1}{\sigma_\eta^2}.
+  \label{eq:p15-toy-step2-dot}
+\]
+The script obtains \(\partial_\alpha\log\widehat p_1\) from
+\eqref{eq:p15-log-filter-dot-eval}.  This is the concrete recursive path that
+the one-step P14 note did not test.
+
+The run produced:
+\[
+\begin{array}{ll}
+c_1&=-0.445460193510,\\
+c_2&=-1.496961434280,\\
+\widehat\ell&=-0.569442222488,\\
+\partial_\alpha\widehat\ell&=-1.004731548060,\\
+\text{step 1 fit residual}&=3.905823\times10^{-1},\\
+\text{step 2 fit residual}&=3.544318\times10^{-1},\\
+\max\kappa(N)\text{ at step 1}&=2.977710,\\
+\max\kappa(N)\text{ at step 2}&=2.914195.
+\end{array}
+\]
+The centered-difference relative errors were
+\[
+\begin{array}{ccc}
+h & D(h) & e(h)\\
+10^{-3} & -1.004731310930 & 7.879523\times10^{-8}\\
+10^{-4} & -1.004731545700 & 7.856375\times10^{-10}\\
+10^{-5} & -1.004731548040 & 7.604872\times10^{-12}\\
+10^{-6} & -1.004731548630 & 1.879178\times10^{-10}.
+\end{array}
+\]
+The parity check passes.  The large-ish fit residual is not hidden: this toy
+example is a same-scalar gradient and implementability check, not a claim that
+rank one is an accurate filter for the nonlinear density.
+
+\section{Relation To Zhao--Cui And What Remains To Be Tested}
+
+Zhao--Cui use sequential tensor-train approximations of the joint density over
+\((x_t,\theta,x_{t-1})\), squared density representations of the form
+\(\phi^2+\tau\lambda\), normalizers, marginalization, and conditional
+transport maps.  P15 keeps that filtering architecture but freezes the
+numerical branch and replaces the adaptive approximation machinery by one
+explicit fixed-rank ridge ALS path so that a same-scalar derivative can be
+written and tested.
+
+What this note proves is limited but useful:
+\[
+  \text{fixed branch}+\text{squared density}+\text{finite positive mass}
+  \Longrightarrow
+  \text{normalized approximate filter},
+\]
+and
+\[
+  \text{fixed branch}+\text{differentiable stored solves}
+  \Longrightarrow
+  \nabla_\alpha\widehat\ell_T^{\TT}(\alpha;B)
+  \text{ for the same scalar.}
+\]
+What remains empirical is accuracy and efficiency on a target high-dimensional
+model: fit residuals, rank growth, conditioning, defensive-mass ratio,
+finite-difference parity, and comparison against fixed sparse-grid Gaussian
+projection filtering.
+
+\appendix
+\section{Source And Code Anchors}
+
+The main text is self-contained.  These anchors explain provenance:
+\begin{itemize}[leftmargin=*]
+\item Zhao--Cui state-space model equations (1)--(3): source for the SSM
+notation.
+\item Zhao--Cui equations (9)--(12) and Algorithm 1: source for the sequential
+joint density over \((x_t,\theta,x_{t-1})\) and the integration architecture.
+\item Zhao--Cui equation (13), Lemma 1, Algorithm 2, and Proposition 2: source
+for squared-TT density and marginal construction.
+\item Zhao--Cui Section 4.1: source for the evidence/normalizer role.
+\item Cui--Dolgov Sections 2--3: source context for squared inverse
+Rosenblatt and functional tensor-train transport.
+\item Inspected code paths: \texttt{models/full\_sol.m} updates
+\(\log(\texttt{sirt.z})-\texttt{const}\), and
+\texttt{@TTSIRT/marginalise.m} computes
+\(\texttt{obj.z}=\texttt{obj.fun\_z}+\texttt{obj.tau}\).
+\end{itemize}
+
+The exact Legendre basis, Halton design, fixed-rank ridge ALS protocol, frozen
+shift rule, and reference Python example are P15 design choices.  They are not
+claimed to be Zhao--Cui's adaptive MATLAB implementation.
+
+\section{Symbol Table And Array Shapes}
+
+\begin{longtable}{p{0.23\linewidth}p{0.67\linewidth}}
+\toprule
+Symbol & Meaning \\
+\midrule
+\(D\) & augmented dimension of \(r_t=(x_t,\vartheta,x_{t-1})\).\\
+\(z\) & reference coordinate in \([-1,1]^D\).\\
+\(\Psi_t\) & affine map from reference coordinate to physical coordinate.\\
+\(b_{k,a}\) & normalized Legendre basis function for coordinate \(k\).\\
+\(C_{k,a}\) & coefficient slice, shape \(r_{k-1}\times r_k\).\\
+\(G_k(z_k)\) & TT factor, shape \(r_{k-1}\times r_k\).\\
+\(\phi_t\) & square-root TT function.\\
+\(H_k\) & square core \(G_k\otimes G_k\).\\
+\(R_k\) & suffix mass-contraction environment.\\
+\(A^{(k)}\) & design matrix for the ALS update of core \(k\).\\
+\(N_k\) & ridge normal matrix \(A^\top W A+\rho I\).\\
+\(a_t\) & marginal numerator for the next filter.\\
+\(\widehat z_t\) & approximate one-step normalizer.\\
+\(B_t\) & all frozen branch objects at time \(t\).\\
+\bottomrule
+\end{longtable}
+
+\end{document}
