@@ -631,8 +631,29 @@ def tf_fixed_sgqf_combination_coefficient(
 def _merge_key(point: tuple[float, ...], tolerance: float) -> tuple[object, ...]:
     if tolerance == 0.0:
         return tuple(float(value).hex() for value in point)
-    scaled = tolerance * max(1.0, max(abs(float(value)) for value in point))
-    return tuple(int(round(float(value) / scaled)) for value in point)
+    return tuple(int(round(float(value) / tolerance)) for value in point)
+
+
+def _find_merged_point(
+    merged: dict[tuple[object, ...], dict[str, object]],
+    point: tuple[float, ...],
+    tolerance: float,
+) -> tuple[object, ...] | None:
+    key = _merge_key(point, tolerance)
+    candidate_keys = [key]
+    if tolerance != 0.0:
+        for offsets in product((-1, 0, 1), repeat=len(point)):
+            neighbor = tuple(component + offset for component, offset in zip(key, offsets))
+            if neighbor not in candidate_keys:
+                candidate_keys.append(neighbor)
+    for candidate_key in candidate_keys:
+        existing = merged.get(candidate_key)
+        if existing is None:
+            continue
+        existing_point = tuple(float(value) for value in existing["point"])
+        if max(abs(point_component - existing_component) for point_component, existing_component in zip(point, existing_point)) <= tolerance:
+            return candidate_key
+    return None
 
 
 def _unstack_floats(values: tf.Tensor) -> tuple[float, ...]:
@@ -675,11 +696,11 @@ def tf_fixed_sgqf_cloud(
             weight = float(coefficient)
             for axis, index in enumerate(choice):
                 weight *= rule_weights[axis][index]
-            key = _merge_key(point, merge_tolerance)
-            if key in merged:
-                merged[key]["weight"] = float(merged[key]["weight"]) + weight
+            existing_key = _find_merged_point(merged, point, merge_tolerance)
+            if existing_key is not None:
+                merged[existing_key]["weight"] = float(merged[existing_key]["weight"]) + weight
             else:
-                merged[key] = {"point": point, "weight": weight}
+                merged[_merge_key(point, merge_tolerance)] = {"point": point, "weight": weight}
 
     items = [item for item in merged.values() if abs(float(item["weight"])) > zero_weight_tolerance]
     items.sort(key=lambda item: tuple(float(value) for value in item["point"]))

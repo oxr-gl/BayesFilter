@@ -446,12 +446,28 @@ def test_fixed_sgqf_scalar_quadratic_level1_is_less_accurate_than_level2_dense_r
 
 
 def test_fixed_sgqf_scalar_quadratic_level3_reports_carried_covariance_block() -> None:
-    fixed_model, _structural_model, observations = _fixed_sgqf_scalar_quadratic_model()
+    fixed_model, structural_model, observations = _fixed_sgqf_scalar_quadratic_model()
+    dense = dense_projection_first_step(structural_model, observations[0], nodes_per_dim=21)
     result = tf_fixed_sgqf_filter(observations[:1], fixed_model, cloud=tf_fixed_sgqf_cloud(dim=1, sparse_level=3), return_filtered=True)
 
-    assert result.failure is not None
-    assert result.failure.stage == "carried_covariance"
-    assert result.failure.time_index == 0
+    assert result.failure is None
+    step = result.step_results[0]
+    np.testing.assert_allclose(step.observation_mean.numpy(), dense.observation_mean.numpy(), atol=1e-10)
+    np.testing.assert_allclose(step.innovation_covariance.numpy(), dense.observation_covariance.numpy(), atol=1e-10)
+    np.testing.assert_allclose(step.filtered_mean.numpy(), dense.filtered_mean.numpy(), atol=1e-10)
+
+
+
+def test_fixed_sgqf_scalar_quadratic_level4_matches_dense_reference_after_merge_fix() -> None:
+    fixed_model, structural_model, observations = _fixed_sgqf_scalar_quadratic_model()
+    dense = dense_projection_first_step(structural_model, observations[0], nodes_per_dim=21)
+    result = tf_fixed_sgqf_filter(observations[:1], fixed_model, cloud=tf_fixed_sgqf_cloud(dim=1, sparse_level=4), return_filtered=True)
+
+    assert result.failure is None
+    step = result.step_results[0]
+    np.testing.assert_allclose(step.observation_mean.numpy(), dense.observation_mean.numpy(), atol=1e-10)
+    np.testing.assert_allclose(step.innovation_covariance.numpy(), dense.observation_covariance.numpy(), atol=1e-10)
+    np.testing.assert_allclose(step.filtered_mean.numpy(), dense.filtered_mean.numpy(), atol=1e-10)
 
 
 

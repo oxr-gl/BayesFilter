@@ -3,6 +3,8 @@
 ## Plan reference
 - `docs/plans/bayesfilter-fixed-sgqf-p8-closeout-and-claim-audit-subplan-2026-06-14.md`
 - `docs/plans/bayesfilter-fixed-sgqf-testing-and-comparison-master-program-2026-06-14.md`
+- superseding cloud-construction update:
+  `docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p51-fixed-sgqf-merge-fix-result-2026-06-15.md`
 
 ## Status
 - Outcome token: `PASS_P8_FIXED_SGQF_CLOSEOUT_COMPLETE`
@@ -19,52 +21,65 @@ CUDA_VISIBLE_DEVICES=-1 pytest -q tests/test_fixed_sgqf_tf.py tests/test_fixed_s
 | git commit | `26485010c28e11b3591da59b7ca375d4764c3d8d` |
 | environment | `anaconda3/envs/tf-gpu` |
 | CPU/GPU status | `CPU-only; CUDA_VISIBLE_DEVICES=-1` |
-| final SGQF suite status | `38 passed, 2 warnings` |
+| original-program suite status at first closeout | `38 passed, 2 warnings` |
+| current repaired-lane suite status | `41 passed, 2 warnings` |
 | plan path | `docs/plans/bayesfilter-fixed-sgqf-p8-closeout-and-claim-audit-subplan-2026-06-14.md` |
 | result path | `docs/plans/bayesfilter-fixed-sgqf-p8-closeout-and-claim-audit-result-2026-06-14.md` |
+| governing update | `docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p51-fixed-sgqf-merge-fix-result-2026-06-15.md` |
 
 ## Result summary
-The overnight fixed-SGQF program completed all planned phases P0-P8 without a
-hard stop.  Several gaps were fully closed at local tested scope, and several
-higher-level or broader-scope questions were converted into explicit limits
-rather than hidden assumptions.
+The original fixed-SGQF program still closes as a pass, but this closeout is now
+explicitly reconciled with the post-fix merge-fix rerun.
 
-One implementation fix was required during execution:
-- `bayesfilter/nonlinear/fixed_sgqf_tf.py` now uses
-  `tf.linalg.matrix_transpose(...)` inside `_symmetrize(...)` so derivative-path
-  batched covariance tensors are symmetrized rank-safely.
+The earlier pre-fix interpretation that higher-level cloud behavior itself was a
+local SGQF limitation on the tested scalar and affine rows is superseded. The
+source-authority audit and the p51 merge-fix result showed that the higher-level
+merge bug was real, and once repaired:
+- higher-level clouds become source-consistent on the tested rows,
+- 2D level-3 cloud covariance mismatch disappears,
+- scalar level-3/4/5 `carried_covariance` failures disappear on the tested row,
+- 3D affine level-3 also matches exact Kalman.
 
-The fixed-SGQF suite now passes locally with expanded coverage:
-- `38 passed, 2 warnings`.
+Two implementation fixes now govern the current lane:
+1. rank-safe `_symmetrize(...)` for derivative-path tensors;
+2. source-faithful higher-level cloud merge repair.
+
+The current fixed-SGQF suite passes locally with the repaired lane:
+- `41 passed, 2 warnings`.
 
 ## Required closure matrix
 | Gap | Status | Supporting phase(s) | Evidence class | Main uncertainty | Next justified action | What is not concluded |
 |---|---|---|---|---|---|---|
 | G1 multistep nonlinear dense-reference | `closed` | P1 | `dense_numerical_reference` | only one selected 1D nonlinear fixture | add harder nonlinear fixtures if needed | no general nonlinear exactness claim |
 | G2 higher-dimensional accepted-path validation | `partially_closed` | P2, P4 | `exact_reference`, `contract_failure` | nonlinear higher-dimensional accepted paths remain thinner than affine ones | add additional nonlinear accepted-path fixtures if needed | no blanket higher-dimensional pass claim |
-| G3 cloud exactness beyond current small cases | `partially_closed` | P3 | `contract_failure` / tested-moment evidence | higher-level behavior is not uniformly stronger | extend tested-moment ladder cautiously | no all-moment or all-level exactness claim |
+| G3 cloud exactness beyond current small cases | `closed` | P3 plus p51 | `contract_failure` / tested-moment evidence | broader higher-level clouds beyond tested rows still need case-specific evidence | extend cautiously only if a consumer needs it | no all-moment or all-level exactness claim |
 | G4 later-time and later-stage failure coverage | `partially_closed` | P2, P5 | `contract_failure` | deterministic `time_index > 0` failure row still missing | keep explicit blocker; search broader fixtures only if needed | no claim that all stage/time combinations are covered |
 | G5 broader score/FD coverage | `closed` | P5 | `dense_numerical_reference` + same-branch score evidence | broader higher-dimensional and stochastic-score rows remain open | add more fixtures only if a consumer needs them | no stochastic-score or HMC readiness claim |
-| G6 multidimensional affine exact-vs-Kalman parity | `closed` | P4 | `exact_reference` | higher sparse levels can still block | use level-2 affine rows as exact anchors | no claim that all higher levels inherit parity |
+| G6 multidimensional affine exact-vs-Kalman parity | `closed` | P4 plus p51 | `exact_reference` | still local to tested rows | use these rows as exact anchors | no claim that every future higher-level row automatically inherits parity |
 | G7 same-target baseline comparison ladder | `closed` | P7 | `baseline_only` | only one selected fixture panel was run; CUT4 not eligible there | add broader same-target panels if needed | no universal ranking claim |
-| G8 sparse-level ladder vs dense | `closed` | P6 | `dense_numerical_reference` | ladder is local and non-monotone beyond level 2 | keep level-2 as stable anchor and record higher-level limits | no general convergence or monotonic-improvement claim |
+| G8 sparse-level ladder vs dense | `closed` | P6 plus p51 | `dense_numerical_reference` | ladder is still local to the tested scalar row | keep the repaired level ladder as current evidence | no general convergence or monotonic-improvement claim |
 
 ## Supported claims
 1. **Exact-reference affine support is broader than before.**
-   Fixed-SGQF level 2 now matches exact Kalman value-path outputs on tested 1D,
-   2D, and 3D affine Gaussian rows.
+   Fixed-SGQF now matches exact Kalman value-path outputs on tested 1D, 2D, and
+   3D affine Gaussian rows, including the repaired 3D level-3 row.
 2. **The local dense-reference ladder is stronger than before.**
-   On the selected scalar quadratic fixture, fixed-SGQF level 2 matches a
-   recursive dense numerical reference through three observations.
+   On the selected scalar quadratic fixture, fixed-SGQF matches a recursive dense
+   numerical reference through three observations, and higher sparse levels no
+   longer fail on that tested row after the cloud repair.
 3. **The branch/failure contract is broader than before.**
-   The lane now explicitly covers `carried_covariance` failures on both value and
-   score paths, with preserved stage labels and branch signatures.
+   The lane explicitly covers branch identity, stage labels, carried-covariance
+   logic, and same-branch score/value interpretation, while also preserving that
+   some later-time failure coverage remains open.
 4. **Score evidence is broader than before.**
-   The analytic fixed-branch score now has one multistep, four-parameter,
-   accepted-branch FD parity row.
-5. **A selected-fixture baseline panel now exists.**
-   On the scalar quadratic same-target panel, SGQF level 2 is closer to the
-   dense reference than UKF or cubature.
+   The analytic fixed-branch score has a multistep, four-parameter,
+   accepted-branch FD parity row in the repaired lane.
+5. **A selected-fixture baseline panel exists for the repaired lane.**
+   On the scalar quadratic same-target panel, fixed-SGQF is closer to the dense
+   reference than UKF or cubature on the tested row.
+6. **The higher-level failure story on the tested scalar and affine rows was revised.**
+   The previously reported level-3 cloud/value failures on those rows were caused
+   by a higher-level merge bug and are superseded by the repaired rerun.
 
 ## Unsupported or not-yet-supported claims
 - No universal SGQF superiority claim.
@@ -74,55 +89,55 @@ The fixed-SGQF suite now passes locally with expanded coverage:
 - No stochastic-score correctness claim.
 - No HMC readiness claim.
 - No claim that all later-time failure modes are now covered.
-- No claim that higher sparse levels are always safe or always better.
+- No claim that every future higher-level nonlinear row will pass.
 
 ## Diagnostics
 | Metric | Value | Interpretation |
 |---|---:|---|
-| final SGQF pass count | 38 | expanded local test coverage passes |
-| fully closed gaps | 5 | G1, G5, G6, G7, G8 |
-| partially closed gaps | 3 | G2, G3, G4 |
+| current SGQF pass count | 41 | repaired local test coverage passes |
+| fully closed gaps | 6 | G1, G3, G5, G6, G7, G8 |
+| partially closed gaps | 2 | G2, G4 |
 | hard-blocked gaps | 0 | no phase had to stop the program entirely |
-| implementation fixes applied | 1 | rank-safe `_symmetrize(...)` repair |
+| implementation fixes applied | 2 | rank-safe `_symmetrize(...)` and higher-level cloud merge repair |
 
 ## Engineering observations
-- The fixed-SGQF lane was mature enough for overnight execution, but only after
-  preserving strict label discipline.
-- The only production-surface change was small but important: rank-safe
-  symmetrization for derivative-path tensors.
-- The remaining uncertainties are mostly about scope expansion, not basic lane
-  viability.
+- The fixed-SGQF lane was mature enough for overnight execution, but the repaired
+  post-fix interpretation is more trustworthy than the original pre-fix one.
+- The higher-level merge bug was structurally important because it affected the
+  cloud itself rather than merely a downstream summary.
+- The remaining uncertainties are now mostly about scope expansion, not about the
+  correctness of the tested repaired lane.
 
 ## Empirical evidence
-- The expanded SGQF suite passes locally.
-- New evidence rows close most of the originally identified gaps at local tested
-  scope.
-- Several limits were informative rather than merely negative:
-  - affine level-3 blocking,
-  - sparse-level blocking beyond level 2,
-  - 2D level-3 cloud covariance mismatch,
-  - missing deterministic later-time failure row.
+- The repaired SGQF suite passes locally with `41 passed, 2 warnings`.
+- New post-fix evidence closes more of the originally identified gaps than the
+  first closeout did.
+- The earlier higher-level limitation story for the tested scalar and affine rows
+  is superseded by the merge-fix rerun.
 
 ## Mathematical claims
 - No new general theorem.
-- Supported mathematical claims remain local to the tested exact-reference rows
-  and named dense-reference/moment rows.
+- Supported mathematical claims remain local to the tested exact-reference rows,
+  named dense-reference rows, and named cloud-construction rows.
 
 ## Decision table
 | Decision | Primary criterion status | Veto diagnostic status | Main uncertainty | Next justified action | What is not concluded |
 |---|---|---|---|---|---|
-| close program as pass with explicit nonclaims | satisfied | no hidden-baseline, hidden-label, or overclaiming veto triggered | partially closed gaps remain local-scope limits | keep current lane as a well-tested local implementation surface; expand only for specific consumers | no broad scientific or production policy claim |
+| close program as pass with explicit nonclaims and repaired-lane reconciliation | satisfied | no hidden-baseline, hidden-label, or overclaiming veto triggered | partially closed gaps remain local-scope limits | treat the current lane as the repaired fixed-SGQF implementation surface; expand only for specific consumers | no broad scientific or production policy claim |
 
 ## Next step
 1. **Implementation-hardening**
-   - keep the `_symmetrize(...)` rank-safe fix;
+   - keep both implementation fixes: rank-safe symmetrization and repaired cloud
+     merge behavior;
    - if a consumer needs stronger later-time failure coverage, design a broader
      deterministic fixture search rather than forcing a weak row.
 2. **Research-comparison**
    - extend the baseline panel to additional same-target rows only if there is a
      real model-selection consumer;
-   - treat higher sparse levels as a hypothesis to test, not a default upgrade.
+   - treat future higher-level rows as hypotheses to test, not as automatic
+     extensions of the repaired evidence.
 3. **Documentation/API**
-   - summarize the tested scope of fixed-SGQF in a reset memo or developer note;
-   - document that current strong support is level-2 affine and selected 1D
-     nonlinear ladders, not a general SGQF certification.
+   - summarize the tested scope of the repaired fixed-SGQF lane in a reset memo or
+     developer note;
+   - note explicitly that the pre-fix higher-level failure story on the tested
+     scalar and affine rows has been superseded.
