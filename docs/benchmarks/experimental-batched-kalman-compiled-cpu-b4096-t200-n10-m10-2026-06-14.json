@@ -1,0 +1,23 @@
+{
+  "cuda_visible_devices": "-1",
+  "device_arg": "/CPU:0",
+  "device_scope": "cpu",
+  "expect_device_kind": "cpu",
+  "failure_classification": "capacity_timeout",
+  "finite_outputs": null,
+  "mode": "compiled-timing",
+  "notes": [
+    "The command was well formed and used a JIT/XLA compiled batched path.",
+    "CPU B=4096 did not finish within the visible Phase 4 timeout cap.",
+    "This is capacity evidence, not a scalar parity or nonfinite-output failure."
+  ],
+  "planned_timeout_seconds": 300,
+  "shape": {
+    "batch_size": 4096,
+    "obs_dim": 10,
+    "parameter_dim": 2,
+    "state_dim": 10,
+    "time_steps": 200
+  },
+  "status": "timeout_no_json_from_benchmark_process"
+}

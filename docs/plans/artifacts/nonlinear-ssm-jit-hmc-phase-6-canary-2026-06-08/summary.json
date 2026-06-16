@@ -1,0 +1,148 @@
+{
+  "artifact_type": "bayesfilter_phase6_engineering_canary_summary",
+  "cpu_gpu_status": {
+    "CUDA_VISIBLE_DEVICES": "-1",
+    "tensorflow_visible_gpus": []
+  },
+  "hmc": {
+    "acceptance_rate": 1.0,
+    "divergence_count": null,
+    "divergence_status": "unavailable",
+    "finite_sample_count": 2,
+    "jit_compile": true,
+    "nonclaims": [
+      "tiny full-chain HMC engineering gate only",
+      "no sampler convergence claim",
+      "no posterior validity claim",
+      "no GPU readiness claim",
+      "no performance superiority claim"
+    ],
+    "nonfinite_sample_count": 0,
+    "program_signature": "cfda6aded390b128a38a020a9f76b7115dd7ac9d305f0de71576ea8b6f05ec90",
+    "runtime": "tfp.mcmc.sample_chain",
+    "sample_shape": [
+      2,
+      3
+    ],
+    "target_scope": "phase6_model_b_nonlinear_canary"
+  },
+  "nonclaims": [
+    "bounded BayesFilter engineering canary only",
+    "no sampler convergence claim",
+    "no posterior validity claim",
+    "no DSGE readiness claim",
+    "no GPU readiness claim",
+    "no performance superiority claim"
+  ],
+  "program_signature": "bayesfilter-phase6-nonlinear-ssm-jit-hmc-canary-v1",
+  "reducer_reason": "complete_result_present",
+  "reducer_status": "complete",
+  "stale_match_payload": {
+    "device_policy": {
+      "CUDA_VISIBLE_DEVICES": "-1",
+      "mode": "cpu_only",
+      "tensorflow_visible_gpus_after_import": []
+    },
+    "normalized_config": {
+      "backend": "tf_svd_cut4",
+      "cpu_only": true,
+      "fixture": "ModelBNonlinearSVDTarget.default",
+      "jit_compile": true,
+      "num_burnin_steps": 1,
+      "num_leapfrog_steps": 1,
+      "num_results": 2,
+      "seed": [
+        20260608,
+        6
+      ],
+      "step_size": 0.0005,
+      "target_scope": "phase6_model_b_nonlinear_canary",
+      "trace_policy": "standard"
+    },
+    "program_signature": "bayesfilter-phase6-nonlinear-ssm-jit-hmc-canary-v1",
+    "thread_caps": {
+      "OMP_NUM_THREADS": null,
+      "TF_NUM_INTEROP_THREADS": null,
+      "TF_NUM_INTRAOP_THREADS": null
+    },
+    "worker_config_hash": "c3a53222a0321e3d9f2577880efe51b5b2f7e3d45a94a7d3ac320af98690fc71"
+  },
+  "summary_signature": "fcb158fcf6b3d2d04fe6499645ef8b852b6d13e94e94bb5578a0b887582ef90b",
+  "timing_buckets": [
+    {
+      "elapsed_s": 2.020028869039379,
+      "name": "filter",
+      "nonclaims": [
+        "timing is not a validity or promotion criterion"
+      ],
+      "role": "explanatory_only"
+    },
+    {
+      "elapsed_s": 6.9601049199700356,
+      "name": "value_score",
+      "nonclaims": [
+        "timing is not a validity or promotion criterion"
+      ],
+      "role": "explanatory_only"
+    },
+    {
+      "elapsed_s": 6.21307937905658,
+      "name": "hmc_kernel",
+      "nonclaims": [
+        "timing is not a validity or promotion criterion"
+      ],
+      "role": "explanatory_only"
+    },
+    {
+      "elapsed_s": 0.0,
+      "name": "artifact_overhead",
+      "nonclaims": [
+        "timing is not a validity or promotion criterion"
+      ],
+      "role": "explanatory_only"
+    }
+  ],
+  "value_path": {
+    "backend": "tf_svd_cut4",
+    "filtered_covariance_shape": [
+      3,
+      2,
+      2
+    ],
+    "filtered_mean_shape": [
+      3,
+      2
+    ],
+    "fixture_name": "phase6_model_b_value_fixture",
+    "floor_count": 0.0,
+    "log_likelihood": -1.5372792647414193,
+    "psd_projection_residual": 0.0,
+    "signature": "6d95a32f157c575dfed68960c872578867f4ddfe2a789f20b4a72813b82bf679",
+    "static_shape": {
+      "augmented_dim": 3,
+      "horizon": 3,
+      "innovation_dim": 1,
+      "observation_dim": 1,
+      "observation_shape": [
+        3,
+        1
+      ],
+      "return_filtered": true,
+      "state_dim": 2
+    }
+  },
+  "value_score": {
+    "authority": "graph_native",
+    "chain_score_shape": [
+      2,
+      3
+    ],
+    "chain_values": [
+      -1.5372792647414193,
+      -1.4488111994679453
+    ],
+    "nonfinite_count": 0,
+    "target_scope": "phase6_model_b_nonlinear_canary"
+  },
+  "worker_runtime_s": 15.34570554702077
+}

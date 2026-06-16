@@ -1,0 +1,63 @@
+{
+  "compiler": {
+    "compile_and_first_call_seconds": 6.4252094849944115,
+    "compiled_unit": "one_scalar_value_score_row",
+    "jit_compile": true,
+    "python_loop_over_rows_in_benchmark_harness": true,
+    "tf_function": true,
+    "warm_calls_exclude_compile": true
+  },
+  "cuda_visible_devices": "1",
+  "device_arg": "/GPU:0",
+  "device_scope": "visible",
+  "expect_device_kind": "gpu",
+  "finite_outputs": true,
+  "host": "ubuntu-MZ72-HB2-00",
+  "logical_gpus": [
+    "LogicalDevice(name='/device:GPU:0', device_type='GPU')"
+  ],
+  "mode": "scalar-compiled-loop",
+  "notes": [
+    "Single-shape diagnostic only; not a production benchmark.",
+    "The experimental kernel hardcasts tensors to float64.",
+    "Time remains sequential; the batch axis parallelizes independent parameter rows.",
+    "Scalar-loop mode is a benchmark comparator; it is not an HMC-jittable production implementation."
+  ],
+  "per_filter_warm_median_seconds": 0.15343879079446196,
+  "physical_gpus": [
+    "PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')"
+  ],
+  "python": "3.13.13",
+  "score_abs_max": 1479.1003659312032,
+  "score_device": "/job:localhost/replica:0/task:0/device:GPU:0",
+  "score_shape": [
+    20,
+    2
+  ],
+  "shape": {
+    "batch_size": 20,
+    "obs_dim": 10,
+    "parameter_dim": 2,
+    "state_dim": 10,
+    "time_steps": 200
+  },
+  "tensorflow": "2.20.0",
+  "timestamp_utc": "2026-06-14T06:43:06.444453+00:00",
+  "timing_policy": {
+    "first_call_includes_trace_compile_and_initialization": true,
+    "materialization": "stacked value.numpy() and score.numpy() after scalar compiled row loop",
+    "repeats": 10,
+    "warmups": 3
+  },
+  "value_device": "/job:localhost/replica:0/task:0/device:GPU:0",
+  "value_shape": [
+    20
+  ],
+  "value_sum": -1016.7307167769172,
+  "warm_call_summary": {
+    "max_seconds": 3.070018389960751,
+    "mean_seconds": 3.068710963963531,
+    "median_seconds": 3.0687758158892393,
+    "min_seconds": 3.066942100878805
+  }
+}

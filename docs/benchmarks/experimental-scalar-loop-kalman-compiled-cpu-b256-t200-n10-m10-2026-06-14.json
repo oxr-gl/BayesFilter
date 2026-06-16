@@ -1,0 +1,59 @@
+{
+  "compiler": {
+    "compile_and_first_call_seconds": 16.210489249089733,
+    "compiled_unit": "one_scalar_value_score_row",
+    "jit_compile": true,
+    "python_loop_over_rows_in_benchmark_harness": true,
+    "tf_function": true,
+    "warm_calls_exclude_compile": true
+  },
+  "cuda_visible_devices": "-1",
+  "device_arg": "/CPU:0",
+  "device_scope": "cpu",
+  "expect_device_kind": "cpu",
+  "finite_outputs": true,
+  "host": "ubuntu-MZ72-HB2-00",
+  "logical_gpus": [],
+  "mode": "scalar-compiled-loop",
+  "notes": [
+    "Single-shape diagnostic only; not a production benchmark.",
+    "The experimental kernel hardcasts tensors to float64.",
+    "Time remains sequential; the batch axis parallelizes independent parameter rows.",
+    "Scalar-loop mode is a benchmark comparator; it is not an HMC-jittable production implementation."
+  ],
+  "per_filter_warm_median_seconds": 0.05056717237494013,
+  "physical_gpus": [],
+  "python": "3.13.13",
+  "score_abs_max": 1479.1003659312034,
+  "score_device": "/job:localhost/replica:0/task:0/device:CPU:0",
+  "score_shape": [
+    256,
+    2
+  ],
+  "shape": {
+    "batch_size": 256,
+    "obs_dim": 10,
+    "parameter_dim": 2,
+    "state_dim": 10,
+    "time_steps": 200
+  },
+  "tensorflow": "2.20.0",
+  "timestamp_utc": "2026-06-14T06:24:10.711876+00:00",
+  "timing_policy": {
+    "first_call_includes_trace_compile_and_initialization": true,
+    "materialization": "stacked value.numpy() and score.numpy() after scalar compiled row loop",
+    "repeats": 3,
+    "warmups": 1
+  },
+  "value_device": "/job:localhost/replica:0/task:0/device:CPU:0",
+  "value_shape": [
+    256
+  ],
+  "value_sum": -12971.647473754114,
+  "warm_call_summary": {
+    "max_seconds": 13.0667591530364,
+    "mean_seconds": 12.955989952975264,
+    "median_seconds": 12.945196127984673,
+    "min_seconds": 12.856014577904716
+  }
+}

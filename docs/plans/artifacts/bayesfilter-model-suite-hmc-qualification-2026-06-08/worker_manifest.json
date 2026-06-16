@@ -1,0 +1,182 @@
+{
+  "artifact_root": "docs/plans/artifacts/bayesfilter-model-suite-hmc-qualification-2026-06-08",
+  "command": [
+    "scripts/run_model_suite_hmc_qualification.py",
+    "--artifact-root",
+    "docs/plans/artifacts/bayesfilter-model-suite-hmc-qualification-2026-06-08",
+    "--num-results",
+    "2",
+    "--num-burnin-steps",
+    "1",
+    "--num-leapfrog-steps",
+    "1",
+    "--force"
+  ],
+  "config_hash": "2b77b606b7eb6c6702e6233765ad6e7b76648603ee49907163b9ddd05a012276",
+  "device_policy": {
+    "CUDA_VISIBLE_DEVICES": "-1",
+    "mode": "cpu_only",
+    "tensorflow_visible_gpus_after_import": []
+  },
+  "environment": {
+    "CUDA_VISIBLE_DEVICES": "-1",
+    "git_dirty_state": {
+      "available": true,
+      "entry_count": 60,
+      "is_dirty": true,
+      "short_status": [
+        " M bayesfilter/__init__.py",
+        " M bayesfilter/linear/__init__.py",
+        " M bayesfilter/nonlinear/__init__.py",
+        " M docs/benchmarks/benchmark_tfp_nuts_gaussian.py",
+        " M tests/conftest.py",
+        " M tests/test_macrofinance_adapter.py",
+        " M tests/test_macrofinance_linear_compat_tf.py",
+        " M tests/test_v1_public_api.py",
+        "?? .claude/worktrees/agent-a40719abf526450b2/",
+        "?? .claude/worktrees/agent-a4ec60117270d7bad/",
+        "?? bayesfilter/inference/__init__.py",
+        "?? bayesfilter/inference/hmc.py",
+        "?? bayesfilter/inference/hmc_diagnostics.py",
+        "?? bayesfilter/inference/mass_matrix.py",
+        "?? bayesfilter/inference/posterior_adapter.py",
+        "?? bayesfilter/nonlinear/compiled_value_paths.py",
+        "?? bayesfilter/runtime/__init__.py",
+        "?? bayesfilter/runtime/device_policy.py",
+        "?? bayesfilter/runtime/runner.py",
+        "?? bayesfilter/runtime/selection.py",
+        "?? docs/plans/artifacts/bayesfilter-common-filtering-hmc-refactor-focused-pytest-2026-06-06.txt",
+        "?? docs/plans/artifacts/bayesfilter-common-filtering-hmc-refactor-pycompile-2026-06-06.txt",
+        "?? docs/plans/artifacts/nonlinear-ssm-jit-hmc-phase-1R-live-backup-diff-bayesfilter-init-2026-06-08.txt",
+        "?? docs/plans/artifacts/nonlinear-ssm-jit-hmc-phase-1R-live-backup-diff-inference-init-2026-06-08.txt",
+        "?? docs/plans/artifacts/nonlinear-ssm-jit-hmc-phase-1R-live-backup-diff-posterior-adapter-2026-06-08.txt",
+        "?? docs/plans/artifacts/nonlinear-ssm-jit-hmc-phase-1R-live-focused-pytest-2026-06-08.txt",
+        "?? docs/plans/artifacts/nonlinear-ssm-jit-hmc-phase-1R-live-pycompile-2026-06-08.txt",
+        "?? docs/plans/artifacts/nonlinear-ssm-jit-hmc-phase-3-export-delta-2026-06-08.md",
+        "?? docs/plans/artifacts/nonlinear-ssm-jit-hmc-phase-6-canary-2026-06-08/partial_snapshot.json",
+        "?? docs/plans/artifacts/nonlinear-ssm-jit-hmc-phase-6-canary-2026-06-08/reducer_status.json",
+        "?? docs/plans/artifacts/nonlinear-ssm-jit-hmc-phase-6-canary-2026-06-08/stage_events.jsonl",
+        "?? docs/plans/artifacts/nonlinear-ssm-jit-hmc-phase-6-canary-2026-06-08/summary.json",
+        "?? docs/plans/artifacts/nonlinear-ssm-jit-hmc-phase-6-canary-2026-06-08/worker_manifest.json",
+        "?? docs/plans/artifacts/nonlinear-ssm-jit-hmc-phase-6-canary-2026-06-08/worker_result.json",
+        "?? docs/plans/bayesfilter-common-filtering-hmc-refactor-result-2026-06-06.md",
+        "?? docs/plans/logs/nonlinear-ssm-jit-hmc-overnight-20260607-codex-r3-bayesfilter-phases-1-6-codex-final-message.txt",
+        "?? docs/plans/logs/nonlinear-ssm-jit-hmc-overnight-20260607-codex-r3-bayesfilter-phases-1-6-prelaunch-dirty-tracked.txt",
+        "?? docs/plans/logs/nonlinear-ssm-jit-hmc-overnight-20260607-codex-r3-bayesfilter-phases-1-6-prelaunch-git-status.txt",
+        "?? docs/plans/logs/nonlinear-ssm-jit-hmc-overnight-20260607-codex-r3-bayesfilter-phases-1-6.handoff.ready",
+        "?? docs/plans/logs/nonlinear-ssm-jit-hmc-overnight-20260607-codex-r3-bayesfilter-phases-1-6.pid",
+        "?? docs/plans/logs/nonlinear-ssm-jit-hmc-overnight-20260607-codex-r3-bayesfilter-phases-1-6.supervisor.pid",
+        "?? docs/plans/logs/nonlinear-ssm-jit-hmc-overnight-20260607-codex-r3-bayesfilter-phases-1-6.wrapper.pid",
+        "?? docs/plans/logs/nonlinear-ssm-jit-hmc-phases-1-6-handoff-2026-06-07.md",
+        "?? docs/plans/nonlinear-ssm-jit-hmc-phase-1R-live-repair-result-2026-06-08.md",
+        "?? docs/plans/nonlinear-ssm-jit-hmc-phase-2-compiled-filter-value-result-2026-06-08.md",
+        "?? docs/plans/nonlinear-ssm-jit-hmc-phase-3-value-score-chain-batching-result-2026-06-08.md",
+        "?? docs/plans/nonlinear-ssm-jit-hmc-phase-4-full-chain-tfp-hmc-jit-result-2026-06-08.md",
+        "?? docs/plans/nonlinear-ssm-jit-hmc-phase-5-runner-device-performance-result-2026-06-08.md",
+        "?? docs/plans/nonlinear-ssm-jit-hmc-phase-6-engineering-canary-result-2026-06-08.md",
+        "?? docs/plans/reviewed-target.md",
+        "?? scripts/run_model_suite_hmc_qualification.py",
+        "?? scripts/run_nonlinear_ssm_phase6_engineering_canary.py",
+        "?? tests/test_common_inference_runtime_contracts.py",
+        "?? tests/test_model_suite_hmc_qualification.py",
+        "?? tests/test_nonlinear_ssm_phase1_contract.py",
+        "?? tests/test_nonlinear_ssm_phase2_value_paths.py",
+        "?? tests/test_nonlinear_ssm_phase3_value_score_chain.py",
+        "?? tests/test_nonlinear_ssm_phase4_full_chain_hmc.py",
+        "?? tests/test_nonlinear_ssm_phase5_runner_device_performance.py",
+        "?? tests/test_nonlinear_ssm_phase6_engineering_canary.py"
+      ]
+    }
+  },
+  "git_commit": "3dac444c22e8a366063f0fa0a73788cc9db96201",
+  "nonclaims": [
+    "worker manifest is engineering metadata, not scientific evidence"
+  ],
+  "normalized_config": {
+    "artifact_contract": "single_worker_model_suite_qualification",
+    "cpu_only": true,
+    "jit_compile": true,
+    "ladder": [
+      "A",
+      "QR",
+      "B",
+      "C"
+    ],
+    "num_burnin_steps": 1,
+    "num_leapfrog_steps": 1,
+    "num_results": 2,
+    "old_smoke_helpers_final_evidence": false,
+    "seed_base": [
+      20260608,
+      70
+    ],
+    "step_sizes": {
+      "A": 0.02,
+      "B": 0.0005,
+      "C": 0.0005,
+      "QR": 0.01
+    },
+    "stop_after": "C",
+    "trace_policy": "standard"
+  },
+  "pid": 856033,
+  "program_signature": "bayesfilter-model-suite-hmc-qualification-v1",
+  "stale_match_payload": {
+    "device_policy": {
+      "CUDA_VISIBLE_DEVICES": "-1",
+      "mode": "cpu_only",
+      "tensorflow_visible_gpus_after_import": []
+    },
+    "normalized_config": {
+      "artifact_contract": "single_worker_model_suite_qualification",
+      "cpu_only": true,
+      "jit_compile": true,
+      "ladder": [
+        "A",
+        "QR",
+        "B",
+        "C"
+      ],
+      "num_burnin_steps": 1,
+      "num_leapfrog_steps": 1,
+      "num_results": 2,
+      "old_smoke_helpers_final_evidence": false,
+      "seed_base": [
+        20260608,
+        70
+      ],
+      "step_sizes": {
+        "A": 0.02,
+        "B": 0.0005,
+        "C": 0.0005,
+        "QR": 0.01
+      },
+      "stop_after": "C",
+      "trace_policy": "standard"
+    },
+    "program_signature": "bayesfilter-model-suite-hmc-qualification-v1",
+    "thread_caps": {
+      "OMP_NUM_THREADS": null,
+      "TF_NUM_INTEROP_THREADS": null,
+      "TF_NUM_INTRAOP_THREADS": null
+    },
+    "worker_config_hash": "dd7a5336f447fa1a9c45363de31e738084401307b19b00a579a5a9344ccc8faf"
+  },
+  "thread_caps": {
+    "OMP_NUM_THREADS": null,
+    "TF_NUM_INTEROP_THREADS": null,
+    "TF_NUM_INTRAOP_THREADS": null
+  },
+  "worker_config": {
+    "budget": {
+      "num_burnin_steps": 1,
+      "num_leapfrog_steps": 1,
+      "num_results": 2
+    },
+    "evidence_path": "consolidated_run_full_chain_tfp_hmc",
+    "worker_id": "bayesfilter_model_suite_cpu_qualification",
+    "worker_kind": "bayesfilter_model_suite_hmc_qualification"
+  },
+  "worker_config_hash": "dd7a5336f447fa1a9c45363de31e738084401307b19b00a579a5a9344ccc8faf",
+  "worker_id": "bayesfilter_model_suite_cpu_qualification"
+}

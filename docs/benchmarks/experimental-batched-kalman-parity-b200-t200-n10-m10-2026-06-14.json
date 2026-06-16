@@ -1,0 +1,97 @@
+{
+  "cuda_visible_devices": "-1",
+  "finite_batched_outputs": true,
+  "host": "ubuntu-MZ72-HB2-00",
+  "max_abs_score_error": 6.821210263296962e-13,
+  "max_abs_value_error": 3.126388037344441e-13,
+  "max_rel_score_error": 4.857846783423031e-16,
+  "max_rel_value_error": 3.421554228372547e-15,
+  "notes": [
+    "Compares selected batched rows against existing scalar value and QR analytic score APIs.",
+    "This is a row-sample parity check, not exhaustive parity across every batch row."
+  ],
+  "passed": true,
+  "python": "3.13.13",
+  "row_results": [
+    {
+      "batched_score": [
+        -21.355058413884066,
+        -1319.255806939252
+      ],
+      "batched_value": 122.98129326331431,
+      "row": 0,
+      "row_pass": true,
+      "scalar_score": [
+        -21.35505841388407,
+        -1319.255806939252
+      ],
+      "scalar_value": 122.98129326331411,
+      "score_abs_error_max": 3.552713678800501e-15,
+      "score_pass": true,
+      "score_rel_error_max": 1.663640346912229e-16,
+      "value_abs_error": 1.9895196601282805e-13,
+      "value_pass": true,
+      "value_rel_error": 1.617741696591642e-15
+    },
+    {
+      "batched_score": [
+        -26.158262951827002,
+        -1404.1633191424914
+      ],
+      "batched_value": -49.8399981997467,
+      "row": 100,
+      "row_pass": true,
+      "scalar_score": [
+        -26.158262951827012,
+        -1404.1633191424921
+      ],
+      "scalar_value": -49.83999819974687,
+      "score_abs_error_max": 6.821210263296962e-13,
+      "score_pass": true,
+      "score_rel_error_max": 4.857846783423031e-16,
+      "value_abs_error": 1.7053025658242404e-13,
+      "value_pass": true,
+      "value_rel_error": 3.421554228372547e-15
+    },
+    {
+      "batched_score": [
+        -24.778270112814003,
+        -1479.100365931203
+      ],
+      "batched_value": -231.1143255252527,
+      "row": 199,
+      "row_pass": true,
+      "scalar_score": [
+        -24.778270112814006,
+        -1479.1003659312028
+      ],
+      "scalar_value": -231.114325525253,
+      "score_abs_error_max": 2.2737367544323206e-13,
+      "score_pass": true,
+      "score_rel_error_max": 1.5372430477365446e-16,
+      "value_abs_error": 3.126388037344441e-13,
+      "value_pass": true,
+      "value_rel_error": 1.3527452399322741e-15
+    }
+  ],
+  "rows": [
+    0,
+    100,
+    199
+  ],
+  "shape": {
+    "batch_size": 200,
+    "obs_dim": 10,
+    "parameter_dim": 2,
+    "state_dim": 10,
+    "time_steps": 200
+  },
+  "tensorflow": "2.20.0",
+  "timestamp_utc": "2026-06-13T18:16:43.799682+00:00",
+  "tolerances": {
+    "score_atol": 5e-08,
+    "score_rtol": 5e-08,
+    "value_atol": 1e-09,
+    "value_rtol": 1e-09
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "artifact_root": "docs/plans/artifacts/nonlinear-ssm-jit-hmc-phase-6-canary-2026-06-08",
+  "command": [
+    "scripts/run_nonlinear_ssm_phase6_engineering_canary.py",
+    "--artifact-root",
+    "docs/plans/artifacts/nonlinear-ssm-jit-hmc-phase-6-canary-2026-06-08",
+    "--num-results",
+    "2",
+    "--num-burnin-steps",
+    "1",
+    "--step-size",
+    "0.0005",
+    "--num-leapfrog-steps",
+    "1",
+    "--force"
+  ],
+  "config_hash": "f54026026f8ac88c1f3e6570656b25a046b3f2d35232797e0d293c63b2b009db",
+  "device_policy": {
+    "CUDA_VISIBLE_DEVICES": "-1",
+    "mode": "cpu_only",
+    "tensorflow_visible_gpus_after_import": []
+  },
+  "environment": {
+    "CUDA_VISIBLE_DEVICES": "-1"
+  },
+  "git_commit": "3dac444c22e8a366063f0fa0a73788cc9db96201",
+  "nonclaims": [
+    "worker manifest is engineering metadata, not scientific evidence"
+  ],
+  "normalized_config": {
+    "backend": "tf_svd_cut4",
+    "cpu_only": true,
+    "fixture": "ModelBNonlinearSVDTarget.default",
+    "jit_compile": true,
+    "num_burnin_steps": 1,
+    "num_leapfrog_steps": 1,
+    "num_results": 2,
+    "seed": [
+      20260608,
+      6
+    ],
+    "step_size": 0.0005,
+    "target_scope": "phase6_model_b_nonlinear_canary",
+    "trace_policy": "standard"
+  },
+  "pid": 782161,
+  "program_signature": "bayesfilter-phase6-nonlinear-ssm-jit-hmc-canary-v1",
+  "stale_match_payload": {
+    "device_policy": {
+      "CUDA_VISIBLE_DEVICES": "-1",
+      "mode": "cpu_only",
+      "tensorflow_visible_gpus_after_import": []
+    },
+    "normalized_config": {
+      "backend": "tf_svd_cut4",
+      "cpu_only": true,
+      "fixture": "ModelBNonlinearSVDTarget.default",
+      "jit_compile": true,
+      "num_burnin_steps": 1,
+      "num_leapfrog_steps": 1,
+      "num_results": 2,
+      "seed": [
+        20260608,
+        6
+      ],
+      "step_size": 0.0005,
+      "target_scope": "phase6_model_b_nonlinear_canary",
+      "trace_policy": "standard"
+    },
+    "program_signature": "bayesfilter-phase6-nonlinear-ssm-jit-hmc-canary-v1",
+    "thread_caps": {
+      "OMP_NUM_THREADS": null,
+      "TF_NUM_INTEROP_THREADS": null,
+      "TF_NUM_INTRAOP_THREADS": null
+    },
+    "worker_config_hash": "c3a53222a0321e3d9f2577880efe51b5b2f7e3d45a94a7d3ac320af98690fc71"
+  },
+  "thread_caps": {
+    "OMP_NUM_THREADS": null,
+    "TF_NUM_INTEROP_THREADS": null,
+    "TF_NUM_INTRAOP_THREADS": null
+  },
+  "worker_config": {
+    "budget": {
+      "num_burnin_steps": 1,
+      "num_leapfrog_steps": 1,
+      "num_results": 2
+    },
+    "worker_id": "phase6_cpu_canary",
+    "worker_kind": "phase6_engineering_canary"
+  },
+  "worker_config_hash": "c3a53222a0321e3d9f2577880efe51b5b2f7e3d45a94a7d3ac320af98690fc71",
+  "worker_id": "phase6_cpu_canary"
+}

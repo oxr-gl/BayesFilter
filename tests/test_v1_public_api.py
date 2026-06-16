@@ -90,6 +90,12 @@ COMMON_INFERENCE_RUNTIME_SYMBOLS = {
     "FixedTrajectoryCandidateResult",
     "FixedTrajectoryTuningConfig",
     "FixedTrajectoryTuningResult",
+    "GENERIC_HMC_TUNING_NONCLAIMS",
+    "GenericHMCCandidateEvaluation",
+    "GenericHMCCandidateResult",
+    "GenericHMCTuningArtifact",
+    "GenericHMCTuningConfig",
+    "GenericHMCTuningResult",
     "WelfordCovarianceResult",
     "WindowedMassAdaptationConfig",
     "WindowedMassAdaptationResult",
@@ -117,6 +123,7 @@ COMMON_INFERENCE_RUNTIME_SYMBOLS = {
     "latent_value_and_score",
     "make_timing_bucket",
     "normalize_hmc_tuning_policy",
+    "orchestrate_generic_hmc_tuning",
     "production_leapfrog_count",
     "record_timeout",
     "record_worker_result",
@@ -126,6 +133,7 @@ COMMON_INFERENCE_RUNTIME_SYMBOLS = {
     "select_preferred_gpu",
     "require_executable_tuning_policy",
     "run_fixed_trajectory_tuning_diagnostic",
+    "run_generic_hmc_tuning_orchestration",
     "run_gaussian_dual_averaging_diagnostic",
     "run_windowed_mass_adaptation_diagnostic",
     "screen_hmc_diagnostics",
@@ -153,6 +161,11 @@ def test_v1_public_api_symbols_are_top_level_importable() -> None:
     assert V1_PUBLIC_SYMBOLS.issubset(set(bayesfilter.__all__))
 
 
+def test_linear_public_score_symbol_is_subpackage_importable() -> None:
+    assert hasattr(bayesfilter.linear, "tf_qr_linear_gaussian_score")
+    assert "tf_qr_linear_gaussian_score" in bayesfilter.linear.__all__
+
+
 def test_common_inference_runtime_symbols_are_top_level_importable() -> None:
     missing = sorted(
         name for name in COMMON_INFERENCE_RUNTIME_SYMBOLS if not hasattr(bayesfilter, name)
@@ -160,11 +173,6 @@ def test_common_inference_runtime_symbols_are_top_level_importable() -> None:
 
     assert missing == []
     assert COMMON_INFERENCE_RUNTIME_SYMBOLS.issubset(set(bayesfilter.__all__))
-
-
-def test_linear_public_score_symbol_is_subpackage_importable() -> None:
-    assert hasattr(bayesfilter.linear, "tf_qr_linear_gaussian_score")
-    assert "tf_qr_linear_gaussian_score" in bayesfilter.linear.__all__
 
 
 def test_v1_public_api_import_does_not_import_external_clients() -> None:
