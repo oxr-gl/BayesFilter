@@ -286,6 +286,72 @@ def _ukf_result(theta: tf.Tensor | None = None):
 
 
 
+def _dense_value_and_score(theta: tf.Tensor | None = None, *, order: int = 7) -> tuple[dict[str, tf.Tensor], tf.Tensor]:
+    parameter = _theta() if theta is None else tf.convert_to_tensor(theta, dtype=DTYPE)
+
+    def value_fn(current_theta: tf.Tensor) -> tf.Tensor:
+        model = _model()
+        observations = _observations()
+        config = _tt_config("p47-predator-prey-dense-reference-score", order=order)
+        _, weights, physical_points, log_abs_det = _grid(config)
+        log_reference_weight = _log_uniform_reference_weight_density(config.product_basis)
+        log_terms = []
+        log_posterior_physical = None
+
+        for time_index in range(int(observations.shape[0])):
+            if time_index == 0:
+                log_unnormalized = model.initial_log_density(
+                    current_theta,
+                    physical_points,
+                ) + model.observation_log_density(
+                    current_theta,
+                    physical_points,
+                    observations[time_index],
+                    t=time_index,
+                )
+            else:
+                count = int(physical_points.shape[0])
+                next_points = tf.repeat(physical_points, repeats=count, axis=0)
+                previous_points = tf.tile(physical_points, [count, 1])
+                transition_log = tf.reshape(
+                    model.transition_log_density(
+                        current_theta,
+                        previous_points,
+                        next_points,
+                        t=time_index,
+                    ),
+                    [count, count],
+                )
+                log_predictive = tf.reduce_logsumexp(
+                    tf.math.log(weights)[tf.newaxis, :]
+                    + log_abs_det[tf.newaxis, :]
+                    - log_reference_weight
+                    + log_posterior_physical[tf.newaxis, :]
+                    + transition_log,
+                    axis=1,
+                )
+                log_unnormalized = log_predictive + model.observation_log_density(
+                    current_theta,
+                    physical_points,
+                    observations[time_index],
+                    t=time_index,
+                )
+            log_increment = _logsumexp_weighted(log_unnormalized + log_abs_det - log_reference_weight, weights)
+            log_posterior_physical = log_unnormalized - log_increment
+            log_terms.append(log_increment)
+        return tf.reduce_sum(tf.stack(log_terms))
+
+    theta_tensor = tf.convert_to_tensor(parameter, dtype=DTYPE)
+    with tf.GradientTape() as tape:
+        tape.watch(theta_tensor)
+        log_likelihood = value_fn(theta_tensor)
+    score = tape.gradient(log_likelihood, theta_tensor)
+    if score is None:
+        raise AssertionError("Dense predator-prey score tape returned None")
+    return _dense_reference(order=order), score
+
+
+
 def _matched_settings(**overrides: object) -> dict[str, object]:
     settings = {
         "observations_seed": 4401,
@@ -312,6 +378,7 @@ def _matched_settings(**overrides: object) -> dict[str, object]:
     }
     settings.update(overrides)
     return settings
+
 
 
 def _metrics(**overrides: object) -> dict[str, float]:
@@ -681,6 +748,101 @@ def test_p47_m5_fixed_sgqf_predator_prey_fd_ladder_preserves_same_branch_contrac
         assert minus.failure is None
         assert base_signature == tf_fixed_sgqf_same_branch_signature(branch_identity=plus.branch_identity, failure=plus.failure)
         assert base_signature == tf_fixed_sgqf_same_branch_signature(branch_identity=minus.branch_identity, failure=minus.failure)
+
+
+
+def test_p47_m5_fixed_sgqf_predator_prey_fd_ladder_preserves_same_branch_contract() -> None:
+    model = _model()
+    theta = _theta()
+    _adapted, cloud, value = _fixed_sgqf_result(sparse_level=2)
+    branch = TFFixedSGQFBranchConfig(predictive_epsilon=1e-10, innovation_epsilon=1e-10)
+    assert value.failure is None
+    base_signature = tf_fixed_sgqf_same_branch_signature(branch_identity=value.branch_identity, failure=value.failure)
+
+    for step in (1e-3, 3e-4, 1e-4):
+        plus_theta = tf.tensor_scatter_nd_add(theta, [[0]], [step])
+        minus_theta = tf.tensor_scatter_nd_add(theta, [[0]], [-step])
+        plus = tf_fixed_sgqf_filter(_observations(), tf_predator_prey_to_fixed_sgqf_model(model, plus_theta).model, cloud=cloud, branch_config=branch, return_filtered=True)
+        minus = tf_fixed_sgqf_filter(_observations(), tf_predator_prey_to_fixed_sgqf_model(model, minus_theta).model, cloud=cloud, branch_config=branch, return_filtered=True)
+        assert plus.failure is None
+        assert minus.failure is None
+        assert base_signature == tf_fixed_sgqf_same_branch_signature(branch_identity=plus.branch_identity, failure=plus.failure)
+        assert base_signature == tf_fixed_sgqf_same_branch_signature(branch_identity=minus.branch_identity, failure=minus.failure)
+
+
+
+def test_p47_m5_fixed_sgqf_score_gap_to_dense_score_is_finite() -> None:
+    model = _model()
+    theta = _theta()
+    adapted = tf_predator_prey_to_fixed_sgqf_model(model, theta, with_derivatives=True)
+    assert adapted.eligible and adapted.model is not None and adapted.derivatives is not None
+    cloud = tf_fixed_sgqf_cloud(dim=2, sparse_level=2)
+    branch = TFFixedSGQFBranchConfig(predictive_epsilon=1e-10, innovation_epsilon=1e-10)
+    value = tf_fixed_sgqf_filter(_observations(), adapted.model, cloud=cloud, branch_config=branch, return_filtered=True)
+    score = tf_fixed_sgqf_score(
+        _observations(),
+        adapted.model,
+        adapted.derivatives,
+        cloud=cloud,
+        branch_config=branch,
+        expected_branch_identity=value.branch_identity,
+    )
+    _dense_reference_payload, dense_score = _dense_value_and_score(theta)
+
+    assert value.failure is None
+    assert score.failure is None
+    score_gap = score.score - dense_score
+    assert bool(tf.reduce_all(tf.math.is_finite(score_gap)).numpy())
+
+
+
+def test_p47_m5_predator_prey_ukf_score_gap_to_dense_score_is_finite() -> None:
+    theta = _theta()
+    _structural, ukf = _ukf_result(theta=theta)
+    _dense_reference_payload, dense_score = _dense_value_and_score(theta)
+
+    assert bool(tf.math.is_finite(ukf.log_likelihood).numpy())
+    with tf.GradientTape() as tape:
+        theta_t = tf.convert_to_tensor(theta, dtype=DTYPE)
+        tape.watch(theta_t)
+        _structural_theta, ukf_theta = _ukf_result(theta=theta_t)
+        value = ukf_theta.log_likelihood
+    score = tape.gradient(value, theta_t)
+    if score is None:
+        raise AssertionError("UKF predator-prey score tape returned None")
+    score_gap = score - dense_score
+    assert bool(tf.reduce_all(tf.math.is_finite(score_gap)).numpy())
+
+
+
+def test_p47_m5_fixed_sgqf_vs_ukf_score_gap_is_finite() -> None:
+    model = _model()
+    theta = _theta()
+    adapted = tf_predator_prey_to_fixed_sgqf_model(model, theta, with_derivatives=True)
+    assert adapted.eligible and adapted.model is not None and adapted.derivatives is not None
+    cloud = tf_fixed_sgqf_cloud(dim=2, sparse_level=2)
+    branch = TFFixedSGQFBranchConfig(predictive_epsilon=1e-10, innovation_epsilon=1e-10)
+    value = tf_fixed_sgqf_filter(_observations(), adapted.model, cloud=cloud, branch_config=branch, return_filtered=True)
+    sgqf_score = tf_fixed_sgqf_score(
+        _observations(),
+        adapted.model,
+        adapted.derivatives,
+        cloud=cloud,
+        branch_config=branch,
+        expected_branch_identity=value.branch_identity,
+    )
+    with tf.GradientTape() as tape:
+        theta_t = tf.convert_to_tensor(theta, dtype=DTYPE)
+        tape.watch(theta_t)
+        _structural_theta, ukf_theta = _ukf_result(theta=theta_t)
+        ukf_value = ukf_theta.log_likelihood
+    ukf_score = tape.gradient(ukf_value, theta_t)
+    if ukf_score is None:
+        raise AssertionError("UKF predator-prey score tape returned None")
+
+    assert sgqf_score.failure is None
+    score_gap = sgqf_score.score - ukf_score
+    assert bool(tf.reduce_all(tf.math.is_finite(score_gap)).numpy())
 
 
 
