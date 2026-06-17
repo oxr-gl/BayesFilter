@@ -1,0 +1,268 @@
+{
+  "arms": [
+    {
+      "arm_id": "original_dense_tensor",
+      "compile_and_first_call_seconds": 9.747900670859963,
+      "finite": true,
+      "jit_compile": false,
+      "output_devices": [
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0"
+      ],
+      "score": [
+        [
+          -0.5477578639984131,
+          -3.8520684242248535,
+          -5.9422454833984375
+        ]
+      ],
+      "score_preview": [
+        -0.5477578639984131,
+        -3.8520684242248535,
+        -5.9422454833984375
+      ],
+      "value": [
+        3.952671527862549
+      ],
+      "value_preview": [
+        3.952671527862549
+      ],
+      "warm_call_median_seconds": 0.14016383606940508,
+      "warm_call_timings_seconds": [
+        0.14016383606940508
+      ]
+    },
+    {
+      "arm_id": "streaming_dense_tensor",
+      "compile_and_first_call_seconds": 4.3155761659145355,
+      "finite": true,
+      "jit_compile": false,
+      "output_devices": [
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0"
+      ],
+      "score": [
+        [
+          -0.5477578639984131,
+          -3.8520686626434326,
+          -5.942245006561279
+        ]
+      ],
+      "score_preview": [
+        -0.5477578639984131,
+        -3.8520686626434326,
+        -5.942245006561279
+      ],
+      "value": [
+        3.952671527862549
+      ],
+      "value_preview": [
+        3.952671527862549
+      ],
+      "warm_call_median_seconds": 0.26298091001808643,
+      "warm_call_timings_seconds": [
+        0.26298091001808643
+      ]
+    },
+    {
+      "arm_id": "streaming_streaming_tensor",
+      "compile_and_first_call_seconds": 9.622137050842866,
+      "finite": true,
+      "jit_compile": false,
+      "output_devices": [
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0"
+      ],
+      "score": [
+        [
+          -0.5477578639984131,
+          -3.8520684242248535,
+          -5.942245006561279
+        ]
+      ],
+      "score_preview": [
+        -0.5477578639984131,
+        -3.8520684242248535,
+        -5.942245006561279
+      ],
+      "value": [
+        3.952671527862549
+      ],
+      "value_preview": [
+        3.952671527862549
+      ],
+      "warm_call_median_seconds": 0.3617562248837203,
+      "warm_call_timings_seconds": [
+        0.3617562248837203
+      ]
+    },
+    {
+      "arm_id": "streaming_streaming_equivalent_callback",
+      "compile_and_first_call_seconds": 9.56399199878797,
+      "finite": true,
+      "jit_compile": false,
+      "output_devices": [
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0"
+      ],
+      "score": [
+        [
+          -0.5477578639984131,
+          -3.8520684242248535,
+          -5.942245006561279
+        ]
+      ],
+      "score_preview": [
+        -0.5477578639984131,
+        -3.8520684242248535,
+        -5.942245006561279
+      ],
+      "value": [
+        3.952671527862549
+      ],
+      "value_preview": [
+        3.952671527862549
+      ],
+      "warm_call_median_seconds": 0.39862174284644425,
+      "warm_call_timings_seconds": [
+        0.39862174284644425
+      ]
+    }
+  ],
+  "comparisons": [
+    {
+      "arm_id": "streaming_dense_tensor",
+      "score_drift_vs_reference": {
+        "max_abs": 4.76837158203125e-07,
+        "max_relative_to_max1_abs_reference": 8.024528093551875e-08,
+        "rms_abs": 3.0779706209559574e-07,
+        "shape": [
+          1,
+          3
+        ]
+      },
+      "score_geometry_vs_reference": {
+        "candidate_l2_norm": 7.102728164395293,
+        "cosine_similarity": 0.9999999999999979,
+        "norm_ratio_candidate_to_reference": 0.9999999620391264,
+        "reference_l2_norm": 7.102728434021069
+      },
+      "value_drift_vs_reference": {
+        "max_abs": 0.0,
+        "max_relative_to_max1_abs_reference": 0.0,
+        "rms_abs": 0.0,
+        "shape": [
+          1
+        ]
+      }
+    },
+    {
+      "arm_id": "streaming_streaming_tensor",
+      "score_drift_vs_reference": {
+        "max_abs": 4.76837158203125e-07,
+        "max_relative_to_max1_abs_reference": 8.024528093551875e-08,
+        "rms_abs": 2.7530206164819037e-07,
+        "shape": [
+          1,
+          3
+        ]
+      },
+      "score_geometry_vs_reference": {
+        "candidate_l2_norm": 7.1027280350922,
+        "cosine_similarity": 0.9999999999999993,
+        "norm_ratio_candidate_to_reference": 0.999999943834419,
+        "reference_l2_norm": 7.102728434021069
+      },
+      "value_drift_vs_reference": {
+        "max_abs": 0.0,
+        "max_relative_to_max1_abs_reference": 0.0,
+        "rms_abs": 0.0,
+        "shape": [
+          1
+        ]
+      }
+    },
+    {
+      "arm_id": "streaming_streaming_equivalent_callback",
+      "score_drift_vs_reference": {
+        "max_abs": 4.76837158203125e-07,
+        "max_relative_to_max1_abs_reference": 8.024528093551875e-08,
+        "rms_abs": 2.7530206164819037e-07,
+        "shape": [
+          1,
+          3
+        ]
+      },
+      "score_geometry_vs_reference": {
+        "candidate_l2_norm": 7.1027280350922,
+        "cosine_similarity": 0.9999999999999993,
+        "norm_ratio_candidate_to_reference": 0.999999943834419,
+        "reference_l2_norm": 7.102728434021069
+      },
+      "value_drift_vs_reference": {
+        "max_abs": 0.0,
+        "max_relative_to_max1_abs_reference": 0.0,
+        "rms_abs": 0.0,
+        "shape": [
+          1
+        ]
+      }
+    }
+  ],
+  "cuda_visible_devices": "0",
+  "device": "/GPU:0",
+  "device_scope": "visible",
+  "expect_device_kind": "gpu",
+  "finite_all": true,
+  "host": "ubuntu-MZ72-HB2-00",
+  "jit_compile": false,
+  "logical_gpus": [
+    "LogicalDevice(name='/device:GPU:0', device_type='GPU')"
+  ],
+  "nonclaims": [
+    "focused deterministic gradient-structure diagnostic only",
+    "dense arm is a small-reference oracle, not a scalable implementation",
+    "no HMC convergence or energy-conservation claim",
+    "no posterior validity claim",
+    "single fixture and single seed only"
+  ],
+  "overall_passed": true,
+  "physical_gpus": [
+    "PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')"
+  ],
+  "precision": {
+    "dtype": "float32",
+    "tf32_execution_enabled": false,
+    "tf32_mode": "disabled",
+    "tf_dtype": "float32"
+  },
+  "python_version": "3.13.13",
+  "reference_arm": "original_dense_tensor",
+  "shape": {
+    "batch_size": 1,
+    "num_particles": 32,
+    "obs_dim": 4,
+    "parameter_dim": 3,
+    "state_dim": 4,
+    "time_steps": 5
+  },
+  "structure_passed": true,
+  "tensorflow_version": "2.20.0",
+  "timestamp_utc": "2026-06-15T16:46:10.672343+00:00",
+  "tolerances": {
+    "structure_score_atol": 1e-05,
+    "structure_score_rtol": 1e-05,
+    "structure_value_atol": 1e-06,
+    "structure_value_rtol": 1e-06
+  },
+  "transport": {
+    "annealed_convergence_threshold": 0.001,
+    "annealed_scaling": 0.9,
+    "col_chunk_size": 16,
+    "particle_chunk_size": 16,
+    "policy": "active-odd",
+    "row_chunk_size": 16,
+    "sinkhorn_epsilon": 0.5,
+    "sinkhorn_iterations": 3
+  }
+}

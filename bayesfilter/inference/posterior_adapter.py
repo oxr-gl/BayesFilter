@@ -103,6 +103,7 @@ class ValueScoreCapability:
     evidence_path: str | None = None
     target_scope: str | None = None
     nonclaims: tuple[str, ...] = ()
+    full_chain_xla_diagnostic_ready: bool = False
 
     def __post_init__(self) -> None:
         authority = str(self.value_score_authority)
@@ -114,6 +115,11 @@ class ValueScoreCapability:
         object.__setattr__(self, "xla_hmc_ready", bool(self.xla_hmc_ready))
         object.__setattr__(self, "runtime_backend", str(self.runtime_backend))
         object.__setattr__(self, "nonclaims", tuple(str(item) for item in self.nonclaims))
+        object.__setattr__(
+            self,
+            "full_chain_xla_diagnostic_ready",
+            bool(self.full_chain_xla_diagnostic_ready),
+        )
         if self.evidence_path is not None:
             object.__setattr__(self, "evidence_path", str(self.evidence_path))
         if self.target_scope is not None:
@@ -140,12 +146,33 @@ class ValueScoreCapability:
                 raise ValueError(
                     "reviewed tf.py_function finite-reject bridges require target_scope binding"
                 )
+        if self.full_chain_xla_diagnostic_ready:
+            if not self.is_accepted_xla_hmc_authority:
+                raise ValueError(
+                    "full-chain XLA diagnostic authority requires accepted target-XLA authority"
+                )
+            if not self.target_scope:
+                raise ValueError(
+                    "full-chain XLA diagnostic authority requires target_scope binding"
+                )
+            if not self.evidence_path and not self.nonclaims:
+                raise ValueError(
+                    "full-chain XLA diagnostic authority requires scoped evidence_path "
+                    "or nonclaims"
+                )
 
     @property
     def is_accepted_xla_hmc_authority(self) -> bool:
         return bool(
             self.xla_hmc_ready
             and self.value_score_authority in _ACCEPTED_XLA_AUTHORITIES
+        )
+
+    @property
+    def is_accepted_full_chain_xla_diagnostic_authority(self) -> bool:
+        return bool(
+            self.full_chain_xla_diagnostic_ready
+            and self.is_accepted_xla_hmc_authority
         )
 
 
@@ -408,6 +435,9 @@ class NonlinearSSMAdapterContract:
             "value_score": {
                 "value_score_authority": self.value_score.value_score_authority,
                 "xla_hmc_ready": self.value_score.xla_hmc_ready,
+                "full_chain_xla_diagnostic_ready": (
+                    self.value_score.full_chain_xla_diagnostic_ready
+                ),
                 "runtime_backend": self.value_score.runtime_backend,
                 "target_scope": self.value_score.target_scope,
             },
@@ -471,6 +501,10 @@ def _coerce_capability(capability: Any) -> ValueScoreCapability:
             evidence_path=capability.get("evidence_path"),
             target_scope=capability.get("target_scope"),
             nonclaims=tuple(capability.get("nonclaims", ())),
+            full_chain_xla_diagnostic_ready=capability.get(
+                "full_chain_xla_diagnostic_ready",
+                False,
+            ),
         )
     raise TypeError("value_score_capability must be a ValueScoreCapability or mapping")
 

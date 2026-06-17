@@ -21,6 +21,7 @@ from bayesfilter.inference.hmc_tuning import (
     normalize_hmc_tuning_policy,
     require_executable_tuning_policy,
 )
+from bayesfilter.inference.batched_value_score import reviewed_value_score_target_fn
 from bayesfilter.inference.posterior_adapter import value_score_capability
 
 
@@ -123,8 +124,13 @@ class PrecomputedMassArtifact:
         source = str(self.source)
         if not source:
             raise ValueError("source must be non-empty")
+        actual_eigen_summary = _covariance_eigen_summary(covariance)
+        if not bool(actual_eigen_summary["finite"]):
+            raise ValueError("precomputed mass covariance eigenvalues must be finite")
+        if not bool(actual_eigen_summary["positive"]):
+            raise ValueError("precomputed mass covariance must be positive definite")
         eigen_summary = (
-            _covariance_eigen_summary(covariance)
+            actual_eigen_summary
             if self.eigen_summary is None
             else _normalize_eigen_summary(self.eigen_summary)
         )
@@ -281,6 +287,101 @@ class PrecomputedMassArtifact:
             "nonclaims": self.nonclaims,
         }
 
+    def to_payload(self, *, include_arrays: bool = False) -> Mapping[str, Any]:
+        """Return a JSON-safe reload payload, optionally including arrays.
+
+        ``signature_payload`` remains the stable metadata-only fingerprint
+        surface.  This method is the durable handoff schema for callers that
+        need to persist and rehydrate the validated mass artifact.
+        """
+
+        payload = dict(self.signature_payload())
+        payload.update(
+            {
+                "artifact_type": "bayesfilter_precomputed_mass_artifact",
+                "schema_version": 1,
+                "include_arrays": bool(include_arrays),
+                "reconstruction_rtol": self.reconstruction_rtol,
+                "reconstruction_atol": self.reconstruction_atol,
+            }
+        )
+        payload["eigen_summary"] = _json_safe_metadata(self.eigen_summary)
+        payload["precision_eigen_summary"] = _json_safe_metadata(
+            self.precision_eigen_summary
+        )
+        payload["regularization_report"] = _json_safe_metadata(
+            self.regularization_report
+        )
+        payload["nonclaims"] = list(self.nonclaims)
+        if include_arrays:
+            payload.update(
+                {
+                    "position": np.asarray(self.position, dtype=float).tolist(),
+                    "covariance": np.asarray(self.covariance, dtype=float).tolist(),
+                    "factor": np.asarray(self.factor, dtype=float).tolist(),
+                }
+            )
+        return payload
+
+    @classmethod
+    def from_payload(
+        cls,
+        payload: Mapping[str, Any],
+        *,
+        expected_adapter_signature: str | None = None,
+        expected_dim: int | None = None,
+    ) -> "PrecomputedMassArtifact":
+        """Rehydrate a validated artifact from an array-bearing payload."""
+
+        if not isinstance(payload, Mapping):
+            raise TypeError("precomputed mass payload must be a mapping")
+        if payload.get("artifact_type") != "bayesfilter_precomputed_mass_artifact":
+            raise ValueError("precomputed mass payload artifact_type mismatch")
+        if int(payload.get("schema_version", -1)) != 1:
+            raise ValueError("precomputed mass payload schema_version mismatch")
+        if expected_adapter_signature is not None:
+            expected = _validate_persisted_signature(str(expected_adapter_signature))
+            observed = _validate_persisted_signature(str(payload.get("adapter_signature", "")))
+            if observed != expected:
+                raise ValueError("precomputed mass payload adapter signature mismatch")
+        if expected_dim is not None:
+            expected_dimension = int(expected_dim)
+            observed_dimension = int(payload.get("dimension", -1))
+            if observed_dimension != expected_dimension:
+                raise ValueError("precomputed mass payload dimension mismatch")
+        missing_arrays = tuple(
+            key for key in ("position", "covariance", "factor") if key not in payload
+        )
+        if missing_arrays:
+            raise ValueError(
+                "precomputed mass payload missing required array fields: "
+                + ", ".join(missing_arrays)
+            )
+        return cls(
+            position=payload["position"],
+            covariance=payload["covariance"],
+            factor=payload["factor"],
+            adapter_signature=str(payload.get("adapter_signature", "")),
+            position_role=str(payload.get("position_role", "map")),
+            covariance_source=str(payload.get("covariance_source", "")),
+            matrix_used_for_square_root=str(
+                payload.get("matrix_used_for_square_root", "")
+            ),
+            factor_orientation=str(
+                payload.get("factor_orientation", "row_right_transpose")
+            ),
+            source=str(payload.get("source", "")),
+            eigen_summary=None,
+            precision_eigen_summary=payload.get("precision_eigen_summary"),
+            regularization_report=payload.get("regularization_report"),
+            log_jacobian_convention=str(
+                payload.get("log_jacobian_convention", "constant_omitted")
+            ),
+            nonclaims=tuple(str(item) for item in payload.get("nonclaims", ())),
+            reconstruction_rtol=float(payload.get("reconstruction_rtol", 1.0e-10)),
+            reconstruction_atol=float(payload.get("reconstruction_atol", 1.0e-10)),
+        )
+
 
 @dataclass(frozen=True)
 class LatentAffineHMCTransform:
@@ -418,6 +519,7 @@ class FullChainHMCConfig:
     adaptation_policy: str = "fixed_kernel_no_adaptation"
     tuning_policy: str | HMCTuningPolicy | None = None
     target_scope: str | None = None
+    chain_execution_mode: str = "tf_function"
 
     def __post_init__(self) -> None:
         for name in ("num_results", "num_burnin_steps", "num_leapfrog_steps"):
@@ -434,6 +536,12 @@ class FullChainHMCConfig:
             raise ValueError("seed must contain exactly two integers")
         object.__setattr__(self, "seed", seed)
         object.__setattr__(self, "use_xla", bool(self.use_xla))
+        chain_execution_mode = str(self.chain_execution_mode)
+        if chain_execution_mode not in {"tf_function", "eager"}:
+            raise ValueError("chain_execution_mode must be 'tf_function' or 'eager'")
+        if self.use_xla and chain_execution_mode != "tf_function":
+            raise ValueError("XLA full-chain HMC requires chain_execution_mode='tf_function'")
+        object.__setattr__(self, "chain_execution_mode", chain_execution_mode)
         policy = str(self.trace_policy)
         if policy not in {"standard", "reduced"}:
             raise ValueError("trace_policy must be 'standard' or 'reduced'")
@@ -485,6 +593,7 @@ class FullChainHMCConfig:
             "num_leapfrog_steps": self.num_leapfrog_steps,
             "seed": self.seed,
             "use_xla": self.use_xla,
+            "chain_execution_mode": self.chain_execution_mode,
             "trace_policy": self.trace_policy,
             "adaptation_policy": self.adaptation_policy,
             "tuning_policy": self.tuning_policy.payload(),
@@ -500,6 +609,244 @@ class FullChainHMCRunResult:
     trace: Mapping[str, Any]
     diagnostics: Mapping[str, Any]
     metadata: Mapping[str, Any]
+
+
+class ReusableFullChainHMCRunner:
+    """Reusable compiled TFP HMC runner for a fixed static HMC contract.
+
+    The ordinary ``run_full_chain_tfp_hmc`` helper builds a TensorFlow/TFP
+    ``sample_chain`` callable and immediately calls it once.  That is fine for
+    tiny gates, but expensive model clients may need to amortize TensorFlow's
+    first-call graph construction.  This runner owns the same BayesFilter HMC
+    target, kernel, trace, authority checks, and result schema, but compiles the
+    chain callable once for a static state shape.  Per-call ``current_state``,
+    ``seed``, and scalar ``step_size`` are tensor arguments, so repeated calls
+    can reuse the compiled graph without changing HMC semantics.
+
+    The interface is deliberately narrow: ``num_results``, burn-in length,
+    leapfrog count, trace policy, tuning policy, XLA flag, and target scope are
+    fixed by ``FullChainHMCConfig``.  A different value for any of those fields
+    requires a different runner.
+    """
+
+    def __init__(
+        self,
+        adapter: Any,
+        initial_state_template: Any,
+        config: FullChainHMCConfig,
+    ) -> None:
+        self.adapter = adapter
+        self.config = config
+        self.capability = _validate_full_chain_hmc_authority(adapter, config)
+
+        import tensorflow as tf
+
+        template = tf.cast(tf.convert_to_tensor(initial_state_template), tf.float64)
+        if template.shape.rank is None:
+            raise ValueError("reusable HMC runner requires static state rank")
+        if any(dim is None for dim in template.shape):
+            raise ValueError("reusable HMC runner requires fully static state shape")
+        self._state_shape = tuple(int(dim) for dim in template.shape)
+        self._state_dtype = template.dtype
+        self._initial_state_template = template
+        self._target_log_prob = _make_tfp_target_log_prob_fn(
+            adapter,
+            dtype=self._state_dtype,
+        )
+        self._trace_fn = _trace_fn_for_config(config)
+        self._runner = self._build_runner()
+        self._call_count = 0
+        self._first_call_s: float | None = None
+        self._warm_call_s: float | None = None
+
+    @property
+    def state_shape(self) -> tuple[int, ...]:
+        return self._state_shape
+
+    @property
+    def state_dtype(self) -> str:
+        return self._state_dtype.name
+
+    def run(
+        self,
+        *,
+        current_state: Any | None = None,
+        seed: tuple[int, int] | Any | None = None,
+        step_size: float | Any | None = None,
+    ) -> FullChainHMCRunResult:
+        """Run one chain call with tensor-parameterized state, seed, and step."""
+
+        import tensorflow as tf
+
+        state = self._initial_state_template if current_state is None else current_state
+        state_tensor = tf.convert_to_tensor(state, dtype=self._state_dtype)
+        if tuple(state_tensor.shape.as_list()) != self._state_shape:
+            raise ValueError("current_state shape must match reusable runner template")
+        seed_value = self.config.seed if seed is None else seed
+        seed_tensor = tf.convert_to_tensor(seed_value, dtype=tf.int32)
+        if tuple(seed_tensor.shape.as_list()) != (2,):
+            raise ValueError("seed must have static shape (2,)")
+        step_value = self.config.step_size if step_size is None else step_size
+        step_tensor = tf.convert_to_tensor(step_value, dtype=self._state_dtype)
+        if step_tensor.shape.rank != 0:
+            raise ValueError("step_size must be a scalar")
+
+        sample_chain_start = time.perf_counter()
+        samples, trace = self._runner(state_tensor, seed_tensor, step_tensor)
+        sample_chain_call_s = time.perf_counter() - sample_chain_start
+        self._call_count += 1
+        if self._call_count == 1:
+            self._first_call_s = sample_chain_call_s
+            self._warm_call_s = None
+        else:
+            self._warm_call_s = sample_chain_call_s
+
+        trace_for_diagnostics = trace if self.config.trace_policy == "standard" else {}
+        diagnostics = _full_chain_hmc_diagnostics(
+            samples,
+            trace_for_diagnostics,
+            trace_policy=self.config.trace_policy,
+        )
+        metadata = self._metadata(
+            sample_chain_call_s=sample_chain_call_s,
+            trace=trace if isinstance(trace, Mapping) else None,
+        )
+        return FullChainHMCRunResult(
+            samples=samples,
+            trace=trace,
+            diagnostics=diagnostics,
+            metadata=metadata,
+        )
+
+    __call__ = run
+
+    def _build_runner(self) -> Callable[[Any, Any, Any], tuple[Any, Mapping[str, Any]]]:
+        import tensorflow as tf
+        import tensorflow_probability as tfp
+
+        tfm = tfp.mcmc
+        config = self.config
+        target_log_prob = self._target_log_prob
+        trace_fn = self._trace_fn
+
+        def run_chain(current_state: Any, seed: Any, step_size: Any) -> tuple[Any, Mapping[str, Any]]:
+            kernel = tfm.HamiltonianMonteCarlo(
+                target_log_prob_fn=target_log_prob,
+                step_size=step_size,
+                num_leapfrog_steps=config.num_leapfrog_steps,
+            )
+            if config.tuning_policy.uses_dual_averaging:
+                kernel = tfm.DualAveragingStepSizeAdaptation(
+                    inner_kernel=kernel,
+                    num_adaptation_steps=config.tuning_policy.num_adaptation_steps,
+                    target_accept_prob=tf.constant(
+                        config.tuning_policy.target_accept_prob,
+                        dtype=current_state.dtype,
+                    ),
+                )
+            return tfm.sample_chain(
+                num_results=config.num_results,
+                num_burnin_steps=config.num_burnin_steps,
+                current_state=current_state,
+                kernel=kernel,
+                trace_fn=trace_fn,
+                seed=seed,
+            )
+
+        if config.chain_execution_mode == "eager":
+            return run_chain
+        input_signature = [
+            tf.TensorSpec(shape=self._state_shape, dtype=self._state_dtype),
+            tf.TensorSpec(shape=(2,), dtype=tf.int32),
+            tf.TensorSpec(shape=(), dtype=self._state_dtype),
+        ]
+        if config.use_xla:
+            return tf.function(
+                run_chain,
+                input_signature=input_signature,
+                jit_compile=True,
+                reduce_retracing=True,
+            )
+        return tf.function(
+            run_chain,
+            input_signature=input_signature,
+            reduce_retracing=True,
+        )
+
+    def _metadata(
+        self,
+        *,
+        sample_chain_call_s: float,
+        trace: Mapping[str, Any] | None,
+    ) -> Mapping[str, Any]:
+        config = self.config
+        capability = self.capability
+        return {
+            "runtime": "tfp.mcmc.sample_chain",
+            "reusable_runner": True,
+            "jit_compile": config.use_xla,
+            "chain_execution_mode": config.chain_execution_mode,
+            "trace_policy": config.trace_policy,
+            "adaptation_policy": config.adaptation_policy,
+            "tuning_policy": config.tuning_policy.payload(),
+            "adaptation_policy_source": config.tuning_policy.source,
+            "trace_unavailability": _trace_unavailability(config.trace_policy, trace),
+            "value_score_authority": capability.value_score_authority,
+            "target_scope": capability.target_scope,
+            "requested_target_scope": config.target_scope,
+            "program_signature": program_signature(
+                {
+                    "adapter": stable_adapter_signature(self.adapter),
+                    "capability": {
+                        "value_score_authority": capability.value_score_authority,
+                        "xla_hmc_ready": capability.xla_hmc_ready,
+                        "full_chain_xla_diagnostic_ready": (
+                            capability.full_chain_xla_diagnostic_ready
+                        ),
+                        "runtime_backend": capability.runtime_backend,
+                        "target_scope": capability.target_scope,
+                        "evidence_path": capability.evidence_path,
+                        "nonclaims": capability.nonclaims,
+                    },
+                    "config": config.signature_payload(),
+                    "initial_state_shape": self._state_shape,
+                    "initial_state_dtype": self._state_dtype.name,
+                    "dynamic_inputs": ("current_state", "seed", "step_size"),
+                }
+            ),
+            "initial_state_shape": self._state_shape,
+            "initial_state_dtype": self._state_dtype.name,
+            "dynamic_inputs": ("current_state", "seed", "step_size"),
+            "seed_source": "runtime_tensor_argument",
+            "current_state_source": "runtime_tensor_argument",
+            "step_size_source": "runtime_tensor_argument",
+            "sample_chain_call_s": sample_chain_call_s,
+            "sample_chain_invocation_count": self._call_count,
+            "sample_chain_timing_scope": (
+                "reusable_compiled_runner_first_call_compile_plus_execute_then_warm_execute"
+            ),
+            "first_call_s": self._first_call_s,
+            "warm_call_s": self._warm_call_s,
+            "warm_sample_shape": None,
+            "warm_trace_keys": tuple(sorted(trace.keys())) if trace is not None else tuple(),
+            "nonclaims": (
+                "reusable full-chain HMC engineering runner only",
+                "no sampler convergence claim",
+                "no posterior validity claim",
+                "no GPU readiness claim",
+                "no performance superiority claim",
+            ),
+        }
+
+
+def build_reusable_full_chain_tfp_hmc_runner(
+    adapter: Any,
+    initial_state_template: Any,
+    config: FullChainHMCConfig,
+) -> ReusableFullChainHMCRunner:
+    """Build a reusable BayesFilter TFP HMC runner for a static contract."""
+
+    return ReusableFullChainHMCRunner(adapter, initial_state_template, config)
 
 
 def _make_hmc_target_log_prob_fn(
@@ -530,6 +877,25 @@ def _make_hmc_target_log_prob_fn(
     return target_log_prob
 
 
+def _validate_full_chain_hmc_authority(
+    adapter: Any,
+    config: FullChainHMCConfig,
+) -> Any:
+    """Return adapter value/score authority after full-chain HMC checks."""
+
+    capability = value_score_capability(adapter)
+    if config.use_xla and not capability.is_accepted_full_chain_xla_diagnostic_authority:
+        raise ValueError(
+            "XLA full-chain HMC requires explicit full-chain-XLA diagnostic "
+            "authority; target-only XLA readiness is not sufficient; got "
+            f"{capability.value_score_authority!r}"
+        )
+    if config.use_xla and capability.target_scope is not None:
+        if config.target_scope != capability.target_scope:
+            raise ValueError("value/score target_scope mismatch")
+    return capability
+
+
 def run_full_chain_tfp_hmc(
     adapter: Any,
     initial_state: Any,
@@ -542,21 +908,13 @@ def run_full_chain_tfp_hmc(
     callers may convert tensors after this function returns.
     """
 
-    capability = value_score_capability(adapter)
-    if config.use_xla and not capability.is_accepted_xla_hmc_authority:
-        raise ValueError(
-            "XLA full-chain HMC requires graph-native or reviewed value/score "
-            f"authority; got {capability.value_score_authority!r}"
-        )
-    if config.use_xla and capability.target_scope is not None:
-        if config.target_scope != capability.target_scope:
-            raise ValueError("value/score target_scope mismatch")
+    capability = _validate_full_chain_hmc_authority(adapter, config)
 
     import tensorflow as tf
     import tensorflow_probability as tfp
 
     tfm = tfp.mcmc
-    state = tf.convert_to_tensor(initial_state, dtype=tf.float64)
+    state = tf.cast(tf.convert_to_tensor(initial_state), tf.float64)
     _ = _make_hmc_target_log_prob_fn(
         adapter,
         use_xla=config.use_xla,
@@ -579,15 +937,12 @@ def run_full_chain_tfp_hmc(
                 config.tuning_policy.target_accept_prob,
                 dtype=state.dtype,
             ),
-        )
+    )
     trace_fn = _trace_fn_for_config(config)
     runner = _build_sample_chain_runner(config, kernel, trace_fn, state)
-    first_start = time.perf_counter()
+    sample_chain_start = time.perf_counter()
     samples, trace = runner()
-    first_call_s = time.perf_counter() - first_start
-    warm_start = time.perf_counter()
-    warm_samples, warm_trace = runner()
-    warm_call_s = time.perf_counter() - warm_start
+    sample_chain_call_s = time.perf_counter() - sample_chain_start
     trace_for_diagnostics = trace if config.trace_policy == "standard" else {}
     diagnostics = _full_chain_hmc_diagnostics(
         samples,
@@ -597,6 +952,7 @@ def run_full_chain_tfp_hmc(
     metadata = {
         "runtime": "tfp.mcmc.sample_chain",
         "jit_compile": config.use_xla,
+        "chain_execution_mode": config.chain_execution_mode,
         "trace_policy": config.trace_policy,
         "adaptation_policy": config.adaptation_policy,
         "tuning_policy": config.tuning_policy.payload(),
@@ -614,6 +970,9 @@ def run_full_chain_tfp_hmc(
                 "capability": {
                     "value_score_authority": capability.value_score_authority,
                     "xla_hmc_ready": capability.xla_hmc_ready,
+                    "full_chain_xla_diagnostic_ready": (
+                        capability.full_chain_xla_diagnostic_ready
+                    ),
                     "runtime_backend": capability.runtime_backend,
                     "target_scope": capability.target_scope,
                     "evidence_path": capability.evidence_path,
@@ -624,10 +983,15 @@ def run_full_chain_tfp_hmc(
                 "initial_state_dtype": state.dtype.name,
             }
         ),
-        "first_call_s": first_call_s,
-        "warm_call_s": warm_call_s,
-        "warm_sample_shape": tuple(int(dim) for dim in warm_samples.shape),
-        "warm_trace_keys": tuple(sorted(warm_trace.keys())) if isinstance(warm_trace, Mapping) else tuple(),
+        "sample_chain_call_s": sample_chain_call_s,
+        "sample_chain_invocation_count": 1,
+        "sample_chain_timing_scope": "compile_plus_execute_when_xla_first_call",
+        "initial_state_shape": tuple(int(dim) for dim in state.shape),
+        "initial_state_dtype": state.dtype.name,
+        "first_call_s": sample_chain_call_s,
+        "warm_call_s": None,
+        "warm_sample_shape": None,
+        "warm_trace_keys": tuple(),
         "nonclaims": (
             "tiny full-chain HMC engineering gate only",
             "no sampler convergence claim",
@@ -672,6 +1036,18 @@ def _validate_persisted_signature(signature: str) -> str:
             "adapter_signature must not contain process-local object identity"
         )
     return signature
+
+
+def _json_safe_metadata(value: Any) -> Any:
+    if isinstance(value, Mapping):
+        return {str(key): _json_safe_metadata(item) for key, item in value.items()}
+    if isinstance(value, (tuple, list)):
+        return [_json_safe_metadata(item) for item in value]
+    if isinstance(value, np.ndarray):
+        return _json_safe_metadata(value.tolist())
+    if isinstance(value, np.generic):
+        return value.item()
+    return value
 
 
 def _covariance_eigen_summary(covariance: np.ndarray) -> Mapping[str, Any]:
@@ -806,25 +1182,7 @@ def _make_tfp_target_log_prob_fn(
     dtype: Any,
 ) -> Callable[[Any], Any]:
     if hasattr(adapter, "log_prob_and_grad"):
-
-        def target_log_prob(theta: Any) -> Any:
-            import tensorflow as tf
-
-            values = tf.convert_to_tensor(theta, dtype=dtype)
-
-            @tf.custom_gradient
-            def value_with_reviewed_score(x: Any) -> tuple[Any, Callable[[Any], Any]]:
-                value, score = adapter.log_prob_and_grad(x)
-
-                def grad(dy: Any) -> Any:
-                    upstream = _broadcast_upstream_gradient_to_score(dy, score)
-                    return upstream * score
-
-                return value, grad
-
-            return value_with_reviewed_score(values)
-
-        return target_log_prob
+        return reviewed_value_score_target_fn(adapter, dtype=dtype)
     return _make_hmc_target_log_prob_fn(adapter)
 
 
@@ -902,6 +1260,8 @@ def _build_sample_chain_runner(
 
     if config.use_xla:
         return tf.function(run_chain, jit_compile=True, reduce_retracing=True)
+    if config.chain_execution_mode == "eager":
+        return run_chain
     return tf.function(run_chain, reduce_retracing=True)
 
 

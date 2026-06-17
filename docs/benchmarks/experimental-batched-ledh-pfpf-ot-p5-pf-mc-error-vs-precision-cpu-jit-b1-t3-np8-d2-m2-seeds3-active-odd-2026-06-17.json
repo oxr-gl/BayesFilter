@@ -1,0 +1,1102 @@
+{
+  "artifact_dir": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-p5-pf-mc-error-vs-precision-cpu-jit-b1-t3-np8-d2-m2-seeds3-active-odd-2026-06-17-children",
+  "child_jit_compile": true,
+  "cuda_visible_devices_arg": null,
+  "device": "/CPU:0",
+  "device_scope": "cpu",
+  "expect_device_kind": "cpu",
+  "host": "ubuntu-MZ72-HB2-00",
+  "nonclaims": [
+    "focused PF MC noise-floor diagnostic only",
+    "small seed count is descriptive, not a precise uncertainty interval",
+    "no HMC readiness claim",
+    "no production default precision change",
+    "seed-to-seed fixture variability is a practical PF MC proxy here"
+  ],
+  "overall_passed": true,
+  "python_executable": "/home/ubuntu/anaconda3/envs/tfgpu/bin/python",
+  "python_version": "3.13.13",
+  "rows": [
+    {
+      "artifact_exists": true,
+      "child_overall_passed": true,
+      "command": [
+        "/home/ubuntu/anaconda3/envs/tfgpu/bin/python",
+        "/home/ubuntu/python/BayesFilter/docs/benchmarks/compare_experimental_batched_ledh_pfpf_ot_gradient_structure.py",
+        "--device-scope",
+        "cpu",
+        "--device",
+        "/CPU:0",
+        "--expect-device-kind",
+        "cpu",
+        "--batch-size",
+        "1",
+        "--time-steps",
+        "3",
+        "--num-particles",
+        "8",
+        "--state-dim",
+        "2",
+        "--obs-dim",
+        "2",
+        "--transport-policy",
+        "active-odd",
+        "--sinkhorn-iterations",
+        "3",
+        "--sinkhorn-epsilon",
+        "0.5",
+        "--annealed-scaling",
+        "0.9",
+        "--annealed-convergence-threshold",
+        "0.001",
+        "--row-chunk-size",
+        "16",
+        "--col-chunk-size",
+        "16",
+        "--particle-chunk-size",
+        "16",
+        "--warmups",
+        "0",
+        "--repeats",
+        "1",
+        "--seed",
+        "20260617",
+        "--dtype",
+        "float64",
+        "--tf32-mode",
+        "disabled",
+        "--output",
+        "docs/benchmarks/experimental-batched-ledh-pfpf-ot-p5-pf-mc-error-vs-precision-cpu-jit-b1-t3-np8-d2-m2-seeds3-active-odd-2026-06-17-children/seed-20260617-fp64.json",
+        "--markdown-output",
+        "docs/benchmarks/experimental-batched-ledh-pfpf-ot-p5-pf-mc-error-vs-precision-cpu-jit-b1-t3-np8-d2-m2-seeds3-active-odd-2026-06-17-children/seed-20260617-fp64.md"
+      ],
+      "finite": true,
+      "json_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-p5-pf-mc-error-vs-precision-cpu-jit-b1-t3-np8-d2-m2-seeds3-active-odd-2026-06-17-children/seed-20260617-fp64.json",
+      "markdown_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-p5-pf-mc-error-vs-precision-cpu-jit-b1-t3-np8-d2-m2-seeds3-active-odd-2026-06-17-children/seed-20260617-fp64.md",
+      "passed": true,
+      "payload_summary": {
+        "overall_passed": true,
+        "precision": {
+          "active_dtype": "float64",
+          "default_dtype": "float32",
+          "default_tf32_mode": "enabled",
+          "dtype": "float64",
+          "fp64_reference_requires_explicit_dtype": true,
+          "precision_default_policy": "experimental_ledh_pfpf_ot_gpu_tf32",
+          "scope": "experimental_batched_ledh_pfpf_ot_gpu_performance_lane",
+          "tf32_execution_enabled": false,
+          "tf32_mode": "disabled",
+          "tf_dtype": "float64"
+        },
+        "shape": {
+          "batch_size": 1,
+          "num_particles": 8,
+          "obs_dim": 2,
+          "parameter_dim": 3,
+          "state_dim": 2,
+          "time_steps": 3
+        },
+        "transport": {
+          "annealed_convergence_threshold": 0.001,
+          "annealed_scaling": 0.9,
+          "col_chunk_size": 16,
+          "particle_chunk_size": 16,
+          "policy": "active-odd",
+          "row_chunk_size": 16,
+          "sinkhorn_epsilon": 0.5,
+          "sinkhorn_iterations": 3
+        }
+      },
+      "precision_id": "fp64",
+      "returncode": 0,
+      "returncode_ok": true,
+      "score": [
+        [
+          -0.23708179363979887,
+          -1.138748639311509,
+          -1.767671406931515
+        ]
+      ],
+      "seed": 20260617,
+      "stderr_tail": "2026-06-17 16:02:54.855664: E external/local_xla/xla/stream_executor/cuda/cuda_platform.cc:51] failed call to cuInit: INTERNAL: CUDA error: Failed call to cuInit: CUDA_ERROR_NO_DEVICE: no CUDA-capable device is detected\nWARNING: All log messages before absl::InitializeLog() is called are written to STDERR\nI0000 00:00:1781683382.579870     132 device_compiler.h:196] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.\n",
+      "stdout_tail": ": [\n        0.008437862154096365\n      ]\n    }\n  ],\n  \"comparisons\": [\n    {\n      \"arm_id\": \"streaming_dense_tensor\",\n      \"score_drift_vs_reference\": {\n        \"max_abs\": 2.220446049250313e-16,\n        \"max_relative_to_max1_abs_reference\": 1.949900068019227e-16,\n        \"rms_abs\": 1.2819751242557092e-16,\n        \"shape\": [\n          1,\n          3\n        ]\n      },\n      \"score_geometry_vs_reference\": {\n        \"candidate_l2_norm\": 2.116038384172773,\n        \"cosine_similarity\": 1.0,\n        \"norm_ratio_candidate_to_reference\": 1.0,\n        \"reference_l2_norm\": 2.116038384172773\n      },\n      \"value_drift_vs_reference\": {\n        \"max_abs\": 0.0,\n        \"max_relative_to_max1_abs_reference\": 0.0,\n        \"rms_abs\": 0.0,\n        \"shape\": [\n          1\n        ]\n      }\n    },\n    {\n      \"arm_id\": \"streaming_streaming_tensor\",\n      \"score_drift_vs_reference\": {\n        \"max_abs\": 2.220446049250313e-16,\n        \"max_relative_to_max1_abs_reference\": 1.949900068019227e-16,\n        \"rms_abs\": 1.3691500328805859e-16,\n        \"shape\": [\n          1,\n          3\n        ]\n      },\n      \"score_geometry_vs_reference\": {\n        \"candidate_l2_norm\": 2.116038384172773,\n        \"cosine_similarity\": 1.0,\n        \"norm_ratio_candidate_to_reference\": 1.0,\n        \"reference_l2_norm\": 2.116038384172773\n      },\n      \"value_drift_vs_reference\": {\n        \"max_abs\": 0.0,\n        \"max_relative_to_max1_abs_reference\": 0.0,\n        \"rms_abs\": 0.0,\n        \"shape\": [\n          1\n        ]\n      }\n    },\n    {\n      \"arm_id\": \"streaming_streaming_equivalent_callback\",\n      \"score_drift_vs_reference\": {\n        \"max_abs\": 2.220446049250313e-16,\n        \"max_relative_to_max1_abs_reference\": 1.949900068019227e-16,\n        \"rms_abs\": 1.3691500328805859e-16,\n        \"shape\": [\n          1,\n          3\n        ]\n      },\n      \"score_geometry_vs_reference\": {\n        \"candidate_l2_norm\": 2.116038384172773,\n        \"cosine_similarity\": 1.0,\n        \"norm_ratio_candidate_to_reference\": 1.0,\n        \"reference_l2_norm\": 2.116038384172773\n      },\n      \"value_drift_vs_reference\": {\n        \"max_abs\": 0.0,\n        \"max_relative_to_max1_abs_reference\": 0.0,\n        \"rms_abs\": 0.0,\n        \"shape\": [\n          1\n        ]\n      }\n    }\n  ],\n  \"cuda_visible_devices\": \"-1\",\n  \"device\": \"/CPU:0\",\n  \"device_scope\": \"cpu\",\n  \"expect_device_kind\": \"cpu\",\n  \"finite_all\": true,\n  \"host\": \"ubuntu-MZ72-HB2-00\",\n  \"jit_compile\": true,\n  \"logical_gpus\": [],\n  \"nonclaims\": [\n    \"focused deterministic gradient-structure diagnostic only\",\n    \"dense arm is a small-reference oracle, not a scalable implementation\",\n    \"no HMC convergence or energy-conservation claim\",\n    \"no posterior validity claim\",\n    \"single fixture and single seed only\"\n  ],\n  \"overall_passed\": true,\n  \"physical_gpus\": [],\n  \"precision\": {\n    \"active_dtype\": \"float64\",\n    \"default_dtype\": \"float32\",\n    \"default_tf32_mode\": \"enabled\",\n    \"dtype\": \"float64\",\n    \"fp64_reference_requires_explicit_dtype\": true,\n    \"precision_default_policy\": \"experimental_ledh_pfpf_ot_gpu_tf32\",\n    \"scope\": \"experimental_batched_ledh_pfpf_ot_gpu_performance_lane\",\n    \"tf32_execution_enabled\": false,\n    \"tf32_mode\": \"disabled\",\n    \"tf_dtype\": \"float64\"\n  },\n  \"python_version\": \"3.13.13\",\n  \"reference_arm\": \"original_dense_tensor\",\n  \"shape\": {\n    \"batch_size\": 1,\n    \"num_particles\": 8,\n    \"obs_dim\": 2,\n    \"parameter_dim\": 3,\n    \"state_dim\": 2,\n    \"time_steps\": 3\n  },\n  \"structure_passed\": true,\n  \"tensorflow_version\": \"2.20.0\",\n  \"timestamp_utc\": \"2026-06-17T08:03:34.845870+00:00\",\n  \"tolerances\": {\n    \"structure_score_atol\": 1e-05,\n    \"structure_score_rtol\": 1e-05,\n    \"structure_value_atol\": 1e-06,\n    \"structure_value_rtol\": 1e-06\n  },\n  \"transport\": {\n    \"annealed_convergence_threshold\": 0.001,\n    \"annealed_scaling\": 0.9,\n    \"col_chunk_size\": 16,\n    \"particle_chunk_size\": 16,\n    \"policy\": \"active-odd\",\n    \"row_chunk_size\": 16,\n    \"sinkhorn_epsilon\": 0.5,\n    \"sinkhorn_iterations\": 3\n  }\n}\n",
+      "value": [
+        1.1549887791659208
+      ]
+    },
+    {
+      "artifact_exists": true,
+      "child_overall_passed": true,
+      "command": [
+        "/home/ubuntu/anaconda3/envs/tfgpu/bin/python",
+        "/home/ubuntu/python/BayesFilter/docs/benchmarks/compare_experimental_batched_ledh_pfpf_ot_gradient_structure.py",
+        "--device-scope",
+        "cpu",
+        "--device",
+        "/CPU:0",
+        "--expect-device-kind",
+        "cpu",
+        "--batch-size",
+        "1",
+        "--time-steps",
+        "3",
+        "--num-particles",
+        "8",
+        "--state-dim",
+        "2",
+        "--obs-dim",
+        "2",
+        "--transport-policy",
+        "active-odd",
+        "--sinkhorn-iterations",
+        "3",
+        "--sinkhorn-epsilon",
+        "0.5",
+        "--annealed-scaling",
+        "0.9",
+        "--annealed-convergence-threshold",
+        "0.001",
+        "--row-chunk-size",
+        "16",
+        "--col-chunk-size",
+        "16",
+        "--particle-chunk-size",
+        "16",
+        "--warmups",
+        "0",
+        "--repeats",
+        "1",
+        "--seed",
+        "20260617",
+        "--dtype",
+        "float32",
+        "--tf32-mode",
+        "disabled",
+        "--output",
+        "docs/benchmarks/experimental-batched-ledh-pfpf-ot-p5-pf-mc-error-vs-precision-cpu-jit-b1-t3-np8-d2-m2-seeds3-active-odd-2026-06-17-children/seed-20260617-fp32_no_tf32.json",
+        "--markdown-output",
+        "docs/benchmarks/experimental-batched-ledh-pfpf-ot-p5-pf-mc-error-vs-precision-cpu-jit-b1-t3-np8-d2-m2-seeds3-active-odd-2026-06-17-children/seed-20260617-fp32_no_tf32.md"
+      ],
+      "finite": true,
+      "json_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-p5-pf-mc-error-vs-precision-cpu-jit-b1-t3-np8-d2-m2-seeds3-active-odd-2026-06-17-children/seed-20260617-fp32_no_tf32.json",
+      "markdown_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-p5-pf-mc-error-vs-precision-cpu-jit-b1-t3-np8-d2-m2-seeds3-active-odd-2026-06-17-children/seed-20260617-fp32_no_tf32.md",
+      "passed": true,
+      "payload_summary": {
+        "overall_passed": true,
+        "precision": {
+          "active_dtype": "float32",
+          "default_dtype": "float32",
+          "default_tf32_mode": "enabled",
+          "dtype": "float32",
+          "fp64_reference_requires_explicit_dtype": true,
+          "precision_default_policy": "experimental_ledh_pfpf_ot_gpu_tf32",
+          "scope": "experimental_batched_ledh_pfpf_ot_gpu_performance_lane",
+          "tf32_execution_enabled": false,
+          "tf32_mode": "disabled",
+          "tf_dtype": "float32"
+        },
+        "shape": {
+          "batch_size": 1,
+          "num_particles": 8,
+          "obs_dim": 2,
+          "parameter_dim": 3,
+          "state_dim": 2,
+          "time_steps": 3
+        },
+        "transport": {
+          "annealed_convergence_threshold": 0.001,
+          "annealed_scaling": 0.9,
+          "col_chunk_size": 16,
+          "particle_chunk_size": 16,
+          "policy": "active-odd",
+          "row_chunk_size": 16,
+          "sinkhorn_epsilon": 0.5,
+          "sinkhorn_iterations": 3
+        }
+      },
+      "precision_id": "fp32_no_tf32",
+      "returncode": 0,
+      "returncode_ok": true,
+      "score": [
+        [
+          -0.237081840634346,
+          -1.1387485265731812,
+          -1.7676714658737183
+        ]
+      ],
+      "seed": 20260617,
+      "stderr_tail": "2026-06-17 16:03:38.360805: E external/local_xla/xla/stream_executor/cuda/cuda_platform.cc:51] failed call to cuInit: INTERNAL: CUDA error: Failed call to cuInit: CUDA_ERROR_NO_DEVICE: no CUDA-capable device is detected\nWARNING: All log messages before absl::InitializeLog() is called are written to STDERR\nI0000 00:00:1781683425.918052    1735 device_compiler.h:196] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.\n",
+      "stdout_tail": "reaming_dense_tensor\",\n      \"score_drift_vs_reference\": {\n        \"max_abs\": 3.5762786865234375e-07,\n        \"max_relative_to_max1_abs_reference\": 2.0936890245785483e-07,\n        \"rms_abs\": 2.4815392487837465e-07,\n        \"shape\": [\n          1,\n          3\n        ]\n      },\n      \"score_geometry_vs_reference\": {\n        \"candidate_l2_norm\": 2.1160383763367125,\n        \"cosine_similarity\": 0.9999999999999828,\n        \"norm_ratio_candidate_to_reference\": 1.0000000805494553,\n        \"reference_l2_norm\": 2.1160382058909875\n      },\n      \"value_drift_vs_reference\": {\n        \"max_abs\": 0.0,\n        \"max_relative_to_max1_abs_reference\": 0.0,\n        \"rms_abs\": 0.0,\n        \"shape\": [\n          1\n        ]\n      }\n    },\n    {\n      \"arm_id\": \"streaming_streaming_tensor\",\n      \"score_drift_vs_reference\": {\n        \"max_abs\": 3.5762786865234375e-07,\n        \"max_relative_to_max1_abs_reference\": 2.0936890245785483e-07,\n        \"rms_abs\": 2.483030110587674e-07,\n        \"shape\": [\n          1,\n          3\n        ]\n      },\n      \"score_geometry_vs_reference\": {\n        \"candidate_l2_norm\": 2.116038378006245,\n        \"cosine_similarity\": 0.9999999999999828,\n        \"norm_ratio_candidate_to_reference\": 1.000000081338445,\n        \"reference_l2_norm\": 2.1160382058909875\n      },\n      \"value_drift_vs_reference\": {\n        \"max_abs\": 0.0,\n        \"max_relative_to_max1_abs_reference\": 0.0,\n        \"rms_abs\": 0.0,\n        \"shape\": [\n          1\n        ]\n      }\n    },\n    {\n      \"arm_id\": \"streaming_streaming_equivalent_callback\",\n      \"score_drift_vs_reference\": {\n        \"max_abs\": 3.5762786865234375e-07,\n        \"max_relative_to_max1_abs_reference\": 2.0936890245785483e-07,\n        \"rms_abs\": 2.483030110587674e-07,\n        \"shape\": [\n          1,\n          3\n        ]\n      },\n      \"score_geometry_vs_reference\": {\n        \"candidate_l2_norm\": 2.116038378006245,\n        \"cosine_similarity\": 0.9999999999999828,\n        \"norm_ratio_candidate_to_reference\": 1.000000081338445,\n        \"reference_l2_norm\": 2.1160382058909875\n      },\n      \"value_drift_vs_reference\": {\n        \"max_abs\": 0.0,\n        \"max_relative_to_max1_abs_reference\": 0.0,\n        \"rms_abs\": 0.0,\n        \"shape\": [\n          1\n        ]\n      }\n    }\n  ],\n  \"cuda_visible_devices\": \"-1\",\n  \"device\": \"/CPU:0\",\n  \"device_scope\": \"cpu\",\n  \"expect_device_kind\": \"cpu\",\n  \"finite_all\": true,\n  \"host\": \"ubuntu-MZ72-HB2-00\",\n  \"jit_compile\": true,\n  \"logical_gpus\": [],\n  \"nonclaims\": [\n    \"focused deterministic gradient-structure diagnostic only\",\n    \"dense arm is a small-reference oracle, not a scalable implementation\",\n    \"no HMC convergence or energy-conservation claim\",\n    \"no posterior validity claim\",\n    \"single fixture and single seed only\"\n  ],\n  \"overall_passed\": true,\n  \"physical_gpus\": [],\n  \"precision\": {\n    \"active_dtype\": \"float32\",\n    \"default_dtype\": \"float32\",\n    \"default_tf32_mode\": \"enabled\",\n    \"dtype\": \"float32\",\n    \"fp64_reference_requires_explicit_dtype\": true,\n    \"precision_default_policy\": \"experimental_ledh_pfpf_ot_gpu_tf32\",\n    \"scope\": \"experimental_batched_ledh_pfpf_ot_gpu_performance_lane\",\n    \"tf32_execution_enabled\": false,\n    \"tf32_mode\": \"disabled\",\n    \"tf_dtype\": \"float32\"\n  },\n  \"python_version\": \"3.13.13\",\n  \"reference_arm\": \"original_dense_tensor\",\n  \"shape\": {\n    \"batch_size\": 1,\n    \"num_particles\": 8,\n    \"obs_dim\": 2,\n    \"parameter_dim\": 3,\n    \"state_dim\": 2,\n    \"time_steps\": 3\n  },\n  \"structure_passed\": true,\n  \"tensorflow_version\": \"2.20.0\",\n  \"timestamp_utc\": \"2026-06-17T08:04:17.273464+00:00\",\n  \"tolerances\": {\n    \"structure_score_atol\": 1e-05,\n    \"structure_score_rtol\": 1e-05,\n    \"structure_value_atol\": 1e-06,\n    \"structure_value_rtol\": 1e-06\n  },\n  \"transport\": {\n    \"annealed_convergence_threshold\": 0.001,\n    \"annealed_scaling\": 0.9,\n    \"col_chunk_size\": 16,\n    \"particle_chunk_size\": 16,\n    \"policy\": \"active-odd\",\n    \"row_chunk_size\": 16,\n    \"sinkhorn_epsilon\": 0.5,\n    \"sinkhorn_iterations\": 3\n  }\n}\n",
+      "value": [
+        1.1549886465072632
+      ]
+    },
+    {
+      "artifact_exists": true,
+      "child_overall_passed": true,
+      "command": [
+        "/home/ubuntu/anaconda3/envs/tfgpu/bin/python",
+        "/home/ubuntu/python/BayesFilter/docs/benchmarks/compare_experimental_batched_ledh_pfpf_ot_gradient_structure.py",
+        "--device-scope",
+        "cpu",
+        "--device",
+        "/CPU:0",
+        "--expect-device-kind",
+        "cpu",
+        "--batch-size",
+        "1",
+        "--time-steps",
+        "3",
+        "--num-particles",
+        "8",
+        "--state-dim",
+        "2",
+        "--obs-dim",
+        "2",
+        "--transport-policy",
+        "active-odd",
+        "--sinkhorn-iterations",
+        "3",
+        "--sinkhorn-epsilon",
+        "0.5",
+        "--annealed-scaling",
+        "0.9",
+        "--annealed-convergence-threshold",
+        "0.001",
+        "--row-chunk-size",
+        "16",
+        "--col-chunk-size",
+        "16",
+        "--particle-chunk-size",
+        "16",
+        "--warmups",
+        "0",
+        "--repeats",
+        "1",
+        "--seed",
+        "20260617",
+        "--dtype",
+        "float32",
+        "--tf32-mode",
+        "enabled",
+        "--output",
+        "docs/benchmarks/experimental-batched-ledh-pfpf-ot-p5-pf-mc-error-vs-precision-cpu-jit-b1-t3-np8-d2-m2-seeds3-active-odd-2026-06-17-children/seed-20260617-fp32_tf32.json",
+        "--markdown-output",
+        "docs/benchmarks/experimental-batched-ledh-pfpf-ot-p5-pf-mc-error-vs-precision-cpu-jit-b1-t3-np8-d2-m2-seeds3-active-odd-2026-06-17-children/seed-20260617-fp32_tf32.md"
+      ],
+      "finite": true,
+      "json_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-p5-pf-mc-error-vs-precision-cpu-jit-b1-t3-np8-d2-m2-seeds3-active-odd-2026-06-17-children/seed-20260617-fp32_tf32.json",
+      "markdown_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-p5-pf-mc-error-vs-precision-cpu-jit-b1-t3-np8-d2-m2-seeds3-active-odd-2026-06-17-children/seed-20260617-fp32_tf32.md",
+      "passed": true,
+      "payload_summary": {
+        "overall_passed": true,
+        "precision": {
+          "active_dtype": "float32",
+          "default_dtype": "float32",
+          "default_tf32_mode": "enabled",
+          "dtype": "float32",
+          "fp64_reference_requires_explicit_dtype": true,
+          "precision_default_policy": "experimental_ledh_pfpf_ot_gpu_tf32",
+          "scope": "experimental_batched_ledh_pfpf_ot_gpu_performance_lane",
+          "tf32_execution_enabled": true,
+          "tf32_mode": "enabled",
+          "tf_dtype": "float32"
+        },
+        "shape": {
+          "batch_size": 1,
+          "num_particles": 8,
+          "obs_dim": 2,
+          "parameter_dim": 3,
+          "state_dim": 2,
+          "time_steps": 3
+        },
+        "transport": {
+          "annealed_convergence_threshold": 0.001,
+          "annealed_scaling": 0.9,
+          "col_chunk_size": 16,
+          "particle_chunk_size": 16,
+          "policy": "active-odd",
+          "row_chunk_size": 16,
+          "sinkhorn_epsilon": 0.5,
+          "sinkhorn_iterations": 3
+        }
+      },
+      "precision_id": "fp32_tf32",
+      "returncode": 0,
+      "returncode_ok": true,
+      "score": [
+        [
+          -0.237081840634346,
+          -1.1387485265731812,
+          -1.7676714658737183
+        ]
+      ],
+      "seed": 20260617,
+      "stderr_tail": "2026-06-17 16:04:20.744253: E external/local_xla/xla/stream_executor/cuda/cuda_platform.cc:51] failed call to cuInit: INTERNAL: CUDA error: Failed call to cuInit: CUDA_ERROR_NO_DEVICE: no CUDA-capable device is detected\nWARNING: All log messages before absl::InitializeLog() is called are written to STDERR\nI0000 00:00:1781683468.520743    3339 device_compiler.h:196] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.\n",
+      "stdout_tail": "streaming_dense_tensor\",\n      \"score_drift_vs_reference\": {\n        \"max_abs\": 3.5762786865234375e-07,\n        \"max_relative_to_max1_abs_reference\": 2.0936890245785483e-07,\n        \"rms_abs\": 2.4815392487837465e-07,\n        \"shape\": [\n          1,\n          3\n        ]\n      },\n      \"score_geometry_vs_reference\": {\n        \"candidate_l2_norm\": 2.1160383763367125,\n        \"cosine_similarity\": 0.9999999999999828,\n        \"norm_ratio_candidate_to_reference\": 1.0000000805494553,\n        \"reference_l2_norm\": 2.1160382058909875\n      },\n      \"value_drift_vs_reference\": {\n        \"max_abs\": 0.0,\n        \"max_relative_to_max1_abs_reference\": 0.0,\n        \"rms_abs\": 0.0,\n        \"shape\": [\n          1\n        ]\n      }\n    },\n    {\n      \"arm_id\": \"streaming_streaming_tensor\",\n      \"score_drift_vs_reference\": {\n        \"max_abs\": 3.5762786865234375e-07,\n        \"max_relative_to_max1_abs_reference\": 2.0936890245785483e-07,\n        \"rms_abs\": 2.483030110587674e-07,\n        \"shape\": [\n          1,\n          3\n        ]\n      },\n      \"score_geometry_vs_reference\": {\n        \"candidate_l2_norm\": 2.116038378006245,\n        \"cosine_similarity\": 0.9999999999999828,\n        \"norm_ratio_candidate_to_reference\": 1.000000081338445,\n        \"reference_l2_norm\": 2.1160382058909875\n      },\n      \"value_drift_vs_reference\": {\n        \"max_abs\": 0.0,\n        \"max_relative_to_max1_abs_reference\": 0.0,\n        \"rms_abs\": 0.0,\n        \"shape\": [\n          1\n        ]\n      }\n    },\n    {\n      \"arm_id\": \"streaming_streaming_equivalent_callback\",\n      \"score_drift_vs_reference\": {\n        \"max_abs\": 3.5762786865234375e-07,\n        \"max_relative_to_max1_abs_reference\": 2.0936890245785483e-07,\n        \"rms_abs\": 2.483030110587674e-07,\n        \"shape\": [\n          1,\n          3\n        ]\n      },\n      \"score_geometry_vs_reference\": {\n        \"candidate_l2_norm\": 2.116038378006245,\n        \"cosine_similarity\": 0.9999999999999828,\n        \"norm_ratio_candidate_to_reference\": 1.000000081338445,\n        \"reference_l2_norm\": 2.1160382058909875\n      },\n      \"value_drift_vs_reference\": {\n        \"max_abs\": 0.0,\n        \"max_relative_to_max1_abs_reference\": 0.0,\n        \"rms_abs\": 0.0,\n        \"shape\": [\n          1\n        ]\n      }\n    }\n  ],\n  \"cuda_visible_devices\": \"-1\",\n  \"device\": \"/CPU:0\",\n  \"device_scope\": \"cpu\",\n  \"expect_device_kind\": \"cpu\",\n  \"finite_all\": true,\n  \"host\": \"ubuntu-MZ72-HB2-00\",\n  \"jit_compile\": true,\n  \"logical_gpus\": [],\n  \"nonclaims\": [\n    \"focused deterministic gradient-structure diagnostic only\",\n    \"dense arm is a small-reference oracle, not a scalable implementation\",\n    \"no HMC convergence or energy-conservation claim\",\n    \"no posterior validity claim\",\n    \"single fixture and single seed only\"\n  ],\n  \"overall_passed\": true,\n  \"physical_gpus\": [],\n  \"precision\": {\n    \"active_dtype\": \"float32\",\n    \"default_dtype\": \"float32\",\n    \"default_tf32_mode\": \"enabled\",\n    \"dtype\": \"float32\",\n    \"fp64_reference_requires_explicit_dtype\": true,\n    \"precision_default_policy\": \"experimental_ledh_pfpf_ot_gpu_tf32\",\n    \"scope\": \"experimental_batched_ledh_pfpf_ot_gpu_performance_lane\",\n    \"tf32_execution_enabled\": true,\n    \"tf32_mode\": \"enabled\",\n    \"tf_dtype\": \"float32\"\n  },\n  \"python_version\": \"3.13.13\",\n  \"reference_arm\": \"original_dense_tensor\",\n  \"shape\": {\n    \"batch_size\": 1,\n    \"num_particles\": 8,\n    \"obs_dim\": 2,\n    \"parameter_dim\": 3,\n    \"state_dim\": 2,\n    \"time_steps\": 3\n  },\n  \"structure_passed\": true,\n  \"tensorflow_version\": \"2.20.0\",\n  \"timestamp_utc\": \"2026-06-17T08:05:02.428017+00:00\",\n  \"tolerances\": {\n    \"structure_score_atol\": 1e-05,\n    \"structure_score_rtol\": 1e-05,\n    \"structure_value_atol\": 1e-06,\n    \"structure_value_rtol\": 1e-06\n  },\n  \"transport\": {\n    \"annealed_convergence_threshold\": 0.001,\n    \"annealed_scaling\": 0.9,\n    \"col_chunk_size\": 16,\n    \"particle_chunk_size\": 16,\n    \"policy\": \"active-odd\",\n    \"row_chunk_size\": 16,\n    \"sinkhorn_epsilon\": 0.5,\n    \"sinkhorn_iterations\": 3\n  }\n}\n",
+      "value": [
+        1.1549886465072632
+      ]
+    },
+    {
+      "artifact_exists": true,
+      "child_overall_passed": true,
+      "command": [
+        "/home/ubuntu/anaconda3/envs/tfgpu/bin/python",
+        "/home/ubuntu/python/BayesFilter/docs/benchmarks/compare_experimental_batched_ledh_pfpf_ot_gradient_structure.py",
+        "--device-scope",
+        "cpu",
+        "--device",
+        "/CPU:0",
+        "--expect-device-kind",
+        "cpu",
+        "--batch-size",
+        "1",
+        "--time-steps",
+        "3",
+        "--num-particles",
+        "8",
+        "--state-dim",
+        "2",
+        "--obs-dim",
+        "2",
+        "--transport-policy",
+        "active-odd",
+        "--sinkhorn-iterations",
+        "3",
+        "--sinkhorn-epsilon",
+        "0.5",
+        "--annealed-scaling",
+        "0.9",
+        "--annealed-convergence-threshold",
+        "0.001",
+        "--row-chunk-size",
+        "16",
+        "--col-chunk-size",
+        "16",
+        "--particle-chunk-size",
+        "16",
+        "--warmups",
+        "0",
+        "--repeats",
+        "1",
+        "--seed",
+        "20261626",
+        "--dtype",
+        "float64",
+        "--tf32-mode",
+        "disabled",
+        "--output",
+        "docs/benchmarks/experimental-batched-ledh-pfpf-ot-p5-pf-mc-error-vs-precision-cpu-jit-b1-t3-np8-d2-m2-seeds3-active-odd-2026-06-17-children/seed-20261626-fp64.json",
+        "--markdown-output",
+        "docs/benchmarks/experimental-batched-ledh-pfpf-ot-p5-pf-mc-error-vs-precision-cpu-jit-b1-t3-np8-d2-m2-seeds3-active-odd-2026-06-17-children/seed-20261626-fp64.md"
+      ],
+      "finite": true,
+      "json_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-p5-pf-mc-error-vs-precision-cpu-jit-b1-t3-np8-d2-m2-seeds3-active-odd-2026-06-17-children/seed-20261626-fp64.json",
+      "markdown_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-p5-pf-mc-error-vs-precision-cpu-jit-b1-t3-np8-d2-m2-seeds3-active-odd-2026-06-17-children/seed-20261626-fp64.md",
+      "passed": true,
+      "payload_summary": {
+        "overall_passed": true,
+        "precision": {
+          "active_dtype": "float64",
+          "default_dtype": "float32",
+          "default_tf32_mode": "enabled",
+          "dtype": "float64",
+          "fp64_reference_requires_explicit_dtype": true,
+          "precision_default_policy": "experimental_ledh_pfpf_ot_gpu_tf32",
+          "scope": "experimental_batched_ledh_pfpf_ot_gpu_performance_lane",
+          "tf32_execution_enabled": false,
+          "tf32_mode": "disabled",
+          "tf_dtype": "float64"
+        },
+        "shape": {
+          "batch_size": 1,
+          "num_particles": 8,
+          "obs_dim": 2,
+          "parameter_dim": 3,
+          "state_dim": 2,
+          "time_steps": 3
+        },
+        "transport": {
+          "annealed_convergence_threshold": 0.001,
+          "annealed_scaling": 0.9,
+          "col_chunk_size": 16,
+          "particle_chunk_size": 16,
+          "policy": "active-odd",
+          "row_chunk_size": 16,
+          "sinkhorn_epsilon": 0.5,
+          "sinkhorn_iterations": 3
+        }
+      },
+      "precision_id": "fp64",
+      "returncode": 0,
+      "returncode_ok": true,
+      "score": [
+        [
+          -0.13717294872534647,
+          -1.166828809546587,
+          -1.7843432334376133
+        ]
+      ],
+      "seed": 20261626,
+      "stderr_tail": "2026-06-17 16:05:06.721568: E external/local_xla/xla/stream_executor/cuda/cuda_platform.cc:51] failed call to cuInit: INTERNAL: CUDA error: Failed call to cuInit: CUDA_ERROR_NO_DEVICE: no CUDA-capable device is detected\nWARNING: All log messages before absl::InitializeLog() is called are written to STDERR\nI0000 00:00:1781683514.477370    4935 device_compiler.h:196] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.\n",
+      "stdout_tail": "\n  \"comparisons\": [\n    {\n      \"arm_id\": \"streaming_dense_tensor\",\n      \"score_drift_vs_reference\": {\n        \"max_abs\": 2.220446049250313e-16,\n        \"max_relative_to_max1_abs_reference\": 1.902974996060602e-16,\n        \"rms_abs\": 1.2819751242557092e-16,\n        \"shape\": [\n          1,\n          3\n        ]\n      },\n      \"score_geometry_vs_reference\": {\n        \"candidate_l2_norm\": 2.1363957178773103,\n        \"cosine_similarity\": 1.0000000000000002,\n        \"norm_ratio_candidate_to_reference\": 1.0,\n        \"reference_l2_norm\": 2.1363957178773103\n      },\n      \"value_drift_vs_reference\": {\n        \"max_abs\": 0.0,\n        \"max_relative_to_max1_abs_reference\": 0.0,\n        \"rms_abs\": 0.0,\n        \"shape\": [\n          1\n        ]\n      }\n    },\n    {\n      \"arm_id\": \"streaming_streaming_tensor\",\n      \"score_drift_vs_reference\": {\n        \"max_abs\": 2.220446049250313e-16,\n        \"max_relative_to_max1_abs_reference\": 1.902974996060602e-16,\n        \"rms_abs\": 1.2919517348320736e-16,\n        \"shape\": [\n          1,\n          3\n        ]\n      },\n      \"score_geometry_vs_reference\": {\n        \"candidate_l2_norm\": 2.1363957178773103,\n        \"cosine_similarity\": 1.0000000000000002,\n        \"norm_ratio_candidate_to_reference\": 1.0,\n        \"reference_l2_norm\": 2.1363957178773103\n      },\n      \"value_drift_vs_reference\": {\n        \"max_abs\": 0.0,\n        \"max_relative_to_max1_abs_reference\": 0.0,\n        \"rms_abs\": 0.0,\n        \"shape\": [\n          1\n        ]\n      }\n    },\n    {\n      \"arm_id\": \"streaming_streaming_equivalent_callback\",\n      \"score_drift_vs_reference\": {\n        \"max_abs\": 2.220446049250313e-16,\n        \"max_relative_to_max1_abs_reference\": 1.902974996060602e-16,\n        \"rms_abs\": 1.2919517348320736e-16,\n        \"shape\": [\n          1,\n          3\n        ]\n      },\n      \"score_geometry_vs_reference\": {\n        \"candidate_l2_norm\": 2.1363957178773103,\n        \"cosine_similarity\": 1.0000000000000002,\n        \"norm_ratio_candidate_to_reference\": 1.0,\n        \"reference_l2_norm\": 2.1363957178773103\n      },\n      \"value_drift_vs_reference\": {\n        \"max_abs\": 0.0,\n        \"max_relative_to_max1_abs_reference\": 0.0,\n        \"rms_abs\": 0.0,\n        \"shape\": [\n          1\n        ]\n      }\n    }\n  ],\n  \"cuda_visible_devices\": \"-1\",\n  \"device\": \"/CPU:0\",\n  \"device_scope\": \"cpu\",\n  \"expect_device_kind\": \"cpu\",\n  \"finite_all\": true,\n  \"host\": \"ubuntu-MZ72-HB2-00\",\n  \"jit_compile\": true,\n  \"logical_gpus\": [],\n  \"nonclaims\": [\n    \"focused deterministic gradient-structure diagnostic only\",\n    \"dense arm is a small-reference oracle, not a scalable implementation\",\n    \"no HMC convergence or energy-conservation claim\",\n    \"no posterior validity claim\",\n    \"single fixture and single seed only\"\n  ],\n  \"overall_passed\": true,\n  \"physical_gpus\": [],\n  \"precision\": {\n    \"active_dtype\": \"float64\",\n    \"default_dtype\": \"float32\",\n    \"default_tf32_mode\": \"enabled\",\n    \"dtype\": \"float64\",\n    \"fp64_reference_requires_explicit_dtype\": true,\n    \"precision_default_policy\": \"experimental_ledh_pfpf_ot_gpu_tf32\",\n    \"scope\": \"experimental_batched_ledh_pfpf_ot_gpu_performance_lane\",\n    \"tf32_execution_enabled\": false,\n    \"tf32_mode\": \"disabled\",\n    \"tf_dtype\": \"float64\"\n  },\n  \"python_version\": \"3.13.13\",\n  \"reference_arm\": \"original_dense_tensor\",\n  \"shape\": {\n    \"batch_size\": 1,\n    \"num_particles\": 8,\n    \"obs_dim\": 2,\n    \"parameter_dim\": 3,\n    \"state_dim\": 2,\n    \"time_steps\": 3\n  },\n  \"structure_passed\": true,\n  \"tensorflow_version\": \"2.20.0\",\n  \"timestamp_utc\": \"2026-06-17T08:05:46.938503+00:00\",\n  \"tolerances\": {\n    \"structure_score_atol\": 1e-05,\n    \"structure_score_rtol\": 1e-05,\n    \"structure_value_atol\": 1e-06,\n    \"structure_value_rtol\": 1e-06\n  },\n  \"transport\": {\n    \"annealed_convergence_threshold\": 0.001,\n    \"annealed_scaling\": 0.9,\n    \"col_chunk_size\": 16,\n    \"particle_chunk_size\": 16,\n    \"policy\": \"active-odd\",\n    \"row_chunk_size\": 16,\n    \"sinkhorn_epsilon\": 0.5,\n    \"sinkhorn_iterations\": 3\n  }\n}\n",
+      "value": [
+        1.2017220085900149
+      ]
+    },
+    {
+      "artifact_exists": true,
+      "child_overall_passed": true,
+      "command": [
+        "/home/ubuntu/anaconda3/envs/tfgpu/bin/python",
+        "/home/ubuntu/python/BayesFilter/docs/benchmarks/compare_experimental_batched_ledh_pfpf_ot_gradient_structure.py",
+        "--device-scope",
+        "cpu",
+        "--device",
+        "/CPU:0",
+        "--expect-device-kind",
+        "cpu",
+        "--batch-size",
+        "1",
+        "--time-steps",
+        "3",
+        "--num-particles",
+        "8",
+        "--state-dim",
+        "2",
+        "--obs-dim",
+        "2",
+        "--transport-policy",
+        "active-odd",
+        "--sinkhorn-iterations",
+        "3",
+        "--sinkhorn-epsilon",
+        "0.5",
+        "--annealed-scaling",
+        "0.9",
+        "--annealed-convergence-threshold",
+        "0.001",
+        "--row-chunk-size",
+        "16",
+        "--col-chunk-size",
+        "16",
+        "--particle-chunk-size",
+        "16",
+        "--warmups",
+        "0",
+        "--repeats",
+        "1",
+        "--seed",
+        "20261626",
+        "--dtype",
+        "float32",
+        "--tf32-mode",
+        "disabled",
+        "--output",
+        "docs/benchmarks/experimental-batched-ledh-pfpf-ot-p5-pf-mc-error-vs-precision-cpu-jit-b1-t3-np8-d2-m2-seeds3-active-odd-2026-06-17-children/seed-20261626-fp32_no_tf32.json",
+        "--markdown-output",
+        "docs/benchmarks/experimental-batched-ledh-pfpf-ot-p5-pf-mc-error-vs-precision-cpu-jit-b1-t3-np8-d2-m2-seeds3-active-odd-2026-06-17-children/seed-20261626-fp32_no_tf32.md"
+      ],
+      "finite": true,
+      "json_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-p5-pf-mc-error-vs-precision-cpu-jit-b1-t3-np8-d2-m2-seeds3-active-odd-2026-06-17-children/seed-20261626-fp32_no_tf32.json",
+      "markdown_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-p5-pf-mc-error-vs-precision-cpu-jit-b1-t3-np8-d2-m2-seeds3-active-odd-2026-06-17-children/seed-20261626-fp32_no_tf32.md",
+      "passed": true,
+      "payload_summary": {
+        "overall_passed": true,
+        "precision": {
+          "active_dtype": "float32",
+          "default_dtype": "float32",
+          "default_tf32_mode": "enabled",
+          "dtype": "float32",
+          "fp64_reference_requires_explicit_dtype": true,
+          "precision_default_policy": "experimental_ledh_pfpf_ot_gpu_tf32",
+          "scope": "experimental_batched_ledh_pfpf_ot_gpu_performance_lane",
+          "tf32_execution_enabled": false,
+          "tf32_mode": "disabled",
+          "tf_dtype": "float32"
+        },
+        "shape": {
+          "batch_size": 1,
+          "num_particles": 8,
+          "obs_dim": 2,
+          "parameter_dim": 3,
+          "state_dim": 2,
+          "time_steps": 3
+        },
+        "transport": {
+          "annealed_convergence_threshold": 0.001,
+          "annealed_scaling": 0.9,
+          "col_chunk_size": 16,
+          "particle_chunk_size": 16,
+          "policy": "active-odd",
+          "row_chunk_size": 16,
+          "sinkhorn_epsilon": 0.5,
+          "sinkhorn_iterations": 3
+        }
+      },
+      "precision_id": "fp32_no_tf32",
+      "returncode": 0,
+      "returncode_ok": true,
+      "score": [
+        [
+          -0.13717296719551086,
+          -1.1668286323547363,
+          -1.7843432426452637
+        ]
+      ],
+      "seed": 20261626,
+      "stderr_tail": "2026-06-17 16:05:50.439263: E external/local_xla/xla/stream_executor/cuda/cuda_platform.cc:51] failed call to cuInit: INTERNAL: CUDA error: Failed call to cuInit: CUDA_ERROR_NO_DEVICE: no CUDA-capable device is detected\nWARNING: All log messages before absl::InitializeLog() is called are written to STDERR\nI0000 00:00:1781683558.484493    6534 device_compiler.h:196] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.\n",
+      "stdout_tail": "reaming_dense_tensor\",\n      \"score_drift_vs_reference\": {\n        \"max_abs\": 3.5762786865234375e-07,\n        \"max_relative_to_max1_abs_reference\": 3.064955290986344e-07,\n        \"rms_abs\": 2.1764538983709261e-07,\n        \"shape\": [\n          1,\n          3\n        ]\n      },\n      \"score_geometry_vs_reference\": {\n        \"candidate_l2_norm\": 2.1363956299772426,\n        \"cosine_similarity\": 0.999999999999994,\n        \"norm_ratio_candidate_to_reference\": 0.9999998619686779,\n        \"reference_l2_norm\": 2.1363959248667967\n      },\n      \"value_drift_vs_reference\": {\n        \"max_abs\": 0.0,\n        \"max_relative_to_max1_abs_reference\": 0.0,\n        \"rms_abs\": 0.0,\n        \"shape\": [\n          1\n        ]\n      }\n    },\n    {\n      \"arm_id\": \"streaming_streaming_tensor\",\n      \"score_drift_vs_reference\": {\n        \"max_abs\": 3.5762786865234375e-07,\n        \"max_relative_to_max1_abs_reference\": 3.064955290986344e-07,\n        \"rms_abs\": 2.1764538983709261e-07,\n        \"shape\": [\n          1,\n          3\n        ]\n      },\n      \"score_geometry_vs_reference\": {\n        \"candidate_l2_norm\": 2.1363956299772426,\n        \"cosine_similarity\": 0.999999999999994,\n        \"norm_ratio_candidate_to_reference\": 0.9999998619686779,\n        \"reference_l2_norm\": 2.1363959248667967\n      },\n      \"value_drift_vs_reference\": {\n        \"max_abs\": 0.0,\n        \"max_relative_to_max1_abs_reference\": 0.0,\n        \"rms_abs\": 0.0,\n        \"shape\": [\n          1\n        ]\n      }\n    },\n    {\n      \"arm_id\": \"streaming_streaming_equivalent_callback\",\n      \"score_drift_vs_reference\": {\n        \"max_abs\": 3.5762786865234375e-07,\n        \"max_relative_to_max1_abs_reference\": 3.064955290986344e-07,\n        \"rms_abs\": 2.1764538983709261e-07,\n        \"shape\": [\n          1,\n          3\n        ]\n      },\n      \"score_geometry_vs_reference\": {\n        \"candidate_l2_norm\": 2.1363956299772426,\n        \"cosine_similarity\": 0.999999999999994,\n        \"norm_ratio_candidate_to_reference\": 0.9999998619686779,\n        \"reference_l2_norm\": 2.1363959248667967\n      },\n      \"value_drift_vs_reference\": {\n        \"max_abs\": 0.0,\n        \"max_relative_to_max1_abs_reference\": 0.0,\n        \"rms_abs\": 0.0,\n        \"shape\": [\n          1\n        ]\n      }\n    }\n  ],\n  \"cuda_visible_devices\": \"-1\",\n  \"device\": \"/CPU:0\",\n  \"device_scope\": \"cpu\",\n  \"expect_device_kind\": \"cpu\",\n  \"finite_all\": true,\n  \"host\": \"ubuntu-MZ72-HB2-00\",\n  \"jit_compile\": true,\n  \"logical_gpus\": [],\n  \"nonclaims\": [\n    \"focused deterministic gradient-structure diagnostic only\",\n    \"dense arm is a small-reference oracle, not a scalable implementation\",\n    \"no HMC convergence or energy-conservation claim\",\n    \"no posterior validity claim\",\n    \"single fixture and single seed only\"\n  ],\n  \"overall_passed\": true,\n  \"physical_gpus\": [],\n  \"precision\": {\n    \"active_dtype\": \"float32\",\n    \"default_dtype\": \"float32\",\n    \"default_tf32_mode\": \"enabled\",\n    \"dtype\": \"float32\",\n    \"fp64_reference_requires_explicit_dtype\": true,\n    \"precision_default_policy\": \"experimental_ledh_pfpf_ot_gpu_tf32\",\n    \"scope\": \"experimental_batched_ledh_pfpf_ot_gpu_performance_lane\",\n    \"tf32_execution_enabled\": false,\n    \"tf32_mode\": \"disabled\",\n    \"tf_dtype\": \"float32\"\n  },\n  \"python_version\": \"3.13.13\",\n  \"reference_arm\": \"original_dense_tensor\",\n  \"shape\": {\n    \"batch_size\": 1,\n    \"num_particles\": 8,\n    \"obs_dim\": 2,\n    \"parameter_dim\": 3,\n    \"state_dim\": 2,\n    \"time_steps\": 3\n  },\n  \"structure_passed\": true,\n  \"tensorflow_version\": \"2.20.0\",\n  \"timestamp_utc\": \"2026-06-17T08:06:30.435952+00:00\",\n  \"tolerances\": {\n    \"structure_score_atol\": 1e-05,\n    \"structure_score_rtol\": 1e-05,\n    \"structure_value_atol\": 1e-06,\n    \"structure_value_rtol\": 1e-06\n  },\n  \"transport\": {\n    \"annealed_convergence_threshold\": 0.001,\n    \"annealed_scaling\": 0.9,\n    \"col_chunk_size\": 16,\n    \"particle_chunk_size\": 16,\n    \"policy\": \"active-odd\",\n    \"row_chunk_size\": 16,\n    \"sinkhorn_epsilon\": 0.5,\n    \"sinkhorn_iterations\": 3\n  }\n}\n",
+      "value": [
+        1.2017220258712769
+      ]
+    },
+    {
+      "artifact_exists": true,
+      "child_overall_passed": true,
+      "command": [
+        "/home/ubuntu/anaconda3/envs/tfgpu/bin/python",
+        "/home/ubuntu/python/BayesFilter/docs/benchmarks/compare_experimental_batched_ledh_pfpf_ot_gradient_structure.py",
+        "--device-scope",
+        "cpu",
+        "--device",
+        "/CPU:0",
+        "--expect-device-kind",
+        "cpu",
+        "--batch-size",
+        "1",
+        "--time-steps",
+        "3",
+        "--num-particles",
+        "8",
+        "--state-dim",
+        "2",
+        "--obs-dim",
+        "2",
+        "--transport-policy",
+        "active-odd",
+        "--sinkhorn-iterations",
+        "3",
+        "--sinkhorn-epsilon",
+        "0.5",
+        "--annealed-scaling",
+        "0.9",
+        "--annealed-convergence-threshold",
+        "0.001",
+        "--row-chunk-size",
+        "16",
+        "--col-chunk-size",
+        "16",
+        "--particle-chunk-size",
+        "16",
+        "--warmups",
+        "0",
+        "--repeats",
+        "1",
+        "--seed",
+        "20261626",
+        "--dtype",
+        "float32",
+        "--tf32-mode",
+        "enabled",
+        "--output",
+        "docs/benchmarks/experimental-batched-ledh-pfpf-ot-p5-pf-mc-error-vs-precision-cpu-jit-b1-t3-np8-d2-m2-seeds3-active-odd-2026-06-17-children/seed-20261626-fp32_tf32.json",
+        "--markdown-output",
+        "docs/benchmarks/experimental-batched-ledh-pfpf-ot-p5-pf-mc-error-vs-precision-cpu-jit-b1-t3-np8-d2-m2-seeds3-active-odd-2026-06-17-children/seed-20261626-fp32_tf32.md"
+      ],
+      "finite": true,
+      "json_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-p5-pf-mc-error-vs-precision-cpu-jit-b1-t3-np8-d2-m2-seeds3-active-odd-2026-06-17-children/seed-20261626-fp32_tf32.json",
+      "markdown_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-p5-pf-mc-error-vs-precision-cpu-jit-b1-t3-np8-d2-m2-seeds3-active-odd-2026-06-17-children/seed-20261626-fp32_tf32.md",
+      "passed": true,
+      "payload_summary": {
+        "overall_passed": true,
+        "precision": {
+          "active_dtype": "float32",
+          "default_dtype": "float32",
+          "default_tf32_mode": "enabled",
+          "dtype": "float32",
+          "fp64_reference_requires_explicit_dtype": true,
+          "precision_default_policy": "experimental_ledh_pfpf_ot_gpu_tf32",
+          "scope": "experimental_batched_ledh_pfpf_ot_gpu_performance_lane",
+          "tf32_execution_enabled": true,
+          "tf32_mode": "enabled",
+          "tf_dtype": "float32"
+        },
+        "shape": {
+          "batch_size": 1,
+          "num_particles": 8,
+          "obs_dim": 2,
+          "parameter_dim": 3,
+          "state_dim": 2,
+          "time_steps": 3
+        },
+        "transport": {
+          "annealed_convergence_threshold": 0.001,
+          "annealed_scaling": 0.9,
+          "col_chunk_size": 16,
+          "particle_chunk_size": 16,
+          "policy": "active-odd",
+          "row_chunk_size": 16,
+          "sinkhorn_epsilon": 0.5,
+          "sinkhorn_iterations": 3
+        }
+      },
+      "precision_id": "fp32_tf32",
+      "returncode": 0,
+      "returncode_ok": true,
+      "score": [
+        [
+          -0.13717296719551086,
+          -1.1668286323547363,
+          -1.7843432426452637
+        ]
+      ],
+      "seed": 20261626,
+      "stderr_tail": "2026-06-17 16:06:33.898265: E external/local_xla/xla/stream_executor/cuda/cuda_platform.cc:51] failed call to cuInit: INTERNAL: CUDA error: Failed call to cuInit: CUDA_ERROR_NO_DEVICE: no CUDA-capable device is detected\nWARNING: All log messages before absl::InitializeLog() is called are written to STDERR\nI0000 00:00:1781683601.653184    8131 device_compiler.h:196] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.\n",
+      "stdout_tail": "streaming_dense_tensor\",\n      \"score_drift_vs_reference\": {\n        \"max_abs\": 3.5762786865234375e-07,\n        \"max_relative_to_max1_abs_reference\": 3.064955290986344e-07,\n        \"rms_abs\": 2.1764538983709261e-07,\n        \"shape\": [\n          1,\n          3\n        ]\n      },\n      \"score_geometry_vs_reference\": {\n        \"candidate_l2_norm\": 2.1363956299772426,\n        \"cosine_similarity\": 0.999999999999994,\n        \"norm_ratio_candidate_to_reference\": 0.9999998619686779,\n        \"reference_l2_norm\": 2.1363959248667967\n      },\n      \"value_drift_vs_reference\": {\n        \"max_abs\": 0.0,\n        \"max_relative_to_max1_abs_reference\": 0.0,\n        \"rms_abs\": 0.0,\n        \"shape\": [\n          1\n        ]\n      }\n    },\n    {\n      \"arm_id\": \"streaming_streaming_tensor\",\n      \"score_drift_vs_reference\": {\n        \"max_abs\": 3.5762786865234375e-07,\n        \"max_relative_to_max1_abs_reference\": 3.064955290986344e-07,\n        \"rms_abs\": 2.1764538983709261e-07,\n        \"shape\": [\n          1,\n          3\n        ]\n      },\n      \"score_geometry_vs_reference\": {\n        \"candidate_l2_norm\": 2.1363956299772426,\n        \"cosine_similarity\": 0.999999999999994,\n        \"norm_ratio_candidate_to_reference\": 0.9999998619686779,\n        \"reference_l2_norm\": 2.1363959248667967\n      },\n      \"value_drift_vs_reference\": {\n        \"max_abs\": 0.0,\n        \"max_relative_to_max1_abs_reference\": 0.0,\n        \"rms_abs\": 0.0,\n        \"shape\": [\n          1\n        ]\n      }\n    },\n    {\n      \"arm_id\": \"streaming_streaming_equivalent_callback\",\n      \"score_drift_vs_reference\": {\n        \"max_abs\": 3.5762786865234375e-07,\n        \"max_relative_to_max1_abs_reference\": 3.064955290986344e-07,\n        \"rms_abs\": 2.1764538983709261e-07,\n        \"shape\": [\n          1,\n          3\n        ]\n      },\n      \"score_geometry_vs_reference\": {\n        \"candidate_l2_norm\": 2.1363956299772426,\n        \"cosine_similarity\": 0.999999999999994,\n        \"norm_ratio_candidate_to_reference\": 0.9999998619686779,\n        \"reference_l2_norm\": 2.1363959248667967\n      },\n      \"value_drift_vs_reference\": {\n        \"max_abs\": 0.0,\n        \"max_relative_to_max1_abs_reference\": 0.0,\n        \"rms_abs\": 0.0,\n        \"shape\": [\n          1\n        ]\n      }\n    }\n  ],\n  \"cuda_visible_devices\": \"-1\",\n  \"device\": \"/CPU:0\",\n  \"device_scope\": \"cpu\",\n  \"expect_device_kind\": \"cpu\",\n  \"finite_all\": true,\n  \"host\": \"ubuntu-MZ72-HB2-00\",\n  \"jit_compile\": true,\n  \"logical_gpus\": [],\n  \"nonclaims\": [\n    \"focused deterministic gradient-structure diagnostic only\",\n    \"dense arm is a small-reference oracle, not a scalable implementation\",\n    \"no HMC convergence or energy-conservation claim\",\n    \"no posterior validity claim\",\n    \"single fixture and single seed only\"\n  ],\n  \"overall_passed\": true,\n  \"physical_gpus\": [],\n  \"precision\": {\n    \"active_dtype\": \"float32\",\n    \"default_dtype\": \"float32\",\n    \"default_tf32_mode\": \"enabled\",\n    \"dtype\": \"float32\",\n    \"fp64_reference_requires_explicit_dtype\": true,\n    \"precision_default_policy\": \"experimental_ledh_pfpf_ot_gpu_tf32\",\n    \"scope\": \"experimental_batched_ledh_pfpf_ot_gpu_performance_lane\",\n    \"tf32_execution_enabled\": true,\n    \"tf32_mode\": \"enabled\",\n    \"tf_dtype\": \"float32\"\n  },\n  \"python_version\": \"3.13.13\",\n  \"reference_arm\": \"original_dense_tensor\",\n  \"shape\": {\n    \"batch_size\": 1,\n    \"num_particles\": 8,\n    \"obs_dim\": 2,\n    \"parameter_dim\": 3,\n    \"state_dim\": 2,\n    \"time_steps\": 3\n  },\n  \"structure_passed\": true,\n  \"tensorflow_version\": \"2.20.0\",\n  \"timestamp_utc\": \"2026-06-17T08:07:13.572253+00:00\",\n  \"tolerances\": {\n    \"structure_score_atol\": 1e-05,\n    \"structure_score_rtol\": 1e-05,\n    \"structure_value_atol\": 1e-06,\n    \"structure_value_rtol\": 1e-06\n  },\n  \"transport\": {\n    \"annealed_convergence_threshold\": 0.001,\n    \"annealed_scaling\": 0.9,\n    \"col_chunk_size\": 16,\n    \"particle_chunk_size\": 16,\n    \"policy\": \"active-odd\",\n    \"row_chunk_size\": 16,\n    \"sinkhorn_epsilon\": 0.5,\n    \"sinkhorn_iterations\": 3\n  }\n}\n",
+      "value": [
+        1.2017220258712769
+      ]
+    },
+    {
+      "artifact_exists": true,
+      "child_overall_passed": true,
+      "command": [
+        "/home/ubuntu/anaconda3/envs/tfgpu/bin/python",
+        "/home/ubuntu/python/BayesFilter/docs/benchmarks/compare_experimental_batched_ledh_pfpf_ot_gradient_structure.py",
+        "--device-scope",
+        "cpu",
+        "--device",
+        "/CPU:0",
+        "--expect-device-kind",
+        "cpu",
+        "--batch-size",
+        "1",
+        "--time-steps",
+        "3",
+        "--num-particles",
+        "8",
+        "--state-dim",
+        "2",
+        "--obs-dim",
+        "2",
+        "--transport-policy",
+        "active-odd",
+        "--sinkhorn-iterations",
+        "3",
+        "--sinkhorn-epsilon",
+        "0.5",
+        "--annealed-scaling",
+        "0.9",
+        "--annealed-convergence-threshold",
+        "0.001",
+        "--row-chunk-size",
+        "16",
+        "--col-chunk-size",
+        "16",
+        "--particle-chunk-size",
+        "16",
+        "--warmups",
+        "0",
+        "--repeats",
+        "1",
+        "--seed",
+        "20262635",
+        "--dtype",
+        "float64",
+        "--tf32-mode",
+        "disabled",
+        "--output",
+        "docs/benchmarks/experimental-batched-ledh-pfpf-ot-p5-pf-mc-error-vs-precision-cpu-jit-b1-t3-np8-d2-m2-seeds3-active-odd-2026-06-17-children/seed-20262635-fp64.json",
+        "--markdown-output",
+        "docs/benchmarks/experimental-batched-ledh-pfpf-ot-p5-pf-mc-error-vs-precision-cpu-jit-b1-t3-np8-d2-m2-seeds3-active-odd-2026-06-17-children/seed-20262635-fp64.md"
+      ],
+      "finite": true,
+      "json_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-p5-pf-mc-error-vs-precision-cpu-jit-b1-t3-np8-d2-m2-seeds3-active-odd-2026-06-17-children/seed-20262635-fp64.json",
+      "markdown_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-p5-pf-mc-error-vs-precision-cpu-jit-b1-t3-np8-d2-m2-seeds3-active-odd-2026-06-17-children/seed-20262635-fp64.md",
+      "passed": true,
+      "payload_summary": {
+        "overall_passed": true,
+        "precision": {
+          "active_dtype": "float64",
+          "default_dtype": "float32",
+          "default_tf32_mode": "enabled",
+          "dtype": "float64",
+          "fp64_reference_requires_explicit_dtype": true,
+          "precision_default_policy": "experimental_ledh_pfpf_ot_gpu_tf32",
+          "scope": "experimental_batched_ledh_pfpf_ot_gpu_performance_lane",
+          "tf32_execution_enabled": false,
+          "tf32_mode": "disabled",
+          "tf_dtype": "float64"
+        },
+        "shape": {
+          "batch_size": 1,
+          "num_particles": 8,
+          "obs_dim": 2,
+          "parameter_dim": 3,
+          "state_dim": 2,
+          "time_steps": 3
+        },
+        "transport": {
+          "annealed_convergence_threshold": 0.001,
+          "annealed_scaling": 0.9,
+          "col_chunk_size": 16,
+          "particle_chunk_size": 16,
+          "policy": "active-odd",
+          "row_chunk_size": 16,
+          "sinkhorn_epsilon": 0.5,
+          "sinkhorn_iterations": 3
+        }
+      },
+      "precision_id": "fp64",
+      "returncode": 0,
+      "returncode_ok": true,
+      "score": [
+        [
+          -0.2321240856137312,
+          -1.1399340429720675,
+          -1.7711575490697042
+        ]
+      ],
+      "seed": 20262635,
+      "stderr_tail": "2026-06-17 16:07:17.159111: E external/local_xla/xla/stream_executor/cuda/cuda_platform.cc:51] failed call to cuInit: INTERNAL: CUDA error: Failed call to cuInit: CUDA_ERROR_NO_DEVICE: no CUDA-capable device is detected\nWARNING: All log messages before absl::InitializeLog() is called are written to STDERR\nI0000 00:00:1781683644.981615    9735 device_compiler.h:196] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.\n",
+      "stdout_tail": "   \"arm_id\": \"streaming_dense_tensor\",\n      \"score_drift_vs_reference\": {\n        \"max_abs\": 2.220446049250313e-16,\n        \"max_relative_to_max1_abs_reference\": 1.2536694154715918e-16,\n        \"rms_abs\": 1.2919517348320736e-16,\n        \"shape\": [\n          1,\n          3\n        ]\n      },\n      \"score_geometry_vs_reference\": {\n        \"candidate_l2_norm\": 2.1190399423029422,\n        \"cosine_similarity\": 0.9999999999999998,\n        \"norm_ratio_candidate_to_reference\": 1.0,\n        \"reference_l2_norm\": 2.1190399423029422\n      },\n      \"value_drift_vs_reference\": {\n        \"max_abs\": 0.0,\n        \"max_relative_to_max1_abs_reference\": 0.0,\n        \"rms_abs\": 0.0,\n        \"shape\": [\n          1\n        ]\n      }\n    },\n    {\n      \"arm_id\": \"streaming_streaming_tensor\",\n      \"score_drift_vs_reference\": {\n        \"max_abs\": 4.440892098500626e-16,\n        \"max_relative_to_max1_abs_reference\": 3.895744780919261e-16,\n        \"rms_abs\": 2.8665835232995054e-16,\n        \"shape\": [\n          1,\n          3\n        ]\n      },\n      \"score_geometry_vs_reference\": {\n        \"candidate_l2_norm\": 2.119039942302942,\n        \"cosine_similarity\": 0.9999999999999998,\n        \"norm_ratio_candidate_to_reference\": 0.9999999999999998,\n        \"reference_l2_norm\": 2.1190399423029422\n      },\n      \"value_drift_vs_reference\": {\n        \"max_abs\": 0.0,\n        \"max_relative_to_max1_abs_reference\": 0.0,\n        \"rms_abs\": 0.0,\n        \"shape\": [\n          1\n        ]\n      }\n    },\n    {\n      \"arm_id\": \"streaming_streaming_equivalent_callback\",\n      \"score_drift_vs_reference\": {\n        \"max_abs\": 4.440892098500626e-16,\n        \"max_relative_to_max1_abs_reference\": 3.895744780919261e-16,\n        \"rms_abs\": 2.8665835232995054e-16,\n        \"shape\": [\n          1,\n          3\n        ]\n      },\n      \"score_geometry_vs_reference\": {\n        \"candidate_l2_norm\": 2.119039942302942,\n        \"cosine_similarity\": 0.9999999999999998,\n        \"norm_ratio_candidate_to_reference\": 0.9999999999999998,\n        \"reference_l2_norm\": 2.1190399423029422\n      },\n      \"value_drift_vs_reference\": {\n        \"max_abs\": 0.0,\n        \"max_relative_to_max1_abs_reference\": 0.0,\n        \"rms_abs\": 0.0,\n        \"shape\": [\n          1\n        ]\n      }\n    }\n  ],\n  \"cuda_visible_devices\": \"-1\",\n  \"device\": \"/CPU:0\",\n  \"device_scope\": \"cpu\",\n  \"expect_device_kind\": \"cpu\",\n  \"finite_all\": true,\n  \"host\": \"ubuntu-MZ72-HB2-00\",\n  \"jit_compile\": true,\n  \"logical_gpus\": [],\n  \"nonclaims\": [\n    \"focused deterministic gradient-structure diagnostic only\",\n    \"dense arm is a small-reference oracle, not a scalable implementation\",\n    \"no HMC convergence or energy-conservation claim\",\n    \"no posterior validity claim\",\n    \"single fixture and single seed only\"\n  ],\n  \"overall_passed\": true,\n  \"physical_gpus\": [],\n  \"precision\": {\n    \"active_dtype\": \"float64\",\n    \"default_dtype\": \"float32\",\n    \"default_tf32_mode\": \"enabled\",\n    \"dtype\": \"float64\",\n    \"fp64_reference_requires_explicit_dtype\": true,\n    \"precision_default_policy\": \"experimental_ledh_pfpf_ot_gpu_tf32\",\n    \"scope\": \"experimental_batched_ledh_pfpf_ot_gpu_performance_lane\",\n    \"tf32_execution_enabled\": false,\n    \"tf32_mode\": \"disabled\",\n    \"tf_dtype\": \"float64\"\n  },\n  \"python_version\": \"3.13.13\",\n  \"reference_arm\": \"original_dense_tensor\",\n  \"shape\": {\n    \"batch_size\": 1,\n    \"num_particles\": 8,\n    \"obs_dim\": 2,\n    \"parameter_dim\": 3,\n    \"state_dim\": 2,\n    \"time_steps\": 3\n  },\n  \"structure_passed\": true,\n  \"tensorflow_version\": \"2.20.0\",\n  \"timestamp_utc\": \"2026-06-17T08:07:56.389448+00:00\",\n  \"tolerances\": {\n    \"structure_score_atol\": 1e-05,\n    \"structure_score_rtol\": 1e-05,\n    \"structure_value_atol\": 1e-06,\n    \"structure_value_rtol\": 1e-06\n  },\n  \"transport\": {\n    \"annealed_convergence_threshold\": 0.001,\n    \"annealed_scaling\": 0.9,\n    \"col_chunk_size\": 16,\n    \"particle_chunk_size\": 16,\n    \"policy\": \"active-odd\",\n    \"row_chunk_size\": 16,\n    \"sinkhorn_epsilon\": 0.5,\n    \"sinkhorn_iterations\": 3\n  }\n}\n",
+      "value": [
+        1.1598248249072869
+      ]
+    },
+    {
+      "artifact_exists": true,
+      "child_overall_passed": true,
+      "command": [
+        "/home/ubuntu/anaconda3/envs/tfgpu/bin/python",
+        "/home/ubuntu/python/BayesFilter/docs/benchmarks/compare_experimental_batched_ledh_pfpf_ot_gradient_structure.py",
+        "--device-scope",
+        "cpu",
+        "--device",
+        "/CPU:0",
+        "--expect-device-kind",
+        "cpu",
+        "--batch-size",
+        "1",
+        "--time-steps",
+        "3",
+        "--num-particles",
+        "8",
+        "--state-dim",
+        "2",
+        "--obs-dim",
+        "2",
+        "--transport-policy",
+        "active-odd",
+        "--sinkhorn-iterations",
+        "3",
+        "--sinkhorn-epsilon",
+        "0.5",
+        "--annealed-scaling",
+        "0.9",
+        "--annealed-convergence-threshold",
+        "0.001",
+        "--row-chunk-size",
+        "16",
+        "--col-chunk-size",
+        "16",
+        "--particle-chunk-size",
+        "16",
+        "--warmups",
+        "0",
+        "--repeats",
+        "1",
+        "--seed",
+        "20262635",
+        "--dtype",
+        "float32",
+        "--tf32-mode",
+        "disabled",
+        "--output",
+        "docs/benchmarks/experimental-batched-ledh-pfpf-ot-p5-pf-mc-error-vs-precision-cpu-jit-b1-t3-np8-d2-m2-seeds3-active-odd-2026-06-17-children/seed-20262635-fp32_no_tf32.json",
+        "--markdown-output",
+        "docs/benchmarks/experimental-batched-ledh-pfpf-ot-p5-pf-mc-error-vs-precision-cpu-jit-b1-t3-np8-d2-m2-seeds3-active-odd-2026-06-17-children/seed-20262635-fp32_no_tf32.md"
+      ],
+      "finite": true,
+      "json_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-p5-pf-mc-error-vs-precision-cpu-jit-b1-t3-np8-d2-m2-seeds3-active-odd-2026-06-17-children/seed-20262635-fp32_no_tf32.json",
+      "markdown_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-p5-pf-mc-error-vs-precision-cpu-jit-b1-t3-np8-d2-m2-seeds3-active-odd-2026-06-17-children/seed-20262635-fp32_no_tf32.md",
+      "passed": true,
+      "payload_summary": {
+        "overall_passed": true,
+        "precision": {
+          "active_dtype": "float32",
+          "default_dtype": "float32",
+          "default_tf32_mode": "enabled",
+          "dtype": "float32",
+          "fp64_reference_requires_explicit_dtype": true,
+          "precision_default_policy": "experimental_ledh_pfpf_ot_gpu_tf32",
+          "scope": "experimental_batched_ledh_pfpf_ot_gpu_performance_lane",
+          "tf32_execution_enabled": false,
+          "tf32_mode": "disabled",
+          "tf_dtype": "float32"
+        },
+        "shape": {
+          "batch_size": 1,
+          "num_particles": 8,
+          "obs_dim": 2,
+          "parameter_dim": 3,
+          "state_dim": 2,
+          "time_steps": 3
+        },
+        "transport": {
+          "annealed_convergence_threshold": 0.001,
+          "annealed_scaling": 0.9,
+          "col_chunk_size": 16,
+          "particle_chunk_size": 16,
+          "policy": "active-odd",
+          "row_chunk_size": 16,
+          "sinkhorn_epsilon": 0.5,
+          "sinkhorn_iterations": 3
+        }
+      },
+      "precision_id": "fp32_no_tf32",
+      "returncode": 0,
+      "returncode_ok": true,
+      "score": [
+        [
+          -0.23212413489818573,
+          -1.1399339437484741,
+          -1.7711575031280518
+        ]
+      ],
+      "seed": 20262635,
+      "stderr_tail": "2026-06-17 16:07:59.875024: E external/local_xla/xla/stream_executor/cuda/cuda_platform.cc:51] failed call to cuInit: INTERNAL: CUDA error: Failed call to cuInit: CUDA_ERROR_NO_DEVICE: no CUDA-capable device is detected\nWARNING: All log messages before absl::InitializeLog() is called are written to STDERR\nI0000 00:00:1781683687.473092   11338 device_compiler.h:196] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.\n",
+      "stdout_tail": " \"streaming_dense_tensor\",\n      \"score_drift_vs_reference\": {\n        \"max_abs\": 1.1920928955078125e-07,\n        \"max_relative_to_max1_abs_reference\": 1.0457562271123178e-07,\n        \"rms_abs\": 7.094371744536211e-08,\n        \"shape\": [\n          1,\n          3\n        ]\n      },\n      \"score_geometry_vs_reference\": {\n        \"candidate_l2_norm\": 2.1190398575573828,\n        \"cosine_similarity\": 0.9999999999999988,\n        \"norm_ratio_candidate_to_reference\": 1.0000000318035769,\n        \"reference_l2_norm\": 2.119039790164338\n      },\n      \"value_drift_vs_reference\": {\n        \"max_abs\": 0.0,\n        \"max_relative_to_max1_abs_reference\": 0.0,\n        \"rms_abs\": 0.0,\n        \"shape\": [\n          1\n        ]\n      }\n    },\n    {\n      \"arm_id\": \"streaming_streaming_tensor\",\n      \"score_drift_vs_reference\": {\n        \"max_abs\": 1.1920928955078125e-07,\n        \"max_relative_to_max1_abs_reference\": 1.0457562271123178e-07,\n        \"rms_abs\": 6.936113061392775e-08,\n        \"shape\": [\n          1,\n          3\n        ]\n      },\n      \"score_geometry_vs_reference\": {\n        \"candidate_l2_norm\": 2.119039855925078,\n        \"cosine_similarity\": 0.999999999999999,\n        \"norm_ratio_candidate_to_reference\": 1.0000000310332728,\n        \"reference_l2_norm\": 2.119039790164338\n      },\n      \"value_drift_vs_reference\": {\n        \"max_abs\": 0.0,\n        \"max_relative_to_max1_abs_reference\": 0.0,\n        \"rms_abs\": 0.0,\n        \"shape\": [\n          1\n        ]\n      }\n    },\n    {\n      \"arm_id\": \"streaming_streaming_equivalent_callback\",\n      \"score_drift_vs_reference\": {\n        \"max_abs\": 1.1920928955078125e-07,\n        \"max_relative_to_max1_abs_reference\": 1.0457562271123178e-07,\n        \"rms_abs\": 6.936113061392775e-08,\n        \"shape\": [\n          1,\n          3\n        ]\n      },\n      \"score_geometry_vs_reference\": {\n        \"candidate_l2_norm\": 2.119039855925078,\n        \"cosine_similarity\": 0.999999999999999,\n        \"norm_ratio_candidate_to_reference\": 1.0000000310332728,\n        \"reference_l2_norm\": 2.119039790164338\n      },\n      \"value_drift_vs_reference\": {\n        \"max_abs\": 0.0,\n        \"max_relative_to_max1_abs_reference\": 0.0,\n        \"rms_abs\": 0.0,\n        \"shape\": [\n          1\n        ]\n      }\n    }\n  ],\n  \"cuda_visible_devices\": \"-1\",\n  \"device\": \"/CPU:0\",\n  \"device_scope\": \"cpu\",\n  \"expect_device_kind\": \"cpu\",\n  \"finite_all\": true,\n  \"host\": \"ubuntu-MZ72-HB2-00\",\n  \"jit_compile\": true,\n  \"logical_gpus\": [],\n  \"nonclaims\": [\n    \"focused deterministic gradient-structure diagnostic only\",\n    \"dense arm is a small-reference oracle, not a scalable implementation\",\n    \"no HMC convergence or energy-conservation claim\",\n    \"no posterior validity claim\",\n    \"single fixture and single seed only\"\n  ],\n  \"overall_passed\": true,\n  \"physical_gpus\": [],\n  \"precision\": {\n    \"active_dtype\": \"float32\",\n    \"default_dtype\": \"float32\",\n    \"default_tf32_mode\": \"enabled\",\n    \"dtype\": \"float32\",\n    \"fp64_reference_requires_explicit_dtype\": true,\n    \"precision_default_policy\": \"experimental_ledh_pfpf_ot_gpu_tf32\",\n    \"scope\": \"experimental_batched_ledh_pfpf_ot_gpu_performance_lane\",\n    \"tf32_execution_enabled\": false,\n    \"tf32_mode\": \"disabled\",\n    \"tf_dtype\": \"float32\"\n  },\n  \"python_version\": \"3.13.13\",\n  \"reference_arm\": \"original_dense_tensor\",\n  \"shape\": {\n    \"batch_size\": 1,\n    \"num_particles\": 8,\n    \"obs_dim\": 2,\n    \"parameter_dim\": 3,\n    \"state_dim\": 2,\n    \"time_steps\": 3\n  },\n  \"structure_passed\": true,\n  \"tensorflow_version\": \"2.20.0\",\n  \"timestamp_utc\": \"2026-06-17T08:08:38.992512+00:00\",\n  \"tolerances\": {\n    \"structure_score_atol\": 1e-05,\n    \"structure_score_rtol\": 1e-05,\n    \"structure_value_atol\": 1e-06,\n    \"structure_value_rtol\": 1e-06\n  },\n  \"transport\": {\n    \"annealed_convergence_threshold\": 0.001,\n    \"annealed_scaling\": 0.9,\n    \"col_chunk_size\": 16,\n    \"particle_chunk_size\": 16,\n    \"policy\": \"active-odd\",\n    \"row_chunk_size\": 16,\n    \"sinkhorn_epsilon\": 0.5,\n    \"sinkhorn_iterations\": 3\n  }\n}\n",
+      "value": [
+        1.1598247289657593
+      ]
+    },
+    {
+      "artifact_exists": true,
+      "child_overall_passed": true,
+      "command": [
+        "/home/ubuntu/anaconda3/envs/tfgpu/bin/python",
+        "/home/ubuntu/python/BayesFilter/docs/benchmarks/compare_experimental_batched_ledh_pfpf_ot_gradient_structure.py",
+        "--device-scope",
+        "cpu",
+        "--device",
+        "/CPU:0",
+        "--expect-device-kind",
+        "cpu",
+        "--batch-size",
+        "1",
+        "--time-steps",
+        "3",
+        "--num-particles",
+        "8",
+        "--state-dim",
+        "2",
+        "--obs-dim",
+        "2",
+        "--transport-policy",
+        "active-odd",
+        "--sinkhorn-iterations",
+        "3",
+        "--sinkhorn-epsilon",
+        "0.5",
+        "--annealed-scaling",
+        "0.9",
+        "--annealed-convergence-threshold",
+        "0.001",
+        "--row-chunk-size",
+        "16",
+        "--col-chunk-size",
+        "16",
+        "--particle-chunk-size",
+        "16",
+        "--warmups",
+        "0",
+        "--repeats",
+        "1",
+        "--seed",
+        "20262635",
+        "--dtype",
+        "float32",
+        "--tf32-mode",
+        "enabled",
+        "--output",
+        "docs/benchmarks/experimental-batched-ledh-pfpf-ot-p5-pf-mc-error-vs-precision-cpu-jit-b1-t3-np8-d2-m2-seeds3-active-odd-2026-06-17-children/seed-20262635-fp32_tf32.json",
+        "--markdown-output",
+        "docs/benchmarks/experimental-batched-ledh-pfpf-ot-p5-pf-mc-error-vs-precision-cpu-jit-b1-t3-np8-d2-m2-seeds3-active-odd-2026-06-17-children/seed-20262635-fp32_tf32.md"
+      ],
+      "finite": true,
+      "json_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-p5-pf-mc-error-vs-precision-cpu-jit-b1-t3-np8-d2-m2-seeds3-active-odd-2026-06-17-children/seed-20262635-fp32_tf32.json",
+      "markdown_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-p5-pf-mc-error-vs-precision-cpu-jit-b1-t3-np8-d2-m2-seeds3-active-odd-2026-06-17-children/seed-20262635-fp32_tf32.md",
+      "passed": true,
+      "payload_summary": {
+        "overall_passed": true,
+        "precision": {
+          "active_dtype": "float32",
+          "default_dtype": "float32",
+          "default_tf32_mode": "enabled",
+          "dtype": "float32",
+          "fp64_reference_requires_explicit_dtype": true,
+          "precision_default_policy": "experimental_ledh_pfpf_ot_gpu_tf32",
+          "scope": "experimental_batched_ledh_pfpf_ot_gpu_performance_lane",
+          "tf32_execution_enabled": true,
+          "tf32_mode": "enabled",
+          "tf_dtype": "float32"
+        },
+        "shape": {
+          "batch_size": 1,
+          "num_particles": 8,
+          "obs_dim": 2,
+          "parameter_dim": 3,
+          "state_dim": 2,
+          "time_steps": 3
+        },
+        "transport": {
+          "annealed_convergence_threshold": 0.001,
+          "annealed_scaling": 0.9,
+          "col_chunk_size": 16,
+          "particle_chunk_size": 16,
+          "policy": "active-odd",
+          "row_chunk_size": 16,
+          "sinkhorn_epsilon": 0.5,
+          "sinkhorn_iterations": 3
+        }
+      },
+      "precision_id": "fp32_tf32",
+      "returncode": 0,
+      "returncode_ok": true,
+      "score": [
+        [
+          -0.23212413489818573,
+          -1.1399339437484741,
+          -1.7711575031280518
+        ]
+      ],
+      "seed": 20262635,
+      "stderr_tail": "2026-06-17 16:08:42.411855: E external/local_xla/xla/stream_executor/cuda/cuda_platform.cc:51] failed call to cuInit: INTERNAL: CUDA error: Failed call to cuInit: CUDA_ERROR_NO_DEVICE: no CUDA-capable device is detected\nWARNING: All log messages before absl::InitializeLog() is called are written to STDERR\nI0000 00:00:1781683730.084922   12948 device_compiler.h:196] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.\n",
+      "stdout_tail": "\": \"streaming_dense_tensor\",\n      \"score_drift_vs_reference\": {\n        \"max_abs\": 1.1920928955078125e-07,\n        \"max_relative_to_max1_abs_reference\": 1.0457562271123178e-07,\n        \"rms_abs\": 7.094371744536211e-08,\n        \"shape\": [\n          1,\n          3\n        ]\n      },\n      \"score_geometry_vs_reference\": {\n        \"candidate_l2_norm\": 2.1190398575573828,\n        \"cosine_similarity\": 0.9999999999999988,\n        \"norm_ratio_candidate_to_reference\": 1.0000000318035769,\n        \"reference_l2_norm\": 2.119039790164338\n      },\n      \"value_drift_vs_reference\": {\n        \"max_abs\": 0.0,\n        \"max_relative_to_max1_abs_reference\": 0.0,\n        \"rms_abs\": 0.0,\n        \"shape\": [\n          1\n        ]\n      }\n    },\n    {\n      \"arm_id\": \"streaming_streaming_tensor\",\n      \"score_drift_vs_reference\": {\n        \"max_abs\": 1.1920928955078125e-07,\n        \"max_relative_to_max1_abs_reference\": 1.0457562271123178e-07,\n        \"rms_abs\": 6.936113061392775e-08,\n        \"shape\": [\n          1,\n          3\n        ]\n      },\n      \"score_geometry_vs_reference\": {\n        \"candidate_l2_norm\": 2.119039855925078,\n        \"cosine_similarity\": 0.999999999999999,\n        \"norm_ratio_candidate_to_reference\": 1.0000000310332728,\n        \"reference_l2_norm\": 2.119039790164338\n      },\n      \"value_drift_vs_reference\": {\n        \"max_abs\": 0.0,\n        \"max_relative_to_max1_abs_reference\": 0.0,\n        \"rms_abs\": 0.0,\n        \"shape\": [\n          1\n        ]\n      }\n    },\n    {\n      \"arm_id\": \"streaming_streaming_equivalent_callback\",\n      \"score_drift_vs_reference\": {\n        \"max_abs\": 1.1920928955078125e-07,\n        \"max_relative_to_max1_abs_reference\": 1.0457562271123178e-07,\n        \"rms_abs\": 6.936113061392775e-08,\n        \"shape\": [\n          1,\n          3\n        ]\n      },\n      \"score_geometry_vs_reference\": {\n        \"candidate_l2_norm\": 2.119039855925078,\n        \"cosine_similarity\": 0.999999999999999,\n        \"norm_ratio_candidate_to_reference\": 1.0000000310332728,\n        \"reference_l2_norm\": 2.119039790164338\n      },\n      \"value_drift_vs_reference\": {\n        \"max_abs\": 0.0,\n        \"max_relative_to_max1_abs_reference\": 0.0,\n        \"rms_abs\": 0.0,\n        \"shape\": [\n          1\n        ]\n      }\n    }\n  ],\n  \"cuda_visible_devices\": \"-1\",\n  \"device\": \"/CPU:0\",\n  \"device_scope\": \"cpu\",\n  \"expect_device_kind\": \"cpu\",\n  \"finite_all\": true,\n  \"host\": \"ubuntu-MZ72-HB2-00\",\n  \"jit_compile\": true,\n  \"logical_gpus\": [],\n  \"nonclaims\": [\n    \"focused deterministic gradient-structure diagnostic only\",\n    \"dense arm is a small-reference oracle, not a scalable implementation\",\n    \"no HMC convergence or energy-conservation claim\",\n    \"no posterior validity claim\",\n    \"single fixture and single seed only\"\n  ],\n  \"overall_passed\": true,\n  \"physical_gpus\": [],\n  \"precision\": {\n    \"active_dtype\": \"float32\",\n    \"default_dtype\": \"float32\",\n    \"default_tf32_mode\": \"enabled\",\n    \"dtype\": \"float32\",\n    \"fp64_reference_requires_explicit_dtype\": true,\n    \"precision_default_policy\": \"experimental_ledh_pfpf_ot_gpu_tf32\",\n    \"scope\": \"experimental_batched_ledh_pfpf_ot_gpu_performance_lane\",\n    \"tf32_execution_enabled\": true,\n    \"tf32_mode\": \"enabled\",\n    \"tf_dtype\": \"float32\"\n  },\n  \"python_version\": \"3.13.13\",\n  \"reference_arm\": \"original_dense_tensor\",\n  \"shape\": {\n    \"batch_size\": 1,\n    \"num_particles\": 8,\n    \"obs_dim\": 2,\n    \"parameter_dim\": 3,\n    \"state_dim\": 2,\n    \"time_steps\": 3\n  },\n  \"structure_passed\": true,\n  \"tensorflow_version\": \"2.20.0\",\n  \"timestamp_utc\": \"2026-06-17T08:09:21.589230+00:00\",\n  \"tolerances\": {\n    \"structure_score_atol\": 1e-05,\n    \"structure_score_rtol\": 1e-05,\n    \"structure_value_atol\": 1e-06,\n    \"structure_value_rtol\": 1e-06\n  },\n  \"transport\": {\n    \"annealed_convergence_threshold\": 0.001,\n    \"annealed_scaling\": 0.9,\n    \"col_chunk_size\": 16,\n    \"particle_chunk_size\": 16,\n    \"policy\": \"active-odd\",\n    \"row_chunk_size\": 16,\n    \"sinkhorn_epsilon\": 0.5,\n    \"sinkhorn_iterations\": 3\n  }\n}\n",
+      "value": [
+        1.1598247289657593
+      ]
+    }
+  ],
+  "shape": {
+    "batch_size": 1,
+    "num_particles": 8,
+    "obs_dim": 2,
+    "parameter_dim": 3,
+    "state_dim": 2,
+    "time_steps": 3
+  },
+  "summary": {
+    "fp64_score_mean": [
+      [
+        -0.20212627599295885,
+        -1.1485038306100546,
+        -1.774390729812944
+      ]
+    ],
+    "fp64_score_sample_sd": [
+      [
+        0.05630582349604792,
+        0.015880961407543578,
+        0.008793608079235946
+      ]
+    ],
+    "fp64_value_mean": [
+      1.1721785375544076
+    ],
+    "fp64_value_sample_sd": [
+      0.02569940359671746
+    ],
+    "num_seeds": 3,
+    "precision_vs_fp64": {
+      "fp32_no_tf32": {
+        "max_score_ratio": 8.44436851171994e-06,
+        "max_value_ratio": 3.6984086866970433e-06,
+        "score_max_abs_error": [
+          [
+            4.9284454517461995e-08,
+            1.7719185074760446e-07,
+            5.894220334035083e-08
+          ]
+        ],
+        "score_rms_error": [
+          [
+            4.073733705546397e-08,
+            1.3410469044570057e-07,
+            4.347259517471223e-08
+          ]
+        ],
+        "score_rms_error_over_fp64_sample_sd": [
+          [
+            7.23501309919094e-07,
+            8.44436851171994e-06,
+            4.943658482729362e-06
+          ]
+        ],
+        "value_max_abs_error": [
+          1.326586576144706e-07
+        ],
+        "value_rms_error": [
+          9.504689750503309e-08
+        ],
+        "value_rms_error_over_fp64_sample_sd": [
+          3.6984086866970433e-06
+        ]
+      },
+      "fp32_tf32": {
+        "max_score_ratio": 8.44436851171994e-06,
+        "max_value_ratio": 3.6984086866970433e-06,
+        "score_max_abs_error": [
+          [
+            4.9284454517461995e-08,
+            1.7719185074760446e-07,
+            5.894220334035083e-08
+          ]
+        ],
+        "score_rms_error": [
+          [
+            4.073733705546397e-08,
+            1.3410469044570057e-07,
+            4.347259517471223e-08
+          ]
+        ],
+        "score_rms_error_over_fp64_sample_sd": [
+          [
+            7.23501309919094e-07,
+            8.44436851171994e-06,
+            4.943658482729362e-06
+          ]
+        ],
+        "value_max_abs_error": [
+          1.326586576144706e-07
+        ],
+        "value_rms_error": [
+          9.504689750503309e-08
+        ],
+        "value_rms_error_over_fp64_sample_sd": [
+          3.6984086866970433e-06
+        ]
+      }
+    },
+    "seeds": [
+      20260617,
+      20261626,
+      20262635
+    ]
+  },
+  "target_arm": "streaming_streaming_tensor",
+  "timestamp_utc": "2026-06-17T08:09:23.303967+00:00",
+  "transport": {
+    "annealed_convergence_threshold": 0.001,
+    "annealed_scaling": 0.9,
+    "col_chunk_size": 16,
+    "particle_chunk_size": 16,
+    "policy": "active-odd",
+    "row_chunk_size": 16,
+    "sinkhorn_epsilon": 0.5,
+    "sinkhorn_iterations": 3
+  }
+}

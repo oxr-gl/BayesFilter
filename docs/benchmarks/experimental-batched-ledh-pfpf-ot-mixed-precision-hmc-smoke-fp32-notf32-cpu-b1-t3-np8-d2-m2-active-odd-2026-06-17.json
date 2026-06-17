@@ -1,0 +1,251 @@
+{
+  "acceptance_trace": [
+    [
+      true
+    ],
+    [
+      true
+    ],
+    [
+      true
+    ],
+    [
+      true
+    ],
+    [
+      true
+    ],
+    [
+      true
+    ]
+  ],
+  "cuda_visible_devices": "-1",
+  "device": "/CPU:0",
+  "device_scope": "cpu",
+  "diagnostic_roles": {
+    "acceptance_rate": "explanatory_only_for_short_chain",
+    "finite_initial_value_score": "hard_veto",
+    "finite_log_accept_ratio": "hard_veto",
+    "finite_samples": "hard_veto",
+    "finite_target_log_prob": "hard_veto",
+    "sample_chain_timing": "explanatory_only"
+  },
+  "expect_device_kind": "cpu",
+  "finite_log_accept_ratio": true,
+  "finite_samples": true,
+  "finite_target_log_prob": true,
+  "hard_veto_status": "passed",
+  "hmc_config": {
+    "adaptation_policy": "fixed_kernel_no_adaptation",
+    "chain_execution_mode": "tf_function",
+    "num_burnin_steps": 2,
+    "num_leapfrog_steps": 2,
+    "num_results": 6,
+    "seed": [
+      20260617,
+      17
+    ],
+    "step_size": 0.002,
+    "target_scope": "experimental_streaming_ledh_pfpf_ot_phase5_mechanics",
+    "trace_policy": "standard",
+    "tuning_policy": {
+      "adaptation_policy": "fixed_kernel_no_adaptation",
+      "diagnostic_role": "fixed-kernel bounded HMC screen",
+      "enabled": false,
+      "implemented": true,
+      "label": "fixed_kernel_screen",
+      "nonclaims": [
+        "fixed-kernel screen only",
+        "no posterior convergence claim",
+        "no sampler superiority claim",
+        "no default adaptation readiness claim"
+      ],
+      "num_adaptation_steps": 0,
+      "source": "reviewed_stage_7_phase_3",
+      "target_accept_prob": null
+    },
+    "use_xla": false
+  },
+  "hmc_diagnostics": {
+    "acceptance_rate": 1.0,
+    "divergence_count": null,
+    "divergence_source": null,
+    "divergence_status": "unavailable",
+    "finite_sample_count": 6,
+    "max_target_log_prob": 1.1722689867019653,
+    "min_target_log_prob": 1.1447291374206543,
+    "nonclaims": [
+      "finite tiny-chain diagnostics only",
+      "no sampler convergence claim"
+    ],
+    "nonfinite_sample_count": 0,
+    "sample_shape": [
+      6,
+      1,
+      3
+    ],
+    "trace_policy": "standard"
+  },
+  "hmc_metadata": {
+    "adaptation_policy": "fixed_kernel_no_adaptation",
+    "adaptation_policy_source": "reviewed_stage_7_phase_3",
+    "chain_execution_mode": "tf_function",
+    "first_call_s": 20.043322219979018,
+    "initial_state_dtype": "float64",
+    "initial_state_shape": [
+      1,
+      3
+    ],
+    "jit_compile": false,
+    "nonclaims": [
+      "tiny full-chain HMC engineering gate only",
+      "no sampler convergence claim",
+      "no posterior validity claim",
+      "no GPU readiness claim",
+      "no performance superiority claim"
+    ],
+    "program_signature": "e48743162a82c7c60c9978aa0d9add2b88d6eed7871c5dbe8e5b5e057d751a5d",
+    "requested_target_scope": "experimental_streaming_ledh_pfpf_ot_phase5_mechanics",
+    "runtime": "tfp.mcmc.sample_chain",
+    "sample_chain_call_s": 20.043322219979018,
+    "sample_chain_invocation_count": 1,
+    "sample_chain_timing_scope": "compile_plus_execute_when_xla_first_call",
+    "target_scope": "experimental_streaming_ledh_pfpf_ot_phase5_mechanics",
+    "trace_policy": "standard",
+    "trace_unavailability": {
+      "divergence": "native boolean divergence field not exposed by TensorFlow Probability HMC kernel results"
+    },
+    "tuning_policy": {
+      "adaptation_policy": "fixed_kernel_no_adaptation",
+      "diagnostic_role": "fixed-kernel bounded HMC screen",
+      "enabled": false,
+      "implemented": true,
+      "label": "fixed_kernel_screen",
+      "nonclaims": [
+        "fixed-kernel screen only",
+        "no posterior convergence claim",
+        "no sampler superiority claim",
+        "no default adaptation readiness claim"
+      ],
+      "num_adaptation_steps": 0,
+      "source": "reviewed_stage_7_phase_3",
+      "target_accept_prob": null
+    },
+    "value_score_authority": "graph_native",
+    "warm_call_s": null,
+    "warm_sample_shape": null,
+    "warm_trace_keys": []
+  },
+  "host": "ubuntu-MZ72-HB2-00",
+  "initial_finite": true,
+  "initial_score": [
+    [
+      -0.23708178102970123,
+      -1.1387488842010498,
+      -1.7676711082458496
+    ]
+  ],
+  "initial_value": [
+    1.1549893617630005
+  ],
+  "log_accept_ratio": [
+    [
+      -8.73763041830955e-06
+    ],
+    [
+      -8.228207319427305e-05
+    ],
+    [
+      -9.025651498761889e-05
+    ],
+    [
+      -9.104305402019008e-06
+    ],
+    [
+      -2.0029326922132995e-05
+    ],
+    [
+      2.648367631641335e-05
+    ]
+  ],
+  "logical_gpus": [],
+  "mixed_precision_contract": {
+    "boundary": "FP64 HMC state -> adapter casts to DPF dtype -> value/score cast back to HMC state dtype by reviewed target wrapper",
+    "hmc_state_dtype": "float64",
+    "nonclaim": "not a full FP32 HMC mechanics diagnostic",
+    "target_computation_dtype": "float32",
+    "target_return_dtype_seen_by_hmc": "float64",
+    "tf32_execution_enabled": false
+  },
+  "nonclaims": [
+    "tiny HMC mechanics smoke only",
+    "mixed precision means FP64 HMC state with target-internal DPF dtype",
+    "no HMC readiness claim",
+    "no posterior convergence claim",
+    "no posterior validity claim",
+    "no production/default/public API readiness claim",
+    "no TF32 superiority claim",
+    "no full FP32 HMC mechanics claim"
+  ],
+  "nonfinite_log_accept_count": 0,
+  "overall_passed": true,
+  "physical_gpus": [],
+  "precision": {
+    "active_dtype": "float32",
+    "default_dtype": "float32",
+    "default_tf32_mode": "enabled",
+    "dtype": "float32",
+    "fp64_reference_requires_explicit_dtype": true,
+    "precision_default_policy": "experimental_ledh_pfpf_ot_gpu_tf32",
+    "scope": "experimental_batched_ledh_pfpf_ot_gpu_performance_lane",
+    "tf32_execution_enabled": false,
+    "tf32_mode": "disabled",
+    "tf_dtype": "float32"
+  },
+  "python_version": "3.13.13",
+  "shape": {
+    "batch_size": 1,
+    "num_particles": 8,
+    "obs_dim": 2,
+    "parameter_dim": 3,
+    "state_dim": 2,
+    "time_steps": 3
+  },
+  "target_log_prob_trace": [
+    [
+      1.1447291374206543
+    ],
+    [
+      1.1512670516967773
+    ],
+    [
+      1.162744402885437
+    ],
+    [
+      1.1605165004730225
+    ],
+    [
+      1.166306972503662
+    ],
+    [
+      1.1722689867019653
+    ]
+  ],
+  "tensorflow_version": "2.20.0",
+  "timestamp_utc": "2026-06-17T10:29:57.570095+00:00",
+  "trace_keys": [
+    "is_accepted",
+    "log_accept_ratio",
+    "target_log_prob"
+  ],
+  "transport": {
+    "annealed_convergence_threshold": 0.001,
+    "annealed_scaling": 0.9,
+    "col_chunk_size": 16,
+    "particle_chunk_size": 16,
+    "policy": "active-odd",
+    "row_chunk_size": 16,
+    "sinkhorn_epsilon": 0.5,
+    "sinkhorn_iterations": 3
+  }
+}
