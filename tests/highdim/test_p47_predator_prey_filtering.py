@@ -846,6 +846,55 @@ def test_p47_m5_fixed_sgqf_vs_ukf_score_gap_is_finite() -> None:
 
 
 
+def test_p47_track_b_sgqf_sparse_level_ladder_value_vs_dense() -> None:
+    reference = _dense_reference(order=7)
+    levels = (1, 2, 3, 4)
+    total_gaps = []
+    step0_gaps = []
+
+    for level in levels:
+        _adapted, cloud, result = _fixed_sgqf_result(sparse_level=level)
+        assert result.failure is None
+        assert bool(tf.math.is_finite(result.log_likelihood).numpy())
+        total_gaps.append(abs(float(result.log_likelihood.numpy() - reference["log_likelihood"].numpy())))
+        step0_gaps.append(abs(float(result.step_results[0].log_likelihood_increment.numpy() - reference["log_normalizers"][0].numpy())))
+        assert cloud.point_count > 0
+
+    assert total_gaps[1] <= total_gaps[0] + 1e-9
+    assert step0_gaps[1] <= step0_gaps[0] + 1e-9
+
+
+
+def test_p47_track_b_sgqf_sparse_level_ladder_score_vs_dense() -> None:
+    theta = _theta()
+    _reference, dense_score = _dense_value_and_score(theta)
+    levels = (1, 2, 3, 4)
+    score_gaps = []
+
+    for level in levels:
+        adapted = tf_predator_prey_to_fixed_sgqf_model(_model(), theta, with_derivatives=True)
+        assert adapted.eligible and adapted.model is not None and adapted.derivatives is not None
+        cloud = tf_fixed_sgqf_cloud(dim=2, sparse_level=level)
+        branch = TFFixedSGQFBranchConfig(predictive_epsilon=1e-10, innovation_epsilon=1e-10)
+        value = tf_fixed_sgqf_filter(_observations(), adapted.model, cloud=cloud, branch_config=branch, return_filtered=True)
+        assert value.failure is None
+        score = tf_fixed_sgqf_score(
+            _observations(),
+            adapted.model,
+            adapted.derivatives,
+            cloud=cloud,
+            branch_config=branch,
+            expected_branch_identity=value.branch_identity,
+        )
+        assert score.failure is None
+        gap = tf.linalg.norm(score.score - dense_score)
+        assert bool(tf.math.is_finite(gap).numpy())
+        score_gaps.append(float(gap.numpy()))
+
+    assert score_gaps[1] <= score_gaps[0] + 1e-9
+
+
+
 def test_p47_m5_preconditioning_schema_remains_proxy_only_without_downstream_promotion() -> None:
     manifest = highdim.P30PredatorPreyComparisonManifest(
         version="p47.m5.predator_prey.reference_filtering_schema.v1",
