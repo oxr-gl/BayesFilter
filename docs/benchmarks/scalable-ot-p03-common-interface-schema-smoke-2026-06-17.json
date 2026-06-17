@@ -1,0 +1,496 @@
+{
+  "examples": [
+    {
+      "baseline_comparator": "phase1_dense_streaming_baseline_2026_06_17",
+      "candidate_id": "dense_baseline_schema_example",
+      "diagnostic_roles": {
+        "column_residual": "hard_veto",
+        "dense_reference_particle_error": "promotion_criterion",
+        "finite_particles": "hard_veto",
+        "row_residual": "hard_veto"
+      },
+      "diagnostics": {
+        "column_residual": 0.0,
+        "dense_reference_particle_error": 0.0,
+        "finite_particles": true,
+        "row_residual": 0.0
+      },
+      "execution_manifest": {
+        "backend": "schema_only",
+        "baseline_artifact": "docs/benchmarks/scalable-ot-p01-baseline-fixture-diagnostics-2026-06-17.json",
+        "candidate_id": "dense_baseline_schema_example",
+        "command": "schema smoke examples only",
+        "device": "N/A",
+        "dtype": "N/A",
+        "phase": "phase3_schema_smoke",
+        "seed": "N/A",
+        "timestamp_utc": "2026-06-17T18:15:59.827856+00:00"
+      },
+      "nonclaims": [
+        "schema/harness validation only",
+        "no candidate algorithm implemented",
+        "no candidate correctness claim",
+        "no speedup claim",
+        "no ranking claim",
+        "no production default change"
+      ],
+      "schema_version": "scalable_ot_candidate_result_v1",
+      "semantic_class": "exact_semantics",
+      "source_route": "source_faithful",
+      "source_status": "source_locked",
+      "transport_object": {
+        "blocked_reason": null,
+        "factor_shapes": {},
+        "kind": "dense_matrix",
+        "materialized": true,
+        "not_materialized_reason": null,
+        "orientation": "source_rows_target_columns",
+        "semantic_output": "full_state_particles",
+        "shape": [
+          1,
+          8,
+          8
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "baseline_comparator": "phase1_dense_streaming_baseline_2026_06_17",
+      "candidate_id": "streaming_baseline_schema_example",
+      "diagnostic_roles": {
+        "dense_streaming_particle_error": "promotion_criterion",
+        "finite_particles": "hard_veto"
+      },
+      "diagnostics": {
+        "dense_streaming_particle_error": 0.0,
+        "finite_particles": true
+      },
+      "execution_manifest": {
+        "backend": "schema_only",
+        "baseline_artifact": "docs/benchmarks/scalable-ot-p01-baseline-fixture-diagnostics-2026-06-17.json",
+        "candidate_id": "streaming_baseline_schema_example",
+        "command": "schema smoke examples only",
+        "device": "N/A",
+        "dtype": "N/A",
+        "phase": "phase3_schema_smoke",
+        "seed": "N/A",
+        "timestamp_utc": "2026-06-17T18:15:59.827880+00:00"
+      },
+      "nonclaims": [
+        "schema/harness validation only",
+        "no candidate algorithm implemented",
+        "no candidate correctness claim",
+        "no speedup claim",
+        "no ranking claim",
+        "no production default change"
+      ],
+      "schema_version": "scalable_ot_candidate_result_v1",
+      "semantic_class": "exact_semantics",
+      "source_route": "source_faithful",
+      "source_status": "source_locked",
+      "transport_object": {
+        "blocked_reason": null,
+        "factor_shapes": {},
+        "kind": "streaming_nonmaterialized",
+        "materialized": false,
+        "not_materialized_reason": "streaming_no_dense_matrix",
+        "orientation": "source_rows_target_columns",
+        "semantic_output": "full_state_particles",
+        "shape": [
+          1,
+          0,
+          0
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "baseline_comparator": "phase1_dense_streaming_baseline_2026_06_17",
+      "candidate_id": "nystrom_schema_example",
+      "diagnostic_roles": {
+        "dense_reference_particle_error": "promotion_criterion",
+        "finite_particles": "hard_veto",
+        "marginal_residual": "hard_veto",
+        "rank": "explanatory"
+      },
+      "diagnostics": {
+        "dense_reference_particle_error": 0.0,
+        "finite_particles": true,
+        "marginal_residual": 0.0,
+        "rank": 8
+      },
+      "execution_manifest": {
+        "backend": "schema_only",
+        "baseline_artifact": "docs/benchmarks/scalable-ot-p01-baseline-fixture-diagnostics-2026-06-17.json",
+        "candidate_id": "nystrom_schema_example",
+        "command": "schema smoke examples only",
+        "device": "N/A",
+        "dtype": "N/A",
+        "phase": "phase3_schema_smoke",
+        "seed": "N/A",
+        "timestamp_utc": "2026-06-17T18:15:59.827889+00:00"
+      },
+      "nonclaims": [
+        "schema/harness validation only",
+        "no candidate algorithm implemented",
+        "no candidate correctness claim",
+        "no speedup claim",
+        "no ranking claim",
+        "no production default change"
+      ],
+      "schema_version": "scalable_ot_candidate_result_v1",
+      "semantic_class": "approximate_kernel",
+      "source_route": "source_faithful",
+      "source_status": "source_locked",
+      "transport_object": {
+        "blocked_reason": null,
+        "factor_shapes": {
+          "A": [
+            8,
+            8
+          ],
+          "V": [
+            64,
+            8
+          ],
+          "scaling_u": [
+            64
+          ],
+          "scaling_v": [
+            64
+          ]
+        },
+        "kind": "kernel_factors",
+        "materialized": false,
+        "not_materialized_reason": null,
+        "orientation": "source_rows_target_columns",
+        "semantic_output": "full_state_particles",
+        "shape": null
+      },
+      "warnings": []
+    },
+    {
+      "baseline_comparator": "phase1_dense_streaming_baseline_2026_06_17",
+      "candidate_id": "exact_online_lazy_operator_schema_example",
+      "diagnostic_roles": {
+        "dense_reference_particle_error": "promotion_criterion",
+        "finite_particles": "hard_veto",
+        "operator_apply_finite": "hard_veto"
+      },
+      "diagnostics": {
+        "dense_reference_particle_error": 0.0,
+        "finite_particles": true,
+        "operator_apply_finite": true
+      },
+      "execution_manifest": {
+        "backend": "schema_only",
+        "baseline_artifact": "docs/benchmarks/scalable-ot-p01-baseline-fixture-diagnostics-2026-06-17.json",
+        "candidate_id": "exact_online_lazy_operator_schema_example",
+        "command": "schema smoke examples only",
+        "device": "N/A",
+        "dtype": "N/A",
+        "phase": "phase3_schema_smoke",
+        "seed": "N/A",
+        "timestamp_utc": "2026-06-17T18:15:59.827896+00:00"
+      },
+      "nonclaims": [
+        "schema/harness validation only",
+        "no candidate algorithm implemented",
+        "no candidate correctness claim",
+        "no speedup claim",
+        "no ranking claim",
+        "no production default change"
+      ],
+      "schema_version": "scalable_ot_candidate_result_v1",
+      "semantic_class": "exact_semantics",
+      "source_route": "source_faithful",
+      "source_status": "source_reference_only",
+      "transport_object": {
+        "blocked_reason": null,
+        "factor_shapes": {},
+        "kind": "lazy_operator",
+        "materialized": false,
+        "not_materialized_reason": "operator_application_without_dense_plan",
+        "orientation": "source_rows_target_columns",
+        "semantic_output": "full_state_particles",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "baseline_comparator": "phase1_dense_streaming_baseline_2026_06_17",
+      "candidate_id": "low_rank_coupling_schema_example",
+      "diagnostic_roles": {
+        "dense_reference_particle_error": "explanatory",
+        "factor_marginal_residual": "hard_veto",
+        "finite_particles": "hard_veto"
+      },
+      "diagnostics": {
+        "dense_reference_particle_error": 0.0,
+        "factor_marginal_residual": 0.0,
+        "finite_particles": true
+      },
+      "execution_manifest": {
+        "backend": "schema_only",
+        "baseline_artifact": "docs/benchmarks/scalable-ot-p01-baseline-fixture-diagnostics-2026-06-17.json",
+        "candidate_id": "low_rank_coupling_schema_example",
+        "command": "schema smoke examples only",
+        "device": "N/A",
+        "dtype": "N/A",
+        "phase": "phase3_schema_smoke",
+        "seed": "N/A",
+        "timestamp_utc": "2026-06-17T18:15:59.827907+00:00"
+      },
+      "nonclaims": [
+        "schema/harness validation only",
+        "no candidate algorithm implemented",
+        "no candidate correctness claim",
+        "no speedup claim",
+        "no ranking claim",
+        "no production default change"
+      ],
+      "schema_version": "scalable_ot_candidate_result_v1",
+      "semantic_class": "semantic_replacement",
+      "source_route": "extension_or_invention",
+      "source_status": "source_locked",
+      "transport_object": {
+        "blocked_reason": null,
+        "factor_shapes": {
+          "Q": [
+            64,
+            4
+          ],
+          "R": [
+            64,
+            4
+          ],
+          "g": [
+            4
+          ]
+        },
+        "kind": "low_rank_coupling_factors",
+        "materialized": false,
+        "not_materialized_reason": null,
+        "orientation": "source_rows_target_columns",
+        "semantic_output": "full_state_particles",
+        "shape": null
+      },
+      "warnings": []
+    },
+    {
+      "baseline_comparator": "phase1_dense_streaming_baseline_2026_06_17",
+      "candidate_id": "sparse_schema_example",
+      "diagnostic_roles": {
+        "captured_mass": "repair_trigger",
+        "locality_gate_passed": "continuation_veto",
+        "support_fraction": "explanatory"
+      },
+      "diagnostics": {
+        "captured_mass": 0.99,
+        "locality_gate_passed": false,
+        "support_fraction": 0.1
+      },
+      "execution_manifest": {
+        "backend": "schema_only",
+        "baseline_artifact": "docs/benchmarks/scalable-ot-p01-baseline-fixture-diagnostics-2026-06-17.json",
+        "candidate_id": "sparse_schema_example",
+        "command": "schema smoke examples only",
+        "device": "N/A",
+        "dtype": "N/A",
+        "phase": "phase3_schema_smoke",
+        "seed": "N/A",
+        "timestamp_utc": "2026-06-17T18:15:59.827913+00:00"
+      },
+      "nonclaims": [
+        "schema/harness validation only",
+        "no candidate algorithm implemented",
+        "no candidate correctness claim",
+        "no speedup claim",
+        "no ranking claim",
+        "no production default change"
+      ],
+      "schema_version": "scalable_ot_candidate_result_v1",
+      "semantic_class": "reference_only",
+      "source_route": "source_faithful",
+      "source_status": "source_reference_only",
+      "transport_object": {
+        "blocked_reason": null,
+        "factor_shapes": {},
+        "kind": "sparse_plan",
+        "materialized": true,
+        "not_materialized_reason": null,
+        "orientation": "source_rows_target_columns",
+        "semantic_output": "full_state_particles",
+        "shape": [
+          64,
+          64
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "baseline_comparator": "phase1_dense_streaming_baseline_2026_06_17",
+      "candidate_id": "sliced_schema_example",
+      "diagnostic_roles": {
+        "dense_reference_particle_error": "explanatory",
+        "projected_transport_finite": "hard_veto",
+        "projection_count": "explanatory"
+      },
+      "diagnostics": {
+        "dense_reference_particle_error": 0.0,
+        "projected_transport_finite": true,
+        "projection_count": 8
+      },
+      "execution_manifest": {
+        "backend": "schema_only",
+        "baseline_artifact": "docs/benchmarks/scalable-ot-p01-baseline-fixture-diagnostics-2026-06-17.json",
+        "candidate_id": "sliced_schema_example",
+        "command": "schema smoke examples only",
+        "device": "N/A",
+        "dtype": "N/A",
+        "phase": "phase3_schema_smoke",
+        "seed": "N/A",
+        "timestamp_utc": "2026-06-17T18:15:59.827920+00:00"
+      },
+      "nonclaims": [
+        "schema/harness validation only",
+        "no candidate algorithm implemented",
+        "no candidate correctness claim",
+        "no speedup claim",
+        "no ranking claim",
+        "no production default change"
+      ],
+      "schema_version": "scalable_ot_candidate_result_v1",
+      "semantic_class": "semantic_replacement",
+      "source_route": "extension_or_invention",
+      "source_status": "source_locked",
+      "transport_object": {
+        "blocked_reason": null,
+        "factor_shapes": {},
+        "kind": "projection_plan",
+        "materialized": true,
+        "not_materialized_reason": null,
+        "orientation": "source_rows_target_columns",
+        "semantic_output": "projected_transport_not_full_state_coupling",
+        "shape": [
+          8,
+          64,
+          2
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "baseline_comparator": "phase1_dense_streaming_baseline_2026_06_17",
+      "candidate_id": "projected_output_schema_example",
+      "diagnostic_roles": {
+        "full_state_transport_available": "explanatory",
+        "projected_particles_finite": "hard_veto"
+      },
+      "diagnostics": {
+        "full_state_transport_available": false,
+        "projected_particles_finite": true
+      },
+      "execution_manifest": {
+        "backend": "schema_only",
+        "baseline_artifact": "docs/benchmarks/scalable-ot-p01-baseline-fixture-diagnostics-2026-06-17.json",
+        "candidate_id": "projected_output_schema_example",
+        "command": "schema smoke examples only",
+        "device": "N/A",
+        "dtype": "N/A",
+        "phase": "phase3_schema_smoke",
+        "seed": "N/A",
+        "timestamp_utc": "2026-06-17T18:15:59.827928+00:00"
+      },
+      "nonclaims": [
+        "schema/harness validation only",
+        "no candidate algorithm implemented",
+        "no candidate correctness claim",
+        "no speedup claim",
+        "no ranking claim",
+        "no production default change"
+      ],
+      "schema_version": "scalable_ot_candidate_result_v1",
+      "semantic_class": "semantic_replacement",
+      "source_route": "extension_or_invention",
+      "source_status": "source_locked",
+      "transport_object": {
+        "blocked_reason": null,
+        "factor_shapes": {},
+        "kind": "projected_output",
+        "materialized": true,
+        "not_materialized_reason": null,
+        "orientation": "source_rows_target_columns",
+        "semantic_output": "projected_particles_not_full_state_transport",
+        "shape": [
+          1,
+          64,
+          8
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "baseline_comparator": "phase1_dense_streaming_baseline_2026_06_17",
+      "candidate_id": "minibatch_blocked_schema_example",
+      "diagnostic_roles": {
+        "clean_source_available": "continuation_veto",
+        "transport_semantics_defined": "continuation_veto"
+      },
+      "diagnostics": {
+        "clean_source_available": false,
+        "transport_semantics_defined": false
+      },
+      "execution_manifest": {
+        "backend": "schema_only",
+        "baseline_artifact": "docs/benchmarks/scalable-ot-p01-baseline-fixture-diagnostics-2026-06-17.json",
+        "candidate_id": "minibatch_blocked_schema_example",
+        "command": "schema smoke examples only",
+        "device": "N/A",
+        "dtype": "N/A",
+        "phase": "phase3_schema_smoke",
+        "seed": "N/A",
+        "timestamp_utc": "2026-06-17T18:15:59.827934+00:00"
+      },
+      "nonclaims": [
+        "schema/harness validation only",
+        "no candidate algorithm implemented",
+        "no candidate correctness claim",
+        "no speedup claim",
+        "no ranking claim",
+        "no production default change"
+      ],
+      "schema_version": "scalable_ot_candidate_result_v1",
+      "semantic_class": "blocked",
+      "source_route": "extension_or_invention",
+      "source_status": "source_partial_user_needed",
+      "transport_object": {
+        "blocked_reason": "clean_source_archive_required_before_decision_grade_use",
+        "factor_shapes": {},
+        "kind": "blocked",
+        "materialized": false,
+        "not_materialized_reason": null,
+        "orientation": "source_rows_target_columns",
+        "semantic_output": "full_state_particles",
+        "shape": null
+      },
+      "warnings": []
+    }
+  ],
+  "hard_vetoes": [],
+  "nonclaims": [
+    "schema/harness validation only",
+    "no candidate algorithm implemented",
+    "no candidate correctness claim",
+    "no speedup claim",
+    "no ranking claim",
+    "no production default change"
+  ],
+  "schema_version": "scalable_ot_candidate_result_v1",
+  "status": "PASS",
+  "timestamp_utc": "2026-06-17T18:15:59.828040+00:00"
+}

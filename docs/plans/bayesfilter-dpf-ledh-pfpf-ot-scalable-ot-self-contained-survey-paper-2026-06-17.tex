@@ -1,0 +1,1556 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{hyperref}
+\usepackage{url}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!50!black,
+  citecolor=blue!50!black,
+  urlcolor=blue!50!black
+}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\DeltaN}{\Delta}
+\newcommand{\ones}{\mathbf{1}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\rankp}{\operatorname{rank}_{+}}
+\newcommand{\KL}{\operatorname{KL}}
+\newcommand{\OT}{\operatorname{OT}}
+\newcommand{\SW}{\operatorname{SW}}
+\newcommand{\MSW}{\operatorname{MSW}}
+\newcommand{\push}{_{\#}}
+\newcommand{\inner}[2]{\left\langle #1,#2\right\rangle}
+
+\title{Scalable Optimal Transport for LEDH-PFPF-OT:\\
+A Self-Contained Literature Survey}
+\author{BayesFilter local literature survey}
+\date{June 17, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+LEDH-PFPF-OT combines an invertible particle-flow proposal with an optimal
+transport or differentiable-resampling step.  The scaling problem is not merely
+to compute an optimal-transport distance.  The filter needs a transport object:
+a coupling, a barycentric projection, or a directly transported particle cloud
+that maps a weighted empirical ensemble to an approximately equal-weight
+ensemble.  Dense entropic optimal transport provides such an object, but for
+$N$ particles in state dimension $D$ it requires all-pairs costs or kernels:
+$O(N^2D)$ arithmetic per full squared-Euclidean pass and $O(N^2)$ storage if
+the cost, kernel, or coupling is materialized.  The current TensorFlow
+BayesFilter implementation already has a streaming mode that avoids storing
+the full transport matrix, but it still computes all row--column particle
+interactions.
+
+This survey explains the LEDH-PFPF-OT transport problem and reviews the main
+solution families in the scalable optimal-transport literature: exact online
+and GPU Sinkhorn methods, Nystrom kernel Sinkhorn, positive-feature Sinkhorn,
+direct low-rank coupling optimal transport, sparse and screened methods,
+accelerated Sinkhorn variants, stochastic and minibatch optimal transport,
+sliced and subspace optimal transport, and particle-filter-specific
+localization.  The recommended research posture is a three-lane program:
+retain exact online Sinkhorn as the semantics-preserving reference, prototype
+factored entropic transports such as Nystrom and positive-feature Sinkhorn,
+and study low-rank coupling, localized/block, and sliced/subspace transports
+as explicit new resampling methods requiring downstream filtering validation.
+\end{abstract}
+
+\section{Evidence Contract and Scope}
+
+\begin{center}
+\begin{tabular}{p{0.20\textwidth}p{0.72\textwidth}}
+\toprule
+Field & Contract \\
+\midrule
+Question & How can the dense or all-pairs optimal-transport step in
+LEDH-PFPF-OT be scaled for large particle count $N$ and large state dimension
+$D$? \\
+Baseline & Current BayesFilter
+\path{annealed_transport_resample_tf} in
+\path{experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py}. \\
+Required object & A usable particle transport: a coupling, a barycentric
+projection, or a directly transported cloud. \\
+Screen & Does the method reduce $N\times N$ memory or all-pairs
+$O(N^2D)$ arithmetic while preserving or explicitly replacing the transport
+object? \\
+Veto & A method that returns only a scalar loss; cannot handle weighted
+empirical measures; silently changes resampling semantics; or depends on a
+non-TensorFlow backend as the BayesFilter implementation default. \\
+Not concluded & No method is default-ready from literature alone.  No
+posterior-validity, gradient-correctness, HMC-readiness, or statistically
+supported ranking claim is made in this document. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The ResearchAssistant workspace at \path{/home/ubuntu/python/ResearchAssistant}
+was available through a read-only MCP adapter, but its local index returned no
+stored summaries for this topic.  The evidence base is therefore the local PDF,
+text, and source corpus listed in Appendix~\ref{sec:source-map}.  A later arXiv
+download attempt for one additional 2025 source stalled and produced an
+incomplete file; that partial file is recorded in the manifest and is not used
+as evidence here.
+
+\section{The LEDH-PFPF-OT Computation Problem}
+
+\subsection{Particle-flow context}
+
+The Li--Coates PF-PF(LEDH) construction used in the local BayesFilter
+documentation is a proposal-corrected particle-flow particle filter
+\citep{li2017particle}; the broader particle-flow filtering idea follows the
+Daum--Huang particle-flow line \citep{daumhuang2008}.  It is not
+merely a deterministic cloud motion.  For particle $i$, the LEDH flow maintains
+both a zero-noise auxiliary path and an actual proposal path.  With pseudo-time
+$\lambda$, the local observation linearization is evaluated at the moving
+auxiliary state:
+\begin{equation}
+H^i(\lambda)
+=
+\left.
+\frac{\partial h(\eta,0)}{\partial \eta}
+\right|_{\eta=\bar\eta^i_\lambda},
+\qquad
+e^i(\lambda)
+=
+h(\bar\eta^i_\lambda,0)-H^i(\lambda)\bar\eta^i_\lambda .
+\label{eq:ledh-local-jacobian}
+\end{equation}
+Given particle-specific predicted covariance $P^i$, the local LEDH coefficients
+are
+\begin{align}
+A^i(\lambda)
+&=
+-\frac{1}{2}
+P^i H^i(\lambda)^\top
+\bigl(\lambda H^i(\lambda)P^iH^i(\lambda)^\top+R\bigr)^{-1}
+H^i(\lambda),
+\label{eq:ledh-A}\\
+b^i(\lambda)
+&=
+\bigl(I+2\lambda A^i(\lambda)\bigr)
+\left[
+  \bigl(I+\lambda A^i(\lambda)\bigr)
+  P^i H^i(\lambda)^\top R^{-1}\{z_k-e^i(\lambda)\}
+  + A^i(\lambda)\bar\eta_0^i
+\right].
+\label{eq:ledh-b}
+\end{align}
+On a pseudo-time grid
+$0=\lambda_0<\lambda_1<\cdots<\lambda_{N_\lambda}=1$, the auxiliary and actual
+states are updated by the same local affine step:
+\begin{align}
+\bar\eta^i_{\lambda_j}
+&=
+\bar\eta^i_{\lambda_{j-1}}
++ \epsilon_j
+\left[
+  A_j^i(\lambda_j)\bar\eta^i_{\lambda_{j-1}}
+  + b_j^i(\lambda_j)
+\right],
+\label{eq:aux-step}\\
+\eta^i_{\lambda_j}
+&=
+\eta^i_{\lambda_{j-1}}
++ \epsilon_j
+\left[
+  A_j^i(\lambda_j)\eta^i_{\lambda_{j-1}}
+  + b_j^i(\lambda_j)
+\right].
+\label{eq:actual-step}
+\end{align}
+The forward determinant multiplier is particle-specific:
+\begin{equation}
+\theta^i
+=
+\prod_{j=1}^{N_\lambda}
+\left|\det\{I+\epsilon_j A_j^i(\lambda_j)\}\right|.
+\label{eq:theta-product}
+\end{equation}
+After the flow, Algorithm 1 uses a PF-PF importance update of the form
+\begin{equation}
+w_k^i
+\propto
+\frac{
+  p(x_k^i\mid x_{k-1}^i)
+  p(z_k\mid x_k^i)
+  \theta^i
+}{
+  p(\eta_0^i\mid x_{k-1}^i)
+}
+w_{k-1}^i .
+\label{eq:pfpf-weight}
+\end{equation}
+If resampling is used, the documented Algorithm 1 state to resample is the
+triple
+\begin{equation}
+\{x_k^i,P_k^i,w_k^i\}_{i=1}^{N_p}.
+\label{eq:resampling-triple}
+\end{equation}
+Thus optimal-transport resampling is a BayesFilter extension layered on top of
+a proposal-corrected flow; the OT-resampling motivation is closer to ensemble
+transform and differentiable OT-resampling work
+\citep{reich2013nonparametric,corenflos2021differentiable}.  The survey
+question is how to make that extension scalable without confusing it with the
+Li--Coates source algorithm \citep{li2017particle}.
+
+\subsection{Why a scalar OT value is not enough}
+
+At a filtering time step, suppose the flow and likelihood update have produced
+particles $x_i\in\R^D$ with normalized weights $a_i$.  A deterministic
+OT-resampling step compares the weighted empirical measure, in the spirit of
+ensemble-transform and differentiable OT resampling
+\citep{reich2013nonparametric,corenflos2021differentiable},
+\begin{equation}
+\mu_N = \sum_{i=1}^N a_i \delta_{x_i}
+\label{eq:source-empirical}
+\end{equation}
+to an equal-weight target ensemble.  In the simplest self-transport version,
+the support points are the same cloud and the target weights are
+\begin{equation}
+b_j = \frac{1}{N},
+\qquad
+\nu_N = \sum_{j=1}^N b_j \delta_{x_j}.
+\label{eq:target-empirical}
+\end{equation}
+A coupling $P$ assigns source mass from particle $i$ to target slot $j$.  The
+transport polytope is
+\begin{equation}
+\Pi(a,b)
+=
+\{P\in\R_+^{N\times N}: P\ones=a,\;P^\top\ones=b\}.
+\label{eq:transport-polytope}
+\end{equation}
+The deterministic barycentric transform is
+\begin{equation}
+z_j
+=
+\frac{1}{b_j}\sum_{i=1}^N P_{ij}x_i.
+\label{eq:barycentric-column}
+\end{equation}
+If the implementation stores a row-stochastic target-to-source matrix $T$, the
+same transform is
+\begin{equation}
+z_i = \sum_{j=1}^N T_{ij}x_j,
+\qquad
+\sum_j T_{ij}=1.
+\label{eq:barycentric-row}
+\end{equation}
+
+This is the central computational requirement.  A fast scalar
+$\OT(\mu,\nu)$ is insufficient for LEDH-PFPF-OT.  The filter needs $P$, a
+factorization of $P$, or an operator that can apply $P$ to the particle matrix
+$X$.  This agrees with the ensemble transform particle filter, where random
+resampling is replaced by the deterministic linear transform
+\citep{reich2013nonparametric}
+\begin{equation}
+x_j^a = \bar x_j^a = \sum_{i=1}^M p_{ij} x_i^f,
+\qquad j=1,\ldots,M.
+\label{eq:reich-transform}
+\end{equation}
+Differentiable OT resampling likewise recovers a regularized transport matrix
+from dual potentials \citep{corenflos2021differentiable}:
+\begin{equation}
+p^{OT}_{\epsilon,i,j}
+=
+a_i b_j
+\exp\{\epsilon^{-1}(f_i^\ast+g_j^\ast-c_{ij})\}.
+\label{eq:corenflos-plan}
+\end{equation}
+
+\subsection{The current BayesFilter bottleneck}
+
+The current TensorFlow implementation has dense and streaming transport modes.
+Dense mode materializes a transport matrix and applies $Z=TX$.  Streaming mode
+returns an empty transport-matrix sentinel but still loops over row and column
+chunks.  For each block it computes squared costs such as
+\begin{equation}
+C_{ij} = \frac{1}{2}\|\tilde x_i-\tilde x_j\|_2^2
+\label{eq:current-cost}
+\end{equation}
+and block log-transport weights of the schematic form
+\begin{equation}
+\log T_{ij}
+=
+\frac{f_i+g_j-C_{ij}}{\epsilon}
+- \ell_j
++ \log N
++ \log w_j,
+\label{eq:current-log-transport}
+\end{equation}
+where $\ell_j$ is a column log normalizer.  It then accumulates
+\begin{equation}
+z_i = \sum_j T_{ij}x_j.
+\label{eq:current-streamed-application}
+\end{equation}
+Streaming therefore solves part of the memory problem, but not the all-pairs
+arithmetic problem.  Each full Sinkhorn update or transport application still
+depends on all pairs of particles.
+
+\section{Discrete OT and Entropic Sinkhorn Basics}
+
+This section fixes notation for standard discrete OT and entropic Sinkhorn
+formulations \citep{villani2003topics,cuturi2013sinkhorn,peyre2019computational}.
+
+Let
+\begin{equation}
+\mu=\sum_{i=1}^n a_i\delta_{x_i},
+\qquad
+\nu=\sum_{j=1}^m b_j\delta_{y_j},
+\label{eq:general-empirical}
+\end{equation}
+with $a\in\Delta_n$, $b\in\Delta_m$, and cost matrix
+\begin{equation}
+C_{ij}=c(x_i,y_j).
+\label{eq:cost-matrix}
+\end{equation}
+The Kantorovich problem is
+\begin{equation}
+\OT(\mu,\nu)
+=
+\min_{P\in\Pi(a,b)} \inner{C}{P},
+\label{eq:kantorovich}
+\end{equation}
+where
+\begin{equation}
+\Pi(a,b)
+=
+\{P\in\R_+^{n\times m}:P\ones_m=a,\;P^\top\ones_n=b\}.
+\label{eq:general-polytope}
+\end{equation}
+Entropic regularization replaces the linear program by
+\citep{cuturi2013sinkhorn,peyre2019computational}
+\begin{equation}
+\OT_\epsilon(\mu,\nu)
+=
+\min_{P\in\Pi(a,b)}
+\inner{C}{P}
+-\epsilon H(P),
+\label{eq:entropic-ot}
+\end{equation}
+with entropy convention
+\begin{equation}
+H(P)=-\sum_{ij}P_{ij}(\log P_{ij}-1).
+\label{eq:entropy}
+\end{equation}
+A relative-entropy version often used in differentiable resampling is
+\begin{equation}
+W^2_{2,\epsilon}(\alpha_N,\beta_N)
+=
+\min_{P\in S(a,b)}
+\sum_{i,j=1}^N
+\left[
+  p_{ij}c_{ij}
+  + \epsilon p_{ij}\log\frac{p_{ij}}{a_i b_j}
+\right].
+\label{eq:relative-entropic-ot}
+\end{equation}
+For $\epsilon>0$, the minimizer is unique and has Gibbs scaling form
+\begin{equation}
+P_\epsilon
+=
+\diag(u)K\diag(v),
+\qquad
+K=\exp(-C/\epsilon).
+\label{eq:gibbs-scaling}
+\end{equation}
+The basic Sinkhorn updates are
+\begin{equation}
+u \leftarrow a/(Kv),
+\qquad
+v \leftarrow b/(K^\top u),
+\label{eq:sinkhorn-updates}
+\end{equation}
+with division elementwise.  Stabilized log-domain variants use dual potentials
+and log-sum-exp reductions rather than explicitly forming kernel entries that
+can underflow \citep{schmitzer2019stabilized}.
+
+For particle transport, the coupling is applied as
+\begin{equation}
+Z
+=
+\diag(b)^{-1}P^\top X,
+\label{eq:coupling-application}
+\end{equation}
+or, under the row-stochastic orientation, as $Z=TX$.  Every scalable method
+must explain how it computes this transported particle matrix.
+
+\section{Exact Online and GPU Sinkhorn}
+
+Online Sinkhorn preserves the exact entropic OT problem but avoids storing the
+full cost or kernel matrix, as in GeomLoss/KeOps-style reductions and recent
+GPU-specialized Sinkhorn solvers
+\citep{feydy2019geomloss,charlier2021keops,ye2026flashsinkhorn,xiao2026fastsinkhorn}.
+For squared Euclidean costs,
+\begin{equation}
+C_{ij}=\|x_i-y_j\|_2^2
+=\|x_i\|_2^2+\|y_j\|_2^2-2x_i^\top y_j.
+\label{eq:sqeuclidean-dot}
+\end{equation}
+The stabilized update for one potential is a row-wise log-sum-exp reduction,
+schematically
+\begin{equation}
+f_i
+\leftarrow
+-\epsilon\log\sum_j
+\exp\left((g_j-C_{ij})/\epsilon+\log b_j\right),
+\label{eq:log-domain-update}
+\end{equation}
+and similarly for $g_j$.  Online backends compute these reductions by
+streaming blocks of $x_i,y_j$ rather than reading a stored $C$ or $K$.
+
+FlashSinkhorn observes that, for squared Euclidean costs, the log-domain update
+can be written as a biased dot-product log-sum-exp, close to transformer
+attention normalization \citep{ye2026flashsinkhorn}.  It then uses tiled GPU
+kernels to stream data through on-chip memory.  The paper is especially
+relevant because it also treats
+transport application through the barycentric projection
+\begin{equation}
+T_\epsilon(x_i)
+=
+\frac{1}{a_i}\sum_{j=1}^m P^\ast_{ij}y_j,
+\label{eq:flash-barycentric}
+\end{equation}
+with the common gradient expression
+\begin{equation}
+\nabla_{x_i} \OT_\epsilon
+=
+2a_i\bigl(x_i-T_\epsilon(x_i)\bigr).
+\label{eq:flash-gradient}
+\end{equation}
+Thus exact online/GPU Sinkhorn is the semantics-preserving engineering lane:
+it improves memory traffic and GPU utilization while keeping the same entropic
+transport object.  It does not, however, change the all-pairs asymptotic cost.
+
+\section{Nystrom Kernel Sinkhorn}
+
+The target paper \emph{Massively scalable Sinkhorn distances via the Nystrom
+method} approximates the Gaussian Gibbs kernel \citep{altschuler2019nystrom}
+\begin{equation}
+K_{ij}
+=
+k_\eta(x_i,x_j)
+=
+\exp(-\eta\|x_i-x_j\|^2)
+\label{eq:nystrom-kernel}
+\end{equation}
+by a low-rank factorization
+\begin{equation}
+\tilde K = V A^{-1}V^\top.
+\label{eq:nystrom-factorization}
+\end{equation}
+Given landmark points
+\begin{equation}
+X_r=\{\tilde x_1,\ldots,\tilde x_r\}\subset X,
+\label{eq:nystrom-landmarks}
+\end{equation}
+the factors are
+\begin{equation}
+V_{ij}=k_\eta(x_i,\tilde x_j),
+\qquad
+A_{jj'}=k_\eta(\tilde x_j,\tilde x_{j'}).
+\label{eq:nystrom-factors}
+\end{equation}
+If $A=LL^\top$, a matrix-vector product is computed as
+\begin{equation}
+\tilde K v
+=
+V\left(L^{-\top}\left(L^{-1}(V^\top v)\right)\right).
+\label{eq:nystrom-matvec}
+\end{equation}
+After Cholesky factorization, each multiply costs $O(nr)$ rather than
+$O(n^2)$.  Sinkhorn scaling uses
+\begin{equation}
+\tilde P
+=
+D_1\tilde K D_2
+=
+D_1 V A^{-1}V^\top D_2.
+\label{eq:nystrom-plan}
+\end{equation}
+For particle transport, this factorization is directly useful:
+\begin{equation}
+\tilde P X
+=
+D_1V A^{-1}V^\top D_2X.
+\label{eq:nystrom-transport}
+\end{equation}
+
+The adaptive Nystrom subroutine doubles the rank until the entrywise kernel
+approximation error is below a threshold.  For Gaussian kernels, the diagnostic
+used in the paper is
+\begin{equation}
+\|K-\tilde K\|_\infty
+=
+1-\min_i\tilde K_{ii}.
+\label{eq:nystrom-diag-error}
+\end{equation}
+If points lie in a ball in $\R^d$, the paper gives a worst-case bound of the
+form
+\begin{equation}
+r^\ast(X,\eta,\epsilon')
+\le
+3\left(
+6+\frac{53}{d}\eta R^2
++\frac{3}{d}\log\frac{2n}{\epsilon'}
+\right)^d.
+\label{eq:nystrom-ball-rank}
+\end{equation}
+This is not reassuring in high ambient dimension.  The favorable case is
+low intrinsic dimension.  If the data lie on a $k$-dimensional manifold, the
+bound becomes
+\begin{equation}
+r^\ast(X,\eta,\epsilon')
+\le
+c_{\Omega,\eta}
+\left(\log\frac{n}{\epsilon'}\right)^{5k/2}.
+\label{eq:nystrom-manifold-rank}
+\end{equation}
+
+The paper also states stability in logarithmic kernel error.  If
+\begin{equation}
+\|\log K-\log\tilde K\|_\infty \le \epsilon',
+\label{eq:nystrom-log-error}
+\end{equation}
+then scaling the approximate kernel gives a plan
+$\tilde P=D_1\tilde K D_2$ with marginal residual
+\begin{equation}
+\|\tilde P\ones-p\|_1
++\|\tilde P^\top\ones-q\|_1
+\le \epsilon',
+\label{eq:nystrom-marginal-residual}
+\end{equation}
+and controlled objective error.  For LEDH-PFPF-OT, the essential extra
+diagnostic is transported-particle error,
+\begin{equation}
+\|\tilde P X-P_\epsilon X\|.
+\label{eq:nystrom-transport-error}
+\end{equation}
+
+Nystrom Sinkhorn can help when the post-flow Gibbs kernel has small effective
+rank.  It can fail when the effective rank is large, the entropy is too small,
+or high ambient dimension corresponds to high intrinsic dimension.
+
+\section{Positive-Feature Sinkhorn}
+
+Positive-feature Sinkhorn replaces the Gibbs kernel by an inner product of
+positive features \citep{scetbon2020positivefeatures}.  Choose
+\begin{equation}
+\phi_\theta(x)\in\R^r_{+},
+\label{eq:positive-feature-map}
+\end{equation}
+define
+\begin{equation}
+k_\theta(x,y)
+=
+\langle\phi_\theta(x),\phi_\theta(y)\rangle,
+\label{eq:positive-feature-kernel}
+\end{equation}
+and set the associated cost
+\begin{equation}
+c_\theta(x,y)
+=
+-\epsilon\log k_\theta(x,y).
+\label{eq:positive-feature-cost}
+\end{equation}
+For feature matrices
+\begin{align}
+\xi
+&=
+[\phi_\theta(x_1),\ldots,\phi_\theta(x_n)]
+\in(\R_+^\ast)^{r\times n},
+\label{eq:positive-xi}\\
+\zeta
+&=
+[\phi_\theta(y_1),\ldots,\phi_\theta(y_m)]
+\in(\R_+^\ast)^{r\times m},
+\label{eq:positive-zeta}
+\end{align}
+the sample kernel is
+\begin{equation}
+K_\theta
+=
+\xi^\top\zeta.
+\label{eq:positive-feature-factorization}
+\end{equation}
+Sinkhorn matrix-vector products therefore cost $O(r(n+m))$.  The dual
+objective can be written
+\begin{equation}
+W_{\epsilon,c_\theta}(\mu,\nu)
+=
+\max_{\alpha\in\R^n,\beta\in\R^m}
+a^\top\alpha+b^\top\beta
+-\epsilon(\xi e^{\alpha/\epsilon})^\top
+\zeta e^{\beta/\epsilon}
++\epsilon.
+\label{eq:positive-feature-dual}
+\end{equation}
+The paper also uses integral kernel representations,
+\begin{equation}
+k(x,y)
+=
+\int_U \phi(x,u)^\top\phi(y,u)\,d\rho(u),
+\label{eq:positive-feature-integral}
+\end{equation}
+and finite approximations
+\begin{equation}
+\phi_\theta(x)
+=
+\frac{1}{\sqrt r}
+(\phi(x,u_1),\ldots,\phi(x,u_r)).
+\label{eq:positive-feature-finite}
+\end{equation}
+For particle resampling, the factored transport application is
+\begin{equation}
+P X
+=
+\diag(u)\xi^\top\zeta\diag(v)X.
+\label{eq:positive-feature-transport}
+\end{equation}
+The caution is semantic: a feature approximation changes the cost or kernel.
+The transported particle cloud and marginal residuals must be compared against
+the exact entropic reference.
+
+\section{Direct Low-Rank Coupling OT}
+
+Low-rank kernel methods approximate $K$.  Direct low-rank OT constrains or
+parametrizes the coupling $P$ itself
+\citep{forrow2019factored,scetbon2021lowrank,scetbon2022lowrank,scetbon2023unbalanced}.
+The nonnegative rank of a nonnegative
+matrix is
+\begin{equation}
+\rankp(M)
+=
+\min\left\{
+r:\;M=\sum_{k=1}^r M_k,\;
+\operatorname{rank}(M_k)=1,\;M_k\ge0
+\right\}.
+\label{eq:nonnegative-rank}
+\end{equation}
+The rank-constrained coupling set is
+\begin{equation}
+\Pi_{a,b}(r)
+=
+\{P\in\Pi(a,b):\rankp(P)\le r\}.
+\label{eq:low-rank-polytope}
+\end{equation}
+The low-rank OT problem is
+\begin{equation}
+\min_{P\in\Pi_{a,b}(r)}\langle C,P\rangle.
+\label{eq:low-rank-ot}
+\end{equation}
+
+The factored coupling parameterization is
+\begin{equation}
+P
+=
+Q\diag(1/g)R^\top,
+\label{eq:factored-coupling}
+\end{equation}
+where
+\begin{equation}
+Q\in\Pi(a,g),
+\qquad
+R\in\Pi(b,g),
+\qquad
+g\in\Delta_r.
+\label{eq:factored-coupling-constraints}
+\end{equation}
+Equivalently,
+\begin{equation}
+FC_{a,b}(r)
+=
+\{(Q,R,g): Q\in\R_+^{n\times r},
+R\in\R_+^{m\times r},
+g\in(\R_+^\ast)^r,\;
+Q\in\Pi(a,g),\;R\in\Pi(b,g)\}.
+\label{eq:fc-set}
+\end{equation}
+Then
+\begin{equation}
+\min_{P\in\Pi_{a,b}(r)}\langle C,P\rangle
+=
+\min_{(Q,R,g)\in FC_{a,b}(r)}
+\left\langle C,Q\diag(1/g)R^\top\right\rangle.
+\label{eq:factored-low-rank-objective}
+\end{equation}
+Transport application is efficient:
+\begin{equation}
+PX
+=
+Q\diag(1/g)R^\top X.
+\label{eq:factored-transport}
+\end{equation}
+
+A newer latent-coupling factorization introduces an additional $r\times r$
+latent plan \citep{halmos2024frlc,halmos2025hierarchical}:
+\begin{equation}
+LC_{a,b}(r)
+=
+\{(Q,R,T):
+Q\in\R_+^{n\times r},
+R\in\R_+^{m\times r},
+T\in\R_+^{r\times r},
+Q\in\Pi(a,\cdot),
+R\in\Pi(b,\cdot),
+T\in\Pi(g_Q,g_R)
+\}.
+\label{eq:latent-coupling-set}
+\end{equation}
+The induced coupling is
+\begin{equation}
+P
+=
+Q\diag(1/g_Q)
+T
+\diag(1/g_R)R^\top.
+\label{eq:latent-coupling}
+\end{equation}
+This allows mass to route through a small latent transport plan rather than
+only through diagonal latent components.
+
+The Riemannian low-rank line uses positive factors and manifold optimization
+\citep{jawanpuria2026riemannian}.  For balanced linear OT, one representative
+parameterization is
+\begin{equation}
+\Gamma
+=
+U\diag(U^\top\ones)^{-1}V^\top,
+\label{eq:riemannian-coupling}
+\end{equation}
+with objective
+\begin{equation}
+f(U,V)=\langle C,\Gamma\rangle.
+\label{eq:riemannian-objective}
+\end{equation}
+It also provides a rank-sufficiency diagnostic.  Let $\Gamma_r$ be the rank-$r$
+solution and define the reduced gradient or dual slack matrix
+\begin{equation}
+R
+=
+\nabla_\Gamma f(\Gamma_r)
+-\alpha^\ast\ones^\top
+-\ones(\beta^\ast)^\top.
+\label{eq:rank-slack}
+\end{equation}
+Then
+\begin{equation}
+\delta_r=\min_{ij}R_{ij}.
+\label{eq:rank-certificate}
+\end{equation}
+Under the theorem's assumptions, $\delta_r\ge0$ certifies global optimality for
+the full coupling problem; $\delta_r<0$ identifies a direction in which rank
+should be increased.  Even when the exact certificate is not achieved at a
+finite iterate, it is a useful diagnostic for whether the rank is too small.
+
+Direct low-rank coupling is a promising subquadratic route because it reduces
+storage and transport application.  It is also a real algorithmic change: it
+solves over low-rank couplings, not the original dense entropic feasible set.
+
+\section{Sparse, Screened, and Stabilized OT}
+
+Sparse multiscale OT begins with the exact discrete problem
+\citep{schmitzer2016sparse}
+\begin{equation}
+\Pi(\mu,\nu)
+=
+\{\pi\in P(X\times Y):
+\pi(\{x\}\times Y)=\mu(x),
+\pi(X\times\{y\})=\nu(y)\},
+\label{eq:sparse-polytope}
+\end{equation}
+\begin{equation}
+\min_{\pi\in\Pi(\mu,\nu)}
+C(\pi),
+\qquad
+C(\pi)=\sum_{(x,y)\in X\times Y}c(x,y)\pi(x,y).
+\label{eq:sparse-ot}
+\end{equation}
+The dense problem considers the full product $X\times Y$.  Sparse multiscale
+methods solve a sequence of sparse subproblems while verifying global
+optimality through local shielding neighborhoods.  This is relevant if
+post-flow LEDH particles have genuinely local couplings.
+
+Screenkhorn accelerates regularized OT by screening dual variables
+\citep{alaya2019screenkhorn}.  The
+regularized primal is
+\begin{equation}
+S_\eta(\mu,\nu)
+=
+\min_{P\in\Pi(\mu,\nu)}
+\{\langle C,P\rangle-\eta H(P)\}.
+\label{eq:screenkhorn-primal}
+\end{equation}
+With Gibbs kernel
+\begin{equation}
+K=\exp(-C/\eta),
+\label{eq:screenkhorn-kernel}
+\end{equation}
+the dual can be written
+\begin{equation}
+\min_{u\in\R^n,v\in\R^m}
+\Psi(u,v)
+=
+\ones_n^\top B(u,v)\ones_m
+-\langle u,\mu\rangle
+-\langle v,\nu\rangle,
+\label{eq:screenkhorn-dual}
+\end{equation}
+where
+\begin{equation}
+B(u,v)
+=
+\Delta(e^u)K\Delta(e^v).
+\label{eq:screenkhorn-B}
+\end{equation}
+The idea is to identify negligible components and solve a smaller constrained
+dual problem.  As with sparse multiscale OT, the method is useful only if the
+screened plan still gives acceptable transport and marginal residuals.
+
+Stabilized sparse scaling, epsilon scaling, truncation, and coarse-to-fine
+methods should be treated as a toolbox rather than a single replacement
+algorithm \citep{schmitzer2019stabilized}.  They are particularly important
+when $\epsilon$ is small and standard-domain $K=\exp(-C/\epsilon)$ becomes
+numerically fragile.
+
+\section{Accelerated, Greedy, and Stochastic Sinkhorn Iterations}
+
+This family improves iteration complexity or update scheduling but does not by
+itself remove dense kernel access
+\citep{altschuler2017nearlinear,dvurechensky2018computational,abid2018greedy,lin2019efficient,xu2026accelerating}.
+Greenkhorn updates the most violating row or column rather than all rows and
+columns.  The plan still has the scaling
+form
+\begin{equation}
+P=\diag(u)K\diag(v),
+\label{eq:greenkhorn-plan}
+\end{equation}
+but the update schedule for components of $u$ and $v$ changes.  Accelerated
+primal-dual, accelerated mirror-descent, and related methods improve
+theoretical dependence on accuracy or regularization.  If each iteration still
+requires dense $Kv$ and $K^\top u$, the large $N,D$ bottleneck remains.  These
+methods are secondary tools to combine with online, sparse, or low-rank
+backends.
+
+\section{Stochastic and Minibatch OT}
+
+Stochastic OT methods are important for learning losses and cases where the
+measures are observed through samples
+\citep{genevay2016stochastic,genevay2018samplecomplexity}.  Particle filtering
+is different: at a given time step the resampling transform acts on a finite
+weighted ensemble.
+Replacing the full coupling by stochastic dual estimates is not automatically
+a valid resampling map.
+
+Minibatch OT methods reduce computation by solving smaller OT problems and an
+outer problem over minibatches \citep{nguyen2022bomb}.  Entropic population
+BoMb-OT has the form
+\begin{equation}
+ED^m_d(\mu,\nu)
+=
+\min_{\gamma\in\Pi(\mu^{\otimes m},\nu^{\otimes m})}
+\mathbb{E}_{(X^m,Y^m)\sim\gamma}
+\left[
+  d(P_{X^m},P_{Y^m})
+\right]
++\lambda\,\KL(\gamma\mid \mu^{\otimes m}\otimes\nu^{\otimes m}).
+\label{eq:bomb-ot}
+\end{equation}
+For finite $k$ minibatches of size $m$, an outer $k\times k$ OT problem
+couples minibatches.  If the inner discrepancy is Sinkhorn, cost construction
+is roughly $O(m^2k^2)$.  If the inner discrepancy is sliced Wasserstein, it
+can be closer to $O(m\log(m)k^2)$.
+
+An unbalanced minibatch variant uses local unbalanced OT
+\citep{nguyen2021partialminibatch}:
+\begin{equation}
+UOT^\phi_\tau(\mu_n,\nu_n)
+=
+\min_{\pi\in\R_+^{n\times n}}
+\langle C,\pi\rangle
++\tau D_\phi(\pi\ones,\mu_n)
++\tau D_\phi(\pi^\top\ones,\nu_n).
+\label{eq:uot}
+\end{equation}
+Minibatch OT is tempting for large $N$, but it is a dangerous drop-in
+replacement.  A minibatch plan can be optimal inside batches and wrong for the
+full ensemble.  It should be treated as a new randomized or approximate
+resampling method, not as a faithful acceleration of full-ensemble transport.
+
+\section{Sliced, Max-Sliced, Generalized Sliced, and Subspace OT}
+
+Sliced methods attack high dimension by projecting measures to one-dimensional
+distributions
+\citep{kolouri2019generalized,deshpande2019maxsliced,paty2019subspace,nguyen2025sliced}.
+For one-dimensional measures, the monotone transport map is
+\begin{equation}
+T(x)=F_\nu^{-1}(F_\mu(x)),
+\label{eq:monotone-map}
+\end{equation}
+and
+\begin{equation}
+W_p^p(\mu,\nu)
+=
+\int_0^1
+\left|
+F_\mu^{-1}(z)-F_\nu^{-1}(z)
+\right|^p dz.
+\label{eq:oned-wasserstein}
+\end{equation}
+For empirical distributions this is computed by sorting projected samples.
+
+For $\theta\in S^{d-1}$, let $\theta_{\#}\mu$ be the pushforward of $\mu$
+under $x\mapsto\langle\theta,x\rangle$.  The sliced Wasserstein distance is
+\begin{equation}
+\SW_p^p(\mu,\nu)
+=
+\int_{S^{d-1}}
+W_p^p(\theta_{\#}\mu,\theta_{\#}\nu)\,d\theta.
+\label{eq:sliced-wasserstein}
+\end{equation}
+The empirical approximation uses directions $\theta_1,\ldots,\theta_L$:
+\begin{equation}
+\widehat{\SW}_p^p(\mu,\nu)
+=
+\frac{1}{L}\sum_{\ell=1}^L
+W_p^p((\theta_\ell)_{\#}\mu,(\theta_\ell)_{\#}\nu).
+\label{eq:empirical-sliced}
+\end{equation}
+Equivalently, for distributions $P_d,P_g$,
+\begin{equation}
+\widetilde W_p(P_d,P_g)
+=
+\left[
+\int_{\omega\in\Omega}
+W_p^p(P_d^\omega,P_g^\omega)\,d\omega
+\right]^{1/p}.
+\label{eq:deshpande-sw}
+\end{equation}
+For finite samples $D,F$ and directions $\widehat\Omega$,
+\begin{equation}
+\frac{1}{|\widehat\Omega|}
+\sum_{\omega\in\widehat\Omega}
+W_2^2(D^\omega,F^\omega)
+\label{eq:finite-sliced}
+\end{equation}
+with each one-dimensional term computed by sorting,
+\begin{equation}
+W_2^2(D^\omega,F^\omega)
+=
+\frac{1}{|D|}\sum_i
+\left\|
+D^\omega_{\pi_D^\omega(i)}
+-F^\omega_{\pi_F^\omega(i)}
+\right\|_2^2.
+\label{eq:sliced-sorting}
+\end{equation}
+Max-sliced Wasserstein replaces random averaging by a best projection:
+\begin{equation}
+\MSW_p^p(\mu,\nu)
+=
+\max_{\theta\in S^{d-1}}
+W_p^p(\theta_{\#}\mu,\theta_{\#}\nu).
+\label{eq:max-sliced}
+\end{equation}
+
+Sliced and subspace methods are highly relevant when $D$ is the dominant
+problem.  They can generate projected transport maps, but a full particle
+resampling transform in $\R^D$ is not the same object as a dense coupling.
+They should be studied as new resampling approximations unless a precise
+construction maps the projected couplings back to a validated full-state
+transport.
+
+\section{Localization and Particle-Filter Structure}
+
+The generic OT literature does not know the state-space model.  LEDH-PFPF-OT
+does.  If the state has spatial, block, factor, or conditional-independence
+structure, localization may be more principled than a generic global OT
+approximation.  A localized OT resampler could partition the state as
+\begin{equation}
+x_i=(x_i^{(1)},\ldots,x_i^{(B)}),
+\label{eq:block-state}
+\end{equation}
+then compute block transports
+\begin{equation}
+P^{(b)}\in\Pi(a^{(b)},b^{(b)})
+\label{eq:block-transport}
+\end{equation}
+or use shared particle-level couplings with local costs
+\begin{equation}
+C_{ij}
+=
+\sum_{b=1}^B C_{ij}^{(b)}.
+\label{eq:block-cost}
+\end{equation}
+This lane should be studied alongside low-rank methods, especially for spatial
+fields, macro panels, or structured latent states.
+
+\section{Method Taxonomy}
+
+\small
+\begin{longtable}{p{0.18\textwidth}p{0.23\textwidth}p{0.14\textwidth}p{0.18\textwidth}p{0.17\textwidth}}
+\toprule
+Family & Representative sources & Transport object? & What it fixes & Main risk \\
+\midrule
+\endhead
+Exact online/GPU Sinkhorn &
+\citep{feydy2019geomloss,charlier2021keops,ye2026flashsinkhorn,xiao2026fastsinkhorn}
+& Yes & Dense storage and GPU IO & Still all-pairs $O(N^2D)$ work \\
+Nystrom Sinkhorn & \citep{altschuler2019nystrom} & Yes, factored entropic
+coupling & Kernel matvecs when effective rank is small & Rank can grow badly
+with dimension or small $\epsilon$ \\
+Positive-feature Sinkhorn & \citep{scetbon2020positivefeatures} & Yes if
+coupling application is implemented & Linear-time positive kernel matvecs &
+Feature approximation changes cost/kernel \\
+Low-rank coupling OT &
+\citep{forrow2019factored,scetbon2021lowrank,scetbon2022lowrank,scetbon2023unbalanced,halmos2024frlc,halmos2025hierarchical,jawanpuria2026riemannian}
+& Yes,
+factored coupling & Coupling storage and transport application & Changes
+feasible plan class \\
+Sparse/multiscale/screened &
+\citep{schmitzer2016sparse,schmitzer2019stabilized,alaya2019screenkhorn}
+& Yes & Active pair count when coupling is local or screenable & Locality may
+fail in high dimension \\
+Accelerated/greedy Sinkhorn &
+\citep{altschuler2017nearlinear,dvurechensky2018computational,abid2018greedy,lin2019efficient,xu2026accelerating}
+& Yes &
+Iteration count/convergence & Dense kernel access remains \\
+Stochastic/minibatch OT &
+\citep{genevay2016stochastic,genevay2018samplecomplexity,nguyen2022bomb,nguyen2021partialminibatch}
+& Sometimes
+partial/local plans & Training-scale memory and compute & Not a full
+deterministic resampling plan \\
+Sliced/subspace OT &
+\citep{paty2019subspace,kolouri2019generalized,deshpande2019maxsliced,nguyen2025sliced}
+&
+Projected plans/maps & High-dimensional statistics and speed & Different
+transport object \\
+Localization/block OT & \citep{reich2013nonparametric} and model structure & Yes
+if designed & Large $D$ with state locality & Requires model-specific
+validation \\
+\bottomrule
+\end{longtable}
+\normalsize
+
+\section{Code Availability and Reuse Risk}
+
+Source availability is a key practical filter, but it should not be confused
+with default-readiness.  In this section, a \emph{valid inspected checkout}
+means that the repository is locally available under
+\path{.localsource/scalable_ot_code_audit}, has a readable Git commit, and the
+listed implementation files were inspected.  It does not mean that the package
+was installed, built, or tested.  Because BayesFilter-owned algorithmic code
+defaults to TensorFlow/TFP, PyTorch, JAX, Triton, and C++ repositories below
+are treated as algorithmic references unless a later plan explicitly approves a
+backend exception.
+
+\scriptsize
+\setlength{\tabcolsep}{2pt}
+\begin{longtable}{@{}p{0.15\textwidth}p{0.19\textwidth}p{0.12\textwidth}p{0.21\textwidth}p{0.23\textwidth}@{}}
+\toprule
+Repository/method & Local audit status & Backend & Transport object exposed? &
+BayesFilter decision implication \\
+\midrule
+\endhead
+FilterFlow differentiable PF
+\citep{corenflos2021differentiable} &
+\path{filterflow}, commit \path{5d8300b}; valid inspected checkout &
+TensorFlow/TFP &
+Yes.  \path{plan.py} exposes \path{transport_from_potentials} and
+\path{transport}, returning a dense transport matrix from
+\path{sinkhorn.py} potentials. &
+Most directly compatible source for differentiable resampling semantics, but
+not a scalable fix because it materializes dense $[B,N,N]$ transport. \\
+
+POT / Python Optimal Transport \citep{flamary2021pot} &
+\path{POT}, commit \path{3e10dd6}; valid inspected checkout &
+Multi-backend: NumPy, PyTorch, JAX, TensorFlow, CuPy &
+Yes.  Dense Sinkhorn, Greenkhorn, Screenkhorn, Nystrom lazy plans,
+low-rank Sinkhorn, factored OT, and sliced plans are present in
+\path{ot/bregman}, \path{ot/lowrank.py}, \path{ot/factored.py}, and
+\path{ot/sliced}. &
+Best broad prototype/baseline library.  It can inform TensorFlow work, but
+BayesFilter still needs local wrappers and resampling-specific validation. \\
+
+OTT-JAX \citep{cuturi2022ott} &
+\path{ott-sparse}, commit \path{e241ec3}; valid inspected sparse checkout &
+JAX &
+Yes.  \path{SinkhornOutput} and \path{LRSinkhornOutput} expose
+\path{matrix}, \path{apply}, and marginals; point-cloud and low-rank geometries
+support online/factored applications. &
+Excellent API reference for exact online and low-rank transport operators, but
+not a default BayesFilter backend. \\
+
+GeomLoss / KeOps online Sinkhorn
+\citep{feydy2019geomloss,charlier2021keops} &
+\path{geomloss}, commit \path{00e493f}; valid inspected checkout &
+PyTorch/KeOps &
+Yes.  The result API exposes \path{plan}, \path{lazy_plan}, and
+\path{plan_operator}; point-cloud implementations expose lazy transport-plan
+densities. &
+Strong exact online Sinkhorn reference for avoiding dense storage.  It still
+performs all-pairs interactions and would require a TensorFlow port or
+backend exception. \\
+
+FlashSinkhorn \citep{ye2026flashsinkhorn} &
+\path{flash-sinkhorn}, commit \path{d538da3}; valid inspected checkout &
+PyTorch/Triton &
+Yes.  The API documents \path{apply_plan_vec_flashstyle} and
+\path{apply_plan_mat_flashstyle}, and solver code returns shifted potentials
+for GPU plan application. &
+Best source for IO-aware GPU kernel design.  High porting risk into
+TensorFlow, but valuable for a future fused exact-reference implementation. \\
+
+LinearSinkhorn / positive-feature and Nystrom scripts
+\citep{scetbon2020positivefeatures,altschuler2019nystrom} &
+\path{LinearSinkhorn}, commit \path{01943c7}; valid inspected checkout &
+PyTorch scripts &
+Partial.  \path{FastSinkhorn.py} implements \path{Lin_Sinkhorn},
+\path{Nys_Sinkhorn}, and feature/Nystrom helpers, but reusable particle
+transport application is not exposed as a package API. &
+Useful for deriving and checking positive-feature/Nystrom prototypes; not
+implementation-ready for BayesFilter. \\
+
+Schmitzer sparse/multiscale code
+\citep{schmitzer2016sparse,schmitzer2019stabilized} &
+\path{MultiScaleOT} commit \path{48a47aa}; \path{optimal-transport} commit
+\path{1d1aaf4}; valid inspected checkouts &
+C++ with Python tooling &
+Yes, through sparse coupling handlers, shortcut/shielding solvers, and
+stabilized sparse Sinkhorn source under \path{src/ShortCutSolver} and
+\path{src/Sinkhorn}. &
+Strong sparse/multiscale reference if post-flow particles have exploitable
+locality.  High integration risk and likely unsuitable as first TensorFlow
+prototype. \\
+
+Mini-batch-OT / BoMb-OT
+\citep{nguyen2022bomb,nguyen2021partialminibatch} &
+\path{Mini-batch-OT-sparse}, commit \path{1ef5ffc}; partial checkout after
+DNS/GnuTLS/HTTP2 failures &
+NumPy/POT scripts &
+Partially visible.  \path{ABC/utils.py} and \path{ColorTransfer/utils.py}
+compute local mini-batch plans and higher-level couplings, but the checkout is
+dirty/incomplete. &
+Keep as concept/literature lane until a clean archive is available.  Even with
+source, stochastic minibatch semantics do not directly give a single full
+deterministic resampling plan. \\
+\bottomrule
+\end{longtable}
+\setlength{\tabcolsep}{6pt}
+\normalsize
+
+The practical ranking suggested by the source audit is therefore different
+from a pure literature ranking.  For a near-term BayesFilter prototype,
+FilterFlow is the best source-faithful TensorFlow reference, POT and OTT-JAX
+are the most useful factored/low-rank implementation references, GeomLoss and
+FlashSinkhorn are the best exact online/GPU design references, and Schmitzer's
+code is a specialized sparse/multiscale reference.  Mini-batch-OT should not be
+used as a determining source-code factor until the checkout is clean or the
+user provides an archive.
+
+\section{Recommended Research Program}
+
+\paragraph{Lane A: exact reference.}
+Keep the current dense/streaming TensorFlow path as the correctness reference.
+Study FlashSinkhorn or KeOps-style online GPU design as an implementation
+benchmark \citep{charlier2021keops,ye2026flashsinkhorn,xiao2026fastsinkhorn}.
+This lane answers how far exact entropic OT scales if memory traffic and kernel
+fusion are fixed.  Required diagnostics include
+\begin{equation}
+\|P\ones-a\|_1,
+\qquad
+\|P^\top\ones-b\|_1,
+\qquad
+\|Z_{\mathrm{candidate}}-Z_{\mathrm{dense}}\|.
+\label{eq:exact-diagnostics}
+\end{equation}
+
+\paragraph{Lane B: approximate entropic factored kernels.}
+Prototype fixed-rank Nystrom Sinkhorn first, then compare positive-feature
+Sinkhorn \citep{altschuler2019nystrom,scetbon2020positivefeatures}.  Both
+should expose a factored transport application,
+\begin{equation}
+Z
+=
+\diag(b)^{-1}
+\tilde P^\top X,
+\label{eq:factored-entropic-Z}
+\end{equation}
+without dense $P$.  Primary diagnostics are effective rank, kernel
+approximation error, marginal residual, and transported-particle error.
+
+\paragraph{Lane C: structural approximate couplings.}
+Study low-rank coupling OT, localized OT, and sliced/subspace transports as new
+resampling methods
+\citep{forrow2019factored,scetbon2021lowrank,scetbon2022lowrank,paty2019subspace,nguyen2025sliced}.
+These methods should not be judged only by dense Sinkhorn parity, because some
+may intentionally bias the transport to improve high-dimensional behavior.
+They require downstream filtering diagnostics.
+
+\section{Validation Ladder Before Any Default Change}
+
+\begin{enumerate}[label=\arabic*.]
+\item Small deterministic dense parity: compare transported particles, not only
+OT values.
+\item Marginal checks: source and target constraints with weighted inputs.
+\item Positivity and non-finite checks.
+\item Representation diagnostics: rank, feature dimension, sparsity, projection
+count, or block locality.
+\item LEDH-PFPF-OT value parity on existing fixtures.
+\item Gradient smoke tests after value parity.
+\item Runtime and memory ladder over $N,D$.
+\item Posterior/reference diagnostics for filtering.
+\item Multi-seed uncertainty-aware comparisons before ranking stochastic
+methods.
+\item Default-readiness review only after downstream evidence, not from paper
+benchmarks alone.
+\end{enumerate}
+
+\section{Conclusions}
+
+The answer to whether the Nystrom Sinkhorn paper \path{1812.05189} can help is
+yes, but it should not be the only method considered
+\citep{altschuler2019nystrom}.  Nystrom Sinkhorn is a
+strong first approximate entropic transport because it yields a factored
+coupling and can apply the transport to particles.  Its success depends on the
+effective rank of the post-flow Gibbs kernel.
+
+For near-term engineering, exact online/GPU Sinkhorn is the reference lane.  It
+preserves the current entropic OT semantics and directly supports barycentric
+transport, but it remains all-pairs.  For true large-$N,D$ scaling, the most
+promising methods are structural: low-rank coupling OT, localization/block OT,
+and sliced/subspace transports.  These are not mere accelerations; they are new
+resampling approximations and must be validated as such.
+
+The safest research posture is a three-lane program: exact online Sinkhorn for
+reference and moderate scaling, low-rank kernel Sinkhorn for the first factored
+entropic approximation, and low-rank/localized/sliced transports as explicit
+new filtering methods.  No candidate should become a BayesFilter default until
+it passes transported-particle parity or a declared replacement criterion,
+marginal diagnostics, numerical stability checks, and downstream filtering
+validation.
+
+\section*{References}
+\addcontentsline{toc}{section}{References}
+\begin{thebibliography}{99}
+
+\bibitem[Abid and Gower(2018)]{abid2018greedy}
+Abid, B.~K. and Gower, R.~M. (2018).
+\newblock Greedy stochastic algorithms for entropy-regularized optimal
+transport problems.
+\newblock \emph{arXiv:1803.01347}.
+
+\bibitem[Alaya et~al.(2019)]{alaya2019screenkhorn}
+Alaya, M.~Z., B{\'e}rar, M., Gasso, G., and Rakotomamonjy, A. (2019).
+\newblock Screening Sinkhorn algorithm for regularized optimal transport.
+\newblock \emph{Advances in Neural Information Processing Systems}.
+
+\bibitem[Altschuler et~al.(2017)]{altschuler2017nearlinear}
+Altschuler, J., Weed, J., and Rigollet, P. (2017).
+\newblock Near-linear time approximation algorithms for optimal transport via
+Sinkhorn iteration.
+\newblock \emph{Advances in Neural Information Processing Systems}.
+
+\bibitem[Altschuler et~al.(2019)]{altschuler2019nystrom}
+Altschuler, J., Bach, F., Rudi, A., and Weed, J. (2019).
+\newblock Massively scalable Sinkhorn distances via the Nystrom method.
+\newblock \emph{Advances in Neural Information Processing Systems};
+arXiv:1812.05189.
+
+\bibitem[Charlier et~al.(2021)]{charlier2021keops}
+Charlier, B., Feydy, J., Glaun{\`e}s, J.~A., Collin, F.-D., and Durif, G.
+(2021).
+\newblock Kernel operations on the GPU, with autodiff, without memory
+overflows.
+\newblock \emph{Journal of Machine Learning Research}, 22(74):1--6.
+
+\bibitem[Corenflos et~al.(2021)]{corenflos2021differentiable}
+Corenflos, A., Thornton, J., Deligiannidis, G., and Doucet, A. (2021).
+\newblock Differentiable particle filtering via entropy-regularized optimal
+transport.
+\newblock \emph{Proceedings of the 38th International Conference on Machine
+Learning}.
+
+\bibitem[Cuturi(2013)]{cuturi2013sinkhorn}
+Cuturi, M. (2013).
+\newblock Sinkhorn distances: Lightspeed computation of optimal transport.
+\newblock \emph{Advances in Neural Information Processing Systems}.
+
+\bibitem[Cuturi et~al.(2022)]{cuturi2022ott}
+Cuturi, M., Meng-Papaxanthos, L., Tian, Y., Bunne, C., Davis, G., and Teboul, O.
+(2022).
+\newblock Optimal Transport Tools (OTT): A JAX toolbox for all things
+Wasserstein.
+\newblock \emph{arXiv:2201.12324}.
+
+\bibitem[Daum and Huang(2008)]{daumhuang2008}
+Daum, F. and Huang, J. (2008).
+\newblock Nonlinear filters with particle flow.
+\newblock \emph{Signal Processing, Sensor Fusion, and Target Recognition XVII}.
+
+\bibitem[Deshpande et~al.(2019)]{deshpande2019maxsliced}
+Deshpande, I., Hu, Y.-T., Sun, R., Pyrros, A., Siddiqui, N., Koyejo, S.,
+Zhao, Z., Forsyth, D., and Schwing, A.~G. (2019).
+\newblock Max-sliced Wasserstein distance and its use for GANs.
+\newblock \emph{Proceedings of the IEEE/CVF Conference on Computer Vision and
+Pattern Recognition}.
+
+\bibitem[Dvurechensky et~al.(2018)]{dvurechensky2018computational}
+Dvurechensky, P., Gasnikov, A., and Kroshnin, A. (2018).
+\newblock Computational optimal transport: Complexity by accelerated gradient
+descent is better than by Sinkhorn's algorithm.
+\newblock \emph{Proceedings of the 35th International Conference on Machine
+Learning}.
+
+\bibitem[Feydy et~al.(2019)]{feydy2019geomloss}
+Feydy, J., S{\'e}journ{\'e}, T., Vialard, F.-X., Amari, S.-i., Trouv{\'e}, A.,
+and Peyr{\'e}, G. (2019).
+\newblock Interpolating between optimal transport and MMD using Sinkhorn
+divergences.
+\newblock \emph{Proceedings of the 22nd International Conference on Artificial
+Intelligence and Statistics}.
+
+\bibitem[Flamary et~al.(2021)]{flamary2021pot}
+Flamary, R., Courty, N., Gramfort, A., Alaya, M.~Z., Boisbunon, A., Chambon,
+S., Chapel, L., Corenflos, A., Fatras, K., Fournier, N., Gautheron, L.,
+Gayraud, N.~T.~H., Janati, H., Rakotomamonjy, A., Redko, I., Rolet, A., Schutz,
+A., Seguy, V., Sutherland, D.~J., Tavenard, R., Tong, A., and Vayer, T. (2021).
+\newblock POT: Python Optimal Transport.
+\newblock \emph{Journal of Machine Learning Research}, 22(78):1--8.
+
+\bibitem[Forrow et~al.(2019)]{forrow2019factored}
+Forrow, A., H{\"u}tter, J.-C., Nitzan, M., Rigollet, P., Schiebinger, G., and
+Weed, J. (2019).
+\newblock Statistical optimal transport via factored couplings.
+\newblock \emph{Proceedings of the 22nd International Conference on Artificial
+Intelligence and Statistics}.
+
+\bibitem[Genevay et~al.(2016)]{genevay2016stochastic}
+Genevay, A., Cuturi, M., Peyr{\'e}, G., and Bach, F. (2016).
+\newblock Stochastic optimization for large-scale optimal transport.
+\newblock \emph{Advances in Neural Information Processing Systems}.
+
+\bibitem[Genevay et~al.(2019)]{genevay2018samplecomplexity}
+Genevay, A., Chizat, L., Bach, F., Cuturi, M., and Peyr{\'e}, G. (2019).
+\newblock Sample complexity of Sinkhorn divergences.
+\newblock \emph{Proceedings of the 22nd International Conference on Artificial
+Intelligence and Statistics}; arXiv:1810.02733.
+
+\bibitem[Halmos et~al.(2024)]{halmos2024frlc}
+Halmos, P., Liu, X., Gold, J., and Raphael, B.~J. (2024).
+\newblock Low-rank optimal transport through factor relaxation with latent
+coupling.
+\newblock \emph{Advances in Neural Information Processing Systems}.
+
+\bibitem[Halmos et~al.(2025)]{halmos2025hierarchical}
+Halmos, P., Gold, J., Liu, X., and Raphael, B.~J. (2025).
+\newblock Hierarchical refinement: Optimal transport to infinity and beyond.
+\newblock \emph{arXiv:2503.03025}.
+
+\bibitem[Jawanpuria and Mishra(2026)]{jawanpuria2026riemannian}
+Jawanpuria, P. and Mishra, B. (2026).
+\newblock A Riemannian approach to low-rank optimal transport.
+\newblock \emph{arXiv:2606.12120}.
+
+\bibitem[Kolouri et~al.(2019)]{kolouri2019generalized}
+Kolouri, S., Nadjahi, K., Simsekli, U., Badeau, R., and Rohde, G.~K. (2019).
+\newblock Generalized sliced Wasserstein distances.
+\newblock \emph{Advances in Neural Information Processing Systems}.
+
+\bibitem[Li and Coates(2017)]{li2017particle}
+Li, Y. and Coates, M. (2017).
+\newblock Particle filtering with invertible particle flow.
+\newblock \emph{IEEE Transactions on Signal Processing}, 65(15):4102--4116.
+
+\bibitem[Lin et~al.(2019)]{lin2019efficient}
+Lin, T., Ho, N., and Jordan, M.~I. (2019).
+\newblock On efficient optimal transport: An analysis of greedy and
+accelerated mirror descent algorithms.
+\newblock \emph{Proceedings of the 36th International Conference on Machine
+Learning}.
+
+\bibitem[Nguyen et~al.(2022)]{nguyen2022bomb}
+Nguyen, K., Ho, N., Pham, T., and Bui, H. (2022).
+\newblock On transportation of mini-batches: A hierarchical approach.
+\newblock \emph{Proceedings of the 39th International Conference on Machine
+Learning}.
+
+\bibitem[Nguyen et~al.(2021)]{nguyen2021partialminibatch}
+Nguyen, K., Nguyen, D., Pham, T., Ho, N., and Bui, H. (2021).
+\newblock Improving mini-batch optimal transport via partial transportation.
+\newblock \emph{arXiv:2108.09645}.
+
+\bibitem[Nguyen(2025)]{nguyen2025sliced}
+Nguyen, K. (2025).
+\newblock An introduction to sliced optimal transport.
+\newblock \emph{arXiv:2508.12519}.
+
+\bibitem[Paty and Cuturi(2019)]{paty2019subspace}
+Paty, F.-P. and Cuturi, M. (2019).
+\newblock Subspace robust Wasserstein distances.
+\newblock \emph{Proceedings of the 36th International Conference on Machine
+Learning}.
+
+\bibitem[Peyr{\'e} and Cuturi(2019)]{peyre2019computational}
+Peyr{\'e}, G. and Cuturi, M. (2019).
+\newblock Computational optimal transport.
+\newblock \emph{Foundations and Trends in Machine Learning}, 11(5--6):355--607.
+
+\bibitem[Reich(2013)]{reich2013nonparametric}
+Reich, S. (2013).
+\newblock A nonparametric ensemble transform method for Bayesian inference.
+\newblock \emph{SIAM Journal on Scientific Computing}, 35(4):A2013--A2024.
+
+\bibitem[Scetbon and Cuturi(2020)]{scetbon2020positivefeatures}
+Scetbon, M. and Cuturi, M. (2020).
+\newblock Linear time Sinkhorn divergences using positive features.
+\newblock \emph{Advances in Neural Information Processing Systems}.
+
+\bibitem[Scetbon et~al.(2021)]{scetbon2021lowrank}
+Scetbon, M., Cuturi, M., and Peyr{\'e}, G. (2021).
+\newblock Low-rank Sinkhorn factorization.
+\newblock \emph{Proceedings of the 38th International Conference on Machine
+Learning}.
+
+\bibitem[Scetbon and Cuturi(2022)]{scetbon2022lowrank}
+Scetbon, M. and Cuturi, M. (2022).
+\newblock Low-rank optimal transport: Approximation, statistics and debiasing.
+\newblock \emph{arXiv:2205.12365}.
+
+\bibitem[Scetbon et~al.(2023)]{scetbon2023unbalanced}
+Scetbon, M., Klein, M., Palla, G., and Cuturi, M. (2023).
+\newblock Unbalanced low-rank optimal transport solvers.
+\newblock \emph{arXiv:2305.19727}.
+
+\bibitem[Schmitzer(2016)]{schmitzer2016sparse}
+Schmitzer, B. (2016).
+\newblock A sparse multi-scale algorithm for dense optimal transport.
+\newblock \emph{Journal of Mathematical Imaging and Vision}, 56:238--259.
+
+\bibitem[Schmitzer(2019)]{schmitzer2019stabilized}
+Schmitzer, B. (2019).
+\newblock Stabilized sparse scaling algorithms for entropy regularized
+transport problems.
+\newblock \emph{SIAM Journal on Scientific Computing}, 41(3):A1443--A1481.
+
+\bibitem[Villani(2003)]{villani2003topics}
+Villani, C. (2003).
+\newblock \emph{Topics in Optimal Transportation}.
+\newblock American Mathematical Society.
+
+\bibitem[Xiao(2026)]{xiao2026fastsinkhorn}
+Xiao, H. (2026).
+\newblock Fast log-domain Sinkhorn optimal transport with warp-level GPU
+reductions.
+\newblock \emph{arXiv:2605.00837}.
+
+\bibitem[Xu and Chen(2026)]{xu2026accelerating}
+Xu, Z. and Chen, L. (2026).
+\newblock Accelerating Sinkhorn for entropy-regularized optimal transport.
+\newblock \emph{arXiv:2605.30267}.
+
+\bibitem[Ye et~al.(2026)]{ye2026flashsinkhorn}
+Ye, F.~X.-F., Li, X., Yu, A., Chang, M.-C., Chu, L., and Wertheimer, D.
+(2026).
+\newblock FlashSinkhorn: IO-aware entropic optimal transport on GPU.
+\newblock \emph{arXiv:2602.03067}.
+
+\end{thebibliography}
+
+\appendix
+\section{Local Source Map}
+\label{sec:source-map}
+
+\small
+\begin{longtable}{p{0.30\textwidth}p{0.62\textwidth}}
+\toprule
+Topic & Local source \\
+\midrule
+\endhead
+Corpus manifest & \path{.localsource/scalable_ot_survey/MANIFEST.md} \\
+Code audit manifest &
+\path{.localsource/scalable_ot_code_audit/MANIFEST.md} \\
+Current TensorFlow annealed transport &
+\path{experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py} \\
+LEDH/PF-PF source-form documentation &
+\path{docs/chapters/ch19b_dpf_literature_survey.tex};
+\path{docs/chapters/ch19c_dpf_implementation_literature.tex} \\
+Cuturi, Sinkhorn distances &
+\path{.localsource/dpf_ot_audit/cuturi2013_sinkhorn_distances.txt} \\
+Reich, ensemble transform particle filter &
+\path{.localsource/dpf_ot_audit/reich2013_nonparametric_ensemble_transform.txt} \\
+Corenflos et al., differentiable OT resampling &
+\path{.localsource/dpf_ot_audit/corenflos2021_differentiable_particle_filtering_eot.txt} \\
+Nystrom Sinkhorn target paper &
+\path{.localsource/1812.05189-src/sections/nystrom.tex};
+\path{.localsource/1812.05189-src/sections/sinkhorn.tex};
+\path{.localsource/1812.05189.txt} \\
+Positive-feature Sinkhorn &
+\path{.localsource/scalable_ot_survey/2006.07057.txt} \\
+Exact online/GPU Sinkhorn &
+\path{.localsource/scalable_ot_survey/1810.08278.txt};
+\path{.localsource/scalable_ot_survey/2004.11127.txt};
+\path{.localsource/scalable_ot_survey/2602.03067.txt};
+\path{.localsource/scalable_ot_survey/2605.00837.txt} \\
+Low-rank coupling OT &
+\path{.localsource/scalable_ot_survey/1806.07348.txt};
+\path{.localsource/scalable_ot_survey/2103.04737.txt};
+\path{.localsource/scalable_ot_survey/2205.12365.txt};
+\path{.localsource/scalable_ot_survey/2305.19727.txt};
+\path{.localsource/scalable_ot_survey/2411.10555.txt};
+\path{.localsource/scalable_ot_survey/2503.03025.txt};
+\path{.localsource/scalable_ot_survey/2603.03578.txt};
+\path{.localsource/scalable_ot_survey/2606.12120.txt} \\
+Sparse/screened/stabilized OT &
+\path{.localsource/scalable_ot_survey/1510.05466.txt};
+\path{.localsource/scalable_ot_survey/1906.08540.txt};
+\path{.localsource/dpf_ot_audit/schmitzer2019_stabilized_sparse_scaling.txt} \\
+Accelerated/greedy Sinkhorn &
+\path{.localsource/scalable_ot_survey/1705.09634.txt};
+\path{.localsource/scalable_ot_survey/1802.04367.txt};
+\path{.localsource/scalable_ot_survey/1803.01347.txt};
+\path{.localsource/scalable_ot_survey/1901.06482.txt};
+\path{.localsource/scalable_ot_survey/2605.30267.txt} \\
+Stochastic/minibatch OT &
+\path{.localsource/scalable_ot_survey/1605.08527.txt};
+\path{.localsource/scalable_ot_survey/2102.05912.txt};
+\path{.localsource/scalable_ot_survey/2108.09645.txt} \\
+Sliced/subspace OT &
+\path{.localsource/scalable_ot_survey/1901.08949.txt};
+\path{.localsource/scalable_ot_survey/1902.00434.txt};
+\path{.localsource/scalable_ot_survey/1904.05877.txt};
+\path{.localsource/scalable_ot_survey/2508.12519.txt} \\
+Inspected scalable OT code repositories &
+\path{.localsource/scalable_ot_code_audit/filterflow};
+\path{.localsource/scalable_ot_code_audit/POT};
+\path{.localsource/scalable_ot_code_audit/ott-sparse};
+\path{.localsource/scalable_ot_code_audit/geomloss};
+\path{.localsource/scalable_ot_code_audit/flash-sinkhorn};
+\path{.localsource/scalable_ot_code_audit/LinearSinkhorn};
+\path{.localsource/scalable_ot_code_audit/schmitzer-MultiScaleOT};
+\path{.localsource/scalable_ot_code_audit/schmitzer-optimal-transport};
+\path{.localsource/scalable_ot_code_audit/Mini-batch-OT-sparse} \\
+\bottomrule
+\end{longtable}
+\normalsize
+
+\section{Incomplete Download Note}
+
+An additional attempt to download a recent arXiv source produced the partial
+file \path{.localsource/scalable_ot_survey/2505.06835}.  The file has a PDF
+header but fails PDF metadata inspection because the trailer/xref table is
+missing.  It is therefore not treated as an inspected source in this survey.
+
+\end{document}
