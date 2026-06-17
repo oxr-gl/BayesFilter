@@ -10,6 +10,7 @@ import bayesfilter.highdim as highdim
 from bayesfilter.nonlinear.fixed_sgqf_derivatives_tf import tf_fixed_sgqf_same_branch_signature, tf_fixed_sgqf_score
 from bayesfilter.nonlinear.fixed_sgqf_structural_adapter_tf import tf_predator_prey_to_fixed_sgqf_model
 from bayesfilter.nonlinear.fixed_sgqf_tf import TFFixedSGQFBranchConfig, tf_fixed_sgqf_cloud, tf_fixed_sgqf_filter
+from bayesfilter.nonlinear.sigma_points_tf import tf_svd_sigma_point_filter
 from bayesfilter.nonlinear.svd_cut_tf import tf_svd_cut4_filter
 from bayesfilter.structural import StatePartition, StructuralFilterConfig
 from bayesfilter.structural_tf import TFStructuralStateSpace
@@ -210,9 +211,9 @@ def _zhaocui_result(order: int = 7) -> highdim.FixedBranchFilterResult:
     )
 
 
-def _structural_closure() -> TFStructuralStateSpace:
+def _structural_closure(theta: tf.Tensor | None = None) -> TFStructuralStateSpace:
     model = _model()
-    theta = _theta()
+    theta = _theta() if theta is None else tf.convert_to_tensor(theta, dtype=DTYPE)
     process_chol = tf.linalg.cholesky(model.process_covariance)
 
     def transition_fn(previous_state: tf.Tensor, innovation: tf.Tensor) -> tf.Tensor:
@@ -268,6 +269,20 @@ def _fixed_sgqf_result(theta: tf.Tensor | None = None, *, sparse_level: int = 2)
         return_filtered=True,
     )
     return adapted, cloud, result
+
+
+
+def _ukf_result(theta: tf.Tensor | None = None):
+    parameter = _theta() if theta is None else tf.convert_to_tensor(theta, dtype=DTYPE)
+    structural = _structural_closure(theta=parameter)
+    result = tf_svd_sigma_point_filter(
+        _observations(),
+        structural,
+        backend="tf_svd_ukf",
+        innovation_floor=tf.constant(1e-12, dtype=DTYPE),
+        return_filtered=True,
+    )
+    return structural, result
 
 
 
@@ -498,6 +513,74 @@ def test_p47_m5_fixed_sgqf_matches_dense_reference_first_step_value() -> None:
     tf.debugging.assert_less(state_error[0], tf.constant(2.0e1, dtype=DTYPE))
     tf.debugging.assert_less(state_error[1], tf.constant(3.0, dtype=DTYPE))
     tf.debugging.assert_less(covariance_error, tf.constant(4.0e1, dtype=DTYPE))
+
+
+
+def test_p47_m5_fixed_sgqf_matches_dense_reference_first_step_value() -> None:
+    reference = _dense_reference(order=7)
+    _adapted, _cloud, result = _fixed_sgqf_result(sparse_level=2)
+    step = result.step_results[0]
+
+    assert result.failure is None
+    assert bool(tf.math.is_finite(step.log_likelihood_increment).numpy())
+    absolute_gap = tf.abs(step.log_likelihood_increment - reference["log_normalizers"][0])
+    relative_gap = absolute_gap / tf.maximum(tf.constant(1.0, dtype=DTYPE), tf.abs(reference["log_normalizers"][0]))
+    state_error = tf.abs(step.filtered_mean - reference["mean_path"][0])
+    covariance_error = tf.reduce_max(tf.abs(step.filtered_covariance - reference["covariance_path"][0]))
+
+    assert bool(tf.reduce_all(tf.math.is_finite(state_error)).numpy())
+    assert bool(tf.math.is_finite(covariance_error).numpy())
+    assert bool(tf.math.is_finite(absolute_gap).numpy())
+    assert bool(tf.math.is_finite(relative_gap).numpy())
+
+    tf.debugging.assert_less(absolute_gap, tf.constant(5.0e1, dtype=DTYPE))
+    tf.debugging.assert_less(relative_gap, tf.constant(6.0, dtype=DTYPE))
+    tf.debugging.assert_less(state_error[0], tf.constant(2.0e1, dtype=DTYPE))
+    tf.debugging.assert_less(state_error[1], tf.constant(3.0, dtype=DTYPE))
+    tf.debugging.assert_less(covariance_error, tf.constant(4.0e1, dtype=DTYPE))
+
+
+
+def test_p47_m5_predator_prey_ukf_is_same_target_value_diagnostic() -> None:
+    reference = _dense_reference(order=7)
+    _structural, ukf = _ukf_result()
+
+    assert bool(tf.math.is_finite(ukf.log_likelihood).numpy())
+    assert bool(tf.math.is_finite(reference["log_likelihood"]).numpy())
+    assert ukf.metadata.approximation_label == "p47_m5_predator_prey_additive_gaussian_closure"
+
+
+
+def test_p47_m5_predator_prey_ukf_matches_dense_reference_full_path_value() -> None:
+    reference = _dense_reference(order=7)
+    _structural, ukf = _ukf_result()
+
+    assert bool(tf.math.is_finite(ukf.log_likelihood).numpy())
+    absolute_gap = tf.abs(ukf.log_likelihood - reference["log_likelihood"])
+    relative_gap = absolute_gap / tf.maximum(tf.constant(1.0, dtype=DTYPE), tf.abs(reference["log_likelihood"]))
+    state_error = tf.reduce_max(tf.abs(ukf.filtered_means - reference["mean_path"]), axis=0)
+    covariance_error = tf.reduce_max(tf.abs(ukf.filtered_covariances - reference["covariance_path"]))
+
+    assert bool(tf.reduce_all(tf.math.is_finite(state_error)).numpy())
+    assert bool(tf.math.is_finite(covariance_error).numpy())
+    tf.debugging.assert_less(absolute_gap, tf.constant(5.0e1, dtype=DTYPE))
+    tf.debugging.assert_less(relative_gap, tf.constant(3.1, dtype=DTYPE))
+    tf.debugging.assert_less(state_error[0], tf.constant(2.0e1, dtype=DTYPE))
+    tf.debugging.assert_less(state_error[1], tf.constant(3.0, dtype=DTYPE))
+    tf.debugging.assert_less(covariance_error, tf.constant(4.0e1, dtype=DTYPE))
+
+
+
+def test_p47_m5_predator_prey_fixed_sgqf_vs_ukf_same_target_value_row() -> None:
+    reference = _dense_reference(order=7)
+    _adapted, _cloud, sgqf = _fixed_sgqf_result(sparse_level=2)
+    _structural, ukf = _ukf_result()
+
+    sgqf_gap = tf.abs(sgqf.log_likelihood - reference["log_likelihood"])
+    ukf_gap = tf.abs(ukf.log_likelihood - reference["log_likelihood"])
+
+    assert bool(tf.math.is_finite(sgqf_gap).numpy())
+    assert bool(tf.math.is_finite(ukf_gap).numpy())
 
 
 
