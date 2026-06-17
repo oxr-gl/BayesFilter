@@ -1,0 +1,97 @@
+{
+  "compiler": {
+    "compile_and_first_call_seconds": 6.284162039868534,
+    "compiled_unit": "batched_value_score",
+    "jit_compile": true,
+    "tf_function": true,
+    "warm_calls_exclude_compile": true
+  },
+  "cuda_visible_devices": "-1",
+  "device_arg": "/CPU:0",
+  "device_scope": "cpu",
+  "expect_device_kind": "cpu",
+  "finite_outputs": true,
+  "gpu_memory_info_after": {
+    "status": "unavailable"
+  },
+  "host": "ubuntu-MZ72-HB2-00",
+  "logical_gpus": [],
+  "mode": "compiled-value-score",
+  "notes": [
+    "Single-shape diagnostic only; not a production benchmark.",
+    "Experimental opt-in DPF batching path only.",
+    "Time remains sequential; the batch axis parallelizes independent parameter rows.",
+    "Benchmarks do not establish classical PF score correctness or posterior validity."
+  ],
+  "output_devices": [
+    "/job:localhost/replica:0/task:0/device:CPU:0",
+    "/job:localhost/replica:0/task:0/device:CPU:0"
+  ],
+  "output_shapes": [
+    [
+      20
+    ],
+    [
+      20,
+      3
+    ]
+  ],
+  "physical_gpus": [],
+  "python": "3.13.13",
+  "score_abs_max": 0.8767470183199164,
+  "score_first_row": [
+    -0.24367393954467664,
+    -0.5168343698850267,
+    -0.8767470183199164
+  ],
+  "shape": {
+    "batch_size": 20,
+    "num_particles": 4,
+    "obs_dim": 1,
+    "parameter_dim": 3,
+    "state_dim": 1,
+    "time_steps": 3
+  },
+  "tensorflow": "2.20.0",
+  "timestamp_utc": "2026-06-14T20:17:16.548543+00:00",
+  "timing_policy": {
+    "first_call_includes_trace_compile_and_initialization": true,
+    "materialization": "all output tensors materialized with .numpy()",
+    "repeats": 10,
+    "warmups": 3
+  },
+  "transport": {
+    "gradient_mode": "raw",
+    "policy": "no-resampling",
+    "sinkhorn_iterations": 10
+  },
+  "value_sum": -30.709730437317813,
+  "value_vector": [
+    -1.530107738341651,
+    -1.5306239854029382,
+    -1.5311485249121886,
+    -1.5316813641413978,
+    -1.5322225103692526,
+    -1.532771970881167,
+    -1.5333297529693288,
+    -1.5338958639327385,
+    -1.534470311077259,
+    -1.5350531017156503,
+    -1.5356442431676154,
+    -1.5362437427598472,
+    -1.5368516078260668,
+    -1.5374678457070694,
+    -1.5380924637507638,
+    -1.538725469312218,
+    -1.539366869753708,
+    -1.5400166724447488,
+    -1.5406748847621503,
+    -1.5413415140900533
+  ],
+  "warm_call_summary": {
+    "max_seconds": 0.0018158319871872663,
+    "mean_seconds": 0.0015038193902000784,
+    "median_seconds": 0.001456986996345222,
+    "min_seconds": 0.0013434388674795628
+  }
+}

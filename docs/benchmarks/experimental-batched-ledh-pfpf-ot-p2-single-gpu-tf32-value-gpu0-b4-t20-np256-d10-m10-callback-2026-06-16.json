@@ -1,0 +1,114 @@
+{
+  "compile_and_first_call_seconds": 10.665356416022405,
+  "compiled_unit": "streaming_batched_ledh_pfpf_ot_lgssm_value",
+  "cuda_visible_devices": "0",
+  "device": "/GPU:0",
+  "device_scope": "visible",
+  "ess_by_time_preview": [],
+  "expect_device_kind": "gpu",
+  "filtered_means_preview": [],
+  "filtered_variances_preview": [],
+  "finite_output": true,
+  "gpu_memory_info_after": {
+    "current": 62208,
+    "peak": 79753728
+  },
+  "gpu_memory_info_before": {
+    "current": 61952,
+    "peak": 61952
+  },
+  "history_shapes": {
+    "ess_by_time": [
+      0,
+      4
+    ],
+    "filtered_means": [
+      0,
+      4,
+      10
+    ],
+    "filtered_variances": [
+      0,
+      4,
+      10
+    ]
+  },
+  "host": "ubuntu-MZ72-HB2-00",
+  "jit_compile": true,
+  "log_likelihood_preview": [
+    40.95718002319336,
+    40.9517936706543,
+    40.926631927490234,
+    40.936710357666016
+  ],
+  "logical_gpus": [
+    "LogicalDevice(name='/device:GPU:0', device_type='GPU')"
+  ],
+  "nonclaims": [
+    "single synthetic LGSSM-shaped fixture only",
+    "no production default readiness claim",
+    "no CPU/GPU ranking claim",
+    "no posterior validity claim",
+    "no active transport gradient validation claim",
+    "streaming removes dense transport storage but not all-pairs OT compute"
+  ],
+  "output_devices": [
+    "/job:localhost/replica:0/task:0/device:GPU:0"
+  ],
+  "output_shape": [
+    4
+  ],
+  "particle_chunk_size": 128,
+  "physical_gpus": [
+    "PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')"
+  ],
+  "precision": {
+    "active_dtype": "float32",
+    "default_dtype": "float32",
+    "default_tf32_mode": "enabled",
+    "dtype": "float32",
+    "fp64_reference_requires_explicit_dtype": true,
+    "precision_default_policy": "experimental_ledh_pfpf_ot_gpu_tf32",
+    "scope": "experimental_batched_ledh_pfpf_ot_gpu_performance_lane",
+    "tf32_execution_enabled": true,
+    "tf32_mode": "enabled",
+    "tf_dtype": "float32"
+  },
+  "proposal_mode": "callback",
+  "python_version": "3.13.13",
+  "repeats": 1,
+  "return_history": false,
+  "seed": 20260615,
+  "shape": {
+    "batch_size": 4,
+    "num_particles": 256,
+    "obs_dim": 10,
+    "state_dim": 10,
+    "time_steps": 20
+  },
+  "stores_full_pre_flow_particles": false,
+  "tensorflow_version": "2.20.0",
+  "timestamp_utc": "2026-06-16T10:44:03.184492+00:00",
+  "transport": {
+    "annealed_convergence_threshold": 0.001,
+    "annealed_scaling": 0.9,
+    "col_chunk_size": 256,
+    "dense_transport_matrix_materialized": false,
+    "gradient_mode": "raw",
+    "plan_mode": "streaming",
+    "row_chunk_size": 256,
+    "sinkhorn_epsilon": 0.5,
+    "sinkhorn_iterations": 3
+  },
+  "transport_policy": "active-odd",
+  "warm_call_timing_summary_seconds": {
+    "max": 0.09592609317041934,
+    "mean": 0.09592609317041934,
+    "median": 0.09592609317041934,
+    "min": 0.09592609317041934
+  },
+  "warm_call_timings_seconds": [
+    0.09592609317041934
+  ],
+  "warmups": 0
+}

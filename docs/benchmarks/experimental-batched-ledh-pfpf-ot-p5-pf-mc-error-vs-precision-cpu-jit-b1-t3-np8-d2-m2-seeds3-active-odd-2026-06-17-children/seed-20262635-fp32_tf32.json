@@ -1,0 +1,270 @@
+{
+  "arms": [
+    {
+      "arm_id": "original_dense_tensor",
+      "compile_and_first_call_seconds": 7.599177755881101,
+      "finite": true,
+      "jit_compile": true,
+      "output_devices": [
+        "/job:localhost/replica:0/task:0/device:CPU:0",
+        "/job:localhost/replica:0/task:0/device:CPU:0"
+      ],
+      "score": [
+        [
+          -0.23212411999702454,
+          -1.1399338245391846,
+          -1.7711575031280518
+        ]
+      ],
+      "score_preview": [
+        -0.23212411999702454,
+        -1.1399338245391846,
+        -1.7711575031280518
+      ],
+      "value": [
+        1.1598247289657593
+      ],
+      "value_preview": [
+        1.1598247289657593
+      ],
+      "warm_call_median_seconds": 0.0008222849573940039,
+      "warm_call_timings_seconds": [
+        0.0008222849573940039
+      ]
+    },
+    {
+      "arm_id": "streaming_dense_tensor",
+      "compile_and_first_call_seconds": 6.16071168705821,
+      "finite": true,
+      "jit_compile": true,
+      "output_devices": [
+        "/job:localhost/replica:0/task:0/device:CPU:0",
+        "/job:localhost/replica:0/task:0/device:CPU:0"
+      ],
+      "score": [
+        [
+          -0.23212414979934692,
+          -1.1399339437484741,
+          -1.7711575031280518
+        ]
+      ],
+      "score_preview": [
+        -0.23212414979934692,
+        -1.1399339437484741,
+        -1.7711575031280518
+      ],
+      "value": [
+        1.1598247289657593
+      ],
+      "value_preview": [
+        1.1598247289657593
+      ],
+      "warm_call_median_seconds": 0.002184137934818864,
+      "warm_call_timings_seconds": [
+        0.002184137934818864
+      ]
+    },
+    {
+      "arm_id": "streaming_streaming_tensor",
+      "compile_and_first_call_seconds": 12.903266507899389,
+      "finite": true,
+      "jit_compile": true,
+      "output_devices": [
+        "/job:localhost/replica:0/task:0/device:CPU:0",
+        "/job:localhost/replica:0/task:0/device:CPU:0"
+      ],
+      "score": [
+        [
+          -0.23212413489818573,
+          -1.1399339437484741,
+          -1.7711575031280518
+        ]
+      ],
+      "score_preview": [
+        -0.23212413489818573,
+        -1.1399339437484741,
+        -1.7711575031280518
+      ],
+      "value": [
+        1.1598247289657593
+      ],
+      "value_preview": [
+        1.1598247289657593
+      ],
+      "warm_call_median_seconds": 0.007506447145715356,
+      "warm_call_timings_seconds": [
+        0.007506447145715356
+      ]
+    },
+    {
+      "arm_id": "streaming_streaming_equivalent_callback",
+      "compile_and_first_call_seconds": 12.39044992881827,
+      "finite": true,
+      "jit_compile": true,
+      "output_devices": [
+        "/job:localhost/replica:0/task:0/device:CPU:0",
+        "/job:localhost/replica:0/task:0/device:CPU:0"
+      ],
+      "score": [
+        [
+          -0.23212413489818573,
+          -1.1399339437484741,
+          -1.7711575031280518
+        ]
+      ],
+      "score_preview": [
+        -0.23212413489818573,
+        -1.1399339437484741,
+        -1.7711575031280518
+      ],
+      "value": [
+        1.1598247289657593
+      ],
+      "value_preview": [
+        1.1598247289657593
+      ],
+      "warm_call_median_seconds": 0.008640072075650096,
+      "warm_call_timings_seconds": [
+        0.008640072075650096
+      ]
+    }
+  ],
+  "comparisons": [
+    {
+      "arm_id": "streaming_dense_tensor",
+      "score_drift_vs_reference": {
+        "max_abs": 1.1920928955078125e-07,
+        "max_relative_to_max1_abs_reference": 1.0457562271123178e-07,
+        "rms_abs": 7.094371744536211e-08,
+        "shape": [
+          1,
+          3
+        ]
+      },
+      "score_geometry_vs_reference": {
+        "candidate_l2_norm": 2.1190398575573828,
+        "cosine_similarity": 0.9999999999999988,
+        "norm_ratio_candidate_to_reference": 1.0000000318035769,
+        "reference_l2_norm": 2.119039790164338
+      },
+      "value_drift_vs_reference": {
+        "max_abs": 0.0,
+        "max_relative_to_max1_abs_reference": 0.0,
+        "rms_abs": 0.0,
+        "shape": [
+          1
+        ]
+      }
+    },
+    {
+      "arm_id": "streaming_streaming_tensor",
+      "score_drift_vs_reference": {
+        "max_abs": 1.1920928955078125e-07,
+        "max_relative_to_max1_abs_reference": 1.0457562271123178e-07,
+        "rms_abs": 6.936113061392775e-08,
+        "shape": [
+          1,
+          3
+        ]
+      },
+      "score_geometry_vs_reference": {
+        "candidate_l2_norm": 2.119039855925078,
+        "cosine_similarity": 0.999999999999999,
+        "norm_ratio_candidate_to_reference": 1.0000000310332728,
+        "reference_l2_norm": 2.119039790164338
+      },
+      "value_drift_vs_reference": {
+        "max_abs": 0.0,
+        "max_relative_to_max1_abs_reference": 0.0,
+        "rms_abs": 0.0,
+        "shape": [
+          1
+        ]
+      }
+    },
+    {
+      "arm_id": "streaming_streaming_equivalent_callback",
+      "score_drift_vs_reference": {
+        "max_abs": 1.1920928955078125e-07,
+        "max_relative_to_max1_abs_reference": 1.0457562271123178e-07,
+        "rms_abs": 6.936113061392775e-08,
+        "shape": [
+          1,
+          3
+        ]
+      },
+      "score_geometry_vs_reference": {
+        "candidate_l2_norm": 2.119039855925078,
+        "cosine_similarity": 0.999999999999999,
+        "norm_ratio_candidate_to_reference": 1.0000000310332728,
+        "reference_l2_norm": 2.119039790164338
+      },
+      "value_drift_vs_reference": {
+        "max_abs": 0.0,
+        "max_relative_to_max1_abs_reference": 0.0,
+        "rms_abs": 0.0,
+        "shape": [
+          1
+        ]
+      }
+    }
+  ],
+  "cuda_visible_devices": "-1",
+  "device": "/CPU:0",
+  "device_scope": "cpu",
+  "expect_device_kind": "cpu",
+  "finite_all": true,
+  "host": "ubuntu-MZ72-HB2-00",
+  "jit_compile": true,
+  "logical_gpus": [],
+  "nonclaims": [
+    "focused deterministic gradient-structure diagnostic only",
+    "dense arm is a small-reference oracle, not a scalable implementation",
+    "no HMC convergence or energy-conservation claim",
+    "no posterior validity claim",
+    "single fixture and single seed only"
+  ],
+  "overall_passed": true,
+  "physical_gpus": [],
+  "precision": {
+    "active_dtype": "float32",
+    "default_dtype": "float32",
+    "default_tf32_mode": "enabled",
+    "dtype": "float32",
+    "fp64_reference_requires_explicit_dtype": true,
+    "precision_default_policy": "experimental_ledh_pfpf_ot_gpu_tf32",
+    "scope": "experimental_batched_ledh_pfpf_ot_gpu_performance_lane",
+    "tf32_execution_enabled": true,
+    "tf32_mode": "enabled",
+    "tf_dtype": "float32"
+  },
+  "python_version": "3.13.13",
+  "reference_arm": "original_dense_tensor",
+  "shape": {
+    "batch_size": 1,
+    "num_particles": 8,
+    "obs_dim": 2,
+    "parameter_dim": 3,
+    "state_dim": 2,
+    "time_steps": 3
+  },
+  "structure_passed": true,
+  "tensorflow_version": "2.20.0",
+  "timestamp_utc": "2026-06-17T08:09:21.589230+00:00",
+  "tolerances": {
+    "structure_score_atol": 1e-05,
+    "structure_score_rtol": 1e-05,
+    "structure_value_atol": 1e-06,
+    "structure_value_rtol": 1e-06
+  },
+  "transport": {
+    "annealed_convergence_threshold": 0.001,
+    "annealed_scaling": 0.9,
+    "col_chunk_size": 16,
+    "particle_chunk_size": 16,
+    "policy": "active-odd",
+    "row_chunk_size": 16,
+    "sinkhorn_epsilon": 0.5,
+    "sinkhorn_iterations": 3
+  }
+}

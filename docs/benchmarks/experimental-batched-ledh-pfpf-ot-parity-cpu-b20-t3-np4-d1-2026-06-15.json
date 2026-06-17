@@ -1,0 +1,100 @@
+{
+  "batched_warm_call_summary": {
+    "max_seconds": 0.00046539283357560635,
+    "mean_seconds": 0.000444546186675628,
+    "median_seconds": 0.000441012904047966,
+    "min_seconds": 0.00042723282240331173
+  },
+  "compiler": {
+    "compiled_unit": "batched_value_and_scalar_value_loop",
+    "jit_compile": true,
+    "tf_function": true,
+    "warm_calls_exclude_compile": true
+  },
+  "cuda_visible_devices": "-1",
+  "device_arg": "/CPU:0",
+  "device_scope": "cpu",
+  "expect_device_kind": "cpu",
+  "finite_outputs": true,
+  "host": "ubuntu-MZ72-HB2-00",
+  "logical_gpus": [],
+  "mode": "parity",
+  "notes": [
+    "Single-shape diagnostic only; not a production benchmark.",
+    "Experimental opt-in DPF batching path only.",
+    "Time remains sequential; the batch axis parallelizes independent parameter rows.",
+    "Benchmarks do not establish classical PF score correctness or posterior validity."
+  ],
+  "parity_passed": true,
+  "physical_gpus": [],
+  "python": "3.13.13",
+  "scalar_loop_warm_call_summary": {
+    "max_seconds": 0.019602581160143018,
+    "mean_seconds": 0.019205097419520218,
+    "median_seconds": 0.01905875001102686,
+    "min_seconds": 0.01895396108739078
+  },
+  "scalar_value_vector": [
+    -1.5197481073719565,
+    -1.5202568745066998,
+    -1.5207739239718838,
+    -1.5212992631393691,
+    -1.5218328993903116,
+    -1.522374840115212,
+    -1.5229250927139701,
+    -1.5234836645959355,
+    -1.5240505631799661,
+    -1.5246257958944744,
+    -1.5252093701774811,
+    -1.525801293476674,
+    -1.5264015732494527,
+    -1.5270102169629884,
+    -1.5276272320942688,
+    -1.5282526261301541,
+    -1.5288864065674361,
+    -1.5295285809128774,
+    -1.5301791566832736,
+    -1.5308381414055034
+  ],
+  "shape": {
+    "batch_size": 20,
+    "num_particles": 4,
+    "obs_dim": 1,
+    "parameter_dim": 3,
+    "state_dim": 1,
+    "time_steps": 3
+  },
+  "tensorflow": "2.20.0",
+  "timestamp_utc": "2026-06-14T20:17:15.819660+00:00",
+  "transport": {
+    "gradient_mode": "raw",
+    "policy": "active",
+    "sinkhorn_iterations": 10
+  },
+  "value_atol": 1e-10,
+  "value_max_abs_delta": 2.220446049250313e-16,
+  "value_max_rel_delta": 1.4535260975979322e-16,
+  "value_rtol": 1e-10,
+  "value_vector": [
+    -1.5197481073719565,
+    -1.5202568745066998,
+    -1.5207739239718838,
+    -1.5212992631393691,
+    -1.5218328993903116,
+    -1.522374840115212,
+    -1.5229250927139701,
+    -1.5234836645959355,
+    -1.5240505631799661,
+    -1.5246257958944744,
+    -1.5252093701774811,
+    -1.525801293476674,
+    -1.5264015732494527,
+    -1.5270102169629884,
+    -1.5276272320942685,
+    -1.5282526261301541,
+    -1.5288864065674364,
+    -1.5295285809128774,
+    -1.5301791566832736,
+    -1.5308381414055034
+  ]
+}

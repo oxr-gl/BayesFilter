@@ -1,0 +1,268 @@
+{
+  "arms": [
+    {
+      "arm_id": "original_dense_tensor",
+      "compile_and_first_call_seconds": 9.863899964140728,
+      "finite": true,
+      "jit_compile": false,
+      "output_devices": [
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0"
+      ],
+      "score": [
+        [
+          -0.5255882143974304,
+          -3.855031728744507,
+          -5.941958427429199
+        ]
+      ],
+      "score_preview": [
+        -0.5255882143974304,
+        -3.855031728744507,
+        -5.941958427429199
+      ],
+      "value": [
+        3.9586572647094727
+      ],
+      "value_preview": [
+        3.9586572647094727
+      ],
+      "warm_call_median_seconds": 0.12384212389588356,
+      "warm_call_timings_seconds": [
+        0.12384212389588356
+      ]
+    },
+    {
+      "arm_id": "streaming_dense_tensor",
+      "compile_and_first_call_seconds": 4.418739184970036,
+      "finite": true,
+      "jit_compile": false,
+      "output_devices": [
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0"
+      ],
+      "score": [
+        [
+          -0.5255882740020752,
+          -3.8549253940582275,
+          -5.942390441894531
+        ]
+      ],
+      "score_preview": [
+        -0.5255882740020752,
+        -3.8549253940582275,
+        -5.942390441894531
+      ],
+      "value": [
+        3.9586570262908936
+      ],
+      "value_preview": [
+        3.9586570262908936
+      ],
+      "warm_call_median_seconds": 0.2190146220382303,
+      "warm_call_timings_seconds": [
+        0.2190146220382303
+      ]
+    },
+    {
+      "arm_id": "streaming_streaming_tensor",
+      "compile_and_first_call_seconds": 9.706732569029555,
+      "finite": true,
+      "jit_compile": false,
+      "output_devices": [
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0"
+      ],
+      "score": [
+        [
+          -0.5256066918373108,
+          -3.8549764156341553,
+          -5.942390441894531
+        ]
+      ],
+      "score_preview": [
+        -0.5256066918373108,
+        -3.8549764156341553,
+        -5.942390441894531
+      ],
+      "value": [
+        3.9586567878723145
+      ],
+      "value_preview": [
+        3.9586567878723145
+      ],
+      "warm_call_median_seconds": 0.31475669611245394,
+      "warm_call_timings_seconds": [
+        0.31475669611245394
+      ]
+    },
+    {
+      "arm_id": "streaming_streaming_equivalent_callback",
+      "compile_and_first_call_seconds": 8.925822557182983,
+      "finite": true,
+      "jit_compile": false,
+      "output_devices": [
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0"
+      ],
+      "score": [
+        [
+          -0.5256066918373108,
+          -3.8549764156341553,
+          -5.942390441894531
+        ]
+      ],
+      "score_preview": [
+        -0.5256066918373108,
+        -3.8549764156341553,
+        -5.942390441894531
+      ],
+      "value": [
+        3.9586567878723145
+      ],
+      "value_preview": [
+        3.9586567878723145
+      ],
+      "warm_call_median_seconds": 0.3354514678940177,
+      "warm_call_timings_seconds": [
+        0.3354514678940177
+      ]
+    }
+  ],
+  "comparisons": [
+    {
+      "arm_id": "streaming_dense_tensor",
+      "score_drift_vs_reference": {
+        "max_abs": 0.00043201446533203125,
+        "max_relative_to_max1_abs_reference": 7.270573677152824e-05,
+        "rms_abs": 0.00025686803830952514,
+        "shape": [
+          1,
+          3
+        ]
+      },
+      "score_geometry_vs_reference": {
+        "candidate_l2_norm": 7.102724617457933,
+        "cosine_similarity": 0.9999999989524003,
+        "norm_ratio_candidate_to_reference": 1.0000427633855276,
+        "reference_l2_norm": 7.102420893895069
+      },
+      "value_drift_vs_reference": {
+        "max_abs": 2.384185791015625e-07,
+        "max_relative_to_max1_abs_reference": 6.022713338358686e-08,
+        "rms_abs": 2.384185791015625e-07,
+        "shape": [
+          1
+        ]
+      }
+    },
+    {
+      "arm_id": "streaming_streaming_tensor",
+      "score_drift_vs_reference": {
+        "max_abs": 0.00043201446533203125,
+        "max_relative_to_max1_abs_reference": 7.270573677152824e-05,
+        "rms_abs": 0.000251685951281498,
+        "shape": [
+          1,
+          3
+        ]
+      },
+      "score_geometry_vs_reference": {
+        "candidate_l2_norm": 7.102753671888052,
+        "cosine_similarity": 0.9999999992140598,
+        "norm_ratio_candidate_to_reference": 1.000046854163947,
+        "reference_l2_norm": 7.102420893895069
+      },
+      "value_drift_vs_reference": {
+        "max_abs": 4.76837158203125e-07,
+        "max_relative_to_max1_abs_reference": 1.2045426676717371e-07,
+        "rms_abs": 4.76837158203125e-07,
+        "shape": [
+          1
+        ]
+      }
+    },
+    {
+      "arm_id": "streaming_streaming_equivalent_callback",
+      "score_drift_vs_reference": {
+        "max_abs": 0.00043201446533203125,
+        "max_relative_to_max1_abs_reference": 7.270573677152824e-05,
+        "rms_abs": 0.000251685951281498,
+        "shape": [
+          1,
+          3
+        ]
+      },
+      "score_geometry_vs_reference": {
+        "candidate_l2_norm": 7.102753671888052,
+        "cosine_similarity": 0.9999999992140598,
+        "norm_ratio_candidate_to_reference": 1.000046854163947,
+        "reference_l2_norm": 7.102420893895069
+      },
+      "value_drift_vs_reference": {
+        "max_abs": 4.76837158203125e-07,
+        "max_relative_to_max1_abs_reference": 1.2045426676717371e-07,
+        "rms_abs": 4.76837158203125e-07,
+        "shape": [
+          1
+        ]
+      }
+    }
+  ],
+  "cuda_visible_devices": "0",
+  "device": "/GPU:0",
+  "device_scope": "visible",
+  "expect_device_kind": "gpu",
+  "finite_all": true,
+  "host": "ubuntu-MZ72-HB2-00",
+  "jit_compile": false,
+  "logical_gpus": [
+    "LogicalDevice(name='/device:GPU:0', device_type='GPU')"
+  ],
+  "nonclaims": [
+    "focused deterministic gradient-structure diagnostic only",
+    "dense arm is a small-reference oracle, not a scalable implementation",
+    "no HMC convergence or energy-conservation claim",
+    "no posterior validity claim",
+    "single fixture and single seed only"
+  ],
+  "overall_passed": false,
+  "physical_gpus": [
+    "PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')"
+  ],
+  "precision": {
+    "dtype": "float32",
+    "tf32_execution_enabled": true,
+    "tf32_mode": "enabled",
+    "tf_dtype": "float32"
+  },
+  "python_version": "3.13.13",
+  "reference_arm": "original_dense_tensor",
+  "shape": {
+    "batch_size": 1,
+    "num_particles": 32,
+    "obs_dim": 4,
+    "parameter_dim": 3,
+    "state_dim": 4,
+    "time_steps": 5
+  },
+  "structure_passed": false,
+  "tensorflow_version": "2.20.0",
+  "timestamp_utc": "2026-06-15T16:21:50.186301+00:00",
+  "tolerances": {
+    "structure_score_atol": 1e-05,
+    "structure_score_rtol": 1e-05,
+    "structure_value_atol": 1e-06,
+    "structure_value_rtol": 1e-06
+  },
+  "transport": {
+    "annealed_convergence_threshold": 0.001,
+    "annealed_scaling": 0.9,
+    "col_chunk_size": 16,
+    "particle_chunk_size": 16,
+    "policy": "active-odd",
+    "row_chunk_size": 16,
+    "sinkhorn_epsilon": 0.5,
+    "sinkhorn_iterations": 3
+  }
+}

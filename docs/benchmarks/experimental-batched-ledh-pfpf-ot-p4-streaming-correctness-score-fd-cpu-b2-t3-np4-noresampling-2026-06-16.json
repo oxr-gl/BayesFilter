@@ -1,0 +1,130 @@
+{
+  "checks": [
+    {
+      "details": {},
+      "name": "finite_outputs",
+      "passed": true,
+      "role": "promotion_veto"
+    },
+    {
+      "details": {
+        "history_mean_max_abs_delta": 0.0,
+        "value_atol": 1e-10,
+        "value_max_abs_delta": 0.0,
+        "value_rtol": 1e-10
+      },
+      "name": "streaming_vs_baseline_parity",
+      "passed": true,
+      "role": "promotion_veto"
+    },
+    {
+      "details": {
+        "ess_shape": [
+          0,
+          2
+        ],
+        "filtered_means_shape": [
+          0,
+          2,
+          1
+        ]
+      },
+      "name": "likelihood_only_omits_history",
+      "passed": true,
+      "role": "promotion_veto"
+    },
+    {
+      "details": {
+        "devices": [
+          "/job:localhost/replica:0/task:0/device:CPU:0"
+        ],
+        "expected": "cpu",
+        "passed": true
+      },
+      "name": "device_placement",
+      "passed": true,
+      "role": "promotion_veto"
+    },
+    {
+      "details": {
+        "compiled_vs_eager_max_abs_delta": 6.661338147750939e-16
+      },
+      "name": "jit_compile_smoke",
+      "passed": true,
+      "role": "promotion_veto"
+    },
+    {
+      "details": {
+        "abs_max": 1.8497786635762736e-11,
+        "atol": 0.0002,
+        "passed": true,
+        "policy": "no-resampling",
+        "rel_max": 1.8497786635762736e-11,
+        "rtol": 0.0002
+      },
+      "name": "no_resampling_score_finite_difference",
+      "passed": true,
+      "role": "promotion_veto"
+    },
+    {
+      "details": {
+        "calls_numpy": false,
+        "default_return_history_false": true,
+        "default_transport_plan_mode_streaming": true,
+        "module": "/home/ubuntu/python/BayesFilter/experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_streaming_tf.py",
+        "stores_python_history_lists": false,
+        "uses_python_time_loop": false,
+        "uses_tf_while_loop": true
+      },
+      "name": "source_uses_tf_while_loop_not_python_time_loop",
+      "passed": true,
+      "role": "promotion_veto"
+    }
+  ],
+  "cuda_visible_devices": "-1",
+  "device": "/CPU:0",
+  "device_scope": "cpu",
+  "expect_device_kind": "cpu",
+  "git_commit": "70ab32644cedeb95d4b56e096448f3bb2c908763",
+  "host": "ubuntu-MZ72-HB2-00",
+  "logical_gpus": [],
+  "nonclaims": [
+    "experimental opt-in streaming DPF correctness gate only",
+    "no production default readiness claim",
+    "no GPU performance claim",
+    "no posterior validity claim",
+    "no active-transport finite-difference score equivalence claim",
+    "no HMC/NeuTra readiness claim"
+  ],
+  "overall_passed": true,
+  "physical_gpus": [],
+  "python": "3.13.13",
+  "shape": {
+    "batch_size": 2,
+    "num_particles": 4,
+    "obs_dim": 1,
+    "parameter_dim": 3,
+    "state_dim": 1,
+    "time_steps": 3
+  },
+  "source_diagnostics": {
+    "calls_numpy": false,
+    "default_return_history_false": true,
+    "default_transport_plan_mode_streaming": true,
+    "module": "/home/ubuntu/python/BayesFilter/experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_streaming_tf.py",
+    "stores_python_history_lists": false,
+    "uses_python_time_loop": false,
+    "uses_tf_while_loop": true
+  },
+  "tensorflow": "2.20.0",
+  "timestamp_utc": "2026-06-16T15:29:49.979622+00:00",
+  "transport": {
+    "col_chunk_size": 2,
+    "gradient_mode": "raw",
+    "particle_chunk_size": 2,
+    "plan_mode": "streaming",
+    "policy": "no-resampling",
+    "row_chunk_size": 2,
+    "sinkhorn_iterations": 3
+  }
+}

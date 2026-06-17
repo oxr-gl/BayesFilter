@@ -132,6 +132,35 @@ def test_reviewed_gradient_tape_exception_must_be_scoped():
         nonclaims=("target-specific exception only",),
     )
     assert capability.is_accepted_xla_hmc_authority is True
+    assert capability.is_accepted_full_chain_xla_diagnostic_authority is False
+
+
+def test_full_chain_xla_diagnostic_authority_requires_scoped_target_authority():
+    with pytest.raises(ValueError, match="accepted target-XLA authority"):
+        ValueScoreCapability(
+            "gradient_tape_fallback",
+            False,
+            full_chain_xla_diagnostic_ready=True,
+        )
+
+    with pytest.raises(ValueError, match="target_scope"):
+        ValueScoreCapability(
+            "graph_native",
+            True,
+            evidence_path="docs/plans/full-chain-xla.md",
+            full_chain_xla_diagnostic_ready=True,
+        )
+
+    capability = ValueScoreCapability(
+        "graph_native",
+        True,
+        evidence_path="docs/plans/full-chain-xla.md",
+        target_scope="toy-target",
+        nonclaims=("tiny full-chain diagnostic only",),
+        full_chain_xla_diagnostic_ready=True,
+    )
+    assert capability.is_accepted_xla_hmc_authority is True
+    assert capability.is_accepted_full_chain_xla_diagnostic_authority is True
 
 
 def test_reviewed_gradient_tape_exception_is_bound_to_target_scope():
