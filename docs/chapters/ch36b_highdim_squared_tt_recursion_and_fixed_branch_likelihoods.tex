@@ -1,0 +1,621 @@
+\chapter{Squared-TT Recursion and Fixed-Branch Likelihood Construction}
+\label{ch:bf-highdim-squared-tt-fixed-branch-likelihoods}
+
+\section{Purpose And Scope}
+\label{sec:bf-hd-squared-tt-purpose}
+
+The previous chapter fixed the retained-object front half of the non-Gaussian
+lane: the exact adjacent-state target, the TT approximation toolkit, the
+coordinate systems, the KR/preconditioning map logic, and the meaning of the
+retained marginal \(a_t\) and normalized carried filter \(\widehat p_t\).
+Those objects answer what the method is trying to represent.  The present chapter
+answers the operational question that follows: once the branch has committed to a
+finite-dimensional TT/KR construction, what exact approximate likelihood object
+is produced, what must be saved for the next step, and which numerical fields are
+part of the scalar identity rather than merely transient implementation detail?
+
+This chapter is therefore the operational middle of the p50 lane.  It is not yet
+the full derivative chapter.  It builds the squared-TT recursion, the retained
+marginal and normalizer, the fixed least-squares branch specialization, and the
+stored-field contract that later allows the shared same-scalar gradient chapter
+to differentiate one declared scalar rather than an adaptively changing routine.
+
+\section{Squared-TT Filtering Object And Recursive Closure}
+\label{sec:bf-hd-squared-tt-closure}
+
+The retained-object lane must answer two questions at the same time:
+\begin{equation}
+  \text{How do we represent } q_t?
+  \qquad
+  \text{How do we integrate the represented object?}
+  \label{eq:bf-hd-squared-tt-two-questions}
+\end{equation}
+The exact adjacent-state target is a many-variable function rather than a
+finite-dimensional Gaussian summary.  In the TT/KR lane, the target is first
+moved into reference coordinates and then approximated by a nonnegative
+low-rank object, typically through a square or squared-density representation.
+
+Write the represented adjacent-state object in retained coordinates as
+\begin{equation}
+  \widehat q_t(z_t,z_{t-1}),
+  \label{eq:bf-hd-squared-tt-adjacent-object}
+\end{equation}
+and define the retained numerator and normalizer by
+\begin{equation}
+  a_t(z_t)=\int \widehat q_t(z_t,z_{t-1})\dd z_{t-1},
+  \qquad
+  \widehat Z_t=\int a_t(z_t)\dd z_t.
+  \label{eq:bf-hd-squared-tt-retained-numerator}
+\end{equation}
+The carried filter is then
+\begin{equation}
+  \widehat p_t(z_t)=\frac{a_t(z_t)}{\widehat Z_t}.
+  \label{eq:bf-hd-squared-tt-carried-filter}
+\end{equation}
+This is the recursive closure the lane must preserve: a represented adjacent
+object, a retained numerator, a normalizer, and a normalized carried filter that
+can be queried at the next time step.  Saving only samples, only a low-rank core
+without normalization metadata, or only \(\widehat Z_t\) is not enough to close
+the same branch recursively.
+
+\section{What Must Be Saved For The Next Time Step}
+\label{sec:bf-hd-squared-tt-stored-fields}
+
+The next subtlety is what must survive from one time step to the next.  If too
+little is stored, the next target cannot be reconstructed on the same branch.  If
+the wrong object is stored, the implementation may look internally coherent while
+no longer evaluating the same scalar as the fixed branch.
+
+For a fixed-branch likelihood implementation, the forward object that must be
+available at time \(t+1\) is not merely a cloud or a normalizer.  It is the
+retained filter evaluator and the ingredients required to differentiate that
+retained filter on the same branch.  A useful stored-field contract is
+\begin{equation}
+  \mathcal F_t=
+  \{C_{t,k},\ M_{t,>k},\ M_{t,<k},\ \widehat Z_t,\ a_t,\ \widehat p_t,
+    \Psi_t,\ \lambda_t,\ \tau_t\}_{k=1}^{D},
+  \label{eq:bf-hd-squared-tt-stored-forward}
+\end{equation}
+with the derivative chapter later augmenting it by the corresponding dotted
+objects.
+
+For the derivative-aware fixed branch, the stronger stored-field contract is
+\begin{equation}
+  \dot{\mathcal F}_t=
+  \{\dot C_{t,k}^{(i)},\ \dot M_{t,>k}^{(i)},\ \dot M_{t,<k}^{(i)},\
+    \dot{\widehat Z}_t^{(i)},\ \dot a_t^{(i)},\ \dot{\widehat p}_t^{(i)}\}_{k=1}^{D},
+  \label{eq:bf-hd-squared-tt-stored-derivative}
+\end{equation}
+so that the next transformed target may be evaluated together with its product-rule
+sensitivity on the same branch.  The carried-filter derivative is the quotient
+object
+\begin{equation}
+  \partial_{\beta_i}\widehat p_t(x_t;\beta)
+  =
+  \frac{\partial_{\beta_i}a_t(x_t;\beta)}{\widehat Z_t(\beta)}
+  -
+  \frac{a_t(x_t;\beta)\partial_{\beta_i}\widehat Z_t(\beta)}{\widehat Z_t(\beta)^2},
+  \label{eq:bf-hd-squared-tt-carried-derivative}
+\end{equation}
+which is precisely the object needed by the next-step fixed-branch derivative
+pass.
+
+The point is conceptual before it is algorithmic: the next-step target depends
+on evaluating the previous carried filter at new fitting points.  Therefore the
+retained-object lane must store the represented numerator/filter object in a form
+that the next-step evaluator can query without rebuilding an adaptive branch.
+This is what makes the fixed-branch recursion meaningfully recursive rather than a
+sequence of disconnected local fits.
+
+\section{Fixed-Branch Likelihood Construction}
+\label{sec:bf-hd-squared-tt-fixed-branch-likelihood}
+
+The adaptive Zhao--Cui algorithm contains discrete choices---ranks, fitting
+points, sweep decisions, domain maps, and stabilization choices---that should not
+be treated as globally differentiable with respect to the scientific parameter.
+The fixed-branch specialization freezes those discrete choices first, then asks
+what scalar is defined when the corresponding numerical equations are recomputed
+on that same frozen structure.
+
+The fixed branch is therefore more than a density formula.  At time \(t\), the
+finite-dimensional branch data may be summarized as
+\begin{equation}
+  \mathcal B_t=
+  \{\Omega_{t,k},\Psi_{t,k},\psi_{t,k,\ell},C_{t,k},R_{t,k},B_{t,k},
+    \lambda_{t,k},\tau_t,c_t,\text{mass contractions},\text{map data}\}.
+  \label{eq:bf-hd-squared-tt-branch-data}
+\end{equation}
+Changing domains, bases, rank tuples, TT cores, reference densities, defensive
+mass conventions, or log-scale shifts changes the approximate likelihood.  Those
+objects are part of the scalar identity, not optional implementation metadata.
+
+\subsection{What A Core Object Looks Like}
+\label{sec:bf-hd-squared-tt-core-object}
+
+For coordinate \(k\), store
+\begin{equation}
+  C_k\in\R^{R_{k-1}\times p_k\times R_k}.
+  \label{eq:bf-hd-squared-tt-core-shape}
+\end{equation}
+Given a scalar coordinate value \(r_k\), first compute the basis vector
+\begin{equation}
+  b_k(r_k)=
+  \bigl(\psi_{k,0}(r_k),\ldots,\psi_{k,p_k-1}(r_k)\bigr)^\top.
+  \label{eq:bf-hd-squared-tt-basis-vector}
+\end{equation}
+Then form the matrix slice
+\begin{equation}
+  H_k(r_k)[a,b]
+  =
+  \sum_{\ell=0}^{p_k-1}C_k[a,\ell,b]b_k(r_k)[\ell].
+  \label{eq:bf-hd-squared-tt-core-eval}
+\end{equation}
+Evaluation of the TT is the loop
+\begin{equation}
+  v_0=1,
+  \qquad
+  v_k=v_{k-1}H_k(r_k),\quad k=1,\ldots,D,
+  \qquad
+  \widehat h(r)=v_D.
+  \label{eq:bf-hd-squared-tt-tt-eval}
+\end{equation}
+The square-density object additionally stores mass contractions
+\begin{equation}
+  M_{>k}
+  =
+  \int H_{k+1}(r_{k+1})\cdots H_D(r_D)
+  H_D(r_D)^\top\cdots H_{k+1}(r_{k+1})^\top
+  \dd r_{k+1:D},
+  \label{eq:bf-hd-squared-tt-mass-contraction}
+\end{equation}
+with analogous left-side contractions for reverse-order marginals.  These are
+not decorative arrays; they are the finite-dimensional objects through which
+marginals, normalizers, and later derivatives are actually computed.
+
+The resulting fixed-branch scalar has the form
+\begin{equation}
+  \widehat\ell_T^{\rm TT/KR}(\beta;B)
+  =\sum_{t=1}^T \log \widehat Z_t(\beta;B_t),
+  \label{eq:bf-hd-squared-tt-scalar}
+\end{equation}
+where the adaptive selection procedure is no longer being differentiated.  What
+is being differentiated later is the scalar induced by recomputing the fitted
+numerical objects on this saved branch.
+
+\section{Consolidated Fixed Least-Squares Formulation}
+\label{sec:bf-hd-squared-tt-fixed-ls}
+
+The implementable fixed-branch route in BayesFilter should be stated narrowly.
+It is not adaptive TT-cross.  It is a fixed least-squares specialization with
+fixed points, fixed ranks, fixed sweep order, and deterministic stabilization.
+In symbols,
+\begin{equation}
+  \text{fixed-branch TT likelihood route}
+  =
+  \text{fixed points}
+  +
+  \text{fixed ranks}
+  +
+  \text{fixed sweep order}
+  +
+  \text{deterministic least squares / stabilization}.
+  \label{eq:bf-hd-squared-tt-fixed-ls-summary}
+\end{equation}
+This narrower statement matters because it isolates the branch whose value and
+later derivative can be audited.  If the implementation silently switches pivot
+sets, changes rank caps, or changes stabilization rules under perturbation, then
+it has left the fixed-branch scalar described here.
+
+A representative one-step input/output contract is:
+\begin{align}
+  \mathcal I_t &=
+  \{y_t,\beta,\widehat p_{t-1},f_\beta,g_\beta,\Psi_t,Z_{\rm fit}^{(t)},W^{(t)},
+    \text{basis},\text{ranks},\text{sweeps},\rho_t,c_t,\tau_t\},
+  \label{eq:bf-hd-squared-tt-inputs}\\
+  \mathcal O_t &=
+  \{C_{t,k},M_{t,>k},M_{t,<k},\widehat Z_t,a_t,\widehat p_t\}_{k=1}^D.
+  \label{eq:bf-hd-squared-tt-outputs}
+\end{align}
+The important point is not the exact symbol list but the discipline: the branch
+must state what is input, what is output, and which outputs are required to
+close the next-step recursion on the same branch.
+
+A concrete shape contract helps keep this branch auditable.  One useful table is
+\begin{equation}
+\begin{array}{c|c}
+\text{object} & \text{shape}\\
+\hline
+C_k & R_{k-1}\times p_k\times R_k\\
+L_{j,k} & 1\times R_{k-1}\\
+R_{j,k} & R_k\times 1\\
+A_k & n_{\rm fit}\times (R_{k-1}p_kR_k)\\
+g_k=\operatorname{vec}(C_k),\ d_k & R_{k-1}p_kR_k\\
+N_k & (R_{k-1}p_kR_k)\times (R_{k-1}p_kR_k)
+\end{array}
+  \label{eq:bf-hd-squared-tt-shape-table}
+\end{equation}
+with vectorization convention
+\begin{equation}
+  \iota_k(a,\ell,b)=
+  (a-1)p_kR_k+\ell R_k+b,
+  \qquad
+  g_k[\iota_k(a,\ell,b)]=C_k[a,\ell,b].
+  \label{eq:bf-hd-squared-tt-flattening}
+\end{equation}
+This is the level at which the later derivative chapter can say, concretely, what
+it means to recompute the same least-squares solve rather than copying a stale
+core from the base parameter.
+
+\subsection{One Concrete Branch, Fully Instantiated}
+\label{sec:bf-hd-squared-tt-concrete-branch}
+
+A branch record is easier to audit when one concrete instantiation is stated.
+For a declared run, that record should pin down:
+\begin{enumerate}[leftmargin=0.28in]
+  \item coordinate order and domain policy,
+  \item basis family and basis degree in each coordinate,
+  \item deterministic fitting points and weights,
+  \item rank vector and deterministic rank ladder before branch freezing,
+  \item sweep order and number of sweeps,
+  \item defensive reference density, defensive mass, and any frozen shift
+  convention,
+  \item the boxed convention that the fit is performed in source scale while the
+  reported scalar returns to the unshifted evidence scale.
+\end{enumerate}
+This list is not busywork.  If one of these items changes under perturbation,
+then the implementation has left the fixed-branch scalar even if all later
+notation still looks similar.
+
+A useful first mathematical instantiation is intentionally narrow.  For a scalar
+state, use the two-block coordinate order
+\begin{equation}
+  r_t=(x_t,x_{t-1})\in\R^2.
+  \label{eq:bf-hd-squared-tt-concrete-order}
+\end{equation}
+For vector states, concatenate coordinates as
+\begin{equation}
+  r_t=(x_{t,1},\ldots,x_{t,m_x},x_{t-1,1},\ldots,x_{t-1,m_x}).
+  \label{eq:bf-hd-squared-tt-concrete-vector-order}
+\end{equation}
+Choose a fixed interval for each coordinate,
+\begin{equation}
+  r_{t,k}\in[\ell_{t,k},u_{t,k}],
+  \qquad
+  r_{t,k}=a_{t,k}+h_{t,k}z_k,
+  \qquad
+  a_{t,k}=\frac{u_{t,k}+\ell_{t,k}}2,
+  \qquad
+  h_{t,k}=\frac{u_{t,k}-\ell_{t,k}}2,
+  \label{eq:bf-hd-squared-tt-concrete-domain}
+\end{equation}
+so the Jacobian is constant,
+\begin{equation}
+  J_t=\prod_{k=1}^Dh_{t,k}.
+  \label{eq:bf-hd-squared-tt-concrete-jacobian}
+\end{equation}
+The branch stores \(\ell_{t,k},u_{t,k},a_{t,k},h_{t,k}\), and these remain fixed
+through same-branch finite differences.
+
+A deterministic domain-selection policy should be declared before branch
+freezing.  Let a pilot location and scale be
+\begin{equation}
+  \mu_{t,k}^{\rm pilot},
+  \qquad
+  s_{t,k}^{\rm pilot}>0,
+  \label{eq:bf-hd-squared-tt-pilot-domain}
+\end{equation}
+and set
+\begin{equation}
+  [\ell_{t,k},u_{t,k}]
+  =
+  [\mu_{t,k}^{\rm pilot}-\gamma s_{t,k}^{\rm pilot},
+   \mu_{t,k}^{\rm pilot}+\gamma s_{t,k}^{\rm pilot}],
+  \label{eq:bf-hd-squared-tt-domain-policy}
+\end{equation}
+with fixed expansion factor \(\gamma\).  The out-of-domain diagnostic at fitting
+or proposal points is
+\begin{equation}
+  \delta_{\rm out}=
+  \frac1N\sum_{j=1}^N \mathbf{1}\{r_{t,k}^{(j)}\notin[\ell_{t,k},u_{t,k}]\ \text{for some }k\},
+  \label{eq:bf-hd-squared-tt-domain-diagnostic}
+\end{equation}
+and the branch is accepted only if
+\begin{equation}
+  \delta_{\rm out}\le\delta_{\max}.
+  \label{eq:bf-hd-squared-tt-domain-accept}
+\end{equation}
+If this fails, the branch must be rebuilt before differentiation rather than
+expanded during a same-branch derivative check.
+
+Use one declared basis family and fixed point design.  A useful first choice is
+normalized Legendre basis of common degree \(p\) in every coordinate together
+with deterministic Halton-type fitting points and equal weights.  The rank vector
+is then selected by a small deterministic ladder before branch freezing, for
+example
+\begin{equation}
+  \mathcal R_{\rm ladder}=
+  \{(1,\ldots,1),(2,\ldots,2),(4,\ldots,4),(6,\ldots,6),(8,\ldots,8)\},
+  \label{eq:bf-hd-squared-tt-rank-ladder}
+\end{equation}
+with the first candidate passing the declared residual, conditioning, and
+defensive-mass tests becoming the frozen branch rank.  If no candidate passes,
+the correct outcome is branch failure, not an unrecorded adaptive rank change.
+
+The defensive reference and shift convention should also be fixed explicitly.  A
+minimal deterministic choice is uniform reference density on \([-1,1]^D\), a
+source-scale floor \(\epsilon_{\rm floor}>0\), defensive mass
+\(\tau_t=2^D\epsilon_{\rm floor}\), and shift \(c_t\) computed once at the base
+parameter and then reused for same-branch finite differences.  This is the
+meaning of the chapter's boxed convention that the fit is carried out in source
+scale while the reported scalar returns to the unshifted evidence scale.
+
+\section{Initialization And Sweep Order}
+\label{sec:bf-hd-squared-tt-init-sweeps}
+
+The branch must also save the deterministic initialization and sweep rule.  A
+useful baseline is constant-channel initialization: initialize every core to zero
+except the constant channel, and let one bidirectional sweep mean updates in the
+order
+\begin{equation}
+  1,2,\ldots,D,D-1,\ldots,1.
+  \label{eq:bf-hd-squared-tt-sweep-order}
+\end{equation}
+Fix the number of bidirectional sweeps \(S\).  The exact deterministic
+initialization rule matters less than saving it in the branch record, because
+changing initialization changes the fixed fitting map.
+
+\subsection{Forward Core Update}
+\label{sec:bf-hd-squared-tt-forward-core-update}
+
+At fitting point \(z^{(j)}\), define environments for core \(k\) by
+\begin{equation}
+  L_{j,k}=H_1(z_1^{(j)})\cdots H_{k-1}(z_{k-1}^{(j)}),
+  \qquad
+  R_{j,k}=H_{k+1}(z_{k+1}^{(j)})\cdots H_D(z_D^{(j)}).
+  \label{eq:bf-hd-squared-tt-forward-environments}
+\end{equation}
+For endpoint ranks this means \(L_{j,k}\in\R^{1\times R_{k-1}}\) and
+\(R_{j,k}\in\R^{R_k\times1}\).  The design row for coefficient
+\((a,\ell,b)\) is
+\begin{equation}
+  A_k[j,(a,\ell,b)]
+  =
+  L_{j,k}[1,a]\,b_k(z_k^{(j)})[\ell]R_{j,k}[b,1].
+  \label{eq:bf-hd-squared-tt-forward-design-row}
+\end{equation}
+The local ridge system is
+\begin{equation}
+  N_k g_k=d_k,
+  \qquad
+  N_k=A_k^\top W A_k+\rho I,
+  \qquad
+  d_k=A_k^\top Wy.
+  \label{eq:bf-hd-squared-tt-forward-ridge-system}
+\end{equation}
+After solving \eqref{eq:bf-hd-squared-tt-forward-ridge-system}, reshape \(g_k\)
+back into the core by
+\begin{equation}
+  C_k[a,\ell,b]=g_k[(a,\ell,b)].
+  \label{eq:bf-hd-squared-tt-forward-core-reshape}
+\end{equation}
+This is the forward fitting rule whose identity later same-branch finite
+differences must preserve.
+
+\subsection{Derivative Core Update}
+\label{sec:bf-hd-squared-tt-derivative-core-update}
+
+The derivative environments are obtained by differentiating the matrix products:
+\begin{equation}
+  \dot L_{j,k}
+  =
+  \sum_{r=1}^{k-1}H_1\cdots H_{r-1}\dot H_r H_{r+1}\cdots H_{k-1},
+  \label{eq:bf-hd-squared-tt-dot-L}
+\end{equation}
+\begin{equation}
+  \dot R_{j,k}
+  =
+  \sum_{r=k+1}^{D}H_{k+1}\cdots H_{r-1}\dot H_r H_{r+1}\cdots H_D.
+  \label{eq:bf-hd-squared-tt-dot-R}
+\end{equation}
+Because basis functions and fitting points are frozen, the derivative design row
+contains only environment terms:
+\begin{equation}
+\begin{aligned}
+  \dot A_k[j,(a,\ell,b)]
+  &=
+  \dot L_{j,k}[1,a]b_k(z_k^{(j)})[\ell]R_{j,k}[b,1]\\
+  &\quad+
+  L_{j,k}[1,a]b_k(z_k^{(j)})[\ell]\dot R_{j,k}[b,1].
+\end{aligned}
+  \label{eq:bf-hd-squared-tt-dot-design-row}
+\end{equation}
+The derivative normal equations are
+\begin{equation}
+  \dot N_k=\dot A_k^\top W A_k+A_k^\top W\dot A_k,
+  \qquad
+  \dot d_k=\dot A_k^\top Wy+A_k^\top W\dot y,
+  \label{eq:bf-hd-squared-tt-dot-normal-equations}
+\end{equation}
+and differentiating \(N_kg_k=d_k\) gives
+\begin{equation}
+  N_k\dot g_k=\dot d_k-\dot N_k g_k.
+  \label{eq:bf-hd-squared-tt-dot-ridge-system}
+\end{equation}
+After solving \eqref{eq:bf-hd-squared-tt-dot-ridge-system}, reshape
+\begin{equation}
+  \dot C_k[a,\ell,b]=\dot g_k[(a,\ell,b)].
+  \label{eq:bf-hd-squared-tt-dot-core-reshape}
+\end{equation}
+This is the derivative fitting rule.  A later implementation must use this same
+stored computational path rather than inventing a separate approximate derivative
+solve.
+
+\subsection{Alternating-Sweep Recomputations}
+\label{sec:bf-hd-squared-tt-sweep-recomputations}
+
+The symbols \(L_{j,k}\), \(R_{j,k}\), \(A_k\), \(N_k\), and \(d_k\) are not
+static arrays during an alternating sweep.  They are recomputed from the current
+cores at the moment a core is updated.  Let
+\begin{equation}
+  H_{j,k}=H_k(z_k^{(j)};C_k),
+  \qquad
+  \dot H_{j,k}=H_k(z_k^{(j)};\dot C_k),
+  \label{eq:bf-hd-squared-tt-sweep-H}
+\end{equation}
+where basis values and fitting points are fixed and only the coefficients change.
+For a current core collection \(C^{\rm cur}\), define prefix and suffix products
+by
+\begin{equation}
+  L_{j,1}^{\rm cur}=1,
+  \qquad
+  L_{j,k}^{\rm cur}=L_{j,k-1}^{\rm cur}H_{j,k-1}^{\rm cur},
+  \qquad k=2,\ldots,D,
+  \label{eq:bf-hd-squared-tt-sweep-prefix}
+\end{equation}
+and
+\begin{equation}
+  R_{j,D}^{\rm cur}=1,
+  \qquad
+  R_{j,k}^{\rm cur}=H_{j,k+1}^{\rm cur}R_{j,k+1}^{\rm cur},
+  \qquad k=D-1,\ldots,1.
+  \label{eq:bf-hd-squared-tt-sweep-suffix}
+\end{equation}
+The dotted prefix and suffix products follow the same recursions with one
+product-rule term added.  At a core update \(k\), build the current design
+matrix and normal equations from the current environments, solve for the new
+core, then build the dotted objects and solve the derivative system.  After
+updating one core, every cached prefix with index \(\ell>k\) and every cached
+suffix with index \(\ell<k\) is stale and must be recomputed before use.
+
+This stale-cache rule is part of the branch definition.  It is what makes the
+phrase “the same fitting rule” operational rather than rhetorical.
+
+\subsection{Stopping Rule And Failure Exits}
+\label{sec:bf-hd-squared-tt-stopping-failures}
+
+After each full sweep compute
+\begin{equation}
+  \varepsilon_s=
+  \frac{\|A(C^{(s)})-y\|_W}{\max\{\|y\|_W,\epsilon_{\rm abs}\}},
+  \qquad
+  \Delta_s=
+  \frac{\|C^{(s)}-C^{(s-1)}\|}{\max\{\|C^{(s-1)}\|,\epsilon_{\rm abs}\}},
+  \label{eq:bf-hd-squared-tt-stopping-metrics}
+\end{equation}
+The sweep stops successfully only if
+\begin{equation}
+  \varepsilon_s\le\epsilon_{\rm fit}
+  \quad\text{and}\quad
+  \Delta_s\le\epsilon_{\rm sweep}.
+  \label{eq:bf-hd-squared-tt-stopping-success}
+\end{equation}
+If this does not happen by \(S\) sweeps, the branch reports sweep failure rather
+than silently accepting a different scalar.  The full accepted/failure path must
+therefore distinguish at least the following exits:
+\begin{center}
+\begin{tabular}{p{0.28\linewidth}p{0.34\linewidth}p{0.28\linewidth}}
+\toprule
+Failure condition & Mathematical test & Report field\\
+\midrule
+Domain miss & \(\delta_{\rm out}>\delta_{\max}\) & domain failure\\
+Rank ladder fail & no \(R\) satisfies residual/conditioning/floor tests & rank failure\\
+Ill-conditioned solve & \(\operatorname{cond}(N_k)>\kappa_{\max}\) & solve failure\\
+Sweep stagnation & \(\varepsilon_s>\epsilon_{\rm fit}\) or \(\Delta_s>\epsilon_{\rm sweep}\) after \(S\) sweeps & sweep failure\\
+Nonpositive target for smooth derivative & \(\min_j\widetilde q_{t,j}\le0\) without declared floor & target failure\\
+Mass failure & \(\widehat Z_t\le0\) or not finite & normalizer failure\\
+Finite-difference branch mismatch & frozen fields or accepted/failure path differ across \(\beta-h,\beta,\beta+h\) & branch mismatch\\
+\bottomrule
+\end{tabular}
+\end{center}
+A failed branch is not a successful derivative with a warning attached; it is a
+declared failure of the fixed scalar.  This accepted/failure vocabulary is what
+staged \(ch37\) later consumes when it says a branch-valid FD row requires the
+same realized acceptance/failure path on both sides of the perturbation.
+
+\section{One Observation Step Through The Stored Objects}
+\label{sec:bf-hd-squared-tt-one-step}
+
+A reader should be able to narrate one time step in the following order:
+\begin{enumerate}[leftmargin=0.28in]
+  \item evaluate the previous carried filter on the current branch’s fitting
+  points,
+  \item combine it with the transition and observation densities to form the
+  adjacent-state target in the declared coordinates,
+  \item fit the squared-TT / low-rank object on the fixed branch,
+  \item contract out the previous-state block to form \(a_t\),
+  \item compute \(\widehat Z_t\) and normalize to \(\widehat p_t\),
+  \item save the branch fields needed for the next-step forward evaluation and
+  later same-branch derivative evaluation.
+\end{enumerate}
+
+The dependency flow should be explicit enough to implement:
+\begin{equation}
+\begin{array}{rcl}
+\text{reference points} &\longrightarrow& z^{(j)}\ \text{from the fixed point design},\\
+\text{physical points} &\longrightarrow& r^{(j)}=\Psi_t(z^{(j)}),\\
+\text{target values} &\longrightarrow&
+\widetilde q_{t,j}=
+\widehat p_{t-1}(x_{t-1}^{(j)};\beta)
+ f_\beta(x_t^{(j)}\mid x_{t-1}^{(j)})
+ g_\beta(y_t\mid x_t^{(j)})J_t,\\
+\text{square-root fit values} &\longrightarrow&
+ y_j=e^{c_t/2}\sqrt{\widetilde q_{t,j}},\\
+\text{initial cores} &\longrightarrow&
+ \text{deterministic constant-channel initialization},\\
+\text{fixed sweep objects} &\longrightarrow&
+ L_{j,k},R_{j,k},A_k,N_k,d_k,C_k,\\
+\text{mass objects} &\longrightarrow&
+ M_{>k},M_{<k},R_t,\widehat Z_t,\\
+\text{carried objects} &\longrightarrow&
+ a_t,\widehat p_t,\\
+\text{saved objects for }t+1 &\longrightarrow&
+ \mathcal F_t\ \text{and, when needed, }\dot{\mathcal F}_t.
+\end{array}
+  \label{eq:bf-hd-squared-tt-forward-flow}
+\end{equation}
+The forward environments are recomputed from the current cores during each sweep;
+they are not static arrays.  For fitting point \(z^{(j)}\), the environments are
+\begin{equation}
+  L_{j,k}=H_1(z_1^{(j)})\cdots H_{k-1}(z_{k-1}^{(j)}),
+  \qquad
+  R_{j,k}=H_{k+1}(z_{k+1}^{(j)})\cdots H_D(z_D^{(j)}),
+  \label{eq:bf-hd-squared-tt-environments}
+\end{equation}
+and the local ridge system is built from those current environments.  After a
+core update, cached prefixes and suffixes on the wrong side of that core are
+stale and must be recomputed before use.  That bookkeeping is part of the fixed
+fitting map.
+
+The same principle governs next-step closure.  The next transformed target is not
+formed from a vague “previous TT object,” but from the saved carried evaluator:
+\begin{equation}
+  \widetilde q_{t+1}(z;\beta)=
+  \widehat p_t(x_t(z);\beta)
+  f_\beta(x_{t+1}(z)\mid x_t(z))
+  g_\beta(y_{t+1}\mid x_{t+1}(z))J_{t+1}(z).
+  \label{eq:bf-hd-squared-tt-next-target}
+\end{equation}
+If the derivative lane is active, the saved dotted object from
+\eqref{eq:bf-hd-squared-tt-stored-derivative} is what makes the next-step
+product-rule derivative possible on the same branch.  Without that saved object,
+a later derivative pass would be differentiating a different computational route.
+
+This is the operational middle that the monograph must carry so that the later
+derivative chapter can start from a declared scalar object rather than a vague
+reference to “the TT filter.”
+
+\section{Exports To The Same-Scalar Derivative Chapter}
+\label{sec:bf-hd-squared-tt-exports}
+
+This chapter exports the following objects forward:
+\begin{enumerate}[leftmargin=0.28in]
+  \item the represented adjacent-state object and retained marginal recursion,
+  \item the stored-field contract for next-step closure,
+  \item the fixed-branch scalar \(\widehat\ell_T^{\rm TT/KR}(\beta;B)\),
+  \item the fixed-branch least-squares specialization,
+  \item the lane-specific statement that domains, points, ranks, maps,
+  stabilization rules, and stored-field conventions belong to the scalar identity.
+\end{enumerate}
+The next chapter may now focus on derivative theory, branch-valid finite
+differences, and HMC-facing same-scalar discipline, because the present chapter
+has already fixed what scalar object is being differentiated.
