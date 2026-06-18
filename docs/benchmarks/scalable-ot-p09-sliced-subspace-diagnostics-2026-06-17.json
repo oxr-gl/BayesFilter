@@ -1,0 +1,554 @@
+{
+  "candidate_record": {
+    "baseline_comparator": "phase1_dense_streaming_baseline_2026_06_17",
+    "candidate_id": "phase9_sliced_subspace_projection_semantic_replacement",
+    "diagnostic_roles": {
+      "hard_vetoes": "continuation_veto",
+      "implementation_scope": "explanatory",
+      "max_dense_reference_particle_error_explanatory": "explanatory",
+      "max_projected_reconstruction_error": "hard_veto",
+      "mini_batch_bomb_status": "hard_veto",
+      "validity_pass": "hard_veto"
+    },
+    "diagnostics": {
+      "hard_vetoes": [],
+      "implementation_scope": "fixed_projection_monotone_displacement_diagnostic",
+      "max_dense_reference_particle_error_explanatory": 0.6491195216954742,
+      "max_projected_reconstruction_error": 5.551115123125783e-17,
+      "mini_batch_bomb_status": "blocked_unexecuted_source_partial_user_needed",
+      "phase9_status": "PHASE_9_SLICED_SUBSPACE_EXPLORATORY_DIAGNOSTIC_PASSED_SEMANTIC_REPLACEMENT",
+      "validity_pass": true
+    },
+    "execution_manifest": {
+      "command": "scalable_ot_p09_sliced_subspace_diagnostics.py",
+      "cuda_visible_devices": "-1",
+      "device": "/CPU:0",
+      "device_scope": "cpu",
+      "dtype": "tf.float64",
+      "git_commit": "7c92eaba6e260973a8af1c54df0d2d3efa4dc150",
+      "plan_path": "docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-p09-sliced-subspace-minibatch-subplan-2026-06-17.md",
+      "platform": "Linux-6.8.0-111-generic-x86_64-with-glibc2.35",
+      "python": "3.13.13 | packaged by Anaconda, Inc. | (main, Apr 14 2026, 06:19:41) [GCC 14.3.0]",
+      "tensorflow_version": "2.20.0",
+      "timestamp_utc": "2026-06-17T20:11:33.726596+00:00"
+    },
+    "nonclaims": [
+      "Phase 9 sliced/subspace semantic-replacement diagnostic only",
+      "not dense entropic OT equivalence",
+      "not a sparse solver implementation",
+      "Mini-batch/BoMb remains blocked and unexecuted",
+      "no speedup claim",
+      "no ranking claim",
+      "no production default change",
+      "no posterior correctness claim",
+      "no HMC-readiness claim"
+    ],
+    "schema_version": "scalable_ot_candidate_result_v1",
+    "semantic_class": "semantic_replacement",
+    "source_route": "extension_or_invention",
+    "source_status": "source_locked",
+    "transport_object": {
+      "blocked_reason": null,
+      "factor_shapes": {},
+      "kind": "projected_output",
+      "materialized": true,
+      "not_materialized_reason": null,
+      "orientation": "fixed_projection_monotone_maps_lifted_to_full_state_particles",
+      "semantic_output": "semantic_replacement_full_state_particles_from_projection_displacements",
+      "shape": [
+        null,
+        64,
+        32
+      ]
+    }
+  },
+  "diagnostic_roles": {
+    "dense_reference_particle_error": "explanatory",
+    "finite_projected_outputs": "hard_veto",
+    "mini_batch_bomb_status": "hard_veto",
+    "monotone_violation_count": "hard_veto",
+    "projected_reconstruction_consistency": "hard_veto",
+    "wall_time_seconds": "explanatory"
+  },
+  "fixtures": {
+    "high_dim_locality": {
+      "dense": {
+        "diagnostics": {
+          "application_mode": "active_rows_only",
+          "backend": "tensorflow",
+          "col_chunk_size": 1024,
+          "component_id": "filterflow_style_annealed_transport_tf",
+          "convergence_threshold": 0.001,
+          "epsilon": 0.5,
+          "finite_particles": true,
+          "finite_transport": true,
+          "fixed_target_sinkhorn_status": "not_this_algorithm_local_comparator_only",
+          "mathematical_object": "annealed_regularized_transport_transform",
+          "max_column_residual": 1.5543122344752192e-15,
+          "max_cost_scale": 0.9153734511425168,
+          "max_iterations": 12,
+          "max_iterations_used": 10.0,
+          "max_log_weight_normalization_residual": 0.0,
+          "max_row_residual": 0.0012835820529411013,
+          "min_cost_scale": 0.9153734511425168,
+          "reference_algorithm": "canonical_executable_filterflow_regularised_transform",
+          "resampling_status": "annealed_transport_triggered_rows_only",
+          "row_chunk_size": 1024,
+          "scaling": 0.9,
+          "skipped_rows": 0.0,
+          "transport_backward_rule": "raw_tensorflow_transport_gradient",
+          "transport_gradient_mode": "raw",
+          "transport_matrix_materialized": true,
+          "transport_plan_mode": "dense",
+          "triggered_rows": 1.0
+        },
+        "finite_particles": true,
+        "finite_transport_matrix": true,
+        "max_column_residual": 1.5543122344752192e-15,
+        "max_row_residual": 0.0012835820529411013,
+        "particles_shape": [
+          1,
+          64,
+          32
+        ],
+        "transport_matrix_shape": [
+          1,
+          64,
+          64
+        ],
+        "wall_time_seconds": 0.009577004937455058
+      },
+      "input_shape": {
+        "log_weights": [
+          1,
+          64
+        ],
+        "particles": [
+          1,
+          64,
+          32
+        ]
+      },
+      "sliced_subspace": {
+        "dense_reference_max_abs_particle_error_explanatory": 0.26609824386710673,
+        "dense_reference_rms_particle_error_explanatory": 0.07478806701553115,
+        "diagnostics": {
+          "backend": "tensorflow",
+          "component_id": "sliced_subspace_projection_diagnostic_tf",
+          "direction_shape": [
+            4,
+            32
+          ],
+          "finite_directions": true,
+          "finite_particles": true,
+          "max_projected_reconstruction_error": 2.7755575615628914e-17,
+          "mini_batch_bomb_status": "blocked_unexecuted_source_partial_user_needed",
+          "monotone_violation_count": 0.0,
+          "num_projections": 4,
+          "semantic_class": "semantic_replacement",
+          "source_route": "extension_or_invention",
+          "transport_object_kind": "projected_output"
+        },
+        "finite_directions": true,
+        "finite_particles": true,
+        "log_weight_normalization_residual": 0.0,
+        "log_weights_shape": [
+          1,
+          64
+        ],
+        "max_projected_reconstruction_error": 2.7755575615628914e-17,
+        "monotone_violation_count": 0.0,
+        "particles_shape": [
+          1,
+          64,
+          32
+        ],
+        "projection_tolerance": 1e-08,
+        "transport_object": {
+          "kind": "projected_output",
+          "materialized": true,
+          "orientation": "projected_monotone_maps_lifted_to_full_state_particles",
+          "semantic_output": "semantic_replacement_full_state_particles_from_projection_displacements",
+          "shape": [
+            1,
+            64,
+            32
+          ]
+        },
+        "validity_pass": true,
+        "wall_time_seconds": 0.0164043209515512
+      }
+    },
+    "high_dim_low_rank": {
+      "dense": {
+        "diagnostics": {
+          "application_mode": "active_rows_only",
+          "backend": "tensorflow",
+          "col_chunk_size": 1024,
+          "component_id": "filterflow_style_annealed_transport_tf",
+          "convergence_threshold": 0.001,
+          "epsilon": 0.5,
+          "finite_particles": true,
+          "finite_transport": true,
+          "fixed_target_sinkhorn_status": "not_this_algorithm_local_comparator_only",
+          "mathematical_object": "annealed_regularized_transport_transform",
+          "max_column_residual": 2.220446049250313e-15,
+          "max_cost_scale": 2.2300266197193115,
+          "max_iterations": 12,
+          "max_iterations_used": 9.0,
+          "max_log_weight_normalization_residual": 0.0,
+          "max_row_residual": 0.0003468684431253699,
+          "min_cost_scale": 2.2300266197193115,
+          "reference_algorithm": "canonical_executable_filterflow_regularised_transform",
+          "resampling_status": "annealed_transport_triggered_rows_only",
+          "row_chunk_size": 1024,
+          "scaling": 0.9,
+          "skipped_rows": 0.0,
+          "transport_backward_rule": "raw_tensorflow_transport_gradient",
+          "transport_gradient_mode": "raw",
+          "transport_matrix_materialized": true,
+          "transport_plan_mode": "dense",
+          "triggered_rows": 1.0
+        },
+        "finite_particles": true,
+        "finite_transport_matrix": true,
+        "max_column_residual": 2.220446049250313e-15,
+        "max_row_residual": 0.0003468684431253699,
+        "particles_shape": [
+          1,
+          64,
+          32
+        ],
+        "transport_matrix_shape": [
+          1,
+          64,
+          64
+        ],
+        "wall_time_seconds": 0.2962290740106255
+      },
+      "input_shape": {
+        "log_weights": [
+          1,
+          64
+        ],
+        "particles": [
+          1,
+          64,
+          32
+        ]
+      },
+      "sliced_subspace": {
+        "dense_reference_max_abs_particle_error_explanatory": 0.6491195216954742,
+        "dense_reference_rms_particle_error_explanatory": 0.16976359365129284,
+        "diagnostics": {
+          "backend": "tensorflow",
+          "component_id": "sliced_subspace_projection_diagnostic_tf",
+          "direction_shape": [
+            4,
+            32
+          ],
+          "finite_directions": true,
+          "finite_particles": true,
+          "max_projected_reconstruction_error": 5.551115123125783e-17,
+          "mini_batch_bomb_status": "blocked_unexecuted_source_partial_user_needed",
+          "monotone_violation_count": 0.0,
+          "num_projections": 4,
+          "semantic_class": "semantic_replacement",
+          "source_route": "extension_or_invention",
+          "transport_object_kind": "projected_output"
+        },
+        "finite_directions": true,
+        "finite_particles": true,
+        "log_weight_normalization_residual": 0.0,
+        "log_weights_shape": [
+          1,
+          64
+        ],
+        "max_projected_reconstruction_error": 5.551115123125783e-17,
+        "monotone_violation_count": 0.0,
+        "particles_shape": [
+          1,
+          64,
+          32
+        ],
+        "projection_tolerance": 1e-08,
+        "transport_object": {
+          "kind": "projected_output",
+          "materialized": true,
+          "orientation": "projected_monotone_maps_lifted_to_full_state_particles",
+          "semantic_output": "semantic_replacement_full_state_particles_from_projection_displacements",
+          "shape": [
+            1,
+            64,
+            32
+          ]
+        },
+        "validity_pass": true,
+        "wall_time_seconds": 0.016756528057157993
+      }
+    },
+    "small_parity": {
+      "dense": {
+        "diagnostics": {
+          "application_mode": "active_rows_only",
+          "backend": "tensorflow",
+          "col_chunk_size": 1024,
+          "component_id": "filterflow_style_annealed_transport_tf",
+          "convergence_threshold": 0.001,
+          "epsilon": 0.5,
+          "finite_particles": true,
+          "finite_transport": true,
+          "fixed_target_sinkhorn_status": "not_this_algorithm_local_comparator_only",
+          "mathematical_object": "annealed_regularized_transport_transform",
+          "max_column_residual": 6.661338147750939e-16,
+          "max_cost_scale": 0.48801992222113705,
+          "max_iterations": 12,
+          "max_iterations_used": 13.0,
+          "max_log_weight_normalization_residual": 0.0,
+          "max_row_residual": 0.01875914129458911,
+          "min_cost_scale": 0.48801992222113705,
+          "reference_algorithm": "canonical_executable_filterflow_regularised_transform",
+          "resampling_status": "annealed_transport_triggered_rows_only",
+          "row_chunk_size": 1024,
+          "scaling": 0.9,
+          "skipped_rows": 0.0,
+          "transport_backward_rule": "raw_tensorflow_transport_gradient",
+          "transport_gradient_mode": "raw",
+          "transport_matrix_materialized": true,
+          "transport_plan_mode": "dense",
+          "triggered_rows": 2.0
+        },
+        "finite_particles": true,
+        "finite_transport_matrix": true,
+        "max_column_residual": 6.661338147750939e-16,
+        "max_row_residual": 0.01875914129458911,
+        "particles_shape": [
+          2,
+          16,
+          5
+        ],
+        "transport_matrix_shape": [
+          2,
+          16,
+          16
+        ],
+        "wall_time_seconds": 0.2959875459782779
+      },
+      "input_shape": {
+        "log_weights": [
+          2,
+          16
+        ],
+        "particles": [
+          2,
+          16,
+          5
+        ]
+      },
+      "sliced_subspace": {
+        "dense_reference_max_abs_particle_error_explanatory": 0.20777453634774481,
+        "dense_reference_rms_particle_error_explanatory": 0.08767786041710832,
+        "diagnostics": {
+          "backend": "tensorflow",
+          "component_id": "sliced_subspace_projection_diagnostic_tf",
+          "direction_shape": [
+            4,
+            5
+          ],
+          "finite_directions": true,
+          "finite_particles": true,
+          "max_projected_reconstruction_error": 5.551115123125783e-17,
+          "mini_batch_bomb_status": "blocked_unexecuted_source_partial_user_needed",
+          "monotone_violation_count": 0.0,
+          "num_projections": 4,
+          "semantic_class": "semantic_replacement",
+          "source_route": "extension_or_invention",
+          "transport_object_kind": "projected_output"
+        },
+        "finite_directions": true,
+        "finite_particles": true,
+        "log_weight_normalization_residual": 0.0,
+        "log_weights_shape": [
+          2,
+          16
+        ],
+        "max_projected_reconstruction_error": 5.551115123125783e-17,
+        "monotone_violation_count": 0.0,
+        "particles_shape": [
+          2,
+          16,
+          5
+        ],
+        "projection_tolerance": 1e-08,
+        "transport_object": {
+          "kind": "projected_output",
+          "materialized": true,
+          "orientation": "projected_monotone_maps_lifted_to_full_state_particles",
+          "semantic_output": "semantic_replacement_full_state_particles_from_projection_displacements",
+          "shape": [
+            2,
+            16,
+            5
+          ]
+        },
+        "validity_pass": true,
+        "wall_time_seconds": 0.030510500073432922
+      }
+    },
+    "tiny_manual": {
+      "dense": {
+        "diagnostics": {
+          "application_mode": "active_rows_only",
+          "backend": "tensorflow",
+          "col_chunk_size": 1024,
+          "component_id": "filterflow_style_annealed_transport_tf",
+          "convergence_threshold": 0.001,
+          "epsilon": 0.5,
+          "finite_particles": true,
+          "finite_transport": true,
+          "fixed_target_sinkhorn_status": "not_this_algorithm_local_comparator_only",
+          "mathematical_object": "annealed_regularized_transport_transform",
+          "max_column_residual": 4.440892098500626e-16,
+          "max_cost_scale": 0.5491280967740283,
+          "max_iterations": 12,
+          "max_iterations_used": 13.0,
+          "max_log_weight_normalization_residual": 2.220446049250313e-16,
+          "max_row_residual": 0.012572528577494468,
+          "min_cost_scale": 0.5491280967740283,
+          "reference_algorithm": "canonical_executable_filterflow_regularised_transform",
+          "resampling_status": "annealed_transport_triggered_rows_only",
+          "row_chunk_size": 1024,
+          "scaling": 0.9,
+          "skipped_rows": 0.0,
+          "transport_backward_rule": "raw_tensorflow_transport_gradient",
+          "transport_gradient_mode": "raw",
+          "transport_matrix_materialized": true,
+          "transport_plan_mode": "dense",
+          "triggered_rows": 1.0
+        },
+        "finite_particles": true,
+        "finite_transport_matrix": true,
+        "max_column_residual": 4.440892098500626e-16,
+        "max_row_residual": 0.012572528577494468,
+        "particles_shape": [
+          1,
+          6,
+          3
+        ],
+        "transport_matrix_shape": [
+          1,
+          6,
+          6
+        ],
+        "wall_time_seconds": 0.7221371429041028
+      },
+      "input_shape": {
+        "log_weights": [
+          1,
+          6
+        ],
+        "particles": [
+          1,
+          6,
+          3
+        ]
+      },
+      "sliced_subspace": {
+        "dense_reference_max_abs_particle_error_explanatory": 0.3559003394171552,
+        "dense_reference_rms_particle_error_explanatory": 0.1465348892807295,
+        "diagnostics": {
+          "backend": "tensorflow",
+          "component_id": "sliced_subspace_projection_diagnostic_tf",
+          "direction_shape": [
+            3,
+            3
+          ],
+          "finite_directions": true,
+          "finite_particles": true,
+          "max_projected_reconstruction_error": 1.3877787807814457e-17,
+          "mini_batch_bomb_status": "blocked_unexecuted_source_partial_user_needed",
+          "monotone_violation_count": 0.0,
+          "num_projections": 3,
+          "semantic_class": "semantic_replacement",
+          "source_route": "extension_or_invention",
+          "transport_object_kind": "projected_output"
+        },
+        "finite_directions": true,
+        "finite_particles": true,
+        "log_weight_normalization_residual": 0.0,
+        "log_weights_shape": [
+          1,
+          6
+        ],
+        "max_projected_reconstruction_error": 1.3877787807814457e-17,
+        "monotone_violation_count": 0.0,
+        "particles_shape": [
+          1,
+          6,
+          3
+        ],
+        "projection_tolerance": 1e-08,
+        "transport_object": {
+          "kind": "projected_output",
+          "materialized": true,
+          "orientation": "projected_monotone_maps_lifted_to_full_state_particles",
+          "semantic_output": "semantic_replacement_full_state_particles_from_projection_displacements",
+          "shape": [
+            1,
+            6,
+            3
+          ]
+        },
+        "validity_pass": true,
+        "wall_time_seconds": 0.03106414619833231
+      }
+    }
+  },
+  "hard_vetoes": [],
+  "implementation_scope": "fixed_projection_monotone_displacement_diagnostic",
+  "manifest": {
+    "command": "scalable_ot_p09_sliced_subspace_diagnostics.py",
+    "cuda_visible_devices": "-1",
+    "device": "/CPU:0",
+    "device_scope": "cpu",
+    "dtype": "tf.float64",
+    "git_commit": "7c92eaba6e260973a8af1c54df0d2d3efa4dc150",
+    "plan_path": "docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-p09-sliced-subspace-minibatch-subplan-2026-06-17.md",
+    "platform": "Linux-6.8.0-111-generic-x86_64-with-glibc2.35",
+    "python": "3.13.13 | packaged by Anaconda, Inc. | (main, Apr 14 2026, 06:19:41) [GCC 14.3.0]",
+    "tensorflow_version": "2.20.0",
+    "timestamp_utc": "2026-06-17T20:11:33.726596+00:00"
+  },
+  "mini_batch_bomb_status": "blocked_unexecuted_source_partial_user_needed",
+  "nonclaims": [
+    "Phase 9 sliced/subspace semantic-replacement diagnostic only",
+    "not dense entropic OT equivalence",
+    "not a sparse solver implementation",
+    "Mini-batch/BoMb remains blocked and unexecuted",
+    "no speedup claim",
+    "no ranking claim",
+    "no production default change",
+    "no posterior correctness claim",
+    "no HMC-readiness claim"
+  ],
+  "phase9_status": "PHASE_9_SLICED_SUBSPACE_EXPLORATORY_DIAGNOSTIC_PASSED_SEMANTIC_REPLACEMENT",
+  "semantic_class": "semantic_replacement",
+  "settings": {
+    "convergence_threshold": 0.001,
+    "epsilon": 0.5,
+    "max_iterations": 12,
+    "num_projections": 4,
+    "projection_tolerance": 1e-08,
+    "scaling": 0.9
+  },
+  "source_route": "extension_or_invention",
+  "source_status": "source_locked",
+  "status": "PASS",
+  "summary": {
+    "max_dense_reference_particle_error_explanatory": 0.6491195216954742,
+    "max_dense_reference_rms_error_explanatory": 0.16976359365129284,
+    "max_log_weight_normalization_residual": 0.0,
+    "max_projected_reconstruction_error": 5.551115123125783e-17
+  },
+  "validity_pass": true
+}

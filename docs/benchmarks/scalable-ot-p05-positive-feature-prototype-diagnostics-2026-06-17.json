@@ -1,0 +1,769 @@
+{
+  "candidate_record": {
+    "baseline_comparator": "phase1_dense_streaming_baseline_2026_06_17",
+    "candidate_id": "phase5_positive_feature_semantic_replacement_transport",
+    "diagnostic_roles": {
+      "hard_vetoes": "continuation_veto",
+      "max_column_residual": "hard_veto",
+      "max_dense_reference_particle_error_explanatory": "explanatory",
+      "max_dense_reference_rms_error_explanatory": "explanatory",
+      "max_row_residual": "hard_veto",
+      "source_route_components": "explanatory",
+      "thresholds": "explanatory",
+      "validity_pass": "hard_veto"
+    },
+    "diagnostics": {
+      "hard_vetoes": [],
+      "max_column_residual": 2.220446049250313e-16,
+      "max_dense_reference_particle_error_explanatory": 0.1487610111727833,
+      "max_dense_reference_rms_error_explanatory": 0.0810450420000197,
+      "max_row_residual": 3.221883136750314e-05,
+      "phase5_status": "PHASE_5_POSITIVE_FEATURE_PROTOTYPE_PASSED_SEMANTIC_REPLACEMENT",
+      "source_route_components": {
+        "deterministic_feature_basis": "fixed_hmc_adaptation",
+        "filterflow_cost_scaling_adapter": "fixed_hmc_adaptation",
+        "linear_feature_scaling": "source_faithful",
+        "positive_feature_factorization": "source_faithful"
+      },
+      "thresholds": {
+        "dense_reference_error_role": "explanatory_only_for_semantic_replacement",
+        "row_column_residual_hard_veto": 0.05
+      },
+      "validity_pass": true
+    },
+    "execution_manifest": {
+      "command": "scalable_ot_p05_positive_feature_prototype_diagnostics.py",
+      "cuda_visible_devices": "-1",
+      "device": "/CPU:0",
+      "device_scope": "cpu",
+      "dtype": "tf.float64",
+      "git_commit": "7c92eaba6e260973a8af1c54df0d2d3efa4dc150",
+      "plan_path": "docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-p05-positive-feature-prototype-subplan-2026-06-17.md",
+      "platform": "Linux-6.8.0-111-generic-x86_64-with-glibc2.35",
+      "python": "3.13.13 | packaged by Anaconda, Inc. | (main, Apr 14 2026, 06:19:41) [GCC 14.3.0]",
+      "tensorflow_version": "2.20.0",
+      "timestamp_utc": "2026-06-17T19:21:09.573763+00:00"
+    },
+    "nonclaims": [
+      "Phase 5 positive-feature semantic-replacement diagnostics only",
+      "no dense Gibbs equivalence claim",
+      "no speedup claim",
+      "no ranking claim",
+      "no production default change",
+      "no posterior correctness claim",
+      "no general scalability claim"
+    ],
+    "schema_version": "scalable_ot_candidate_result_v1",
+    "semantic_class": "semantic_replacement",
+    "source_route": "fixed_hmc_adaptation",
+    "source_status": "source_locked",
+    "transport_object": {
+      "blocked_reason": null,
+      "factor_shapes": {
+        "left_features": [
+          64,
+          128
+        ],
+        "right_features": [
+          64,
+          128
+        ],
+        "scaling_u": [
+          64
+        ],
+        "scaling_v": [
+          64
+        ]
+      },
+      "kind": "kernel_factors",
+      "materialized": false,
+      "not_materialized_reason": "positive_feature_factors_nonmaterialized",
+      "orientation": "source_rows_target_columns",
+      "semantic_output": "semantic_replacement_feature_kernel_particles",
+      "shape": null
+    }
+  },
+  "fixtures": {
+    "high_dim_locality": {
+      "dense": {
+        "diagnostics": {
+          "application_mode": "active_rows_only",
+          "backend": "tensorflow",
+          "col_chunk_size": 1024,
+          "component_id": "filterflow_style_annealed_transport_tf",
+          "convergence_threshold": 0.001,
+          "epsilon": 0.5,
+          "finite_particles": true,
+          "finite_transport": true,
+          "fixed_target_sinkhorn_status": "not_this_algorithm_local_comparator_only",
+          "mathematical_object": "annealed_regularized_transport_transform",
+          "max_column_residual": 1.5543122344752192e-15,
+          "max_cost_scale": 0.9153734511425168,
+          "max_iterations": 12,
+          "max_iterations_used": 10.0,
+          "max_log_weight_normalization_residual": 0.0,
+          "max_row_residual": 0.0012835820529411013,
+          "min_cost_scale": 0.9153734511425168,
+          "reference_algorithm": "canonical_executable_filterflow_regularised_transform",
+          "resampling_status": "annealed_transport_triggered_rows_only",
+          "row_chunk_size": 1024,
+          "scaling": 0.9,
+          "skipped_rows": 0.0,
+          "transport_backward_rule": "raw_tensorflow_transport_gradient",
+          "transport_gradient_mode": "raw",
+          "transport_matrix_materialized": true,
+          "transport_plan_mode": "dense",
+          "triggered_rows": 1.0
+        },
+        "finite_particles": true,
+        "finite_transport_matrix": true,
+        "max_column_residual": 1.5543122344752192e-15,
+        "max_row_residual": 0.0012835820529411013,
+        "particles_shape": [
+          1,
+          64,
+          32
+        ],
+        "wall_time_seconds": 0.0092893629334867
+      },
+      "input_shape": {
+        "log_weights": [
+          1,
+          64
+        ],
+        "particles": [
+          1,
+          64,
+          32
+        ]
+      },
+      "positive_feature": {
+        "dense_reference_max_abs_particle_error_explanatory": 0.10883642129635229,
+        "dense_reference_rms_particle_error_explanatory": 0.04344433051022597,
+        "diagnostics": {
+          "backend": "tensorflow",
+          "component_id": "positive_feature_transport_tf",
+          "convergence_threshold": 0.0001,
+          "denominator_floor": 1e-30,
+          "denominator_floor_hits": 0.0,
+          "epsilon": 0.5,
+          "factor_shapes": {
+            "left_features": [
+              1,
+              64,
+              128
+            ],
+            "right_features": [
+              1,
+              64,
+              128
+            ],
+            "scaling_u": [
+              1,
+              64
+            ],
+            "scaling_v": [
+              1,
+              64
+            ]
+          },
+          "feature_rule": "deterministic_sinusoidal_positive_features",
+          "finite_features": true,
+          "finite_particles": true,
+          "iterations_used": 2,
+          "mathematical_object": "positive_feature_semantic_replacement_transport",
+          "max_column_residual": 2.220446049250313e-16,
+          "max_iterations": 120,
+          "max_row_residual": 6.278544283810916e-06,
+          "min_feature_value": 0.021205256148620805,
+          "min_kernel_denominator": 0.7571495499925136,
+          "nonclaims": [
+            "experimental Phase 5 semantic-replacement candidate only",
+            "no dense Gibbs equivalence claim",
+            "no speedup claim",
+            "no ranking claim",
+            "no production default change",
+            "no posterior correctness claim"
+          ],
+          "not_materialized_reason": "positive_feature_factors_nonmaterialized",
+          "num_features": 128,
+          "orientation": "source_rows_target_columns",
+          "positive_features": true,
+          "semantic_class": "semantic_replacement",
+          "semantic_replacement_reason": "deterministic positive features define a feature kernel instead of proving dense Gibbs approximation",
+          "source_route": "fixed_hmc_adaptation",
+          "source_route_components": {
+            "deterministic_feature_basis": "fixed_hmc_adaptation",
+            "filterflow_cost_scaling_adapter": "fixed_hmc_adaptation",
+            "linear_feature_scaling": "source_faithful",
+            "positive_feature_factorization": "source_faithful"
+          },
+          "source_status": "source_locked",
+          "transport_matrix_materialized": false,
+          "transport_object_kind": "kernel_factors"
+        },
+        "finite_features": true,
+        "finite_particles": true,
+        "max_column_residual": 2.220446049250313e-16,
+        "max_row_residual": 6.278544283810916e-06,
+        "num_features": 128,
+        "particles_shape": [
+          1,
+          64,
+          32
+        ],
+        "positive_features": true,
+        "transport_object": {
+          "factor_shapes": {
+            "left_features": [
+              1,
+              64,
+              128
+            ],
+            "right_features": [
+              1,
+              64,
+              128
+            ],
+            "scaling_u": [
+              1,
+              64
+            ],
+            "scaling_v": [
+              1,
+              64
+            ]
+          },
+          "kind": "kernel_factors",
+          "materialized": false
+        },
+        "validity_pass": true,
+        "wall_time_seconds": 0.0072679100558161736
+      }
+    },
+    "high_dim_low_rank": {
+      "dense": {
+        "diagnostics": {
+          "application_mode": "active_rows_only",
+          "backend": "tensorflow",
+          "col_chunk_size": 1024,
+          "component_id": "filterflow_style_annealed_transport_tf",
+          "convergence_threshold": 0.001,
+          "epsilon": 0.5,
+          "finite_particles": true,
+          "finite_transport": true,
+          "fixed_target_sinkhorn_status": "not_this_algorithm_local_comparator_only",
+          "mathematical_object": "annealed_regularized_transport_transform",
+          "max_column_residual": 2.220446049250313e-15,
+          "max_cost_scale": 2.2300266197193115,
+          "max_iterations": 12,
+          "max_iterations_used": 9.0,
+          "max_log_weight_normalization_residual": 0.0,
+          "max_row_residual": 0.0003468684431253699,
+          "min_cost_scale": 2.2300266197193115,
+          "reference_algorithm": "canonical_executable_filterflow_regularised_transform",
+          "resampling_status": "annealed_transport_triggered_rows_only",
+          "row_chunk_size": 1024,
+          "scaling": 0.9,
+          "skipped_rows": 0.0,
+          "transport_backward_rule": "raw_tensorflow_transport_gradient",
+          "transport_gradient_mode": "raw",
+          "transport_matrix_materialized": true,
+          "transport_plan_mode": "dense",
+          "triggered_rows": 1.0
+        },
+        "finite_particles": true,
+        "finite_transport_matrix": true,
+        "max_column_residual": 2.220446049250313e-15,
+        "max_row_residual": 0.0003468684431253699,
+        "particles_shape": [
+          1,
+          64,
+          32
+        ],
+        "wall_time_seconds": 0.29480877611786127
+      },
+      "input_shape": {
+        "log_weights": [
+          1,
+          64
+        ],
+        "particles": [
+          1,
+          64,
+          32
+        ]
+      },
+      "positive_feature": {
+        "dense_reference_max_abs_particle_error_explanatory": 0.08839556952919626,
+        "dense_reference_rms_particle_error_explanatory": 0.02946738252879708,
+        "diagnostics": {
+          "backend": "tensorflow",
+          "component_id": "positive_feature_transport_tf",
+          "convergence_threshold": 0.0001,
+          "denominator_floor": 1e-30,
+          "denominator_floor_hits": 0.0,
+          "epsilon": 0.5,
+          "factor_shapes": {
+            "left_features": [
+              1,
+              64,
+              128
+            ],
+            "right_features": [
+              1,
+              64,
+              128
+            ],
+            "scaling_u": [
+              1,
+              64
+            ],
+            "scaling_v": [
+              1,
+              64
+            ]
+          },
+          "feature_rule": "deterministic_sinusoidal_positive_features",
+          "finite_features": true,
+          "finite_particles": true,
+          "iterations_used": 2,
+          "mathematical_object": "positive_feature_semantic_replacement_transport",
+          "max_column_residual": 2.220446049250313e-16,
+          "max_iterations": 120,
+          "max_row_residual": 8.476848918359536e-07,
+          "min_feature_value": 0.02904938148697887,
+          "min_kernel_denominator": 0.8700893735826754,
+          "nonclaims": [
+            "experimental Phase 5 semantic-replacement candidate only",
+            "no dense Gibbs equivalence claim",
+            "no speedup claim",
+            "no ranking claim",
+            "no production default change",
+            "no posterior correctness claim"
+          ],
+          "not_materialized_reason": "positive_feature_factors_nonmaterialized",
+          "num_features": 128,
+          "orientation": "source_rows_target_columns",
+          "positive_features": true,
+          "semantic_class": "semantic_replacement",
+          "semantic_replacement_reason": "deterministic positive features define a feature kernel instead of proving dense Gibbs approximation",
+          "source_route": "fixed_hmc_adaptation",
+          "source_route_components": {
+            "deterministic_feature_basis": "fixed_hmc_adaptation",
+            "filterflow_cost_scaling_adapter": "fixed_hmc_adaptation",
+            "linear_feature_scaling": "source_faithful",
+            "positive_feature_factorization": "source_faithful"
+          },
+          "source_status": "source_locked",
+          "transport_matrix_materialized": false,
+          "transport_object_kind": "kernel_factors"
+        },
+        "finite_features": true,
+        "finite_particles": true,
+        "max_column_residual": 2.220446049250313e-16,
+        "max_row_residual": 8.476848918359536e-07,
+        "num_features": 128,
+        "particles_shape": [
+          1,
+          64,
+          32
+        ],
+        "positive_features": true,
+        "transport_object": {
+          "factor_shapes": {
+            "left_features": [
+              1,
+              64,
+              128
+            ],
+            "right_features": [
+              1,
+              64,
+              128
+            ],
+            "scaling_u": [
+              1,
+              64
+            ],
+            "scaling_v": [
+              1,
+              64
+            ]
+          },
+          "kind": "kernel_factors",
+          "materialized": false
+        },
+        "validity_pass": true,
+        "wall_time_seconds": 0.007687374949455261
+      }
+    },
+    "small_parity": {
+      "dense": {
+        "diagnostics": {
+          "application_mode": "active_rows_only",
+          "backend": "tensorflow",
+          "col_chunk_size": 1024,
+          "component_id": "filterflow_style_annealed_transport_tf",
+          "convergence_threshold": 0.001,
+          "epsilon": 0.5,
+          "finite_particles": true,
+          "finite_transport": true,
+          "fixed_target_sinkhorn_status": "not_this_algorithm_local_comparator_only",
+          "mathematical_object": "annealed_regularized_transport_transform",
+          "max_column_residual": 6.661338147750939e-16,
+          "max_cost_scale": 0.48801992222113705,
+          "max_iterations": 12,
+          "max_iterations_used": 13.0,
+          "max_log_weight_normalization_residual": 0.0,
+          "max_row_residual": 0.01875914129458911,
+          "min_cost_scale": 0.48801992222113705,
+          "reference_algorithm": "canonical_executable_filterflow_regularised_transform",
+          "resampling_status": "annealed_transport_triggered_rows_only",
+          "row_chunk_size": 1024,
+          "scaling": 0.9,
+          "skipped_rows": 0.0,
+          "transport_backward_rule": "raw_tensorflow_transport_gradient",
+          "transport_gradient_mode": "raw",
+          "transport_matrix_materialized": true,
+          "transport_plan_mode": "dense",
+          "triggered_rows": 2.0
+        },
+        "finite_particles": true,
+        "finite_transport_matrix": true,
+        "max_column_residual": 6.661338147750939e-16,
+        "max_row_residual": 0.01875914129458911,
+        "particles_shape": [
+          2,
+          16,
+          5
+        ],
+        "wall_time_seconds": 0.2957864108029753
+      },
+      "input_shape": {
+        "log_weights": [
+          2,
+          16
+        ],
+        "particles": [
+          2,
+          16,
+          5
+        ]
+      },
+      "positive_feature": {
+        "dense_reference_max_abs_particle_error_explanatory": 0.1487610111727833,
+        "dense_reference_rms_particle_error_explanatory": 0.0810450420000197,
+        "diagnostics": {
+          "backend": "tensorflow",
+          "component_id": "positive_feature_transport_tf",
+          "convergence_threshold": 0.0001,
+          "denominator_floor": 1e-30,
+          "denominator_floor_hits": 0.0,
+          "epsilon": 0.5,
+          "factor_shapes": {
+            "left_features": [
+              2,
+              16,
+              128
+            ],
+            "right_features": [
+              2,
+              16,
+              128
+            ],
+            "scaling_u": [
+              2,
+              16
+            ],
+            "scaling_v": [
+              2,
+              16
+            ]
+          },
+          "feature_rule": "deterministic_sinusoidal_positive_features",
+          "finite_features": true,
+          "finite_particles": true,
+          "iterations_used": 3,
+          "mathematical_object": "positive_feature_semantic_replacement_transport",
+          "max_column_residual": 1.1102230246251565e-16,
+          "max_iterations": 120,
+          "max_row_residual": 3.221883136750314e-05,
+          "min_feature_value": 0.006864256668933893,
+          "min_kernel_denominator": 0.753148641788633,
+          "nonclaims": [
+            "experimental Phase 5 semantic-replacement candidate only",
+            "no dense Gibbs equivalence claim",
+            "no speedup claim",
+            "no ranking claim",
+            "no production default change",
+            "no posterior correctness claim"
+          ],
+          "not_materialized_reason": "positive_feature_factors_nonmaterialized",
+          "num_features": 128,
+          "orientation": "source_rows_target_columns",
+          "positive_features": true,
+          "semantic_class": "semantic_replacement",
+          "semantic_replacement_reason": "deterministic positive features define a feature kernel instead of proving dense Gibbs approximation",
+          "source_route": "fixed_hmc_adaptation",
+          "source_route_components": {
+            "deterministic_feature_basis": "fixed_hmc_adaptation",
+            "filterflow_cost_scaling_adapter": "fixed_hmc_adaptation",
+            "linear_feature_scaling": "source_faithful",
+            "positive_feature_factorization": "source_faithful"
+          },
+          "source_status": "source_locked",
+          "transport_matrix_materialized": false,
+          "transport_object_kind": "kernel_factors"
+        },
+        "finite_features": true,
+        "finite_particles": true,
+        "max_column_residual": 1.1102230246251565e-16,
+        "max_row_residual": 3.221883136750314e-05,
+        "num_features": 128,
+        "particles_shape": [
+          2,
+          16,
+          5
+        ],
+        "positive_features": true,
+        "transport_object": {
+          "factor_shapes": {
+            "left_features": [
+              2,
+              16,
+              128
+            ],
+            "right_features": [
+              2,
+              16,
+              128
+            ],
+            "scaling_u": [
+              2,
+              16
+            ],
+            "scaling_v": [
+              2,
+              16
+            ]
+          },
+          "kind": "kernel_factors",
+          "materialized": false
+        },
+        "validity_pass": true,
+        "wall_time_seconds": 0.008550636004656553
+      }
+    },
+    "tiny_manual": {
+      "dense": {
+        "diagnostics": {
+          "application_mode": "active_rows_only",
+          "backend": "tensorflow",
+          "col_chunk_size": 1024,
+          "component_id": "filterflow_style_annealed_transport_tf",
+          "convergence_threshold": 0.001,
+          "epsilon": 0.5,
+          "finite_particles": true,
+          "finite_transport": true,
+          "fixed_target_sinkhorn_status": "not_this_algorithm_local_comparator_only",
+          "mathematical_object": "annealed_regularized_transport_transform",
+          "max_column_residual": 4.440892098500626e-16,
+          "max_cost_scale": 0.5491280967740283,
+          "max_iterations": 12,
+          "max_iterations_used": 13.0,
+          "max_log_weight_normalization_residual": 2.220446049250313e-16,
+          "max_row_residual": 0.012572528577494468,
+          "min_cost_scale": 0.5491280967740283,
+          "reference_algorithm": "canonical_executable_filterflow_regularised_transform",
+          "resampling_status": "annealed_transport_triggered_rows_only",
+          "row_chunk_size": 1024,
+          "scaling": 0.9,
+          "skipped_rows": 0.0,
+          "transport_backward_rule": "raw_tensorflow_transport_gradient",
+          "transport_gradient_mode": "raw",
+          "transport_matrix_materialized": true,
+          "transport_plan_mode": "dense",
+          "triggered_rows": 1.0
+        },
+        "finite_particles": true,
+        "finite_transport_matrix": true,
+        "max_column_residual": 4.440892098500626e-16,
+        "max_row_residual": 0.012572528577494468,
+        "particles_shape": [
+          1,
+          6,
+          3
+        ],
+        "wall_time_seconds": 0.7220818819478154
+      },
+      "input_shape": {
+        "log_weights": [
+          1,
+          6
+        ],
+        "particles": [
+          1,
+          6,
+          3
+        ]
+      },
+      "positive_feature": {
+        "dense_reference_max_abs_particle_error_explanatory": 0.14433277227617974,
+        "dense_reference_rms_particle_error_explanatory": 0.0605280771690451,
+        "diagnostics": {
+          "backend": "tensorflow",
+          "component_id": "positive_feature_transport_tf",
+          "convergence_threshold": 0.0001,
+          "denominator_floor": 1e-30,
+          "denominator_floor_hits": 0.0,
+          "epsilon": 0.5,
+          "factor_shapes": {
+            "left_features": [
+              1,
+              6,
+              128
+            ],
+            "right_features": [
+              1,
+              6,
+              128
+            ],
+            "scaling_u": [
+              1,
+              6
+            ],
+            "scaling_v": [
+              1,
+              6
+            ]
+          },
+          "feature_rule": "deterministic_sinusoidal_positive_features",
+          "finite_features": true,
+          "finite_particles": true,
+          "iterations_used": 4,
+          "mathematical_object": "positive_feature_semantic_replacement_transport",
+          "max_column_residual": 0.0,
+          "max_iterations": 120,
+          "max_row_residual": 1.1624250078723364e-05,
+          "min_feature_value": 0.006817059010816782,
+          "min_kernel_denominator": 0.7909106751596264,
+          "nonclaims": [
+            "experimental Phase 5 semantic-replacement candidate only",
+            "no dense Gibbs equivalence claim",
+            "no speedup claim",
+            "no ranking claim",
+            "no production default change",
+            "no posterior correctness claim"
+          ],
+          "not_materialized_reason": "positive_feature_factors_nonmaterialized",
+          "num_features": 128,
+          "orientation": "source_rows_target_columns",
+          "positive_features": true,
+          "semantic_class": "semantic_replacement",
+          "semantic_replacement_reason": "deterministic positive features define a feature kernel instead of proving dense Gibbs approximation",
+          "source_route": "fixed_hmc_adaptation",
+          "source_route_components": {
+            "deterministic_feature_basis": "fixed_hmc_adaptation",
+            "filterflow_cost_scaling_adapter": "fixed_hmc_adaptation",
+            "linear_feature_scaling": "source_faithful",
+            "positive_feature_factorization": "source_faithful"
+          },
+          "source_status": "source_locked",
+          "transport_matrix_materialized": false,
+          "transport_object_kind": "kernel_factors"
+        },
+        "finite_features": true,
+        "finite_particles": true,
+        "max_column_residual": 0.0,
+        "max_row_residual": 1.1624250078723364e-05,
+        "num_features": 128,
+        "particles_shape": [
+          1,
+          6,
+          3
+        ],
+        "positive_features": true,
+        "transport_object": {
+          "factor_shapes": {
+            "left_features": [
+              1,
+              6,
+              128
+            ],
+            "right_features": [
+              1,
+              6,
+              128
+            ],
+            "scaling_u": [
+              1,
+              6
+            ],
+            "scaling_v": [
+              1,
+              6
+            ]
+          },
+          "kind": "kernel_factors",
+          "materialized": false
+        },
+        "validity_pass": true,
+        "wall_time_seconds": 0.01827588095329702
+      }
+    }
+  },
+  "hard_vetoes": [],
+  "manifest": {
+    "command": "scalable_ot_p05_positive_feature_prototype_diagnostics.py",
+    "cuda_visible_devices": "-1",
+    "device": "/CPU:0",
+    "device_scope": "cpu",
+    "dtype": "tf.float64",
+    "git_commit": "7c92eaba6e260973a8af1c54df0d2d3efa4dc150",
+    "plan_path": "docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-p05-positive-feature-prototype-subplan-2026-06-17.md",
+    "platform": "Linux-6.8.0-111-generic-x86_64-with-glibc2.35",
+    "python": "3.13.13 | packaged by Anaconda, Inc. | (main, Apr 14 2026, 06:19:41) [GCC 14.3.0]",
+    "tensorflow_version": "2.20.0",
+    "timestamp_utc": "2026-06-17T19:21:09.573763+00:00"
+  },
+  "nonclaims": [
+    "Phase 5 positive-feature semantic-replacement diagnostics only",
+    "no dense Gibbs equivalence claim",
+    "no speedup claim",
+    "no ranking claim",
+    "no production default change",
+    "no posterior correctness claim",
+    "no general scalability claim"
+  ],
+  "phase5_status": "PHASE_5_POSITIVE_FEATURE_PROTOTYPE_PASSED_SEMANTIC_REPLACEMENT",
+  "semantic_class": "semantic_replacement",
+  "settings": {
+    "baseline_convergence_threshold": 0.001,
+    "baseline_max_iterations": 12,
+    "baseline_scaling": 0.9,
+    "denominator_floor": 1e-30,
+    "epsilon": 0.5,
+    "feature_convergence_threshold": 0.0001,
+    "feature_max_iterations": 120,
+    "num_features": 128
+  },
+  "source_route_components": {
+    "deterministic_feature_basis": "fixed_hmc_adaptation",
+    "filterflow_cost_scaling_adapter": "fixed_hmc_adaptation",
+    "linear_feature_scaling": "source_faithful",
+    "positive_feature_factorization": "source_faithful"
+  },
+  "status": "PASS",
+  "summary": {
+    "max_column_residual": 2.220446049250313e-16,
+    "max_dense_reference_particle_error_explanatory": 0.1487610111727833,
+    "max_dense_reference_rms_error_explanatory": 0.0810450420000197,
+    "max_row_residual": 3.221883136750314e-05
+  },
+  "thresholds": {
+    "dense_reference_error_role": "explanatory_only_for_semantic_replacement",
+    "row_column_residual_hard_veto": 0.05
+  },
+  "validity_pass": true
+}
