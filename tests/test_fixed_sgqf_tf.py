@@ -124,6 +124,41 @@ def test_fixed_sgqf_level2_4d_cloud_reproduces_standard_normal_covariance() -> N
     np.testing.assert_allclose(reconstructed, np.eye(4), atol=1e-12)
 
 
+def test_fixed_sgqf_level2_4d_cloud_reproduces_standard_normal_covariance() -> None:
+    cloud = tf_fixed_sgqf_cloud(4, 2)
+    mean = tf.linalg.matvec(tf.transpose(cloud.points), cloud.weights)
+    reconstructed = _weighted_covariance(cloud.points, cloud.weights)
+
+    assert cloud.point_count == 9
+    np.testing.assert_allclose(cloud.weight_total, 1.0, atol=1e-14)
+    np.testing.assert_allclose(mean, np.zeros(4), atol=1e-14)
+    np.testing.assert_allclose(reconstructed, np.eye(4), atol=1e-12)
+
+
+
+def test_fixed_sgqf_level3_1d_cloud_keeps_the_full_five_point_ghq_rule() -> None:
+    rule = tf_standard_normal_ghq_level_rule(3)
+    cloud = tf_fixed_sgqf_cloud(1, 3)
+
+    assert rule.point_count == 5
+    assert cloud.point_count == 5
+    np.testing.assert_allclose(cloud.points[:, 0].numpy(), rule.nodes.numpy(), atol=1e-12)
+    np.testing.assert_allclose(cloud.weights.numpy(), rule.weights.numpy(), atol=1e-12)
+
+
+
+def test_fixed_sgqf_level3_2d_cloud_matches_jia_example_point_count_and_covariance() -> None:
+    cloud = tf_fixed_sgqf_cloud(2, 3)
+    mean = tf.linalg.matvec(tf.transpose(cloud.points), cloud.weights)
+    reconstructed = _weighted_covariance(cloud.points, cloud.weights)
+
+    assert cloud.point_count == 17
+    np.testing.assert_allclose(cloud.weight_total, 1.0, atol=1e-14)
+    np.testing.assert_allclose(mean, np.zeros(2), atol=1e-14)
+    np.testing.assert_allclose(reconstructed, np.eye(2), atol=1e-12)
+
+
+
 def test_fixed_sgqf_branch_identity_is_stable_and_sensitive_to_branch_fields() -> None:
     cloud = tf_fixed_sgqf_cloud(3, 2)
     base = tf_fixed_sgqf_branch_identity(cloud)

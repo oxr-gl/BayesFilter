@@ -1,0 +1,331 @@
+\chapter{Deterministic Gaussian Projection and Point-Rule Foundations}
+\label{ch:bf-highdim-gaussian-point-rule-foundations}
+\providecommand{\widehatell}{\widehat{\ell}}
+\providecommand{\dotwidehatell}{\dot{\widehat{\ell}}}
+\providecommand{\dd}{\,\mathrm d}
+
+\section{Introduction And Scope}
+\label{sec:bf-hd-gq-intro}
+
+High-dimensional nonlinear filtering forces a choice of computational object.
+The exact Bayesian filter propagates a full conditional law through time, but in
+nonlinear models that law usually does not remain available in a finite closed
+form.  In low dimension one may still tolerate heavy deterministic quadrature or
+a richer non-Gaussian representation.  In high dimension, however, both cost and
+structural complexity escalate quickly.  This chapter studies one narrower lane:
+a deterministic Gaussian-surrogate filter that carries a single Gaussian object,
+uses explicit moment engines to approximate the nonlinear expectations it needs,
+and prepares the rule-family language that the next chapter will specialize to
+fixed sparse-grid quadrature.
+
+This chapter imports the exact-target and same-scalar discipline from
+Chapter~\ref{ch:bf-highdim-nonlinear-foundations}.  Its task is not yet to build
+the full sparse-grid algorithm.  It first fixes the deterministic Gaussian
+carried object, the Gaussian projection contract, and the point-rule family
+comparisons needed before sparse-grid specialization.  The next chapter,
+Chapter~\ref{ch:bf-highdim-sparse-grid-fixed-cloud}, then turns this shared
+Gaussian-rule foundation into the explicit fixed-cloud sparse-grid lane.
+
+The running quadratic-observation cell from
+Chapter~\ref{ch:bf-highdim-nonlinear-foundations} reappears here as a compact
+shared object, but the present chapter stays at the level of Gaussian carried
+objects and deterministic moment engines.  Low-dimensional cloud construction,
+value recursion, and the fixed-cloud scalar belong to the sparse-grid chapter
+that follows.
+
+The central limitation should be fixed at the outset.  A deterministic Gaussian
+lane does not claim exact nonlinear filtering, exact nonlinear likelihood
+evaluation, or faithful preservation of arbitrary multimodality, skewness, or
+high-order global interaction structure.  Its purpose is narrower: to ask
+whether one carried Gaussian, together with a declared deterministic moment
+engine, can provide a coherent and scientifically useful approximate likelihood
+lane in the regime under study.
+
+\paragraph{Background assumed.}
+The reader is assumed to know multivariate Gaussian notation, state-space-model
+notation, Jacobian-style derivative notation, and the use of a Cholesky factor
+for a positive-definite covariance matrix.  Sparse-grid merging, same-scalar
+branch identities, and fixed-cloud derivative obligations are defined where they
+first become necessary.
+
+\subsection{Problem Setting And Deterministic Gaussian Lanes}
+\label{sec:bf-hd-gq-problem-lane}
+
+The scientific problem is high-dimensional nonlinear filtering.  At time
+\(t\), the exact Bayesian filter propagates and updates the full conditional law
+\(p_\theta(x_t\mid y_{1:t})\).  In nonlinear models that law is generally not
+available in a finite-dimensional closed form, and in high dimension it becomes
+unrealistic to treat exact function-valued propagation as the practical
+computational object.  The deterministic Gaussian family therefore does not
+attempt to rescue exactness by notation.  It selects one approximate lane whose
+strengths and boundaries can both be stated explicitly.
+
+Within this family, the carried object is a single Gaussian surrogate
+\(\calN(m_t,P_t)\).  Different deterministic point-rule lanes then differ not in
+what object is carried, but in how the nonlinear Gaussian moments needed by the
+projection are approximated.  This chapter fixes that shared carried-object and
+moment-contract language before the next chapter specializes it to the fixed
+sparse-grid lane.
+
+\subsection{The Deterministic Gaussian Lane In One Page}
+\label{sec:bf-hd-gq-one-page}
+
+The deterministic Gaussian family studied here is defined by two deliberate
+approximations and one downstream derivative constraint.
+\begin{enumerate}[leftmargin=0.28in]
+  \item \textbf{Gaussian carried state.}  Instead of carrying the full filtering
+  law, the method carries one Gaussian summary \(\calN(m_t,P_t)\).
+  \item \textbf{Deterministic moment engine.}  The nonlinear Gaussian moments that
+  define the prediction and observation projection are approximated by a fixed
+  point-rule family in standardized coordinates.
+  \item \textbf{Same-scalar derivative discipline.}  Any later reported gradient must
+  be the derivative of one declared approximate scalar built from that same
+  deterministic moment engine.
+\end{enumerate}
+
+The exact object, the carried surrogate, and the eventual approximate scalar are
+therefore different in kind:
+\begin{equation}
+\begin{aligned}
+  \text{exact object:}
+  &\quad p_\theta(x_t\mid y_{1:t}), \\
+  \text{carried surrogate:}
+  &\quad \calN(m_t,P_t), \\
+  \text{declared approximate scalar:}
+  &\quad \widehat\ell_T^{(M)}(\theta)
+  \text{ for a chosen deterministic moment engine } M.
+\end{aligned}
+  \label{eq:bf-hd-gq-exact-vs-approximate-summary}
+\end{equation}
+This distinction is the governing contract of the deterministic Gaussian block.
+The next chapter will instantiate one specific engine, fixed sparse-grid
+quadrature, within this larger family.
+
+\subsection{Approximation Hierarchy And Reading Guide}
+\label{sec:bf-hd-gq-hierarchy}
+
+The deterministic Gaussian side of the expanded block unfolds in two chapter
+movements.  First, the exact filtering recursion and the Gaussian projection that
+replaces it are fixed formally.  Second, nearby deterministic point-rule families
+are compared at the level of their moment engines.  Only after that shared
+foundation is explicit does the next chapter specialize to sparse-grid
+construction, merged clouds, the filtering value path, and the fixed-cloud
+scalar.
+
+The main coordinates are:
+\begin{align}
+  \xi &\in \R^{n_x},
+  &\xi&\sim\calN(0,I_{n_x})
+  &&\hbox{standard quadrature coordinate},
+  \label{eq:bf-hd-gq-standard-coordinate}\\
+  x &= m+C\xi,
+  &CC^\top&=P
+  &&\hbox{physical state coordinate under a carried Gaussian},
+  \label{eq:bf-hd-gq-physical-coordinate}\\
+  a &= f_\theta(x),
+  &&
+  &&\hbox{transition image used for prediction},
+  \label{eq:bf-hd-gq-transition-coordinate}\\
+  z &= h_\theta(x),
+  &&
+  &&\hbox{observation image used for the innovation}.
+  \label{eq:bf-hd-gq-observation-coordinate}
+\end{align}
+A deterministic point-rule lane builds a finite rule in \(\xi\)-space and then
+places that rule into physical state space through the current Gaussian factor.
+That sentence is the bridge from the present foundations chapter to the
+sparse-grid chapter that follows.
+
+\section{Exact Filtering And Gaussian Projection}
+\label{sec:bf-hd-gq-exact-filtering}
+
+Use the additive-noise state-space model
+\begin{align}
+  X_t &= f_\theta(X_{t-1})+\eta_t,
+  &
+  \eta_t&\sim\calN(0,Q_\theta),
+  \label{eq:bf-hd-gq-state-model}\\
+  Y_t &= h_\theta(X_t)+\varepsilon_t,
+  &
+  \varepsilon_t&\sim\calN(0,R_\theta),
+  \label{eq:bf-hd-gq-observation-model}
+\end{align}
+with \(X_t\in\R^{n_x}\), \(Y_t\in\R^{n_y}\), and parameter
+\(\theta\in\R^p\).  The exact Bayesian prediction and update are
+\begin{align}
+  p_\theta(x_t\mid y_{1:t-1})
+  &=
+  \int p_\theta(x_t\mid x_{t-1})
+       p_\theta(x_{t-1}\mid y_{1:t-1})\dd x_{t-1},
+  \label{eq:bf-hd-gq-exact-prediction}\\
+  p_\theta(x_t\mid y_{1:t})
+  &=
+  \frac{
+  g_\theta(y_t\mid x_t)
+  p_\theta(x_t\mid y_{1:t-1})}
+  {\int g_\theta(y_t\mid x_t)
+  p_\theta(x_t\mid y_{1:t-1})\dd x_t}.
+  \label{eq:bf-hd-gq-exact-update}
+\end{align}
+In nonlinear models, these integrals usually do not close in finite-dimensional
+form.  Deterministic Gaussian filters replace those exact densities by a Gaussian
+moment projection.
+
+\subsection{Object Map And Deterministic Gaussian Conventions}
+\label{subsec:bf-hd-gq-object-map}
+
+The deterministic Gaussian family uses the following common objects.
+\begin{center}
+\small
+\begin{tabular}{p{0.20\linewidth}p{0.44\linewidth}p{0.22\linewidth}}
+\toprule
+symbol & meaning & shape \\
+\midrule
+\(m_t,P_t\) & carried Gaussian mean and covariance after update & \(n_x\), \(n_x\times n_x\) \\
+\(m_t^-,P_t^-\) & predictive Gaussian mean and covariance before update & \(n_x\), \(n_x\times n_x\) \\
+\(C_t,C_t^-\) & covariance factors with \(P_t=C_tC_t^\top\), \(P_t^-=C_t^-(C_t^-)^\top\) & \(n_x\times n_x\) \\
+\(\chi_t^{(r)}\) & deterministic physical rule point & \(n_x\) \\
+\(z_t^{(r)}\) & observation image of a rule point & \(n_y\) \\
+\(\bar z_t,S_t,C_{xz,t}\) & predicted observation mean, innovation covariance, cross-covariance & \(n_y\), \(n_y\times n_y\), \(n_x\times n_y\) \\
+\(v_t,K_t\) & innovation residual and Gaussian projection gain & \(n_y\), \(n_x\times n_y\) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Three implementation conventions are fixed chapter-wide.
+\begin{enumerate}[leftmargin=0.28in]
+  \item \textbf{Factor convention.}  Every covariance factor is the lower
+  triangular Cholesky factor with positive diagonal, written \(P=CC^\top\),
+  whenever the declared branch is valid.
+  \item \textbf{Solve convention.}  Formulas may use \(S_t^{-1}\) for compact
+  mathematics, but the implementation contract is to compute such actions by
+  linear solves against the declared factor of \(S_t\), not by forming an
+  explicit inverse.
+  \item \textbf{Noise convention.}  Additive process noise enters analytically
+  through \(Q_\theta\) in predictive moments and additive observation noise
+  through \(R_\theta\) in innovation moments.  This chapter does not use state
+  augmentation for these additive noises.
+\end{enumerate}
+
+\subsubsection{Gaussian Projection From Moments}
+\label{sec:bf-hd-gq-projection}
+
+Assume the predictive state is represented by
+\begin{equation}
+  X_t^-\sim\calN(m_t^-,P_t^-).
+  \label{eq:bf-hd-gq-predictive-gaussian}
+\end{equation}
+Let
+\begin{equation}
+  Z_t=h_\theta(X_t^-)
+  \label{eq:bf-hd-gq-predicted-observation}
+\end{equation}
+be the noiseless predicted observation.  The Gaussian projection needs
+\begin{align}
+  \bar z_t &= \E[Z_t],
+  \label{eq:bf-hd-gq-zbar}\\
+  S_t &= R_\theta+\E[(Z_t-\bar z_t)(Z_t-\bar z_t)^\top],
+  \label{eq:bf-hd-gq-S}\\
+  C_{xz,t}&=\E[(X_t^- -m_t^-)(Z_t-\bar z_t)^\top].
+  \label{eq:bf-hd-gq-Cxz}
+\end{align}
+Given these moments, define
+\begin{align}
+  v_t&=y_t-\bar z_t,
+  &
+  K_t&=C_{xz,t}S_t^{-1},
+  \label{eq:bf-hd-gq-v-K}\\
+  m_t&=m_t^-+K_tv_t,
+  &
+  P_t&=P_t^- - K_tS_tK_t^\top.
+  \label{eq:bf-hd-gq-projection-update}
+\end{align}
+The approximation has two layers.  First, these moments may be approximated by a
+deterministic point rule.  Second, the resulting posterior information is
+compressed back to one Gaussian.
+
+\subsubsection{How This Matches The Jia--Xin--Cheng Gaussian Approximation Block}
+\label{subsec:bf-hd-gq-jia-block}
+
+Jia, Xin, and Cheng first write the Gaussian approximation filter before they
+introduce sparse grids.  In their additive-noise setting, the sparse-grid part of
+the method answers only how to approximate the Gaussian expectations needed for
+\(m_t^-\), \(P_t^-\), \(\bar z_t\), \(S_t\), and \(C_{xz,t}\).  It does not
+change the fact that the filter stores one Gaussian pair \((m_t,P_t)\).
+
+In BayesFilter notation, that bridge has the generic form
+\begin{equation}
+  \E[F(\xi)]
+  \quad\leadsto\quad
+  \mathcal Q_M[F]
+  \quad\leadsto\quad
+  \sum_{r} w_r^{(M)} F(\xi_r^{(M)}),
+  \label{eq:bf-hd-gq-expectation-to-rule}
+\end{equation}
+where \(M\) denotes the chosen deterministic point-rule family.  The next
+chapter specializes this generic expectation-to-rule replacement to the fixed
+sparse-grid cloud and its stored scalar contract.
+
+\section{Deterministic Point-Rule Families}
+\label{sec:bf-hd-gq-rule-families}
+
+A deterministic Gaussian-surrogate lane is defined not only by the carried
+Gaussian object but also by the moment engine it uses.  The key families for the
+expanded high-dimensional block are:
+\begin{itemize}[leftmargin=0.28in]
+  \item local linearization (EKF-style moment closure),
+  \item low-order sigma-point rules (UKF/CKF-style closures),
+  \item dense Gauss--Hermite / tensor-product rules,
+  \item sparse-grid rules that the next chapter will specialize.
+\end{itemize}
+The decisive question is therefore not whether all these methods are “Gaussian,”
+but what deterministic moment engine they use and what that engine implies for
+the approximate scalar that later chapters may differentiate.
+
+The standard sigma-point interface already exists elsewhere in the monograph.
+Chapter~\ref{ch:bf-sigma-point-filters} gives the generic sigma-point
+moment-matching interface, while Chapter~\ref{ch:bf-square-root-sigma-point}
+clarifies square-root backend contracts.  The purpose here is not to reteach all
+sigma-point filters, but to position the deterministic point-rule family as the
+shared foundations of the sparse-grid specialization.
+
+\paragraph{Rule-family comparison discipline.}
+For a deterministic point rule with nodes \(\xi_r^{(M)}\), mean weights
+\(w_{r,m}^{(M)}\), and covariance/cross-covariance weights \(w_{r,c}^{(M)}\),
+the family-level operator has the form
+\begin{equation}
+  \bar z_t^{(M)}
+  \approx
+  \sum_r w_{r,m}^{(M)} h_\theta(m_t^-+C_t^-\xi_r^{(M)}),
+  \label{eq:bf-hd-gq-family-zbar}
+\end{equation}
+\begin{equation}
+  S_t^{(M)}
+  \approx
+  R_\theta+
+  \sum_r w_{r,c}^{(M)}\Delta_{t,r}^{(M)}\Delta_{t,r}^{(M)\top},
+  \label{eq:bf-hd-gq-family-S}
+\end{equation}
+with the matching cross-covariance operator defined analogously.  The one-weight
+specialization covers symmetric rules such as CKF-like or fixed sparse-grid
+clouds.  Standard scaled-UKF comparisons generally require distinct mean and
+covariance weights, so rule-family comparisons must preserve that distinction.
+
+\section{Exports To Sparse-Grid Specialization And Later Chapters}
+\label{sec:bf-hd-gq-exports}
+
+This chapter exports four things forward.
+\begin{enumerate}[label=(\arabic*), leftmargin=0.28in]
+  \item the exact-target versus Gaussian-carried-object distinction,
+  \item the Gaussian projection contract and its innovation objects,
+  \item the deterministic point-rule family language needed before sparse-grid
+  specialization,
+  \item the rule-family comparison discipline needed later when sparse-grid,
+  low-order sigma-point, and dense GHQ lanes are compared.
+\end{enumerate}
+
+The next chapter, Chapter~\ref{ch:bf-highdim-sparse-grid-fixed-cloud}, begins
+where this one stops: it instantiates one specific deterministic point-rule lane,
+fixed sparse-grid quadrature, and develops the low-dimensional cloud geometry,
+Smolyak structure, filtering value path, and fixed-cloud scalar that this shared
+foundations chapter has intentionally deferred.

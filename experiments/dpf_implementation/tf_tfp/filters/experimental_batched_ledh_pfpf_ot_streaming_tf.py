@@ -21,6 +21,7 @@ import tensorflow as tf
 
 from experiments.dpf_implementation.tf_tfp.filters.experimental_batched_ledh_pfpf_ot_tf import (
     DTYPE,
+    AnnealedTransportWarmstartStateTF,
     BatchedLEDHFlowTensors,
     BatchedLEDHPFPFOTValueScoreTensors,
     batched_annealed_transport_core_tf,
@@ -132,6 +133,7 @@ def batched_ledh_flow_streaming_particles_tf(
     observation_fn: Callable[[tf.Tensor], tf.Tensor],
     observation_jacobian_fn: Callable[[tf.Tensor], tf.Tensor],
     observation_residual_fn: Callable[[tf.Tensor, tf.Tensor], tf.Tensor],
+    prior_mean_fn: Callable[[tf.Tensor], tf.Tensor] | None = None,
     jitter: float | tf.Tensor = 1.0e-9,
     particle_chunk_size: int = DEFAULT_STREAMING_CHUNK_SIZE,
 ) -> StreamingLEDHFlowTensors:
@@ -195,6 +197,7 @@ def batched_ledh_flow_streaming_particles_tf(
             observation_fn=observation_fn,
             observation_jacobian_fn=observation_jacobian_fn,
             observation_residual_fn=observation_residual_fn,
+            prior_mean_fn=prior_mean_fn,
             jitter=jitter,
         )
         block_index = particle_start // chunk_tensor
@@ -261,6 +264,7 @@ def streaming_batched_ledh_pfpf_ot_value_core_tf(
     observation_residual_fn: Callable[[tf.Tensor, tf.Tensor], tf.Tensor],
     transition_log_density_fn: Callable[[tf.Tensor, tf.Tensor, tf.Tensor], tf.Tensor],
     observation_log_density_fn: Callable[[tf.Tensor, tf.Tensor, tf.Tensor], tf.Tensor],
+    prior_mean_fn: Callable[[tf.Tensor, tf.Tensor], tf.Tensor] | None = None,
     pre_flow_particles: tf.Tensor | None = None,
     pre_flow_step_fn: Callable[[tf.Tensor, tf.Tensor], tf.Tensor] | None = None,
     initial_log_weights: tf.Tensor | None = None,
@@ -270,11 +274,13 @@ def streaming_batched_ledh_pfpf_ot_value_core_tf(
     sinkhorn_iterations: int | tf.Tensor = 80,
     ledh_jitter: float | tf.Tensor = 1.0e-9,
     transport_plan_mode: str = "streaming",
+    transport_ad_mode: str = "stabilized",
     row_chunk_size: int = DEFAULT_STREAMING_CHUNK_SIZE,
     col_chunk_size: int = DEFAULT_STREAMING_CHUNK_SIZE,
     particle_chunk_size: int = DEFAULT_STREAMING_CHUNK_SIZE,
     skip_transport_when_no_active: bool = True,
     return_history: bool = False,
+    retained_teacher_warmstart_fn: Callable[[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor], AnnealedTransportWarmstartStateTF] | None = None,
 ) -> StreamingLEDHPFPFOTValueTensors:
     """Run a streaming fixed-branch batched LEDH-PFPF-OT value recursion."""
 
@@ -336,6 +342,8 @@ def streaming_batched_ledh_pfpf_ot_value_core_tf(
         current_particles: tf.Tensor,
         current_log_weights: tf.Tensor,
         current_log_likelihood: tf.Tensor,
+        *,
+        compute_diagnostics: bool,
     ) -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
         observation = observations[time_index]
         if pre_flow_step_fn is None:
@@ -353,6 +361,10 @@ def streaming_batched_ledh_pfpf_ot_value_core_tf(
             ):
                 raise ValueError("pre_flow_step_fn output shape mismatch")
 
+        step_prior_mean_fn = None
+        if prior_mean_fn is not None:
+            step_prior_mean_fn = lambda points: prior_mean_fn(points, time_index)
+
         flow = batched_ledh_flow_streaming_particles_tf(
             pre_flow_particles=pre_flow,
             ancestors=current_particles,
@@ -363,6 +375,7 @@ def streaming_batched_ledh_pfpf_ot_value_core_tf(
             observation_fn=observation_fn,
             observation_jacobian_fn=observation_jacobian_fn,
             observation_residual_fn=observation_residual_fn,
+            prior_mean_fn=step_prior_mean_fn,
             jitter=ledh_jitter,
             particle_chunk_size=particle_chunk_size,
         )
@@ -397,14 +410,30 @@ def streaming_batched_ledh_pfpf_ot_value_core_tf(
         )
         weights, incremental = _normalize_log_weights(corrected_log_weights)
         next_log_likelihood = current_log_likelihood + incremental
-        ess = 1.0 / tf.reduce_sum(weights * weights, axis=1)
-        mean, variance = _weighted_mean_and_variance(post_flow, weights)
+        if compute_diagnostics:
+            ess = 1.0 / tf.reduce_sum(weights * weights, axis=1)
+            mean, variance = _weighted_mean_and_variance(post_flow, weights)
+        else:
+            ess = tf.zeros([batch_size], dtype=DTYPE)
+            mean = tf.zeros([batch_size, state_dim], dtype=DTYPE)
+            variance = tf.zeros([batch_size, state_dim], dtype=DTYPE)
         normalized_log_weights = tf.math.log(
             tf.maximum(weights, _log_weight_floor())
         )
         mask = fixed_resampling_mask[:, time_index]
 
         def do_transport() -> tuple[tf.Tensor, tf.Tensor]:
+            warmstart_state = None
+            if retained_teacher_warmstart_fn is not None:
+                normalized_center = tf.reduce_mean(post_flow, axis=1, keepdims=True)
+                normalized_scale = tf.maximum(tf.math.reduce_std(post_flow, axis=1), tf.constant(1e-12, dtype=DTYPE))
+                scaled_post_flow = (post_flow - normalized_center) / normalized_scale[:, None, :]
+                warmstart_state = retained_teacher_warmstart_fn(
+                    scaled_post_flow,
+                    normalized_log_weights,
+                    mask,
+                    tf.cast(sinkhorn_epsilon, DTYPE),
+                )
             transported = batched_annealed_transport_core_tf(
                 post_flow,
                 normalized_log_weights,
@@ -415,16 +444,25 @@ def streaming_batched_ledh_pfpf_ot_value_core_tf(
                 max_iterations=sinkhorn_iterations,
                 transport_gradient_mode="raw",
                 transport_plan_mode=transport_plan_mode,
+                transport_ad_mode=transport_ad_mode,
                 row_chunk_size=row_chunk_size,
                 col_chunk_size=col_chunk_size,
+                warmstart_state=warmstart_state,
             )
             return transported.particles, transported.log_weights
 
         def skip_transport() -> tuple[tf.Tensor, tf.Tensor]:
             return post_flow, normalized_log_weights
 
+        dynamic_no_resampling = tf.logical_not(tf.reduce_any(mask))
         if static_no_resampling:
             next_particles, next_log_weights = skip_transport()
+        elif skip_transport_when_no_active:
+            next_particles, next_log_weights = tf.cond(
+                dynamic_no_resampling,
+                skip_transport,
+                do_transport,
+            )
         else:
             next_particles, next_log_weights = do_transport()
 
@@ -479,6 +517,7 @@ def streaming_batched_ledh_pfpf_ot_value_core_tf(
                 current_particles,
                 current_log_weights,
                 current_log_likelihood,
+                compute_diagnostics=True,
             )
             means_acc = means_acc.write(time_index, mean)
             variances_acc = variances_acc.write(time_index, variance)
@@ -534,6 +573,7 @@ def streaming_batched_ledh_pfpf_ot_value_core_tf(
                 current_particles,
                 current_log_weights,
                 current_log_likelihood,
+                compute_diagnostics=False,
             )
             return (
                 time_index + 1,

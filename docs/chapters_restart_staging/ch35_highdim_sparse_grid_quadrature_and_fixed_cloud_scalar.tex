@@ -1,0 +1,401 @@
+\chapter[Gaussian And High-Order Filters]{Sparse-Grid Quadrature and the Fixed-Cloud Scalar}
+\label{ch:bf-highdim-sparse-grid-fixed-cloud}
+\label{ch:bf-highdim-gaussian-quadrature}
+\providecommand{\widehatell}{\widehat{\ell}}
+\providecommand{\dotwidehatell}{\dot{\widehat{\ell}}}
+\providecommand{\dd}{\,\mathrm d}
+
+\section{Purpose And Scope}
+\label{sec:bf-hd-sgqf-purpose}
+
+This chapter is the fixed sparse-grid quadrature lane itself.  The preceding
+chapter fixed the deterministic Gaussian carried object, the Gaussian
+projection contract, and the rule-family comparison language.  The present
+chapter now commits to one specific deterministic moment engine: a fixed,
+merged sparse-grid cloud in standardized Gaussian coordinates.
+
+The chapter therefore owns four burdens that should stay together:
+\begin{enumerate}[leftmargin=0.28in]
+  \item low-dimensional cloud construction from one-dimensional rules,
+  \item active bands and Smolyak coefficients,
+  \item duplicate merging and the stored cloud object,
+  \item the fixed-cloud scalar object exported to the later SGQF continuation,
+  fixed-branch, and validation chapters.
+\end{enumerate}
+The later continuation chapter,
+Chapter~\ref{ch:bf-highdim-fixed-cloud-sgqf-validation}, takes up the forward
+value path, the one-step numeric oracle, and the SGQF-specific same-branch
+validation burden.  The present chapter stays on cloud construction mechanics so
+that the reader can understand the sparse-grid object before it is asked to carry
+a likelihood scalar.
+
+\section{Low-Dimensional Construction Of FixedSGQF}
+\label{sec:p34-motivating-cases}
+
+This chapter develops the sparse-grid construction in the order a reader usually
+needs it.  Start from one nonlinear Gaussian moment in one coordinate.  Lift that
+rule to a tensor-product cloud in two coordinates.  Then ask how the same
+construction becomes too expensive in higher dimension and how the sparse-grid
+combination reduces that cost without changing the underlying standardized-coordinate
+logic.
+
+\subsection{One nonlinear Gaussian moment as the basic quadrature problem}
+\label{subsec:p34-scalar-motivation}
+
+Start with a scalar Gaussian input and a simple nonlinear observation map.
+Let
+\begin{equation}
+  X\sim\calN(m,P),
+  \qquad
+  h(X)=X^2.
+  \label{eq:p34-scalar-gaussian-model}
+\end{equation}
+Suppose we want the Gaussian-projection observation mean
+\begin{equation}
+  \bar z = \E[h(X)] = \E[X^2].
+  \label{eq:p34-scalar-target-mean}
+\end{equation}
+Write \(X=m+C\xi\) with \(\xi\sim\calN(0,1)\) and \(C^2=P\).  Then
+\begin{equation}
+  \bar z
+  =
+  \int_{\R} (m+C\xi)^2\phi(\xi)\dd\xi.
+  \label{eq:p34-standardized-integral}
+\end{equation}
+Once the state has been standardized, the moment problem becomes a
+standard-normal weighted integral.  The quadrature rule is therefore a numerical
+approximation to a Gaussian expectation, not an extra modeling layer with a
+separate target.
+
+\subsection{Tensor-product growth in two dimensions}
+\label{subsec:p34-2d-motivation}
+
+Now move from one coordinate to two.  Let
+\begin{equation}
+  X\sim\calN(m,P),
+  \qquad X\in\R^2,
+  \label{eq:p34-2d-gaussian}
+\end{equation}
+and write \(X=m+C\xi\) with \(\xi\sim\calN(0,I_2)\).  If each standardized
+coordinate uses the three-point rule \(\{-\sqrt3,0,\sqrt3\}\), then the direct
+tensor product uses all pairs
+\begin{equation}
+  (\xi_1,\xi_2)
+  \in
+  \{-\sqrt3,0,\sqrt3\}\times\{-\sqrt3,0,\sqrt3\},
+  \label{eq:p34-2d-tensor-points}
+\end{equation}
+so already in two dimensions the rule has \(3^2=9\) points, while in three
+dimensions it has \(3^3=27\) points.  Sparse-grid construction tries to keep the
+same standardized-coordinate logic while avoiding the full tensor explosion.
+
+\subsection{One-Dimensional Rules And Their Tensor Products}
+\label{sec:p31-ghq}
+
+A one-dimensional standard-normal quadrature rule at level \(\ell\) is a weighted
+sum
+\begin{equation}
+  I_\ell[\psi]
+  =
+  \sum_{a=1}^{s_\ell}\omega_{\ell,a}\psi(\zeta_{\ell,a})
+  \approx
+  \int_{\R}\psi(\xi)\phi(\xi)\dd \xi.
+  \label{eq:p31-univariate-rule}
+\end{equation}
+The chapter fixes the odd-point standard-normal GHQ ladder as its concrete
+one-dimensional family:
+\begin{equation}
+  I_1 = \text{1-point standard-normal GHQ},
+  \qquad
+  I_2 = \text{3-point standard-normal GHQ},
+  \qquad
+  I_3 = \text{5-point standard-normal GHQ},
+  \label{eq:p41-ghq-family}
+\end{equation}
+which is stronger than the source theorem’s minimal exactness requirement and is
+particularly useful for transparent 1D/2D/3D teaching examples.
+
+The tensor rule attached to a multi-index \(\mathbf i=(i_1,\ldots,i_b)\) is
+\begin{equation}
+  I_{\mathbf i}[F]
+  =
+  (I_{i_1}\otimes\cdots\otimes I_{i_b})[F].
+  \label{eq:p31-tensor-rule}
+\end{equation}
+This is simply the Cartesian-product lift of the one-dimensional rules.
+
+\subsection{Three-dimensional preview: why sparse grids help}
+\label{sec:p38-three-dimensional-preview}
+
+The 3D preview is the first place where sparse grids become visibly different
+from dense tensor rules.  With the 3-point GHQ family in each coordinate, the
+dense rule has 27 points.  The low sparse-grid level keeps only the tensor rules
+whose total level lies in a narrow active band, then combines them with signed
+Smolyak coefficients and merges repeated nodes.  The practical message is that
+sparse grids are not “drop some points from a tensor product.”  They are a
+signed combination of tensor rules followed by duplicate accumulation into one
+stored cloud.
+
+\paragraph{A fully worked two-dimensional tensor example.}
+Take \(b=2\) and use
+\begin{equation}
+  I_1:(0,1),
+  \qquad
+  I_2:\left\{\left(-\sqrt3,\frac16\right),\left(0,\frac23\right),
+  \left(\sqrt3,\frac16\right)\right\}.
+  \label{eq:bf-hd-sgqf-2d-rules}
+\end{equation}
+Then the tensor rules \((1,1)\), \((1,2)\), and \((2,1)\) are completely
+explicit:
+\begin{align}
+  (1,1)&:\ (0,0)\ \text{with weight}\ 1,
+  \label{eq:bf-hd-sgqf-rule-11}\\
+  (1,2)&:\ (0,-\sqrt3),(0,0),(0,\sqrt3)
+  \ \text{with weights}\ \frac16,\frac23,\frac16,
+  \label{eq:bf-hd-sgqf-rule-12}\\
+  (2,1)&:\ (-\sqrt3,0),(0,0),(\sqrt3,0)
+  \ \text{with weights}\ \frac16,\frac23,\frac16.
+  \label{eq:bf-hd-sgqf-rule-21}
+\end{align}
+So the sparse-grid level-2 band in two dimensions already shows the key pattern:
+one origin contribution from \((1,1)\) and two axis triples from \((1,2)\) and
+\((2,1)\).
+
+\paragraph{A concrete 3D sparse-grid preview.}
+For \(b=3\) and \(L=2\), the active band is not the full tensor rule \((2,2,2)\).
+Instead it contains
+\begin{equation}
+  (1,1,1),
+  \qquad
+  (1,1,2),
+  \qquad
+  (1,2,1),
+  \qquad
+  (2,1,1),
+  \label{eq:bf-hd-sgqf-3d-active-indices}
+\end{equation}
+with coefficients
+\begin{equation}
+  c_{(1,1,1)}=-2,
+  \qquad
+  c_{(1,1,2)}=1,
+  \qquad
+  c_{(1,2,1)}=1,
+  \qquad
+  c_{(2,1,1)}=1.
+  \label{eq:bf-hd-sgqf-3d-coefficients}
+\end{equation}
+Before duplicate merging, those four tensor rules contribute
+\begin{equation}
+  1+3+3+3=10
+  \label{eq:bf-hd-sgqf-3d-raw-count}
+\end{equation}
+raw node-weight contributions, not 27.  After merging, the origin contribution
+from \((1,1,1)\) and the three level-mixed rules accumulates to
+\begin{equation}
+  -2+\frac23+\frac23+\frac23=0,
+  \label{eq:bf-hd-sgqf-3d-origin-cancel}
+\end{equation}
+so the center cancels completely, leaving the six axis points
+\begin{equation}
+  (\pm\sqrt3,0,0),\ (0,\pm\sqrt3,0),\ (0,0,\pm\sqrt3),
+  \label{eq:bf-hd-sgqf-3d-axis-cloud}
+\end{equation}
+each with weight \(1/6\).  This is the concrete sense in which a low sparse-grid
+rule can collapse a 27-point dense picture into a 6-point stored cloud while
+still preserving selected low-order structure.
+
+\section{Sparse-Grid Rule Reconstructed In Source Order}
+\label{sec:p31-sgq-reconstruction}
+
+For a declared sparse-grid level \(L\), the active band may be written as
+\begin{equation}
+  \mathcal A_{b,L}
+  =
+  \{\mathbf i\in\mathbb N^b: L\le |\mathbf i|\le L+b-1\},
+  \qquad |\mathbf i|=\sum_{j=1}^b i_j.
+  \label{eq:p31-level-band}
+\end{equation}
+This notation is the key to the low-dimensional examples: for \(b=2,L=2\), the
+active band gives \((1,1),(1,2),(2,1)\), not \((2,2)\).  For \(b=3,L=2\), it
+gives the four tensor rules that build the low-level 3D sparse-grid preview.
+
+The Smolyak coefficient attached to \(\mathbf i\) is
+\begin{equation}
+  c_{\mathbf i}
+  =
+  (-1)^{L+b-1-|\mathbf i|}
+  \binom{b-1}{L+b-1-|\mathbf i|}.
+  \label{eq:p31-smolyak-coeff}
+\end{equation}
+Hence the sparse-grid quadrature approximation is
+\begin{equation}
+  A_{b,L}[F]
+  =
+  \sum_{\mathbf i\in\mathcal A_{b,L}} c_{\mathbf i}I_{\mathbf i}[F].
+  \label{eq:p31-smolyak-rule}
+\end{equation}
+This coefficient can be negative.  That fact is central: it is why later
+covariance and innovation objects must be checked rather than assumed safe just
+because each component tensor rule individually looks Gaussian-friendly.
+
+\subsection{From Formula To Point Cloud}
+\label{subsec:p32-cloud-construction}
+
+The runtime object used later by the filter is not a symbolic Smolyak
+expression and not a raw tensor rule.  It is the merged, sorted list of
+standardized nodes and accumulated signed weights:
+\begin{equation}
+  \mathcal C_{b,L}
+  =
+  \{(\xi^{(r)},w_r)\}_{r=1}^{M_{b,L}}.
+  \label{eq:p31-fixed-cloud}
+\end{equation}
+That means the cloud-construction contract must specify:
+\begin{enumerate}[leftmargin=0.28in]
+  \item the one-dimensional rule family,
+  \item the active band and Smolyak coefficients,
+  \item duplicate-merge tolerance,
+  \item zero-weight pruning rule,
+  \item deterministic node ordering.
+\end{enumerate}
+If two implementations use the same nominal level \(L\) but merge nearly equal
+nodes differently, they have not necessarily evaluated the same scalar.
+
+\paragraph{Raw-to-merged 2D cloud walkthrough.}
+For \((b,L)=(2,2)\), the active indices are \((1,1)\), \((1,2)\), and
+\((2,1)\) with coefficients \(-1,+1,+1\).  Before merging, the origin appears
+three times:
+\begin{equation}
+  (0,0)\ \text{from }(1,1),
+  \qquad
+  (0,0)\ \text{from }(1,2),
+  \qquad
+  (0,0)\ \text{from }(2,1).
+  \label{eq:bf-hd-sgqf-2d-origin-repeat}
+\end{equation}
+Its accumulated signed weight is
+\begin{equation}
+  -1+\frac23+\frac23=\frac13,
+  \label{eq:bf-hd-sgqf-2d-origin-accum}
+\end{equation}
+while the four axis nodes each receive weight \(1/6\).  So the final merged
+five-point cloud is
+\begin{equation}
+  \{(0,0),(\pm\sqrt3,0),(0,\pm\sqrt3)\}
+  \quad\text{with weights}\quad
+  \left\{\frac13,\frac16,\frac16,\frac16,\frac16\right\}.
+  \label{eq:bf-hd-sgqf-2d-merged-cloud}
+\end{equation}
+This is the minimal nontrivial example showing why the stored object is a merged
+cloud rather than a symbolic list of tensor rules.
+
+\paragraph{Raw-to-merged 3D cloud walkthrough.}
+For \((b,L)=(3,2)\), the active indices from
+\eqref{eq:bf-hd-sgqf-3d-active-indices} contribute ten raw node-weight terms in
+total.  Seven distinct node locations appear before zero-weight pruning: the
+origin and the six axis nodes \((\pm\sqrt3,0,0)\), \((0,\pm\sqrt3,0)\),
+\((0,0,\pm\sqrt3)\).  The origin weight cancels by
+\eqref{eq:bf-hd-sgqf-3d-origin-cancel}, leaving six stored nodes after pruning.
+So the bookkeeping path is
+\begin{equation}
+  10\ \text{raw contributions}
+  \longrightarrow
+  7\ \text{merged node locations}
+  \longrightarrow
+  6\ \text{stored nodes after zero-weight pruning}.
+  \label{eq:bf-hd-sgqf-3d-merge-counts}
+\end{equation}
+This is the concrete 3D sparse-grid reduction the panel asked to see: a 27-point
+dense tensor picture is replaced by a six-point merged sparse-grid cloud because
+the low-level signed combination preserves only the required axis-quadratic
+structure.
+
+\paragraph{Deterministic merge / prune / order policy.}
+A fixed-cloud builder routine should execute the following deterministic policy:
+\begin{enumerate}[leftmargin=0.28in]
+  \item enumerate every active tensor rule and every raw tensor node in a fixed,
+  lexicographic order,
+  \item for each raw node \(\xi^{\mathbf i,\alpha}\), look for an existing stored
+  node \(\xi\) satisfying
+  \begin{equation}
+    \|\xi^{\mathbf i,\alpha}-\xi\|_\infty
+    \le
+    \tau_{\rm merge}
+    :=10^{-12}\max\{1,\|\xi\|_\infty\},
+    \label{eq:bf-hd-sgqf-merge-rule}
+  \end{equation}
+  \item if such a node exists, accumulate the signed weight
+  \(c_{\mathbf i}w^{\mathbf i,\alpha}\); otherwise add a new dictionary entry,
+  \item remove entries whose accumulated absolute weight is below the declared
+  numerical-zero threshold,
+  \item sort the surviving nodes lexicographically and store the final cloud in
+  that order.
+\end{enumerate}
+For the fixed BayesFilter scalar, the cloud \(\mathcal C_{b,L}\), the univariate
+rules, the merge tolerance, the zero-weight rule, the sorting convention, and
+the accumulated signed weights are all part of the target.  If two implementations
+use the same nominal level but merge nearly equal floating-point nodes
+differently, they have not necessarily evaluated the same scalar.
+
+\paragraph{Implementation-facing cloud-builder contract.}
+The runtime object produced by this section is a stored cloud builder routine of
+the form
+\texttt{build\_fixed\_sparse\_grid\_cloud(}$(b,L,\{I_\ell\},\tau_{\rm merge},\tau_{\rm zero})$\texttt{)}
+that returns the sorted merged cloud \(\mathcal C_{b,L}\), its weight-total
+diagnostic, and any signed-weight diagnostics used later in validation.  The
+mathematics above is the authoritative definition of that routine.
+
+\subsection{Exactness, Point Count, And The UKF Relation}
+\label{subsec:p32-source-theorems}
+
+The chapter uses the source exactness and UKF-relation results in one narrow
+way.  They justify the low-level rule-family orientation and the fact that a
+merged sparse-grid cloud can look very UKF-like in special symmetric-axis cases.
+They do not justify identifying sparse-grid filtering with UKF filtering, and
+they do not remove Gaussian projection error.  The point of the UKF bridge here
+is explanatory: it helps the reader see when two deterministic clouds can look
+similar geometrically even though their construction contracts differ.
+
+\section{What The Fixed Cloud Exports Forward}
+\label{sec:bf-hd-sgqf-exports}
+
+This construction chapter now hands the SGQF continuation chapter a fully
+specified sparse-grid object:
+\begin{equation}
+\begin{aligned}
+  &\text{stored cloud: } \mathcal C_{b,L}=\{(\xi^{(r)},w_r)\}_{r=1}^{M_{b,L}},\\
+  &\text{construction metadata: } \{\text{rule family},\ \mathcal A_{b,L},\ c_{\mathbf i},
+  \text{merge tolerance},\ \text{zero-weight rule},\ \text{node ordering}\},\\
+  &\text{declared downstream role: } \mathcal C_{b,L}
+  \text{ is the fixed quadrature object from which the SGQF scalar is built.}
+\end{aligned}
+  \label{eq:bf-hd-sgqf-construction-export}
+\end{equation}
+The next chapter,
+Chapter~\ref{ch:bf-highdim-fixed-cloud-sgqf-validation}, uses this already-fixed
+cloud to define the forward value path, the one-step numeric oracle, and the
+lane-specific same-branch validation contract.
+
+\section{Methodological Boundary And Non-Claims}
+\label{sec:bf-hd-sgqf-boundary}
+
+The sparse-grid lane should be read as a deterministic Gaussian-surrogate method
+with a declared fixed cloud, not as a full non-Gaussian posterior method.  Its
+strength is transparency: the cloud, signed weights, and construction metadata
+are explicit.  Its limitation is equally explicit: one Gaussian carried object
+can still lose multimodality, strong asymmetry, and broad interaction structure
+even when the sparse-grid moment engine itself is accurate for the Gaussian
+moments it is asked to approximate.
+
+Exported forward:
+- Chapter~\ref{ch:bf-highdim-fixed-cloud-sgqf-validation} takes up the value-path,
+  numeric-oracle, and SGQF validation burden on the fixed cloud defined here.
+- Chapter~\ref{ch:bf-highdim-low-rank-density-kr} takes up richer retained-object
+  alternatives when one Gaussian is too narrow.
+- Chapter~\ref{ch:bf-highdim-fixed-branch-same-scalar} may import the fixed-cloud
+  scalar and branch-defining sparse-grid metadata only after the SGQF continuation
+  chapter has stated them explicitly.
+- Chapter~\ref{ch:bf-highdim-validation-defect-promotion} may import only the
+  declared Gaussian-projection defect, point-explosion / active-dimension defect,
+  and sparse-grid scalar contract stated across this chapter and its continuation.

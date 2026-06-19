@@ -5,9 +5,13 @@
 
 ## Purpose
 
-Rebuild `docs/chapters/ch37_highdim_filtering_candidate_synthesis.tex` so it
-functions as a true synthesis chapter using the rewritten `ch34` and `ch35` as
-its inputs.
+Refine `docs/chapters/ch37_highdim_filtering_candidate_synthesis.tex` as the
+book-level synthesis chapter now that the integrated chapter is structurally
+present.
+
+This phase should focus on synthesis pruning and promotion-rule audit so the
+chapter consumes the rewritten `ch34` and `ch35` exports rather than reopening
+derivations.
 
 ## Scope
 
@@ -16,6 +20,14 @@ its inputs.
 - promotion rules,
 - lane-specific strengths and limits,
 - deterministic Gaussian versus TT/KR lane selection logic.
+
+The active pass should explicitly cover:
+- pruning repeated derivation or pedagogy from `ch37`,
+- auditing that every promotion/veto statement traces back to exported upstream
+  objects,
+- tightening source-risk and non-claim language,
+- preserving room for bounded Phase 5 editorial cleanup without expanding the
+  chapter’s technical claims.
 
 ## Chapter goal
 
@@ -28,4 +40,8 @@ Make `ch37` the book-level answer to:
 
 - `ch37` reads as synthesis, not as a fresh derivation,
 - it does not repeat the pedagogy of `ch34` or `ch35`,
-- and it clearly states the selection logic of the high-dimensional block.
+- it clearly states the selection logic of the high-dimensional block,
+- major promotion/veto claims remain traceable to exported upstream objects and do
+  not create fresh technical content by synthesis alone,
+- later Phase 5 editorial cleanup may still refine wording, but must not expand
+  the chapter’s technical claims.

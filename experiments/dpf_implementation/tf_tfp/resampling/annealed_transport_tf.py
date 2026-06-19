@@ -12,6 +12,13 @@ DEFAULT_DTYPE = tf.float64
 DTYPE = DEFAULT_DTYPE
 DEFAULT_STREAMING_CHUNK_SIZE = 1024
 _STREAMING_LOG_ZERO = -1.0e30
+TRANSPORT_AD_MODES = {
+    "stabilized",
+    "diff-scale",
+    "diff-keys",
+    "diff-potentials",
+    "full",
+}
 
 
 @dataclass(frozen=True)
@@ -20,6 +27,31 @@ class AnnealedTransportTFResult:
     log_weights: tf.Tensor
     transport_matrix: tf.Tensor
     diagnostics: dict[str, Any]
+
+
+@dataclass(frozen=True)
+class AnnealedTransportWarmstartStateTF:
+    a_y: tf.Tensor
+    b_x: tf.Tensor
+    a_x: tf.Tensor
+    b_y: tf.Tensor
+    valid_mask: tf.Tensor
+
+
+def build_annealed_transport_warmstart_state_tf(
+    a_y: tf.Tensor,
+    b_x: tf.Tensor,
+    a_x: tf.Tensor,
+    b_y: tf.Tensor,
+    valid_mask: tf.Tensor,
+) -> AnnealedTransportWarmstartStateTF:
+    return AnnealedTransportWarmstartStateTF(
+        a_y=tf.cast(a_y, DTYPE),
+        b_x=tf.cast(b_x, DTYPE),
+        a_x=tf.cast(a_x, DTYPE),
+        b_y=tf.cast(b_y, DTYPE),
+        valid_mask=tf.reshape(tf.cast(valid_mask, tf.bool), [-1]),
+    )
 
 
 def annealed_transport_resample_tf(
@@ -34,8 +66,10 @@ def annealed_transport_resample_tf(
     transport_gradient_mode: str = "filterflow_clipped",
     application_mode: str = "active_rows_only",
     transport_plan_mode: str = "dense",
+    transport_ad_mode: str = "stabilized",
     row_chunk_size: int = DEFAULT_STREAMING_CHUNK_SIZE,
     col_chunk_size: int = DEFAULT_STREAMING_CHUNK_SIZE,
+    warmstart_state: AnnealedTransportWarmstartStateTF | None = None,
 ) -> AnnealedTransportTFResult:
     """Apply filterflow RegularisedTransform-style annealed transport.
 
@@ -59,6 +93,7 @@ def annealed_transport_resample_tf(
         raise ValueError("application_mode must be 'active_rows_only' or 'filterflow_all_rows'")
     if transport_plan_mode not in {"dense", "streaming"}:
         raise ValueError("transport_plan_mode must be 'dense' or 'streaming'")
+    _validate_transport_ad_mode(transport_ad_mode)
     if transport_plan_mode == "streaming" and transport_gradient_mode != "raw":
         raise ValueError("streaming transport currently supports transport_gradient_mode='raw' only")
     if row_chunk_size <= 0 or col_chunk_size <= 0:
@@ -109,8 +144,10 @@ def annealed_transport_resample_tf(
             max_iterations=max_iterations,
             transport_gradient_mode=transport_gradient_mode,
             transport_plan_mode=transport_plan_mode,
+            transport_ad_mode=transport_ad_mode,
             row_chunk_size=row_chunk_size,
             col_chunk_size=col_chunk_size,
+            warmstart_state=warmstart_state,
         )
         out_particles = tf.where(mask[:, None, None], transported, x)
         if transport_plan_mode == "dense":
@@ -134,6 +171,7 @@ def annealed_transport_resample_tf(
             max_iterations=max_iterations,
             transport_gradient_mode=transport_gradient_mode,
             transport_plan_mode=transport_plan_mode,
+            transport_ad_mode=transport_ad_mode,
             row_chunk_size=row_chunk_size,
             col_chunk_size=col_chunk_size,
         )
@@ -171,8 +209,10 @@ def annealed_transport_resample_tf(
         "convergence_threshold": float(convergence_threshold),
         "max_iterations": int(max_iterations),
         "transport_gradient_mode": transport_gradient_mode,
+        "transport_ad_mode": transport_ad_mode,
         "application_mode": application_mode,
         "transport_plan_mode": transport_plan_mode,
+        "warmstart_used": bool(warmstart_state is not None),
         "transport_matrix_materialized": transport_plan_mode == "dense",
         "row_chunk_size": int(row_chunk_size),
         "col_chunk_size": int(col_chunk_size),
@@ -213,16 +253,26 @@ def _transport_active(
     max_iterations: int,
     transport_gradient_mode: str,
     transport_plan_mode: str = "dense",
+    transport_ad_mode: str = "stabilized",
     row_chunk_size: int = DEFAULT_STREAMING_CHUNK_SIZE,
     col_chunk_size: int = DEFAULT_STREAMING_CHUNK_SIZE,
+    warmstart_state: AnnealedTransportWarmstartStateTF | None = None,
 ) -> tuple[tf.Tensor, tf.Tensor, dict[str, tf.Tensor | bool]]:
+    _validate_transport_ad_mode(transport_ad_mode)
     x = tf.cast(particles, DTYPE)
     logw = tf.cast(log_weights, DTYPE)
     batch_size = tf.shape(x)[0]
     num_particles = tf.shape(x)[1]
-    centered = x - tf.stop_gradient(tf.reduce_mean(x, axis=1, keepdims=True))
+    center = tf.reduce_mean(x, axis=1, keepdims=True)
+    if _transport_ad_stop_scale(transport_ad_mode):
+        center = tf.stop_gradient(center)
+    centered = x - center
     scale = _filterflow_scale(x)
-    scaled_x = centered / tf.stop_gradient(scale[:, None, None])
+    if _transport_ad_stop_scale(transport_ad_mode):
+        scale_for_division = tf.stop_gradient(scale)
+    else:
+        scale_for_division = scale
+    scaled_x = centered / scale_for_division[:, None, None]
     epsilon_tensor = tf.constant(epsilon, DTYPE)
     scaling_tensor = tf.constant(scaling, DTYPE)
     threshold_tensor = tf.constant(convergence_threshold, DTYPE)
@@ -242,6 +292,8 @@ def _transport_active(
             num_particles,
             row_chunk_size=row_chunk_size,
             col_chunk_size=col_chunk_size,
+            transport_ad_mode=transport_ad_mode,
+            warmstart_state=warmstart_state,
         )
     elif transport_gradient_mode == "filterflow_custom_op":
         transport_matrix, iterations = _filterflow_custom_gradient_transport_matrix(
@@ -268,6 +320,8 @@ def _transport_active(
             threshold_tensor,
             max_iterations_tensor,
             num_particles,
+            transport_ad_mode=transport_ad_mode,
+            warmstart_state=warmstart_state,
         )
         if transport_gradient_mode == "filterflow_clipped":
             transport_matrix = _clip_transport_upstream_gradient(transport_matrix)
@@ -286,6 +340,31 @@ def _transport_active(
         "finite_transport": bool(tf.reduce_all(tf.math.is_finite(transport_matrix)).numpy()),
         "finite_particles": bool(tf.reduce_all(tf.math.is_finite(transported)).numpy()),
     }
+
+
+def _validate_transport_ad_mode(mode: str) -> str:
+    if mode not in TRANSPORT_AD_MODES:
+        raise ValueError(
+            "transport_ad_mode must be one of "
+            f"{sorted(TRANSPORT_AD_MODES)}"
+        )
+    return mode
+
+
+def _transport_ad_stop_scale(mode: str) -> bool:
+    return mode not in {"diff-scale", "full"}
+
+
+def _transport_ad_stop_keys(mode: str) -> bool:
+    return mode not in {"diff-keys", "full"}
+
+
+def _transport_ad_stop_potentials(mode: str) -> bool:
+    return mode not in {"diff-potentials", "full"}
+
+
+def _maybe_stop(value: tf.Tensor, *, stop: bool) -> tf.Tensor:
+    return tf.stop_gradient(value) if stop else value
 
 
 def _validate_chunk_size(value: int, name: str) -> int:
@@ -331,6 +410,16 @@ def _slice_axis1_padded_2d(
     return padded
 
 
+def _epsilon_per_batch(epsilon: tf.Tensor, batch_size: tf.Tensor) -> tf.Tensor:
+    epsilon = tf.cast(epsilon, DTYPE)
+    static_rank = epsilon.shape.rank
+    if static_rank == 0:
+        return tf.fill([batch_size], epsilon)
+    if static_rank == 1:
+        return tf.reshape(epsilon, [-1])
+    return tf.reshape(epsilon, [tf.shape(epsilon)[0], -1])[:, 0]
+
+
 def _streaming_log_zero(dtype: tf.DType) -> tf.Tensor:
     return tf.cast(_STREAMING_LOG_ZERO, dtype)
 
@@ -362,8 +451,8 @@ def _filterflow_streaming_softmin(
     query = tf.cast(query, DTYPE)
     key = tf.cast(key, DTYPE)
     values = tf.cast(values, DTYPE)
-    epsilon = tf.reshape(tf.cast(epsilon, DTYPE), [-1])
     batch_size = tf.shape(query)[0]
+    epsilon = _epsilon_per_batch(epsilon, batch_size)
     num_rows = tf.shape(query)[1]
     num_cols = tf.shape(key)[1]
     row_chunk_tensor = tf.cast(row_chunk_size, tf.int32)
@@ -433,46 +522,91 @@ def _filterflow_streaming_sinkhorn_potentials(
     *,
     row_chunk_size: int,
     col_chunk_size: int,
+    transport_ad_mode: str = "stabilized",
+    warmstart_state: AnnealedTransportWarmstartStateTF | None = None,
 ) -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
+    _validate_transport_ad_mode(transport_ad_mode)
     batch_size = tf.shape(log_alpha)[0]
     continue_flag = tf.ones([batch_size], dtype=tf.bool)
-    epsilon_0 = tf.stop_gradient(_filterflow_exact_max_min(x, y)) ** 2
+    epsilon_0 = _maybe_stop(
+        _filterflow_exact_max_min(x, y),
+        stop=_transport_ad_stop_scale(transport_ad_mode),
+    ) ** 2
     scaling_factor = scaling ** 2
-    x_key = tf.stop_gradient(x)
-    y_key = tf.stop_gradient(y)
+    x_key = _maybe_stop(x, stop=_transport_ad_stop_keys(transport_ad_mode))
+    y_key = _maybe_stop(y, stop=_transport_ad_stop_keys(transport_ad_mode))
 
-    a_y_init = _filterflow_streaming_softmin(
-        epsilon_0,
-        y,
-        x_key,
-        log_alpha,
-        row_chunk_size=row_chunk_size,
-        col_chunk_size=col_chunk_size,
-    )
-    b_x_init = _filterflow_streaming_softmin(
-        epsilon_0,
-        x,
-        y_key,
-        log_beta,
-        row_chunk_size=row_chunk_size,
-        col_chunk_size=col_chunk_size,
-    )
-    a_x_init = _filterflow_streaming_softmin(
-        epsilon_0,
-        x,
-        x_key,
-        log_alpha,
-        row_chunk_size=row_chunk_size,
-        col_chunk_size=col_chunk_size,
-    )
-    b_y_init = _filterflow_streaming_softmin(
-        epsilon_0,
-        y,
-        y_key,
-        log_beta,
-        row_chunk_size=row_chunk_size,
-        col_chunk_size=col_chunk_size,
-    )
+    if warmstart_state is None:
+        a_y_init = _filterflow_streaming_softmin(
+            epsilon_0,
+            y,
+            x_key,
+            log_alpha,
+            row_chunk_size=row_chunk_size,
+            col_chunk_size=col_chunk_size,
+        )
+        b_x_init = _filterflow_streaming_softmin(
+            epsilon_0,
+            x,
+            y_key,
+            log_beta,
+            row_chunk_size=row_chunk_size,
+            col_chunk_size=col_chunk_size,
+        )
+        a_x_init = _filterflow_streaming_softmin(
+            epsilon_0,
+            x,
+            x_key,
+            log_alpha,
+            row_chunk_size=row_chunk_size,
+            col_chunk_size=col_chunk_size,
+        )
+        b_y_init = _filterflow_streaming_softmin(
+            epsilon_0,
+            y,
+            y_key,
+            log_beta,
+            row_chunk_size=row_chunk_size,
+            col_chunk_size=col_chunk_size,
+        )
+    else:
+        warm_mask = tf.reshape(tf.cast(warmstart_state.valid_mask, tf.bool), [-1])
+        a_y_cold = _filterflow_streaming_softmin(
+            epsilon_0,
+            y,
+            x_key,
+            log_alpha,
+            row_chunk_size=row_chunk_size,
+            col_chunk_size=col_chunk_size,
+        )
+        b_x_cold = _filterflow_streaming_softmin(
+            epsilon_0,
+            x,
+            y_key,
+            log_beta,
+            row_chunk_size=row_chunk_size,
+            col_chunk_size=col_chunk_size,
+        )
+        a_x_cold = _filterflow_streaming_softmin(
+            epsilon_0,
+            x,
+            x_key,
+            log_alpha,
+            row_chunk_size=row_chunk_size,
+            col_chunk_size=col_chunk_size,
+        )
+        b_y_cold = _filterflow_streaming_softmin(
+            epsilon_0,
+            y,
+            y_key,
+            log_beta,
+            row_chunk_size=row_chunk_size,
+            col_chunk_size=col_chunk_size,
+        )
+        a_y_init = tf.where(warm_mask[:, None], tf.cast(warmstart_state.a_y, DTYPE), a_y_cold)
+        b_x_init = tf.where(warm_mask[:, None], tf.cast(warmstart_state.b_x, DTYPE), b_x_cold)
+        a_x_init = tf.where(warm_mask[:, None], tf.cast(warmstart_state.a_x, DTYPE), a_x_cold)
+        b_y_init = tf.where(warm_mask[:, None], tf.cast(warmstart_state.b_y, DTYPE), b_y_cold)
 
     def stop_condition(i, _a_y, _b_x, _a_x, _b_y, continue_, _running_epsilon):
         n_iter_cond = i < max_iter - 1
@@ -561,15 +695,16 @@ def _filterflow_streaming_sinkhorn_potentials(
         ),
         maximum_iterations=max_iter,
     )
-    (
-        converged_a_y,
-        converged_b_x,
-        converged_a_x,
-        converged_b_y,
-    ) = tf.nest.map_structure(
-        tf.stop_gradient,
-        (converged_a_y, converged_b_x, converged_a_x, converged_b_y),
-    )
+    if _transport_ad_stop_potentials(transport_ad_mode):
+        (
+            converged_a_y,
+            converged_b_x,
+            converged_a_x,
+            converged_b_y,
+        ) = tf.nest.map_structure(
+            tf.stop_gradient,
+            (converged_a_y, converged_b_x, converged_a_x, converged_b_y),
+        )
     epsilon_ = tf.reshape(epsilon, [-1, 1])
     final_a_y = _filterflow_streaming_softmin(
         epsilon,
@@ -619,8 +754,8 @@ def _filterflow_streaming_column_log_normalizer(
     col_chunk_size = _validate_chunk_size(col_chunk_size, "col_chunk_size")
     batch_size = tf.shape(x)[0]
     num_particles = tf.shape(x)[1]
-    eps = tf.reshape(tf.cast(eps, DTYPE), [-1])
     row_chunk_tensor = tf.cast(row_chunk_size, tf.int32)
+    eps = _epsilon_per_batch(eps, batch_size)
     col_chunk_tensor = tf.cast(col_chunk_size, tf.int32)
     num_col_blocks = (num_particles + col_chunk_tensor - 1) // col_chunk_tensor
     blocks = tf.TensorArray(
@@ -829,7 +964,10 @@ def _filterflow_streaming_transport(
     *,
     row_chunk_size: int,
     col_chunk_size: int,
+    transport_ad_mode: str = "stabilized",
+    warmstart_state: AnnealedTransportWarmstartStateTF | None = None,
 ) -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
+    _validate_transport_ad_mode(transport_ad_mode)
     float_n = tf.cast(n, DTYPE)
     log_n = tf.math.log(float_n)
     uniform_log_weight = -log_n * tf.ones_like(logw)
@@ -844,6 +982,8 @@ def _filterflow_streaming_transport(
         max_iter,
         row_chunk_size=row_chunk_size,
         col_chunk_size=col_chunk_size,
+        transport_ad_mode=transport_ad_mode,
+        warmstart_state=warmstart_state,
     )
     transported, row_residual = _filterflow_streaming_transport_from_potentials(
         scaled_x,
@@ -936,7 +1076,10 @@ def _filterflow_exact_transport_matrix(
     threshold: tf.Tensor,
     max_iter: tf.Tensor,
     n: tf.Tensor,
+    transport_ad_mode: str = "stabilized",
+    warmstart_state: AnnealedTransportWarmstartStateTF | None = None,
 ) -> tuple[tf.Tensor, tf.Tensor]:
+    _validate_transport_ad_mode(transport_ad_mode)
     float_n = tf.cast(n, x.dtype)
     log_n = tf.math.log(float_n)
     uniform_log_weight = -log_n * tf.ones_like(logw)
@@ -949,6 +1092,8 @@ def _filterflow_exact_transport_matrix(
         scaling,
         threshold,
         max_iter,
+        transport_ad_mode=transport_ad_mode,
+        warmstart_state=warmstart_state,
     )
     transport_matrix = _filterflow_exact_transport_from_potentials(
         x,
@@ -990,12 +1135,20 @@ def _filterflow_exact_sinkhorn_potentials(
     scaling: tf.Tensor,
     threshold: tf.Tensor,
     max_iter: tf.Tensor,
+    transport_ad_mode: str = "stabilized",
+    warmstart_state: AnnealedTransportWarmstartStateTF | None = None,
 ) -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
-    cost_xy = _filterflow_exact_cost(x, tf.stop_gradient(y))
-    cost_yx = _filterflow_exact_cost(y, tf.stop_gradient(x))
-    cost_xx = _filterflow_exact_cost(x, tf.stop_gradient(x))
-    cost_yy = _filterflow_exact_cost(y, tf.stop_gradient(y))
-    scale = tf.stop_gradient(_filterflow_exact_max_min(x, y))
+    _validate_transport_ad_mode(transport_ad_mode)
+    key_x = _maybe_stop(x, stop=_transport_ad_stop_keys(transport_ad_mode))
+    key_y = _maybe_stop(y, stop=_transport_ad_stop_keys(transport_ad_mode))
+    cost_xy = _filterflow_exact_cost(x, key_y)
+    cost_yx = _filterflow_exact_cost(y, key_x)
+    cost_xx = _filterflow_exact_cost(x, key_x)
+    cost_yy = _filterflow_exact_cost(y, key_y)
+    scale = _maybe_stop(
+        _filterflow_exact_max_min(x, y),
+        stop=_transport_ad_stop_scale(transport_ad_mode),
+    )
     return _filterflow_exact_sinkhorn_loop(
         log_alpha,
         log_beta,
@@ -1008,6 +1161,8 @@ def _filterflow_exact_sinkhorn_potentials(
         scaling,
         threshold,
         max_iter,
+        transport_ad_mode=transport_ad_mode,
+        warmstart_state=warmstart_state,
     )
 
 
@@ -1024,16 +1179,46 @@ def _filterflow_exact_sinkhorn_loop(
     scaling: tf.Tensor,
     threshold: tf.Tensor,
     max_iter: tf.Tensor,
+    transport_ad_mode: str = "stabilized",
+    warmstart_state: AnnealedTransportWarmstartStateTF | None = None,
 ) -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
+    _validate_transport_ad_mode(transport_ad_mode)
     batch_size = tf.shape(log_alpha)[0]
     continue_flag = tf.ones([batch_size], dtype=tf.bool)
     epsilon_0 = particles_diameter ** 2
     scaling_factor = scaling ** 2
 
-    a_y_init = _filterflow_exact_softmin(epsilon_0, cost_yx, log_alpha)
-    b_x_init = _filterflow_exact_softmin(epsilon_0, cost_xy, log_beta)
-    a_x_init = _filterflow_exact_softmin(epsilon_0, cost_xx, log_alpha)
-    b_y_init = _filterflow_exact_softmin(epsilon_0, cost_yy, log_beta)
+    if warmstart_state is None:
+        a_y_init = _filterflow_exact_softmin(epsilon_0, cost_yx, log_alpha)
+        b_x_init = _filterflow_exact_softmin(epsilon_0, cost_xy, log_beta)
+        a_x_init = _filterflow_exact_softmin(epsilon_0, cost_xx, log_alpha)
+        b_y_init = _filterflow_exact_softmin(epsilon_0, cost_yy, log_beta)
+    else:
+        warm_mask = tf.reshape(tf.cast(warmstart_state.valid_mask, tf.bool), [-1])
+        a_y_cold = _filterflow_exact_softmin(epsilon_0, cost_yx, log_alpha)
+        b_x_cold = _filterflow_exact_softmin(epsilon_0, cost_xy, log_beta)
+        a_x_cold = _filterflow_exact_softmin(epsilon_0, cost_xx, log_alpha)
+        b_y_cold = _filterflow_exact_softmin(epsilon_0, cost_yy, log_beta)
+        a_y_init = tf.where(
+            warm_mask[:, None],
+            tf.cast(warmstart_state.a_y, DTYPE),
+            a_y_cold,
+        )
+        b_x_init = tf.where(
+            warm_mask[:, None],
+            tf.cast(warmstart_state.b_x, DTYPE),
+            b_x_cold,
+        )
+        a_x_init = tf.where(
+            warm_mask[:, None],
+            tf.cast(warmstart_state.a_x, DTYPE),
+            a_x_cold,
+        )
+        b_y_init = tf.where(
+            warm_mask[:, None],
+            tf.cast(warmstart_state.b_y, DTYPE),
+            b_y_cold,
+        )
 
     def stop_condition(i, _a_y, _b_x, _a_x, _b_y, continue_, _running_epsilon):
         n_iter_cond = i < max_iter - 1
@@ -1131,15 +1316,16 @@ def _filterflow_exact_sinkhorn_loop(
         ),
         maximum_iterations=max_iter,
     )
-    (
-        converged_a_y,
-        converged_b_x,
-        converged_a_x,
-        converged_b_y,
-    ) = tf.nest.map_structure(
-        tf.stop_gradient,
-        (converged_a_y, converged_b_x, converged_a_x, converged_b_y),
-    )
+    if _transport_ad_stop_potentials(transport_ad_mode):
+        (
+            converged_a_y,
+            converged_b_x,
+            converged_a_x,
+            converged_b_y,
+        ) = tf.nest.map_structure(
+            tf.stop_gradient,
+            (converged_a_y, converged_b_x, converged_a_x, converged_b_y),
+        )
     epsilon_ = tf.reshape(epsilon, [-1, 1])
     final_a_y = _filterflow_exact_softmin(
         epsilon,

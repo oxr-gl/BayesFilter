@@ -13,6 +13,7 @@
     "ukf",
     "svd_sigma_point",
     "cut4",
+    "fixed_sgqf",
     "zhao_cui_scalar_or_multistate"
   ],
   "cell_status_vocabulary": [
@@ -39,7 +40,8 @@
     "ZHAOCUI_LGSSM_DIAGNOSTIC_NOT_ORACLE",
     "REFERENCE_GRADIENT_NOT_AVAILABLE",
     "NO_THETA_GRADIENT_DIM0",
-    "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+    "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION",
+    "FIXED_SGQF_SURROGATE_ONLY"
   ],
   "cell_status_contract": {
     "READY_VALUE_GRADIENT": {
@@ -422,6 +424,54 @@
       "nonclaims": [
         "CUT4 value readiness is not exactness outside exact/surrogate labels.",
         "CUT4 gradient certification is deferred to P6 unless a row-specific score test is cited."
+      ]
+    },
+    {
+      "algorithm_id": "fixed_sgqf",
+      "algorithm_family": "deterministic_sparse_grid",
+      "route_boundary": "Fixed-SGQF uses the TensorFlow fixed sparse-grid Gaussian filter for additive-Gaussian closures and a dedicated per-component Gaussian-collapse wrapper for the KSC surrogate row.",
+      "adapter_paths": [
+        "bayesfilter.nonlinear.fixed_sgqf_tf.tf_fixed_sgqf_filter",
+        "bayesfilter.highdim.sv_mixture_cut4.independent_panel_sv_mixture_fixed_sgqf_filter"
+      ],
+      "row_groups": [
+        {
+          "row_ids": ["sv_ksc_gaussian_mixture_surrogate_dim_1_2_3"],
+          "cell_status": "READY_VALUE_ONLY",
+          "value_status_when_run": "VALID",
+          "gradient_status_when_run": "GRADIENT_NOT_EXPOSED",
+          "reason_codes": ["REFERENCE_GRADIENT_NOT_AVAILABLE"],
+          "evidence_tests": [
+            "tests/highdim/test_p43_sv_value_gradient_cut4_zhaocui.py::test_p43_ksc_fixed_sgqf_is_value_only_same_target_surrogate_evidence",
+            "tests/highdim/test_p47_generalized_sv_equality.py::test_p47_m3_fixed_sgqf_matches_kalman_on_same_ksc_mixture_target_value_only"
+          ]
+        },
+        {
+          "row_ids": [
+            "lgssm_exact_kalman_dim_1_2_3",
+            "p44_cubic_additive_gaussian_dim_1_2_3",
+            "p44_quadratic_observation_dim_1_2_3",
+            "p44_nonlinear_transition_h2_dim_1_2_3",
+            "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3",
+            "sv_exact_transformed_actual_nongaussian_dim_1_2_3",
+            "native_generalized_sv_dense_lower_rung_dim_2",
+            "spatial_sir_lower_rung_j1_dim_2",
+            "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18",
+            "predator_prey_lower_rung_dim_2",
+            "predator_prey_production_tuned_h25_dim_2"
+          ],
+          "cell_status": "ADAPTER_REQUIRED_WITH_REASON",
+          "value_status_when_run": "NOT_RUN",
+          "gradient_status_when_run": "NOT_RUN",
+          "reason_codes": ["ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"],
+          "evidence_tests": [
+            "tests/highdim/test_p43_sv_value_gradient_cut4_zhaocui.py::test_p43_ksc_fixed_sgqf_is_value_only_same_target_surrogate_evidence"
+          ]
+        }
+      ],
+      "nonclaims": [
+        "Fixed-SGQF surrogate-row readiness is only for the declared KSC Gaussian-mixture target.",
+        "No actual transformed non-Gaussian SV claim or analytic-score branch certification is implied."
       ]
     },
     {

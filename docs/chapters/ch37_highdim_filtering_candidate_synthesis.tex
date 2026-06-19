@@ -99,13 +99,13 @@ with weak dependence sufficient for
 calculus behind the high-dimensional particle-filter warnings of
 \citet{bengtsson2008curse} and \citet{snyder2008obstacles}.
 
-\begin{proposition}[Log-weight variance defect]
+\begin{proposition}[Log-weight variance warning]
 \label{prop:bf-hd-particle-collapse-calculus}
 If the log-weight variance grows like
 \(\Var(L_i)=v_d\asymp d_{\mathrm{eff}}\sigma_\ell^2\), then a particle filter
-with proposal independent of the current observation needs \(N\) to grow on the
-scale of \(\exp\{c v_d\}\), for a model-dependent constant \(c>0\), to keep
-more than a small number of normalized weights from dominating.
+with proposal independent of the current observation can enter a regime where
+normalized weights are dominated by a small number of particles unless ensemble
+size grows very aggressively with that dispersion scale.
 \end{proposition}
 
 \begin{proof}[Derivation]
@@ -116,11 +116,12 @@ For a lognormal heuristic, \(\E[W]=\exp(\mu_d+v_d/2)\) and
 \]
 The usual importance-sampling variance factor is therefore exponential in
 \(v_d\).  Since the denominator of \eqref{eq:bf-hd-synth-ess} is driven by the
-largest normalized weights, stable ESS requires the sample size to offset this
-exponential dispersion.  The cited papers give sharper asymptotic statements;
-the monograph uses this calculation to expose the industrial defect: without
-locality, guided proposals, or likelihood tempering, dimension enters through
-log-likelihood variance, not through a benign constant.
+largest normalized weights, stable ESS typically requires sample growth that
+offsets this exponential dispersion.  The cited papers give sharper asymptotic
+statements under stronger assumptions; the monograph uses this calculation to
+expose the industrial defect: without locality, guided proposals, or likelihood
+tempering, dimension enters through log-likelihood variance, not through a
+benign constant.
 \end{proof}
 
 The mitigation is not "use more particles" unless the cost model permits
@@ -142,10 +143,10 @@ A concrete Gaussian observation cell makes the exponential defect visible.  If
   L=\log g(0\mid X)=C-\frac{1}{2R}\sum_{k=1}^d X_k^2,\qquad
   \Var(L)=\frac{d}{2R^2}.
 \]
-The lognormal variance factor above is therefore \(\exp\{d/(2R^2)\}\).  This
-example is deliberately simple; its role is to show why a large macro-finance
-observation panel cannot be rescued by a particle count that scales only
-linearly with \(d\).
+The heuristic variance factor above is therefore of exponential order in
+\(d/R^2\).  This example is deliberately simple; its role is to show why a
+large macro-finance observation panel cannot be rescued by a particle count
+that scales only linearly with \(d\).
 
 \section{Defect 2: Gaussian And Cubature Exactness Is Not Posterior Accuracy}
 \label{sec:bf-hd-defect-gaussian}
@@ -340,15 +341,16 @@ For parameters \(\theta=\tau(q)\), HMC uses a scalar potential
        -\log|\det D\tau(q)|.
   \label{eq:bf-hd-synth-hmc-target}
 \end{equation}
-If the filter supplies \(\widehat\ell_T\), the sampler targets
-\(\widehat\pi(\theta\mid y_{1:T})\), not the exact posterior, unless a
-pseudo-marginal or exact correction is part of the algorithm
-\citep{andrieu2009pseudo,andrieu2010particle}.
-The analytical exact-gradient contract is developed in
-Chapter~\ref{ch:bf-highdim-hmc-research}; an approximate-filter gradient
-supports only the declared approximate scalar.  It is not an exact posterior
-gradient or exact state-space likelihood gradient unless an exact correction
-proof is supplied.
+If the filter supplies \(\widehat\ell_T\), the sampler targets the declared
+approximate posterior \(\widehat\pi(\theta\mid y_{1:T})\), not the exact
+posterior.  Pseudo-marginal or particle-MCMC citations are relevant only when a
+separately defined extended-state correction scheme is part of the algorithm;
+they do not by themselves convert an approximate-filter HMC trajectory into an
+ordinary exact-target HMC method.  The analytical exact-gradient contract is
+developed in Chapter~\ref{ch:bf-highdim-hmc-research}; an approximate-filter
+gradient supports only the declared approximate scalar.  It is not an exact
+posterior gradient or exact state-space likelihood gradient unless such an
+exact-target correction scheme has been defined and justified.
 
 \begin{proposition}[HMC is downstream of a same-scalar likelihood contract]
 \label{prop:bf-hd-hmc-downstream}
@@ -489,7 +491,10 @@ Chapter~\ref{ch:bf-highdim-particle-transport-tensor} passes collapse,
 correction, rank, positivity, and PSD defects; and
 Chapter~\ref{ch:bf-highdim-hmc-research} passes the same-scalar and
 Jacobian-corrected target defects.  The architecture is therefore not a ranked
-list of fashionable methods.  It is a sequence of vetoes.
+list of fashionable methods.  It is a sequence of vetoes.  This chapter consumes
+those exported defects and gates; it does not reopen the construction of the
+upstream approximation families or strengthen their source support by synthesis
+alone.
 
 Let \(D_j\) denote a method-specific defect diagnostic and let
 \(\tau_j\) denote the threshold or qualitative gate declared before a run.  A

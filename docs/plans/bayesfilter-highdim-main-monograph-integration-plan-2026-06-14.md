@@ -359,15 +359,23 @@ Selective synthesis update using decision consequences from p47 and p50.
 
 # IV. Recommended integration order of work
 
-1. Rewrite `ch34` from p47 first.
-   - This establishes the strongest deterministic Gaussian lane.
-2. Rewrite `ch35` from p50 second.
-   - This establishes the richer TT/KR lane in chapter form.
-3. Rewrite `ch36` third.
-   - This absorbs the HMC-facing target and transport consequences.
-4. Update `ch37` last.
-   - This allows synthesis to reflect the final form of the other chapters.
-5. Only then revisit `ch33` for any small foundational cross-reference cleanup.
+1. Record the Phase 1 closure context from
+   `docs/plans/bayesfilter-highdim-monograph-rewrite-blocker-clearance-reset-memo-2026-06-15.md`.
+   - This fixes the current state: the immediate `ch34` blocker is cleared and
+     `docs/main.tex` already builds.
+2. Run the Phase 2 editorial/source-discipline pass on `ch35`.
+   - This tightens the canonical TT / KR lane against p50 and the Zhao--Cui
+     source-anchor discipline.
+3. Run the Phase 3 consequence-discipline pass on `ch36`.
+   - This keeps the chapter importing `ch34`/`ch35` objects rather than
+     re-deriving them.
+4. Run the Phase 4 synthesis-pruning pass on `ch37`.
+   - This keeps synthesis downstream of the finalized chapter exports.
+5. Maintain the green `docs/main.tex` build throughout these chapter passes and
+   use Phase 5 for bibliography, cross-reference, provenance, and chapter-boundary
+   closeout.
+6. Only after those passes revisit `ch33` for any small foundational
+   cross-reference cleanup that the integrated reading still requires.
 
 # V. Verification plan
 
@@ -388,11 +396,12 @@ Selective synthesis update using decision consequences from p47 and p50.
 5. Read `ch37` and confirm it synthesizes rather than re-explains.
 
 ## Build verification
-6. Rebuild `docs/main.tex`.
+6. Keep `docs/main.tex` green while the editorial/source-discipline passes run.
 7. Run BibTeX and rebuild as needed.
-8. Fix all chapter-level labels, cross-references, and bibliography issues.
-9. Confirm the new main PDF compiles cleanly enough for reading and chapter
-   navigation.
+8. Fix all chapter-level labels, cross-references, bibliography issues, and
+   provenance drift exposed by the editorial passes.
+9. Confirm the new main PDF remains stable enough for reading and chapter
+   navigation after each phase pass, not only at the end.
 
 # Deliverable
 

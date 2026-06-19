@@ -1,0 +1,378 @@
+\chapter{Fixed-Branch Approximate Likelihoods and Same-Scalar Gradients}
+\label{ch:bf-highdim-fixed-branch-same-scalar}
+\label{ch:bf-highdim-hmc-research}
+\label{eq:bf-hd-hmc-potential}
+\label{prop:bf-hd-hmc-gradient-contract}
+
+\section{Why Fixed-Branch Discipline Is Shared Across The Two Lanes}
+\label{sec:bf-hd-fixed-branch-purpose}
+
+Both method chapters in the restarted high-dimensional block face the same
+structural problem.  The exact Bayesian target is a filtering law and normalizer
+sequence, but the implemented approximation uses discrete numerical structure
+that may change with parameters: cloud level, merge policy, factor branch,
+coordinate domains, ranks, pivots, grids, fitting points, or map choices.  If
+those structural choices move while the parameter moves, then the reported
+derivative is not automatically the derivative of one declared scalar.
+
+This chapter therefore treats fixed-branch discipline as a cross-method target
+contract, not as an appendix to one particular algorithm.
+
+\section{A Canonical Branch Record}
+\label{sec:bf-hd-branch-record}
+
+A branch record should be read as a three-ledger object,
+\begin{equation}
+  \mathcal H(B)=\{\mathcal H_{\rm fixed},\mathcal H_{\rm diff},\mathcal H_{\rm diag}\},
+  \label{eq:bf-hd-branch-ledger}
+\end{equation}
+where:
+\begin{itemize}[leftmargin=0.28in]
+  \item \(\mathcal H_{\rm fixed}\) contains the structural choices that define the
+  scalar on the saved branch,
+  \item \(\mathcal H_{\rm diff}(\theta)\) contains the parameter-dependent numerical
+  values recomputed on that branch,
+  \item \(\mathcal H_{\rm diag}\) contains residuals, condition numbers, rank
+  vectors, branch-failure markers, and other diagnostic quantities.
+\end{itemize}
+For the sparse-grid lane, the fixed ledger includes the cloud, one-dimensional
+rule family, merge/order policy, factor family, thresholds, preprocessing
+policy, and initial-condition policy.  For the retained-object lane, the fixed
+ledger includes coordinate domains, basis families, fitting points, weights,
+ranks, sweep order, shifts, stabilization choices, retained-object construction
+policy, and the defensive mass / reference-density conventions that define the
+same branch.
+
+Two evaluations use the same branch if and only if their fixed ledgers match:
+\begin{equation}
+  B(\theta_a)=B(\theta_b)
+  \quad\Longleftrightarrow\quad
+  \mathcal H_{\rm fixed}(\theta_a)=\mathcal H_{\rm fixed}(\theta_b).
+  \label{eq:bf-hd-branch-equality}
+\end{equation}
+The differentiable ledger is allowed to change with the parameter; otherwise the
+same-scalar derivative would not be testing the actual fixed branch.
+
+\section{Fixed-Branch Approximate Likelihoods Across The Three Operational Layers}
+\label{sec:bf-hd-fixed-branch-likelihoods}
+
+The restarted high-dimensional part now separates the operational burdens that
+the old compressed block used to mix together.  The deterministic sparse-grid
+lane exports a declared fixed-cloud scalar from
+Chapter~\ref{ch:bf-highdim-fixed-cloud-sgqf-validation}.  The retained-object
+TT/KR lane exports a declared fixed-branch scalar from
+Chapter~\ref{ch:bf-highdim-squared-tt-fixed-branch-likelihoods}.  The present
+chapter sits above those lane-specific constructions and states the common
+same-scalar derivative logic they must both obey.
+
+The three operational layers are:
+\begin{equation}
+\begin{aligned}
+  \text{exact target:}&\quad \ell_T(\theta)=\sum_{t=1}^T\log Z_t(\theta),\\
+  \text{declared approximate scalar:}&\quad \widehat\ell_T(\theta;B),\\
+  \text{same-scalar derivative requirement:}&\quad
+  \nabla_\theta \widehat\ell_T(\theta;B)
+  \text{ differentiates the same declared } \widehat\ell_T.
+\end{aligned}
+  \label{eq:bf-hd-fixed-branch-three-layer}
+\end{equation}
+For the sparse-grid lane, \(B\) contains the fixed cloud, merge/order policy,
+factor branch, and lane-specific veto rules.  For the retained-object lane,
+\(B\) contains the fixed domains, fitting points, ranks, sweeps, shifts,
+stabilization choices, and stored-field conventions that define the TT/KR scalar.
+The chapter therefore treats fixed-branch discipline as a cross-method target
+contract, not as an appendix to one particular algorithm.
+
+\section{Finite-Difference Contract And Branch-Validity Logic}
+\label{sec:bf-hd-fixed-branch-fd-contract}
+
+The finite-difference contract is
+\begin{equation}
+  D_i(h)=
+  \frac{\widehat\ell_T(\theta_0+h e_i;B)-\widehat\ell_T(\theta_0-h e_i;B)}{2h},
+  \label{eq:bf-hd-fixed-branch-fd}
+\end{equation}
+with both perturbed evaluations reusing the same fixed ledger while recomputing
+all parameter-dependent numerical values through the same declared equations.
+
+For the retained-object lane, this means the domains, points, ranks, shifts, and
+sweep order are unchanged, but the fitted core values
+\begin{equation}
+  C_{t,k}(\theta_0+h e_i;B)
+  \quad\text{and}\quad
+  C_{t,k}(\theta_0-h e_i;B)
+  \label{eq:bf-hd-ttkr-perturbed-cores}
+\end{equation}
+are recomputed from the same saved fitting rule.  They are not copied from the
+base parameter.  A row is branch-valid only if the two perturbations share:
+\begin{enumerate}[label=(\roman*), leftmargin=0.28in]
+  \item the same saved fixed ledger, and
+  \item the same realized acceptance/failure path through the declared branch
+  logic.
+\end{enumerate}
+If either side changes the accepted/failure pattern, the row is branch-invalid
+and is not evidence about the derivative of the same scalar.
+
+\paragraph{Copied-core and branch-identity audit protocol.}
+The operational diagnostic should promote these prose rules into explicit
+indicators.  For a step ladder \(h_i\), define
+\begin{equation}
+  I_\pm(h_i)=\mathbf{1}\{\mathcal H_{\rm fixed}(\theta_0\pm h_i e_j)=\mathcal H_{\rm fixed}(\theta_0)\},
+  \label{eq:bf-hd-ttkr-branch-indicator}
+\end{equation}
+which checks branch-identity equality of the frozen fields, and
+\begin{equation}
+  K_\pm(h_i)=\mathbf{1}\{C_{t,k}(\theta_0\pm h_i e_j;B)\ \text{was recomputed by the fixed fitting rule}\},
+  \label{eq:bf-hd-ttkr-copied-core-indicator}
+\end{equation}
+which checks that perturbed cores were not copied from the base parameter.
+Record a decreasing-window indicator
+\begin{equation}
+  W_i=\mathbf{1}\{e(h_i)>e(h_{i+1})>e(h_{i+2})\},
+  \label{eq:bf-hd-ttkr-decreasing-window}
+\end{equation}
+and classify the diagnostic status as one of:
+\begin{equation}
+\text{status}=
+\begin{cases}
+\text{branch identity failure},&\min_{i,\pm} I_\pm(h_i)=0,\\
+\text{copied-core failure},&\min_{i,\pm} K_\pm(h_i)=0,\\
+\text{decreasing-window agreement},&\max_i W_i=1,\\
+\text{inconclusive: no decreasing window},&\text{otherwise}.
+\end{cases}
+  \label{eq:bf-hd-ttkr-fd-status}
+\end{equation}
+This makes the same-branch contract auditable.  If a frozen field differs, the
+centered difference is comparing different functions.  If a differentiable field
+is copied rather than recomputed, the centered difference is not evaluating the
+fixed fitting rule.
+
+\section{Value Path, Derivative Path, And What Is Actually Differentiated}
+\label{sec:bf-hd-derivative-ledger}
+
+The implementation burden of a same-scalar chapter is not just to state that a
+gradient exists.  It must say which objects belong to the value path and which
+objects belong to the derivative path.  A generic fixed-branch workflow has the
+shape
+\begin{equation}
+\begin{aligned}
+  &\text{value path:}
+    &&\text{frozen structure} \to \widehat Z_t \to \widehat\ell_T,\\
+  &\text{derivative path:}
+    &&\text{same frozen structure} \to \dot{\widehat Z}_t \to
+      \partial_i\widehat\ell_T.
+\end{aligned}
+  \label{eq:bf-hd-value-derivative-ledger}
+\end{equation}
+For the sparse-grid lane this means differentiating the same fixed cloud and the
+same branch-conditioned Gaussian value path.  For the retained-object lane it
+means differentiating the same retained-object fitting equations, mass
+contractions, quotient updates, and carried-filter update equations without
+changing domains, points, ranks, shifts, or sweep order.
+
+The most important implementation distinction is between:
+\begin{itemize}[leftmargin=0.28in]
+  \item objects needed to close the current scalar derivative, and
+  \item objects needed only to propagate the branch-consistent state to the next
+  step.
+\end{itemize}
+This distinction is what keeps a same-scalar derivative from being confused with
+a numerically similar but structurally different adaptive algorithm.
+
+\paragraph{Retained-object derivative mechanics on the frozen branch.}
+For the TT/KR lane, the forward and derivative paths should be read as the same
+finite sequence of fixed equations with different outputs.  A useful teaching
+layer is:
+\begin{equation}
+\begin{array}{p{0.41\linewidth}p{0.45\linewidth}}
+\toprule
+Forward scalar path & Derivative path\\
+\midrule
+\(\widetilde q_{t,j}=\widehat p_{t-1,j} f_j g_j J_j\) &
+\(\dot{\widetilde q}_{t,j}=J_j(\dot{\widehat p}_{t-1,j}f_jg_j+\widehat p_{t-1,j}\dot f_jg_j+\widehat p_{t-1,j}f_j\dot g_j)\)\\
+\(y_j=e^{c_t/2}\sqrt{\widetilde q_{t,j}}\) &
+\(\dot y_j=e^{c_t/2}\dot{\widetilde q}_{t,j}/(2\sqrt{\widetilde q}_{t,j})\)\\
+\(A_k\to N_k=A_k^\top W A_k+\rho I,\ d_k=A_k^\top Wy\) &
+\(\dot A_k\to \dot N_k=\dot A_k^\top WA_k+A_k^\top W\dot A_k,\ \dot d_k=\dot A_k^\top Wy+A_k^\top W\dot y\)\\
+\(N_k g_k=d_k\) &
+\(N_k\dot g_k=\dot d_k-\dot N_k g_k\)\\
+\(g_k\to C_k\to M_{>k}\to \widehat Z_t\) &
+\(\dot g_k\to \dot C_k\to \dot M_{>k}\to \dot{\widehat Z}_t\)\\
+\(\widehat p_t=a_t/\widehat Z_t\) &
+\(\dot{\widehat p}_t=\dot a_t/\widehat Z_t-a_t\dot{\widehat Z}_t/\widehat Z_t^2\)\\
+\bottomrule
+\end{array}
+  \label{eq:bf-hd-ttkr-derivative-teaching-table}
+\end{equation}
+The fixed linear solve is the key finite-dimensional derivative step:
+\begin{equation}
+  N_k g_k=d_k
+  \quad\Longrightarrow\quad
+  N_k\dot g_k=\dot d_k-\dot N_k g_k.
+  \label{eq:bf-hd-ttkr-fixed-solve-derivative}
+\end{equation}
+Computation should solve \eqref{eq:bf-hd-ttkr-fixed-solve-derivative} with the
+same numerical linear algebra used in the forward pass; it should not form an
+explicit inverse.  After the core derivative is obtained, the remaining objects
+follow by repeated product-rule and quotient-rule propagation through the same
+frozen branch.
+
+\paragraph{Mass-contraction and normalizer block.}
+The squared-TT normalizer is not a separate conceptual object from the fitted
+cores; it is a contraction of those same cores against the frozen basis mass
+matrices.  Let the right mass contraction satisfy a recursion of the form
+\begin{equation}
+  M_{>j-1}[a,a']=
+  \sum_{b,b',\ell,\ell'}
+  C_j[a,\ell,b]
+  M_{>j}[b,b']
+  C_j[a',\ell',b']
+  B_j[\ell,\ell'],
+  \label{eq:bf-hd-ttkr-mass-recursion}
+\end{equation}
+with basis mass matrix \(B_j\) frozen by the branch.  Differentiate it by the
+product rule:
+\begin{equation}
+\begin{aligned}
+  \dot M_{>j-1}[a,a']
+  &=
+  \sum_{b,b',\ell,\ell'}
+  \dot C_j[a,\ell,b]
+  M_{>j}[b,b']
+  C_j[a',\ell',b']
+  B_j[\ell,\ell']\\
+  &\quad+
+  \sum_{b,b',\ell,\ell'}
+  C_j[a,\ell,b]
+  \dot M_{>j}[b,b']
+  C_j[a',\ell',b']
+  B_j[\ell,\ell']\\
+  &\quad+
+  \sum_{b,b',\ell,\ell'}
+  C_j[a,\ell,b]
+  M_{>j}[b,b']
+  \dot C_j[a',\ell',b']
+  B_j[\ell,\ell'].
+\end{aligned}
+  \label{eq:bf-hd-ttkr-dot-mass-recursion}
+\end{equation}
+Starting from the terminal contraction, this recursion produces the square mass
+\(R_t\) and its derivative \(\dot R_t\).  If
+\begin{equation}
+  \zeta_t=R_t+\tau_t,
+  \qquad
+  \widehat Z_t=e^{-c_t}\zeta_t,
+  \label{eq:bf-hd-ttkr-normalizer-block}
+\end{equation}
+then, with \(c_t\) and \(\tau_t\) frozen on the branch,
+\begin{equation}
+  \dot{\widehat Z}_t=e^{-c_t}\dot R_t.
+  \label{eq:bf-hd-ttkr-dot-normalizer}
+\end{equation}
+This is the mass-contraction block the derivative must preserve.  Omitting one of
+the product-rule terms in \eqref{eq:bf-hd-ttkr-dot-mass-recursion} means the
+reported gradient no longer differentiates the same scalar normalizer.
+
+\paragraph{Carried-filter and next-step closure block.}
+The retained numerator is another contraction of the same represented
+adjacent-state object.  Write
+\begin{equation}
+  a_t(z_t;\beta)=
+  \int \widehat q_t(z_t,z_{t-1};\beta)\dd z_{t-1},
+  \qquad
+  \dot a_t(z_t;\beta)=
+  \int \dot{\widehat q}_t(z_t,z_{t-1};\beta)\dd z_{t-1}.
+  \label{eq:bf-hd-ttkr-carried-numerator}
+\end{equation}
+The normalized carried filter then satisfies the quotient rule
+\begin{equation}
+  \dot{\widehat p}_t(z_t;\beta)=
+  \frac{\dot a_t(z_t;\beta)}{\widehat Z_t(\beta)}
+  -
+  \frac{a_t(z_t;\beta)\dot{\widehat Z}_t(\beta)}{\widehat Z_t(\beta)^2}.
+  \label{eq:bf-hd-ttkr-dot-carried-filter}
+\end{equation}
+This is the crucial bridge between time steps.  At time \(t+1\), the fixed-branch
+target contains \(\widehat p_t\), so its derivative contains
+\(\dot{\widehat p}_t\).  Without saving the carried-filter derivative, the
+next-step gradient is incomplete even if the current-step score is numerically
+correct.
+
+\paragraph{Compact derivative-reading checklists.}
+A later implementation review should be able to verify the derivative lane block
+by block:
+\begin{equation}
+\begin{array}{ll}
+\text{squared-density block:} & \overline q_t=e^{-c_t}(\phi_t^2+\tau_t\lambda_t),\ \partial(\phi_t^2)=2\phi_t\dot\phi_t;\\[1mm]
+\text{mass-contraction block:} & R_t=\int \phi_t^2,\ \dot R_t\ \text{from product-rule contractions};\\[1mm]
+\text{fixed-solve block:} & N_kg_k=d_k\ \mapsto\ N_k\dot g_k=\dot d_k-\dot N_kg_k;\\[1mm]
+\text{carried-filter block:} & \widehat p_t=a_t/\widehat Z_t,\ \dot{\widehat p}_t=\dot a_t/\widehat Z_t-a_t\dot{\widehat Z}_t/\widehat Z_t^2.
+\end{array}
+  \label{eq:bf-hd-ttkr-derivative-checklists}
+\end{equation}
+The corresponding failure-mode summaries are:
+\begin{itemize}[leftmargin=0.28in]
+  \item \textbf{squared-density failure:} differentiating a different fitted
+  square root than the one actually squared,
+  \item \textbf{mass-contraction failure:} omitting a product-rule term in the
+  contraction recursion,
+  \item \textbf{fixed-solve failure:} changing the normal equations or copying a
+  stale core at perturbed parameters,
+  \item \textbf{carried-filter failure:} feeding time \(t+1\) without the saved
+  dotted retained object or with an undeclared query rule.
+\end{itemize}
+These lists are not replacement derivations; they are compact audit objects that
+make it harder for a future implementation to silently drift away from the
+mathematical branch defined here.
+
+\section{Approximate Targets, Exact-Target Corrections, And HMC Admissibility}
+\label{sec:bf-hd-fixed-branch-hmc}
+
+For an unconstrained coordinate \(q\in\R^d\) and transform
+\(\theta=\tau(q)\), the exact-target HMC potential is
+\begin{equation}
+  U(q)
+  =
+  -\ell_T(\tau(q))-
+  \log \pi(\tau(q))-
+  \log\left|\det D\tau(q)\right|.
+  \label{eq:bf-hd-hmc-potential-live}
+\end{equation}
+If the filter supplies only \(\widehat\ell_T\), then ordinary HMC samples the
+declared approximate posterior defined by \(\widehat\ell_T\).  Recovering the
+exact posterior from an approximate or randomized likelihood would require a
+separately defined exact-target extended-state or Metropolis correction scheme;
+such a scheme is outside the scope of this chapter.
+
+The HMC admissibility burden is therefore downstream of same-scalar discipline:
+\begin{enumerate}[label=(\arabic*), leftmargin=0.28in]
+  \item the filter must define the scalar likelihood or approximate likelihood
+  before any sampler can be interpreted,
+  \item the gradient used by HMC must be the gradient of the same scalar used in
+  the Metropolis correction and posterior interpretation,
+  \item transformed targets, including TT/KR-style maps, require the
+  Jacobian-corrected target and valid support.
+\end{enumerate}
+
+\section{Exports To Validation And Promotion Chapters}
+\label{sec:bf-hd-fixed-branch-exports}
+
+The later validation chapter may import only the following consequences from the
+present chapter:
+\begin{itemize}[leftmargin=0.28in]
+  \item the branch-valid finite-difference contract,
+  \item the distinction between fixed structural ledgers and recomputed
+  differentiable ledgers,
+  \item the exact-target versus approximate-target HMC admissibility boundary,
+  \item the rule that divergences, nonfinite gradients, and same-scalar mismatch
+  are veto diagnostics rather than efficiency datapoints.
+\end{itemize}
+
+\section{Implementation Boundary}
+\label{sec:bf-hd-hmc-boundary}
+
+BayesFilter has no nonlinear HMC convergence result in this lane, no NeuTra
+backend, no RMHMC backend, no tensor/KR transport-preconditioned HMC backend,
+and no NAWM posterior recovery benchmark.  This chapter defines a shared branch,
+scalar, and derivative contract.  It does not promote any sampler or backend as
+production-ready for nonlinear state-space models.

@@ -43,6 +43,9 @@ import numpy as np
 import tensorflow as tf
 
 from experiments.dpf_implementation.tf_tfp.filters import (
+    batched_annealed_warmstart_student_tf as warmstart_tf,
+)
+from experiments.dpf_implementation.tf_tfp.filters import (
     experimental_batched_ledh_pfpf_ot_streaming_tf as streaming_tf,
 )
 from experiments.dpf_implementation.tf_tfp.filters import (
@@ -90,6 +93,8 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--row-chunk-size", type=int, default=1024)
     parser.add_argument("--col-chunk-size", type=int, default=1024)
     parser.add_argument("--particle-chunk-size", type=int, default=256)
+    parser.add_argument("--warmstart-mode", choices=("none", "heuristic", "learned"), default="none")
+    parser.add_argument("--warmstart-hidden-dim", type=int, default=32)
     parser.add_argument("--return-history", action="store_true")
     parser.add_argument("--warmups", type=int, default=0)
     parser.add_argument("--repeats", type=int, default=1)
@@ -337,6 +342,50 @@ def _make_observation_log_density(
     return _observation_log_density
 
 
+def _make_warmstart_fn(args: argparse.Namespace):
+    if args.warmstart_mode == "none":
+        return None
+    if args.warmstart_mode == "heuristic":
+        def _heuristic(scaled_particles: tf.Tensor, log_weights: tf.Tensor, mask: tf.Tensor, epsilon: tf.Tensor):
+            model = _HeuristicWarmstartModel()
+            return model.predict_warmstart_state(
+                scaled_particles,
+                log_weights,
+                epsilon,
+                valid_mask=mask,
+            )
+        return _heuristic
+    config = warmstart_tf.BatchedAnnealedWarmstartConfigTF(
+        particle_hidden_dim=args.warmstart_hidden_dim,
+        pooled_hidden_dim=args.warmstart_hidden_dim,
+    )
+    model = warmstart_tf.BatchedAnnealedWarmstartStudentTF(config)
+
+    def _learned(scaled_particles: tf.Tensor, log_weights: tf.Tensor, mask: tf.Tensor, epsilon: tf.Tensor):
+        return warmstart_tf.predict_batched_annealed_warmstart_state_tf(
+            model,
+            scaled_particles,
+            log_weights,
+            epsilon,
+            valid_mask=mask,
+        )
+
+    return _learned
+
+
+class _HeuristicWarmstartModel:
+    def predict_warmstart_state(self, scaled_particles, log_weights, epsilon, *, valid_mask):
+        del scaled_particles, epsilon
+        zeros = tf.zeros_like(log_weights)
+        return warmstart_tf.build_annealed_transport_warmstart_state_tf(
+            log_weights,
+            zeros,
+            log_weights,
+            zeros,
+            valid_mask,
+        )
+
+
 def _value_from_tensors(tensors: dict[str, tf.Tensor], args: argparse.Namespace):
     kwargs = dict(
         observations=tensors["observations"],
@@ -364,6 +413,7 @@ def _value_from_tensors(tensors: dict[str, tf.Tensor], args: argparse.Namespace)
         col_chunk_size=args.col_chunk_size,
         particle_chunk_size=args.particle_chunk_size,
         return_history=args.return_history,
+        retained_teacher_warmstart_fn=_make_warmstart_fn(args),
     )
     if args.proposal_mode == "tensor":
         kwargs["pre_flow_particles"] = tensors["pre_flow_particles"]
@@ -413,6 +463,7 @@ def _write_markdown(path: Path, result: dict[str, Any], json_path: Path) -> None
         f"- Output devices: `{result['output_devices']}`",
         f"- Precision: `{result['precision']}`",
         f"- Proposal mode: `{result['proposal_mode']}`",
+        f"- Warm-start mode: `{result['warmstart_mode']}`",
         f"- Return history: `{result['return_history']}`",
         f"- Transport: `{result['transport']}`",
         f"- Compile plus first call seconds: `{result['compile_and_first_call_seconds']}`",
@@ -500,6 +551,7 @@ def main() -> None:
             "dense_transport_matrix_materialized": False,
         },
         "proposal_mode": args.proposal_mode,
+        "warmstart_mode": args.warmstart_mode,
         "stores_full_pre_flow_particles": args.proposal_mode == "tensor",
         "particle_chunk_size": args.particle_chunk_size,
         "return_history": bool(args.return_history),

@@ -1,0 +1,446 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{hyperref}
+
+\newtheorem{proposition}{Proposition}
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
+
+\newcommand{\R}{\mathbb R}
+\newcommand{\dd}{\,\mathrm d}
+\newcommand{\calZ}{\mathcal Z}
+\newcommand{\calH}{\mathcal H}
+\newcommand{\calB}{\mathcal B}
+
+\title{Finite-Support-Certified Fixed Fits for the Zhao--Cui Fixed-Branch Adaptation}
+\author{BayesFilter P72 planning note}
+\date{2026-06-17}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note explains the P70 Phase 6h failure and the proposed repair before any
+new implementation work.  The failure is not that the Zhao--Cui adaptive
+algorithm is wrong.  The failure is in our fixed-branch specialization: a
+deterministic least-squares square-root tensor-train fit can have a very small
+residual on its fitting cloud while growing by many orders of magnitude on
+nearby diagnostic or replay points.  The repair proposed here is a
+finite-support-certified fixed fit.  It augments the fixed least-squares
+construction with predeclared guard sets, regularization and conditioning
+gates, and holdout/replay admission tests.  The certificate is finite and
+diagnostic: it concerns declared clouds and declared line probes, not the whole
+continuum support.  This is a fixed-HMC stabilization layer unless an
+individual operation is later tied to Zhao--Cui paper and author-source
+anchors.
+\end{abstract}
+
+\section{Scope And Nonclaims}
+
+The active evidence is the P70 Phase 6h result.  It reports two blockers:
+\begin{enumerate}[leftmargin=2em]
+    \item The degree-one, rank-two row has small fit residuals but enormous
+    holdout and replay residuals.  Line probes from fitting points toward
+    diagnostic points reach approximately \(2.053\times 10^{10}\) at step 1
+    and \(8.987\times 10^7\) at step 2.
+    \item The rank-three row fails a conditioning gate.  The failing scaled
+    augmented system has smallest singular value approximately
+    \(1.925\times 10^{-14}\), largest singular value approximately \(2.512\),
+    and scaled condition number approximately \(1.305\times 10^{14}\).
+\end{enumerate}
+The raw holdout and replay residuals are already enormous, so the first
+blocker is not merely a normalization artifact.  Phase 7 therefore remains
+blocked.
+
+This note does not claim that the original Zhao--Cui method fails.  Zhao and
+Cui use an adaptive tensor-train route with adaptive rank, pivots, samples,
+transport maps, and fitting choices.  Our branch is different: it freezes the
+discrete approximation choices so that a fixed scalar can be differentiated.
+Every repair in this note must therefore be classified as one of:
+\[
+    \text{source\_faithful},\qquad
+    \text{fixed\_hmc\_adaptation},\qquad
+    \text{extension\_or\_invention}.
+\]
+An operation is not source-faithful unless it has both paper anchors and local
+author-source file/line anchors.  The phrase ``same scalar'' below means the
+same scalar-valued likelihood approximation after the branch has been frozen;
+it is not a claim that the adaptive Zhao--Cui computation is differentiable as
+a whole.
+
+\section{The Fixed Square-Root Fit}
+
+Fix a time step \(t\), an external parameter value \(\beta\), and a frozen
+branch
+\[
+    \calB_t
+    =
+    (\Omega_t,\Psi_t,\lambda_t,\tau_t,c_t,
+      \text{basis},\text{rank},\text{sweep schedule},\text{fitting data}).
+\]
+The fixed branch defines transformed coordinates \(z\in\Omega_t\), a
+reference density \(\lambda_t\), and a shifted square-root target
+\begin{equation}
+    y_t(z;\beta)
+    =
+    \exp\!\left\{-\frac{1}{2}
+    \bigl(\Phi_t(z;\beta)-c_t\bigr)\right\}.
+    \label{eq:p72-target}
+\end{equation}
+The fitted square-root tensor train is an element
+\[
+    h_\theta \in \calH_{\calB_t},
+\]
+where \(\theta\) denotes all TT core coefficients under the frozen basis and
+rank.  The squared density used by the filter has the form
+\begin{equation}
+    \widehat q_t(z;\beta)
+    =
+    h_\theta(z;\beta)^2+\tau_t\lambda_t(z).
+    \label{eq:p72-squared-density}
+\end{equation}
+The current fixed least-squares form fits \(h_\theta\) on a finite cloud
+\(\calZ_{\rm fit}=\{z_i\}_{i=1}^{n_f}\) with weights \(w_i>0\):
+\begin{equation}
+    \min_\theta
+    \sum_{i=1}^{n_f} w_i
+    \bigl(h_\theta(z_i)-y_t(z_i)\bigr)^2
+    +
+    \lambda\|\Gamma\theta\|_2^2 .
+    \label{eq:p72-current-objective}
+\end{equation}
+Here \(\Gamma\) is a coefficient penalty; \(\Gamma=I\) gives ordinary ridge.
+In a single alternating least-squares core update, all other cores are fixed,
+and the local problem has the linear form
+\begin{equation}
+    \min_{\theta_k}
+    \|W_f^{1/2}(A_f\theta_k-y_f)\|_2^2
+    +
+    \lambda\|\Gamma_k\theta_k\|_2^2 .
+    \label{eq:p72-local-ls}
+\end{equation}
+
+\section{Why Fit Residual Does Not Certify Support Stability}
+
+\begin{proposition}[Fit residual does not control off-cloud values]
+\label{prop:p72-fit-not-support}
+Let \(A_f\in\R^{n_f\times m}\) be the local least-squares design matrix for a
+fixed core update on the fitting cloud, and let \(a(u)^\top\in\R^{1\times m}\)
+be the design row for a point \(u\notin\calZ_{\rm fit}\).  Suppose there exists
+\(\delta\in\ker(A_f)\) with \(a(u)^\top\delta\ne0\).  Then, for any local
+coefficient vector \(\theta\) and any scalar \(M>0\), there exists another
+coefficient vector \(\theta'\) whose fitting residual is identical to that of
+\(\theta\) but whose value at \(u\) differs by at least \(M\).
+\end{proposition}
+
+\begin{proof}
+Set \(\theta'=\theta+s\delta\).  Since \(A_f\delta=0\),
+\[
+    A_f\theta'-y_f=A_f\theta-y_f.
+\]
+Thus the fitting residual on \(\calZ_{\rm fit}\) is unchanged.  At \(u\),
+\[
+    a(u)^\top\theta'-a(u)^\top\theta
+    =
+    s\,a(u)^\top\delta .
+\]
+Because \(a(u)^\top\delta\ne0\), choosing
+\(|s|\ge M/|a(u)^\top\delta|\) gives the stated discrepancy.  The same
+argument applies to near-null directions with small but nonzero
+\(\|A_f\delta\|\): the fit residual changes little while the value at \(u\)
+can change substantially.
+\end{proof}
+
+\begin{remark}
+The proposition is deliberately elementary.  It is the finite-dimensional
+reason the Phase 6h observation is possible.  In a TT alternating fit, each
+core update is linear after the neighboring cores are frozen.  Therefore a
+small empirical residual for the local design matrix cannot by itself certify
+the square-root train on replay, holdout, or integration support.  The
+proposition is about the empirical fit residual, not the full regularized
+objective.  A sufficiently strong penalty can suppress some null directions,
+but the Phase 6h failure shows that the present regularization and gates did
+not suppress the observed off-cloud growth.
+\end{remark}
+
+\section{Support-Certified Fixed Fit}
+
+The repair is to distinguish three finite sets:
+\[
+    \calZ_{\rm fit},\qquad
+    \calZ_{\rm guard},\qquad
+    \calZ_{\rm audit}.
+\]
+The fitting cloud \(\calZ_{\rm fit}\) defines the basic regression problem.
+The guard cloud \(\calZ_{\rm guard}\) is predeclared before the fit is
+observed and is meant to cover support regions the filter will later use:
+proposal points, replay-like points, collocation points, and deterministic
+line-probe points generated from the frozen branch.  The audit cloud
+\(\calZ_{\rm audit}\) is not used to choose coefficients; it is used to decide
+whether the repaired branch may advance.  Unless a phase explicitly declares
+and reviews a surrogate, the guard target is the same frozen-branch target
+\[
+    \widetilde y_j = y_t(u_j;\beta)
+\]
+from \eqref{eq:p72-target}, evaluated at \(u_j\in\calZ_{\rm guard}\).
+
+\begin{definition}[Finite-support-certified fixed objective]
+\label{def:p72-support-certified-objective}
+A finite-support-certified fixed fit minimizes
+\begin{equation}
+\begin{aligned}
+    J(\theta)
+    &=
+    \sum_{z_i\in\calZ_{\rm fit}}
+    w_i\bigl(h_\theta(z_i)-y_i\bigr)^2
+    +
+    \alpha
+    \sum_{u_j\in\calZ_{\rm guard}}
+    \widetilde w_j\bigl(h_\theta(u_j)-\widetilde y_j\bigr)^2  \\
+    &\quad
+    +
+    \lambda\|\Gamma\theta\|_2^2
+    +
+    \rho\,\mathcal R_{\rm shape}(\theta),
+\end{aligned}
+    \label{eq:p72-support-certified-objective}
+\end{equation}
+where \(\alpha,\lambda,\rho\ge0\) are fixed before execution.  The optional
+shape penalty \(\mathcal R_{\rm shape}\) may penalize derivative energy,
+endpoint growth, or line-probe growth, but only after being explicitly
+classified as a fixed-HMC adaptation or an extension.
+\end{definition}
+
+\begin{proposition}[Finite guard control]
+\label{prop:p72-guard-control}
+Suppose \(J(\theta)\le \varepsilon^2\) in
+\eqref{eq:p72-support-certified-objective} with nonnegative terms and
+\(\alpha>0\).  Then
+\[
+    \sum_{z_i\in\calZ_{\rm fit}}
+    w_i\bigl(h_\theta(z_i)-y_i\bigr)^2
+    \le \varepsilon^2,
+\]
+and
+\[
+    \sum_{u_j\in\calZ_{\rm guard}}
+    \widetilde w_j\bigl(h_\theta(u_j)-\widetilde y_j\bigr)^2
+    \le \varepsilon^2/\alpha .
+\]
+If \(\lambda>0\), then
+\[
+    \|\Gamma\theta\|_2^2\le \varepsilon^2/\lambda .
+\]
+\end{proposition}
+
+\begin{proof}
+Each displayed quantity is a nonnegative summand of \(J(\theta)\), up to its
+positive multiplier.  Dropping all other nonnegative terms gives the three
+inequalities.
+\end{proof}
+
+This proposition is not a theorem about the continuum target.  It says
+something narrower but operationally important: if a finite guard set is part
+of the objective, then small objective value controls the weighted aggregate
+fit on that guard set.  It does not by itself rule out a large pointwise spike
+at a lightly weighted point or away from the guard set.  For that reason the
+admission gate below includes explicit finite maximum checks.  Any continuum
+support claim still requires design-measure coverage, additional analysis, or
+empirical validation.
+
+\section{Conditioning Gate For Local ALS Solves}
+
+The row-B failure is a conditioning failure.  For each local core update, let
+\[
+    \bar A_k
+    =
+    \begin{bmatrix}
+      W^{1/2} A_k D_k^{-1}\\
+      \sqrt{\lambda}\,\Gamma_k D_k^{-1}
+    \end{bmatrix},
+    \label{eq:p72-scaled-augmented-design}
+\]
+where \(D_k\) is a deterministic invertible diagonal column scaling matrix,
+fixed before the solve is inspected.  The local update is admissible only if
+the singular values of \(\bar A_k\) satisfy predeclared thresholds:
+\begin{equation}
+    \sigma_{\min}(\bar A_k)\ge \sigma_{\min}^{\rm gate},
+    \qquad
+    \kappa(\bar A_k)
+    =
+    \frac{\sigma_{\max}(\bar A_k)}{\sigma_{\min}(\bar A_k)}
+    \le \kappa_{\max},
+    \label{eq:p72-conditioning-gate}
+\end{equation}
+and the effective rank is not below a predeclared floor.  The effective-rank
+convention must also be fixed before execution, for example by declaring a
+relative singular-value cutoff and whether the ratio is taken against the
+number of columns or the declared local degrees of freedom.  A rank increase is
+therefore not automatically an improvement.  If the added rank directions
+create near-null directions, the fit is rejected or repaired before any
+validation claim.
+
+\section{Admission Gate}
+
+For a line probe, choose a fitting point \(z\), a guard or audit point \(u\),
+and a predeclared set of fractions \(S\subset[0,1]\).  The finite probe path is
+\[
+    \gamma_{z,u}(s)=(1-s)z+su,\qquad s\in S.
+\]
+The admission record must predeclare whether it uses an absolute value ceiling,
+a residual ceiling, a growth ratio relative to fit-scale, or an overshoot ratio
+relative to endpoints.  A typical absolute finite check has the form
+\[
+    \max_{(z,u),\,s\in S}|h_\theta(\gamma_{z,u}(s))|\le G_{\max},
+\]
+while a residual check has the form
+\[
+    \max_{v\in\calZ_{\rm guard}\cup\calZ_{\rm audit}}
+    |h_\theta(v)-y_t(v;\beta)|\le R_{\max}.
+\]
+
+After fitting, a branch may be admitted only if all of the following
+predeclared checks pass:
+\begin{enumerate}[leftmargin=2em]
+    \item fit residual on \(\calZ_{\rm fit}\);
+    \item guard residual on \(\calZ_{\rm guard}\);
+    \item aggregate and maximum guard residuals on \(\calZ_{\rm guard}\);
+    \item aggregate and maximum holdout/replay residuals on \(\calZ_{\rm audit}\);
+    \item declared line-probe value, residual, growth, or overshoot checks from
+    fitting points toward guard or audit points;
+    \item squared-density normalizer and defensive-mass checks;
+    \item local design conditioning checks from \eqref{eq:p72-conditioning-gate};
+    \item checks that declared rank directions are actually used, so aggregate
+    residuals cannot hide inactive declared directions.
+\end{enumerate}
+The in-sample residual alone is never a promotion criterion.
+
+\begin{proposition}[Admission excludes the observed Phase 6h failure pattern]
+\label{prop:p72-admission-excludes-phase6h}
+Assume the admission gate includes a declared finite line-probe ceiling
+\(G_{\max}\), a maximum raw holdout/replay residual ceiling \(R_{\max}\), and
+the conditioning gate \eqref{eq:p72-conditioning-gate}.  Then any admitted
+branch has no measured finite line-probe statistic above \(G_{\max}\), no
+measured raw holdout/replay residual above \(R_{\max}\), and no admitted local
+ALS system with condition number above \(\kappa_{\max}\).
+\end{proposition}
+
+\begin{proof}
+This is immediate from the definition of admission.  The point is not depth
+but discipline: the quantities that failed in Phase 6h become veto diagnostics
+instead of after-the-fact explanations.
+\end{proof}
+
+\section{Source-Governance Classification}
+
+\begin{center}
+\begin{tabular}{p{0.25\linewidth}p{0.29\linewidth}p{0.32\linewidth}}
+\toprule
+Operation & Classification & Reason \\
+\midrule
+Squared TT/SIRT density, defensive density, sequential normalizer role &
+source\_faithful when cited with Zhao--Cui paper and author-source anchors &
+These are part of the inspected Zhao--Cui route and existing local ledgers. \\
+Freezing ranks, bases, domains, samples, sweep schedule, and branch identity &
+fixed\_hmc\_adaptation &
+This preserves the broad route while making a differentiable same-scalar
+branch.  It is not the adaptive author algorithm. \\
+UKF-guided center, scale, or covariance orientation &
+fixed\_hmc\_adaptation unless separately source-anchored &
+UKF is a scout for branch design, not a correctness oracle. \\
+Guard/collocation objective terms, line-growth penalties, and explicit
+off-cloud admission gates &
+extension\_or\_invention unless tied to a source route in a later audit &
+These directly address the fixed-variant stability defect.  They cannot close
+a Zhao--Cui source-faithfulness gap by themselves. \\
+Christoffel, leverage-score, or stable-sampling rules for least squares &
+extension\_or\_invention until the relevant literature is audited &
+They are plausible numerical-stability tools, but must be separately sourced
+before being presented as mathematical support. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Literature Directions}
+
+The local bibliography already contains the direct TT and filtering anchors:
+Zhao and Cui's sequential TT state-space method, Oseledets' tensor-train
+decomposition, Oseledets--Tyrtyshnikov TT-cross approximation, and
+Cui--Dolgov squared inverse Rosenblatt transports.  These support the broad
+TT/SIRT context when the precise inspected sections are cited.
+
+The proposed stabilization also points toward the literature on stable
+weighted least squares, oversampling, Christoffel or leverage-score sampling,
+and polynomial approximation.  Those papers should be treated as candidate
+support until their technical sections are audited.  They may motivate a
+support-certified design, but they do not yet justify a theorem-level claim in
+the BayesFilter monograph.
+
+\section{Implementation Consequences}
+
+The next implementation phase should not go to Phase 7.  It should design and
+implement a Phase 6i repair with the following minimal contract:
+\begin{enumerate}[leftmargin=2em]
+    \item define predeclared guard and audit clouds from the frozen branch;
+    \item implement a support-certified fixed objective or a guard-gated
+    objective-preserving variant;
+    \item preserve TensorFlow/TensorFlow Probability as the BayesFilter
+    algorithmic backend;
+    \item record the column scaling convention, singular spectra, effective
+    rank convention, and conditioning for every admitted local solve;
+    \item reject a branch if off-cloud growth, holdout/replay residuals,
+    normalizer checks, or conditioning gates fail;
+    \item label every new operation as fixed-HMC adaptation or extension unless
+    source anchors prove source faithfulness.
+\end{enumerate}
+
+\section{What Would Count As Success}
+
+A repaired branch has not succeeded because it fits \(\calZ_{\rm fit}\).  It
+has only passed the lower repair gate if, on the same bounded diagnostic scale
+as Phase 6h, it shows all of the following:
+\[
+\begin{gathered}
+    \text{finite normalizer},\qquad
+    \text{bounded guard residual},\qquad
+    \text{bounded holdout/replay residual},\\
+    \text{bounded line growth},\qquad
+    \text{admissible conditioning}.
+\end{gathered}
+\]
+Even then, the conclusion is only that the fixed-variant lower gate has been
+repaired enough to consider the next reviewed diagnostic.  It is not a d18
+accuracy claim, not a scaling claim, not HMC readiness, and not adaptive
+Zhao--Cui parity.
+
+\begin{thebibliography}{9}
+
+\bibitem{zhao-cui-2024}
+Yiran Zhao and Tiangang Cui.
+\newblock Tensor-Train Methods for Sequential State and Parameter Learning in
+State-Space Models.
+\newblock \emph{Journal of Machine Learning Research}, 25:1--51, 2024.
+
+\bibitem{oseledets-2011}
+Ivan V. Oseledets.
+\newblock Tensor-Train Decomposition.
+\newblock \emph{SIAM Journal on Scientific Computing}, 33(5):2295--2317, 2011.
+
+\bibitem{oseledets-tyrtyshnikov-2010}
+Ivan Oseledets and Eugene Tyrtyshnikov.
+\newblock TT-Cross Approximation for Multidimensional Arrays.
+\newblock \emph{Linear Algebra and its Applications}, 432:70--88, 2010.
+
+\bibitem{cui-dolgov-2021}
+Tiangang Cui and Sergey Dolgov.
+\newblock Deep Composition of Tensor-Trains Using Squared Inverse Rosenblatt
+Transports.
+\newblock arXiv:2007.06968, 2021.
+
+\end{thebibliography}
+
+\end{document}

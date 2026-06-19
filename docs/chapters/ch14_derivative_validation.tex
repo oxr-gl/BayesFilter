@@ -28,28 +28,34 @@ the testing discipline before importing any claim of production readiness.
 \label{sec:bf-validation-comparison-target}
 
 Every derivative test must name the scalar or tensor being compared.  For a
-posterior target,
+sampler-coordinate posterior target,
 \[
-  \mathcal{L}(\psi)
+  \mathcal{L}(u)
   =
-  \sum_{t=1}^T\ell_t(\psi)+\log p(\psi),
+  \ell(T(u);y_{1:T})
+  + \log p(T(u))
+  + \log\left|\det DT(u)\right|,
 \]
 the score test compares
 \[
-  \hat g_i(\psi)
+  \hat g_i(u)
   \quad\hbox{to}\quad
-  \frac{\mathcal{L}(\psi+h e_i)-\mathcal{L}(\psi-h e_i)}{2h}
+  \frac{\mathcal{L}(u+h e_i)-\mathcal{L}(u-h e_i)}{2h}
 \]
-or to an autodiff score of the same scalar.  The Hessian test compares
+or to an autodiff score of that same scalar.  The Hessian test compares
 \[
-  \hat H_{ij}(\psi)
+  \hat H_{ij}(u)
   \quad\hbox{to}\quad
-  \frac{\hat g_i(\psi+h e_j)-\hat g_i(\psi-h e_j)}{2h}
+  \frac{\hat g_i(u+h e_j)-\hat g_i(u-h e_j)}{2h}
 \]
 or to a tape Hessian of the same scalar.  If the reported analytic derivative is
-likelihood-only but the finite difference includes the prior, the test is
-invalid.  If the value path contains jitter, floors, masks, or transformed
-parameters, the comparison value must contain the same choices.
+likelihood-only but the finite difference includes the prior or transform
+Jacobian, the test is invalid.  Conversely, if a chapter validates
+\(\nabla_\theta\ell\) in model-parameter coordinates, that result should be read
+as a component-level backend check rather than as the complete HMC target
+gradient unless the prior and Jacobian terms are added consistently.  If the
+value path contains jitter, floors, masks, transformed parameters, or invalid-
+region fallback values, the comparison value must contain the same choices.
 
 \section{Recommended Rungs}
 \label{sec:bf-validation-recommended-rungs}

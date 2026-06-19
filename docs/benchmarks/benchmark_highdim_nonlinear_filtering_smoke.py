@@ -40,6 +40,11 @@ if str(ROOT) not in sys.path:
 import tensorflow as tf  # noqa: E402
 
 from bayesfilter.nonlinear.cut_tf import tf_cut4g_sigma_point_rule  # noqa: E402
+from bayesfilter.nonlinear.fixed_sgqf_tf import (  # noqa: E402
+    TFFixedSGQFNonlinearModel,
+    tf_fixed_sgqf_cloud,
+    tf_fixed_sgqf_filter,
+)
 from bayesfilter.nonlinear.sigma_points_tf import (  # noqa: E402
     tf_svd_sigma_point_log_likelihood,
     tf_unit_sigma_point_rule,
@@ -59,6 +64,7 @@ NON_IMPLICATION_TEXT = (
     "readiness, GPU speedup, XLA readiness, posterior accuracy, or production "
     "default policy."
 )
+FIXED_SGQF_LEVEL = 2
 
 
 def _git_commit() -> str:
@@ -107,6 +113,9 @@ def _safe_float(value: Any) -> float | None:
 def _point_count(backend: str, augmented_dim: int) -> int:
     if backend == "tf_svd_cut4":
         return 2 * augmented_dim + 2**augmented_dim
+    if backend == "tf_fixed_sgqf_level_2":
+        state_dim = augmented_dim // 2
+        return int(tf_fixed_sgqf_cloud(state_dim, FIXED_SGQF_LEVEL).point_count)
     rule = "cubature" if backend == "tf_svd_cubature" else "unscented"
     return int(tf_unit_sigma_point_rule(augmented_dim, rule=rule).point_count)
 
@@ -222,6 +231,38 @@ def _raw_metrics(
     model: TFStructuralStateSpace,
     backend: str,
 ) -> tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
+    if backend == "tf_fixed_sgqf_level_2":
+        state_dim = model.partition.state_dim // 2
+        fixed_model = make_nonlinear_accumulation_model_tf()
+        if model.partition.state_dim != fixed_model.partition.state_dim:
+            raise ValueError("fixed SGQF smoke rows are only implemented for the base Model B case")
+        fixed_result = tf_fixed_sgqf_filter(
+            observations,
+            TFFixedSGQFNonlinearModel(
+                initial_mean=tf.constant([0.0], dtype=tf.float64),
+                initial_covariance=tf.reshape(fixed_model.initial_covariance[0, 0], [1, 1]),
+                process_covariance=tf.reshape(fixed_model.innovation_covariance[0, 0] * 0.25**2, [1, 1]),
+                observation_covariance=fixed_model.observation_covariance,
+                transition_fn=lambda points: tf.convert_to_tensor(
+                    fixed_model.transition(points, tf.zeros([tf.shape(tf.convert_to_tensor(points, dtype=tf.float64))[0], 1], dtype=tf.float64))[:, :1],
+                    dtype=tf.float64,
+                ),
+                observation_fn=lambda points: tf.convert_to_tensor(
+                    fixed_model.observe(tf.concat([points, 0.55 * tf.math.tanh(points)], axis=1)),
+                    dtype=tf.float64,
+                ),
+                name="fixed_sgqf_model_b_smoke_adapter",
+            ),
+            cloud=tf_fixed_sgqf_cloud(state_dim, FIXED_SGQF_LEVEL),
+            return_filtered=False,
+        )
+        if fixed_result.failure is not None:
+            raise ValueError(f"fixed SGQF smoke row blocked at {fixed_result.failure.stage}")
+        return (
+            fixed_result.log_likelihood,
+            tf.constant(0.0, dtype=tf.float64),
+            tf.constant(0.0, dtype=tf.float64),
+        )
     if backend == "tf_svd_cut4":
         value, _, _, diagnostics = tf_svd_cut4_log_likelihood(
             observations,
@@ -309,6 +350,19 @@ def _row(
         "non_implication": NON_IMPLICATION_TEXT,
         "non_implication_text": NON_IMPLICATION_TEXT,
     }
+    if backend == "tf_fixed_sgqf_level_2":
+        return {
+            **base,
+            "row_status": "skipped",
+            "finite_status": "not_run",
+            "shape_status": "not_run",
+            "runtime_seconds": None,
+            "max_rss_mb": _max_rss_mb(),
+            "promotion_label": "not_promoted",
+            "continuation_label": "skip_not_same_target_adapter",
+            "repair_label": "design_structural_to_fixed_sgqf_adapter_before_smoke_comparison",
+            "skip_reason": "current fixed SGQF implementation is an additive-state lane and is not yet a same-target adapter for the structural high-dimensional smoke fixtures",
+        }
     if point_count > point_cap:
         return {
             **base,
@@ -427,7 +481,7 @@ def main() -> None:
     for case_spec in args.cases:
         case, block_text = case_spec.split(":", maxsplit=1)
         block_count = int(block_text)
-        for backend in ("tf_svd_cubature", "tf_svd_ukf", "tf_svd_cut4"):
+        for backend in ("tf_svd_cubature", "tf_svd_ukf", "tf_svd_cut4", "tf_fixed_sgqf_level_2"):
             for mode in args.modes:
                 rows.append(
                     _row(

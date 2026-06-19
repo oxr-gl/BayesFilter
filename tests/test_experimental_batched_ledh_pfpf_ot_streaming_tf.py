@@ -4,6 +4,7 @@ import ast
 import inspect
 import os
 from pathlib import Path
+from unittest import mock
 
 os.environ.setdefault("CUDA_VISIBLE_DEVICES", "-1")
 
@@ -158,6 +159,7 @@ def _streaming_value(
     *,
     return_history: bool = True,
     pre_flow_step_fn=None,
+    prior_mean_fn=None,
 ):
     kwargs = dict(
         observations=fixture["observations"],
@@ -180,11 +182,81 @@ def _streaming_value(
         particle_chunk_size=2,
         return_history=return_history,
     )
+    if prior_mean_fn is not None:
+        kwargs["prior_mean_fn"] = prior_mean_fn
     if pre_flow_step_fn is None:
         kwargs["pre_flow_particles"] = fixture["pre_flow_particles"]
     else:
         kwargs["pre_flow_step_fn"] = pre_flow_step_fn
     return streaming_batched_ledh_pfpf_ot_value_core_tf(**kwargs)
+
+
+def test_nonlinear_prior_mean_hook_preserves_default_linear_flow() -> None:
+    fixture = _value_fixture(2)
+
+    def linear_prior(points: tf.Tensor) -> tf.Tensor:
+        return tf.einsum("bnj,bdj->bnd", points, fixture["transition_matrix"])
+
+    default = batched_ledh_flow_streaming_particles_tf(
+        pre_flow_particles=fixture["pre_flow_particles"][:, 0, :, :],
+        ancestors=fixture["initial_particles"],
+        observation=fixture["observations"][0],
+        transition_matrix=fixture["transition_matrix"],
+        transition_covariance=fixture["transition_covariance"],
+        observation_covariance=fixture["observation_covariance"],
+        observation_fn=_observation,
+        observation_jacobian_fn=_observation_jacobian,
+        observation_residual_fn=_observation_residual,
+        particle_chunk_size=2,
+    )
+    hooked_linear = batched_ledh_flow_streaming_particles_tf(
+        pre_flow_particles=fixture["pre_flow_particles"][:, 0, :, :],
+        ancestors=fixture["initial_particles"],
+        observation=fixture["observations"][0],
+        transition_matrix=fixture["transition_matrix"],
+        transition_covariance=fixture["transition_covariance"],
+        observation_covariance=fixture["observation_covariance"],
+        observation_fn=_observation,
+        observation_jacobian_fn=_observation_jacobian,
+        observation_residual_fn=_observation_residual,
+        prior_mean_fn=linear_prior,
+        particle_chunk_size=2,
+    )
+
+    np.testing.assert_allclose(
+        hooked_linear.post_flow_particles.numpy(),
+        default.post_flow_particles.numpy(),
+        atol=SCALAR_PARITY_ATOL,
+        rtol=SCALAR_PARITY_RTOL,
+    )
+    np.testing.assert_allclose(
+        hooked_linear.pre_flow_log_density.numpy(),
+        default.pre_flow_log_density.numpy(),
+        atol=SCALAR_PARITY_ATOL,
+        rtol=SCALAR_PARITY_RTOL,
+    )
+
+
+def test_nonlinear_prior_mean_hook_changes_streaming_value_core() -> None:
+    fixture = _value_fixture(2)
+
+    def nonlinear_prior(points: tf.Tensor, _time_index: tf.Tensor) -> tf.Tensor:
+        linear = tf.einsum("bnj,bdj->bnd", points, fixture["transition_matrix"])
+        return linear + tf.constant(0.25, dtype=DTYPE) * tf.square(points)
+
+    linear = _streaming_value(fixture, return_history=False)
+    nonlinear = _streaming_value(
+        fixture,
+        return_history=False,
+        prior_mean_fn=nonlinear_prior,
+    )
+
+    assert not np.allclose(
+        nonlinear.log_likelihood.numpy(),
+        linear.log_likelihood.numpy(),
+        atol=1.0e-7,
+        rtol=1.0e-7,
+    )
 
 
 def test_streaming_flow_chunked_matches_dense_flow_core() -> None:
@@ -277,6 +349,48 @@ def test_streaming_value_likelihood_only_omits_history() -> None:
     assert likelihood_only.filtered_means.shape == (0, 3, 1)
     assert likelihood_only.filtered_variances.shape == (0, 3, 1)
     assert likelihood_only.ess_by_time.shape == (0, 3)
+
+
+def test_inactive_transport_dynamic_mask_skips_transport_core() -> None:
+    fixture = _value_fixture(3)
+    fixture["fixed_resampling_mask"] = tf.Variable(
+        tf.zeros_like(fixture["fixed_resampling_mask"]),
+        trainable=False,
+    )
+
+    with mock.patch(
+        "experiments.dpf_implementation.tf_tfp.filters."
+        "experimental_batched_ledh_pfpf_ot_streaming_tf."
+        "batched_annealed_transport_core_tf",
+        side_effect=AssertionError("transport core should not be called"),
+    ):
+        result = _streaming_value(fixture, return_history=False)
+
+    assert np.all(np.isfinite(result.log_likelihood.numpy()))
+
+
+def test_mixed_active_transport_dynamic_mask_calls_transport_core() -> None:
+    fixture = _value_fixture(3)
+    mask = np.zeros(fixture["fixed_resampling_mask"].shape, dtype=bool)
+    mask[0, 1] = True
+    fixture["fixed_resampling_mask"] = tf.Variable(mask, trainable=False)
+    call_count = 0
+
+    def sentinel_transport(*args, **kwargs):
+        nonlocal call_count
+        call_count += 1
+        return batched_annealed_transport_core_tf(*args, **kwargs)
+
+    with mock.patch(
+        "experiments.dpf_implementation.tf_tfp.filters."
+        "experimental_batched_ledh_pfpf_ot_streaming_tf."
+        "batched_annealed_transport_core_tf",
+        side_effect=sentinel_transport,
+    ):
+        result = _streaming_value(fixture, return_history=False)
+
+    assert call_count > 0
+    assert np.all(np.isfinite(result.log_likelihood.numpy()))
 
 
 def test_streaming_pre_flow_callback_matches_fixed_tensor_path() -> None:

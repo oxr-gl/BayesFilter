@@ -1,0 +1,160 @@
+{
+  "artifact_type": "p8h_closeout_artifact_index",
+  "date": "2026-06-16",
+  "status": "P8H_CLOSED_THROUGH_PHASE10_BOUNDARY_REVIEWED",
+  "active_lane": "P8h OT-resampled Algorithm 1 LEDH repair",
+  "out_of_scope_lanes": [
+    "Zhao-Cui high-dimensional fixed-branch work",
+    "monograph rewrite work outside P8h DPF/LEDH documentation edits"
+  ],
+  "exact_route": {
+    "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+    "route_variant": "p8h_sv_scalar_graph_ot_resampled_alg1",
+    "resampling_route": "ot_sinkhorn_barycentric_covariance_carry",
+    "canonical_transport_matrix_convention": "target_by_source_row_stochastic",
+    "selected_stage0_particle_count": 5,
+    "coordinate": "canonical_unconstrained",
+    "row_alias": "actual_sv",
+    "row_id": "zhao_cui_sv_actual_nongaussian_T1000"
+  },
+  "reviewed_phase_status": [
+    {
+      "phase": 0,
+      "status": "PASS_REVIEWED",
+      "result": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase0-latex-governance-correction-result-2026-06-15.md"
+    },
+    {
+      "phase": 1,
+      "status": "PASS_REVIEWED",
+      "result": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase1-governance-reset-result-2026-06-15.md"
+    },
+    {
+      "phase": 2,
+      "status": "PASS_REVIEWED",
+      "result": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase2-algorithm-design-contract-result-2026-06-15.md"
+    },
+    {
+      "phase": 3,
+      "status": "PASS_REVIEWED",
+      "result": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase3-scalar-sv-gpu-ot-implementation-result-2026-06-15.md"
+    },
+    {
+      "phase": 4,
+      "status": "PASS_REVIEWED",
+      "result": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase4-local-checks-result-2026-06-15.md"
+    },
+    {
+      "phase": 5,
+      "status": "PASS_STAGE0_PREFIX_SELECTED_REVIEWED",
+      "result": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase5-value-filtering-tuning-result-2026-06-15.md"
+    },
+    {
+      "phase": 6,
+      "status": "PASS_OT_GRADIENT_REVIEWED",
+      "result": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase6-ot-gradient-checks-result-2026-06-16.md"
+    },
+    {
+      "phase": 7,
+      "status": "PASS_SMALL_HMC_FEASIBILITY_REVIEWED",
+      "result": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase7-gpu-performance-scaling-result-2026-06-16.md"
+    },
+    {
+      "phase": 8,
+      "status": "PASS_TIER0_HMC_EXECUTION_REVIEWED",
+      "result": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase8-hmc-tier0-smoke-result-2026-06-16.md"
+    },
+    {
+      "phase": 9,
+      "status": "PASS_CLOSEOUT_REVIEWED",
+      "result": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase9-closeout-artifact-refresh-result-2026-06-16.md"
+    },
+    {
+      "phase": 10,
+      "status": "PASS_BOUNDARY_REVIEWED",
+      "result": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase10-repo-hygiene-result-2026-06-16.md"
+    }
+  ],
+  "program_artifacts": [
+    "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-ot-resampled-alg1-ledh-master-program-2026-06-15.md",
+    "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-visible-gated-execution-runbook-2026-06-15.md",
+    "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-visible-execution-ledger-2026-06-15.md",
+    "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-claude-review-ledger-2026-06-15.md",
+    "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-visible-stop-handoff-2026-06-15.md",
+    "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-reset-memo-2026-06-16.md",
+    "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase9-closeout-artifact-refresh-result-2026-06-16.md",
+    "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase10-repo-hygiene-result-2026-06-16.md",
+    "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase11-closure-sync-result-2026-06-16.md"
+  ],
+  "implementation_artifacts": [
+    "experiments/dpf_implementation/tf_tfp/filters/ledh_pfpf_alg1_ukf_tf.py",
+    "scripts/filtering_value_gradient_benchmark_run_p8d_numeric.py"
+  ],
+  "test_artifacts": [
+    "tests/test_ledh_pfpf_alg1_ukf_tf.py",
+    "tests/highdim/test_filtering_value_gradient_benchmark_p8d_numeric.py"
+  ],
+  "documentation_artifacts": [
+    "docs/chapters/ch19b_dpf_literature_survey.tex",
+    "docs/chapters/ch19e_dpf_hmc_target_suitability.tex",
+    "docs/chapters/ch32_diff_resampling_neural_ot.tex"
+  ],
+  "diagnostic_artifacts": [
+    "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase3-scalar-sv-ot-cpu-smoke-2026-06-15.json",
+    "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase3-scalar-sv-ot-gpu-smoke-2026-06-15.json",
+    "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase4-scalar-sv-ot-cpu-diagnostic-2026-06-15.json",
+    "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase4-scalar-sv-ot-gpu-diagnostic-2026-06-15.json",
+    "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase5-value-filtering-tuning-stage0-2026-06-16.json",
+    "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase5-value-filtering-tuning-stage0-2026-06-16.csv",
+    "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase5-value-filtering-tuning-selected-blocked-2026-06-16.csv",
+    "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase6-ot-gradient-checks-gpu-2026-06-16.json",
+    "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase6-ot-gradient-checks-gpu-2026-06-16.csv",
+    "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase7-gpu-performance-scaling-profile-2026-06-16.json",
+    "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase7-gpu-performance-scaling-profile-2026-06-16.csv",
+    "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase7-gpu-performance-scaling-selected-blocked-2026-06-16.csv",
+    "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase8-hmc-tier0-smoke-gpu-2026-06-16.json",
+    "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase8-hmc-tier0-smoke-gpu-2026-06-16.csv"
+  ],
+  "environment_and_run_manifest_disposition": {
+    "status": "embedded_in_json_artifacts_and_result_notes",
+    "separate_environment_file": "N/A",
+    "reason": "Each P8h diagnostic JSON artifact records git commit, dirty-state summary, command, TensorFlow GPU context when applicable, g0 manifest path when applicable, plan/result paths, seeds, wall time, and output paths. Phase 10 should preserve those JSON artifacts rather than inventing a separate environment file after the run.",
+    "source_artifacts": [
+      "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase3-scalar-sv-ot-cpu-smoke-2026-06-15.json",
+      "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase3-scalar-sv-ot-gpu-smoke-2026-06-15.json",
+      "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase4-scalar-sv-ot-cpu-diagnostic-2026-06-15.json",
+      "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase4-scalar-sv-ot-gpu-diagnostic-2026-06-15.json",
+      "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase5-value-filtering-tuning-stage0-2026-06-16.json",
+      "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase6-ot-gradient-checks-gpu-2026-06-16.json",
+      "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase7-gpu-performance-scaling-profile-2026-06-16.json",
+      "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase8-hmc-tier0-smoke-gpu-2026-06-16.json"
+    ]
+  },
+  "subplan_artifacts": [
+    "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase0-latex-governance-correction-subplan-2026-06-15.md",
+    "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase1-governance-reset-subplan-2026-06-15.md",
+    "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase2-algorithm-design-contract-subplan-2026-06-15.md",
+    "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase3-scalar-sv-gpu-ot-implementation-subplan-2026-06-15.md",
+    "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase4-local-checks-subplan-2026-06-15.md",
+    "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase5-value-filtering-tuning-subplan-2026-06-15.md",
+    "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase6-ot-gradient-checks-subplan-2026-06-15.md",
+    "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase7-gpu-performance-scaling-subplan-2026-06-15.md",
+    "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase8-hmc-diagnostic-tiers-subplan-2026-06-15.md",
+    "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase9-closeout-artifact-refresh-subplan-2026-06-15.md",
+    "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase10-repo-hygiene-subplan-2026-06-16.md",
+    "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase11-closure-sync-subplan-2026-06-16.md"
+  ],
+  "nonclaims_to_preserve": [
+    "not production HMC readiness",
+    "not posterior convergence",
+    "not valid tuning",
+    "not NUTS readiness",
+    "not stochastic PF marginal-gradient correctness",
+    "not full-horizon HMC feasibility",
+    "not full GPU scaling law",
+    "not exact nonlinear likelihood correctness",
+    "not generic high-dimensional LEDH readiness",
+    "not filter ranking",
+    "not default sampler policy"
+  ],
+  "phase10_boundary_note": "Phase 10 separated these P8h artifacts from unrelated Zhao-Cui, monograph, cache, local-environment, and user worktree changes for any later explicit commit request. No commit or push was performed."
+}

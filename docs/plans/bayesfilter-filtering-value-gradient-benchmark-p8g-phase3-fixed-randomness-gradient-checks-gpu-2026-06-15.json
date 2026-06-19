@@ -1,0 +1,174 @@
+{
+  "device_diagnostics": {
+    "devices_used_by_gradient_tensors": [
+      "/job:localhost/replica:0/task:0/device:GPU:0"
+    ],
+    "devices_used_by_value_tensors": [
+      "/job:localhost/replica:0/task:0/device:GPU:0"
+    ],
+    "no_silent_cpu_fallback_claim": true
+  },
+  "evidence_contract": {
+    "baseline": "Reviewed G2b scalar-SV graph value path and finite-difference diagnostics on the same fixed random draws.",
+    "not_concluded": [
+      "stochastic PF target gradient correctness",
+      "production HMC readiness",
+      "final filter ranking",
+      "generic high-dimensional Algorithm 1 gradient readiness"
+    ],
+    "primary_criterion": "Finite stable gradients pass repeatability and directional finite-difference checks in canonical_unconstrained coordinate.",
+    "question": "Does the fixed-randomness/no-resampling LEDH surrogate objective provide stable, finite, coordinate-consistent gradients?",
+    "veto_diagnostics": [
+      "gradient through resampling branch",
+      "missing seed/salt contract",
+      "parameterization mismatch",
+      "finite value treated as gradient correctness",
+      "non-finite or unstable gradients"
+    ]
+  },
+  "nonclaims": [
+    "fixed-randomness/no-resampling conditional surrogate only",
+    "not the stochastic PF marginal likelihood gradient",
+    "not HMC readiness",
+    "not tuned particle-count evidence",
+    "not a filter ranking",
+    "not generalized-SV or high-dimensional Algorithm 1 gradient evidence"
+  ],
+  "per_seed_results": [
+    {
+      "coordinate": "canonical_unconstrained",
+      "directional_fd_residuals": [
+        6.973515098707139e-10,
+        3.2151072915098666e-09,
+        3.9124588013805806e-09,
+        -2.5177557816391527e-09
+      ],
+      "ess_mean": 5.571344110845176,
+      "ess_min": 3.42406981367029,
+      "finite": true,
+      "finite_difference_gradient": [
+        -1.8096119400912158,
+        1.4234008724978153
+      ],
+      "gradient": [
+        -1.8096119393938643,
+        1.4234008757129226
+      ],
+      "gradient_device": "/job:localhost/replica:0/task:0/device:GPU:0",
+      "gradient_finite": true,
+      "gradient_l2_norm": 2.302339120150882,
+      "gradient_max_abs_fd_residual": 3.2151072915098666e-09,
+      "log_likelihood": -7.2654133636177605,
+      "particle_batch_route": "closed_form_scalar_vector_ops",
+      "randomness_contract": "stateless_normals_precomputed_outside_xla_seed_salts_110_and_1110_plus_t",
+      "repeat_gradient": [
+        -1.8096119393938643,
+        1.4234008757129226
+      ],
+      "repeat_gradient_max_abs_delta": 0.0,
+      "repeat_log_likelihood": -7.2654133636177605,
+      "repeat_value_abs_delta": 0.0,
+      "resampling_route": "none",
+      "route_variant": "p8g_sv_scalar_graph",
+      "runtime_seconds": 2.568887,
+      "seed": 81120,
+      "time_loop_route": "tf_while_loop",
+      "value_device": "/job:localhost/replica:0/task:0/device:GPU:0"
+    },
+    {
+      "coordinate": "canonical_unconstrained",
+      "directional_fd_residuals": [
+        -2.3169535179334844e-09,
+        -4.201898551325911e-09,
+        -6.5188520692593954e-09,
+        1.8849450333924267e-09
+      ],
+      "ess_mean": 4.664238111194667,
+      "ess_min": 2.8323675511710706,
+      "finite": true,
+      "finite_difference_gradient": [
+        -1.85711614809847,
+        0.2738545803815384
+      ],
+      "gradient": [
+        -1.8571161504154234,
+        0.2738545761796399
+      ],
+      "gradient_device": "/job:localhost/replica:0/task:0/device:GPU:0",
+      "gradient_finite": true,
+      "gradient_l2_norm": 1.877199170314203,
+      "gradient_max_abs_fd_residual": 4.201898551325911e-09,
+      "log_likelihood": -8.791352657278416,
+      "particle_batch_route": "closed_form_scalar_vector_ops",
+      "randomness_contract": "stateless_normals_precomputed_outside_xla_seed_salts_110_and_1110_plus_t",
+      "repeat_gradient": [
+        -1.8571161504154234,
+        0.2738545761796399
+      ],
+      "repeat_gradient_max_abs_delta": 0.0,
+      "repeat_log_likelihood": -8.791352657278416,
+      "repeat_value_abs_delta": 0.0,
+      "resampling_route": "none",
+      "route_variant": "p8g_sv_scalar_graph",
+      "runtime_seconds": 0.754296,
+      "seed": 81121,
+      "time_loop_route": "tf_while_loop",
+      "value_device": "/job:localhost/replica:0/task:0/device:GPU:0"
+    }
+  ],
+  "phase": "P8G_G3_FIXED_RANDOMNESS_GRADIENT",
+  "run_manifest": {
+    "command": "scripts/filtering_value_gradient_benchmark_run_p8d_numeric.py --p8g-fixed-randomness-gradient-check --rows actual_sv --horizon 10 --particles 8 --seeds 81120,81121 --route-variant p8g_sv_scalar_graph --coordinate canonical_unconstrained --device gpu --g0-manifest docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8g-phase0-gpu-probe-result-2026-06-15.md --output-json docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8g-phase3-fixed-randomness-gradient-checks-gpu-2026-06-15.json --output-csv docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8g-phase3-fixed-randomness-gradient-checks-gpu-2026-06-15.csv",
+    "cuda_visible_devices": "None",
+    "device_context": "/GPU:0",
+    "dirty_state_summary": "83 git-status-short entries",
+    "environment": "TensorFlow/TensorFlow Probability fixed-randomness gradient harness",
+    "g0_manifest": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8g-phase0-gpu-probe-result-2026-06-15.md",
+    "g2b_result": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8g-phase2b-sv-scalar-graph-repair-result-2026-06-15.md",
+    "git_commit": "eae3f22fb8fe4a7740d7dc67066522303aaaf083",
+    "marker_device": "/job:localhost/replica:0/task:0/device:GPU:0",
+    "plan": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8g-phase3-fixed-randomness-gradient-subplan-2026-06-15.md",
+    "requested_device": "gpu",
+    "tf_logical_gpus": [
+      "/device:GPU:0"
+    ],
+    "tf_physical_gpus": [
+      "/physical_device:GPU:0"
+    ]
+  },
+  "schema_version": "filter_bench.p8g_fixed_randomness_gradient.v1",
+  "scope": {
+    "coordinate": "canonical_unconstrained",
+    "horizon_prefix": 10,
+    "particle_count": 8,
+    "resampling_route": "none",
+    "route_variant": "p8g_sv_scalar_graph",
+    "row_id": "zhao_cui_sv_actual_nongaussian_T1000",
+    "rows": [
+      "zhao_cui_sv_actual_nongaussian_T1000"
+    ],
+    "seed_count": 2,
+    "seeds": [
+      81120,
+      81121
+    ],
+    "theta": [
+      0.2533471031357997,
+      -0.916290731874155
+    ],
+    "theta_coordinate_meaning": "theta=(Phi^{-1}(gamma), log(beta)); sigma fixed at 1.0"
+  },
+  "status": "executed_p8g_fixed_randomness_gradient_check",
+  "summary": {
+    "all_gradients_finite": true,
+    "all_values_finite": true,
+    "max_abs_fd_residual": 4.201898551325911e-09,
+    "max_repeat_gradient_abs_delta": 0.0,
+    "mean_gradient": [
+      -1.833364044904644,
+      0.8486277259462812
+    ],
+    "mean_log_likelihood": -8.028383010448088,
+    "sample_standard_deviation": 1.0790020222264605
+  }
+}

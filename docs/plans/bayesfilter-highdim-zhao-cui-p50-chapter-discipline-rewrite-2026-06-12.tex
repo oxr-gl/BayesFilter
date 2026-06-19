@@ -4411,6 +4411,171 @@ claims require the admitted branch to have nonzero fitted square-root mass,
 finite residuals, acceptable conditioning, adequate local-domain coverage, and
 a stable retained normalizer.
 
+\subsection*{Stabilizing A Frozen High-Rank Fit Without Changing The Target}
+
+The preceding veto separates a mathematical failure of a fixed branch from a
+failure of Zhao and Cui's adaptive method.  Zhao and Cui's paper constructs, at
+each filtering time, a square-root tensor-train approximation and then forms the
+nonnegative density in Eq.~(13) and Algorithm~2
+\cite{zhao2024ttsequential}.  Their implementation does not merely solve one
+predeclared least-squares problem.  In the audited source, the forward pass
+forms local coordinates from propagated samples, evaluates the shifted target,
+splits local samples into fitting and diagnostic sets, and then calls
+\texttt{TTSIRT} to construct the square-root approximation
+(\texttt{models/full\_sol.m:84--124}).  The local coordinate map is based on a
+weighted empirical center and covariance with a small positive covariance
+regularization; when the effective sample size is large enough, the same source
+routine also applies a diagonal stretch based on weighted quantiles in the
+standardized coordinates (\texttt{models/computeL.m:24--47}).  The
+\texttt{TTSIRT} constructor delegates approximation to \texttt{TTFun} and then
+may round the tensor train when the AMEN route is active
+(\texttt{deep-tensor.dev/src/@TTSIRT/TTSIRT.m:238--248}).  The shared SIRT
+constructor stores the defensive parameter and then marginalizes the
+approximation (\texttt{deep-tensor.dev/src/SIRT.m:74--85}); the TTSIRT
+marginalization routine computes the squared approximation mass and sets the
+total normalizer to that mass plus the defensive term
+(\texttt{deep-tensor.dev/src/@TTSIRT/marginalise.m:81--85}).  This is the source
+counterpart of the squared-density normalizer in Zhao and Cui's Proposition~2
+and Section~3.2 \cite{zhao2024ttsequential}.
+
+The fixed branch changes the status of these choices.  It freezes the design
+measure, coordinate map, rank tuple, basis, sweep count, and fitting rule so
+that a differentiable approximate scalar is well-defined.  That freezing is
+useful for a likelihood calculation, but it removes safeguards that the
+adaptive method uses because the posterior region, approximation rank, and
+useful sample set are not known in advance.  Therefore the fixed branch needs
+its own admissibility and stabilization rules.  These rules are part of the
+branch \(B_t\); they do not make the branch an unmodified implementation of the
+adaptive algorithm.
+
+\begin{proposition}[Zero-environment cascade in a frozen ALS update]
+\label{prop:p50-zero-environment-cascade}
+Consider one core update in a fixed tensor-train least-squares fit.  Let
+\[
+    y_j=s_t^{\rm sh}(z_j)>0,\qquad
+    w_j>0,\qquad j=1,\ldots,m,
+\]
+be the square-root target values and fitting weights.  Holding all cores except
+core \(k\) fixed gives the weighted ridge normal equation
+\begin{equation}
+    (A_k^\top W A_k+\rho I)g_k=A_k^\top W y,
+    \qquad \rho>0,
+    \label{eq:p50-zero-env-normal}
+\end{equation}
+where \(g_k\) is the vector of coefficients of the \(k\)-th core.  If either
+the left environment or the right environment of core \(k\) is zero at every
+design point, then \(A_k=0\).  In that case the unique solution of
+\eqref{eq:p50-zero-env-normal} is \(g_k=0\).  If this zero core is accepted in
+an interior position of the tensor train, then the represented square-root
+function is identically zero, and every subsequent core update whose design
+matrix uses the zero environment also has zero right-hand side.
+\end{proposition}
+
+\begin{proof}
+The design row for core \(k\) is the tensor product of the left environment,
+the one-dimensional basis vector at coordinate \(k\), and the right
+environment.  If one of the two environments is zero for every design point,
+then every design row is zero, hence \(A_k=0\).  Since \(\rho>0\), the normal
+matrix is \(\rho I\), so \eqref{eq:p50-zero-env-normal} has the unique solution
+\(g_k=0\).  A tensor train evaluates by multiplying its core matrices.  If an
+interior core matrix is zero for every input, every product containing that
+core is zero, so the whole square-root function is zero.  The same zero product
+then appears as a left or right environment in later updates, giving the same
+zero-design conclusion for those updates.
+\end{proof}
+
+Proposition~\ref{prop:p50-zero-environment-cascade} is not a theorem that every
+high-rank fixed fit must collapse.  It identifies a concrete mechanism by which
+a deterministic one-sweep, small-design fit can report finite ridge solves and
+benign condition numbers while still producing a zero square-root tensor.  A
+condition-number check alone is therefore not an admissibility check for a
+fixed high-rank branch.
+
+\begin{proposition}[Constant-path initialization for a fixed branch]
+\label{prop:p50-constant-path-initialization}
+Assume the one-dimensional bases are normalized so that their first basis
+function is the constant \(1\), and the product reference measure has total
+mass one.  Let \(y_j=s_t^{\rm sh}(z_j)>0\) and \(w_j>0\), and define the
+weighted mean
+\begin{equation}
+    \bar y_t=
+    \frac{\sum_{j=1}^{m}w_jy_j}{\sum_{j=1}^{m}w_j}.
+    \label{eq:p50-constant-path-mean}
+\end{equation}
+For a fixed rank tuple \((1,R_1,\ldots,R_{D-1},1)\), initialize the tensor-train
+cores by
+\begin{equation}
+    C_{1}[1,0,1]=\bar y_t,\qquad
+    C_{k}[1,0,1]=1\quad (k=2,\ldots,D),
+    \label{eq:p50-constant-path-init}
+\end{equation}
+with all other coefficient entries equal to zero.  The resulting initial
+square-root tensor train represents the constant function
+\(\phi_t^{(0)}(z)=\bar y_t\), and its squared mass is
+\begin{equation}
+    S(\phi_t^{(0)})=
+    \int_{\Omega_t}\phi_t^{(0)}(z)^2\dd\lambda_t(z)
+    =
+    \bar y_t^2>0.
+    \label{eq:p50-constant-path-mass}
+\end{equation}
+Consequently this initialization is a deterministic nonzero starting branch for
+any declared rank tuple.  If later ALS updates are accepted only when the final
+square-root mass is finite and exceeds the defensive-only tolerance
+\(\epsilon_{\rm def}\), then an admitted high-rank branch cannot be
+defensive-only in the sense of Proposition
+\ref{prop:p50-defensive-only-rank-veto}.
+\end{proposition}
+
+\begin{proof}
+Because \(y_j>0\) and \(w_j>0\), the weighted mean
+\(\bar y_t\) in \eqref{eq:p50-constant-path-mean} is strictly positive.  In
+the core product, only the first rank channel and the constant basis channel
+are nonzero.  Each core after the first contributes the scalar \(1\), and the
+first core contributes \(\bar y_t\).  Thus the represented function is the
+constant \(\bar y_t\).  Since the reference measure has total mass one,
+\[
+    \int_{\Omega_t}\phi_t^{(0)}(z)^2\dd\lambda_t(z)
+    =
+    \int_{\Omega_t}\bar y_t^2\dd\lambda_t(z)
+    =
+    \bar y_t^2>0.
+\]
+If the completed fit is admitted only when its square-root mass is finite and
+larger than \(\epsilon_{\rm def}\), then its fitted component contributes
+resolved positive mass.  By Proposition
+\ref{prop:p50-defensive-only-rank-veto}, such a branch is not defensive-only at
+the declared tolerance.
+\end{proof}
+
+\paragraph{What changes relative to Zhao and Cui.}
+The density formula does not change: the fixed branch still uses
+\(\phi_t^2+\tau_t\lambda_t\), as in Zhao and Cui's square-root construction
+\cite[Eq.~(13) and Algorithm~2]{zhao2024ttsequential}.  The marginal and
+normalizer contractions also remain the squared-core contractions described in
+their Proposition~2 and Section~3.2.  What changes is the finite-dimensional
+fitting rule inside \(B_t\).  Instead of allowing the adaptive software route
+to choose or enrich the approximation from its available samples, the fixed
+branch declares a deterministic rank, a deterministic fitting sample set, a
+deterministic sweep order, a deterministic initialization
+\eqref{eq:p50-constant-path-init}, and an admissibility veto based on the
+resolved square-root mass.  This is a fixed-branch adaptation for a
+differentiable likelihood.  It must be recorded in the branch identity and
+cannot be cited as an unqualified source-faithful Zhao--Cui operation.
+
+\paragraph{Why the author route uses adaptivity.}
+The adaptive choices in Zhao and Cui's algorithm are not incidental coding
+preferences.  They are needed because the next filtering target is known only
+through propagated particles, likelihood evaluations, and the previous
+approximate filter.  The algorithm must discover a useful local coordinate
+system, sample region, rank, and tensor-train representation from the data at
+that time step.  A frozen HMC branch has the opposite requirement: every
+discrete choice must be fixed before the likelihood and its derivative are
+defined.  The constant-path initialization and the square-root-mass
+admissibility check are therefore not replacements for the adaptive algorithm;
+they are the extra mathematical bookkeeping required after the adaptive route
+has been converted into one fixed approximate scalar.
+
 \section{Fixed-Branch Likelihood Construction}
 
 The earlier chapters define the approximation family and the sequential

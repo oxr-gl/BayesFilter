@@ -93,6 +93,10 @@ class TFFixedSGQFScoreResult:
     score: tf.Tensor | None
     branch_identity: TFFixedSGQFBranchIdentity
     diagnostics: Mapping[str, object]
+    filtered_mean: tf.Tensor | None = None
+    filtered_covariance: tf.Tensor | None = None
+    d_filtered_mean: tf.Tensor | None = None
+    d_filtered_covariance: tf.Tensor | None = None
     failure: TFFixedSGQFStepFailure | None = None
 
     def __post_init__(self) -> None:
@@ -100,6 +104,14 @@ class TFFixedSGQFScoreResult:
             object.__setattr__(self, "log_likelihood", tf.convert_to_tensor(self.log_likelihood, dtype=tf.float64))
         if self.score is not None:
             object.__setattr__(self, "score", tf.convert_to_tensor(self.score, dtype=tf.float64))
+        if self.filtered_mean is not None:
+            object.__setattr__(self, "filtered_mean", tf.convert_to_tensor(self.filtered_mean, dtype=tf.float64))
+        if self.filtered_covariance is not None:
+            object.__setattr__(self, "filtered_covariance", tf.convert_to_tensor(self.filtered_covariance, dtype=tf.float64))
+        if self.d_filtered_mean is not None:
+            object.__setattr__(self, "d_filtered_mean", tf.convert_to_tensor(self.d_filtered_mean, dtype=tf.float64))
+        if self.d_filtered_covariance is not None:
+            object.__setattr__(self, "d_filtered_covariance", tf.convert_to_tensor(self.d_filtered_covariance, dtype=tf.float64))
         object.__setattr__(self, "diagnostics", MappingProxyType(dict(self.diagnostics)))
         if not isinstance(self.branch_identity, TFFixedSGQFBranchIdentity):
             raise TypeError("branch_identity must be a TFFixedSGQFBranchIdentity")
@@ -470,5 +482,9 @@ def tf_fixed_sgqf_score(
                 failure=None,
             ),
         ),
+        filtered_mean=mean,
+        filtered_covariance=covariance,
+        d_filtered_mean=d_mean,
+        d_filtered_covariance=d_covariance,
         failure=None,
     )

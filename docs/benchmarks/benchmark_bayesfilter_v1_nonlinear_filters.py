@@ -46,8 +46,19 @@ from bayesfilter import (  # noqa: E402
 )
 from bayesfilter.linear.kalman_tf import tf_linear_gaussian_log_likelihood  # noqa: E402
 from bayesfilter.nonlinear.cut_tf import tf_cut4g_sigma_point_rule  # noqa: E402
+from bayesfilter.nonlinear.fixed_sgqf_structural_adapter_tf import (  # noqa: E402
+    tf_structural_to_fixed_sgqf_model,
+)
+from bayesfilter.nonlinear.fixed_sgqf_tf import (  # noqa: E402
+    TFFixedSGQFAffineModel,
+    TFFixedSGQFNonlinearModel,
+    tf_fixed_sgqf_cloud,
+    tf_fixed_sgqf_filter,
+)
 from bayesfilter.testing import (  # noqa: E402
     dense_projection_first_step,
+    fixed_sgqf_branch_summary,
+    fixed_sgqf_diagnostic_snapshot,
     make_affine_gaussian_structural_oracle_tf,
     make_nonlinear_accumulation_first_derivatives_tf,
     make_nonlinear_accumulation_model_tf,
@@ -64,7 +75,8 @@ from bayesfilter.testing import (  # noqa: E402
     tf_nonlinear_sigma_point_value_filter,
 )
 
-BACKENDS = ("tf_svd_cubature", "tf_svd_ukf", "tf_svd_cut4")
+VALUE_BACKENDS = ("tf_svd_cubature", "tf_svd_ukf", "tf_svd_cut4", "tf_fixed_sgqf_level_2")
+SCORE_BACKENDS = ("tf_svd_cubature", "tf_svd_ukf", "tf_svd_cut4")
 VALUE_PATH = "value"
 SCORE_PATH = "score"
 ALLOWED_ROW_ROLES = {"value_timing", "score_timing", "branch_precheck", "skipped"}
@@ -72,6 +84,7 @@ NON_IMPLICATION_TEXT = (
     "NP1 CPU-only smoke rows do not certify broad speedups, default backend policy, "
     "GPU/XLA support, exact nonlinear likelihood quality for Models B-C, or HMC/Hessian readiness."
 )
+FIXED_SGQF_LEVEL = 2
 
 
 def _max_rss_mb() -> float:
@@ -268,6 +281,44 @@ def _model_c_derivative_builder(params: tf.Tensor):
     )
 
 
+def _fixed_sgqf_eligibility(case: dict[str, Any]) -> tuple[bool, str | None]:
+    if case["name"] == "model_a_affine_gaussian_structural_oracle":
+        return True, None
+    adapted = tf_structural_to_fixed_sgqf_model(case["model"])
+    return adapted.eligible, adapted.reason
+
+
+def _fixed_sgqf_model(case: dict[str, Any]):
+    model = case["model"]
+    if case["name"] == "model_a_affine_gaussian_structural_oracle":
+        return TFFixedSGQFAffineModel(
+            initial_mean=model.initial_mean,
+            initial_covariance=model.initial_covariance,
+            transition_matrix=model.transition_matrix,
+            process_covariance=model.innovation_matrix @ model.innovation_covariance @ tf.transpose(model.innovation_matrix),
+            observation_matrix=model.observation_matrix,
+            observation_covariance=model.observation_covariance,
+            transition_offset=model.transition_offset,
+            observation_offset=model.observation_offset,
+            name="fixed_sgqf_model_a_benchmark_adapter",
+        )
+    adapted = tf_structural_to_fixed_sgqf_model(model)
+    if not adapted.eligible or adapted.model is None:
+        raise ValueError(adapted.reason)
+    return adapted.model
+
+
+def _fixed_sgqf_point_count(state_dim: int) -> int:
+    return int(tf_fixed_sgqf_cloud(state_dim, FIXED_SGQF_LEVEL).point_count)
+
+
+def _fixed_sgqf_polynomial_degree(state_dim: int) -> int:
+    del state_dim
+    level = FIXED_SGQF_LEVEL
+    order = 2 * level - 1
+    return 2 * order - 1
+
+
 def _model_cases() -> tuple[dict[str, Any], ...]:
     return (
         {
@@ -331,11 +382,47 @@ def _exact_reference(case: dict[str, Any]):
     )
 
 
+def _fixed_sgqf_value_filter(
+    observations: tf.Tensor,
+    case: dict[str, Any],
+    *,
+    return_filtered: bool,
+):
+    model = _fixed_sgqf_model(case)
+    cloud = tf_fixed_sgqf_cloud(int(model.state_dim), FIXED_SGQF_LEVEL)
+    return tf_fixed_sgqf_filter(
+        observations,
+        model,
+        cloud=cloud,
+        return_filtered=return_filtered,
+    )
+
+
 def _first_step_projection_errors(case: dict[str, Any], backend: str) -> dict[str, float | None]:
     model = case["model"]
     observations = case["observations"]
-    dim = model.partition.state_dim + model.partition.innovation_dim
     dense = dense_projection_first_step(model, observations[0], nodes_per_dim=9)
+    if backend == "tf_fixed_sgqf_level_2":
+        fixed_result = _fixed_sgqf_value_filter(observations[:1], case, return_filtered=True)
+        if fixed_result.failure is not None:
+            return {
+                "first_step_abs_log_likelihood_error": None,
+                "first_step_filtered_mean_l2_error": None,
+                "first_step_filtered_covariance_fro_error": None,
+            }
+        step = fixed_result.step_results[0]
+        return {
+            "first_step_abs_log_likelihood_error": abs(
+                float(fixed_result.log_likelihood.numpy()) - float(dense.log_likelihood.numpy())
+            ),
+            "first_step_filtered_mean_l2_error": _safe_tensor_float(
+                tf.linalg.norm(step.filtered_mean - dense.filtered_mean)
+            ),
+            "first_step_filtered_covariance_fro_error": _safe_tensor_float(
+                tf.linalg.norm(step.filtered_covariance - dense.filtered_covariance)
+            ),
+        }
+    dim = model.partition.state_dim + model.partition.innovation_dim
     if backend == "tf_svd_cut4":
         sigma_rule = tf_cut4g_sigma_point_rule(dim)
     else:
@@ -369,6 +456,33 @@ def _exact_filtered_errors(result, reference) -> tuple[float | None, float | Non
         axis=[1, 2],
     )
     return _safe_tensor_float(tf.reduce_max(mean_errors)), _safe_tensor_float(tf.reduce_max(cov_errors))
+
+
+def _fixed_sgqf_branch_summary(case: dict[str, Any]):
+    model = _fixed_sgqf_model(case)
+    observations = case["observations"]
+    grid = tf.unstack(case["branch_grid"], axis=0)
+    results = []
+    for row in grid:
+        row_case = dict(case)
+        if case["name"] == "model_a_affine_gaussian_structural_oracle":
+            fixed_model = _fixed_sgqf_model(
+                {
+                    **case,
+                    "model": _model_a_builder(row),
+                }
+            )
+        else:
+            fixed_model = model
+        results.append(
+            tf_fixed_sgqf_filter(
+                observations,
+                fixed_model,
+                cloud=tf_fixed_sgqf_cloud(int(fixed_model.state_dim), FIXED_SGQF_LEVEL),
+                return_filtered=False,
+            )
+        )
+    return fixed_sgqf_branch_summary(results)
 
 
 def _time_call(fn, repeats: int) -> tuple[Any, float, float]:
@@ -462,6 +576,89 @@ def _branch_row(
     environment_id: str,
     artifact_path: str,
 ) -> dict[str, Any]:
+    if backend == "tf_fixed_sgqf_level_2":
+        eligible, reason = _fixed_sgqf_eligibility(case)
+        if not eligible:
+            row = _base_row(
+                row_id=row_id,
+                row_role="skipped",
+                case=case,
+                backend=backend,
+                path=VALUE_PATH,
+                point_count=0,
+                polynomial_degree=0,
+                return_filtered=False,
+                branch="not_run",
+                parity="not_run",
+                command=command,
+                environment_id=environment_id,
+                artifact_path=artifact_path,
+            )
+            row.update(
+                {
+                    "skip_category": "fixed_sgqf_not_same_target",
+                    "skip_reason": reason,
+                    "branch_precheck_status": "blocked",
+                    "score_branch_label": "out_of_scope_fixed_sgqf_value_only_benchmark",
+                    "score_branch_ok_count": None,
+                    "score_branch_total_count": None,
+                    "score_branch_ok_fraction": None,
+                    "score_branch_active_floor_count": None,
+                    "score_branch_weak_spectral_gap_count": None,
+                    "score_branch_nonfinite_count": None,
+                    "score_branch_failure_labels": None,
+                    "score_branch_structural_null_count": None,
+                    "score_branch_structural_null_covariance_residual": None,
+                    "score_branch_fixed_null_derivative_residual": None,
+                    "value_branch_ok_count": None,
+                    "value_branch_total_count": None,
+                }
+            )
+            return row
+        summary = _fixed_sgqf_branch_summary(case)
+        point_count = _fixed_sgqf_point_count(case["model"].partition.state_dim)
+        row = _base_row(
+            row_id=row_id,
+            row_role="branch_precheck",
+            case=case,
+            backend=backend,
+            path=VALUE_PATH,
+            point_count=point_count,
+            polynomial_degree=_fixed_sgqf_polynomial_degree(case["model"].partition.state_dim),
+            return_filtered=False,
+            branch="fixed_sgqf_branch_precheck_only",
+            parity="not_applicable",
+            command=command,
+            environment_id=environment_id,
+            artifact_path=artifact_path,
+        )
+        row.update(
+            {
+                "branch_precheck_status": "pass" if summary.ok_count == summary.total_count else "blocked",
+                "score_branch_label": "out_of_scope_fixed_sgqf_value_only_benchmark",
+                "score_branch_ok_count": None,
+                "score_branch_total_count": None,
+                "score_branch_ok_fraction": None,
+                "score_branch_active_floor_count": None,
+                "score_branch_weak_spectral_gap_count": None,
+                "score_branch_nonfinite_count": None,
+                "score_branch_failure_labels": None,
+                "score_branch_structural_null_count": None,
+                "score_branch_structural_null_covariance_residual": None,
+                "score_branch_fixed_null_derivative_residual": None,
+                "value_branch_ok_count": int(summary.ok_count),
+                "value_branch_total_count": int(summary.total_count),
+                "value_branch_ok_fraction": _safe_float(summary.ok_count / summary.total_count) if summary.total_count else 0.0,
+                "value_branch_active_floor_count": 0,
+                "value_branch_weak_spectral_gap_count": 0,
+                "value_branch_nonfinite_count": 0,
+                "value_branch_failure_labels": list(summary.failure_labels),
+                "value_branch_structural_null_count": 0,
+                "value_branch_structural_null_covariance_residual": 0.0,
+                "value_branch_fixed_null_derivative_residual": 0.0,
+            }
+        )
+        return row
     summary = nonlinear_sigma_point_score_branch_summary(
         case["observations"],
         case["branch_grid"],
@@ -548,6 +745,43 @@ def _skipped_cut4_row(
     return row
 
 
+
+def _skipped_fixed_sgqf_value_row(
+    *,
+    row_id: str,
+    case: dict[str, Any],
+    return_filtered: bool,
+    skip_reason: str,
+    command: str,
+    environment_id: str,
+    artifact_path: str,
+) -> dict[str, Any]:
+    row = _base_row(
+        row_id=row_id,
+        row_role="skipped",
+        case=case,
+        backend="tf_fixed_sgqf_level_2",
+        path=VALUE_PATH,
+        point_count=0,
+        polynomial_degree=0,
+        return_filtered=return_filtered,
+        branch="not_run",
+        parity="not_run",
+        command=command,
+        environment_id=environment_id,
+        artifact_path=artifact_path,
+    )
+    row.update(
+        {
+            "skip_category": "fixed_sgqf_not_same_target",
+            "skip_reason": skip_reason,
+            "branch_precheck_status": "blocked",
+            "score_branch_label": "out_of_scope_fixed_sgqf_value_only_benchmark",
+        }
+    )
+    return row
+
+
 def _value_row(
     *,
     row_id: str,
@@ -559,6 +793,82 @@ def _value_row(
     environment_id: str,
     artifact_path: str,
 ) -> dict[str, Any]:
+    rss_before = _max_rss_mb()
+    if backend == "tf_fixed_sgqf_level_2":
+        result, first_seconds, steady_seconds = _time_call(
+            lambda: _fixed_sgqf_value_filter(
+                case["observations"],
+                case,
+                return_filtered=return_filtered,
+            ),
+            repeats,
+        )
+        rss_after = _max_rss_mb()
+        snapshot = fixed_sgqf_diagnostic_snapshot(result)
+        branch = _fixed_sgqf_branch_summary(case)
+        reference = _exact_reference(case)
+        if reference is None:
+            reference_log_likelihood = None
+            abs_error = None
+        else:
+            reference_log_likelihood = float(reference.log_likelihood.numpy())
+            abs_error = abs(float(result.log_likelihood.numpy()) - reference_log_likelihood)
+        first_step_errors = _first_step_projection_errors(case, backend)
+        exact_mean_error, exact_cov_error = _exact_filtered_errors(result, reference)
+        row = _base_row(
+            row_id=row_id,
+            row_role="value_timing",
+            case=case,
+            backend=backend,
+            path=VALUE_PATH,
+            point_count=int(snapshot.cloud_point_count),
+            polynomial_degree=_fixed_sgqf_polynomial_degree(case["model"].partition.state_dim),
+            return_filtered=return_filtered,
+            branch="fixed_sgqf_value",
+            parity="exact_linear_gaussian_reference" if reference is not None else "dense_one_step_projection_only",
+            command=command,
+            environment_id=environment_id,
+            artifact_path=artifact_path,
+        )
+        row.update(
+            {
+                "max_integration_rank": None,
+                "first_call": {"seconds": _safe_float(first_seconds)},
+                "steady": {"mean_seconds": _safe_float(steady_seconds), "repeats": repeats},
+                "memory": {
+                    "max_rss_before_mb": _safe_float(rss_before),
+                    "max_rss_after_mb": _safe_float(rss_after),
+                    "max_rss_delta_mb": _safe_float(rss_after - rss_before),
+                },
+                "parity_status": "measured" if row["parity"] != "not_run" else "not_run",
+                "value_branch_ok_count": int(branch.ok_count),
+                "value_branch_total_count": int(branch.total_count),
+                "value_branch_ok_fraction": _safe_float(branch.ok_count / branch.total_count) if branch.total_count else 0.0,
+                "value_branch_active_floor_count": 0,
+                "value_branch_weak_spectral_gap_count": 0,
+                "value_branch_nonfinite_count": 0,
+                "value_branch_failure_labels": list(branch.failure_labels),
+                "value_branch_structural_null_count": 0,
+                "value_branch_structural_null_covariance_residual": 0.0,
+                "value_branch_fixed_null_derivative_residual": 0.0,
+                "score_branch_ok_count": None,
+                "score_branch_total_count": None,
+                "log_likelihood": _safe_float(result.log_likelihood.numpy()),
+                "reference_log_likelihood": _safe_float(reference_log_likelihood) if reference_log_likelihood is not None else None,
+                "abs_log_likelihood_error": _safe_float(abs_error) if abs_error is not None else None,
+                "first_step_reference_kind": "dense_one_step_gaussian_projection",
+                "first_step_abs_log_likelihood_error": first_step_errors["first_step_abs_log_likelihood_error"],
+                "first_step_filtered_mean_l2_error": first_step_errors["first_step_filtered_mean_l2_error"],
+                "first_step_filtered_covariance_fro_error": first_step_errors["first_step_filtered_covariance_fro_error"],
+                "exact_filtered_mean_max_l2_error": exact_mean_error,
+                "exact_filtered_covariance_max_fro_error": exact_cov_error,
+                "fixed_sgqf_rule_family": snapshot.rule_family,
+                "fixed_sgqf_weight_total": snapshot.weight_total,
+                "fixed_sgqf_negative_weight_count": snapshot.negative_weight_count,
+                "fixed_sgqf_accepted_steps": snapshot.accepted_steps,
+            }
+        )
+        return row
     rss_before = _max_rss_mb()
     result, first_seconds, steady_seconds = _time_call(
         lambda: tf_nonlinear_sigma_point_value_filter(
@@ -860,7 +1170,7 @@ def main() -> None:
     rows: list[dict[str, Any]] = []
 
     case_a = _model_cases()[0]
-    for backend in BACKENDS:
+    for backend in SCORE_BACKENDS:
         branch_row = _branch_row(
             row_id=f"branch-precheck-{backend}-model-a-tiny",
             case=case_a,
@@ -902,6 +1212,65 @@ def main() -> None:
                     backend=backend,
                     repeats=args.repeats,
                     branch_precheck_row=branch_row,
+                    command=command,
+                    environment_id=environment_id,
+                    artifact_path=artifact_path,
+                )
+            )
+
+    for case in _model_cases():
+        fixed_branch_row = _branch_row(
+            row_id=f"branch-precheck-tf_fixed_sgqf_level_2-{case['name']}",
+            case=case,
+            backend="tf_fixed_sgqf_level_2",
+            command=command,
+            environment_id=environment_id,
+            artifact_path=artifact_path,
+        )
+        rows.append(fixed_branch_row)
+        if fixed_branch_row["row_role"] == "skipped":
+            rows.append(
+                _skipped_fixed_sgqf_value_row(
+                    row_id=f"value-timing-tf_fixed_sgqf_level_2-{case['name']}-return-filtered-false",
+                    case=case,
+                    return_filtered=False,
+                    skip_reason=fixed_branch_row["skip_reason"],
+                    command=command,
+                    environment_id=environment_id,
+                    artifact_path=artifact_path,
+                )
+            )
+            rows.append(
+                _skipped_fixed_sgqf_value_row(
+                    row_id=f"value-timing-tf_fixed_sgqf_level_2-{case['name']}-return-filtered-true",
+                    case=case,
+                    return_filtered=True,
+                    skip_reason=fixed_branch_row["skip_reason"],
+                    command=command,
+                    environment_id=environment_id,
+                    artifact_path=artifact_path,
+                )
+            )
+        else:
+            rows.append(
+                _value_row(
+                    row_id=f"value-timing-tf_fixed_sgqf_level_2-{case['name']}-return-filtered-false",
+                    case=case,
+                    backend="tf_fixed_sgqf_level_2",
+                    return_filtered=False,
+                    repeats=args.repeats,
+                    command=command,
+                    environment_id=environment_id,
+                    artifact_path=artifact_path,
+                )
+            )
+            rows.append(
+                _value_row(
+                    row_id=f"value-timing-tf_fixed_sgqf_level_2-{case['name']}-return-filtered-true",
+                    case=case,
+                    backend="tf_fixed_sgqf_level_2",
+                    return_filtered=True,
+                    repeats=args.repeats,
                     command=command,
                     environment_id=environment_id,
                     artifact_path=artifact_path,

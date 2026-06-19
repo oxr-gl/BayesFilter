@@ -347,25 +347,25 @@ integrated log determinant and finite-difference determinant &
 sign and magnitude match under step-size refinement &
 Jacobian sign, time direction, or integrator issue; not a likelihood theorem \\
 Categorical discontinuity &
-\eqref{eq:bf-dr-categorical-selection}, \eqref{eq:bf-dr-two-particle-discontinuity} &
+\eqref{eq:bf-soft-categorical-choice} &
 two-particle resampling with weight crossing &
 ancestor index path and realized resampled cloud &
 jump occurs as expected; no false pathwise gradient is reported &
 discrete resampling is being differentiated incorrectly; not proof soft resampling is valid \\
 Soft-resampling bias &
-\eqref{eq:bf-dr-soft-resampling}, \eqref{eq:bf-dr-soft-test-bias} &
+\eqref{eq:bf-soft-rule-eqn}, \eqref{eq:bf-soft-mean-preservation} &
 two-particle nonlinear test function &
 mean preservation and nonlinear test-function error &
 affine tests behave as derived; nonlinear bias is visible when expected &
 surrogate-law effect; not evidence of categorical-target preservation \\
 EOT/Sinkhorn marginals &
-\eqref{eq:bf-dr-eot-primal}, \eqref{eq:bf-dr-sinkhorn-marginals}, \eqref{eq:bf-dr-sinkhorn-residuals} &
+\eqref{eq:bf-eot-primal}, \eqref{eq:bf-eot-factorization}, \eqref{eq:bf-eot-first-row-balance} &
 small cost matrix with prescribed marginals &
 row residual, column residual, cost, entropy, $\varepsilon$, iteration count &
 residuals fall below tolerance and are stable under log-domain implementation &
 finite-solver or stabilization issue; not proof of posterior invariance \\
 Barycentric projection &
-\eqref{eq:bf-dr-barycentric-map} &
+\eqref{eq:bf-eot-barycentric} &
 small coupling with known column masses &
 projected equal-weight support cloud and dimensions &
 output has declared shape and column-mass normalization &
@@ -540,12 +540,12 @@ Chapter~\ref{ch:bf-dpf-pfpf}, Sections~\ref{sec:bf-pfpf-change-of-variables}--\r
 proposal correction and change-of-variables spine &
 proposal density, target density, log determinant, corrected weight \\
 Resampling and OT &
-Chapter~\ref{ch:bf-dpf-resampling-ot}, Sections~\ref{sec:bf-dr-discontinuous-map}--\ref{sec:bf-dr-sinkhorn-numerics} &
-\eqref{eq:bf-dr-two-particle-discontinuity}, \eqref{eq:bf-dr-soft-test-bias}, \eqref{eq:bf-dr-sinkhorn-marginals} &
+Chapter~\ref{ch:bf-dpf-soft-resampling}; Chapter~\ref{ch:bf-dpf-ot-baseline}; Chapter~\ref{ch:bf-dpf-entropic-ot-sinkhorn} &
+\eqref{eq:bf-soft-categorical-choice}, \eqref{eq:bf-soft-mean-preservation}, \eqref{eq:bf-ot-baseline-lp}, \eqref{eq:bf-eot-primal} &
 differentiable resampling, OT, Sinkhorn sources &
 ancestor path, soft surrogate, coupling residuals, barycentric cloud \\
 Learned OT &
-Chapter~\ref{ch:bf-dpf-learned-ot}, Sections~\ref{sec:bf-learned-ot-objects}--\ref{sec:bf-learned-ot-banking-evidence} &
+Chapter~\ref{ch:bf-dpf-learned-ot} &
 \eqref{eq:bf-learned-ot-student-map}, \eqref{eq:bf-learned-ot-residual}, \eqref{eq:bf-learned-ot-equivariance} &
 EOT teacher and set-architecture sources &
 teacher output, student output, residuals, distribution tags \\

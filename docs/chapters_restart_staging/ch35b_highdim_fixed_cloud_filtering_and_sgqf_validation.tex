@@ -1,0 +1,955 @@
+\chapter{Fixed-Cloud Filtering, Same-Branch SGQF, and Lane-Specific Validation}
+\label{ch:bf-highdim-fixed-cloud-sgqf-validation}
+\providecommand{\widehatell}{\widehat{\ell}}
+\providecommand{\dotwidehatell}{\dot{\widehat{\ell}}}
+\providecommand{\dd}{\,\mathrm d}
+
+\section{Purpose And Scope}
+\label{sec:bf-hd-sgqf-validation-purpose}
+
+The previous chapter fixed the sparse-grid object itself: the one-dimensional
+rule family, the active band, the signed Smolyak combination, and the merged
+cloud stored in standardized Gaussian coordinates.  That was the construction
+burden.  The present chapter takes up the burden that follows once the cloud has
+already been fixed: what scalar the fixed cloud computes, how the forward value
+path is assembled, what counts as the same branch for this lane, and what
+validation burden must be discharged before the sparse-grid surrogate can be
+promoted beyond a pedagogical or exploratory object.
+
+This split is deliberate.  A reader first needs to understand how the cloud is
+built.  Only after that does it become useful to ask which one-step scalar the
+cloud defines, which branch metadata must stay fixed when differentiating that
+scalar, and which diagnostics certify that a BayesFilter implementation is still
+evaluating the same declared object rather than a nearby adaptive variant.
+
+\section{Filtering Value Path On A Fixed Cloud}
+\label{sec:bf-hd-sgqf-value-path}
+
+Fix a standardized sparse-grid cloud
+\begin{equation}
+  \mathcal C=\{(\xi^{(r)},w_r)\}_{r=1}^M,
+  \qquad
+  \xi^{(r)}\in\R^{n_x},
+  \quad
+  w_r\in\R.
+  \label{eq:bf-hd-sgqf-cloud-for-filter}
+\end{equation}
+and freeze that cloud before likelihood evaluation.  The sparse-grid value path
+then has two quadrature stages at each time: prediction and observation.
+
+\subsection{Prediction Stage}
+\label{sec:bf-hd-sgqf-prediction-stage}
+
+Let \(P_{t-1}=C_{t-1}C_{t-1}^\top\) on the declared square-root branch.  Place
+the previous Gaussian cloud by
+\begin{equation}
+  \chi_{t-1}^{(r)} = m_{t-1}+C_{t-1}\xi^{(r)},
+  \label{eq:bf-hd-sgqf-pred-placed-points}
+\end{equation}
+push points through the transition,
+\begin{equation}
+  a_t^{(r)}=f_\theta(\chi_{t-1}^{(r)}),
+  \label{eq:bf-hd-sgqf-transition-points}
+\end{equation}
+and form
+\begin{align}
+  m_t^-&=\sum_{r=1}^Mw_ra_t^{(r)},
+  \label{eq:bf-hd-sgqf-pred-mean}\\
+  P_t^-&=Q_\theta+\sum_{r=1}^Mw_r
+  (a_t^{(r)}-m_t^-)(a_t^{(r)}-m_t^-)^\top.
+  \label{eq:bf-hd-sgqf-pred-cov}
+\end{align}
+After \eqref{eq:bf-hd-sgqf-pred-cov}, BayesFilter symmetrizes \(P_t^-\) and
+checks the declared positive-definite branch.  For the same-branch lane studied
+here there is no adaptive jitter, rank switch, node rewrite, or cloud rebuild
+inside the scalar.  If the predictive branch fails, the value path returns a
+veto instead of silently changing the object being evaluated.
+
+\subsection{Observation Stage}
+\label{sec:bf-hd-sgqf-observation-stage}
+
+Factor \(P_t^-=C_t^-(C_t^-)^\top\) on the declared branch and place the
+predictive cloud:
+\begin{equation}
+  \chi_t^{(r)} = m_t^-+C_t^-\xi^{(r)},
+  \label{eq:bf-hd-sgqf-obs-placed-points}
+\end{equation}
+Propagate through the observation map,
+\begin{equation}
+  z_t^{(r)}=h_\theta(\chi_t^{(r)}),
+  \label{eq:bf-hd-sgqf-obs-values}
+\end{equation}
+and compute
+\begin{align}
+  \bar z_t&=\sum_{r=1}^Mw_rz_t^{(r)},
+  \label{eq:bf-hd-sgqf-obs-mean}\\
+  \Delta_t^{(r)}&=z_t^{(r)}-\bar z_t,
+  \label{eq:bf-hd-sgqf-obs-centered}\\
+  S_t&=R_\theta+\sum_{r=1}^Mw_r
+  \Delta_t^{(r)}\Delta_t^{(r)\top},
+  \label{eq:bf-hd-sgqf-obs-cov}\\
+  C_{xz,t}&=\sum_{r=1}^Mw_r
+  (\chi_t^{(r)}-m_t^-)\Delta_t^{(r)\top}.
+  \label{eq:bf-hd-sgqf-cross-cov}
+\end{align}
+The one-step innovation scalar is then
+\begin{align}
+  v_t&=y_t-\bar z_t,
+  \label{eq:bf-hd-sgqf-innovation}\\
+  \widehat\ell_t^{\rm FSGQ}
+  &=-\frac12
+  \left\{\log\det S_t+v_t^\top S_t^{-1}v_t+n_y\log(2\pi)\right\}.
+  \label{eq:bf-hd-sgqf-loglik}
+\end{align}
+If \(S_t\) fails the declared branch, the value path returns a veto.  If it
+passes, the Gaussian projection update is
+\begin{align}
+  K_t&=C_{xz,t}S_t^{-1},
+  \label{eq:bf-hd-sgqf-kalman-gain}\\
+  m_t&=m_t^-+K_tv_t,
+  \label{eq:bf-hd-sgqf-filter-mean}\\
+  P_t&=P_t^- - K_tS_tK_t^\top.
+  \label{eq:bf-hd-sgqf-filter-cov}
+\end{align}
+with the final carried covariance again checked on the declared branch.
+
+\paragraph{Value-path execution order.}
+For this lane the runtime order is part of the scalar identity:
+\begin{enumerate}[leftmargin=0.28in]
+  \item symmetrize and factor \(P_{t-1}\),
+  \item place previous-state points and propagate through \(f_\theta\),
+  \item form \((m_t^-,P_t^-)\) and veto if the predictive branch fails,
+  \item factor \(P_t^-\), place predictive points, and propagate through
+  \(h_\theta\),
+  \item form \(\bar z_t\), \(S_t\), and \(C_{xz,t}\), and veto if the
+  innovation branch fails,
+  \item form \(v_t\), \(\widehat\ell_t^{\rm FSGQ}\), \(K_t\), \(m_t\), and
+  \(P_t\), then veto if the carried covariance branch fails.
+\end{enumerate}
+Any implementation that changes the cloud, node ordering, factor branch, or
+veto policy in the middle of this sequence is no longer evaluating the same
+fixed-cloud scalar.
+
+\section{Worked One-Step Example With A Numeric Oracle}
+\label{sec:bf-hd-sgqf-worked-example}
+
+Use the one-dimensional transition-observation model
+\begin{align}
+  X_0 &\sim \calN(m_0,P_0),
+  &m_0&=0.5,
+  &P_0&=1,
+  \label{eq:bf-hd-sgqf-example-initial}\\
+  X_1 &= f_\beta(X_0)+\eta_1,
+  &f_\beta(x)&=\beta x,
+  &\eta_1&\sim \calN(0,Q),
+  \label{eq:bf-hd-sgqf-example-transition}\\
+  Y_1 &= h_\theta(X_1)+\varepsilon_1,
+  &h_\theta(x)&=x^2,
+  &\varepsilon_1&\sim \calN(0,R),
+  \label{eq:bf-hd-sgqf-example-observation}
+\end{align}
+with
+\begin{equation}
+  Q=0.25,
+  \qquad
+  R=1,
+  \qquad
+  y_1=2.
+  \label{eq:bf-hd-sgqf-example-QRy}
+\end{equation}
+Evaluate at \(\beta=1\) on the positive scalar Cholesky branch and use the
+three-point standard-normal cloud
+\begin{equation}
+  \mathcal C_{1,2}
+  =
+  \left\{
+  \left(-\sqrt3,\frac16\right),
+  \left(0,\frac23\right),
+  \left(\sqrt3,\frac16\right)
+  \right\}.
+  \label{eq:bf-hd-sgqf-example-cloud}
+\end{equation}
+
+\paragraph{Placed points and moments.}
+Since \(C_0=\sqrt{P_0}=1\), the previous-state placed points are
+\begin{equation}
+  \chi_0^{(r)}=m_0+C_0\xi^{(r)}
+  \in
+  \{0.5-\sqrt3,\ 0.5,\ 0.5+\sqrt3\}.
+  \label{eq:bf-hd-sgqf-example-prev-points}
+\end{equation}
+At \(\beta=1\), the transition images satisfy
+\begin{equation}
+  a_1^{(r)}=f_\beta(\chi_0^{(r)})=\chi_0^{(r)}.
+  \label{eq:bf-hd-sgqf-example-transition-images}
+\end{equation}
+The predicted Gaussian moments are therefore
+\begin{equation}
+  m_1^-=
+  \sum_rw_ra_1^{(r)}=0.5,
+  \qquad
+  P_1^-=Q+\sum_rw_r(a_1^{(r)}-m_1^-)^2=1.25=\frac54.
+  \label{eq:bf-hd-sgqf-example-pred-moments}
+\end{equation}
+The declared Cholesky factor is
+\begin{equation}
+  C_1^- = \sqrt{P_1^-}=\sqrt{1.25}=\frac{\sqrt5}{2}.
+  \label{eq:bf-hd-sgqf-example-pred-factor}
+\end{equation}
+Hence the predictive placed points are
+\begin{equation}
+  \chi_1^{(r)}=m_1^-+C_1^-\xi^{(r)}
+  \in
+  \left\{0.5-\frac{\sqrt{15}}{2},\ 0.5,\ 0.5+\frac{\sqrt{15}}{2}\right\}.
+  \label{eq:bf-hd-sgqf-example-pred-points}
+\end{equation}
+Passing those points through \(h_\theta(x)=x^2\) gives
+\begin{equation}
+  z_1^{(r)}
+  \in
+  \left\{2.0635083269,\ 0.25,\ 5.9364916731\right\}.
+  \label{eq:bf-hd-sgqf-example-z-values}
+\end{equation}
+The centered observation values are
+\begin{equation}
+  \Delta_1^{(r)}=z_1^{(r)}-\bar z_1
+  \in
+  \{0.5635083269,\ -1.25,\ 4.4364916731\}.
+  \label{eq:bf-hd-sgqf-example-Delta}
+\end{equation}
+and the Gaussian update objects are
+\begin{align}
+  \bar z_1&=\sum_rw_r z_1^{(r)}=1.5=\frac32,
+  \label{eq:bf-hd-sgqf-example-zbar}\\
+  S_1&=R+\sum_rw_r(z_1^{(r)}-\bar z_1)^2=5.375=\frac{43}{8},
+  \label{eq:bf-hd-sgqf-example-S}\\
+  C_{xz,1}&=\sum_rw_r(\chi_1^{(r)}-m_1^-)(z_1^{(r)}-\bar z_1)=1.25=\frac54,
+  \label{eq:bf-hd-sgqf-example-Cxz}\\
+  v_1&=y_1-\bar z_1=0.5=\frac12,
+  \label{eq:bf-hd-sgqf-example-v}\\
+  K_1&=C_{xz,1}S_1^{-1}=\frac{10}{43}\approx0.2325581395,
+  \label{eq:bf-hd-sgqf-example-K}\\
+  m_1&=m_1^-+K_1v_1=\frac{53}{86}\approx0.6162790698,
+  \label{eq:bf-hd-sgqf-example-m}\\
+  P_1&=P_1^- -K_1S_1K_1^\top=\frac{165}{172}\approx0.9593023256.
+  \label{eq:bf-hd-sgqf-example-P}
+\end{align}
+The one-step deterministic approximate log likelihood is
+\begin{equation}
+  \widehat\ell_1^{\rm FSGQ}
+  =
+  -\frac12\left\{\log S_1+v_1^2S_1^{-1}+\log(2\pi)\right\}
+  \approx -1.7830736342.
+  \label{eq:bf-hd-sgqf-example-ell}
+\end{equation}
+
+\paragraph{Same-branch derivative with respect to \texorpdfstring{\(\beta\)}{beta}.}
+The same cloud and the same positive scalar Cholesky branch are reused in the
+derivative lane.  Because the parameter enters only through the transition in
+this example, \(\partial_\beta h_\theta(x)=0\).  Since \(m_0\) and \(P_0\) are
+fixed in \(\beta\), the previous-state placed points satisfy
+\begin{equation}
+  \dot\chi_0^{(r)}=0.
+  \label{eq:bf-hd-sgqf-example-prev-dot}
+\end{equation}
+From the transition derivative rule,
+\begin{equation}
+  \dot a_1^{(r)}
+  =
+  D_xf_\beta(\chi_0^{(r)})\dot\chi_0^{(r)}+\partial_\beta f_\beta(\chi_0^{(r)})
+  =
+  \chi_0^{(r)}
+  \in
+  \{0.5-\sqrt3,\ 0.5,\ 0.5+\sqrt3\}.
+  \label{eq:bf-hd-sgqf-example-adot}
+\end{equation}
+Hence
+\begin{equation}
+  \dot m_1^-=
+  \sum_rw_r\dot a_1^{(r)}=0.5,
+  \qquad
+  \dot d_1^{(r)}=\dot a_1^{(r)}-\dot m_1^-
+  \in
+  \{-\sqrt3,\ 0,\ \sqrt3\},
+  \label{eq:bf-hd-sgqf-example-mdot-dotd}
+\end{equation}
+and
+\begin{equation}
+  \dot P_1^-=2.
+  \label{eq:bf-hd-sgqf-example-Pminus-dot}
+\end{equation}
+Because \(C_1^-=(P_1^-)^{1/2}\), the declared branch derivative is
+\begin{equation}
+  \dot C_1^-=
+  \frac{\dot P_1^-}{2C_1^-}
+  =
+  \frac{2}{\sqrt5}
+  \approx 0.8944271910.
+  \label{eq:bf-hd-sgqf-example-Cdot}
+\end{equation}
+Therefore the predictive point sensitivities are
+\begin{equation}
+  \dot\chi_1^{(r)}=\dot m_1^-+\dot C_1^-\xi^{(r)}
+  \in
+  \{-1.0491933385,\ 0.5,\ 2.0491933385\}.
+  \label{eq:bf-hd-sgqf-example-chidot}
+\end{equation}
+Since \(h_\theta(x)=x^2\),
+\begin{equation}
+  \dot z_1^{(r)}=2\chi_1^{(r)}\dot\chi_1^{(r)}
+  \in
+  \{3.0143149884,\ 0.5,\ 9.9856850116\}.
+  \label{eq:bf-hd-sgqf-example-zdot}
+\end{equation}
+The centered observation sensitivities are
+\begin{equation}
+  \dot\Delta_1^{(r)}=\dot z_1^{(r)}-\dot{\bar z}_1
+  \in
+  \{0.5143149884,\ -2,\ 7.4856850116\}.
+  \label{eq:bf-hd-sgqf-example-Deltadot}
+\end{equation}
+The derived moment sensitivities are
+\begin{align}
+  \dot{\bar z}_1&=2.5=\frac52,
+  &\dot v_1&=-2.5=-\frac52,
+  \label{eq:bf-hd-sgqf-example-zbar-v-dot}\\
+  \dot S_1&=14.5=\frac{29}{2},
+  &\dot C_{xz,1}&=3.25=\frac{13}{4}.
+  \label{eq:bf-hd-sgqf-example-S-Cxz-dot}
+\end{align}
+Let
+\begin{equation}
+  u_1=S_1^{-1}v_1=\frac{4}{43}\approx0.0930232558.
+  \label{eq:bf-hd-sgqf-example-u}
+\end{equation}
+Then the one-step score ingredients are
+\begin{align}
+  \tr(S_1^{-1}\dot S_1)&=\frac{116}{43}\approx2.6976744186,
+  \label{eq:bf-hd-sgqf-example-score-term1}\\
+  2\dot v_1u_1&=-\frac{20}{43}\approx-0.4651162791,
+  \label{eq:bf-hd-sgqf-example-score-term2}\\
+  -u_1^2\dot S_1&=-\frac{232}{1849}\approx-0.1254732288.
+  \label{eq:bf-hd-sgqf-example-score-term3}
+\end{align}
+The same-branch one-step score is therefore
+\begin{equation}
+  \dot{\widehat\ell}_1^{\rm FSGQ}
+  =
+  -\frac12\left[
+    \frac{\dot S_1}{S_1}
+    +2\dot v_1u_1
+    -u_1^2\dot S_1
+  \right]
+  =-\frac{1948}{1849}
+  \approx -1.0535424554.
+  \label{eq:bf-hd-sgqf-example-ell-dot}
+\end{equation}
+For later propagation,
+\begin{equation}
+  \dot K_1
+  =
+  \dot C_{xz,1}S_1^{-1}-K_1\dot S_1S_1^{-1}
+  =-\frac{42}{1849}
+  \approx -0.0227149811,
+  \label{eq:bf-hd-sgqf-example-Kdot}
+\end{equation}
+so
+\begin{align}
+  \dot m_1&=\dot m_1^-+\dot K_1v_1+K_1\dot v_1
+  =-\frac{343}{3698}
+  \approx -0.0927528394,
+  \label{eq:bf-hd-sgqf-example-mdot}\\
+  \dot P_1&=\dot P_1^- -\dot K_1S_1K_1-K_1\dot S_1K_1-K_1S_1\dot K_1
+  =\frac{2353}{1849}
+  \approx 1.2725797729.
+  \label{eq:bf-hd-sgqf-example-Pdot}
+\end{align}
+This makes the chapter's limitation concrete.  Every quantity above is
+deterministic and internally checkable on the declared branch, yet the nonlinear
+observation law can still generate non-Gaussian posterior structure.  FixedSGQF
+therefore gives a transparent Gaussian-surrogate value-and-gradient oracle, not a
+full non-Gaussian posterior representation.
+
+\paragraph{Implementation checklist for this oracle.}
+A first implementation should be able to reproduce, up to declared floating-point
+tolerance, at least
+\(m_1^-\), \(P_1^-\), \(\bar z_1\), \(S_1\), \(C_{xz,1}\), \(K_1\),
+\(m_1\), \(P_1\), \(\widehat\ell_1^{\rm FSGQ}\), and
+\(\dot{\widehat\ell}_1^{\rm FSGQ}\).  This is the compact end-to-end numerical
+oracle for both the value path and the derivative path.
+
+This example is not a global correctness theorem.  Its role is narrower and
+practical: a first BayesFilter implementation should be able to reproduce these
+numbers before any same-branch derivative claim is trusted.
+
+\section{General Analytical Derivative Framework For FixedSGQF}
+\label{sec:bf-hd-sgqf-general-derivative}
+
+The worked oracle fixes one concrete same-branch derivative instance.  The next
+task is to state the general derivative framework so that the SGQF lane does not
+depend on the toy example alone.  Differentiate with respect to one parameter
+component \(\theta_i\), and let a dot denote \(\partial_i\).
+
+\paragraph{Why the derivative is operationally delicate.}
+The one-step scalar depends on the previous carried Gaussian, the covariance
+factor used to place the cloud, the nonlinear transition and observation images,
+the innovation covariance, and the posterior update.  The derivative must
+therefore propagate through the entire recursion, and it remains meaningful only
+when the value and derivative paths stay on the same declared branch.
+
+\paragraph{Current-score objects versus propagation objects.}
+For the current likelihood contribution, the derivative closes once
+\(\dot v_t\) and \(\dot S_t\) are known.  The derivative
+\(\dot C_{xz,t}\) is not needed to close the current score, but it is needed to
+form \(\dot K_t\) and hence to propagate \(\dot m_t\) and \(\dot P_t\) to the
+next time step.  A correct implementation must keep these two roles separate.
+
+\subsection{Derivative Ledger}
+\label{sec:bf-hd-sgqf-derivative-ledger}
+
+The chain is
+\begin{equation}
+\begin{aligned}
+  \theta
+  &\longmapsto
+  (m_{t-1},P_{t-1})
+  \longmapsto
+  C_{t-1}
+  \longmapsto
+  \chi_{t-1}^{(r)}
+  \longmapsto
+  a_t^{(r)}
+  \longmapsto
+  (m_t^-,P_t^-)
+  \longmapsto
+  C_t^- \\
+  &\longmapsto
+  \chi_t^{(r)}
+  \longmapsto
+  z_t^{(r)}
+  \longmapsto
+  (\bar z_t,S_t,C_{xz,t})
+  \longmapsto
+  (v_t,K_t,\widehat\ell_t^{\rm FSGQ},m_t,P_t).
+\end{aligned}
+  \label{eq:bf-hd-sgqf-derivative-chain}
+\end{equation}
+The sparse-grid nodes and weights do not move with \(\theta\).  They are saved
+branch objects.  The Gaussian factors \(C_{t-1}\) and \(C_t^-\), however, do move
+with \(\theta\), because they are functions of \(P_{t-1}\) and \(P_t^-\).
+
+\subsection{Square-Root Branch}
+\label{sec:bf-hd-sgqf-square-root-branch}
+
+For the declared lower-triangular Cholesky branch \(P=LL^\top\), set
+\begin{equation}
+  A=L^{-1}\dot P L^{-\top}.
+  \label{eq:bf-hd-sgqf-chol-A}
+\end{equation}
+Define the lower-triangular operator
+\begin{equation}
+  \Phi(A)_{jk}
+  =
+  \begin{cases}
+  A_{jk}, & j>k,\\
+  A_{jj}/2, & j=k,\\
+  0, & j<k.
+  \end{cases}
+  \label{eq:bf-hd-sgqf-chol-Phi}
+\end{equation}
+Then
+\begin{equation}
+  \dot L=L\Phi(A).
+  \label{eq:bf-hd-sgqf-chol-derivative}
+\end{equation}
+Every factor derivative in this SGQF lane uses this declared branch recipe.
+
+\subsection{Prediction Sensitivities}
+\label{sec:bf-hd-sgqf-prediction-sensitivities}
+
+From the placed-point equation,
+\begin{equation}
+  \dot\chi_{t-1}^{(r)}=
+  \dot m_{t-1}+\dot C_{t-1}\xi^{(r)}.
+  \label{eq:bf-hd-sgqf-dot-pred-place}
+\end{equation}
+From the transition map,
+\begin{equation}
+  \dot a_t^{(r)}=
+  D_xf_\theta(\chi_{t-1}^{(r)})\dot\chi_{t-1}^{(r)}
+  +\partial_i f_\theta(\chi_{t-1}^{(r)}).
+  \label{eq:bf-hd-sgqf-dot-transition}
+\end{equation}
+The predicted mean derivative is
+\begin{equation}
+  \dot m_t^-=
+  \sum_{r=1}^M w_r\dot a_t^{(r)}.
+  \label{eq:bf-hd-sgqf-dot-pred-mean}
+\end{equation}
+Let
+\begin{equation}
+  d_t^{(r)}=a_t^{(r)}-m_t^-,
+  \qquad
+  \dot d_t^{(r)}=\dot a_t^{(r)}-\dot m_t^-.
+  \label{eq:bf-hd-sgqf-pred-centered}
+\end{equation}
+Then
+\begin{equation}
+  \dot P_t^-=
+  \dot Q_\theta
+  +
+  \sum_{r=1}^M w_r
+  \left\{\dot d_t^{(r)}d_t^{(r)\top}+d_t^{(r)}\dot d_t^{(r)\top}\right\}.
+  \label{eq:bf-hd-sgqf-dot-pred-cov}
+\end{equation}
+
+\subsection{Observation Sensitivities And Innovation Score}
+\label{sec:bf-hd-sgqf-observation-sensitivities}
+
+On the predictive factor branch,
+\begin{equation}
+  \dot\chi_t^{(r)}=
+  \dot m_t^-+\dot C_t^-\xi^{(r)}.
+  \label{eq:bf-hd-sgqf-dot-obs-place}
+\end{equation}
+Observation sensitivities satisfy
+\begin{equation}
+  \dot z_t^{(r)}=
+  D_xh_\theta(\chi_t^{(r)})\dot\chi_t^{(r)}
+  +\partial_i h_\theta(\chi_t^{(r)}).
+  \label{eq:bf-hd-sgqf-dot-obs-values}
+\end{equation}
+Then
+\begin{align}
+  \dot{\bar z}_t&=\sum_{r=1}^M w_r\dot z_t^{(r)},
+  \label{eq:bf-hd-sgqf-dot-zbar}\\
+  \dot v_t&=-\dot{\bar z}_t,
+  \label{eq:bf-hd-sgqf-dot-v}\\
+  \dot\Delta_t^{(r)}&=\dot z_t^{(r)}-\dot{\bar z}_t,
+  \label{eq:bf-hd-sgqf-dot-Delta}\\
+  \dot S_t&=\dot R_\theta+
+  \sum_{r=1}^M w_r\left\{\dot\Delta_t^{(r)}\Delta_t^{(r)\top}+
+  \Delta_t^{(r)}\dot\Delta_t^{(r)\top}\right\},
+  \label{eq:bf-hd-sgqf-dot-S}\\
+  \dot C_{xz,t}&=
+  \sum_{r=1}^M w_r\left\{\dot\chi_t^{(r)}\Delta_t^{(r)\top}+
+  (\chi_t^{(r)}-m_t^-)\dot\Delta_t^{(r)\top}\right\}.
+  \label{eq:bf-hd-sgqf-dot-Cxz}
+\end{align}
+The one-step fixed-Gaussian innovation score is
+\begin{equation}
+  \partial_i\widehat\ell_t^{\rm FSGQ}
+  =
+  -\frac12\left[
+    \tr(S_t^{-1}\dot S_t)
+    +2\dot v_t^\top S_t^{-1}v_t
+    -v_t^\top S_t^{-1}\dot S_tS_t^{-1}v_t
+  \right].
+  \label{eq:bf-hd-sgqf-score}
+\end{equation}
+This closes the current score role.  The propagation role then uses
+\begin{equation}
+  \dot K_t=
+  \dot C_{xz,t}S_t^{-1}-K_t\dot S_tS_t^{-1}
+  \label{eq:bf-hd-sgqf-dot-K}
+\end{equation}
+and
+\begin{align}
+  \dot m_t&=\dot m_t^-+\dot K_tv_t+K_t\dot v_t,
+  \label{eq:bf-hd-sgqf-dot-m}\\
+  \dot P_t&=\dot P_t^- -\dot K_tS_tK_t^\top-K_t\dot S_tK_t^\top-K_tS_t\dot K_t^\top.
+  \label{eq:bf-hd-sgqf-dot-P}
+\end{align}
+These become the differentiated inputs to the next time step.
+
+\section{Same-Branch Fixed-Cloud Scalar Contract}
+\label{sec:bf-hd-sgqf-same-branch}
+
+For the sparse-grid lane, the saved branch identity is not exhausted by the
+symbol \(\mathcal C_{b,L}\).  A branch-valid finite-difference comparison must
+reuse the full fixed ledger:
+\begin{equation}
+  \mathfrak B_{\rm FSGQ}=
+  \{\mathcal C_{b,L},\ \text{one-dimensional rule family},\ \text{merge tolerance},\
+  \text{zero-weight pruning rule},\ \text{node ordering},\ \text{factor branch},\
+  \text{symmetrize-then-veto policy},\ \text{initial-condition policy}\}.
+  \label{eq:bf-hd-sgqf-branch-record}
+\end{equation}
+For parameter component \(i\), the same-branch central difference is
+\begin{equation}
+  D_i(h)=
+  \frac{\widehat\ell_T^{\rm FSGQ}(\theta+h e_i;\mathfrak B_{\rm FSGQ})-
+        \widehat\ell_T^{\rm FSGQ}(\theta-h e_i;\mathfrak B_{\rm FSGQ})}{2h}.
+  \label{eq:bf-hd-sgqf-central-diff}
+\end{equation}
+A row is branch-valid only if both perturbations reuse the same saved structural
+branch record and realize the same accepted/failure stage-time pattern through
+every likelihood contribution included in the comparison.  Equal cloud family but
+different first failure time counts as a branch mismatch; equal first failure
+time but different accepted-prefix pattern also counts as a branch mismatch.
+
+That stricter logic matters because sparse-grid differentiation is not just
+“differentiate some nearby Gaussian filter.”  It is “differentiate the same
+fixed-cloud scalar.”  The later shared same-scalar chapter may import that
+contract, but the sparse-grid lane must state it locally because the cloud,
+merge policy, and branch-veto discipline are part of the lane-specific scalar
+identity.
+
+\paragraph{Frozen versus recomputed objects on a saved branch.}
+The branch identity freezes structure, not numerical values.  Within a fixed
+cloud branch,
+\begin{equation}
+\begin{aligned}
+  \text{frozen structural objects:}&\quad
+  \mathcal C_{b,L},\ \tau_{\rm merge},\ \tau_{\rm zero},\ \text{ordering},\ C(\cdot),\
+  \text{preprocessing policy},\ \text{initial-condition policy},\ \epsilon_S,\epsilon_P,\\
+  \text{parameter-dependent numerical objects:}&\quad
+  m_t,P_t,C_t,m_t^-,P_t^-,C_t^-,\bar z_t,S_t,C_{xz,t},K_t,
+  \widehat\ell_t^{\rm FSGQ}.
+\end{aligned}
+  \label{eq:bf-hd-sgqf-frozen-vs-variable}
+\end{equation}
+Thus same-scalar finite differences recompute the parameter-dependent numerical
+objects by the same declared branch rule; they do not reuse old numerical values.
+In particular, \(m_0(\theta\pm he_i)\) and \(P_0(\theta\pm he_i)\) are
+recomputed by the same initial-condition policy.  What must remain unchanged is
+the structural route by which those values are produced.
+
+\paragraph{Finite-difference ladder and pass criterion.}
+For each parameter component, use a ladder such as
+\begin{equation}
+  h\in\{10^{-1},10^{-2},10^{-3},10^{-4},10^{-5}\}\max\{1,|\theta_i|\}.
+  \label{eq:bf-hd-sgqf-fd-ladder}
+\end{equation}
+For valid rows, compare the central difference against the analytical score
+\(G_i\) by
+\begin{equation}
+  e_i(h)=
+  \frac{|D_i(h)-G_i|}{\max\{1,|D_i(h)|,|G_i|\}}.
+  \label{eq:bf-hd-sgqf-fd-relative-error}
+\end{equation}
+The diagnostic passes when at least two consecutive valid rows satisfy
+\(e_i(h)\le 10^{-5}\) and the smaller-step row is no worse than ten times the
+larger-step row.  Failure means one of three things is likely: the derivative
+formula is wrong, the value and gradient paths are not using the same scalar, or
+the declared branch is too nonsmooth or ill-conditioned at that point.
+
+\paragraph{Implementation-facing FD checklist.}
+A routine of the form
+\texttt{same\_scalar\_fd\_check(}$i,h_{\rm ladder},\theta,\mathfrak B_{\rm FSGQ}$\texttt{)}
+should:
+\begin{enumerate}[leftmargin=0.28in]
+  \item evaluate the value path at \(\theta\pm he_i\) using the same saved
+  structural branch metadata,
+  \item mark a row branch-invalid if either side changes the structural branch or
+  the realized accepted/failure stage-time pattern,
+  \item compute the central difference only for branch-valid rows,
+  \item compare that central difference against the analytical score with
+  \eqref{eq:bf-hd-sgqf-fd-relative-error}, and
+  \item report whether two consecutive valid rows satisfy the declared tolerance
+  rule.
+\end{enumerate}
+The equations above remain the authoritative mathematical definition; this list is
+the operational review contract.
+
+\section{Lane-Specific Validation Burden}
+\label{sec:bf-hd-sgqf-validation}
+
+Fixed SGQF should be validated as an approximate deterministic likelihood lane,
+not as an exact posterior filter.  The minimum validation suite is:
+\begin{enumerate}[leftmargin=0.28in]
+  \item \textbf{Construction checks.}  Verify duplicate-node accumulation,
+  weight totals, signed-weight counts, and deterministic cloud reproduction for
+  small \((b,L)\) cases.
+  \item \textbf{Linear-Gaussian recovery.}  For affine \(f_\theta,h_\theta\), the
+  Gaussian projection recursion should match the Kalman filter up to
+  floating-point tolerance.
+  \item \textbf{Worked scalar oracle.}  Reproduce the one-step values in
+  Section~\ref{sec:bf-hd-sgqf-worked-example} exactly enough that the cloud,
+  factor, innovation, and likelihood assembly are demonstrably aligned.
+  \item \textbf{Same-branch finite differences.}  Use
+  \eqref{eq:bf-hd-sgqf-central-diff} on representative parameters and step
+  sizes while logging branch-valid versus branch-invalid rows.
+  \item \textbf{Signed-weight stability.}  Record the minimum eigenvalues of
+  symmetrized \(P_t^-\), \(S_t\), and \(P_t\), plus any branch veto.
+  \item \textbf{Memory and runtime scaling.}  Record \(M_{b,L}\), model
+  evaluations, wall time, and peak memory as \(b\), \(L\), and \(T\) change.
+  \item \textbf{Accuracy ladder.}  Compare fixed SGQF against tensor-product GHQ
+  in small dimension and against other controlled references where available.
+\end{enumerate}
+
+A useful test-model ladder mirrors the p47 source burden:
+\begin{itemize}[leftmargin=0.28in]
+  \item \textbf{Model A:} a linear-Gaussian recovery case,
+  \item \textbf{Model B:} the scalar quadratic-observation cell from
+  Chapter~\ref{ch:bf-highdim-nonlinear-foundations},
+  \item \textbf{Model C:} a cloud-sensitive two-dimensional nonlinear observation
+  where duplicate merging and fourth moments matter,
+  \item \textbf{Model D:} a small high-dimensional block-local model where signed
+  weights, active-dimension growth, and covariance checks become visible,
+  \item \textbf{Model E:} a deliberately hard all-coordinate interaction model to
+  expose when sparse-grid savings stop compensating for Gaussian-surrogate bias,
+  \item \textbf{Model F:} a Jia--Xin--Cheng-style orbit / sparse-grid benchmark
+  that distinguishes sparse-grid exactness claims from posterior-accuracy claims.
+\end{itemize}
+The first three models should be understood concretely, not only as names:
+\begin{align}
+  \text{Model A: }&
+  X_t=A_\theta X_{t-1}+\eta_t,
+  \quad
+  \eta_t\sim\calN(0,Q_\theta),
+  \quad
+  Y_t=H_\theta X_t+\varepsilon_t,
+  \quad
+  \varepsilon_t\sim\calN(0,R_\theta),
+  \label{eq:bf-hd-sgqf-model-A}\\
+  \text{Model B: }&
+  X_t=\rho X_{t-1}+\eta_t,
+  \quad
+  \eta_t\sim\calN(0,q),
+  \quad
+  Y_t=X_t^2+\varepsilon_t,
+  \quad
+  \varepsilon_t\sim\calN(0,r),
+  \label{eq:bf-hd-sgqf-model-B}\\
+  \text{Model C: }&
+  X_t=\rho X_{t-1}+\eta_t,
+  \quad
+  \eta_t\sim\calN(0,qI_2),
+  \quad
+  Y_t=\theta^2(X_{t,1}^2+X_{t,2}^2)+\varepsilon_t,
+  \quad
+  \varepsilon_t\sim\calN(0,r).
+  \label{eq:bf-hd-sgqf-model-C}
+\end{align}
+Model A checks exact-reference recovery, Model B exposes posterior-shape failure
+of one-Gaussian surrogates, and Model C catches duplicate-node or signed-weight
+assembly errors because the relevant fourth moments change when the cloud is
+built incorrectly.
+
+The implementation report for this lane should log at least:
+\begin{equation}
+  \mathcal R_{\rm SGQF}=
+  \{M_{b,L},\ \text{signed-weight count},\ \min\lambda(P_t^-),\ \min\lambda(S_t),\
+    \min\lambda(P_t),\ \text{FD table},\ \text{branch-veto count},\
+    \text{wall time},\ \text{peak memory}\}.
+  \label{eq:bf-hd-sgqf-report-object}
+\end{equation}
+Accuracy claims should be made only against a named comparator:
+\begin{equation}
+  \text{error}
+  =
+  \begin{cases}
+  |\widehat\ell_T-\ell_T^{\rm Kalman}|, & \text{linear-Gaussian test},\\
+  |\widehat\ell_T-\ell_T^{\rm dense}|, & \text{small dense-quadrature test},\\
+  \text{RMSE or posterior diagnostic against PF/TT reference}, & \text{nonlinear large test}.
+  \end{cases}
+  \label{eq:bf-hd-sgqf-comparator-errors}
+\end{equation}
+These are not mere software counters.  They record the places where the declared
+sparse-grid scalar can fail mathematically or operationally: duplicate merging,
+signed-weight stability, covariance branch validity, same-branch derivative
+parity, and cost growth.
+
+Passing this suite supports the claim that the implementation evaluates and
+differentiates the declared fixed-cloud surrogate scalar.  It does not prove
+exact posterior accuracy, HMC convergence, or default readiness.
+
+\section{Implementation Contract For FixedSGQF}
+\label{sec:bf-hd-sgqf-implementation-contract}
+
+A compact implementation contract makes the SGQF lane auditable without forcing
+the reader back to the source note.  The key runtime objects are:
+\begin{center}
+\small
+\begin{tabular}{p{0.18\linewidth}p{0.30\linewidth}p{0.16\linewidth}p{0.24\linewidth}}
+\toprule
+object & definition & shape & reuse \\
+\midrule
+\(\xi^{(r)}\) & standardized sparse-grid node & \(n_x\) & value and gradient \\
+\(w_r\) & accumulated signed weight after duplicate merge & scalar & value and gradient \\
+\(C_{t-1},C_t^-\) & covariance factors on declared branch & \(n_x\times n_x\) & value, gradient, diagnostics \\
+\(\chi_{t-1}^{(r)}\) & previous placed point & \(n_x\) & transition value and derivative \\
+\(a_t^{(r)}\) & transition image & \(n_x\) & prediction moments \\
+\(\chi_t^{(r)}\) & predictive placed point & \(n_x\) & observation value and derivative \\
+\(z_t^{(r)}\) & observation image & \(n_y\) & observation moments \\
+\(\bar z_t,S_t,C_{xz,t}\) & Gaussian projection moments & \(n_y\), \(n_y\times n_y\), \(n_x\times n_y\) & likelihood and update \\
+\(v_t,K_t,u_t\) & innovation, gain, solve variable with \(S_tu_t=v_t\) & \(n_y\), \(n_x\times n_y\), \(n_y\) & likelihood, update, gradient \\
+\(\dot\chi,\dot a,\dot z\) & point sensitivities & matching value objects & gradient only \\
+\(\dot m,\dot P,\dot S,\dot C_{xz}\) & moment and filter sensitivities & matching value objects & gradient and next step \\
+data record & \(y_{1:T}\), preprocessing, missing-data policy if any & metadata & value, gradient, finite difference \\
+initial law & \(m_0(\theta),P_0(\theta),\dot m_0,\dot P_0\) & \(n_x,n_x\times n_x\) & value and gradient start \\
+branch record & cloud, rules, merge tolerance, zero-weight rule, node ordering, preprocessing policy, initial-condition policy, factor branch, symmetrize-then-veto rule, thresholds, accepted/failure stage-time pattern & metadata & same-scalar finite difference \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Input, Output, Invariant, And Failure Contract}
+\label{sec:bf-hd-sgqf-io-contract}
+
+The full lane-level routine has inputs
+\begin{equation}
+\begin{aligned}
+  \mathcal I_{\rm in}=
+  (&y_{1:T},\theta,L,\{I_\ell\}_{\ell=1}^{L+b-1},
+  m_0(\theta),P_0(\theta),\\
+  &\dot m_0^{(1:p)}(\theta),\dot P_0^{(1:p)}(\theta),
+  f_\theta,h_\theta,Q_\theta,R_\theta,\\
+  &D_xf_\theta,\partial_{1:p}f_\theta,
+  D_xh_\theta,\partial_{1:p}h_\theta,
+  \dot Q_\theta^{(1:p)},\dot R_\theta^{(1:p)},\\
+  &\text{merge tolerance},\text{factor map},\text{branch thresholds}).
+\end{aligned}
+  \label{eq:bf-hd-sgqf-input-contract}
+\end{equation}
+It returns either
+\begin{equation}
+  \left(
+  \widehat\ell_T^{\rm FSGQ}(\theta),
+  \nabla_\theta\widehat\ell_T^{\rm FSGQ}(\theta),
+  \{m_t,P_t\}_{t=0}^T,
+  \mathcal D_{\rm diag}
+  \right)
+  \label{eq:bf-hd-sgqf-output-success}
+\end{equation}
+or a failure record
+\begin{equation}
+  \mathcal F=(\text{time},\text{stage},\text{reason},\text{diagnostic values}).
+  \label{eq:bf-hd-sgqf-output-failure}
+\end{equation}
+The invariants are:
+\begin{align}
+  \sum_{r=1}^M w_r&=1
+  &&\text{up to construction tolerance},
+  \label{eq:bf-hd-sgqf-invariant-weight-sum}\\
+  P_t^-&=(P_t^-)^\top,\quad
+  S_t=S_t^\top,\quad
+  P_t=P_t^\top
+  &&\text{after explicit symmetrization},
+  \label{eq:bf-hd-sgqf-invariant-symmetry}\\
+  S_t&\succ0
+  &&\text{on every accepted likelihood step},
+  \label{eq:bf-hd-sgqf-invariant-positive-S}\\
+  \mathcal B_{\rm value}&=\mathcal B_{\rm gradient}
+  &&\text{same saved branch}.
+  \label{eq:bf-hd-sgqf-invariant-same-branch}
+\end{align}
+The routine fails rather than repairs if
+\begin{equation}
+  \lambda_{\min}(S_t)<\epsilon_S,\qquad
+  \lambda_{\min}(P_t^-)<\epsilon_P,\qquad
+  \lambda_{\min}(P_t)<\epsilon_P,
+  \label{eq:bf-hd-sgqf-failure-eigen}
+\end{equation}
+or if the declared factor map cannot be evaluated on the symmetrized covariance.
+A smoothed repair would define a different scalar and therefore would need a new
+derivative contract.
+
+\subsection{One-Step Value-Path Contract}
+\label{sec:bf-hd-sgqf-one-step-value-contract}
+
+At one accepted time step, the value path is the ordered map
+\begin{equation}
+\begin{aligned}
+  (m_{t-1},P_{t-1},y_t,\theta,\mathcal C)
+  &\longmapsto C_{t-1}
+  \longmapsto \chi_{t-1}^{(r)}
+  \longmapsto a_t^{(r)}
+  \longmapsto (m_t^-,P_t^-) \\
+  &\longmapsto C_t^-
+  \longmapsto \chi_t^{(r)}
+  \longmapsto z_t^{(r)}
+  \longmapsto (\bar z_t,S_t,C_{xz,t}) \\
+  &\longmapsto (v_t,\widehat\ell_t^{\rm FSGQ},K_t)
+  \longmapsto (m_t,P_t).
+\end{aligned}
+  \label{eq:bf-hd-sgqf-one-step-value-map}
+\end{equation}
+The accepted map is conditioned on two successful branch checks: the predictive
+covariance \(P_t^-\) must pass the declared factor and positive-definite test
+before observation-point placement, and the innovation covariance \(S_t\) must
+pass the declared branch test before the Gaussian projection update is accepted.
+The carried outputs propagated to the next step are only \((m_t,P_t)\) together
+with the global fixed branch record \(\mathcal B\).  Point clouds, moment arrays,
+gains, and diagnostics may be cached for derivative reuse, but they are not part
+of the carried filtering state itself.
+
+\subsection{Default Numerical Constants}
+\label{sec:bf-hd-sgqf-defaults}
+
+The constants below are defaults for diagnostics, not claims of universal
+validity:
+\begin{center}
+\small
+\begin{tabular}{p{0.24\linewidth}p{0.22\linewidth}p{0.44\linewidth}}
+\toprule
+quantity & default & role \\
+\midrule
+duplicate merge tolerance & \(10^{-12}\max(1,\|\xi\|_\infty)\) & groups standardized nodes that should be identical under the declared rule \\
+weight zero tolerance & \(10^{-14}\) & removes accumulated numerical-zero weights after merge \\
+\(\epsilon_S\) & \(10^{-10}\) & veto threshold for innovation covariance positive definiteness \\
+\(\epsilon_P\) & \(10^{-10}\) & veto threshold for carried and predictive covariance factors \\
+\(\epsilon_\ell\) & \(10^{-3}\max(1,|\widehat\ell_T|)\) & pilot level-ladder change threshold \\
+finite-difference relative tolerance & \(10^{-5}\) & same-scalar gradient diagnostic \\
+maximum branch-invalid FD rows & 0 in final audit & branch changes mean the derivative is not being tested \\
+\bottomrule
+\end{tabular}
+\end{center}
+These values are deliberately conservative.  They are meant to reveal when the
+fixed branch is fragile.  They are not tuning knobs for making a failing branch
+look smooth.
+
+\section{End-To-End Mathematical Algorithm}
+\label{sec:bf-hd-sgqf-end-to-end-algorithm}
+
+\fbox{\begin{minipage}{0.94\linewidth}
+\textbf{FixedSGQF value and gradient, with all branch exits.}
+
+\begin{enumerate}[leftmargin=0.22in]
+\item Build the sparse-grid cloud from \(b=n_x\), level \(L\), and
+\(\{I_\ell\}\).  Save \(\mathcal C=\{(\xi^{(r)},w_r)\}_{r=1}^M\).
+\item Check the weight-sum invariant.  If it fails, return
+\(\mathcal F=(0,\text{cloud},\text{weight-sum failure},\cdots)\).
+\item Initialize \(\widehat\ell_T^{\rm FSGQ}\gets0\),
+\(G_i\gets0\) for \(i=1,\ldots,p\), and compute
+\(m_0,P_0,\dot m_0^{(i)},\dot P_0^{(i)}\).
+\item For \(t=1,\ldots,T\), symmetrize \(P_{t-1}\).  If the factor map
+fails, return a factor-branch failure.  Otherwise set
+\(C_{t-1}=C(P_{t-1})\) and compute the matching factor derivatives.
+\item Place previous points, compute transition images, and form
+\((m_t^-,P_t^-)\) together with their derivatives.
+\item Symmetrize \(P_t^-\).  If the predictive covariance fails the branch,
+return predictive covariance failure.
+\item Factor \(P_t^-\), place observation points, evaluate observation values,
+and form \((\bar z_t,S_t,C_{xz,t},v_t)\).
+\item Symmetrize \(S_t\).  If the innovation covariance fails the branch,
+return innovation covariance failure.
+\item Only on that accepted innovation branch, form
+\(\widehat\ell_t^{\rm FSGQ}\), update
+\(\widehat\ell_T^{\rm FSGQ}\), and accumulate the componentwise score.
+\item Form \(K_t\), then propagate \(m_t,P_t\) and their sensitivities.
+If the carried covariance branch fails, return carried covariance failure.
+\item Return
+\((\widehat\ell_T^{\rm FSGQ},G_{1:p},\{m_t,P_t\},\mathcal D_{\rm diag})\).
+\end{enumerate}
+\end{minipage}}
+
+The algorithm is deliberately mathematical rather than Pythonic.  Its purpose is
+to say what an implementation must compute, save, and refuse to change if the
+reported gradient is to be the derivative of the reported value.
+
+\section{Exports To Later Chapters}
+\label{sec:bf-hd-sgqf-validation-exports}
+
+This SGQF continuation chapter exports five specific objects forward:
+\begin{enumerate}[leftmargin=0.28in]
+  \item the fixed-cloud value-path recursion,
+  \item the one-step numeric oracle,
+  \item the lane-specific branch-identity record,
+  \item the branch-valid finite-difference contract for SGQF,
+  \item the SGQF validation and non-claim boundaries.
+\end{enumerate}
+The later fixed-branch chapter may now treat the sparse-grid lane as an already
+specified scalar object rather than re-explaining the cloud mechanics.  The
+closing validation/promotion chapter may consume the SGQF diagnostics and veto
+logic without needing to rederive the lane’s runtime map.

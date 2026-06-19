@@ -32,7 +32,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--fit-sample-count",
         type=int,
-        default=2,
+        default=highdim.P59_D18_EXECUTION_ONLY_FIT_SAMPLE_COUNT,
         help="Bounded fit probe count for the manifest smoke.",
     )
     parser.add_argument(

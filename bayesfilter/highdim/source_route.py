@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import json
+import math
 from pathlib import Path
 from typing import Mapping
 
@@ -29,6 +30,15 @@ from bayesfilter.highdim.squared_tt import (
 )
 from bayesfilter.highdim.transport import FixedTTSIRTTransport, KRCDFConfig
 from bayesfilter.highdim.tt import TTCore
+
+
+class P70FixedFitDiagnosticError(RuntimeError):
+    """Carry failed fixed-fit diagnostics without making the fit admissible."""
+
+    def __init__(self, message: str, *, status: HighDimStatus, payload: Mapping[str, object]):
+        super().__init__(str(message))
+        self.status = status
+        self.payload = freeze_mapping(payload)
 
 
 SOURCE_FAITHFUL_ROUTE_LABEL = "source_faithful_filtering"
@@ -108,13 +118,99 @@ P59_9D_DEFAULT_MANIFEST_PATH = (
 )
 P59_9E_D18_EXECUTION_ONLY_PASS_STATUS = "PASS_P59_9E_D18_EXECUTION_ONLY"
 P59_9E_BLOCK_STATUS = "BLOCK_P59_9E_VALIDATION_LADDER"
+P59_D18_EXECUTION_ONLY_FIT_SAMPLE_COUNT = 9
+P59_D18_EXECUTION_ONLY_FIT_SAMPLE_COUNT_SOURCE = (
+    "p70_row_adequacy_hard_minimum_d36_degree0_rank1"
+)
 P60_D18_RANK_CONVERGENCE_PASS_STATUS = "PASS_P60_D18_SAME_ROUTE_RANK_CONVERGENCE"
 P60_D18_RANK_CONVERGENCE_BLOCK_STATUS = "BLOCK_P60_D18_SAME_ROUTE_RANK_CONVERGENCE"
+P66_FIXED_BRANCH_VALIDATION_LADDER_READY_STATUS = (
+    "READY_FIXED_BRANCH_VALIDATION_LADDER_SCHEMA"
+)
+P66_ADJACENT_LADDER_STABLE_PASS_STATUS = "PASS_ADJACENT_LADDER_DIAGNOSTICS_STABLE"
+P66_SOURCE_ROUTE_INVARIANT_DRIFT_BLOCK_STATUS = "BLOCK_SOURCE_ROUTE_INVARIANT_DRIFT"
+P66_FIXED_BRANCH_DEFENSIVE_ONLY_BLOCK_STATUS = "BLOCK_FIXED_BRANCH_DEFENSIVE_ONLY"
+P66_FIT_DESIGN_UNDERDETERMINED_BLOCK_STATUS = (
+    "BLOCK_FIT_DESIGN_UNDERDETERMINED_FOR_CONVERGENCE"
+)
+P66_ADJACENT_RANK_LADDER_NOT_STABLE_BLOCK_STATUS = (
+    "BLOCK_ADJACENT_RANK_LADDER_NOT_STABLE"
+)
+P66_ADJACENT_DEGREE_LADDER_NOT_STABLE_BLOCK_STATUS = (
+    "BLOCK_ADJACENT_DEGREE_LADDER_NOT_STABLE"
+)
+P66_VALIDATION_LADDER_SCOPE_BLOCK_STATUS = "BLOCK_VALIDATION_LADDER_IMPLEMENTATION_SCOPE"
+P66_CANDIDATE_ADMISSIBLE_STATUS = "PASS_FIXED_BRANCH_ADMISSIBLE_NONCOLLAPSED"
+P66_SENTINEL_WARN_STATUS = "WARN_SENTINEL_BRANCH_DIFFERS_FROM_CANDIDATE"
+P66_SENTINEL_PASS_STATUS = "PASS_SENTINEL_BRANCH_WITHIN_OLD_P60_THRESHOLDS"
+P66_SAMPLE_ADEQUATE_STATUS = "PASS_SAMPLE_ADEQUATE_FOR_DIAGNOSTIC"
+P66_RANK_LADDER_STABLE_STATUS = "PASS_ADJACENT_RANK_LADDER_STABLE"
+P66_DEGREE_LADDER_STABLE_STATUS = "PASS_ADJACENT_DEGREE_LADDER_STABLE"
+P66_RANK_LADDER_UNDERDETERMINED_STATUS = "SKIP_ADJACENT_RANK_LADDER_UNDERDETERMINED"
+P66_DEGREE_LADDER_UNDERDETERMINED_STATUS = (
+    "SKIP_ADJACENT_DEGREE_LADDER_UNDERDETERMINED"
+)
+P66_RANK_LADDER_SCHEMA_ONLY_STATUS = "SCHEMA_ONLY_ADJACENT_RANK_LADDER_NOT_EXECUTED"
+P66_DEGREE_LADDER_SCHEMA_ONLY_STATUS = "SCHEMA_ONLY_ADJACENT_DEGREE_LADDER_NOT_EXECUTED"
 P62_AUTHOR_TTSIRT_EXECUTABLE_DEFAULT_TAU = 1e-8
 P63_AUTHOR_SIR_SOURCE_FIT_DATA_MODE = "source_pushed_computeL_resampled_local_fit"
 P63_AUTHOR_SIR_FIXED_VARIANT_RESAMPLING = "deterministic_systematic_quantile"
 P63_AUTHOR_SIR_EXPANSION_FACTOR = 4.0
 P64_DEFENSIVE_ONLY_SQRT_NORMALIZER_TOL = 1e-14
+P65_FIXED_BRANCH_INITIALIZATION_RULE = "fixed_hmc_constant_path_weighted_mean"
+P70_FIXED_BRANCH_INITIALIZATION_RULE = "fixed_hmc_seeded_channel_paths_v1"
+P70_SEEDED_CHANNEL_EPSILON = 1e-6
+P70_FIXED_BRANCH_MAX_SWEEPS = 4
+P70_FIT_RIDGE = 1e-10
+P70_CONDITION_NUMBER_WARNING = 1e10
+P70_CONDITION_NUMBER_VETO = 1e14
+P70_CHANNEL_ACTIVITY_ABS_TOL = 1e-12
+P70_CHANNEL_ACTIVITY_REL_TOL = 1e-8
+P70_DEFENSIVE_ONLY_SQRT_NORMALIZER_TOL = 1e-14
+P70_FIT_MASS_FRACTION_MIN = 1e-6
+P70_LOG_INCREMENT_ABS_BOUND = 1e6
+P70_HOLDOUT_REPLAY_NORMALIZED_RESIDUAL_VETO = 10.0
+P72_PASS_STATUS = "PASS_P72_SUPPORT_CERTIFIED_LOWER_GATE"
+P72_BLOCK_STATUS = "BLOCK_P72_SUPPORT_CERTIFIED_LOWER_GATE"
+P72_WARN_STATUS = "WARN_P72_SUPPORT_CERTIFIED_LOWER_GATE"
+P72_GUARD_STEP1_PRIOR_SEED = 7321
+P72_GUARD_STEP1_PROCESS_SEED = 7601
+P72_GUARD_STEP2_PROCESS_SEED = 7602
+P72_AUDIT_STEP1_HOLDOUT_PRIOR_SEED = 7301
+P72_AUDIT_STEP1_HOLDOUT_PROCESS_SEED = 7401
+P72_AUDIT_STEP1_REPLAY_PRIOR_SEED = 7311
+P72_AUDIT_STEP1_REPLAY_PROCESS_SEED = 7501
+P72_AUDIT_STEP2_HOLDOUT_PROCESS_SEED = 7402
+P72_AUDIT_STEP2_REPLAY_PROCESS_SEED = 7502
+P72_LINE_FRACTIONS = (0.0, 0.25, 0.5, 0.75, 1.0)
+P72_GUARD_WEIGHT_ALPHA = 1.0
+P72_SHAPE_PENALTY_WEIGHT = 0.0
+P72_RESIDUAL_RMS_REL_VETO = 10.0
+P72_RESIDUAL_MAX_REL_VETO = 1e3
+P72_LINE_GROWTH_REL_VETO = 1e3
+P72_CONDITION_NUMBER_ADMISSION = 1e10
+P72_EFFECTIVE_RANK_TOL = 1e-12
+P72_EFFECTIVE_RANK_MIN = 1.0
+P72_SQRT_SQUARE_NORMALIZER_FLOOR = 1e-14
+P72_FIT_MASS_FRACTION_MIN = 1e-6
+P72_LOG_NORMALIZER_ABS_BOUND = 1e6
+P73_PASS_STATUS = "PASS_P73_DENSITY_AWARE_RENEWED_SUPPORT_LOWER_GATE"
+P73_BLOCK_STATUS = "BLOCK_P73_DENSITY_AWARE_RENEWED_SUPPORT_LOWER_GATE"
+P73_WARN_STATUS = "WARN_P73_DENSITY_AWARE_RENEWED_SUPPORT_LOWER_GATE"
+P73_RENEWAL_COUNT = 1
+P73_LAMBDA_CE = 0.1
+P73_DENSITY_AWARE_OBJECTIVE_STATUS = "included_as_opt_in_diagnostic_arm"
+P73_B_OPTIMIZER_BLOCKED = "P73_B_OPTIMIZER_BLOCKED_NONLINEAR_OBJECTIVE_NOT_IMPLEMENTED"
+P73_EPS_LOG = 1e-300
+P65_FIXED_BRANCH_ADAPTATION_CLASS = "fixed_hmc_adaptation"
+P65_ZERO_SQRT_TT_CORE_NORM_TOL = 1e-12
+P69_HOLDOUT_REPLAY_AVAILABLE_STATUS = "PASS_HOLDOUT_REPLAY_DIAGNOSTICS_AVAILABLE"
+P69_HOLDOUT_REPLAY_DIAGNOSTIC_ONLY_STATUS = "WARN_HOLDOUT_REPLAY_DIAGNOSTIC_ONLY"
+P69_HOLDOUT_REPLAY_MISSING_STATUS = "BLOCK_HOLDOUT_REPLAY_DIAGNOSTICS_MISSING"
+P69_HOLDOUT_REPLAY_NONFINITE_STATUS = "BLOCK_HOLDOUT_REPLAY_NONFINITE"
+P69_HOLDOUT_REPLAY_ROUTE_MISMATCH_STATUS = "BLOCK_HOLDOUT_REPLAY_ROUTE_MISMATCH"
+P69_BRANCH_IDENTITY_DRIFT_STATUS = "BLOCK_BRANCH_IDENTITY_DRIFT"
+P69_HOLDOUT_REPLAY_ROUTE_CHANGE_STATUS = "BLOCK_HOLDOUT_REPLAY_DESIGN_NEEDS_ROUTE_CHANGE"
 
 _P62_AUTHOR_TTSIRT_DEFENSIVE_TAU_SOURCE_ANCHORS = (
     "third_party/audit/zhao_cui_tensor_ssm_p10/source/deep-tensor.dev/src/@TTSIRT/TTSIRT.m:185-188",
@@ -1883,6 +1979,70 @@ class P60AuthorSIRSameRouteRankComparatorResult:
         }
 
 
+@dataclass(frozen=True)
+class P66AuthorSIRFixedBranchValidationLadderResult:
+    """P66 fixed-branch validation ladder result with explicit nonclaims."""
+
+    status: str
+    blockers: tuple[str, ...]
+    candidate_result: P59AuthorSIRStepSpecAssemblyResult | None
+    sentinel_result: P60AuthorSIRSameRouteRankComparatorResult | None
+    manifest: Mapping[str, object]
+
+    def __post_init__(self) -> None:
+        status = str(self.status)
+        allowed = {
+            P66_FIXED_BRANCH_VALIDATION_LADDER_READY_STATUS,
+            P66_ADJACENT_LADDER_STABLE_PASS_STATUS,
+            P66_SOURCE_ROUTE_INVARIANT_DRIFT_BLOCK_STATUS,
+            P66_FIXED_BRANCH_DEFENSIVE_ONLY_BLOCK_STATUS,
+            P66_FIT_DESIGN_UNDERDETERMINED_BLOCK_STATUS,
+            P66_ADJACENT_RANK_LADDER_NOT_STABLE_BLOCK_STATUS,
+            P66_ADJACENT_DEGREE_LADDER_NOT_STABLE_BLOCK_STATUS,
+            P66_VALIDATION_LADDER_SCOPE_BLOCK_STATUS,
+        }
+        if status not in allowed:
+            raise ValueError("unknown P66 status")
+        blockers = tuple(str(blocker) for blocker in self.blockers)
+        ready_or_pass = status in (
+            P66_FIXED_BRANCH_VALIDATION_LADDER_READY_STATUS,
+            P66_ADJACENT_LADDER_STABLE_PASS_STATUS,
+        )
+        if ready_or_pass and blockers:
+            raise ValueError("P66 ready/pass cannot carry blockers")
+        if not ready_or_pass and not blockers:
+            raise ValueError("P66 block requires at least one blocker")
+        if self.candidate_result is not None and not isinstance(
+            self.candidate_result,
+            P59AuthorSIRStepSpecAssemblyResult,
+        ):
+            raise TypeError("candidate_result must be P59AuthorSIRStepSpecAssemblyResult")
+        if self.sentinel_result is not None and not isinstance(
+            self.sentinel_result,
+            P60AuthorSIRSameRouteRankComparatorResult,
+        ):
+            raise TypeError("sentinel_result must be P60AuthorSIRSameRouteRankComparatorResult")
+        object.__setattr__(self, "status", status)
+        object.__setattr__(self, "blockers", blockers)
+        object.__setattr__(self, "manifest", freeze_mapping(self.manifest))
+
+    def manifest_payload(self) -> Mapping[str, object]:
+        return {
+            "family": "P66AuthorSIRFixedBranchValidationLadderResult",
+            "status": self.status,
+            "blockers": self.blockers,
+            "candidate_result": (
+                None
+                if self.candidate_result is None
+                else self.candidate_result.manifest_payload()
+            ),
+            "sentinel_result": (
+                None if self.sentinel_result is None else self.sentinel_result.manifest_payload()
+            ),
+            "manifest": self.manifest,
+        }
+
+
 def p59_author_sir_36d_target_fit_prep(
     *,
     sample_count: int = 6,
@@ -1973,15 +2133,10 @@ def p59_author_sir_36d_target_fit_prep(
         condition_number_veto=1e16,
         holdout_tolerance=1e6,
     )
-    initial_cores = tuple(
-        TTCore(
-            _source_route_initial_core_values(
-                left_rank=fit_config.ranks[axis],
-                basis_dim=int(fit_degree) + 1,
-                right_rank=fit_config.ranks[axis + 1],
-            )
-        )
-        for axis in range(target_dim)
+    initial_cores = _source_route_constant_path_initial_cores(
+        ranks=fit_config.ranks,
+        basis_dim=int(fit_degree) + 1,
+        constant_value=_weighted_mean_target_value(target_values, fit_data.fit_weights),
     )
     fit_result = FixedTTFitter().fit(
         product_basis=product_basis,
@@ -1994,7 +2149,9 @@ def p59_author_sir_36d_target_fit_prep(
         initial_cores=initial_cores,
         branch_seed="p59-9a-author-sir-36d-bounded-fit",
         measure_convention=convention,
+        initialization_rule=P65_FIXED_BRANCH_INITIALIZATION_RULE,
     )
+    fit_quality_diagnostics = _p59_fixed_ttsirt_fit_quality_diagnostics(fit_result)
     if fit_result.status is not HighDimStatus.OK:
         return _p59_9a_block_result(
             blockers=(f"fit_status_{fit_result.status.value}",),
@@ -2067,7 +2224,11 @@ def p59_author_sir_36d_target_fit_prep(
         "rank_tuple": fit_config.ranks,
         "fit_degree": int(fit_degree),
         "fit_rank": int(fit_rank),
+        "fixed_branch_adaptation_class": P65_FIXED_BRANCH_ADAPTATION_CLASS,
+        "fit_initialization_rule": P65_FIXED_BRANCH_INITIALIZATION_RULE,
+        "fit_initialization_rule_source": "docs/plans/bayesfilter-highdim-zhao-cui-p50-chapter-discipline-rewrite-2026-06-12.tex:prop:p50-constant-path-initialization",
         "fit_status": fit_result.status.value,
+        "fit_quality_diagnostics": fit_quality_diagnostics,
         "fit_branch_hash": fit_result.branch_hash.value,
         "density_branch_hash": density.branch_identity.hash.value,
         "transport_family": transport_manifest["family"],
@@ -2361,6 +2522,7 @@ def _p59_author_sir_source_fit_data_for_step(
         "resample_indices": resample_indices,
         "expansion_factor": P63_AUTHOR_SIR_EXPANSION_FACTOR,
         "coordinate_frame_log_abs_det": frame.log_abs_det(),
+        "coordinate_frame_hash": _p69_frame_hash(frame),
         "local_clip_fraction": clip_fraction,
         "local_max_abs_before_clip": tf.reduce_max(tf.abs(local_unclipped)),
         "target_value_min": tf.reduce_min(target_values),
@@ -2382,6 +2544,148 @@ def _p59_author_sir_source_fit_data_for_step(
         fit_weights=tf.ones([n], dtype=tf.float64),
         manifest=manifest,
     )
+
+
+def _p69_author_sir_source_diagnostic_data_for_step(
+    *,
+    model,
+    observations: tf.Tensor,
+    time_index: int,
+    diagnostic_sample_count: int,
+    frame: SourceRouteCoordinateFrame,
+    shift_constant: tf.Tensor,
+    previous_retained_object: SourceRouteRetainedObject | None = None,
+    prior_seed: int = 7301,
+    process_noise_seed: int = 7401,
+    construction: str,
+) -> _P59AuthorSIRSourceFitData:
+    t = int(time_index)
+    n = int(diagnostic_sample_count)
+    if t < 1:
+        raise ValueError("time_index must be positive")
+    if n < 2:
+        raise ValueError("diagnostic_sample_count must be at least 2")
+    if not isinstance(frame, SourceRouteCoordinateFrame):
+        raise TypeError("frame must be SourceRouteCoordinateFrame")
+    d = model.parameter_dim()
+    m = model.state_dim()
+    if t == 1:
+        previous_batch = _p59_author_sir_prior_sample_batch(
+            model=model,
+            sample_count=n,
+            seed=int(prior_seed),
+        )
+        previous_for_density = None
+    else:
+        if previous_retained_object is None:
+            raise TypeError("t>1 requires previous_retained_object")
+        previous_batch = _p59_author_sir_batch_from_previous_retained_prefix(
+            previous_retained_object,
+            parameter_dim=d,
+            state_dim=m,
+            time_index=t - 1,
+        )
+        previous_for_density = previous_retained_object
+        if previous_batch.sample_count != n:
+            raise ValueError("diagnostic_previous_batch_count_mismatch")
+    push = _p59_author_sir_source_push_result(
+        model=model,
+        previous_batch=previous_batch,
+        observation=tf.convert_to_tensor(observations[t], dtype=tf.float64),
+        time_index=t,
+        process_noise_seed=int(process_noise_seed),
+    )
+    resampled, resample_indices = _p59_author_sir_deterministic_weighted_resample(
+        samples=push.augmented_batch.samples,
+        log_weights=push.augmented_batch.log_weights,
+    )
+    local_unclipped = tf.linalg.solve(
+        frame.matrix,
+        resampled - frame.mu[:, tf.newaxis],
+    )
+    clipped_mask = tf.abs(local_unclipped) > tf.constant(1.0, dtype=tf.float64)
+    clip_fraction = tf.reduce_mean(tf.cast(clipped_mask, tf.float64))
+    if bool((clip_fraction >= 1.0).numpy()):
+        raise ValueError("diagnostic_data_all_local_entries_clipped")
+    local_points = tf.clip_by_value(local_unclipped, -1.0, 1.0)
+    physical_points = (
+        tf.linalg.matmul(frame.matrix, local_points)
+        + frame.mu[:, tf.newaxis]
+    )
+    prior_log_density, transition_log_density, likelihood_log_density = (
+        _p59_author_sir_source_density_callbacks(model, observations[t])
+    )
+    components = SourceRouteSequentialDensityComponents(
+        parameter_dim=d,
+        state_dim=m,
+        transition_log_density_fn=transition_log_density,
+        likelihood_log_density_fn=likelihood_log_density,
+        prior_log_density_fn=prior_log_density if t == 1 else None,
+    )
+    negative_log_physical = components.negative_log_physical_density(
+        physical_points=physical_points,
+        time_index=t,
+        previous_retained_object=previous_for_density,
+    )
+    local_negative_log = negative_log_physical - frame.log_abs_det()
+    shifted = source_route_shifted_negative_log_target(
+        negative_log_target=local_negative_log,
+        shift_constant=shift_constant,
+    )
+    target_values = tf.exp(-0.5 * shifted)
+    if not bool(tf.reduce_all(tf.math.is_finite(target_values)).numpy()):
+        raise ValueError("nonfinite_source_diagnostic_target_values")
+    manifest = {
+        "fit_data_mode": P63_AUTHOR_SIR_SOURCE_FIT_DATA_MODE,
+        "diagnostic_role": "post_fit_diagnostic_only",
+        "diagnostic_classification": P65_FIXED_BRANCH_ADAPTATION_CLASS,
+        "diagnostic_construction": str(construction),
+        "fit_data_source": "pushed_weighted_augmented_samples",
+        "coordinate_frame_source": "reuse_fitted_source_computeL_frame",
+        "fixed_variant_resampling": P63_AUTHOR_SIR_FIXED_VARIANT_RESAMPLING,
+        "source_anchors": _P63_AUTHOR_SIR_FIT_DATA_SOURCE_ANCHORS,
+        "time_index": t,
+        "diagnostic_sample_count": n,
+        "diagnostic_prior_seed": int(prior_seed) if t == 1 else None,
+        "diagnostic_process_noise_seed": int(process_noise_seed),
+        "source_push_sample_origin": push.augmented_batch.sample_origin,
+        "source_push_ess": push.diagnostics.effective_sample_size,
+        "resample_indices": resample_indices,
+        "coordinate_frame_log_abs_det": frame.log_abs_det(),
+        "coordinate_frame_hash": _p69_frame_hash(frame),
+        "shift_constant_source": "reuse_fitted_branch_shift",
+        "shift_constant": tf.convert_to_tensor(shift_constant, dtype=tf.float64),
+        "local_clip_fraction": clip_fraction,
+        "local_max_abs_before_clip": tf.reduce_max(tf.abs(local_unclipped)),
+        "target_value_min": tf.reduce_min(target_values),
+        "target_value_max": tf.reduce_max(target_values),
+        "nonclaims": (
+            "post-fit diagnostic only",
+            "not passed into FixedTTFitter.fit",
+            "no adaptive Zhao-Cui parity claim",
+        ),
+    }
+    return _P59AuthorSIRSourceFitData(
+        time_index=t,
+        frame=frame,
+        local_fit_points=local_points,
+        target_values=target_values,
+        negative_log_values=local_negative_log,
+        shift_constant=tf.convert_to_tensor(shift_constant, dtype=tf.float64),
+        fit_weights=tf.ones([n], dtype=tf.float64),
+        manifest=manifest,
+    )
+
+
+def _p71_optional_author_sir_diagnostic_data_for_step(
+    **kwargs,
+) -> _P59AuthorSIRSourceFitData | None:
+    try:
+        return _p69_author_sir_source_diagnostic_data_for_step(**kwargs)
+    except ValueError as exc:
+        if str(exc) != "diagnostic_data_all_local_entries_clipped":
+            raise
+        return None
 
 
 def _p59_author_sir_36d_coordinate_frame_for_time(
@@ -2570,10 +2874,41 @@ def p59_author_sir_step_spec_assembly(
     )
     frame1 = fit_data1.frame
     shift1 = fit_data1.shift_constant
-    transport1, fit_hash1, density_hash1 = _p59_fixed_ttsirt_transport_from_values(
+    holdout_data1 = _p71_optional_author_sir_diagnostic_data_for_step(
+        model=model,
+        observations=observations,
+        time_index=1,
+        diagnostic_sample_count=int(fit_sample_count),
+        frame=frame1,
+        shift_constant=shift1,
+        prior_seed=7301,
+        process_noise_seed=7401,
+        construction="p69_step1_holdout_distinct_diagnostic_seed",
+    )
+    replay_data1 = _p71_optional_author_sir_diagnostic_data_for_step(
+        model=model,
+        observations=observations,
+        time_index=1,
+        diagnostic_sample_count=int(fit_sample_count),
+        frame=frame1,
+        shift_constant=shift1,
+        prior_seed=7311,
+        process_noise_seed=7501,
+        construction="p69_step1_replay_distinct_diagnostic_seed",
+    )
+    transport1, fit_hash1, density_hash1, fit_quality1, holdout_replay1 = _p59_fixed_ttsirt_transport_from_values(
         local_fit_points=fit_data1.local_fit_points,
         target_values=fit_data1.target_values,
         fit_weights=fit_data1.fit_weights,
+        fit_data_manifest=fit_data1.manifest,
+        holdout_local_points=None if holdout_data1 is None else holdout_data1.local_fit_points,
+        holdout_target_values=None if holdout_data1 is None else holdout_data1.target_values,
+        holdout_weights=None if holdout_data1 is None else holdout_data1.fit_weights,
+        holdout_manifest=None if holdout_data1 is None else holdout_data1.manifest,
+        replay_local_points=None if replay_data1 is None else replay_data1.local_fit_points,
+        replay_target_values=None if replay_data1 is None else replay_data1.target_values,
+        replay_weights=None if replay_data1 is None else replay_data1.fit_weights,
+        replay_manifest=None if replay_data1 is None else replay_data1.manifest,
         target_dim=target_dim,
         fit_degree=int(fit_degree),
         fit_rank=int(fit_rank),
@@ -2637,10 +2972,41 @@ def p59_author_sir_step_spec_assembly(
     )
     frame2 = fit_data2.frame
     shift2 = fit_data2.shift_constant
-    transport2, fit_hash2, density_hash2 = _p59_fixed_ttsirt_transport_from_values(
+    holdout_data2 = _p71_optional_author_sir_diagnostic_data_for_step(
+        model=model,
+        observations=observations,
+        time_index=2,
+        diagnostic_sample_count=int(fit_sample_count),
+        frame=frame2,
+        shift_constant=shift2,
+        previous_retained_object=fit_retained1,
+        process_noise_seed=7402,
+        construction="p69_step2_holdout_distinct_diagnostic_seed",
+    )
+    replay_data2 = _p71_optional_author_sir_diagnostic_data_for_step(
+        model=model,
+        observations=observations,
+        time_index=2,
+        diagnostic_sample_count=int(fit_sample_count),
+        frame=frame2,
+        shift_constant=shift2,
+        previous_retained_object=fit_retained1,
+        process_noise_seed=7502,
+        construction="p69_step2_replay_distinct_diagnostic_seed",
+    )
+    transport2, fit_hash2, density_hash2, fit_quality2, holdout_replay2 = _p59_fixed_ttsirt_transport_from_values(
         local_fit_points=fit_data2.local_fit_points,
         target_values=fit_data2.target_values,
         fit_weights=fit_data2.fit_weights,
+        fit_data_manifest=fit_data2.manifest,
+        holdout_local_points=None if holdout_data2 is None else holdout_data2.local_fit_points,
+        holdout_target_values=None if holdout_data2 is None else holdout_data2.target_values,
+        holdout_weights=None if holdout_data2 is None else holdout_data2.fit_weights,
+        holdout_manifest=None if holdout_data2 is None else holdout_data2.manifest,
+        replay_local_points=None if replay_data2 is None else replay_data2.local_fit_points,
+        replay_target_values=None if replay_data2 is None else replay_data2.target_values,
+        replay_weights=None if replay_data2 is None else replay_data2.fit_weights,
+        replay_manifest=None if replay_data2 is None else replay_data2.manifest,
         target_dim=target_dim,
         fit_degree=int(fit_degree),
         fit_rank=int(fit_rank),
@@ -2726,11 +3092,16 @@ def p59_author_sir_step_spec_assembly(
         ),
         "fit_branch_hashes": (fit_hash1, fit_hash2),
         "density_branch_hashes": (density_hash1, density_hash2),
+        "fit_quality_diagnostics_by_step": (fit_quality1, fit_quality2),
+        "holdout_replay_diagnostics_by_step": (holdout_replay1, holdout_replay2),
         "defensive_tau": P62_AUTHOR_TTSIRT_EXECUTABLE_DEFAULT_TAU,
         "defensive_tau_source": "author_executable_ttsirt_default",
         "source_declared_tau_unwired": 10.0,
         "source_executable_ttsirt_default_tau": P62_AUTHOR_TTSIRT_EXECUTABLE_DEFAULT_TAU,
         "defensive_tau_source_anchors": _P62_AUTHOR_TTSIRT_DEFENSIVE_TAU_SOURCE_ANCHORS,
+        "fixed_branch_adaptation_class": P65_FIXED_BRANCH_ADAPTATION_CLASS,
+        "fit_initialization_rule": P70_FIXED_BRANCH_INITIALIZATION_RULE,
+        "fit_initialization_rule_source": "docs/plans/bayesfilter-highdim-zhao-cui-p70-phase4-nondegenerate-fitting-design-result-2026-06-16.md",
         "fit_degree": int(fit_degree),
         "fit_rank": int(fit_rank),
         "rank_tuple": _source_route_rank_tuple(target_dim, int(fit_rank)),
@@ -2884,13 +3255,22 @@ def _p59_fixed_ttsirt_transport_from_values(
     local_fit_points: tf.Tensor,
     target_values: tf.Tensor,
     fit_weights: tf.Tensor | None = None,
+    fit_data_manifest: Mapping[str, object] | None = None,
+    holdout_local_points: tf.Tensor | None = None,
+    holdout_target_values: tf.Tensor | None = None,
+    holdout_weights: tf.Tensor | None = None,
+    holdout_manifest: Mapping[str, object] | None = None,
+    replay_local_points: tf.Tensor | None = None,
+    replay_target_values: tf.Tensor | None = None,
+    replay_weights: tf.Tensor | None = None,
+    replay_manifest: Mapping[str, object] | None = None,
     target_dim: int,
     fit_degree: int,
     fit_rank: int,
     ridge: float,
     branch_seed: str,
     convention: MeasureConvention,
-) -> tuple[FixedTTSIRTTransport, str, str]:
+) -> tuple[FixedTTSIRTTransport, str, str, Mapping[str, object], Mapping[str, object]]:
     product_basis = ProductBasis(
         [
             LegendreBasis1D(BoundedInterval(-1.0, 1.0), int(fit_degree))
@@ -2901,44 +3281,117 @@ def _p59_fixed_ttsirt_transport_from_values(
     fit_config = FixedTTFitConfig(
         ranks=_source_route_rank_tuple(int(target_dim), int(fit_rank)),
         ridge=float(ridge),
-        max_sweeps=1,
-        sweep_order=tuple(range(int(target_dim))),
+        max_sweeps=P70_FIXED_BRANCH_MAX_SWEEPS,
+        sweep_order=_p70_canonical_alternating_sweep_order(int(target_dim)),
         row_budget=max(int(tf.shape(local_fit_points)[1]), 1),
         column_budget=(int(fit_degree) + 1) * int(fit_rank) * int(fit_rank),
         dense_matrix_byte_budget=2**22,
         normal_matrix_byte_budget=2**24,
-        condition_number_warning=1e12,
-        condition_number_veto=1e16,
+        condition_number_warning=P70_CONDITION_NUMBER_WARNING,
+        condition_number_veto=P70_CONDITION_NUMBER_VETO,
         holdout_tolerance=1e6,
     )
-    initial_cores = tuple(
-        TTCore(
-            _source_route_initial_core_values(
-                left_rank=fit_config.ranks[axis],
-                basis_dim=int(fit_degree) + 1,
-                right_rank=fit_config.ranks[axis + 1],
-            )
-        )
-        for axis in range(int(target_dim))
+    weights = (
+        tf.ones([int(tf.shape(local_fit_points)[1])], dtype=tf.float64)
+        if fit_weights is None
+        else tf.convert_to_tensor(fit_weights, dtype=tf.float64)
+    )
+    target_tensor = tf.convert_to_tensor(target_values, dtype=tf.float64)
+    row_adequacy = _p70_row_adequacy_diagnostics(
+        row_count=int(tf.shape(local_fit_points)[1]),
+        target_dim=int(target_dim),
+        fit_degree=int(fit_degree),
+        fit_rank=int(fit_rank),
+    )
+    if row_adequacy["status"] == "branch_fit_row_adequacy_failed":
+        raise ValueError("branch_fit_row_adequacy_failed")
+    initial_cores = _source_route_seeded_channel_initial_cores(
+        ranks=fit_config.ranks,
+        basis_dim=int(fit_degree) + 1,
+        constant_value=_weighted_mean_target_value(target_tensor, weights),
     )
     fit_result = FixedTTFitter().fit(
         product_basis=product_basis,
         samples=FixedTTFitSampleBatch(
             points=tf.transpose(tf.convert_to_tensor(local_fit_points, dtype=tf.float64)),
-            target_values=tf.convert_to_tensor(target_values, dtype=tf.float64),
-            weights=(
-                tf.ones([int(tf.shape(local_fit_points)[1])], dtype=tf.float64)
-                if fit_weights is None
-                else tf.convert_to_tensor(fit_weights, dtype=tf.float64)
-            ),
+            target_values=target_tensor,
+            weights=weights,
         ),
         config=fit_config,
         initial_cores=initial_cores,
         branch_seed=str(branch_seed),
         measure_convention=convention,
+        initialization_rule=P70_FIXED_BRANCH_INITIALIZATION_RULE,
+    )
+    channel_activity = _p70_channel_activity_diagnostics(
+        cores=fit_result.fitted_tt.cores,
+        target_dim=int(target_dim),
+        fit_rank=int(fit_rank),
+    )
+    fit_quality_diagnostics = dict(_p59_fixed_ttsirt_fit_quality_diagnostics(fit_result))
+    fit_diagnostics = {} if fit_result.diagnostics is None else dict(fit_result.diagnostics)
+    fit_quality_diagnostics["p70_fixed_fitting_policy"] = _p70_fixed_fitting_policy_payload(
+        target_dim=int(target_dim),
+        fit_degree=int(fit_degree),
+        fit_rank=int(fit_rank),
+        ridge=float(ridge),
+        row_adequacy=row_adequacy,
+        channel_activity=channel_activity,
+        stabilization_policy=fit_diagnostics.get("stabilization_policy"),
+        stabilization_diagnostics_summary=fit_diagnostics.get(
+            "stabilization_diagnostics_summary"
+        ),
     )
     if fit_result.status is not HighDimStatus.OK:
-        raise ValueError(f"fixed_ttsirt_fit_status_{fit_result.status.value}")
+        message = f"fixed_ttsirt_fit_status_{fit_result.status.value}"
+        raise P70FixedFitDiagnosticError(
+            message,
+            status=fit_result.status,
+            payload={
+                "message": message,
+                "fit_status": fit_result.status.value,
+                "termination_reason": fit_result.termination_reason,
+                "stop_condition_triggered": fit_result.stop_condition_triggered,
+                "fit_quality_diagnostics": fit_quality_diagnostics,
+                "core_update_statuses": tuple(dict(record) for record in fit_result.core_update_statuses),
+                "fit_branch_hash": fit_result.branch_hash.value,
+                "rank_tuple": fit_config.ranks,
+                "fit_degree": int(fit_degree),
+                "fit_rank": int(fit_rank),
+                "target_dim": int(target_dim),
+                "initialization_rule": P70_FIXED_BRANCH_INITIALIZATION_RULE,
+                "ridge": float(ridge),
+                "max_sweeps": P70_FIXED_BRANCH_MAX_SWEEPS,
+                "sweep_order": _p70_canonical_alternating_sweep_order(int(target_dim)),
+                "condition_number_warning": P70_CONDITION_NUMBER_WARNING,
+                "condition_number_veto": P70_CONDITION_NUMBER_VETO,
+                "p70_fixed_fitting_policy": fit_quality_diagnostics["p70_fixed_fitting_policy"],
+                "stabilization_policy": fit_diagnostics.get("stabilization_policy"),
+                "stabilization_diagnostics_summary": fit_diagnostics.get(
+                    "stabilization_diagnostics_summary"
+                ),
+                "stabilization_policy_id": fit_diagnostics.get("stabilization_policy_id"),
+                "objective_preserving_column_scaling": fit_diagnostics.get(
+                    "objective_preserving_column_scaling"
+                ),
+                "column_scale_floor": fit_diagnostics.get("column_scale_floor"),
+                "condition_number_gate_target": fit_diagnostics.get(
+                    "condition_number_gate_target"
+                ),
+                "original_unscaled_normal_condition_role": fit_diagnostics.get(
+                    "original_unscaled_normal_condition_role"
+                ),
+                "failed_fit_remains_inadmissible": True,
+                "transport_returned": False,
+                "nonclaims": (
+                    "failed fit is not admissible",
+                    "diagnostic capture is not numerical repair",
+                    "no threshold retuning",
+                    "no Phase 6 rerun authorization",
+                    "no bug-fixed claim",
+                ),
+            },
+        )
     defensive = TensorProductReferenceDensity(product_basis, convention)
     defensive_tau = _p59_author_sir_defensive_tau_tensor()
     density_identity = SquaredTTDensity.expected_branch_identity(
@@ -2958,6 +3411,22 @@ def _p59_fixed_ttsirt_transport_from_values(
         measure_convention=convention,
         branch_identity=density_identity,
     )
+    holdout_replay_diagnostics = _p69_post_fit_holdout_replay_diagnostics(
+        fit_result=fit_result,
+        density=density,
+        local_fit_points=local_fit_points,
+        target_values=target_tensor,
+        fit_weights=weights,
+        fit_data_manifest=fit_data_manifest,
+        holdout_local_points=holdout_local_points,
+        holdout_target_values=holdout_target_values,
+        holdout_weights=holdout_weights,
+        holdout_manifest=holdout_manifest,
+        replay_local_points=replay_local_points,
+        replay_target_values=replay_target_values,
+        replay_weights=replay_weights,
+        replay_manifest=replay_manifest,
+    )
     return (
         FixedTTSIRTTransport(
             density=density,
@@ -2972,7 +3441,1329 @@ def _p59_fixed_ttsirt_transport_from_values(
         ),
         fit_result.branch_hash.value,
         density.branch_identity.hash.value,
+        fit_quality_diagnostics,
+        holdout_replay_diagnostics,
     )
+
+
+def _p69_post_fit_holdout_replay_diagnostics(
+    *,
+    fit_result,
+    density: SquaredTTDensity,
+    local_fit_points: tf.Tensor,
+    target_values: tf.Tensor,
+    fit_weights: tf.Tensor,
+    fit_data_manifest: Mapping[str, object] | None,
+    holdout_local_points: tf.Tensor | None,
+    holdout_target_values: tf.Tensor | None,
+    holdout_weights: tf.Tensor | None,
+    holdout_manifest: Mapping[str, object] | None,
+    replay_local_points: tf.Tensor | None,
+    replay_target_values: tf.Tensor | None,
+    replay_weights: tf.Tensor | None,
+    replay_manifest: Mapping[str, object] | None,
+) -> Mapping[str, object]:
+    fit_hash_before = fit_result.branch_hash.value
+    density_hash_before = density.branch_identity.hash.value
+    fit_point_hash = _p69_hash_tensor("p69_fit_points_hash.v1", local_fit_points)
+    fit_target_hash = _p69_hash_tensor("p69_fit_targets_hash.v1", target_values)
+    fit_weight_hash = _p69_hash_tensor("p69_fit_weights_hash.v1", fit_weights)
+    coordinate_frame_hash = (
+        None
+        if fit_data_manifest is None
+        else fit_data_manifest.get("coordinate_frame_hash")
+    )
+    holdout = _p69_post_fit_diagnostic_channel(
+        channel="holdout",
+        fitted_tt=fit_result.fitted_tt,
+        points=holdout_local_points,
+        targets=holdout_target_values,
+        weights=holdout_weights,
+        manifest=holdout_manifest,
+        fit_point_hash=fit_point_hash,
+    )
+    replay = _p69_post_fit_diagnostic_channel(
+        channel="replay",
+        fitted_tt=fit_result.fitted_tt,
+        points=replay_local_points,
+        targets=replay_target_values,
+        weights=replay_weights,
+        manifest=replay_manifest,
+        fit_point_hash=fit_point_hash,
+    )
+    fit_hash_after = fit_result.branch_hash.value
+    density_hash_after = density.branch_identity.hash.value
+    branch_unchanged = (
+        fit_hash_before == fit_hash_after
+        and density_hash_before == density_hash_after
+    )
+    any_missing = holdout["supplied"] is not True or replay["supplied"] is not True
+    route_mismatch = (
+        not any_missing
+        and not (
+            holdout["route_match"] is True
+            and replay["route_match"] is True
+        )
+    )
+    if not branch_unchanged:
+        status = P69_BRANCH_IDENTITY_DRIFT_STATUS
+    elif any_missing:
+        status = P69_HOLDOUT_REPLAY_MISSING_STATUS
+    elif route_mismatch:
+        status = P69_HOLDOUT_REPLAY_ROUTE_MISMATCH_STATUS
+    elif holdout["nonfinite"] is True or replay["nonfinite"] is True:
+        status = P69_HOLDOUT_REPLAY_NONFINITE_STATUS
+    elif holdout["available"] is not True or replay["available"] is not True:
+        status = P69_HOLDOUT_REPLAY_MISSING_STATUS
+    else:
+        status = P69_HOLDOUT_REPLAY_AVAILABLE_STATUS
+    return {
+        "diagnostic_role": "post_fit_diagnostic_only",
+        "diagnostic_classification": P65_FIXED_BRANCH_ADAPTATION_CLASS,
+        "status": status,
+        "warning_status": P69_HOLDOUT_REPLAY_DIAGNOSTIC_ONLY_STATUS,
+        "fit_point_count": int(tf.shape(local_fit_points)[1]),
+        "fit_point_hash": fit_point_hash,
+        "fit_target_hash": fit_target_hash,
+        "fit_weight_hash": fit_weight_hash,
+        "coordinate_frame_hash": coordinate_frame_hash,
+        "holdout_available": holdout["available"],
+        "holdout_status": holdout["status"],
+        "holdout_point_count": holdout["point_count"],
+        "holdout_point_hash": holdout["point_hash"],
+        "holdout_target_hash": holdout["target_hash"],
+        "holdout_weight_hash": holdout["weight_hash"],
+        "holdout_construction": holdout["construction"],
+        "holdout_disjoint_from_fit": holdout["disjoint_from_fit"],
+        "holdout_residual": holdout["residual"],
+        "holdout_residual_available": holdout["residual_available"],
+        "holdout_nonfinite": holdout["nonfinite"],
+        "holdout_threshold_role": "diagnostic_only_unless_predeclared",
+        "replay_available": replay["available"],
+        "replay_status": replay["status"],
+        "replay_identity": replay["identity"],
+        "replay_point_count": replay["point_count"],
+        "replay_point_hash": replay["point_hash"],
+        "replay_target_hash": replay["target_hash"],
+        "replay_weight_hash": replay["weight_hash"],
+        "replay_disjoint_from_fit": replay["disjoint_from_fit"],
+        "replay_residual": replay["residual"],
+        "replay_residual_available": replay["residual_available"],
+        "replay_nonfinite": replay["nonfinite"],
+        "fit_branch_hash_before_diagnostic": fit_hash_before,
+        "fit_branch_hash_after_diagnostic": fit_hash_after,
+        "density_branch_hash_before_diagnostic": density_hash_before,
+        "density_branch_hash_after_diagnostic": density_hash_after,
+        "branch_identity_unchanged_by_diagnostics": branch_unchanged,
+        "source_route_invariants": {
+            "fit_data_mode": (
+                None if fit_data_manifest is None else fit_data_manifest.get("fit_data_mode")
+            ),
+            "holdout_route_match": holdout["route_match"],
+            "replay_route_match": replay["route_match"],
+            "route_mismatch": route_mismatch,
+        },
+        "fixed_branch_adaptation_class": P65_FIXED_BRANCH_ADAPTATION_CLASS,
+        "nonclaims": (
+            "post-fit diagnostics do not change fitted cores",
+            "holdout/replay residuals are not filtering correctness",
+            "no adaptive Zhao-Cui parity claim",
+        ),
+    }
+
+
+def _p69_post_fit_diagnostic_channel(
+    *,
+    channel: str,
+    fitted_tt,
+    points: tf.Tensor | None,
+    targets: tf.Tensor | None,
+    weights: tf.Tensor | None,
+    manifest: Mapping[str, object] | None,
+    fit_point_hash: str,
+) -> Mapping[str, object]:
+    if points is None or targets is None:
+        return {
+            "available": False,
+            "supplied": False,
+            "status": P69_HOLDOUT_REPLAY_MISSING_STATUS,
+            "point_count": 0,
+            "point_hash": None,
+            "target_hash": None,
+            "weight_hash": None,
+            "construction": "not_supplied",
+            "identity": "not_supplied",
+            "disjoint_from_fit": False,
+            "residual": None,
+            "residual_available": False,
+            "nonfinite": False,
+            "route_match": False,
+        }
+    local = tf.convert_to_tensor(points, dtype=tf.float64)
+    target = tf.convert_to_tensor(targets, dtype=tf.float64)
+    weight = (
+        tf.ones([int(tf.shape(local)[1])], dtype=tf.float64)
+        if weights is None
+        else tf.convert_to_tensor(weights, dtype=tf.float64)
+    )
+    if local.shape.rank != 2 or target.shape != (int(local.shape[1]),) or weight.shape != target.shape:
+        raise ValueError(f"{channel}_diagnostic: {HighDimStatus.INVALID_SHAPE.value}")
+    point_hash = _p69_hash_tensor(f"p69_{channel}_points_hash.v1", local)
+    target_hash = _p69_hash_tensor(f"p69_{channel}_targets_hash.v1", target)
+    weight_hash = _p69_hash_tensor(f"p69_{channel}_weights_hash.v1", weight)
+    prediction = fitted_tt.evaluate(tf.transpose(local))
+    residual = _p69_weighted_rms_residual(prediction, target, weight)
+    residual_finite = bool(tf.math.is_finite(residual).numpy())
+    route_match = bool(
+        manifest is not None
+        and manifest.get("fit_data_mode") == P63_AUTHOR_SIR_SOURCE_FIT_DATA_MODE
+        and manifest.get("diagnostic_role") == "post_fit_diagnostic_only"
+        and manifest.get("diagnostic_classification") == P65_FIXED_BRANCH_ADAPTATION_CLASS
+    )
+    return {
+        "available": residual_finite and route_match,
+        "supplied": True,
+        "status": (
+            P69_HOLDOUT_REPLAY_AVAILABLE_STATUS
+            if residual_finite and route_match
+            else (
+                P69_HOLDOUT_REPLAY_ROUTE_MISMATCH_STATUS
+                if residual_finite
+                else P69_HOLDOUT_REPLAY_NONFINITE_STATUS
+            )
+        ),
+        "point_count": int(local.shape[1]),
+        "point_hash": point_hash,
+        "target_hash": target_hash,
+        "weight_hash": weight_hash,
+        "construction": (
+            "not_recorded"
+            if manifest is None
+            else str(manifest.get("diagnostic_construction", "not_recorded"))
+        ),
+        "identity": f"p69_{channel}_post_fit_replay.v1",
+        "disjoint_from_fit": point_hash != fit_point_hash,
+        "residual": residual,
+        "residual_available": residual_finite,
+        "nonfinite": not residual_finite,
+        "route_match": route_match,
+    }
+
+
+def _p69_weighted_rms_residual(
+    predicted: tf.Tensor,
+    target: tf.Tensor,
+    weights: tf.Tensor,
+) -> tf.Tensor:
+    pred = tf.convert_to_tensor(predicted, dtype=tf.float64)
+    values = tf.convert_to_tensor(target, dtype=tf.float64)
+    weight = tf.convert_to_tensor(weights, dtype=tf.float64)
+    if pred.shape != values.shape or weight.shape != values.shape:
+        raise ValueError(f"diagnostic residual: {HighDimStatus.INVALID_SHAPE.value}")
+    denominator = tf.reduce_sum(weight)
+    return tf.sqrt(tf.reduce_sum(weight * tf.square(pred - values)) / denominator)
+
+
+def _p69_frame_hash(frame: SourceRouteCoordinateFrame) -> str:
+    return BranchManifest(
+        version="p69_coordinate_frame_hash.v1",
+        payload=frame.manifest_payload(),
+    ).sha256().value
+
+
+def _p69_hash_tensor(version: str, value: tf.Tensor) -> str:
+    return BranchManifest(
+        version=str(version),
+        payload={"value": tf.convert_to_tensor(value, dtype=tf.float64)},
+    ).sha256().value
+
+
+def p72_support_certified_policy() -> Mapping[str, object]:
+    """Return the frozen Phase-2 policy for the P72 lower-gate lane."""
+
+    return {
+        "policy_id": "p72_support_certified_fixed_fit_v1",
+        "classification": P65_FIXED_BRANCH_ADAPTATION_CLASS,
+        "source_faithfulness_status": "extension_or_invention_for_guard_audit_gates",
+        "fit_ridge": P70_FIT_RIDGE,
+        "low_level_condition_number_veto": P70_CONDITION_NUMBER_VETO,
+        "p72_condition_number_admission": P72_CONDITION_NUMBER_ADMISSION,
+        "guard_weight_alpha": P72_GUARD_WEIGHT_ALPHA,
+        "shape_penalty_weight": P72_SHAPE_PENALTY_WEIGHT,
+        "line_fractions": P72_LINE_FRACTIONS,
+        "residual_rms_rel_veto": P72_RESIDUAL_RMS_REL_VETO,
+        "residual_max_rel_veto": P72_RESIDUAL_MAX_REL_VETO,
+        "line_growth_rel_veto": P72_LINE_GROWTH_REL_VETO,
+        "sqrt_square_normalizer_floor": P72_SQRT_SQUARE_NORMALIZER_FLOOR,
+        "fit_mass_fraction_min": P72_FIT_MASS_FRACTION_MIN,
+        "log_normalizer_abs_bound": P72_LOG_NORMALIZER_ABS_BOUND,
+        "effective_rank_tol": P72_EFFECTIVE_RANK_TOL,
+        "effective_rank_min": P72_EFFECTIVE_RANK_MIN,
+        "guard_seeds": {
+            "step1_prior": P72_GUARD_STEP1_PRIOR_SEED,
+            "step1_process": P72_GUARD_STEP1_PROCESS_SEED,
+            "step2_process": P72_GUARD_STEP2_PROCESS_SEED,
+        },
+        "audit_seeds": {
+            "step1_holdout_prior": P72_AUDIT_STEP1_HOLDOUT_PRIOR_SEED,
+            "step1_holdout_process": P72_AUDIT_STEP1_HOLDOUT_PROCESS_SEED,
+            "step1_replay_prior": P72_AUDIT_STEP1_REPLAY_PRIOR_SEED,
+            "step1_replay_process": P72_AUDIT_STEP1_REPLAY_PROCESS_SEED,
+            "step2_holdout_process": P72_AUDIT_STEP2_HOLDOUT_PROCESS_SEED,
+            "step2_replay_process": P72_AUDIT_STEP2_REPLAY_PROCESS_SEED,
+        },
+        "nonclaims": (
+            "not a source-faithful adaptive Zhao-Cui reproduction",
+            "focused tests are not repaired diagnostic evidence",
+            "no d18 validation claim",
+            "no HMC readiness claim",
+        ),
+    }
+
+
+def _p72_normalize_set_weights(weights: tf.Tensor) -> tf.Tensor:
+    tensor = tf.convert_to_tensor(weights, dtype=tf.float64)
+    if tensor.shape.rank != 1:
+        raise ValueError(f"weights: {HighDimStatus.INVALID_SHAPE.value}")
+    if not bool(tf.reduce_all(tf.math.is_finite(tensor)).numpy()):
+        raise ValueError(f"weights: {HighDimStatus.NONFINITE_VALUE.value}")
+    total = tf.reduce_sum(tensor)
+    if bool(tf.reduce_any(tensor < 0.0).numpy()) or bool((total <= 0.0).numpy()):
+        raise ValueError(f"weights: {HighDimStatus.NONFINITE_VALUE.value}")
+    return tensor / total
+
+
+def p72_training_batch_from_fit_and_guard(
+    *,
+    fit_points: tf.Tensor,
+    fit_target_values: tf.Tensor,
+    fit_weights: tf.Tensor,
+    guard_points: tf.Tensor,
+    guard_target_values: tf.Tensor,
+    guard_weights: tf.Tensor,
+    alpha_guard: float = P72_GUARD_WEIGHT_ALPHA,
+) -> tuple[FixedTTFitSampleBatch, Mapping[str, object]]:
+    """Concatenate fit and guard sets; audit data is deliberately absent."""
+
+    fit = tf.convert_to_tensor(fit_points, dtype=tf.float64)
+    guard = tf.convert_to_tensor(guard_points, dtype=tf.float64)
+    fit_targets = tf.convert_to_tensor(fit_target_values, dtype=tf.float64)
+    guard_targets = tf.convert_to_tensor(guard_target_values, dtype=tf.float64)
+    if fit.shape.rank != 2 or guard.shape.rank != 2:
+        raise ValueError(f"points: {HighDimStatus.INVALID_SHAPE.value}")
+    if fit.shape[0] != guard.shape[0]:
+        raise ValueError(f"guard_points: {HighDimStatus.INVALID_SHAPE.value}")
+    if fit_targets.shape != (int(fit.shape[1]),) or guard_targets.shape != (int(guard.shape[1]),):
+        raise ValueError(f"target_values: {HighDimStatus.INVALID_SHAPE.value}")
+    fit_set_weights = _p72_normalize_set_weights(fit_weights)
+    guard_set_weights = _p72_normalize_set_weights(guard_weights)
+    alpha = float(alpha_guard)
+    if alpha < 0.0 or not math.isfinite(alpha):
+        raise ValueError("alpha_guard must be finite nonnegative")
+    points = tf.transpose(tf.concat([fit, guard], axis=1))
+    targets = tf.concat([fit_targets, guard_targets], axis=0)
+    weights = tf.concat([fit_set_weights, alpha * guard_set_weights], axis=0)
+    manifest = {
+        "policy_id": "p72_fit_guard_training_batch.v1",
+        "fit_point_count": int(fit.shape[1]),
+        "guard_point_count": int(guard.shape[1]),
+        "audit_point_count_used_for_training": 0,
+        "audit_exclusion_provenance": "Z_audit never concatenated into FixedTTFitSampleBatch",
+        "alpha_guard": alpha,
+        "fit_weight_mass": float(tf.reduce_sum(fit_set_weights).numpy()),
+        "guard_weight_mass_before_alpha": float(tf.reduce_sum(guard_set_weights).numpy()),
+        "guard_weight_mass_after_alpha": float((alpha * tf.reduce_sum(guard_set_weights)).numpy()),
+        "fit_point_hash": _p69_hash_tensor("p72_fit_points_hash.v1", fit),
+        "guard_point_hash": _p69_hash_tensor("p72_guard_points_hash.v1", guard),
+        "training_point_hash": _p69_hash_tensor("p72_training_points_hash.v1", tf.transpose(points)),
+        "fit_target_hash": _p69_hash_tensor("p72_fit_targets_hash.v1", fit_targets),
+        "guard_target_hash": _p69_hash_tensor("p72_guard_targets_hash.v1", guard_targets),
+        "training_target_hash": _p69_hash_tensor("p72_training_targets_hash.v1", targets),
+        "fit_weight_hash": _p69_hash_tensor("p72_fit_weights_hash.v1", fit_set_weights),
+        "guard_weight_hash": _p69_hash_tensor("p72_guard_weights_hash.v1", guard_set_weights),
+        "training_weight_hash": _p69_hash_tensor("p72_training_weights_hash.v1", weights),
+        "nonclaims": (
+            "guard augmentation is a fixed-HMC support-stabilization gate",
+            "audit data is not used for coefficient selection",
+        ),
+    }
+    return FixedTTFitSampleBatch(points, targets, weights), manifest
+
+
+def p72_support_clipping_coverage(
+    *,
+    role: str,
+    points: tf.Tensor | None,
+    fit_points: tf.Tensor,
+    clip_fraction: float | None = None,
+    local_max_abs_before_clip: float | None = None,
+) -> Mapping[str, object]:
+    """Finite-cloud support and clipping diagnostics for a P72 cloud role."""
+
+    reasons: list[str] = []
+    warnings: list[str] = []
+    if points is None:
+        fit = tf.convert_to_tensor(fit_points, dtype=tf.float64)
+        fit_hash = (
+            _p69_hash_tensor("p72_support_fit_points_hash.v1", fit)
+            if bool(tf.reduce_all(tf.math.is_finite(fit)).numpy())
+            else None
+        )
+        return {
+            "role": str(role),
+            "status": "block",
+            "reasons": ("missing_points",),
+            "warnings": (),
+            "point_count": 0,
+            "point_hash": None,
+            "fit_point_hash": fit_hash,
+        }
+    local = tf.convert_to_tensor(points, dtype=tf.float64)
+    fit = tf.convert_to_tensor(fit_points, dtype=tf.float64)
+    if local.shape.rank != 2 or fit.shape.rank != 2 or local.shape[0] != fit.shape[0]:
+        raise ValueError(f"{role}_support: {HighDimStatus.INVALID_SHAPE.value}")
+    point_count = int(local.shape[1])
+    fit_count = int(fit.shape[1])
+    fit_is_finite = bool(tf.reduce_all(tf.math.is_finite(fit)).numpy())
+    if point_count <= 0 or fit_count <= 0:
+        reasons.append("empty_cloud")
+    local_is_finite = bool(tf.reduce_all(tf.math.is_finite(local)).numpy())
+    if not local_is_finite:
+        reasons.append("nonfinite_cloud")
+    if not fit_is_finite:
+        reasons.append("nonfinite_fit_cloud")
+    clipped = None if clip_fraction is None else float(clip_fraction)
+    max_abs = None if local_max_abs_before_clip is None else float(local_max_abs_before_clip)
+    if clipped is not None:
+        if not math.isfinite(clipped):
+            reasons.append("nonfinite_clip_fraction")
+        elif clipped >= 1.0:
+            reasons.append("all_clipped_cloud")
+        elif clipped > 0.0:
+            warnings.append("positive_clip_fraction")
+    if max_abs is not None and (not math.isfinite(max_abs)):
+        reasons.append("nonfinite_local_max_abs_before_clip")
+    if point_count > 0 and fit_count > 0 and local_is_finite and fit_is_finite:
+        distances = tf.norm(local[:, :, tf.newaxis] - fit[:, tf.newaxis, :], axis=0)
+        nearest = tf.reduce_min(distances, axis=1)
+        fit_pairwise = tf.norm(fit[:, :, tf.newaxis] - fit[:, tf.newaxis, :], axis=0)
+        large = tf.constant(1e300, dtype=tf.float64)
+        fit_leave_one_out = (
+            tf.reduce_min(fit_pairwise + tf.eye(fit_count, dtype=tf.float64) * large, axis=1)
+            if fit_count > 1
+            else tf.zeros([fit_count], dtype=tf.float64)
+        )
+    else:
+        nearest = tf.constant([], dtype=tf.float64)
+        fit_leave_one_out = tf.constant([], dtype=tf.float64)
+    nearest_max = None if int(nearest.shape[0]) <= 0 else float(tf.reduce_max(nearest).numpy())
+    fit_loo_max = None if int(fit_leave_one_out.shape[0]) <= 0 else float(tf.reduce_max(fit_leave_one_out).numpy())
+    if nearest_max is not None and fit_loo_max is not None and fit_loo_max > 0.0:
+        if nearest_max > 10.0 * fit_loo_max:
+            warnings.append("cloud_far_from_fit_support")
+    status = "block" if reasons else ("warn" if warnings else "pass")
+    return {
+        "role": str(role),
+        "status": status,
+        "reasons": tuple(reasons),
+        "warnings": tuple(warnings),
+        "point_count": point_count,
+        "point_hash": (
+            _p69_hash_tensor(f"p72_{role}_support_points_hash.v1", local)
+            if local_is_finite
+            else None
+        ),
+        "fit_point_count": fit_count,
+        "fit_point_hash": (
+            _p69_hash_tensor("p72_support_fit_points_hash.v1", fit)
+            if fit_is_finite
+            else None
+        ),
+        "nearest_fit_distance_min": None if int(nearest.shape[0]) <= 0 else float(tf.reduce_min(nearest).numpy()),
+        "nearest_fit_distance_median": None if int(nearest.shape[0]) <= 0 else _p60_tensor_median_float(nearest),
+        "nearest_fit_distance_max": nearest_max,
+        "fit_leave_one_out_distance_max": fit_loo_max,
+        "clip_fraction": clipped,
+        "point_any_saturated_fraction": (
+            None
+            if point_count <= 0
+            else float(
+                tf.reduce_mean(
+                    tf.cast(tf.reduce_any(tf.abs(local) >= 1.0, axis=0), tf.float64)
+                ).numpy()
+            )
+        ),
+        "local_max_abs_before_clip": max_abs,
+        "effective_support_role": "finite_cloud_diagnostic_not_continuum_support",
+    }
+
+
+def p72_guard_line_points(
+    *,
+    fit_points: tf.Tensor,
+    guard_points: tf.Tensor,
+    line_fractions: tuple[float, ...] = P72_LINE_FRACTIONS,
+) -> tuple[tf.Tensor, Mapping[str, object]]:
+    """Build deterministic fit-to-guard line probes for guard augmentation."""
+
+    fit = tf.convert_to_tensor(fit_points, dtype=tf.float64)
+    guard = tf.convert_to_tensor(guard_points, dtype=tf.float64)
+    if fit.shape.rank != 2 or guard.shape.rank != 2 or fit.shape[0] != guard.shape[0]:
+        raise ValueError(f"line_points: {HighDimStatus.INVALID_SHAPE.value}")
+    if int(fit.shape[1]) <= 0 or int(guard.shape[1]) <= 0:
+        raise ValueError("line point construction requires nonempty clouds")
+    center = tf.reduce_mean(fit, axis=1, keepdims=True)
+    distances = tf.norm(guard - center, axis=0)
+    sorted_indices = tf.argsort(distances)
+    selected = tf.gather(
+        sorted_indices,
+        tf.constant(
+            [0, int(guard.shape[1]) // 2, int(guard.shape[1]) - 1],
+            dtype=tf.int32,
+        ),
+    )
+    endpoints = tf.gather(guard, selected, axis=1)
+    starts = tf.repeat(center, repeats=int(endpoints.shape[1]), axis=1)
+    fractions = tuple(float(value) for value in line_fractions)
+    pieces = []
+    for fraction in fractions:
+        frac = tf.constant(fraction, dtype=tf.float64)
+        pieces.append((1.0 - frac) * starts + frac * endpoints)
+    raw_line_points = tf.concat(pieces, axis=1)
+    unique_columns = []
+    unique_start_indices = []
+    seen_columns = set()
+    endpoint_count = int(endpoints.shape[1])
+    for column_index, column in enumerate(tf.transpose(raw_line_points).numpy()):
+        key = tuple(float(f"{float(value):.17g}") for value in column)
+        if key in seen_columns:
+            continue
+        seen_columns.add(key)
+        unique_columns.append(column)
+        unique_start_indices.append(column_index % endpoint_count)
+    line_points = tf.transpose(tf.constant(unique_columns, dtype=tf.float64))
+    manifest = {
+        "policy_id": "p72_guard_line_points.v1",
+        "line_fractions": fractions,
+        "selected_guard_indices": tuple(int(i) for i in selected.numpy()),
+        "line_start_indices": tuple(int(i) for i in unique_start_indices),
+        "line_point_count": int(line_points.shape[1]),
+        "raw_line_point_count": int(raw_line_points.shape[1]),
+        "line_hash": _p69_hash_tensor("p72_guard_line_points_hash.v1", line_points),
+        "duplicate_removal": "deterministic_exact_column_key_on_fixed_line_cloud",
+    }
+    return line_points, manifest
+
+
+def p72_line_probe_diagnostics(
+    *,
+    fitted_tt,
+    line_points: tf.Tensor,
+    line_target_values: tf.Tensor,
+    start_prediction_values: tf.Tensor | None = None,
+    line_start_indices: tuple[int, ...] | list[int] | tf.Tensor | None = None,
+    target_scale: float,
+) -> Mapping[str, object]:
+    """Evaluate P72 absolute and endpoint-growth line gates."""
+
+    points = tf.convert_to_tensor(line_points, dtype=tf.float64)
+    targets = tf.convert_to_tensor(line_target_values, dtype=tf.float64)
+    if points.shape.rank != 2 or targets.shape != (int(points.shape[1]),):
+        raise ValueError(f"line_probe: {HighDimStatus.INVALID_SHAPE.value}")
+    predictions = tf.convert_to_tensor(fitted_tt.evaluate(tf.transpose(points)), dtype=tf.float64)
+    if predictions.shape != targets.shape:
+        raise ValueError(f"line_probe_prediction: {HighDimStatus.INVALID_SHAPE.value}")
+    residual = tf.abs(predictions - targets)
+    scale = max(float(target_scale), 1e-300)
+    reasons: list[str] = []
+    max_abs = float(tf.reduce_max(tf.abs(predictions)).numpy())
+    max_residual = float(tf.reduce_max(residual).numpy())
+    rms_residual = float(tf.sqrt(tf.reduce_mean(tf.square(residual))).numpy())
+    if not math.isfinite(max_abs) or not math.isfinite(max_residual) or not math.isfinite(rms_residual):
+        reasons.append("line_nonfinite")
+    if max_abs > P72_LINE_GROWTH_REL_VETO * scale:
+        reasons.append("line_absolute_value_veto")
+    if max_residual > P72_RESIDUAL_MAX_REL_VETO * scale:
+        reasons.append("line_max_residual_veto")
+    if rms_residual > P72_RESIDUAL_RMS_REL_VETO * scale:
+        reasons.append("line_rms_residual_veto")
+    growth_ratio = None
+    line_start_indices_available = False
+    if start_prediction_values is not None:
+        starts = tf.convert_to_tensor(start_prediction_values, dtype=tf.float64)
+        if starts.shape.rank != 1 or starts.shape[0] is None or int(starts.shape[0]) <= 0:
+            raise ValueError(f"line_start_predictions: {HighDimStatus.INVALID_SHAPE.value}")
+        start_scale = tf.maximum(tf.abs(starts), tf.constant(scale, dtype=tf.float64))
+        if line_start_indices is None:
+            denominators = tf.ones_like(predictions) * tf.reduce_max(start_scale)
+        else:
+            indices = tf.reshape(tf.convert_to_tensor(line_start_indices, dtype=tf.int32), [-1])
+            if int(indices.shape[0]) != int(points.shape[1]):
+                raise ValueError(f"line_start_indices: {HighDimStatus.INVALID_SHAPE.value}")
+            denominators = tf.gather(start_scale, indices)
+            line_start_indices_available = True
+        ratios = tf.abs(predictions) / denominators
+        growth_ratio = float(tf.reduce_max(ratios).numpy())
+        if not math.isfinite(growth_ratio) or growth_ratio > P72_LINE_GROWTH_REL_VETO:
+            reasons.append("line_endpoint_growth_veto")
+    return {
+        "status": "block" if reasons else "pass",
+        "reasons": tuple(reasons),
+        "line_point_count": int(points.shape[1]),
+        "line_point_hash": _p69_hash_tensor("p72_line_probe_points_hash.v1", points),
+        "line_target_hash": _p69_hash_tensor("p72_line_probe_targets_hash.v1", targets),
+        "line_prediction_hash": _p69_hash_tensor("p72_line_probe_predictions_hash.v1", predictions),
+        "target_scale": scale,
+        "line_prediction_max_abs": max_abs,
+        "line_residual_max_abs": max_residual,
+        "line_residual_rms": rms_residual,
+        "endpoint_growth_ratio_max": growth_ratio,
+        "line_start_indices_available": line_start_indices_available,
+        "direct_target_evaluation_required": True,
+    }
+
+
+def p72_full_normalizer_gate(
+    normalizer_terms: Mapping[str, object],
+) -> Mapping[str, object]:
+    """Apply mandatory P72 normalizer-admission checks."""
+
+    reasons: list[str] = []
+    normalizer_exception = normalizer_terms.get("normalizer_exception")
+    if normalizer_exception not in (None, "", "None"):
+        reasons.append("normalizer_exception_veto")
+
+    def finite_positive(name: str) -> float | None:
+        if name not in normalizer_terms:
+            reasons.append(f"missing_{name}")
+            return None
+        try:
+            value = float(normalizer_terms[name])
+        except (TypeError, ValueError):
+            reasons.append(f"nonfinite_{name}")
+            return None
+        if not math.isfinite(value):
+            reasons.append(f"nonfinite_{name}")
+        elif value <= 0.0:
+            reasons.append(f"nonpositive_{name}")
+        return value
+
+    mixture = finite_positive("mixture_normalizer")
+    sqrt_square = finite_positive("sqrt_square_normalizer")
+    tau = finite_positive("defensive_tau")
+    defensive = finite_positive("defensive_normalizer")
+    if sqrt_square is not None and sqrt_square <= P72_SQRT_SQUARE_NORMALIZER_FLOOR:
+        reasons.append("sqrt_square_normalizer_floor_veto")
+    fit_mass_fraction = None
+    if mixture is not None and sqrt_square is not None:
+        fit_mass_fraction = sqrt_square / mixture
+        if fit_mass_fraction < P72_FIT_MASS_FRACTION_MIN:
+            reasons.append("fit_mass_fraction_veto")
+    log_value = normalizer_terms.get("log_transport_normalizer")
+    if log_value is None:
+        reasons.append("missing_log_transport_normalizer")
+        log_float = None
+    else:
+        try:
+            log_float = float(log_value)
+        except (TypeError, ValueError):
+            log_float = None
+        if log_float is None or not math.isfinite(log_float):
+            reasons.append("nonfinite_log_transport_normalizer")
+        elif abs(log_float) > P72_LOG_NORMALIZER_ABS_BOUND:
+            reasons.append("log_transport_normalizer_abs_bound_veto")
+    return {
+        "status": "block" if reasons else "pass",
+        "reasons": tuple(reasons),
+        "mixture_normalizer": mixture,
+        "sqrt_square_normalizer": sqrt_square,
+        "defensive_tau": tau,
+        "defensive_normalizer": defensive,
+        "transport_normalizer": normalizer_terms.get("transport_normalizer"),
+        "transport_normalizer_floor": normalizer_terms.get("transport_normalizer_floor"),
+        "normalizer_exception": normalizer_exception,
+        "fit_mass_fraction": fit_mass_fraction,
+        "log_transport_normalizer": log_float,
+        "thresholds": {
+            "sqrt_square_normalizer_floor": P72_SQRT_SQUARE_NORMALIZER_FLOOR,
+            "fit_mass_fraction_min": P72_FIT_MASS_FRACTION_MIN,
+            "log_normalizer_abs_bound": P72_LOG_NORMALIZER_ABS_BOUND,
+        },
+    }
+
+
+def p72_condition_effective_rank_gate(
+    records: tuple[Mapping[str, object], ...] | list[Mapping[str, object]],
+) -> Mapping[str, object]:
+    """P72 wrapper/admission gate over already-recorded solve diagnostics."""
+
+    reasons: list[str] = []
+    condition_values: list[float] = []
+    effective_ranks: list[float] = []
+    for record in records:
+        condition_raw = record.get(
+            "scaled_augmented_condition_number",
+            record.get("condition_number"),
+        )
+        if isinstance(condition_raw, (int, float)):
+            condition = float(condition_raw)
+            condition_values.append(condition)
+            if not math.isfinite(condition) or condition > P72_CONDITION_NUMBER_ADMISSION:
+                reasons.append("p72_condition_admission_veto")
+        singular_values = record.get("scaled_augmented_singular_values")
+        if singular_values is not None:
+            values = tf.reshape(tf.convert_to_tensor(singular_values, dtype=tf.float64), [-1])
+            if int(values.shape[0]) == 0 or not bool(tf.reduce_all(tf.math.is_finite(values)).numpy()):
+                reasons.append("p72_effective_rank_unavailable")
+                continue
+            max_sv = tf.reduce_max(values)
+            active = tf.reduce_sum(
+                tf.cast(values > P72_EFFECTIVE_RANK_TOL * max_sv, tf.float64)
+            )
+            rank_value = float(active.numpy())
+            effective_ranks.append(rank_value)
+            if rank_value < P72_EFFECTIVE_RANK_MIN:
+                reasons.append("p72_effective_rank_veto")
+        elif "effective_rank" in record:
+            rank_value = float(record["effective_rank"])
+            effective_ranks.append(rank_value)
+            if not math.isfinite(rank_value) or rank_value < P72_EFFECTIVE_RANK_MIN:
+                reasons.append("p72_effective_rank_veto")
+    if not condition_values:
+        reasons.append("p72_condition_unavailable")
+    if not effective_ranks:
+        reasons.append("p72_effective_rank_unavailable")
+    return {
+        "status": "block" if reasons else "pass",
+        "reasons": tuple(dict.fromkeys(reasons)),
+        "condition_number_max": None if not condition_values else max(condition_values),
+        "condition_number_admission": P72_CONDITION_NUMBER_ADMISSION,
+        "effective_rank_min": None if not effective_ranks else min(effective_ranks),
+        "effective_rank_threshold": P72_EFFECTIVE_RANK_MIN,
+        "low_level_solver_veto_unchanged": P70_CONDITION_NUMBER_VETO,
+        "p72_gate_role": "wrapper_admission_not_low_level_solver_abort",
+    }
+
+
+def p72_provenance_manifest(
+    *,
+    branch_identity: str,
+    target_values: tf.Tensor,
+    frame_hash: str,
+    shift_constant: tf.Tensor | float,
+    fit_points: tf.Tensor,
+    guard_points: tf.Tensor,
+    audit_points: tf.Tensor,
+    line_points: tf.Tensor,
+) -> Mapping[str, object]:
+    """Record branch/frame/target/cloud hashes for P72 diagnostics."""
+
+    return {
+        "policy_id": "p72_provenance_manifest.v1",
+        "branch_identity": str(branch_identity),
+        "target_hash": _p69_hash_tensor("p72_provenance_target_hash.v1", target_values),
+        "frame_hash": str(frame_hash),
+        "shift_constant": float(tf.convert_to_tensor(shift_constant, dtype=tf.float64).numpy()),
+        "fit_cloud_hash": _p69_hash_tensor("p72_provenance_fit_cloud_hash.v1", fit_points),
+        "guard_cloud_hash": _p69_hash_tensor("p72_provenance_guard_cloud_hash.v1", guard_points),
+        "audit_cloud_hash": _p69_hash_tensor("p72_provenance_audit_cloud_hash.v1", audit_points),
+        "line_hash": _p69_hash_tensor("p72_provenance_line_hash.v1", line_points),
+        "audit_exclusion_provenance": "audit clouds and audit-line points excluded from coefficient selection",
+        "classification": P65_FIXED_BRANCH_ADAPTATION_CLASS,
+        "nonclaims": (
+            "P72 guard/audit/line gates are not source-faithful Zhao-Cui operations",
+            "hash provenance is not validation evidence",
+        ),
+    }
+
+
+def p72_gate_summary(
+    *,
+    residual_gates: Mapping[str, object],
+    support_gates: Mapping[str, Mapping[str, object]],
+    normalizer_gate: Mapping[str, object],
+    line_gate: Mapping[str, object],
+    condition_gate: Mapping[str, object],
+    rank_activity: Mapping[str, object],
+    provenance: Mapping[str, object],
+) -> Mapping[str, object]:
+    """Combine P72 support-certified lower-gate components."""
+
+    reasons: list[str] = []
+    for role, gate in support_gates.items():
+        if gate.get("status") == "block":
+            reasons.append(f"{role}_support_block")
+    for name, gate in (
+        ("normalizer", normalizer_gate),
+        ("line", line_gate),
+        ("condition_effective_rank", condition_gate),
+    ):
+        if gate.get("status") == "block":
+            reasons.append(f"{name}_block")
+    if rank_activity.get("status") != "ok":
+        reasons.append("rank_channel_activity_failed")
+    rms = residual_gates.get("rms_relative")
+    max_rel = residual_gates.get("max_relative")
+    if rms is None:
+        reasons.append("residual_rms_missing")
+    else:
+        rms_float = float(rms)
+        if not math.isfinite(rms_float) or rms_float > P72_RESIDUAL_RMS_REL_VETO:
+            reasons.append("residual_rms_veto")
+    if max_rel is None:
+        reasons.append("residual_max_missing")
+    else:
+        max_float = float(max_rel)
+        if not math.isfinite(max_float) or max_float > P72_RESIDUAL_MAX_REL_VETO:
+            reasons.append("residual_max_veto")
+    required_provenance = (
+        "branch_identity",
+        "target_hash",
+        "frame_hash",
+        "shift_constant",
+        "fit_cloud_hash",
+        "guard_cloud_hash",
+        "audit_cloud_hash",
+        "line_hash",
+        "audit_exclusion_provenance",
+    )
+    missing = tuple(name for name in required_provenance if name not in provenance)
+    if missing:
+        reasons.append("provenance_missing")
+    return {
+        "status": P72_BLOCK_STATUS if reasons else P72_PASS_STATUS,
+        "reasons": tuple(dict.fromkeys(reasons)),
+        "policy": p72_support_certified_policy(),
+        "residual_gates": dict(residual_gates),
+        "support_gates": {str(key): dict(value) for key, value in support_gates.items()},
+        "normalizer_gate": dict(normalizer_gate),
+        "line_gate": dict(line_gate),
+        "condition_effective_rank_gate": dict(condition_gate),
+        "rank_activity": dict(rank_activity),
+        "provenance": dict(provenance),
+        "missing_provenance_fields": missing,
+        "nonclaims": (
+            "gate pass is not d18 validation",
+            "gate pass is not HMC readiness",
+            "gate pass is not adaptive Zhao-Cui source-faithful parity",
+        ),
+    }
+
+
+_P73_RENEWAL_ROLES = (
+    "fit",
+    "guard",
+    "guard_line",
+    "audit",
+    "audit_line",
+    "enrichment",
+    "fresh",
+)
+_P73_GUARD_ENRICHMENT_CHANNELS = ("guard", "guard_line")
+_P73_AUDIT_CHANNELS = ("audit", "audit_line")
+_P73_REQUIRED_PROVENANCE_FIELDS = (
+    "point_id",
+    "cloud_hash",
+    "role",
+    "created_round",
+    "entered_training_round",
+    "audit_round",
+    "source_channel",
+    "parent_point_ids",
+    "seed_or_constructor_label",
+)
+
+
+def p73_density_aware_renewal_policy() -> Mapping[str, object]:
+    """Return the frozen opt-in policy for P73 renewed-support diagnostics."""
+
+    p72_policy = p72_support_certified_policy()
+    return {
+        "policy_id": "p73_density_aware_renewed_support_v1",
+        "classification": {
+            "squared_tt_density_route": P65_FIXED_BRANCH_ADAPTATION_CLASS,
+            "staged_renewal": "extension_or_invention",
+            "density_aware_cross_entropy": "extension_or_invention",
+            "strict_audit_exclusion": "extension_or_invention",
+        },
+        "p73_a_role": "mandatory_renewal_only_square_root_regression",
+        "p73_b_role": "opt_in_density_aware_diagnostic_arm",
+        "density_aware_objective_status": P73_DENSITY_AWARE_OBJECTIVE_STATUS,
+        "p73_b_optimizer_status": P73_B_OPTIMIZER_BLOCKED,
+        "renewal_count": P73_RENEWAL_COUNT,
+        "lambda_ce": P73_LAMBDA_CE,
+        "eps_log": P73_EPS_LOG,
+        "line_penalty_weight": 0.0,
+        "condition_penalty_weight": 0.0,
+        "rank_promotion": "deferred",
+        "no_audit_predicate": "NO_AUDIT_COEFFICIENT_SELECTION",
+        "training_rule": "coefficients_selected_from_F_1_only",
+        "enrichment_rule": "E_0_may_use_guard_or_guard_line_never_audit",
+        "inherited_p72_thresholds": {
+            "fit_rms_relative_veto": P72_RESIDUAL_RMS_REL_VETO,
+            "guard_rms_relative_veto": P72_RESIDUAL_RMS_REL_VETO,
+            "audit_rms_relative_veto": P72_RESIDUAL_RMS_REL_VETO,
+            "residual_max_relative_veto": P72_RESIDUAL_MAX_REL_VETO,
+            "line_growth_relative_veto": P72_LINE_GROWTH_REL_VETO,
+            "condition_number_admission": P72_CONDITION_NUMBER_ADMISSION,
+            "effective_rank_tol": P72_EFFECTIVE_RANK_TOL,
+            "effective_rank_min": P72_EFFECTIVE_RANK_MIN,
+            "sqrt_square_normalizer_floor": P72_SQRT_SQUARE_NORMALIZER_FLOOR,
+            "fit_mass_fraction_min": P72_FIT_MASS_FRACTION_MIN,
+            "log_normalizer_abs_bound": P72_LOG_NORMALIZER_ABS_BOUND,
+            "low_level_condition_number_veto": P70_CONDITION_NUMBER_VETO,
+        },
+        "p72_policy_id": p72_policy["policy_id"],
+        "nonclaims": (
+            "not a source-faithful adaptive Zhao-Cui reproduction",
+            "P73 renewal and audit gates are fixed-variant evidence safeguards",
+            "cross-entropy values are explanatory unless downstream fresh-audit gates pass",
+            "focused tests are not repaired lower-gate evidence",
+            "no d18 validation claim",
+            "no HMC readiness claim",
+            "no rank promotion claim",
+        ),
+    }
+
+
+def p73_renewal_role_record(
+    *,
+    point_id: str,
+    cloud_hash: str,
+    role: str,
+    created_round: int,
+    entered_training_round: int | None,
+    audit_round: int | None,
+    source_channel: str,
+    parent_point_ids: tuple[str, ...] | list[str] = (),
+    seed_or_constructor_label: str = "",
+) -> Mapping[str, object]:
+    """Build one P73 point-provenance record with renewal-role fields."""
+
+    point = str(point_id)
+    cloud = str(cloud_hash)
+    role_value = str(role)
+    channel = str(source_channel)
+    if not point.strip():
+        raise ValueError("point_id must be nonempty")
+    if not cloud.strip():
+        raise ValueError("cloud_hash must be nonempty")
+    if role_value not in _P73_RENEWAL_ROLES:
+        raise ValueError("role must be a P73 renewal role")
+    if not channel.strip():
+        raise ValueError("source_channel must be nonempty")
+    if int(created_round) < 0:
+        raise ValueError("created_round must be nonnegative")
+    entered = None if entered_training_round is None else int(entered_training_round)
+    if entered is not None and entered < 0:
+        raise ValueError("entered_training_round must be nonnegative or None")
+    audit = None if audit_round is None else int(audit_round)
+    if audit is not None and audit < 0:
+        raise ValueError("audit_round must be nonnegative or None")
+    parents = tuple(str(parent) for parent in parent_point_ids)
+    return {
+        "point_id": point,
+        "cloud_hash": cloud,
+        "role": role_value,
+        "created_round": int(created_round),
+        "entered_training_round": entered,
+        "audit_round": audit,
+        "source_channel": channel,
+        "parent_point_ids": parents,
+        "seed_or_constructor_label": str(seed_or_constructor_label),
+    }
+
+
+def _p73_records_tuple(records: tuple[Mapping[str, object], ...] | list[Mapping[str, object]]) -> tuple[Mapping[str, object], ...]:
+    return tuple(dict(record) for record in records)
+
+
+def _p73_record_cloud_hashes(
+    records: tuple[Mapping[str, object], ...] | list[Mapping[str, object]],
+) -> set[str]:
+    hashes: set[str] = set()
+    for record in records:
+        cloud_hash = record.get("cloud_hash")
+        if cloud_hash not in (None, ""):
+            hashes.add(str(cloud_hash))
+    return hashes
+
+
+def p73_no_audit_coefficient_selection(
+    *,
+    renewal_round: int,
+    coefficient_records: tuple[Mapping[str, object], ...] | list[Mapping[str, object]],
+    audit_records: tuple[Mapping[str, object], ...] | list[Mapping[str, object]] = (),
+    audit_line_records: tuple[Mapping[str, object], ...] | list[Mapping[str, object]] = (),
+    coefficient_cloud_hashes: tuple[str, ...] | list[str] = (),
+    audit_cloud_hashes: tuple[str, ...] | list[str] = (),
+    audit_line_cloud_hashes: tuple[str, ...] | list[str] = (),
+    enrichment_records: tuple[Mapping[str, object], ...] | list[Mapping[str, object]] = (),
+) -> Mapping[str, object]:
+    """Evaluate the P73 ``NO_AUDIT_COEFFICIENT_SELECTION`` predicate."""
+
+    round_index = int(renewal_round)
+    coefficient = _p73_records_tuple(coefficient_records)
+    audit = _p73_records_tuple(audit_records)
+    audit_line = _p73_records_tuple(audit_line_records)
+    enrichment = _p73_records_tuple(enrichment_records)
+    reasons: list[str] = []
+    if round_index < 0:
+        reasons.append("negative_renewal_round")
+    if not coefficient:
+        reasons.append("missing_coefficient_records")
+    for record in coefficient:
+        missing = tuple(
+            field for field in _P73_REQUIRED_PROVENANCE_FIELDS if field not in record
+        )
+        if missing:
+            reasons.append("missing_coefficient_record_fields")
+            continue
+        role = str(record["role"])
+        if role not in _P73_RENEWAL_ROLES:
+            reasons.append("unknown_coefficient_role")
+        if role in _P73_AUDIT_CHANNELS:
+            reasons.append("audit_role_in_coefficient_selection")
+        entered_round = record.get("entered_training_round")
+        if entered_round is None:
+            reasons.append("coefficient_without_training_round")
+        else:
+            try:
+                entered = int(entered_round)
+            except (TypeError, ValueError):
+                reasons.append("invalid_training_round")
+            else:
+                if entered > round_index:
+                    reasons.append("coefficient_enters_training_after_round")
+        audit_round = record.get("audit_round")
+        if audit_round is not None:
+            try:
+                audit_value = int(audit_round)
+            except (TypeError, ValueError):
+                reasons.append("invalid_audit_round")
+            else:
+                if audit_value <= round_index:
+                    reasons.append("current_or_prior_audit_record_in_coefficients")
+    coefficient_hashes = set(str(value) for value in coefficient_cloud_hashes)
+    coefficient_hashes.update(_p73_record_cloud_hashes(coefficient))
+    audit_hashes = set(str(value) for value in audit_cloud_hashes)
+    audit_hashes.update(_p73_record_cloud_hashes(audit))
+    audit_line_hashes = set(str(value) for value in audit_line_cloud_hashes)
+    audit_line_hashes.update(_p73_record_cloud_hashes(audit_line))
+    overlap = coefficient_hashes.intersection(audit_hashes.union(audit_line_hashes))
+    if overlap:
+        reasons.append("same_round_audit_hash_overlap")
+    for record in enrichment:
+        missing = tuple(
+            field for field in _P73_REQUIRED_PROVENANCE_FIELDS if field not in record
+        )
+        if missing:
+            reasons.append("missing_enrichment_record_fields")
+            continue
+        source = str(record["source_channel"])
+        role = str(record["role"])
+        if source not in _P73_GUARD_ENRICHMENT_CHANNELS:
+            reasons.append("enrichment_from_non_guard_channel")
+        if role in _P73_AUDIT_CHANNELS:
+            reasons.append("audit_role_in_enrichment")
+    unique_reasons = tuple(dict.fromkeys(reasons))
+    passed = not unique_reasons
+    return {
+        "predicate_id": "NO_AUDIT_COEFFICIENT_SELECTION",
+        "NO_AUDIT_COEFFICIENT_SELECTION": passed,
+        "status": "pass" if passed else "block",
+        "reasons": unique_reasons,
+        "renewal_round": round_index,
+        "coefficient_point_count": len(coefficient),
+        "audit_point_count": len(audit),
+        "audit_line_point_count": len(audit_line),
+        "enrichment_point_count": len(enrichment),
+        "coefficient_cloud_hashes": tuple(sorted(coefficient_hashes)),
+        "same_round_audit_cloud_hashes": tuple(sorted(audit_hashes)),
+        "same_round_audit_line_cloud_hashes": tuple(sorted(audit_line_hashes)),
+        "overlap_hashes": tuple(sorted(overlap)),
+        "nonclaims": (
+            "predicate pass is provenance evidence only",
+            "predicate pass is not a lower-gate repair claim",
+        ),
+    }
+
+
+def p73_training_batch_from_renewed_fit(
+    *,
+    fit_points: tf.Tensor,
+    fit_target_values: tf.Tensor,
+    fit_weights: tf.Tensor,
+    fit_records: tuple[Mapping[str, object], ...] | list[Mapping[str, object]],
+    audit_records: tuple[Mapping[str, object], ...] | list[Mapping[str, object]] = (),
+    audit_line_records: tuple[Mapping[str, object], ...] | list[Mapping[str, object]] = (),
+    coefficient_cloud_hashes: tuple[str, ...] | list[str] = (),
+    audit_cloud_hashes: tuple[str, ...] | list[str] = (),
+    audit_line_cloud_hashes: tuple[str, ...] | list[str] = (),
+    renewal_round: int = P73_RENEWAL_COUNT,
+) -> tuple[FixedTTFitSampleBatch, Mapping[str, object]]:
+    """Build a P73 coefficient-selection batch from the renewed fit cloud only."""
+
+    fit = tf.convert_to_tensor(fit_points, dtype=tf.float64)
+    targets = tf.convert_to_tensor(fit_target_values, dtype=tf.float64)
+    if fit.shape.rank != 2:
+        raise ValueError(f"fit_points: {HighDimStatus.INVALID_SHAPE.value}")
+    if targets.shape != (int(fit.shape[1]),):
+        raise ValueError(f"fit_target_values: {HighDimStatus.INVALID_SHAPE.value}")
+    records = _p73_records_tuple(fit_records)
+    if len(records) != int(fit.shape[1]):
+        raise ValueError("fit_records length must equal fit point count")
+    weights = _p72_normalize_set_weights(fit_weights)
+    predicate = p73_no_audit_coefficient_selection(
+        renewal_round=int(renewal_round),
+        coefficient_records=records,
+        audit_records=audit_records,
+        audit_line_records=audit_line_records,
+        coefficient_cloud_hashes=coefficient_cloud_hashes,
+        audit_cloud_hashes=audit_cloud_hashes,
+        audit_line_cloud_hashes=audit_line_cloud_hashes,
+    )
+    if predicate["status"] != "pass":
+        raise ValueError("NO_AUDIT_COEFFICIENT_SELECTION failed")
+    batch = FixedTTFitSampleBatch(tf.transpose(fit), targets, weights)
+    manifest = {
+        "policy_id": "p73_F1_only_training_batch.v1",
+        "renewal_round": int(renewal_round),
+        "fit_point_count": int(fit.shape[1]),
+        "guard_point_count_used_for_training": 0,
+        "audit_point_count_used_for_training": 0,
+        "audit_line_point_count_used_for_training": 0,
+        "training_rule": "coefficients_selected_from_F_1_only",
+        "no_audit_coefficient_selection": predicate,
+        "fit_weight_mass": float(tf.reduce_sum(weights).numpy()),
+        "fit_point_hash": _p69_hash_tensor("p73_fit_points_hash.v1", fit),
+        "training_point_hash": _p69_hash_tensor("p73_training_points_hash.v1", fit),
+        "fit_target_hash": _p69_hash_tensor("p73_fit_targets_hash.v1", targets),
+        "training_target_hash": _p69_hash_tensor("p73_training_targets_hash.v1", targets),
+        "fit_weight_hash": _p69_hash_tensor("p73_fit_weights_hash.v1", weights),
+        "nonclaims": (
+            "P73 training batch excludes same-round guard and audit clouds",
+            "batch construction is not lower-gate evidence",
+        ),
+    }
+    return batch, manifest
+
+
+def p73_validate_enrichment_boundary(
+    *,
+    enrichment_records: tuple[Mapping[str, object], ...] | list[Mapping[str, object]],
+) -> Mapping[str, object]:
+    """Check that a P73 enrichment set uses guard or guard-line sources only."""
+
+    records = _p73_records_tuple(enrichment_records)
+    reasons: list[str] = []
+    for record in records:
+        missing = tuple(
+            field for field in _P73_REQUIRED_PROVENANCE_FIELDS if field not in record
+        )
+        if missing:
+            reasons.append("missing_enrichment_record_fields")
+            continue
+        source = str(record["source_channel"])
+        role = str(record["role"])
+        if source not in _P73_GUARD_ENRICHMENT_CHANNELS:
+            reasons.append("enrichment_from_non_guard_channel")
+        if role in _P73_AUDIT_CHANNELS:
+            reasons.append("audit_role_in_enrichment")
+    unique_reasons = tuple(dict.fromkeys(reasons))
+    return {
+        "status": "pass" if not unique_reasons else "block",
+        "reasons": unique_reasons,
+        "enrichment_point_count": len(records),
+        "allowed_source_channels": _P73_GUARD_ENRICHMENT_CHANNELS,
+        "forbidden_source_channels": _P73_AUDIT_CHANNELS,
+        "rule": "E_r subset G_r union L_r_guard",
+    }
+
+
+def p73_density_aware_cross_entropy(
+    *,
+    density: SquaredTTDensity,
+    support_points: tf.Tensor,
+    target_values: tf.Tensor,
+    support_weights: tf.Tensor,
+    point_records: tuple[Mapping[str, object], ...] | list[Mapping[str, object]],
+    audit_records: tuple[Mapping[str, object], ...] | list[Mapping[str, object]] = (),
+    audit_line_records: tuple[Mapping[str, object], ...] | list[Mapping[str, object]] = (),
+    coefficient_cloud_hashes: tuple[str, ...] | list[str] = (),
+    audit_cloud_hashes: tuple[str, ...] | list[str] = (),
+    audit_line_cloud_hashes: tuple[str, ...] | list[str] = (),
+    renewal_round: int = P73_RENEWAL_COUNT,
+    lambda_ce: float = P73_LAMBDA_CE,
+) -> Mapping[str, object]:
+    """Evaluate the opt-in P73-B empirical cross-entropy term on ``F_r``."""
+
+    if not isinstance(density, SquaredTTDensity):
+        raise TypeError("density must be a SquaredTTDensity")
+    points = tf.convert_to_tensor(support_points, dtype=tf.float64)
+    targets = tf.convert_to_tensor(target_values, dtype=tf.float64)
+    if points.shape.rank != 2:
+        raise ValueError(f"support_points: {HighDimStatus.INVALID_SHAPE.value}")
+    if targets.shape != (int(points.shape[1]),):
+        raise ValueError(f"target_values: {HighDimStatus.INVALID_SHAPE.value}")
+    records = _p73_records_tuple(point_records)
+    if len(records) != int(points.shape[1]):
+        raise ValueError("point_records length must equal support point count")
+    weights = _p72_normalize_set_weights(support_weights)
+    predicate = p73_no_audit_coefficient_selection(
+        renewal_round=int(renewal_round),
+        coefficient_records=records,
+        audit_records=audit_records,
+        audit_line_records=audit_line_records,
+        coefficient_cloud_hashes=coefficient_cloud_hashes,
+        audit_cloud_hashes=audit_cloud_hashes,
+        audit_line_cloud_hashes=audit_line_cloud_hashes,
+    )
+    if predicate["status"] != "pass":
+        return {
+            "status": "block",
+            "reasons": ("no_audit_coefficient_selection_failed",),
+            "no_audit_coefficient_selection": predicate,
+            "density_aware_objective_status": P73_DENSITY_AWARE_OBJECTIVE_STATUS,
+            "p73_b_optimizer_status": P73_B_OPTIMIZER_BLOCKED,
+        }
+    lam = float(lambda_ce)
+    if not math.isfinite(lam) or lam < 0.0:
+        raise ValueError("lambda_ce must be finite nonnegative")
+    points_nxd = tf.transpose(points)
+    try:
+        defensive_values = tf.exp(density.defensive_density.log_density(points_nxd))
+        alpha_raw = weights * (tf.square(targets) + density.tau * defensive_values)
+        alpha_total = tf.reduce_sum(alpha_raw)
+        if bool((alpha_total <= 0.0).numpy()) or not bool(tf.math.is_finite(alpha_total).numpy()):
+            return {
+                "status": "block",
+                "reasons": ("nonpositive_cross_entropy_weight_mass",),
+                "no_audit_coefficient_selection": predicate,
+                "density_aware_objective_status": P73_DENSITY_AWARE_OBJECTIVE_STATUS,
+                "p73_b_optimizer_status": P73_B_OPTIMIZER_BLOCKED,
+            }
+        alpha = alpha_raw / alpha_total
+        log_density_values = density.log_density(points_nxd)
+        if not bool(tf.reduce_all(tf.math.is_finite(log_density_values)).numpy()):
+            return {
+                "status": "block",
+                "reasons": ("nonfinite_log_density_values",),
+                "no_audit_coefficient_selection": predicate,
+                "density_aware_objective_status": P73_DENSITY_AWARE_OBJECTIVE_STATUS,
+                "p73_b_optimizer_status": P73_B_OPTIMIZER_BLOCKED,
+            }
+        cross_entropy = -tf.reduce_sum(alpha * log_density_values)
+        weighted_contribution = tf.constant(lam, dtype=tf.float64) * cross_entropy
+    except (ValueError, tf.errors.InvalidArgumentError) as exc:
+        return {
+            "status": "block",
+            "reasons": ("density_evaluation_exception",),
+            "density_exception": str(exc),
+            "no_audit_coefficient_selection": predicate,
+            "density_aware_objective_status": P73_DENSITY_AWARE_OBJECTIVE_STATUS,
+            "p73_b_optimizer_status": P73_B_OPTIMIZER_BLOCKED,
+        }
+    return {
+        "status": "pass",
+        "reasons": (),
+        "renewal_round": int(renewal_round),
+        "density_aware_objective_status": P73_DENSITY_AWARE_OBJECTIVE_STATUS,
+        "lambda_ce": lam,
+        "cross_entropy": float(cross_entropy.numpy()),
+        "weighted_cross_entropy": float(weighted_contribution.numpy()),
+        "alpha_min": float(tf.reduce_min(alpha).numpy()),
+        "alpha_max": float(tf.reduce_max(alpha).numpy()),
+        "alpha_sum": float(tf.reduce_sum(alpha).numpy()),
+        "log_density_min": float(tf.reduce_min(log_density_values).numpy()),
+        "log_density_max": float(tf.reduce_max(log_density_values).numpy()),
+        "support_point_count": int(points.shape[1]),
+        "support_point_hash": _p69_hash_tensor("p73_density_aware_support_points_hash.v1", points),
+        "target_hash": _p69_hash_tensor("p73_density_aware_target_hash.v1", targets),
+        "weight_hash": _p69_hash_tensor("p73_density_aware_weights_hash.v1", weights),
+        "no_audit_coefficient_selection": predicate,
+        "p73_b_optimizer_status": P73_B_OPTIMIZER_BLOCKED,
+        "nonclaims": (
+            "cross-entropy evaluation is not nonlinear optimizer evidence",
+            "training-support objective values are explanatory only",
+        ),
+    }
+
+
+def p73_density_aware_optimizer_status() -> Mapping[str, object]:
+    """Report the Phase-4 status of the opt-in P73-B optimizer surface."""
+
+    return {
+        "status": P73_B_OPTIMIZER_BLOCKED,
+        "density_aware_objective_status": P73_DENSITY_AWARE_OBJECTIVE_STATUS,
+        "reason": (
+            "Phase 4 implements objective evaluation only; the nonlinear "
+            "TensorFlow refinement is not yet implemented."
+        ),
+        "phase5_runnable": False,
+        "nonclaims": (
+            "P73-B is not runnable in Phase 5 while this status is active",
+            "least-squares reweighting is not treated as cross-entropy optimization",
+        ),
+    }
+
+
+def _p59_fixed_ttsirt_fit_quality_diagnostics(fit_result) -> Mapping[str, object]:
+    records = tuple(dict(record) for record in fit_result.core_update_statuses)
+    numeric_conditions: list[float] = []
+    condition_warnings = []
+    condition_vetoes = []
+    for record in records:
+        condition = record.get("condition_number")
+        if isinstance(condition, (int, float)):
+            numeric_conditions.append(float(condition))
+        if bool(record.get("condition_warning", False)):
+            condition_warnings.append(record.get("core_index"))
+        if str(record.get("status")) == HighDimStatus.CONDITION_NUMBER_VETO.value:
+            condition_vetoes.append(record.get("core_index"))
+    diagnostics = {} if fit_result.diagnostics is None else dict(fit_result.diagnostics)
+    fit_residual = diagnostics.get("fit_residual", fit_result.fit_residual)
+    holdout_residual = diagnostics.get("holdout_residual", fit_result.holdout_residual)
+    return {
+        "status": fit_result.status.value,
+        "termination_reason": fit_result.termination_reason,
+        "stop_condition_triggered": fit_result.stop_condition_triggered,
+        "fit_residual": fit_residual,
+        "fit_residual_available": fit_residual is not None,
+        "holdout_residual": holdout_residual,
+        "holdout_available": holdout_residual is not None,
+        "holdout_status": "available" if holdout_residual is not None else "not_supplied",
+        "per_core_update_statuses": records,
+        "condition_number_summary": {
+            "available": bool(records),
+            "finite_condition_count": len(numeric_conditions),
+            "max_condition_number": (
+                max(numeric_conditions) if numeric_conditions else None
+            ),
+            "condition_warning_core_indices": tuple(condition_warnings),
+            "condition_veto_core_indices": tuple(condition_vetoes),
+            "condition_number_warning": _first_record_value(
+                records,
+                "condition_number_warning",
+            ),
+            "condition_number_veto": _first_record_value(
+                records,
+                "condition_number_veto",
+            ),
+        },
+        "nonclaims": (
+            "fit residual is not filtering correctness",
+            "condition diagnostics are not structural convergence proof",
+            "holdout absence is not holdout validation",
+        ),
+    }
+
+
+def _first_record_value(records: tuple[Mapping[str, object], ...], key: str) -> object | None:
+    for record in records:
+        if key in record:
+            return record[key]
+    return None
 
 
 def _source_route_rank_tuple(target_dim: int, fit_rank: int) -> tuple[int, ...]:
@@ -2983,6 +4774,309 @@ def _source_route_rank_tuple(target_dim: int, fit_rank: int) -> tuple[int, ...]:
     if rank <= 0:
         raise ValueError("fit_rank must be positive")
     return tuple([1] + [rank] * (dim - 1) + [1])
+
+
+def _source_route_constant_path_initial_cores(
+    *,
+    ranks: tuple[int, ...],
+    basis_dim: int,
+    constant_value: tf.Tensor,
+) -> tuple[TTCore, ...]:
+    values = tf.convert_to_tensor(constant_value, dtype=tf.float64)
+    if values.shape.rank != 0:
+        raise ValueError(f"constant_value: {HighDimStatus.INVALID_SHAPE.value}")
+    if not bool(tf.math.is_finite(values).numpy()):
+        raise ValueError(f"constant_value: {HighDimStatus.NONFINITE_VALUE.value}")
+    if bool((values <= 0.0).numpy()):
+        raise ValueError(f"constant_value: {HighDimStatus.NONFINITE_VALUE.value}")
+    cores = []
+    for axis in range(len(ranks) - 1):
+        core_values = tf.zeros(
+            [int(ranks[axis]), int(basis_dim), int(ranks[axis + 1])],
+            dtype=tf.float64,
+        )
+        entry = values if axis == 0 else tf.constant(1.0, dtype=tf.float64)
+        indices = tf.constant([[0, 0, 0]], dtype=tf.int64)
+        cores.append(TTCore(tf.tensor_scatter_nd_update(core_values, indices, [entry])))
+    return tuple(cores)
+
+
+def _source_route_seeded_channel_initial_cores(
+    *,
+    ranks: tuple[int, ...],
+    basis_dim: int,
+    constant_value: tf.Tensor,
+    epsilon: float = P70_SEEDED_CHANNEL_EPSILON,
+) -> tuple[TTCore, ...]:
+    values = tf.convert_to_tensor(constant_value, dtype=tf.float64)
+    if values.shape.rank != 0:
+        raise ValueError(f"constant_value: {HighDimStatus.INVALID_SHAPE.value}")
+    if not bool(tf.math.is_finite(values).numpy()):
+        raise ValueError(f"constant_value: {HighDimStatus.NONFINITE_VALUE.value}")
+    if bool((values <= 0.0).numpy()):
+        raise ValueError(f"constant_value: {HighDimStatus.NONFINITE_VALUE.value}")
+    if float(epsilon) <= 0.0 or not math.isfinite(float(epsilon)):
+        raise ValueError("epsilon must be positive and finite")
+    dim = len(ranks) - 1
+    if dim <= 0 or int(basis_dim) <= 0:
+        raise ValueError(f"basis_dim: {HighDimStatus.INVALID_SHAPE.value}")
+    max_rank = max(int(rank) for rank in ranks)
+    extra_count = max(max_rank - 1, 0)
+    seeded_scale = (
+        values * tf.constant(float(epsilon) / float(extra_count), dtype=tf.float64)
+        if extra_count > 0
+        else tf.constant(0.0, dtype=tf.float64)
+    )
+    cores = []
+    for axis in range(dim):
+        left_rank = int(ranks[axis])
+        right_rank = int(ranks[axis + 1])
+        core_values = tf.zeros(
+            [left_rank, int(basis_dim), right_rank],
+            dtype=tf.float64,
+        )
+        updates = []
+        indices = []
+        if left_rank > 0 and right_rank > 0:
+            indices.append([0, 0, 0])
+            updates.append(values if axis == 0 else tf.constant(1.0, dtype=tf.float64))
+        for channel in range(1, min(left_rank, right_rank)):
+            basis_index = _p70_seeded_basis_index(axis=axis, channel=channel, basis_dim=int(basis_dim))
+            indices.append([channel, basis_index, channel])
+            updates.append(tf.constant(1.0, dtype=tf.float64))
+        if axis == 0:
+            for channel in range(1, right_rank):
+                basis_index = _p70_seeded_basis_index(axis=axis, channel=channel, basis_dim=int(basis_dim))
+                indices.append([0, basis_index, channel])
+                updates.append(seeded_scale)
+        if axis == dim - 1:
+            for channel in range(1, left_rank):
+                basis_index = _p70_seeded_basis_index(axis=axis, channel=channel, basis_dim=int(basis_dim))
+                indices.append([channel, basis_index, 0])
+                updates.append(tf.constant(1.0, dtype=tf.float64))
+        if indices:
+            core_values = tf.tensor_scatter_nd_update(
+                core_values,
+                tf.constant(indices, dtype=tf.int64),
+                tf.stack(updates),
+            )
+        cores.append(TTCore(core_values))
+    return tuple(cores)
+
+
+def _p70_seeded_basis_index(*, axis: int, channel: int, basis_dim: int) -> int:
+    if int(basis_dim) <= 1:
+        return 0
+    return 1 + ((int(axis) + int(channel) - 1) % (int(basis_dim) - 1))
+
+
+def _p70_canonical_alternating_sweep_order(target_dim: int) -> tuple[int, ...]:
+    dim = int(target_dim)
+    if dim <= 0:
+        raise ValueError("target_dim must be positive")
+    forward = tuple(range(dim))
+    return forward + tuple(reversed(forward))
+
+
+def _p70_row_adequacy_diagnostics(
+    *,
+    row_count: int,
+    target_dim: int,
+    fit_degree: int,
+    fit_rank: int,
+) -> Mapping[str, object]:
+    dim = int(target_dim)
+    degree = int(fit_degree)
+    rank = int(fit_rank)
+    n_rows = int(row_count)
+    max_core_columns = (degree + 1) * rank * rank
+    hard = max(4, math.ceil(dim / 4), max_core_columns)
+    preferred = max(dim, 2 * max_core_columns)
+    if n_rows < hard:
+        status = "branch_fit_row_adequacy_failed"
+    elif n_rows < preferred:
+        status = "diagnostic_only_below_preferred_rows"
+    else:
+        status = "ok"
+    return {
+        "status": status,
+        "row_count": n_rows,
+        "n_hard": hard,
+        "n_preferred": preferred,
+        "max_core_columns": max_core_columns,
+        "threshold_role": "bayesfilter_fixed_hmc_engineering_safeguard",
+        "nonclaim": "row adequacy is not sample coverage or convergence proof",
+    }
+
+
+def _p59_execution_only_row_adequacy_diagnostics(
+    *,
+    fit_sample_count: int,
+    fit_degree: int = 0,
+    fit_rank: int = 1,
+) -> Mapping[str, object]:
+    return _p70_row_adequacy_diagnostics(
+        row_count=int(fit_sample_count),
+        target_dim=P59_9A_AUTHOR_SIR_TARGET_DIMENSION,
+        fit_degree=int(fit_degree),
+        fit_rank=int(fit_rank),
+    )
+
+
+def _p70_channel_activity_diagnostics(
+    *,
+    cores: tuple[TTCore, ...],
+    target_dim: int,
+    fit_rank: int,
+) -> Mapping[str, object]:
+    dim = int(target_dim)
+    rank = int(fit_rank)
+    if len(cores) != dim:
+        raise ValueError(f"cores: {HighDimStatus.INVALID_SHAPE.value}")
+    scores_by_bond = []
+    first_scores: list[float] = []
+    for bond in range(max(dim - 1, 0)):
+        left = cores[bond].values
+        right = cores[bond + 1].values
+        bond_scores = []
+        channel_count = min(int(left.shape[2]), int(right.shape[0]))
+        for channel in range(channel_count):
+            left_norm = float(tf.norm(left[:, :, channel]).numpy())
+            right_norm = float(tf.norm(right[channel, :, :]).numpy())
+            score = left_norm * right_norm
+            bond_scores.append(score)
+            if channel == 0:
+                first_scores.append(score)
+        scores_by_bond.append(tuple(bond_scores))
+    a_ref = max(first_scores) if first_scores else 0.0
+    if not math.isfinite(a_ref) or a_ref <= 0.0:
+        threshold = math.inf
+        status = "rank_channel_activity_failed"
+    else:
+        threshold = max(
+            P70_CHANNEL_ACTIVITY_ABS_TOL,
+            P70_CHANNEL_ACTIVITY_REL_TOL * a_ref,
+        )
+        status = "ok"
+    b_min = max(1, math.ceil(0.25 * max(dim - 1, 0)))
+    active_counts = {}
+    inactive_channels = []
+    for channel in range(1, rank):
+        active_count = 0
+        for bond_scores in scores_by_bond:
+            if channel < len(bond_scores) and bond_scores[channel] >= threshold:
+                active_count += 1
+        active_counts[channel] = active_count
+        if active_count < b_min:
+            inactive_channels.append(channel)
+    if inactive_channels:
+        status = "rank_channel_activity_failed"
+    return {
+        "status": status,
+        "score_by_bond": tuple(scores_by_bond),
+        "reference_channel_score": a_ref,
+        "activity_threshold": threshold,
+        "epsilon_channel_abs": P70_CHANNEL_ACTIVITY_ABS_TOL,
+        "epsilon_channel_rel": P70_CHANNEL_ACTIVITY_REL_TOL,
+        "minimum_active_bonds": b_min,
+        "extra_channel_active_bond_counts": active_counts,
+        "inactive_extra_channels": tuple(inactive_channels),
+        "gauge_boundary": "stored_deterministic_gauge_only_not_gauge_invariant",
+    }
+
+
+def _p70_fixed_fitting_policy_payload(
+    *,
+    target_dim: int,
+    fit_degree: int,
+    fit_rank: int,
+    ridge: float = P70_FIT_RIDGE,
+    row_adequacy: Mapping[str, object],
+    channel_activity: Mapping[str, object],
+    stabilization_policy: Mapping[str, object] | None = None,
+    stabilization_diagnostics_summary: Mapping[str, object] | None = None,
+) -> Mapping[str, object]:
+    stability = (
+        None
+        if stabilization_policy is None
+        else dict(stabilization_policy)
+    )
+    stability_summary = (
+        None
+        if stabilization_diagnostics_summary is None
+        else dict(stabilization_diagnostics_summary)
+    )
+    return {
+        "policy_id": "p70_fixed_hmc_seeded_channel_fit_v1",
+        "classification": P65_FIXED_BRANCH_ADAPTATION_CLASS,
+        "initialization_rule": P70_FIXED_BRANCH_INITIALIZATION_RULE,
+        "seeded_channel_epsilon": P70_SEEDED_CHANNEL_EPSILON,
+        "sweep_order": _p70_canonical_alternating_sweep_order(int(target_dim)),
+        "max_sweeps": P70_FIXED_BRANCH_MAX_SWEEPS,
+        "ridge": float(ridge),
+        "condition_number_warning": P70_CONDITION_NUMBER_WARNING,
+        "condition_number_veto": P70_CONDITION_NUMBER_VETO,
+        "stabilization_policy": stability,
+        "stabilization_diagnostics_summary": stability_summary,
+        "stabilization_policy_id": (
+            None if stability is None else stability.get("stabilization_policy_id")
+        ),
+        "solver_backend": None if stability is None else stability.get("solver_backend"),
+        "objective_preserving_column_scaling": (
+            None if stability is None else stability.get("objective_preserving_column_scaling")
+        ),
+        "column_scale_floor": None if stability is None else stability.get("column_scale_floor"),
+        "transformed_ridge_rule": (
+            None if stability is None else stability.get("transformed_ridge_rule")
+        ),
+        "condition_number_gate_target": (
+            None if stability is None else stability.get("condition_number_gate_target")
+        ),
+        "original_unscaled_normal_condition_role": (
+            None
+            if stability is None
+            else stability.get("original_unscaled_normal_condition_role")
+        ),
+        "row_adequacy": dict(row_adequacy),
+        "channel_activity": dict(channel_activity),
+        "normalizer_thresholds": {
+            "defensive_only_sqrt_normalizer_tol": P70_DEFENSIVE_ONLY_SQRT_NORMALIZER_TOL,
+            "fit_mass_fraction_min": P70_FIT_MASS_FRACTION_MIN,
+            "log_increment_abs_bound": P70_LOG_INCREMENT_ABS_BOUND,
+        },
+        "holdout_replay_thresholds": {
+            "normalized_residual_veto": P70_HOLDOUT_REPLAY_NORMALIZED_RESIDUAL_VETO,
+        },
+        "threshold_role": "bayesfilter_fixed_hmc_engineering_safeguards",
+        "nonclaims": (
+            "not Zhao-Cui source-faithful theory",
+            "not validation evidence",
+            "not HMC readiness",
+        ),
+        "fit_degree": int(fit_degree),
+        "fit_rank": int(fit_rank),
+    }
+
+
+def _weighted_mean_target_value(target_values: tf.Tensor, weights: tf.Tensor) -> tf.Tensor:
+    targets = tf.convert_to_tensor(target_values, dtype=tf.float64)
+    fit_weights = tf.convert_to_tensor(weights, dtype=tf.float64)
+    if targets.shape.rank != 1 or fit_weights.shape.rank != 1:
+        raise ValueError(f"target_values: {HighDimStatus.INVALID_SHAPE.value}")
+    if int(targets.shape[0]) != int(fit_weights.shape[0]):
+        raise ValueError(f"target_values: {HighDimStatus.INVALID_SHAPE.value}")
+    if not bool(
+        tf.reduce_all(tf.math.is_finite(targets)).numpy()
+        and tf.reduce_all(tf.math.is_finite(fit_weights)).numpy()
+    ):
+        raise ValueError(f"target_values: {HighDimStatus.NONFINITE_VALUE.value}")
+    if bool(
+        tf.reduce_any(targets <= 0.0).numpy()
+        or tf.reduce_any(fit_weights < 0.0).numpy()
+        or (tf.reduce_sum(fit_weights) <= 0.0).numpy()
+    ):
+        raise ValueError(f"target_values: {HighDimStatus.NONFINITE_VALUE.value}")
+    return tf.reduce_sum(fit_weights * targets) / tf.reduce_sum(fit_weights)
 
 
 def _source_route_initial_core_values(
@@ -3020,7 +5114,7 @@ def _p59_author_sir_defensive_tau_tensor() -> tf.Tensor:
 def p60_author_sir_same_route_rank_comparator(
     *,
     sample_count: int = 1,
-    fit_sample_count: int = 2,
+    fit_sample_count: int = P59_D18_EXECUTION_ONLY_FIT_SAMPLE_COUNT,
     low_fit_degree: int = 0,
     high_fit_degree: int = 1,
     low_fit_rank: int = 1,
@@ -3096,6 +5190,379 @@ def p60_author_sir_same_route_rank_comparator(
     )
 
 
+def p66_fixed_branch_sample_adequacy(
+    *,
+    target_dim: int = P59_9A_AUTHOR_SIR_TARGET_DIMENSION,
+    fit_degree: int,
+    fit_rank: int,
+    fit_sample_count: int,
+    diagnostic_min_multiplier: int = 2,
+    preferred_multiplier: int = 4,
+) -> Mapping[str, object]:
+    """Return the reviewed P66 fixed-branch sample-adequacy heuristic."""
+
+    degree = int(fit_degree)
+    rank = int(fit_rank)
+    sample_count = int(fit_sample_count)
+    if degree < 0:
+        raise ValueError("fit_degree must be nonnegative")
+    if rank <= 0:
+        raise ValueError("fit_rank must be positive")
+    if sample_count <= 0:
+        raise ValueError("fit_sample_count must be positive")
+    if int(diagnostic_min_multiplier) <= 0:
+        raise ValueError("diagnostic_min_multiplier must be positive")
+    if int(preferred_multiplier) <= 0:
+        raise ValueError("preferred_multiplier must be positive")
+    ranks = _source_route_rank_tuple(int(target_dim), rank)
+    max_core_columns = max(
+        int(ranks[axis]) * (degree + 1) * int(ranks[axis + 1])
+        for axis in range(len(ranks) - 1)
+    )
+    diagnostic_minimum = int(diagnostic_min_multiplier) * max_core_columns
+    preferred = int(preferred_multiplier) * max_core_columns
+    status = (
+        P66_SAMPLE_ADEQUATE_STATUS
+        if sample_count >= diagnostic_minimum
+        else P66_FIT_DESIGN_UNDERDETERMINED_BLOCK_STATUS
+    )
+    return {
+        "fit_degree": degree,
+        "fit_rank": rank,
+        "rank_tuple": ranks,
+        "fit_sample_count": sample_count,
+        "max_core_columns": max_core_columns,
+        "diagnostic_min_multiplier": int(diagnostic_min_multiplier),
+        "preferred_multiplier": int(preferred_multiplier),
+        "diagnostic_min_fit_samples": diagnostic_minimum,
+        "preferred_fit_samples": preferred,
+        "status": status,
+        "heuristic_scope": "P66 fixed-branch comparator only",
+        "nonclaim": "sample adequacy is permission to diagnose, not convergence",
+    }
+
+
+def p66_fixed_branch_fit_budget_resolution(
+    *,
+    candidate_fit_sample_count: int | None = None,
+    candidate_fit_degree: int = 1,
+    candidate_fit_rank: int = 2,
+    diagnostic_min_multiplier: int = 2,
+    preferred_multiplier: int = 4,
+    rank_ladder_fit_sample_count: int | None = None,
+    degree_ladder_fit_sample_count: int | None = None,
+) -> Mapping[str, object]:
+    """Resolve P66 candidate/rank/degree fit budgets without running the route."""
+
+    candidate_degree = int(candidate_fit_degree)
+    candidate_rank = int(candidate_fit_rank)
+    candidate_min = _p66_diagnostic_minimum(
+        fit_degree=candidate_degree,
+        fit_rank=candidate_rank,
+        diagnostic_min_multiplier=int(diagnostic_min_multiplier),
+        preferred_multiplier=int(preferred_multiplier),
+    )
+    rank_min = _p66_diagnostic_minimum(
+        fit_degree=candidate_degree,
+        fit_rank=candidate_rank + 1,
+        diagnostic_min_multiplier=int(diagnostic_min_multiplier),
+        preferred_multiplier=int(preferred_multiplier),
+    )
+    degree_min = _p66_diagnostic_minimum(
+        fit_degree=candidate_degree + 1,
+        fit_rank=candidate_rank,
+        diagnostic_min_multiplier=int(diagnostic_min_multiplier),
+        preferred_multiplier=int(preferred_multiplier),
+    )
+    candidate_resolved = (
+        candidate_min
+        if candidate_fit_sample_count is None
+        else int(candidate_fit_sample_count)
+    )
+    rank_resolved = (
+        max(candidate_min, rank_min)
+        if rank_ladder_fit_sample_count is None
+        else int(rank_ladder_fit_sample_count)
+    )
+    degree_resolved = (
+        max(candidate_min, degree_min)
+        if degree_ladder_fit_sample_count is None
+        else int(degree_ladder_fit_sample_count)
+    )
+    return _p66_fit_budget_resolution(
+        candidate_user=candidate_fit_sample_count,
+        candidate_resolved=candidate_resolved,
+        rank_user=rank_ladder_fit_sample_count,
+        rank_resolved=rank_resolved,
+        degree_user=degree_ladder_fit_sample_count,
+        degree_resolved=degree_resolved,
+        candidate_min=candidate_min,
+        rank_min=rank_min,
+        degree_min=degree_min,
+    )
+
+
+def p66_author_sir_fixed_branch_validation_ladder(
+    *,
+    sample_count: int = 1,
+    sentinel_fit_sample_count: int = 2,
+    candidate_fit_sample_count: int | None = None,
+    candidate_fit_degree: int = 1,
+    candidate_fit_rank: int = 2,
+    diagnostic_min_multiplier: int = 2,
+    preferred_multiplier: int = 4,
+    rank_ladder_fit_sample_count: int | None = None,
+    degree_ladder_fit_sample_count: int | None = None,
+    execute_adjacent_ladders: bool = False,
+    candidate_result: P59AuthorSIRStepSpecAssemblyResult | None = None,
+    sentinel_result: P60AuthorSIRSameRouteRankComparatorResult | None = None,
+) -> P66AuthorSIRFixedBranchValidationLadderResult:
+    """Build the P66 fixed-branch validation-ladder schema and gates."""
+
+    if candidate_result is not None and not isinstance(
+        candidate_result,
+        P59AuthorSIRStepSpecAssemblyResult,
+    ):
+        raise TypeError("candidate_result must be P59AuthorSIRStepSpecAssemblyResult")
+    if sentinel_result is not None and not isinstance(
+        sentinel_result,
+        P60AuthorSIRSameRouteRankComparatorResult,
+    ):
+        raise TypeError("sentinel_result must be P60AuthorSIRSameRouteRankComparatorResult")
+
+    if int(sample_count) <= 0:
+        return _p66_block_result(
+            status=P66_VALIDATION_LADDER_SCOPE_BLOCK_STATUS,
+            blockers=("sample_count_must_be_positive",),
+            candidate_result=None,
+            sentinel_result=None,
+            manifest_extra={},
+        )
+    if execute_adjacent_ladders:
+        return _p66_block_result(
+            status=P66_VALIDATION_LADDER_SCOPE_BLOCK_STATUS,
+            blockers=("execute_adjacent_ladders_requires_reviewed_experiment_plan",),
+            candidate_result=None,
+            sentinel_result=None,
+            manifest_extra={
+                "execute_adjacent_ladders": True,
+                "schema_only_reason": (
+                    "Phase 2 does not execute adjacent ladders without a reviewed "
+                    "experiment plan."
+                ),
+            },
+        )
+    candidate_degree = int(candidate_fit_degree)
+    candidate_rank = int(candidate_fit_rank)
+    rank_ladder_degree = candidate_degree
+    rank_ladder_rank = candidate_rank + 1
+    degree_ladder_degree = candidate_degree + 1
+    degree_ladder_rank = candidate_rank
+    fit_budget_resolution = p66_fixed_branch_fit_budget_resolution(
+        candidate_fit_sample_count=candidate_fit_sample_count,
+        candidate_fit_degree=candidate_degree,
+        candidate_fit_rank=candidate_rank,
+        diagnostic_min_multiplier=int(diagnostic_min_multiplier),
+        preferred_multiplier=int(preferred_multiplier),
+        rank_ladder_fit_sample_count=rank_ladder_fit_sample_count,
+        degree_ladder_fit_sample_count=degree_ladder_fit_sample_count,
+    )
+    resolved_candidate_count = int(
+        fit_budget_resolution["candidate"]["resolved_fit_sample_count"]
+    )
+    resolved_rank_count = int(
+        fit_budget_resolution["rank_ladder"]["resolved_fit_sample_count"]
+    )
+    resolved_degree_count = int(
+        fit_budget_resolution["degree_ladder"]["resolved_fit_sample_count"]
+    )
+    if resolved_candidate_count <= 0 or resolved_rank_count <= 0 or resolved_degree_count <= 0:
+        return _p66_block_result(
+            status=P66_VALIDATION_LADDER_SCOPE_BLOCK_STATUS,
+            blockers=("fit_sample_counts_must_be_positive",),
+            candidate_result=None,
+            sentinel_result=None,
+            manifest_extra={
+                "fit_budget_resolution": fit_budget_resolution,
+            },
+        )
+
+    sentinel = sentinel_result or p60_author_sir_same_route_rank_comparator(
+        sample_count=int(sample_count),
+        fit_sample_count=int(sentinel_fit_sample_count),
+        low_fit_degree=0,
+        high_fit_degree=candidate_degree,
+        low_fit_rank=1,
+        high_fit_rank=candidate_rank,
+    )
+    candidate: P59AuthorSIRStepSpecAssemblyResult | None = candidate_result
+    blockers: list[str] = []
+    if candidate is None:
+        try:
+            candidate = p59_author_sir_step_spec_assembly(
+                sample_count=int(sample_count),
+                fit_sample_count=resolved_candidate_count,
+                fit_degree=candidate_degree,
+                fit_rank=candidate_rank,
+            )
+        except Exception as exc:  # pragma: no cover - preserved in manifest
+            blockers.append("candidate_exception_" + type(exc).__name__ + "_" + str(exc))
+    if candidate is not None and candidate.status != P59_9B_PASS_STATUS:
+        blockers.append("candidate_failed_" + "_".join(candidate.blockers))
+    if candidate is None or blockers:
+        return _p66_block_result(
+            status=P66_VALIDATION_LADDER_SCOPE_BLOCK_STATUS,
+            blockers=tuple(blockers) if blockers else ("missing_candidate_row",),
+            candidate_result=candidate,
+            sentinel_result=sentinel,
+            manifest_extra={
+                "fit_budget_resolution": fit_budget_resolution,
+                "old_p60_sentinel_payload": sentinel.manifest,
+            },
+        )
+
+    assert candidate.sequential_result is not None
+    candidate_payload = _p66_candidate_payload(candidate, resolved_candidate_count)
+    candidate_admissibility_status = str(candidate_payload["admissibility_status"])
+    source_invariant_check = _p66_check_expected_source_invariants(candidate)
+    comparison_invariants = {
+        "candidate_to_rank_ladder": _p66_comparison_invariants(
+            candidate=candidate,
+            stronger_result=None,
+            authorized_field="fit_rank",
+            authorized_reason="adjacent rank ladder compares fixed degree with one higher TT rank",
+        ),
+        "candidate_to_degree_ladder": _p66_comparison_invariants(
+            candidate=candidate,
+            stronger_result=None,
+            authorized_field="fit_degree",
+            authorized_reason="adjacent degree ladder compares fixed rank with one higher polynomial degree",
+        ),
+    }
+    rank_adequacy = p66_fixed_branch_sample_adequacy(
+        fit_degree=rank_ladder_degree,
+        fit_rank=rank_ladder_rank,
+        fit_sample_count=resolved_rank_count,
+        diagnostic_min_multiplier=int(diagnostic_min_multiplier),
+        preferred_multiplier=int(preferred_multiplier),
+    )
+    degree_adequacy = p66_fixed_branch_sample_adequacy(
+        fit_degree=degree_ladder_degree,
+        fit_rank=degree_ladder_rank,
+        fit_sample_count=resolved_degree_count,
+        diagnostic_min_multiplier=int(diagnostic_min_multiplier),
+        preferred_multiplier=int(preferred_multiplier),
+    )
+    rank_ladder = _p66_schema_only_ladder_payload(
+        ladder_kind="rank",
+        candidate=candidate,
+        candidate_fit_sample_count=resolved_candidate_count,
+        stronger_degree=rank_ladder_degree,
+        stronger_rank=rank_ladder_rank,
+        stronger_fit_sample_count=resolved_rank_count,
+        adequacy=rank_adequacy,
+        status=P66_RANK_LADDER_SCHEMA_ONLY_STATUS,
+    )
+    degree_ladder = _p66_schema_only_ladder_payload(
+        ladder_kind="degree",
+        candidate=candidate,
+        candidate_fit_sample_count=resolved_candidate_count,
+        stronger_degree=degree_ladder_degree,
+        stronger_rank=degree_ladder_rank,
+        stronger_fit_sample_count=resolved_degree_count,
+        adequacy=degree_adequacy,
+        status=P66_DEGREE_LADDER_SCHEMA_ONLY_STATUS,
+    )
+    if not bool(source_invariant_check["passed"]):
+        return _p66_result_from_manifest(
+            status=P66_SOURCE_ROUTE_INVARIANT_DRIFT_BLOCK_STATUS,
+            blockers=tuple(source_invariant_check["blockers"]),
+            candidate=candidate,
+            sentinel=sentinel,
+            manifest=_p66_manifest(
+                status=P66_SOURCE_ROUTE_INVARIANT_DRIFT_BLOCK_STATUS,
+                blockers=tuple(source_invariant_check["blockers"]),
+                sample_count=int(sample_count),
+                sentinel_fit_sample_count=int(sentinel_fit_sample_count),
+                candidate=candidate_payload,
+                sentinel=sentinel,
+                sample_adequacy=candidate_payload["sample_adequacy"],
+                fit_budget_resolution=fit_budget_resolution,
+                rank_ladder=rank_ladder,
+                degree_ladder=degree_ladder,
+                source_invariants=source_invariant_check,
+                comparison_invariants=comparison_invariants,
+            ),
+        )
+    if candidate_admissibility_status == P66_FIXED_BRANCH_DEFENSIVE_ONLY_BLOCK_STATUS:
+        return _p66_result_from_manifest(
+            status=P66_FIXED_BRANCH_DEFENSIVE_ONLY_BLOCK_STATUS,
+            blockers=("candidate_fixed_branch_defensive_only",),
+            candidate=candidate,
+            sentinel=sentinel,
+            manifest=_p66_manifest(
+                status=P66_FIXED_BRANCH_DEFENSIVE_ONLY_BLOCK_STATUS,
+                blockers=("candidate_fixed_branch_defensive_only",),
+                sample_count=int(sample_count),
+                sentinel_fit_sample_count=int(sentinel_fit_sample_count),
+                candidate=candidate_payload,
+                sentinel=sentinel,
+                sample_adequacy=candidate_payload["sample_adequacy"],
+                fit_budget_resolution=fit_budget_resolution,
+                rank_ladder=rank_ladder,
+                degree_ladder=degree_ladder,
+                source_invariants=source_invariant_check,
+                comparison_invariants=comparison_invariants,
+            ),
+        )
+
+    candidate_adequacy = candidate_payload["sample_adequacy"]
+    sample_adequacy_status = (
+        P66_SAMPLE_ADEQUATE_STATUS
+        if (
+            candidate_adequacy["status"] == P66_SAMPLE_ADEQUATE_STATUS
+            and rank_adequacy["status"] == P66_SAMPLE_ADEQUATE_STATUS
+            and degree_adequacy["status"] == P66_SAMPLE_ADEQUATE_STATUS
+        )
+        else P66_FIT_DESIGN_UNDERDETERMINED_BLOCK_STATUS
+    )
+    status = (
+        P66_FIXED_BRANCH_VALIDATION_LADDER_READY_STATUS
+        if sample_adequacy_status == P66_SAMPLE_ADEQUATE_STATUS
+        else P66_FIT_DESIGN_UNDERDETERMINED_BLOCK_STATUS
+    )
+    result_blockers: tuple[str, ...] = ()
+    if status == P66_FIT_DESIGN_UNDERDETERMINED_BLOCK_STATUS:
+        result_blockers = ("fit_design_underdetermined_for_adjacent_ladder_diagnostics",)
+
+    manifest = _p66_manifest(
+        status=status,
+        blockers=result_blockers,
+        sample_count=int(sample_count),
+        sentinel_fit_sample_count=int(sentinel_fit_sample_count),
+        candidate=candidate_payload,
+        sentinel=sentinel,
+        sample_adequacy={
+            "candidate": candidate_adequacy,
+            "rank_ladder": rank_adequacy,
+            "degree_ladder": degree_adequacy,
+            "status": sample_adequacy_status,
+        },
+        fit_budget_resolution=fit_budget_resolution,
+        rank_ladder=rank_ladder,
+        degree_ladder=degree_ladder,
+        source_invariants=source_invariant_check,
+        comparison_invariants=comparison_invariants,
+    )
+    return _p66_result_from_manifest(
+        status=status,
+        blockers=result_blockers,
+        candidate=candidate,
+        sentinel=sentinel,
+        manifest=manifest,
+    )
+
+
 def _p60_rank_comparator_manifest(
     low: P59AuthorSIRStepSpecAssemblyResult,
     high: P59AuthorSIRStepSpecAssemblyResult,
@@ -3129,6 +5596,8 @@ def _p60_rank_comparator_manifest(
     high_normalizer_terms = _p64_normalizer_terms_by_step(high_seq)
     low_collapsed = _p64_defensive_only_steps(low_normalizer_terms)
     high_collapsed = _p64_defensive_only_steps(high_normalizer_terms)
+    low_core_terms = _p65_sqrt_tt_core_diagnostics_by_step(low_seq)
+    high_core_terms = _p65_sqrt_tt_core_diagnostics_by_step(high_seq)
     if low_collapsed:
         blockers.append("candidate_low_defensive_only_transport")
     if high_collapsed:
@@ -3174,6 +5643,11 @@ def _p60_rank_comparator_manifest(
             "defensive_only_sqrt_normalizer_tol": P64_DEFENSIVE_ONLY_SQRT_NORMALIZER_TOL,
             "candidate_low_defensive_only_steps": low_collapsed,
             "candidate_high_defensive_only_steps": high_collapsed,
+        },
+        "sqrt_tt_core_diagnostics": {
+            "candidate_low": low_core_terms,
+            "candidate_high": high_core_terms,
+            "zero_sqrt_tt_core_norm_tol": P65_ZERO_SQRT_TT_CORE_NORM_TOL,
         },
         "effective_sample_size_by_step": {
             "candidate_low": _p60_ess_by_step(low_seq),
@@ -3319,6 +5793,61 @@ def _p64_defensive_only_steps(
     return tuple(collapsed)
 
 
+def _p65_sqrt_tt_core_diagnostics_by_step(
+    sequential: SourceRouteSequentialResult,
+) -> tuple[Mapping[str, object], ...]:
+    rows = []
+    tol = float(P65_ZERO_SQRT_TT_CORE_NORM_TOL)
+    for step in sequential.steps:
+        transport = step.retained_object.transport_object
+        density = getattr(transport, "density", None)
+        sqrt_tt = getattr(density, "sqrt_tt", None)
+        if sqrt_tt is None:
+            rows.append(
+                {
+                    "time_index": int(step.time_index),
+                    "available": False,
+                }
+            )
+            continue
+        core_norms = tuple(
+            float(tf.linalg.norm(tf.reshape(core.values, [-1])).numpy())
+            for core in sqrt_tt.cores
+        )
+        core_max_abs = tuple(
+            float(tf.reduce_max(tf.abs(core.values)).numpy())
+            for core in sqrt_tt.cores
+        )
+        nonzero_entries = tuple(
+            int(tf.math.count_nonzero(core.values).numpy())
+            for core in sqrt_tt.cores
+        )
+        branch_identity = getattr(sqrt_tt, "branch_identity", None)
+        branch_hash = (
+            None
+            if branch_identity is None
+            else branch_identity.hash.value
+        )
+        rows.append(
+            {
+                "time_index": int(step.time_index),
+                "available": True,
+                "core_count": len(core_norms),
+                "core_norm_min": min(core_norms),
+                "core_norm_max": max(core_norms),
+                "core_max_abs_min": min(core_max_abs),
+                "core_max_abs_max": max(core_max_abs),
+                "zero_core_count": sum(1 for value in core_norms if value == 0.0),
+                "near_zero_core_count": sum(1 for value in core_norms if value <= tol),
+                "nonzero_entries_min": min(nonzero_entries),
+                "nonzero_entries_max": max(nonzero_entries),
+                "zero_core_norm_tol": tol,
+                "sqrt_tt_branch_hash": branch_hash,
+            }
+        )
+    return tuple(rows)
+
+
 def _p60_ess_by_step(sequential: SourceRouteSequentialResult) -> tuple[float, ...]:
     return tuple(
         float(step.retained_samples.diagnostics.effective_sample_size.numpy())
@@ -3349,6 +5878,13 @@ def _p60_candidate_manifest_or_none(
         "rank_tuple": result.manifest.get("rank_tuple"),
         "fit_branch_hashes": result.manifest.get("fit_branch_hashes"),
         "density_branch_hashes": result.manifest.get("density_branch_hashes"),
+        "fixed_branch_adaptation_class": result.manifest.get(
+            "fixed_branch_adaptation_class"
+        ),
+        "fit_initialization_rule": result.manifest.get("fit_initialization_rule"),
+        "fit_initialization_rule_source": result.manifest.get(
+            "fit_initialization_rule_source"
+        ),
         "defensive_tau": result.manifest.get("defensive_tau"),
         "defensive_tau_source": result.manifest.get("defensive_tau_source"),
         "target_dimension": result.manifest.get("target_dimension"),
@@ -3364,6 +5900,409 @@ def _p60_rank_nonclaims() -> tuple[str, ...]:
         "no HMC production readiness claim",
         "no adaptive Zhao-Cui parity claim",
         "no UKF correctness comparator",
+    )
+
+
+def _p66_rank_nonclaims() -> tuple[str, ...]:
+    return (
+        "old P60 low-high comparison is sentinel evidence only",
+        "sample adequacy is not convergence",
+        "admissibility is not d18 correctness",
+        "schema-only adjacent ladders are not stability evidence",
+        "no d18 correctness claim",
+        "no d50 or d100 scaling claim",
+        "no HMC production readiness claim",
+        "no adaptive Zhao-Cui parity claim",
+    )
+
+
+def _p66_diagnostic_minimum(
+    *,
+    fit_degree: int,
+    fit_rank: int,
+    diagnostic_min_multiplier: int,
+    preferred_multiplier: int,
+) -> int:
+    return int(
+        p66_fixed_branch_sample_adequacy(
+            fit_degree=int(fit_degree),
+            fit_rank=int(fit_rank),
+            fit_sample_count=1,
+            diagnostic_min_multiplier=int(diagnostic_min_multiplier),
+            preferred_multiplier=int(preferred_multiplier),
+        )["diagnostic_min_fit_samples"]
+    )
+
+
+def _p66_fit_budget_resolution(
+    *,
+    candidate_user: int | None,
+    candidate_resolved: int,
+    rank_user: int | None,
+    rank_resolved: int,
+    degree_user: int | None,
+    degree_resolved: int,
+    candidate_min: int,
+    rank_min: int,
+    degree_min: int,
+) -> Mapping[str, object]:
+    return {
+        "candidate": {
+            "user_supplied_fit_sample_count": candidate_user,
+            "resolved_fit_sample_count": int(candidate_resolved),
+            "diagnostic_min_fit_samples": int(candidate_min),
+            "resolution_rule": (
+                "user_supplied"
+                if candidate_user is not None
+                else "candidate diagnostic minimum"
+            ),
+        },
+        "rank_ladder": {
+            "user_supplied_fit_sample_count": rank_user,
+            "resolved_fit_sample_count": int(rank_resolved),
+            "diagnostic_min_fit_samples": int(rank_min),
+            "resolution_rule": (
+                "user_supplied"
+                if rank_user is not None
+                else "max(candidate diagnostic minimum, rank-ladder diagnostic minimum)"
+            ),
+        },
+        "degree_ladder": {
+            "user_supplied_fit_sample_count": degree_user,
+            "resolved_fit_sample_count": int(degree_resolved),
+            "diagnostic_min_fit_samples": int(degree_min),
+            "resolution_rule": (
+                "user_supplied"
+                if degree_user is not None
+                else "max(candidate diagnostic minimum, degree-ladder diagnostic minimum)"
+            ),
+        },
+        "recorded_before_interpretation": True,
+    }
+
+
+def _p66_candidate_payload(
+    result: P59AuthorSIRStepSpecAssemblyResult,
+    fit_sample_count: int,
+) -> Mapping[str, object]:
+    assert result.sequential_result is not None
+    normalizer_terms = _p64_normalizer_terms_by_step(result.sequential_result)
+    defensive_only_steps = _p64_defensive_only_steps(normalizer_terms)
+    core_terms = _p65_sqrt_tt_core_diagnostics_by_step(result.sequential_result)
+    sample_adequacy = p66_fixed_branch_sample_adequacy(
+        fit_degree=int(result.manifest["fit_degree"]),
+        fit_rank=int(result.manifest["fit_rank"]),
+        fit_sample_count=int(fit_sample_count),
+    )
+    admissibility_status = (
+        P66_FIXED_BRANCH_DEFENSIVE_ONLY_BLOCK_STATUS
+        if defensive_only_steps
+        else P66_CANDIDATE_ADMISSIBLE_STATUS
+    )
+    return {
+        "status": result.status,
+        "blockers": result.blockers,
+        "degree": result.manifest.get("fit_degree"),
+        "rank": result.manifest.get("fit_rank"),
+        "rank_tuple": result.manifest.get("rank_tuple"),
+        "fit_sample_count": int(fit_sample_count),
+        "fit_branch_hashes": result.manifest.get("fit_branch_hashes"),
+        "density_branch_hashes": result.manifest.get("density_branch_hashes"),
+        "square_root_normalizers_by_step": tuple(
+            row.get("sqrt_square_normalizer") for row in normalizer_terms
+        ),
+        "normalizer_terms_by_step": normalizer_terms,
+        "defensive_only_steps": defensive_only_steps,
+        "core_diagnostics_by_step": core_terms,
+        "near_zero_core_counts": tuple(
+            row.get("near_zero_core_count") for row in core_terms if row.get("available")
+        ),
+        "effective_sample_size_by_step": _p60_ess_by_step(result.sequential_result),
+        "correction_log_weight_ranges": _p60_correction_ranges(result.sequential_result),
+        "fixed_branch_adaptation_class": result.manifest.get(
+            "fixed_branch_adaptation_class"
+        ),
+        "fit_initialization_rule": result.manifest.get("fit_initialization_rule"),
+        "fit_data_mode": result.manifest.get("fit_data_mode"),
+        "defensive_tau": result.manifest.get("defensive_tau"),
+        "sample_adequacy": sample_adequacy,
+        "admissibility_status": admissibility_status,
+    }
+
+
+def _p66_expected_source_invariants(
+    result: P59AuthorSIRStepSpecAssemblyResult,
+) -> Mapping[str, object]:
+    return {
+        "route_family": "Zhao-Cui full_sol",
+        "source_authority": "P59/P60 fixed-HMC adaptation of author source route",
+        "realized_target": "[x_t, x_{t-1}]",
+        "target_dimension": P59_9A_AUTHOR_SIR_TARGET_DIMENSION,
+        "source_target_order": "[theta, x_t, x_{t-1}]",
+        "previous_marginal_keep_axes": tuple(range(18)),
+        "previous_marginal_input_axes": tuple(range(18, 36)),
+        "fit_data_mode": P63_AUTHOR_SIR_SOURCE_FIT_DATA_MODE,
+        "defensive_tau": P62_AUTHOR_TTSIRT_EXECUTABLE_DEFAULT_TAU,
+        "initialization_rule": P65_FIXED_BRANCH_INITIALIZATION_RULE,
+        "fixed_hmc_adaptation_class": P65_FIXED_BRANCH_ADAPTATION_CLASS,
+        "fit_sample_budget_policy": "P66 reviewed diagnostic-minimum resolution",
+        "sample_adequacy_rule": (
+            "max_axis ranks[axis] * (degree + 1) * ranks[axis+1], "
+            "diagnostic minimum multiplier 2 by default"
+        ),
+        "diagnostic_threshold_definitions": "P60 thresholds preserved for sentinel only",
+        "source_anchors": result.manifest.get("source_anchors"),
+    }
+
+
+def _p66_check_expected_source_invariants(
+    result: P59AuthorSIRStepSpecAssemblyResult,
+) -> Mapping[str, object]:
+    expected = _p66_expected_source_invariants(result)
+    observed = {
+        "route_family": "Zhao-Cui full_sol",
+        "source_authority": "P59/P60 fixed-HMC adaptation of author source route",
+        "realized_target": "[x_t, x_{t-1}]",
+        "target_dimension": result.manifest.get("target_dimension"),
+        "source_target_order": result.manifest.get("source_target_order"),
+        "previous_marginal_keep_axes": result.manifest.get("previous_marginal_keep_axes"),
+        "previous_marginal_input_axes": result.manifest.get("previous_marginal_input_axes"),
+        "fit_data_mode": result.manifest.get("fit_data_mode"),
+        "defensive_tau": result.manifest.get("defensive_tau"),
+        "initialization_rule": result.manifest.get("fit_initialization_rule"),
+        "fixed_hmc_adaptation_class": result.manifest.get(
+            "fixed_branch_adaptation_class"
+        ),
+        "fit_sample_budget_policy": "P66 reviewed diagnostic-minimum resolution",
+        "sample_adequacy_rule": expected["sample_adequacy_rule"],
+        "diagnostic_threshold_definitions": expected["diagnostic_threshold_definitions"],
+        "source_anchors": result.manifest.get("source_anchors"),
+    }
+    mismatches = tuple(
+        key for key, expected_value in expected.items() if observed.get(key) != expected_value
+    )
+    return {
+        "expected": expected,
+        "observed": observed,
+        "mismatches": mismatches,
+        "passed": not mismatches,
+        "blockers": tuple(f"{key}_mismatch" for key in mismatches),
+    }
+
+
+def _p66_comparison_invariants(
+    *,
+    candidate: P59AuthorSIRStepSpecAssemblyResult,
+    stronger_result: P59AuthorSIRStepSpecAssemblyResult | None,
+    authorized_field: str,
+    authorized_reason: str,
+) -> Mapping[str, object]:
+    candidate_fields = _p66_comparison_fields(candidate)
+    stronger_fields = (
+        {
+            **candidate_fields,
+            authorized_field: (
+                int(candidate.manifest["fit_rank"]) + 1
+                if authorized_field == "fit_rank"
+                else int(candidate.manifest["fit_degree"]) + 1
+            ),
+        }
+        if stronger_result is None
+        else _p66_comparison_fields(stronger_result)
+    )
+    differences = tuple(
+        key
+        for key, value in candidate_fields.items()
+        if stronger_fields.get(key) != value
+    )
+    unauthorized = tuple(key for key in differences if key != authorized_field)
+    return {
+        "candidate": candidate_fields,
+        "stronger": stronger_fields,
+        "differences": differences,
+        "unauthorized_differences": unauthorized,
+        "status": (
+            P66_SOURCE_ROUTE_INVARIANT_DRIFT_BLOCK_STATUS
+            if unauthorized
+            else "PASS_COMPARISON_INVARIANTS"
+        ),
+        "authorized_comparison_difference": authorized_field in differences,
+        "authorized_comparison_difference_field": authorized_field,
+        "authorized_comparison_difference_reason": authorized_reason,
+    }
+
+
+def _p66_comparison_fields(
+    result: P59AuthorSIRStepSpecAssemblyResult,
+) -> Mapping[str, object]:
+    return {
+        "route_family": "Zhao-Cui full_sol",
+        "target_dimension": result.manifest.get("target_dimension"),
+        "source_target_order": result.manifest.get("source_target_order"),
+        "previous_marginal_keep_axes": result.manifest.get("previous_marginal_keep_axes"),
+        "previous_marginal_input_axes": result.manifest.get("previous_marginal_input_axes"),
+        "fit_data_mode": result.manifest.get("fit_data_mode"),
+        "defensive_tau": result.manifest.get("defensive_tau"),
+        "initialization_rule": result.manifest.get("fit_initialization_rule"),
+        "fixed_hmc_adaptation_class": result.manifest.get(
+            "fixed_branch_adaptation_class"
+        ),
+        "fit_degree": result.manifest.get("fit_degree"),
+        "fit_rank": result.manifest.get("fit_rank"),
+    }
+
+
+def _p66_schema_only_ladder_payload(
+    *,
+    ladder_kind: str,
+    candidate: P59AuthorSIRStepSpecAssemblyResult,
+    candidate_fit_sample_count: int,
+    stronger_degree: int,
+    stronger_rank: int,
+    stronger_fit_sample_count: int,
+    adequacy: Mapping[str, object],
+    status: str,
+) -> Mapping[str, object]:
+    return {
+        "candidate_branch": {
+            "degree": candidate.manifest.get("fit_degree"),
+            "rank": candidate.manifest.get("fit_rank"),
+            "rank_tuple": candidate.manifest.get("rank_tuple"),
+        },
+        "stronger_branch": {
+            "degree": int(stronger_degree),
+            "rank": int(stronger_rank),
+            "rank_tuple": _source_route_rank_tuple(
+                P59_9A_AUTHOR_SIR_TARGET_DIMENSION,
+                int(stronger_rank),
+            ),
+            "fit_sample_count": int(stronger_fit_sample_count),
+        },
+        "ladder_kind": str(ladder_kind),
+        "executed": False,
+        "schema_only_reason": (
+            "Phase 2 implements schema and invariant gates; adjacent ladder "
+            "execution requires a reviewed experiment plan."
+        ),
+        "sample_adequacy": {
+            "candidate": p66_fixed_branch_sample_adequacy(
+                fit_degree=int(candidate.manifest["fit_degree"]),
+                fit_rank=int(candidate.manifest["fit_rank"]),
+                fit_sample_count=int(candidate_fit_sample_count),
+            ),
+            "stronger": adequacy,
+        },
+        "log_marginal_delta": None,
+        "normalizer_increment_deltas": None,
+        "probe_log_density_median_delta": None,
+        "retained_log_density_median_delta": None,
+        "effective_sample_size": None,
+        "correction_ranges": None,
+        "status": status,
+        "blockers": (),
+    }
+
+
+def _p66_manifest(
+    *,
+    status: str,
+    blockers: tuple[str, ...],
+    sample_count: int,
+    sentinel_fit_sample_count: int,
+    candidate: Mapping[str, object],
+    sentinel: P60AuthorSIRSameRouteRankComparatorResult,
+    sample_adequacy: Mapping[str, object],
+    fit_budget_resolution: Mapping[str, object],
+    rank_ladder: Mapping[str, object],
+    degree_ladder: Mapping[str, object],
+    source_invariants: Mapping[str, object],
+    comparison_invariants: Mapping[str, object],
+) -> Mapping[str, object]:
+    sentinel_status = (
+        P66_SENTINEL_PASS_STATUS
+        if sentinel.status == P60_D18_RANK_CONVERGENCE_PASS_STATUS
+        else P66_SENTINEL_WARN_STATUS
+    )
+    return {
+        "target_id": P58_M9_AUTHOR_SIR_TARGET_ID,
+        "pipeline_phase": "P66",
+        "artifact_role": "fixed_branch_validation_ladder",
+        "status": status,
+        "blockers": tuple(blockers),
+        "sample_count": int(sample_count),
+        "sentinel_fit_sample_count": int(sentinel_fit_sample_count),
+        "candidate": candidate,
+        "sentinel": {
+            "old_p60_status": sentinel.status,
+            "old_p60_blockers": sentinel.blockers,
+            "old_p60_log_marginal_abs_delta": sentinel.manifest.get(
+                "log_marginal_abs_delta"
+            ),
+            "old_p60_normalizer_increment_abs_deltas": sentinel.manifest.get(
+                "normalizer_increment_abs_deltas"
+            ),
+            "old_p60_thresholds": sentinel.manifest.get("thresholds"),
+            "status": sentinel_status,
+            "interpretation": "explanatory_sentinel_not_primary_gate",
+        },
+        "sample_adequacy": sample_adequacy,
+        "fit_budget_resolution": fit_budget_resolution,
+        "rank_ladder": rank_ladder,
+        "degree_ladder": degree_ladder,
+        "source_invariants": source_invariants,
+        "comparison_invariants": comparison_invariants,
+        "nonclaims": _p66_rank_nonclaims(),
+        "p65_baseline_reference": "P65 high branch noncollapsed fixed-HMC branch",
+        "old_p60_sentinel_payload": sentinel.manifest,
+    }
+
+
+def _p66_result_from_manifest(
+    *,
+    status: str,
+    blockers: tuple[str, ...],
+    candidate: object | None,
+    sentinel: P60AuthorSIRSameRouteRankComparatorResult | None,
+    manifest: Mapping[str, object],
+) -> P66AuthorSIRFixedBranchValidationLadderResult:
+    return P66AuthorSIRFixedBranchValidationLadderResult(
+        status=status,
+        blockers=tuple(blockers),
+        candidate_result=(
+            candidate if isinstance(candidate, P59AuthorSIRStepSpecAssemblyResult) else None
+        ),
+        sentinel_result=sentinel,
+        manifest=manifest,
+    )
+
+
+def _p66_block_result(
+    *,
+    status: str,
+    blockers: tuple[str, ...],
+    candidate_result: object | None,
+    sentinel_result: P60AuthorSIRSameRouteRankComparatorResult | None,
+    manifest_extra: Mapping[str, object],
+) -> P66AuthorSIRFixedBranchValidationLadderResult:
+    manifest = {
+        "target_id": P58_M9_AUTHOR_SIR_TARGET_ID,
+        "pipeline_phase": "P66",
+        "artifact_role": "blocked_fixed_branch_validation_ladder",
+        "status": str(status),
+        "blockers": tuple(blockers),
+        "nonclaims": _p66_rank_nonclaims(),
+    }
+    manifest = {**manifest, **dict(manifest_extra)}
+    return P66AuthorSIRFixedBranchValidationLadderResult(
+        status=status,
+        blockers=tuple(blockers),
+        candidate_result=(
+            candidate_result
+            if isinstance(candidate_result, P59AuthorSIRStepSpecAssemblyResult)
+            else None
+        ),
+        sentinel_result=sentinel_result,
+        manifest=manifest,
     )
 
 
@@ -3393,13 +6332,69 @@ def _p60_rank_comparator_block(
     )
 
 
+def _p59_assembly_fit_sample_counts(
+    assembly: P59AuthorSIRStepSpecAssemblyResult,
+) -> tuple[int, ...]:
+    fit_data_manifests = assembly.manifest.get("fit_data_manifests", ())
+    counts: list[int] = []
+    if isinstance(fit_data_manifests, tuple):
+        for row in fit_data_manifests:
+            if isinstance(row, Mapping) and "fit_sample_count" in row:
+                counts.append(int(row["fit_sample_count"]))
+    return tuple(counts)
+
+
+def _p59_common_fit_sample_count(
+    assembly: P59AuthorSIRStepSpecAssemblyResult,
+) -> int | None:
+    counts = _p59_assembly_fit_sample_counts(assembly)
+    if not counts or len(set(counts)) != 1:
+        return None
+    return counts[0]
+
+
+def _p59_assembly_row_adequacy_by_step(
+    assembly: P59AuthorSIRStepSpecAssemblyResult,
+) -> tuple[Mapping[str, object], ...]:
+    fit_quality_rows = assembly.manifest.get("fit_quality_diagnostics_by_step", ())
+    row_adequacy_rows: list[Mapping[str, object]] = []
+    if isinstance(fit_quality_rows, tuple):
+        for row in fit_quality_rows:
+            policy = (
+                row.get("p70_fixed_fitting_policy", {})
+                if isinstance(row, Mapping)
+                else {}
+            )
+            row_adequacy = (
+                policy.get("row_adequacy", {})
+                if isinstance(policy, Mapping)
+                else {}
+            )
+            row_adequacy_rows.append(
+                dict(row_adequacy) if isinstance(row_adequacy, Mapping) else {}
+            )
+    return tuple(row_adequacy_rows)
+
+
+def _p59_execution_fit_sample_count_policy() -> Mapping[str, object]:
+    return {
+        "default_fit_sample_count": P59_D18_EXECUTION_ONLY_FIT_SAMPLE_COUNT,
+        "default_fit_sample_count_source": P59_D18_EXECUTION_ONLY_FIT_SAMPLE_COUNT_SOURCE,
+        "default_row_adequacy": _p59_execution_only_row_adequacy_diagnostics(
+            fit_sample_count=P59_D18_EXECUTION_ONLY_FIT_SAMPLE_COUNT,
+        ),
+        "explicit_under_rowed_calls_fail_closed": True,
+        "nonclaim": "row adequacy is not sample coverage or convergence proof",
+    }
+
+
 def p59_author_sir_runner_manifest_path(
     *,
     assembly_result: P59AuthorSIRStepSpecAssemblyResult | None = None,
     manifest_path: str | Path = P59_9D_DEFAULT_MANIFEST_PATH,
     comparator_tier: str = "d18_execution_only",
     sample_count: int = 1,
-    fit_sample_count: int = 2,
+    fit_sample_count: int = P59_D18_EXECUTION_ONLY_FIT_SAMPLE_COUNT,
     write_manifest: bool = False,
 ) -> P59AuthorSIRRunnerManifestResult:
     """Build the P59-9d M9 runner/readiness manifest path.
@@ -3464,6 +6459,8 @@ def p59_author_sir_runner_manifest_path(
             },
         )
 
+    fit_sample_counts = _p59_assembly_fit_sample_counts(assembly)
+    row_adequacy_by_step = _p59_assembly_row_adequacy_by_step(assembly)
     manifest = {
         "schema_version": "bayesfilter.p59_9d.runner_manifest.v1",
         "target_id": P58_M9_AUTHOR_SIR_TARGET_ID,
@@ -3485,6 +6482,10 @@ def p59_author_sir_runner_manifest_path(
         "p58_manifest": p58_manifest,
         "p58_readiness": readiness.manifest_payload(),
         "step_spec_count": len(assembly.step_specs),
+        "fit_sample_count": _p59_common_fit_sample_count(assembly),
+        "fit_sample_count_by_step": fit_sample_counts,
+        "fit_sample_count_policy": _p59_execution_fit_sample_count_policy(),
+        "row_adequacy_by_step": row_adequacy_by_step,
         "sequential_status": (
             None
             if assembly.sequential_result is None
@@ -3580,7 +6581,7 @@ def p59_author_sir_validation_ladder(
     runner_result: P59AuthorSIRRunnerManifestResult | None = None,
     tier: str = "d18_execution_only",
     sample_count: int = 1,
-    fit_sample_count: int = 2,
+    fit_sample_count: int = P59_D18_EXECUTION_ONLY_FIT_SAMPLE_COUNT,
 ) -> P59AuthorSIRValidationLadderResult:
     """Run the P59-9e validation ladder at the declared honest tier."""
 
@@ -3644,6 +6645,8 @@ def p59_author_sir_validation_ladder(
         )
         for step in sequential.steps
     )
+    fit_sample_counts = _p59_assembly_fit_sample_counts(assembly)
+    row_adequacy_by_step = _p59_assembly_row_adequacy_by_step(assembly)
     manifest = {
         "target_id": P58_M9_AUTHOR_SIR_TARGET_ID,
         "pipeline_phase": "P59-9e",
@@ -3662,6 +6665,10 @@ def p59_author_sir_validation_ladder(
         "state_dimension": assembly.manifest["state_dimension"],
         "parameter_dimension": assembly.manifest["parameter_dimension"],
         "comparator_tier": selected_tier,
+        "fit_sample_count": _p59_common_fit_sample_count(assembly),
+        "fit_sample_count_by_step": fit_sample_counts,
+        "fit_sample_count_policy": _p59_execution_fit_sample_count_policy(),
+        "row_adequacy_by_step": row_adequacy_by_step,
         "log_marginal_likelihood": float(log_marginal.numpy()),
         "normalizer_increments": normalizer_increments,
         "effective_sample_size_by_step": ess_values,
@@ -3673,6 +6680,9 @@ def p59_author_sir_validation_ladder(
         "density_branch_hashes": assembly.manifest["density_branch_hashes"],
         "previous_marginal_keep_axes": assembly.manifest["previous_marginal_keep_axes"],
         "previous_marginal_input_axes": assembly.manifest["previous_marginal_input_axes"],
+        "holdout_replay_diagnostics_by_step": assembly.manifest[
+            "holdout_replay_diagnostics_by_step"
+        ],
         "source_anchors": _P59_9D_AUTHOR_SIR_SOURCE_ANCHORS,
         "runner_manifest_path": runner.manifest_path,
         "promotion_boundary": (

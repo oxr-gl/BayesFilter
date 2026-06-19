@@ -1,0 +1,194 @@
+{
+  "audit_data_used": false,
+  "corrected_alpha": [
+    0.0,
+    0.125,
+    0.375,
+    0.5
+  ],
+  "corrected_alpha_max_abs_error": 0.0,
+  "cpu_only": true,
+  "cuda_visible_devices": "-1",
+  "default_behavior_changed": false,
+  "expected_corrected_alpha": [
+    0.0,
+    0.125,
+    0.375,
+    0.5
+  ],
+  "finite_flags": {
+    "alpha": true,
+    "heldout_cross_entropy": true,
+    "normalizer": true,
+    "reconstructed_heldout_cross_entropy": true,
+    "rho": true,
+    "rho_theta_values": true,
+    "target_mass": true
+  },
+  "fixture": {
+    "defensive_q0_values": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "degree": 1,
+    "dimension": 2,
+    "integration_weights": [
+      1.0,
+      2.0,
+      1.5,
+      0.5
+    ],
+    "points": [
+      [
+        -0.75,
+        -0.25
+      ],
+      [
+        -0.25,
+        0.5
+      ],
+      [
+        0.25,
+        -0.5
+      ],
+      [
+        0.75,
+        0.25
+      ]
+    ],
+    "provenance_label": "manual_metric_fixture",
+    "ranks": [
+      1,
+      2,
+      1
+    ],
+    "role": "heldout_metric",
+    "target_sqrt_values": [
+      0.0,
+      0.5,
+      1.0,
+      2.0
+    ],
+    "tau": 2.5
+  },
+  "generated_target_cloud_used": false,
+  "heldout_cross_entropy_reconstruction_abs_error": 0.0,
+  "historical_helper_boundary_only": {
+    "alpha": [
+      0.15151515151515152,
+      0.3333333333333333,
+      0.3181818181818182,
+      0.19696969696969696
+    ],
+    "alpha_l1_distance_from_corrected": 0.7196969696969697,
+    "alpha_max_abs_error": 0.0,
+    "expected_alpha": [
+      0.15151515151515152,
+      0.3333333333333333,
+      0.3181818181818182,
+      0.19696969696969696
+    ],
+    "label": "historical_helper_boundary_only"
+  },
+  "manual_fixture_hand_checks": {
+    "ce_reconstruction_matches_metric": true,
+    "corrected_alpha_matches_expected": true,
+    "historical_alpha_matches_expected": true,
+    "old_new_alpha_separated": true
+  },
+  "metric_payload": {
+    "alpha_effective_sample_size": 2.4615384615384617,
+    "alpha_max": 0.5,
+    "alpha_min": 0.0,
+    "alpha_sum": 1.0,
+    "centered_log_shape_rms": 0.9482378901066496,
+    "classification": "extension_or_invention",
+    "explanatory_only": true,
+    "finite_flags": {
+      "alpha": true,
+      "heldout_cross_entropy": true,
+      "normalizer": true,
+      "rho": true,
+      "target_mass": true
+    },
+    "heldout_cross_entropy": -0.002765941550252893,
+    "integration_weight_mass": 5.0,
+    "log_normalizer": 0.9437502447703054,
+    "negative_weighted_log_rho": -0.9465161863205583,
+    "nonclaims": [
+      "not source-faithful Zhao-Cui",
+      "not lower-gate repair evidence",
+      "not validation evidence",
+      "not HMC readiness evidence",
+      "not rank or degree promotion evidence",
+      "smoke loss is not pilot evidence",
+      "corrected heldout metric is explanatory only",
+      "not training evidence",
+      "not stopping or selection evidence",
+      "not fit-quality evidence"
+    ],
+    "normalizer": 2.5696,
+    "not_training_or_selection": true,
+    "optimal_scale_sqrt_residual_rms": 0.4964101461245919,
+    "provenance_label": "manual_metric_fixture",
+    "raw_sqrt_residual_rms": 0.7297267943216371,
+    "rho_max": 2.622998573225672,
+    "rho_min": 2.522553879794644,
+    "role": "heldout_metric",
+    "schema_version": "p76_corrected_heldout_metric.v1",
+    "status": "P76_CORRECTED_HELDOUT_METRIC_OK",
+    "target_mass": 4.0,
+    "target_sqrt_max": 2.0,
+    "target_sqrt_min": 0.0
+  },
+  "nonclaims": [
+    "metric-only smoke",
+    "not training evidence",
+    "not fit-quality evidence",
+    "not lower-gate repair evidence",
+    "not validation evidence",
+    "not HMC readiness evidence",
+    "not scaling evidence",
+    "not source-faithful Zhao-Cui",
+    "not final rank or sample policy"
+  ],
+  "normalizer": 2.5696,
+  "optimizer_used": false,
+  "reconstructed_heldout_cross_entropy": -0.002765941550252893,
+  "rho_theta_values": [
+    2.560904551774328,
+    2.522553879794644,
+    2.5341586202053556,
+    2.622998573225672
+  ],
+  "run_manifest": {
+    "argv": [
+      "scripts/p76_corrected_heldout_metric_smoke.py",
+      "--output",
+      "docs/plans/bayesfilter-highdim-zhao-cui-p76-phase9-corrected-heldout-metric-smoke-2026-06-19.json"
+    ],
+    "command": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp /home/chakwong/anaconda3/envs/tf-gpu/bin/python scripts/p76_corrected_heldout_metric_smoke.py --output docs/plans/bayesfilter-highdim-zhao-cui-p76-phase9-corrected-heldout-metric-smoke-2026-06-19.json",
+    "cpu_only": true,
+    "cuda_visible_devices": "-1",
+    "environment": {
+      "CUDA_VISIBLE_DEVICES": "-1",
+      "MPLCONFIGDIR": "/tmp",
+      "PWD": "/home/chakwong/BayesFilter"
+    },
+    "output": "docs/plans/bayesfilter-highdim-zhao-cui-p76-phase9-corrected-heldout-metric-smoke-2026-06-19.json",
+    "python_argv": [
+      "/home/chakwong/anaconda3/envs/tf-gpu/bin/python",
+      "scripts/p76_corrected_heldout_metric_smoke.py",
+      "--output",
+      "docs/plans/bayesfilter-highdim-zhao-cui-p76-phase9-corrected-heldout-metric-smoke-2026-06-19.json"
+    ],
+    "python_executable": "/home/chakwong/anaconda3/envs/tf-gpu/bin/python",
+    "tensorflow_version": "2.19.1"
+  },
+  "schema_version": "p76.phase9.corrected_heldout_metric_smoke.v1",
+  "source_route_prefit_used": false,
+  "status": "P76_PHASE9_CORRECTED_HELDOUT_METRIC_SMOKE_COMPLETED",
+  "train_step_count": 0
+}

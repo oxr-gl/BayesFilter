@@ -1,0 +1,195 @@
+{
+  "batch_seeds": [
+    81120,
+    81121
+  ],
+  "categorical_resampling_used": false,
+  "connectivity_by_component": {
+    "log_kappa_scale": true,
+    "log_nu_scale": true,
+    "log_obs_noise_scale": true
+  },
+  "cuda_visible_devices": null,
+  "device": "/GPU:0",
+  "device_scope": "visible",
+  "elapsed_seconds": 17.133178506046534,
+  "expect_device_kind": "gpu",
+  "finite_difference_all_finite": true,
+  "finite_difference_by_component": [
+    {
+      "central_difference": -224.6017303466797,
+      "fd_step": 0.0005,
+      "finite": true,
+      "minus_objective": -124.84687042236328,
+      "parameter": "log_kappa_scale",
+      "plus_objective": -125.07147216796875
+    },
+    {
+      "central_difference": 135.07843017578125,
+      "fd_step": 0.0005,
+      "finite": true,
+      "minus_objective": -124.97443389892578,
+      "parameter": "log_nu_scale",
+      "plus_objective": -124.83935546875
+    },
+    {
+      "central_difference": 117.40874481201172,
+      "fd_step": 0.0005,
+      "finite": true,
+      "minus_objective": -124.98429107666016,
+      "parameter": "log_obs_noise_scale",
+      "plus_objective": -124.86688232421875
+    }
+  ],
+  "git_commit": "b1f400d5cb7e88d6b10072a23344f1286542f492",
+  "gpu_memory_info_after": {
+    "current": 29184,
+    "peak": 18189824
+  },
+  "gpu_memory_info_before": {
+    "current": 16640,
+    "peak": 57600
+  },
+  "gradient": {
+    "log_kappa_scale": -312.2449951171875,
+    "log_nu_scale": 113.51848602294922,
+    "log_obs_noise_scale": 44.57378005981445
+  },
+  "gradient_finite": true,
+  "gradient_norm": 335.2166442871094,
+  "gradient_values": [
+    -312.2449951171875,
+    113.51848602294922,
+    44.57378005981445
+  ],
+  "host": "DESKTOP-RF1Q5IJ",
+  "initial_particle_seed_policy": "P8j initial_sample with fixed batch seeds",
+  "log_likelihood": [
+    -125.19109344482422,
+    -124.69732666015625
+  ],
+  "logical_gpus": [
+    "LogicalDevice(name='/device:GPU:0', device_type='GPU')"
+  ],
+  "nonclaims": [
+    "P8p diagnostic parameterized SIR d18 target only",
+    "not the fixed-parameter P8o leaderboard cell",
+    "not stochastic PF marginal-gradient correctness",
+    "not exact nonlinear likelihood correctness",
+    "not HMC/NUTS readiness",
+    "not posterior convergence",
+    "not production/default readiness",
+    "not Zhao-Cui TT/SIRT or MATLAB parity"
+  ],
+  "objective": -124.9442138671875,
+  "output_devices": [
+    "/job:localhost/replica:0/task:0/device:GPU:0",
+    "/job:localhost/replica:0/task:0/device:GPU:0",
+    "/job:localhost/replica:0/task:0/device:GPU:0"
+  ],
+  "phase": "P8p Phase 2",
+  "physical_gpus": [
+    "PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')"
+  ],
+  "precision": {
+    "active_dtype": "float32",
+    "default_dtype": "float32",
+    "default_tf32_mode": "enabled",
+    "dtype": "float32",
+    "fp64_reference_requires_explicit_dtype": true,
+    "precision_default_policy": "experimental_ledh_pfpf_ot_gpu_tf32",
+    "scope": "experimental_batched_ledh_pfpf_ot_gpu_performance_lane",
+    "tf32_execution_enabled": true,
+    "tf32_mode": "enabled",
+    "tf_dtype": "float32"
+  },
+  "primary_pass": true,
+  "process_noise_seed_policy": "tf.random.stateless_normal seed=[batch_seed, 1140 + time_index], independent of theta",
+  "python_version": "3.11.14",
+  "random_streams_fixed_across_theta": true,
+  "relaxed_sinkhorn_ot_used": true,
+  "repeat_atol": 1e-05,
+  "repeat_evaluations": 2,
+  "repeat_gradient_max_abs_delta": 0.0,
+  "repeat_objectives": [
+    -124.9442138671875,
+    -124.9442138671875
+  ],
+  "repeat_pass": true,
+  "repeat_value_max_abs_delta": 0.0,
+  "resampling_mask_fixed": true,
+  "schema_version": "filter_bench.p8p_parameterized_sir_gradient.v1",
+  "shape": {
+    "batch_size": 2,
+    "num_particles": 16,
+    "obs_dim": 9,
+    "parameter_dim": 3,
+    "state_dim": 18,
+    "time_steps": 3
+  },
+  "sir_semantics": {
+    "actual_sir_callback_usage": "initial_sample, process/observation covariance callbacks, observation metadata, and route metadata",
+    "actual_sir_callbacks_used": true,
+    "adapter_classification": "BayesFilter DPF adapter for fixed-parameter SIR; not Zhao-Cui TT/SIRT source-faithfulness evidence",
+    "experimental_streaming_adapter_route": "batched nonlinear-prior LEDH-PFPF-OT streaming adapter with fixed process covariance, not scalar Li-Coates Algorithm 1 UKF covariance lifecycle parity",
+    "flow_observation_contract": "same_observation_gaussian_sir_infectious_components",
+    "graph_compatible_sir_transition_copy_used": true,
+    "graph_compatible_sir_transition_source": "bayesfilter.highdim.zhao_cui_sir_austria_model RK4 zhao_cui_sir_step equations, copied into TensorFlow graph form because the model validation path uses eager .numpy() checks",
+    "nonlinear_prior_mean_hook_used": true,
+    "observation_dimension": 9,
+    "process_noise_policy": "clip_susceptible_after_noise",
+    "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+    "scalar_algorithm1_ukf_covariance_lifecycle_parity_claim": false,
+    "state_dimension": 18,
+    "target_density_used_for_correction": true
+  },
+  "status": "pass",
+  "tensorflow_version": "2.19.1",
+  "theta": {
+    "log_kappa_scale": 0.02,
+    "log_nu_scale": -0.01,
+    "log_obs_noise_scale": 0.01
+  },
+  "theta_transform": {
+    "kappa": "base_kappa * exp(log_kappa_scale)",
+    "nu": "base_nu * exp(log_nu_scale)",
+    "observation_covariance": "base_observation_covariance * exp(2 * log_obs_noise_scale)"
+  },
+  "theta_zero_p8j_parity": {
+    "atol": 1e-05,
+    "checked": true,
+    "max_abs_delta": 0.0,
+    "p8j_fixed_log_likelihood": [
+      -119.83248901367188,
+      -119.74903869628906
+    ],
+    "p8p_theta_zero_log_likelihood": [
+      -119.83248901367188,
+      -119.74903869628906
+    ],
+    "p8p_theta_zero_objective": -119.79076385498047,
+    "pass": true,
+    "value_delta": [
+      0.0,
+      0.0
+    ]
+  },
+  "theta_zero_p8j_parity_checked": true,
+  "theta_zero_p8j_value_delta_max_abs": 0.0,
+  "timestamp_utc": "2026-06-18T08:45:21.081617+00:00",
+  "transport": {
+    "annealed_convergence_threshold": 0.001,
+    "annealed_scaling": 0.9,
+    "col_chunk_size": 16,
+    "dense_transport_matrix_materialized": false,
+    "gradient_mode": "raw",
+    "particle_chunk_size": 16,
+    "plan_mode": "streaming",
+    "row_chunk_size": 16,
+    "sinkhorn_epsilon": 1.0,
+    "sinkhorn_iterations": 10
+  },
+  "transport_policy": "active-all",
+  "value_finite": true,
+  "zero_gradient_components": []
+}

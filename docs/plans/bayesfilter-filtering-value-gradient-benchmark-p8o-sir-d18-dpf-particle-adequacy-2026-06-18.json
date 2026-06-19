@@ -1,0 +1,88 @@
+{
+  "algorithm_id": "experimental_batched_ledh_pfpf_ot_streaming_tf32_gpu",
+  "artifacts": {
+    "10000": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8n-sir-d18-n10000-chunk1024-2026-06-18.json",
+    "50000": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8n-sir-d18-n50000-chunk1024-2026-06-18.json"
+  },
+  "evidence_contract": {
+    "not_concluded": [
+      "exact nonlinear likelihood correctness",
+      "posterior convergence",
+      "DPF gradient correctness",
+      "HMC/NUTS readiness",
+      "Zhao-Cui TT/SIRT or MATLAB parity",
+      "production/default readiness",
+      "cross-model default readiness"
+    ],
+    "primary_criterion": "finite GPU metadata, five fixed seeds, MC SE threshold, and adjacent mean stability",
+    "question": "Is N=10000 adequate for the SIR d18 DPF LEDH-PFPF-OT value cell given adjacent N=50000 evidence?"
+  },
+  "legacy_algorithm_cell": "ledh_pfpf_alg1_ukf_current / OT-resampled LEDH-PFPF-OT value cell",
+  "nonclaims": [
+    "SIR d18 value-only DPF particle adequacy cell",
+    "not exact likelihood correctness",
+    "not DPF gradient correctness",
+    "not HMC/NUTS readiness",
+    "not Zhao-Cui TT/SIRT source-faithfulness evidence",
+    "not MATLAB parity",
+    "not production/default readiness"
+  ],
+  "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+  "rungs": [
+    {
+      "artifact": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8n-sir-d18-n10000-chunk1024-2026-06-18.json",
+      "compile_and_first_call_seconds": 21.79888132819906,
+      "ess_min_mean": 6461.10263671875,
+      "ess_min_min": 6432.78173828125,
+      "finite_gpu_metadata_pass": true,
+      "mc_se_pass": true,
+      "mc_se_threshold": 2.257075378417969,
+      "mc_standard_error": 0.20822211173623006,
+      "mean_log_likelihood": -902.8301513671875,
+      "metadata_errors": [],
+      "particle_count": 10000,
+      "peak_gpu_memory_counter_bytes": 84075520,
+      "sample_standard_deviation": 0.4655987962607672,
+      "seed_count": 5,
+      "warm_mean_seconds": 8.629158840049058
+    },
+    {
+      "artifact": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8n-sir-d18-n50000-chunk1024-2026-06-18.json",
+      "compile_and_first_call_seconds": 157.4267661301419,
+      "ess_min_mean": 32136.215234375,
+      "ess_min_min": 31872.62109375,
+      "finite_gpu_metadata_pass": true,
+      "mc_se_pass": true,
+      "mc_se_threshold": 2.257094848632813,
+      "mc_standard_error": 0.10197526866676848,
+      "mean_log_likelihood": -902.837939453125,
+      "metadata_errors": [],
+      "particle_count": 50000,
+      "peak_gpu_memory_counter_bytes": 184149248,
+      "sample_standard_deviation": 0.22802363276269869,
+      "seed_count": 5,
+      "warm_mean_seconds": 140.19528393400833
+    }
+  ],
+  "schema_version": "filter_bench.p8o_sir_d18_dpf_particle_adequacy.v1",
+  "selection": {
+    "adjacent_combined_mc_se": 0.2318521150120367,
+    "adjacent_mean_delta": 0.0077880859375909495,
+    "adjacent_pass": true,
+    "adjacent_threshold": 1.4637042300240735,
+    "blocker_reason": null,
+    "next_rung_checked": true,
+    "next_rung_particle_count": 50000,
+    "selected_particle_count": 10000,
+    "selection_rule": "smallest rung passing finite GPU metadata, five-seed MC SE, and adjacent N=50000 stability gate",
+    "tuning_status": "selected_particle_count"
+  },
+  "selection_thresholds": {
+    "adjacent_delta_abs_buffer": 1.0,
+    "mc_se_abs_floor": 2.0,
+    "mc_se_relative_fraction": 0.0025,
+    "required_seed_count": 5
+  },
+  "status": "pass_selected_n10000",
+  "timestamp_utc": "2026-06-17T20:01:35.504532+00:00"
+}

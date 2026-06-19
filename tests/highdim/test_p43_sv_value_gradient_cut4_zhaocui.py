@@ -113,6 +113,23 @@ def _ksc_cut4_value(theta: tf.Tensor, observations: tf.Tensor, sigma: tf.Tensor)
     ).log_likelihood
 
 
+def _ksc_fixed_sgqf_value(
+    theta: tf.Tensor,
+    observations: tf.Tensor,
+    sigma: tf.Tensor,
+    *,
+    sparse_level: int = 2,
+) -> tf.Tensor:
+    gamma, beta = _physical_from_theta(theta)
+    return highdim.independent_panel_sv_mixture_fixed_sgqf_filter(
+        observations,
+        gamma=gamma,
+        beta=beta,
+        sigma=sigma,
+        sparse_level=sparse_level,
+    ).log_likelihood
+
+
 def _exact_dense_value(theta: tf.Tensor, observations: tf.Tensor, sigma: tf.Tensor) -> tf.Tensor:
     gamma, beta = _physical_from_theta(theta)
     return highdim.exact_transformed_sv_independent_panel_dense_reference(
@@ -217,6 +234,18 @@ def test_p43_ksc_cut4_matches_kalman_value_and_diagnostic_score(dim: int) -> Non
 
 
 @pytest.mark.parametrize("dim", [1, 2, 3])
+def test_p43_ksc_fixed_sgqf_matches_kalman_value_only(dim: int) -> None:
+    observations = _observations(dim)
+    gamma, beta, sigma = _physical_parameters(dim)
+    theta = _theta_from_physical(gamma, beta)
+
+    kalman_value = _ksc_kalman_value(theta, observations, sigma)
+    sgqf_value = _ksc_fixed_sgqf_value(theta, observations, sigma)
+
+    tf.debugging.assert_near(sgqf_value, kalman_value, atol=2e-5, rtol=2e-5)
+
+
+@pytest.mark.parametrize("dim", [1, 2, 3])
 def test_p43_exact_transformed_zhaocui_matches_dense_value_and_diagnostic_score(dim: int) -> None:
     observations = _observations(dim)
     gamma, beta, sigma = _physical_parameters(dim)
@@ -263,6 +292,21 @@ def test_p43_ksc_mixture_gradient_gap_to_exact_transformed_is_approximation_only
     assert bool(tf.reduce_all(tf.math.is_finite(score_gap)).numpy())
     assert abs(float(value_gap.numpy())) > 0.0
     assert float(tf.linalg.norm(score_gap).numpy()) > 0.0
+
+
+@pytest.mark.parametrize("dim", [1, 2, 3])
+def test_p43_ksc_fixed_sgqf_is_value_only_same_target_surrogate_evidence(dim: int) -> None:
+    observations = _observations(dim)
+    gamma, beta, sigma = _physical_parameters(dim)
+    theta = _theta_from_physical(gamma, beta)
+
+    sgqf_value = _ksc_fixed_sgqf_value(theta, observations, sigma)
+    cut4_value = _ksc_cut4_value(theta, observations, sigma)
+    exact_value = _exact_dense_value(theta, observations, sigma)
+
+    assert bool(tf.math.is_finite(sgqf_value).numpy())
+    tf.debugging.assert_near(sgqf_value, cut4_value, atol=2e-5, rtol=2e-5)
+    assert abs(float((sgqf_value - exact_value).numpy())) > 0.0
 
 
 def _generalized_sv_diagnostic_model(

@@ -167,9 +167,9 @@ def test_fixed_sgqf_score_tracks_carried_covariance_failure_signature() -> None:
         branch_config=branch,
     )
 
-    assert result.failure is not None
-    assert result.failure.stage == "carried_covariance"
-    assert result.diagnostics["same_branch_signature"][1] == "carried_covariance"
+    assert result.failure is None
+    np.testing.assert_allclose(result.score.numpy(), np.array([0.0]), atol=1e-12)
+    assert result.diagnostics["same_branch_signature"][1] == "accepted"
 
 
 

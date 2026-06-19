@@ -22,6 +22,19 @@ from bayesfilter.highdim.tt import FunctionalTT, TTCore
 from bayesfilter.highdim.validation import ComplexityBudget
 
 
+_FLOAT64_EPS = float(tf.experimental.numpy.finfo(tf.float64.as_numpy_dtype).eps)
+_DEFAULT_COLUMN_SCALE_FLOOR = _FLOAT64_EPS
+_SCALE_FLOOR_RULE = (
+    "max(sqrt(float64_eps) * max_weighted_column_norm, column_scale_floor)"
+)
+_STABILIZATION_POLICY_ID = "objective_preserving_column_scaled_augmented_ridge_v1"
+_SOLVER_BACKEND = "tensorflow.linalg.lstsq(fast=False)"
+_SOLVER_MODE = "objective_preserving_column_scaled_augmented_ridge"
+_TRANSFORMED_RIDGE_RULE = "rho_times_S_inverse_squared"
+_CONDITION_GATE_TARGET = "scaled_augmented_solved_system"
+_UNSCALED_CONDITION_ROLE = "diagnostic_only"
+
+
 @dataclass(frozen=True)
 class FixedTTFitConfig:
     """Declared fixed-rank weighted ridge ALS configuration."""
@@ -38,6 +51,9 @@ class FixedTTFitConfig:
     condition_number_veto: float
     holdout_tolerance: float
     dtype: tf.DType = tf.float64
+    stabilization_policy_id: str = _STABILIZATION_POLICY_ID
+    solver_backend: str = _SOLVER_BACKEND
+    column_scale_floor: float = _DEFAULT_COLUMN_SCALE_FLOOR
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "ranks", tuple(int(rank) for rank in self.ranks))
@@ -69,14 +85,26 @@ class FixedTTFitConfig:
             "condition_number_warning",
             "condition_number_veto",
             "holdout_tolerance",
+            "column_scale_floor",
         ):
             value = float(getattr(self, name))
             if not math.isfinite(value):
                 raise ValueError(f"{name} must be finite")
             if value < 0.0:
                 raise ValueError(f"{name} must be nonnegative")
+            object.__setattr__(self, name, value)
         if self.condition_number_warning <= 0.0 or self.condition_number_veto <= 0.0:
             raise ValueError("condition-number thresholds must be positive")
+        if self.column_scale_floor <= 0.0:
+            raise ValueError("column_scale_floor must be positive")
+        stabilization_policy_id = str(self.stabilization_policy_id)
+        if not stabilization_policy_id.strip():
+            raise ValueError("stabilization_policy_id must be nonempty")
+        object.__setattr__(self, "stabilization_policy_id", stabilization_policy_id)
+        solver_backend = str(self.solver_backend)
+        if solver_backend != _SOLVER_BACKEND:
+            raise ValueError(f"solver_backend must be {_SOLVER_BACKEND!r}")
+        object.__setattr__(self, "solver_backend", solver_backend)
 
 
 @dataclass(frozen=True)
@@ -178,6 +206,18 @@ class _CoreUpdateSystem:
     diagnostics: Mapping[str, object]
 
 
+@dataclass(frozen=True)
+class _ScaledAugmentedSolveResult:
+    solution: tf.Tensor
+    column_scales: tf.Tensor
+    raw_column_norms: tf.Tensor
+    scale_floor: tf.Tensor
+    scaled_augmented_matrix: tf.Tensor
+    scaled_augmented_rhs: tf.Tensor
+    scaled_augmented_condition_number: float
+    diagnostics: Mapping[str, object]
+
+
 class FixedTTFitter:
     """Fixed-rank weighted ridge ALS fitter with replayable branch manifests."""
 
@@ -189,6 +229,7 @@ class FixedTTFitter:
         initial_cores: Sequence[TTCore | tf.Tensor],
         branch_seed: int | str,
         measure_convention: MeasureConvention,
+        initialization_rule: str = "supplied_initial_cores",
     ) -> FixedTTFitResult:
         if not isinstance(product_basis, ProductBasis):
             raise TypeError("product_basis must be a ProductBasis")
@@ -199,6 +240,9 @@ class FixedTTFitter:
         if measure_convention != product_basis.convention:
             raise ValueError(f"measure_convention: {HighDimStatus.MEASURE_MISMATCH.value}")
         assert_density_matches_mass(measure_convention)
+        initialization_rule = str(initialization_rule)
+        if not initialization_rule.strip():
+            raise ValueError("initialization_rule must be nonempty")
         self._validate_config_for_basis(product_basis, config)
         self._validate_batch_dimension(product_basis, samples)
         cores = list(
@@ -244,6 +288,7 @@ class FixedTTFitter:
                         branch_seed=branch_seed,
                         measure_convention=measure_convention,
                         initial_core_hash=initial_core_hash,
+                        initialization_rule=initialization_rule,
                         update_records=tuple(update_records),
                         environment_rebuild_hashes=tuple(environment_rebuild_hashes),
                         status=status,
@@ -292,6 +337,7 @@ class FixedTTFitter:
             branch_seed=branch_seed,
             measure_convention=measure_convention,
             initial_core_hash=initial_core_hash,
+            initialization_rule=initialization_rule,
             update_records=tuple(update_records),
             environment_rebuild_hashes=tuple(environment_rebuild_hashes),
             status=status,
@@ -383,12 +429,60 @@ class FixedTTFitter:
                 sweep_index=sweep_index,
                 termination_reason="nonfinite_normal_equations",
             )
-        condition_number = _condition_number(normal)
+        unscaled_condition_number = _condition_number(normal)
+        try:
+            solve_result = _solve_scaled_augmented_ridge(
+                design=design,
+                target_values=target_values,
+                weights=weights,
+                ridge=config.ridge,
+                column_scale_floor=config.column_scale_floor,
+                stabilization_policy_id=config.stabilization_policy_id,
+                solver_backend=config.solver_backend,
+            )
+        except Exception:
+            return cores[core_index], {
+                **gate,
+                "condition_number": "unavailable",
+                "condition_warning": False,
+                "condition_number_warning": float(config.condition_number_warning),
+                "condition_number_veto": float(config.condition_number_veto),
+                "condition_number_semantics": "scaled_augmented_solve_condition",
+                "unscaled_normal_condition_number": _finite_number_or_text(
+                    unscaled_condition_number
+                ),
+                "unscaled_normal_condition_warning": bool(
+                    unscaled_condition_number > config.condition_number_warning
+                ),
+                "unscaled_normal_condition_veto": bool(
+                    (not math.isfinite(unscaled_condition_number))
+                    or unscaled_condition_number > config.condition_number_veto
+                ),
+                **_stabilization_policy_payload(config),
+                "status": HighDimStatus.CONDITION_NUMBER_VETO.value,
+                "core_index": core_index,
+                "sweep_index": sweep_index,
+                "termination_reason": "scaled_augmented_lstsq_failure",
+                "stop_condition_triggered": HighDimStatus.CONDITION_NUMBER_VETO.value,
+            }
+        condition_number = solve_result.scaled_augmented_condition_number
         condition_record = {
             "condition_number": _finite_number_or_text(condition_number),
             "condition_warning": bool(condition_number > config.condition_number_warning),
             "condition_number_warning": float(config.condition_number_warning),
             "condition_number_veto": float(config.condition_number_veto),
+            "condition_number_semantics": "scaled_augmented_solve_condition",
+            "unscaled_normal_condition_number": _finite_number_or_text(
+                unscaled_condition_number
+            ),
+            "unscaled_normal_condition_warning": bool(
+                unscaled_condition_number > config.condition_number_warning
+            ),
+            "unscaled_normal_condition_veto": bool(
+                (not math.isfinite(unscaled_condition_number))
+                or unscaled_condition_number > config.condition_number_veto
+            ),
+            **solve_result.diagnostics,
         }
         if (not math.isfinite(condition_number)) or condition_number > config.condition_number_veto:
             return cores[core_index], {
@@ -397,21 +491,10 @@ class FixedTTFitter:
                 "status": HighDimStatus.CONDITION_NUMBER_VETO.value,
                 "core_index": core_index,
                 "sweep_index": sweep_index,
-                "termination_reason": "condition_number_veto",
+                "termination_reason": "scaled_augmented_condition_number_veto",
                 "stop_condition_triggered": HighDimStatus.CONDITION_NUMBER_VETO.value,
             }
-        try:
-            solution = tf.linalg.solve(normal, tf.reshape(rhs, [-1, 1]))[:, 0]
-        except Exception:
-            return cores[core_index], {
-                **gate,
-                **condition_record,
-                "status": HighDimStatus.CONDITION_NUMBER_VETO.value,
-                "core_index": core_index,
-                "sweep_index": sweep_index,
-                "termination_reason": "solve_failure",
-                "stop_condition_triggered": HighDimStatus.CONDITION_NUMBER_VETO.value,
-            }
+        solution = solve_result.solution
         if not bool(tf.reduce_all(tf.math.is_finite(solution)).numpy()):
             return cores[core_index], _failed_update_record(
                 status=HighDimStatus.NONFINITE_VALUE,
@@ -432,7 +515,8 @@ class FixedTTFitter:
             "sweep_index": sweep_index,
             "termination_reason": "core_update_accepted",
             "stop_condition_triggered": "none",
-            "solver_backend": "tensorflow.linalg.solve",
+            "solver_backend": config.solver_backend,
+            "solver_mode": _SOLVER_MODE,
         }
 
     def _build_design_matrix(
@@ -520,7 +604,7 @@ class FixedTTFitter:
     ) -> None:
         if len(config.ranks) != product_basis.dimension + 1:
             raise ValueError(f"ranks: {HighDimStatus.INVALID_SHAPE.value}")
-        if sorted(config.sweep_order) != list(range(product_basis.dimension)):
+        if not _is_valid_sweep_order(config.sweep_order, product_basis.dimension):
             raise ValueError(f"sweep_order: {HighDimStatus.INVALID_SHAPE.value}")
 
     def _validate_batch_dimension(
@@ -555,6 +639,7 @@ class FixedTTFitter:
         branch_seed: int | str,
         measure_convention: MeasureConvention,
         initial_core_hash: str,
+        initialization_rule: str,
         update_records: tuple[Mapping[str, object], ...],
         environment_rebuild_hashes: tuple[str, ...],
         status: HighDimStatus,
@@ -579,13 +664,20 @@ class FixedTTFitter:
                 "coordinate_order": tuple(range(product_basis.dimension)),
                 "max_sweeps": int(config.max_sweeps),
                 "initial_core_hash": initial_core_hash,
-                "initialization_rule": "supplied_initial_cores",
+                "initialization_rule": initialization_rule,
                 "fitted_cores": tuple(core.values for core in cores),
                 "per_core_update_statuses": tuple(dict(record) for record in update_records),
                 "environment_rebuild_hashes": environment_rebuild_hashes,
-                "stabilization_choices": {"ridge": float(config.ridge)},
+                "stabilization_choices": _stabilization_policy_payload(config),
+                "stabilization_policy": _stabilization_policy_payload(config),
+                "stabilization_policy_id": config.stabilization_policy_id,
+                "objective_preserving_column_scaling": True,
+                "column_scale_floor": float(config.column_scale_floor),
+                "transformed_ridge_rule": _TRANSFORMED_RIDGE_RULE,
+                "condition_number_gate_target": _CONDITION_GATE_TARGET,
+                "original_unscaled_normal_condition_role": _UNSCALED_CONDITION_ROLE,
                 "complexity_budgets": _config_budget_payload(config),
-                "solver_backend": "tensorflow.linalg.solve",
+                "solver_backend": config.solver_backend,
                 "deterministic_seed": branch_seed,
                 "status": status.value,
                 "termination_reason": termination_reason,
@@ -616,6 +708,7 @@ class FixedTTFitter:
             "ridge": float(config.ridge),
             "sweep_count": int(config.max_sweeps),
             "sweep_order": config.sweep_order,
+            "initialization_rule": initialization_rule,
             "coordinate_order": tuple(range(product_basis.dimension)),
             "coordinate_order_sensitivity_reported": True,
             "environment_rebuild_count": len(environment_rebuild_hashes),
@@ -624,6 +717,19 @@ class FixedTTFitter:
             "fit_residual": fit_residual,
             "holdout_residual": holdout_residual,
             "fixed_branch_only": True,
+            "solver_backend": config.solver_backend,
+            "solver_mode": _SOLVER_MODE,
+            "stabilization_policy": _stabilization_policy_payload(config),
+            "stabilization_diagnostics_summary": _stabilization_diagnostics_summary(
+                update_records
+            ),
+            "stabilization_policy_id": config.stabilization_policy_id,
+            "objective_preserving_column_scaling": True,
+            "column_scale_floor": float(config.column_scale_floor),
+            "transformed_ridge_rule": _TRANSFORMED_RIDGE_RULE,
+            "condition_number_gate_target": _CONDITION_GATE_TARGET,
+            "original_unscaled_normal_condition_role": _UNSCALED_CONDITION_ROLE,
+            "scale_floor_rule": _SCALE_FLOOR_RULE,
         }
         return FixedTTFitResult(
             fitted_tt=fitted_tt,
@@ -712,8 +818,276 @@ def _normal_equations(
     return normal, rhs
 
 
+def _stabilization_policy_payload(config: FixedTTFitConfig) -> Mapping[str, object]:
+    return {
+        "stabilization_policy_id": config.stabilization_policy_id,
+        "solver_backend": config.solver_backend,
+        "solver_mode": _SOLVER_MODE,
+        "objective_preserving_column_scaling": True,
+        "column_scale_floor": float(config.column_scale_floor),
+        "column_scale_floor_rule": _SCALE_FLOOR_RULE,
+        "scale_floor_rule": _SCALE_FLOOR_RULE,
+        "transformed_ridge_rule": _TRANSFORMED_RIDGE_RULE,
+        "condition_number_gate_target": _CONDITION_GATE_TARGET,
+        "original_unscaled_normal_condition_role": _UNSCALED_CONDITION_ROLE,
+        "ridge": float(config.ridge),
+        "ridge_coordinate_system": "u_coordinates",
+        "ridge_metric_coordinate_system": "scaled_z_coordinates",
+    }
+
+
+def _stabilization_diagnostics_summary(
+    records: Sequence[Mapping[str, object]],
+) -> Mapping[str, object]:
+    records_tuple = tuple(records)
+    scaled_conditions: list[float] = []
+    scaled_condition_inf = False
+    unscaled_conditions: list[float] = []
+    unscaled_condition_inf = False
+    scale_mins: list[float] = []
+    scale_maxes: list[float] = []
+    scale_spreads: list[float] = []
+    column_hashes = []
+    zero_counts = []
+    ridge_metric_mins: list[float] = []
+    ridge_metric_maxes: list[float] = []
+    first_policy = None
+    for record in records_tuple:
+        condition = record.get("transformed_system_condition_number")
+        if isinstance(condition, (int, float)):
+            scaled_conditions.append(float(condition))
+        elif condition == "inf":
+            scaled_condition_inf = True
+        unscaled_condition = record.get("unscaled_normal_condition_number")
+        if isinstance(unscaled_condition, (int, float)):
+            unscaled_conditions.append(float(unscaled_condition))
+        elif unscaled_condition == "inf":
+            unscaled_condition_inf = True
+        for key, target in (
+            ("column_scale_min", scale_mins),
+            ("column_scale_max", scale_maxes),
+            ("column_scale_spread", scale_spreads),
+        ):
+            value = record.get(key)
+            if isinstance(value, (int, float)):
+                target.append(float(value))
+        column_hash = record.get("column_scale_hash")
+        if column_hash is not None:
+            column_hashes.append(str(column_hash))
+        zero_count = record.get("raw_column_norm_zero_count")
+        if isinstance(zero_count, int):
+            zero_counts.append(int(zero_count))
+        ridge_summary = record.get("ridge_metric_summary")
+        if isinstance(ridge_summary, Mapping):
+            min_diag = ridge_summary.get("min_diagonal")
+            max_diag = ridge_summary.get("max_diagonal")
+            if isinstance(min_diag, (int, float)):
+                ridge_metric_mins.append(float(min_diag))
+            if isinstance(max_diag, (int, float)):
+                ridge_metric_maxes.append(float(max_diag))
+        if first_policy is None and isinstance(record.get("stabilization_policy"), Mapping):
+            first_policy = dict(record["stabilization_policy"])
+    return {
+        "available": bool(records_tuple),
+        "record_count": len(records_tuple),
+        "stabilized_record_count": len(column_hashes),
+        "stabilization_policy": first_policy,
+        "transformed_system_condition_number_max": (
+            "inf"
+            if scaled_condition_inf
+            else max(scaled_conditions)
+            if scaled_conditions
+            else None
+        ),
+        "original_unscaled_normal_condition_number_max": (
+            "inf"
+            if unscaled_condition_inf
+            else max(unscaled_conditions)
+            if unscaled_conditions
+            else None
+        ),
+        "original_unscaled_normal_condition_role": _UNSCALED_CONDITION_ROLE,
+        "condition_number_gate_target": _CONDITION_GATE_TARGET,
+        "column_scale_min": min(scale_mins) if scale_mins else None,
+        "column_scale_max": max(scale_maxes) if scale_maxes else None,
+        "column_scale_spread_max": max(scale_spreads) if scale_spreads else None,
+        "column_scale_hashes": tuple(column_hashes),
+        "raw_column_norm_zero_count_total": sum(zero_counts),
+        "ridge_metric_summary": {
+            "transformed_ridge_rule": _TRANSFORMED_RIDGE_RULE,
+            "coordinate_system": "scaled_z_coordinates",
+            "min_diagonal": min(ridge_metric_mins) if ridge_metric_mins else None,
+            "max_diagonal": max(ridge_metric_maxes) if ridge_metric_maxes else None,
+        },
+    }
+
+
+def _weighted_column_scales(
+    design: tf.Tensor,
+    weights: tf.Tensor,
+    column_scale_floor: float,
+) -> tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
+    design = tf.convert_to_tensor(design, dtype=tf.float64)
+    weights = tf.convert_to_tensor(weights, dtype=tf.float64)
+    raw_norms = tf.sqrt(
+        tf.reduce_sum(
+            tf.reshape(weights, [-1, 1]) * tf.square(design),
+            axis=0,
+        )
+    )
+    eps = tf.constant(float(column_scale_floor), dtype=tf.float64)
+    max_norm = tf.reduce_max(raw_norms)
+    float64_eps = tf.constant(_FLOAT64_EPS, dtype=tf.float64)
+    floor_from_max = tf.sqrt(float64_eps) * max_norm
+    scale_floor = tf.maximum(floor_from_max, eps)
+    scales = tf.maximum(raw_norms, scale_floor)
+    return scales, raw_norms, scale_floor
+
+
+def _solve_scaled_augmented_ridge(
+    *,
+    design: tf.Tensor,
+    target_values: tf.Tensor,
+    weights: tf.Tensor,
+    ridge: float,
+    column_scale_floor: float = _DEFAULT_COLUMN_SCALE_FLOOR,
+    stabilization_policy_id: str = _STABILIZATION_POLICY_ID,
+    solver_backend: str = _SOLVER_BACKEND,
+) -> _ScaledAugmentedSolveResult:
+    design = tf.convert_to_tensor(design, dtype=tf.float64)
+    target_values = tf.convert_to_tensor(target_values, dtype=tf.float64)
+    weights = tf.convert_to_tensor(weights, dtype=tf.float64)
+    if design.shape.rank != 2 or target_values.shape.rank != 1 or weights.shape.rank != 1:
+        raise ValueError("scaled augmented solve requires matrix/vector inputs")
+    if int(design.shape[0]) != int(target_values.shape[0]) or int(design.shape[0]) != int(weights.shape[0]):
+        raise ValueError("scaled augmented solve row mismatch")
+    if not bool(
+        tf.reduce_all(tf.math.is_finite(design)).numpy()
+        and tf.reduce_all(tf.math.is_finite(target_values)).numpy()
+        and tf.reduce_all(tf.math.is_finite(weights)).numpy()
+    ):
+        raise ValueError("scaled augmented solve nonfinite input")
+    if bool(tf.reduce_any(weights < 0.0).numpy()):
+        raise ValueError("scaled augmented solve negative weights")
+    ridge_value = float(ridge)
+    if ridge_value < 0.0 or not math.isfinite(ridge_value):
+        raise ValueError("scaled augmented solve ridge must be finite nonnegative")
+    floor_value = float(column_scale_floor)
+    if floor_value <= 0.0 or not math.isfinite(floor_value):
+        raise ValueError("scaled augmented solve column scale floor must be finite positive")
+    policy_id = str(stabilization_policy_id)
+    if not policy_id.strip():
+        raise ValueError("scaled augmented solve policy id must be nonempty")
+    if str(solver_backend) != _SOLVER_BACKEND:
+        raise ValueError(f"scaled augmented solve backend must be {_SOLVER_BACKEND!r}")
+
+    column_scales, raw_column_norms, scale_floor = _weighted_column_scales(
+        design,
+        weights,
+        floor_value,
+    )
+    scaled_design = design / tf.reshape(column_scales, [1, -1])
+    sqrt_weights = tf.sqrt(weights)
+    weighted_scaled_design = scaled_design * tf.reshape(sqrt_weights, [-1, 1])
+    weighted_target = target_values * sqrt_weights
+    n_cols = int(design.shape[1])
+    ridge_sqrt = tf.sqrt(tf.constant(ridge_value, dtype=tf.float64))
+    ridge_block = tf.linalg.diag(ridge_sqrt / column_scales)
+    augmented_matrix = tf.concat([weighted_scaled_design, ridge_block], axis=0)
+    augmented_rhs = tf.concat(
+        [
+            tf.reshape(weighted_target, [-1, 1]),
+            tf.zeros([n_cols, 1], dtype=tf.float64),
+        ],
+        axis=0,
+    )
+    if not bool(
+        tf.reduce_all(tf.math.is_finite(augmented_matrix)).numpy()
+        and tf.reduce_all(tf.math.is_finite(augmented_rhs)).numpy()
+    ):
+        raise ValueError("scaled augmented solve nonfinite augmented system")
+    v_solution = tf.linalg.lstsq(augmented_matrix, augmented_rhs, fast=False)[:, 0]
+    solution = v_solution / column_scales
+    singular_values = tf.linalg.svd(augmented_matrix, compute_uv=False)
+    condition_number = _condition_number_from_singular_values(singular_values)
+    min_scale = float(tf.reduce_min(column_scales).numpy())
+    max_scale = float(tf.reduce_max(column_scales).numpy())
+    scale_spread = float("inf") if min_scale <= 0.0 else max_scale / min_scale
+    ridge_metric = ridge_value / tf.square(column_scales)
+    ridge_metric_min = float(tf.reduce_min(ridge_metric).numpy())
+    ridge_metric_max = float(tf.reduce_max(ridge_metric).numpy())
+    diagnostics = {
+        "stabilization_policy_id": policy_id,
+        "stabilization_policy": {
+            "stabilization_policy_id": policy_id,
+            "solver_backend": _SOLVER_BACKEND,
+            "solver_mode": _SOLVER_MODE,
+            "objective_preserving_column_scaling": True,
+            "column_scale_floor": floor_value,
+            "column_scale_floor_rule": _SCALE_FLOOR_RULE,
+            "transformed_ridge_rule": _TRANSFORMED_RIDGE_RULE,
+            "condition_number_gate_target": _CONDITION_GATE_TARGET,
+            "original_unscaled_normal_condition_role": _UNSCALED_CONDITION_ROLE,
+            "ridge_coordinate_system": "u_coordinates",
+            "ridge_metric_coordinate_system": "scaled_z_coordinates",
+        },
+        "solver_backend": _SOLVER_BACKEND,
+        "solver_mode": _SOLVER_MODE,
+        "objective_preserving_column_scaling": True,
+        "scale_floor": float(scale_floor.numpy()),
+        "scale_floor_rule": _SCALE_FLOOR_RULE,
+        "column_scale_floor": floor_value,
+        "column_scale_min": min_scale,
+        "column_scale_max": max_scale,
+        "column_scale_spread": scale_spread,
+        "column_scale_hash": _hash_tensor_or_none(
+            "fixed_tt_fit_column_scales.v1",
+            column_scales,
+        ),
+        "raw_column_norm_min": float(tf.reduce_min(raw_column_norms).numpy()),
+        "raw_column_norm_max": float(tf.reduce_max(raw_column_norms).numpy()),
+        "raw_column_norm_zero_count": int(
+            tf.reduce_sum(tf.cast(raw_column_norms == 0.0, tf.int32)).numpy()
+        ),
+        "ridge_metric_summary": {
+            "ridge": ridge_value,
+            "transformed_ridge_rule": _TRANSFORMED_RIDGE_RULE,
+            "coordinate_system": "scaled_z_coordinates",
+            "min_diagonal": ridge_metric_min,
+            "max_diagonal": ridge_metric_max,
+        },
+        "transformed_system_condition_number": _finite_number_or_text(condition_number),
+        "scaled_augmented_condition_number": _finite_number_or_text(condition_number),
+        "scaled_augmented_rows": int(augmented_matrix.shape[0]),
+        "scaled_augmented_cols": int(augmented_matrix.shape[1]),
+        "condition_number_gate_target": _CONDITION_GATE_TARGET,
+        "original_unscaled_normal_condition_role": _UNSCALED_CONDITION_ROLE,
+        "transformed_ridge_rule": _TRANSFORMED_RIDGE_RULE,
+        "ridge_coordinate_system": "u_coordinates",
+        "nonclaims": (
+            "stable solve is not a Phase 6 diagnostic pass",
+            "stable solve is fixed_hmc_adaptation not source_faithful",
+        ),
+    }
+    return _ScaledAugmentedSolveResult(
+        solution=solution,
+        column_scales=column_scales,
+        raw_column_norms=raw_column_norms,
+        scale_floor=scale_floor,
+        scaled_augmented_matrix=augmented_matrix,
+        scaled_augmented_rhs=augmented_rhs,
+        scaled_augmented_condition_number=condition_number,
+        diagnostics=diagnostics,
+    )
+
+
 def _condition_number(matrix: tf.Tensor) -> float:
     singular_values = tf.linalg.svd(matrix, compute_uv=False)
+    return _condition_number_from_singular_values(singular_values)
+
+
+def _condition_number_from_singular_values(singular_values: tf.Tensor) -> float:
+    singular_values = tf.reshape(tf.convert_to_tensor(singular_values, dtype=tf.float64), [-1])
     min_value = float(tf.reduce_min(singular_values).numpy())
     max_value = float(tf.reduce_max(singular_values).numpy())
     if min_value <= 0.0 or not math.isfinite(min_value) or not math.isfinite(max_value):
@@ -822,6 +1196,20 @@ def _config_budget_payload(config: FixedTTFitConfig) -> Mapping[str, object]:
         "dense_matrix_byte_budget": int(config.dense_matrix_byte_budget),
         "normal_matrix_byte_budget": int(config.normal_matrix_byte_budget),
     }
+
+
+def _is_valid_sweep_order(sweep_order: tuple[int, ...], dimension: int) -> bool:
+    dim = int(dimension)
+    order = tuple(int(axis) for axis in sweep_order)
+    if dim <= 0 or not order:
+        return False
+    if any(axis < 0 or axis >= dim for axis in order):
+        return False
+    legacy_permutation = tuple(range(dim))
+    if len(order) == dim and sorted(order) == list(legacy_permutation):
+        return True
+    canonical_alternating = legacy_permutation + tuple(reversed(legacy_permutation))
+    return order == canonical_alternating
 
 
 def _hash_tensor_or_none(version: str, value: tf.Tensor | None) -> str | None:

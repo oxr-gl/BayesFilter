@@ -1,0 +1,541 @@
+{
+  "diagnostic_scope": "p72_phase5a_smoke_real_gate_path_not_phase5_evidence",
+  "evidence_contract": {
+    "baseline_comparator": "Phase 4 schema-only P72 script output.",
+    "explanatory_only": [
+      "tiny deterministic smoke magnitudes",
+      "synthetic row pass status"
+    ],
+    "nonclaims": [
+      "no repaired lower-gate pass claim",
+      "no d18 correctness claim",
+      "no rank/degree promotion",
+      "no scaling claim",
+      "no HMC readiness claim",
+      "no adaptive Zhao-Cui parity claim",
+      "no source-faithful claim for guard/audit/line gates"
+    ],
+    "primary_criterion": "Smoke JSON avoids the Phase 4 schema-only sentinel, uses the P72 gate helpers, records audit exclusion, and is explicitly labeled not Phase 5 evidence.",
+    "question": "Does the P72 script default gate path now emit a non-schema bounded smoke JSON artifact?",
+    "veto_diagnostics": [
+      "schema-only sentinel present",
+      "audit cloud used for training",
+      "missing direct line target evaluation",
+      "missing full normalizer gate",
+      "missing provenance hashes",
+      "low-level solver veto lowered from 1e14",
+      "source-faithfulness overclaim"
+    ]
+  },
+  "gate_summary": {
+    "failed_row_labels": [],
+    "nonclaims": [
+      "no repaired lower-gate pass claim",
+      "no d18 correctness claim",
+      "no rank/degree promotion",
+      "no scaling claim",
+      "no HMC readiness claim",
+      "no adaptive Zhao-Cui parity claim",
+      "no source-faithful claim for guard/audit/line gates"
+    ],
+    "overall_status": "pass",
+    "phase5_diagnostic_executed": false,
+    "schema_only_sentinel_present": false,
+    "smoke_only_not_phase5_evidence": true
+  },
+  "master_program": "docs/plans/bayesfilter-highdim-zhao-cui-p72-support-certified-fixed-fit-master-program-2026-06-17.md",
+  "metadata_date": "2026-06-17",
+  "nonclaims": [
+    "no repaired lower-gate pass claim",
+    "no d18 correctness claim",
+    "no rank/degree promotion",
+    "no scaling claim",
+    "no HMC readiness claim",
+    "no adaptive Zhao-Cui parity claim",
+    "no source-faithful claim for guard/audit/line gates"
+  ],
+  "rows": {
+    "p72_smoke_row": {
+      "audit_point_count": 2,
+      "condition_effective_rank_gate": {
+        "condition_number_admission": 10000000000.0,
+        "condition_number_max": 100000.0,
+        "effective_rank_min": 2.0,
+        "effective_rank_threshold": 1.0,
+        "low_level_solver_veto_unchanged": 100000000000000.0,
+        "p72_gate_role": "wrapper_admission_not_low_level_solver_abort",
+        "reasons": [],
+        "status": "pass"
+      },
+      "fit_point_count": 3,
+      "gate_summary": {
+        "condition_effective_rank_gate": {
+          "condition_number_admission": 10000000000.0,
+          "condition_number_max": 100000.0,
+          "effective_rank_min": 2.0,
+          "effective_rank_threshold": 1.0,
+          "low_level_solver_veto_unchanged": 100000000000000.0,
+          "p72_gate_role": "wrapper_admission_not_low_level_solver_abort",
+          "reasons": [],
+          "status": "pass"
+        },
+        "line_gate": {
+          "direct_target_evaluation_required": true,
+          "endpoint_growth_ratio_max": 1.375,
+          "line_point_count": 9,
+          "line_point_hash": "1c0b79270efb62179efd2b59649444132b8298c459dbe34909a78c2201f3c4f0",
+          "line_prediction_hash": "4dfdc3b72e8272f4a2990bd297893b614851b573f76a3d7d777d5518e2c17ebc",
+          "line_prediction_max_abs": 2.75,
+          "line_residual_max_abs": 0.0,
+          "line_residual_rms": 0.0,
+          "line_start_indices_available": true,
+          "line_target_hash": "595575dff9a1bfa2c1997b633c21a6cd7eecdb9a5ce8d60ac6aece7633ba7bcd",
+          "reasons": [],
+          "status": "pass",
+          "target_scale": 1.0
+        },
+        "missing_provenance_fields": [],
+        "nonclaims": [
+          "gate pass is not d18 validation",
+          "gate pass is not HMC readiness",
+          "gate pass is not adaptive Zhao-Cui source-faithful parity"
+        ],
+        "normalizer_gate": {
+          "defensive_normalizer": 1.0,
+          "defensive_tau": 1e-08,
+          "fit_mass_fraction": 0.75,
+          "log_transport_normalizer": 0.0,
+          "mixture_normalizer": 2.0,
+          "reasons": [],
+          "sqrt_square_normalizer": 1.5,
+          "status": "pass",
+          "thresholds": {
+            "fit_mass_fraction_min": 1e-06,
+            "log_normalizer_abs_bound": 1000000.0,
+            "sqrt_square_normalizer_floor": 1e-14
+          }
+        },
+        "policy": {
+          "audit_seeds": {
+            "step1_holdout_prior": 7301,
+            "step1_holdout_process": 7401,
+            "step1_replay_prior": 7311,
+            "step1_replay_process": 7501,
+            "step2_holdout_process": 7402,
+            "step2_replay_process": 7502
+          },
+          "classification": "fixed_hmc_adaptation",
+          "effective_rank_min": 1.0,
+          "effective_rank_tol": 1e-12,
+          "fit_mass_fraction_min": 1e-06,
+          "fit_ridge": 1e-10,
+          "guard_seeds": {
+            "step1_prior": 7321,
+            "step1_process": 7601,
+            "step2_process": 7602
+          },
+          "guard_weight_alpha": 1.0,
+          "line_fractions": [
+            0.0,
+            0.25,
+            0.5,
+            0.75,
+            1.0
+          ],
+          "line_growth_rel_veto": 1000.0,
+          "log_normalizer_abs_bound": 1000000.0,
+          "low_level_condition_number_veto": 100000000000000.0,
+          "nonclaims": [
+            "not a source-faithful adaptive Zhao-Cui reproduction",
+            "focused tests are not repaired diagnostic evidence",
+            "no d18 validation claim",
+            "no HMC readiness claim"
+          ],
+          "p72_condition_number_admission": 10000000000.0,
+          "policy_id": "p72_support_certified_fixed_fit_v1",
+          "residual_max_rel_veto": 1000.0,
+          "residual_rms_rel_veto": 10.0,
+          "shape_penalty_weight": 0.0,
+          "source_faithfulness_status": "extension_or_invention_for_guard_audit_gates",
+          "sqrt_square_normalizer_floor": 1e-14
+        },
+        "provenance": {
+          "audit_cloud_hash": "3d31aa2fd331ad54551f0154e82e4ab47c43b2c19c81bc3aa007c15f8ffd2f82",
+          "audit_exclusion_provenance": "audit clouds and audit-line points excluded from coefficient selection",
+          "branch_identity": "p72-smoke-fixed-branch",
+          "classification": "fixed_hmc_adaptation",
+          "fit_cloud_hash": "5ebee8163454c1c82a3859b68545178c4c52add8b99eae0f4fb0979af5b827fc",
+          "frame_hash": "p72-smoke-frame",
+          "guard_cloud_hash": "7e14bbd476f922b6b62d1df639369135a71e6657514b0b1eb9b54db9c38e830c",
+          "line_hash": "35e93f9d4a290b878a86f39e7aef6beb86c9eaeb4fd2cf8b381b6925dda07b79",
+          "nonclaims": [
+            "P72 guard/audit/line gates are not source-faithful Zhao-Cui operations",
+            "hash provenance is not validation evidence"
+          ],
+          "policy_id": "p72_provenance_manifest.v1",
+          "shift_constant": 0.0,
+          "target_hash": "1a525b6e89f9987de164c34dd573a89e2d3bb4247d23550e7008cd73ca686b3b"
+        },
+        "rank_activity": {
+          "smoke_only": true,
+          "status": "ok"
+        },
+        "reasons": [],
+        "residual_gates": {
+          "max_relative": 0.0,
+          "rms_relative": 0.0
+        },
+        "status": "PASS_P72_SUPPORT_CERTIFIED_LOWER_GATE",
+        "support_gates": {
+          "fit": {
+            "clip_fraction": 0.0,
+            "effective_support_role": "finite_cloud_diagnostic_not_continuum_support",
+            "fit_leave_one_out_distance_max": 1.118033988749895,
+            "fit_point_count": 3,
+            "fit_point_hash": "1ffa1978a7c1727ca4f6a77824621d89c234f2fd4977cdb94d5cb6c96ea88ce1",
+            "local_max_abs_before_clip": 1.0,
+            "nearest_fit_distance_max": 0.0,
+            "nearest_fit_distance_median": 0.0,
+            "nearest_fit_distance_min": 0.0,
+            "point_any_saturated_fraction": 0.6666666666666666,
+            "point_count": 3,
+            "point_hash": "579ac88442459d9fd93faee22e74618eb21ffe55924b18587a32f4a65129dad3",
+            "reasons": [],
+            "role": "fit",
+            "status": "pass",
+            "warnings": []
+          },
+          "guard": {
+            "clip_fraction": 0.0,
+            "effective_support_role": "finite_cloud_diagnostic_not_continuum_support",
+            "fit_leave_one_out_distance_max": 1.118033988749895,
+            "fit_point_count": 3,
+            "fit_point_hash": "1ffa1978a7c1727ca4f6a77824621d89c234f2fd4977cdb94d5cb6c96ea88ce1",
+            "local_max_abs_before_clip": 1.0,
+            "nearest_fit_distance_max": 0.3535533905932738,
+            "nearest_fit_distance_median": 0.3535533905932738,
+            "nearest_fit_distance_min": 0.3535533905932738,
+            "point_any_saturated_fraction": 0.0,
+            "point_count": 2,
+            "point_hash": "2c3189ba58a0896f7552876675c8bd49ab42c990518af45b4f7d2936d5045536",
+            "reasons": [],
+            "role": "guard",
+            "status": "pass",
+            "warnings": []
+          },
+          "holdout": {
+            "clip_fraction": 0.0,
+            "effective_support_role": "finite_cloud_diagnostic_not_continuum_support",
+            "fit_leave_one_out_distance_max": 1.118033988749895,
+            "fit_point_count": 3,
+            "fit_point_hash": "1ffa1978a7c1727ca4f6a77824621d89c234f2fd4977cdb94d5cb6c96ea88ce1",
+            "local_max_abs_before_clip": 1.0,
+            "nearest_fit_distance_max": 0.4123105625617661,
+            "nearest_fit_distance_median": 0.4123105625617661,
+            "nearest_fit_distance_min": 0.4123105625617661,
+            "point_any_saturated_fraction": 0.0,
+            "point_count": 2,
+            "point_hash": "d3b7c359d853bd388800f140d6e8e1365bc6b8a740b16548010730c072c98281",
+            "reasons": [],
+            "role": "holdout",
+            "status": "pass",
+            "warnings": []
+          },
+          "replay": {
+            "clip_fraction": 0.0,
+            "effective_support_role": "finite_cloud_diagnostic_not_continuum_support",
+            "fit_leave_one_out_distance_max": 1.118033988749895,
+            "fit_point_count": 3,
+            "fit_point_hash": "1ffa1978a7c1727ca4f6a77824621d89c234f2fd4977cdb94d5cb6c96ea88ce1",
+            "local_max_abs_before_clip": 1.0,
+            "nearest_fit_distance_max": 0.4123105625617661,
+            "nearest_fit_distance_median": 0.4123105625617661,
+            "nearest_fit_distance_min": 0.4123105625617661,
+            "point_any_saturated_fraction": 0.0,
+            "point_count": 2,
+            "point_hash": "e3ac67f0c1d0af48588e84fa76a0930df13320bf8759225f961185fbd1fb1e72",
+            "reasons": [],
+            "role": "replay",
+            "status": "pass",
+            "warnings": []
+          }
+        }
+      },
+      "guard_point_count": 2,
+      "label": "p72_smoke_row",
+      "line_gate": {
+        "direct_target_evaluation_required": true,
+        "endpoint_growth_ratio_max": 1.375,
+        "line_point_count": 9,
+        "line_point_hash": "1c0b79270efb62179efd2b59649444132b8298c459dbe34909a78c2201f3c4f0",
+        "line_prediction_hash": "4dfdc3b72e8272f4a2990bd297893b614851b573f76a3d7d777d5518e2c17ebc",
+        "line_prediction_max_abs": 2.75,
+        "line_residual_max_abs": 0.0,
+        "line_residual_rms": 0.0,
+        "line_start_indices_available": true,
+        "line_target_hash": "595575dff9a1bfa2c1997b633c21a6cd7eecdb9a5ce8d60ac6aece7633ba7bcd",
+        "reasons": [],
+        "status": "pass",
+        "target_scale": 1.0
+      },
+      "line_manifest": {
+        "duplicate_removal": "deterministic_exact_column_key_on_fixed_line_cloud",
+        "line_fractions": [
+          0.0,
+          0.25,
+          0.5,
+          0.75,
+          1.0
+        ],
+        "line_hash": "5e6e997f6d468a4e2a0b330bd473ff996352458246ff3e9fe4d90fd5d3c443e5",
+        "line_point_count": 9,
+        "line_start_indices": [
+          0,
+          0,
+          1,
+          0,
+          1,
+          0,
+          1,
+          0,
+          1
+        ],
+        "policy_id": "p72_guard_line_points.v1",
+        "raw_line_point_count": 15,
+        "selected_guard_indices": [
+          0,
+          1,
+          1
+        ]
+      },
+      "nonclaims": [
+        "no repaired lower-gate pass claim",
+        "no d18 correctness claim",
+        "no rank/degree promotion",
+        "no scaling claim",
+        "no HMC readiness claim",
+        "no adaptive Zhao-Cui parity claim",
+        "no source-faithful claim for guard/audit/line gates"
+      ],
+      "normalizer_gate": {
+        "defensive_normalizer": 1.0,
+        "defensive_tau": 1e-08,
+        "fit_mass_fraction": 0.75,
+        "log_transport_normalizer": 0.0,
+        "mixture_normalizer": 2.0,
+        "reasons": [],
+        "sqrt_square_normalizer": 1.5,
+        "status": "pass",
+        "thresholds": {
+          "fit_mass_fraction_min": 1e-06,
+          "log_normalizer_abs_bound": 1000000.0,
+          "sqrt_square_normalizer_floor": 1e-14
+        }
+      },
+      "provenance": {
+        "audit_cloud_hash": "3d31aa2fd331ad54551f0154e82e4ab47c43b2c19c81bc3aa007c15f8ffd2f82",
+        "audit_exclusion_provenance": "audit clouds and audit-line points excluded from coefficient selection",
+        "branch_identity": "p72-smoke-fixed-branch",
+        "classification": "fixed_hmc_adaptation",
+        "fit_cloud_hash": "5ebee8163454c1c82a3859b68545178c4c52add8b99eae0f4fb0979af5b827fc",
+        "frame_hash": "p72-smoke-frame",
+        "guard_cloud_hash": "7e14bbd476f922b6b62d1df639369135a71e6657514b0b1eb9b54db9c38e830c",
+        "line_hash": "35e93f9d4a290b878a86f39e7aef6beb86c9eaeb4fd2cf8b381b6925dda07b79",
+        "nonclaims": [
+          "P72 guard/audit/line gates are not source-faithful Zhao-Cui operations",
+          "hash provenance is not validation evidence"
+        ],
+        "policy_id": "p72_provenance_manifest.v1",
+        "shift_constant": 0.0,
+        "target_hash": "1a525b6e89f9987de164c34dd573a89e2d3bb4247d23550e7008cd73ca686b3b"
+      },
+      "smoke_only_not_phase5_evidence": true,
+      "status": "PASS_P72_SUPPORT_CERTIFIED_LOWER_GATE",
+      "support_gates": {
+        "fit": {
+          "clip_fraction": 0.0,
+          "effective_support_role": "finite_cloud_diagnostic_not_continuum_support",
+          "fit_leave_one_out_distance_max": 1.118033988749895,
+          "fit_point_count": 3,
+          "fit_point_hash": "1ffa1978a7c1727ca4f6a77824621d89c234f2fd4977cdb94d5cb6c96ea88ce1",
+          "local_max_abs_before_clip": 1.0,
+          "nearest_fit_distance_max": 0.0,
+          "nearest_fit_distance_median": 0.0,
+          "nearest_fit_distance_min": 0.0,
+          "point_any_saturated_fraction": 0.6666666666666666,
+          "point_count": 3,
+          "point_hash": "579ac88442459d9fd93faee22e74618eb21ffe55924b18587a32f4a65129dad3",
+          "reasons": [],
+          "role": "fit",
+          "status": "pass",
+          "warnings": []
+        },
+        "guard": {
+          "clip_fraction": 0.0,
+          "effective_support_role": "finite_cloud_diagnostic_not_continuum_support",
+          "fit_leave_one_out_distance_max": 1.118033988749895,
+          "fit_point_count": 3,
+          "fit_point_hash": "1ffa1978a7c1727ca4f6a77824621d89c234f2fd4977cdb94d5cb6c96ea88ce1",
+          "local_max_abs_before_clip": 1.0,
+          "nearest_fit_distance_max": 0.3535533905932738,
+          "nearest_fit_distance_median": 0.3535533905932738,
+          "nearest_fit_distance_min": 0.3535533905932738,
+          "point_any_saturated_fraction": 0.0,
+          "point_count": 2,
+          "point_hash": "2c3189ba58a0896f7552876675c8bd49ab42c990518af45b4f7d2936d5045536",
+          "reasons": [],
+          "role": "guard",
+          "status": "pass",
+          "warnings": []
+        },
+        "holdout": {
+          "clip_fraction": 0.0,
+          "effective_support_role": "finite_cloud_diagnostic_not_continuum_support",
+          "fit_leave_one_out_distance_max": 1.118033988749895,
+          "fit_point_count": 3,
+          "fit_point_hash": "1ffa1978a7c1727ca4f6a77824621d89c234f2fd4977cdb94d5cb6c96ea88ce1",
+          "local_max_abs_before_clip": 1.0,
+          "nearest_fit_distance_max": 0.4123105625617661,
+          "nearest_fit_distance_median": 0.4123105625617661,
+          "nearest_fit_distance_min": 0.4123105625617661,
+          "point_any_saturated_fraction": 0.0,
+          "point_count": 2,
+          "point_hash": "d3b7c359d853bd388800f140d6e8e1365bc6b8a740b16548010730c072c98281",
+          "reasons": [],
+          "role": "holdout",
+          "status": "pass",
+          "warnings": []
+        },
+        "replay": {
+          "clip_fraction": 0.0,
+          "effective_support_role": "finite_cloud_diagnostic_not_continuum_support",
+          "fit_leave_one_out_distance_max": 1.118033988749895,
+          "fit_point_count": 3,
+          "fit_point_hash": "1ffa1978a7c1727ca4f6a77824621d89c234f2fd4977cdb94d5cb6c96ea88ce1",
+          "local_max_abs_before_clip": 1.0,
+          "nearest_fit_distance_max": 0.4123105625617661,
+          "nearest_fit_distance_median": 0.4123105625617661,
+          "nearest_fit_distance_min": 0.4123105625617661,
+          "point_any_saturated_fraction": 0.0,
+          "point_count": 2,
+          "point_hash": "e3ac67f0c1d0af48588e84fa76a0930df13320bf8759225f961185fbd1fb1e72",
+          "reasons": [],
+          "role": "replay",
+          "status": "pass",
+          "warnings": []
+        }
+      },
+      "training_batch_manifest": {
+        "alpha_guard": 1.0,
+        "audit_exclusion_provenance": "Z_audit never concatenated into FixedTTFitSampleBatch",
+        "audit_point_count_used_for_training": 0,
+        "fit_point_count": 3,
+        "fit_point_hash": "27aea0e3d39e5a07e057f0db36b24235fb707ce28a579c8c74fcc64096174510",
+        "fit_target_hash": "e3b3eca829963504f445653ba1175e5369ca36ce887d9403aa7880b14926e875",
+        "fit_weight_hash": "f98708969a7f071aac9b92f7a683d52dbcfae7b09154028cbb3881ea2bdcc50f",
+        "fit_weight_mass": 1.0,
+        "guard_point_count": 2,
+        "guard_point_hash": "17ef1b5fb795455b432c98479069cd3006731a4d23295e29edceabfa85a2664b",
+        "guard_target_hash": "99a1660735073659b561aef20fdeef107e3828b047fb5ce9119415bf07346c9b",
+        "guard_weight_hash": "90caff3f7d24f25284ab346fa87c85426608138552d25723a06c9d7275ca3c1e",
+        "guard_weight_mass_after_alpha": 1.0,
+        "guard_weight_mass_before_alpha": 1.0,
+        "nonclaims": [
+          "guard augmentation is a fixed-HMC support-stabilization gate",
+          "audit data is not used for coefficient selection"
+        ],
+        "policy_id": "p72_fit_guard_training_batch.v1",
+        "training_point_hash": "d8d65188778c4522b57891f7ab7e089c99f854f17f05cdea4899cc4e15f6e5e4",
+        "training_target_hash": "40ea89eb157b07add935d462926da2a8158c95052605806928a5bfddcbc4f956",
+        "training_weight_hash": "d11a2c0540c4283890cc670a6acdd756f49a3cf10fb7e08af730c09d1bd4a7a1"
+      }
+    }
+  },
+  "run_manifest": {
+    "command": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp python scripts/p72_support_certified_lower_gate_diagnostic.py --output docs/plans/bayesfilter-highdim-zhao-cui-p72-phase5a-runner-smoke-2026-06-17.json --smoke-only",
+    "cpu_gpu_status": "cpu_only_cuda_visible_devices_minus_1",
+    "elapsed_seconds": 0.055,
+    "environment": {
+      "CUDA_VISIBLE_DEVICES": "-1",
+      "MPLCONFIGDIR": "/tmp"
+    },
+    "git_state": {
+      "dirty": true,
+      "head": "94069066a70df6f1f0f2b53d32b9d452bd67f891",
+      "status_short_count": 425
+    },
+    "output": "docs/plans/bayesfilter-highdim-zhao-cui-p72-phase5a-runner-smoke-2026-06-17.json",
+    "random_seeds": {
+      "audit": {
+        "step1_holdout_prior": 7301,
+        "step1_holdout_process": 7401,
+        "step1_replay_prior": 7311,
+        "step1_replay_process": 7501,
+        "step2_holdout_process": 7402,
+        "step2_replay_process": 7502
+      },
+      "guard": {
+        "step1_prior": 7321,
+        "step1_process": 7601,
+        "step2_process": 7602
+      },
+      "smoke": "deterministic_tiny_tensor_cloud_no_random_draws"
+    },
+    "script": "scripts/p72_support_certified_lower_gate_diagnostic.py"
+  },
+  "source_route_controls": {
+    "cpu_only": true,
+    "phase5_diagnostic_executed": false,
+    "policy": {
+      "audit_seeds": {
+        "step1_holdout_prior": 7301,
+        "step1_holdout_process": 7401,
+        "step1_replay_prior": 7311,
+        "step1_replay_process": 7501,
+        "step2_holdout_process": 7402,
+        "step2_replay_process": 7502
+      },
+      "classification": "fixed_hmc_adaptation",
+      "effective_rank_min": 1.0,
+      "effective_rank_tol": 1e-12,
+      "fit_mass_fraction_min": 1e-06,
+      "fit_ridge": 1e-10,
+      "guard_seeds": {
+        "step1_prior": 7321,
+        "step1_process": 7601,
+        "step2_process": 7602
+      },
+      "guard_weight_alpha": 1.0,
+      "line_fractions": [
+        0.0,
+        0.25,
+        0.5,
+        0.75,
+        1.0
+      ],
+      "line_growth_rel_veto": 1000.0,
+      "log_normalizer_abs_bound": 1000000.0,
+      "low_level_condition_number_veto": 100000000000000.0,
+      "nonclaims": [
+        "not a source-faithful adaptive Zhao-Cui reproduction",
+        "focused tests are not repaired diagnostic evidence",
+        "no d18 validation claim",
+        "no HMC readiness claim"
+      ],
+      "p72_condition_number_admission": 10000000000.0,
+      "policy_id": "p72_support_certified_fixed_fit_v1",
+      "residual_max_rel_veto": 1000.0,
+      "residual_rms_rel_veto": 10.0,
+      "shape_penalty_weight": 0.0,
+      "source_faithfulness_status": "extension_or_invention_for_guard_audit_gates",
+      "sqrt_square_normalizer_floor": 1e-14
+    },
+    "schema_only_default_path": false,
+    "script_role": "p72_phase5a_smoke_real_gate_path",
+    "smoke_only_not_phase5_evidence": true,
+    "source_route_semantics_changed": false,
+    "thresholds_changed": false
+  },
+  "status": "P72_PHASE5A_SMOKE_COMPLETED_NOT_PHASE5_EVIDENCE",
+  "subplan": "docs/plans/bayesfilter-highdim-zhao-cui-p72-phase5a-real-diagnostic-runner-repair-subplan-2026-06-17.md"
+}

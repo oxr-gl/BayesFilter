@@ -76,6 +76,19 @@ def _cut4_value(theta: tf.Tensor):
     )
 
 
+def _relative_error(candidate: tf.Tensor, reference: tf.Tensor) -> tf.Tensor:
+    return tf.abs(candidate - reference) / tf.maximum(tf.constant(1.0, dtype=DTYPE), tf.abs(reference))
+
+
+def _directions(dim: int) -> list[tf.Tensor]:
+    directions = []
+    for index in range(dim):
+        directions.append(tf.one_hot(index, dim, dtype=DTYPE))
+    directions.append(tf.ones([dim], dtype=DTYPE))
+    directions.append(tf.constant([1.0 if i % 2 == 0 else -1.0 for i in range(dim)], dtype=DTYPE))
+    return directions
+
+
 def _value_and_score(theta: tf.Tensor) -> tuple[tf.Tensor, tf.Tensor]:
     theta = tf.convert_to_tensor(theta, dtype=DTYPE)
     with tf.GradientTape() as tape:
@@ -86,6 +99,75 @@ def _value_and_score(theta: tf.Tensor) -> tuple[tf.Tensor, tf.Tensor]:
     if score is None:
         raise AssertionError("GradientTape returned None")
     return value, score
+
+
+def _fd_gradient(theta: tf.Tensor, step: float) -> tf.Tensor:
+    theta = tf.convert_to_tensor(theta, dtype=DTYPE)
+    box = _model().parameter_box()
+    grads = []
+    for index, key in enumerate(("r", "K", "a", "s", "u", "v")):
+        lower, upper = box[key]
+        plus = tf.tensor_scatter_nd_add(theta, [[index]], [step])
+        minus = tf.tensor_scatter_nd_add(theta, [[index]], [-step])
+        if not (lower <= float(plus[index].numpy()) <= upper and lower <= float(minus[index].numpy()) <= upper):
+            raise AssertionError(f"finite-difference perturbation left parameter box for {key}")
+        value_plus = _cut4_value(plus).log_likelihood
+        value_minus = _cut4_value(minus).log_likelihood
+        grads.append((float(value_plus.numpy()) - float(value_minus.numpy())) / (2.0 * step))
+    return tf.constant(grads, dtype=DTYPE)
+
+
+
+def test_p44_m6_cut4_closure_has_finite_value_and_parameter_score() -> None:
+    value, score = _value_and_score(_theta0())
+
+    print(
+        "P44_M6_PREDATOR_PREY_CUT4_DIAGNOSTIC "
+        f"value={float(value.numpy()):.6e} "
+        f"score_norm={float(tf.linalg.norm(score).numpy()):.6e}"
+    )
+    assert bool(tf.math.is_finite(value).numpy())
+    assert bool(tf.reduce_all(tf.math.is_finite(score)).numpy())
+    assert float(tf.linalg.norm(score).numpy()) > 0.0
+
+
+
+def test_p44_m6_cut4_parameter_score_matches_centered_fd_componentwise() -> None:
+    theta = _theta0()
+    _value, score = _value_and_score(theta)
+    fd = _fd_gradient(theta, step=1e-4)
+    rel = _relative_error(score, fd)
+
+    assert bool(tf.reduce_all(tf.math.is_finite(fd)).numpy())
+    assert bool(tf.reduce_all(tf.math.is_finite(rel)).numpy())
+    tf.debugging.assert_less(tf.reduce_max(rel), tf.constant(5e-2, dtype=DTYPE))
+
+
+
+def test_p44_m6_cut4_parameter_score_matches_centered_fd_in_directional_residuals() -> None:
+    theta = _theta0()
+    _value, score = _value_and_score(theta)
+    fd = _fd_gradient(theta, step=1e-4)
+
+    for direction in _directions(int(theta.shape[0])):
+        direction = tf.math.l2_normalize(direction)
+        score_proj = tf.tensordot(score, direction, axes=1)
+        fd_proj = tf.tensordot(fd, direction, axes=1)
+        residual = _relative_error(score_proj, fd_proj)
+        cosine = (score_proj * fd_proj) / (
+            tf.maximum(tf.constant(1e-12, dtype=DTYPE), tf.abs(score_proj) * tf.abs(fd_proj))
+        )
+        tf.debugging.assert_less(residual, tf.constant(5e-2, dtype=DTYPE))
+        tf.debugging.assert_greater_equal(cosine, tf.constant(0.995, dtype=DTYPE))
+
+
+
+def test_p44_m6_cut4_fd_ladder_stays_inside_parameter_box() -> None:
+    theta = _theta0()
+    for step in (1e-3, 3e-4, 1e-4):
+        fd = _fd_gradient(theta, step)
+        assert bool(tf.reduce_all(tf.math.is_finite(fd)).numpy())
+
 
 
 def _matched_settings(**overrides: object) -> dict[str, object]:
@@ -110,6 +192,7 @@ def _matched_settings(**overrides: object) -> dict[str, object]:
     }
     settings.update(overrides)
     return settings
+
 
 
 def _metrics(**overrides: object) -> dict[str, float]:
