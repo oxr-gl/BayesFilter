@@ -457,7 +457,7 @@ def _preview(values: np.ndarray, *, limit: int = 8) -> list[float]:
 
 def _write_markdown(path: Path, result: dict[str, Any], json_path: Path) -> None:
     lines = [
-        "# Streaming Experimental Batched LEDH-PFPF-OT LGSSM Benchmark",
+        "# Streaming Default GPU LEDH-PFPF-OT TF32 LGSSM Benchmark",
         "",
         f"- JSON artifact: `{json_path}`",
         f"- Shape: `{result['shape']}`",
