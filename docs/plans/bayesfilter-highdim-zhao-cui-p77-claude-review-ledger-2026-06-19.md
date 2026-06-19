@@ -477,3 +477,43 @@ Summary:
 - Claude agreed the master program and Phase 6 subplan remain consistent:
   Phase 6 still requires explicit approval before launching the frozen
   `1024 x 40` evidence command.
+
+### Phase 6 Execution Review R1-R4
+
+Artifacts:
+
+- `docs/plans/bayesfilter-highdim-zhao-cui-p77-phase6-budgeted-training-diagnostic-lr1e-3-2026-06-19.json`
+- `docs/plans/bayesfilter-highdim-zhao-cui-p77-phase6-compact-review-manifest-2026-06-19.json`
+- `docs/plans/bayesfilter-highdim-zhao-cui-p77-phase6-budgeted-training-diagnostic-result-2026-06-19.md`
+- `docs/plans/bayesfilter-highdim-zhao-cui-p77-phase7-decision-boundary-subplan-2026-06-19.md`
+- `docs/plans/bayesfilter-highdim-zhao-cui-p77-visible-execution-ledger-2026-06-19.md`
+- `docs/plans/bayesfilter-highdim-zhao-cui-p77-visible-stop-handoff-2026-06-19.md`
+- `scripts/p77_budgeted_corrected_metric_training.py`
+- `tests/highdim/test_p77_budgeted_corrected_metric_training.py`
+
+Claude verdicts:
+
+- `p77-phase6-execution-review-r1`: stopped after a small probe showed Claude
+  was responsive but the full raw-JSON package was too heavy.
+- `p77-phase6-claude-probe`: `PROBE_OK`.
+- `p77-phase6-execution-review-r2-compact`: `VERDICT: BLOCK`.
+- `p77-phase6-execution-review-r3-compact-repair`: `VERDICT: BLOCK`.
+- `p77-phase6-execution-review-r4-final-bookkeeping`: `VERDICT: AGREE`.
+
+Summary:
+
+- R2 blocked on a validation-boundary artifact bug: the evidence run recorded
+  validation improvement both as a selector and as explanatory-only.
+- R2 also blocked on a stale execution-ledger next action that still said to
+  stop for approval before launching Phase 6.
+- Codex repaired the runner so evidence runs set
+  `validation_improvement_observed_explanatory_only=false`, added focused
+  regression coverage, reran the Phase 6 evidence command, regenerated the
+  compact manifest, and patched the stale ledger next action.
+- R3 confirmed those repairs but blocked on a stale stop-handoff sentence that
+  still said no training run had been launched.
+- Codex repaired the stop handoff to distinguish no training through Phase 5
+  from the now-launched Phase 6 evidence run.
+- R4 agreed the stale statement was repaired, the Phase 6 result remains
+  internally consistent, no overclaim remains, and Phase 7 is ready as a
+  decision-only subplan.

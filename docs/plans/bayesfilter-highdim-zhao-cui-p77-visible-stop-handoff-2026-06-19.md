@@ -1,7 +1,7 @@
 # P77 Visible Stop Handoff
 
 metadata_date: 2026-06-19
-status: PHASE6_LOCAL_CHECKS_PASS_PENDING_CLAUDE_REVIEW
+status: PHASE6_CLAUDE_AGREE_READY_FOR_PHASE7_DECISION
 master_program: docs/plans/bayesfilter-highdim-zhao-cui-p77-corrected-metric-training-master-program-2026-06-19.md
 runbook: docs/plans/bayesfilter-highdim-zhao-cui-p77-visible-gated-execution-runbook-2026-06-19.md
 
@@ -49,7 +49,8 @@ Current interpretation:
   `VERDICT: AGREE`.
 - Phase 3 implementation has been performed only in the scoped P77 runner/test
   surface.
-- No training run has been launched.
+- No training run was launched through Phase 5.  The reviewed Phase 6
+  evidence command has now been launched and recorded below.
 - Any fixed-branch regression/training evidence run must satisfy
   \(N_{\rm train}\ge20P_\theta\).
 - For the current degree-2/rank-4/d=36 candidate,
@@ -116,8 +117,18 @@ Current Phase 6 gate:
 - trained corrected validation CE was `-24.339592237328375` versus untrained
   UKF baseline `-23.797689401261703`;
 - Phase 6 result and Phase 7 decision-boundary subplan have been drafted;
-- Claude review of Phase 6 execution/result remains pending.
+- Claude R2 blocked on two bookkeeping/artifact issues: evidence-run
+  validation improvement was also labeled explanatory-only, and the execution
+  ledger had a stale pre-launch next action;
+- both R2 blockers were repaired, focused pytest passed
+  `9 passed, 2 warnings`, the Phase 6 JSON was regenerated, and the repaired
+  JSON records `validation_improvement_observed_explanatory_only=false`;
+- `p77-phase6-execution-review-r4-final-bookkeeping` returned
+  `VERDICT: AGREE`;
+- Phase 6 is closed as a passing first budgeted corrected-metric training
+  diagnostic, with all Phase 6 nonclaims preserved.
 
 Next action:
 
-- Send Phase 6 result and Phase 7 subplan to Claude for read-only review.
+- Execute Phase 7 decision-boundary planning when requested or as the next
+  runbook phase.  Do not launch new evidence from Phase 7.

@@ -1,7 +1,7 @@
 # P77 Visible Execution Ledger
 
 metadata_date: 2026-06-19
-status: PHASE6_LOCAL_CHECKS_PASS_PENDING_CLAUDE_REVIEW
+status: PHASE6_CLAUDE_AGREE_READY_FOR_PHASE7_DECISION
 executor: Codex
 reviewer: Claude Opus max effort, read-only and bounded
 
@@ -606,8 +606,81 @@ Gate status:
 
 Next action:
 
-- Stop for explicit human approval before launching the reviewed Phase 6
-  evidence command.
+- Send the repaired Phase 6 execution package and Phase 7 subplan to Claude for
+  read-only review.
+
+Claude execution review:
+
+- `p77-phase6-execution-review-r1`: stopped after a successful small probe
+  showed Claude was responsive but the first prompt was too heavy because it
+  included the full raw JSON.
+- `p77-phase6-claude-probe`: `PROBE_OK`.
+- `p77-phase6-execution-review-r2-compact`: `VERDICT: BLOCK`.
+- R2 blocker 1: the compact manifest and raw JSON labeled validation
+  improvement both as the evidence-run selector
+  (`validation_improved_for_selection=true`) and as explanatory-only
+  (`validation_improvement_observed_explanatory_only=true`).
+- R2 blocker 2: this ledger still had a stale next action saying to stop for
+  approval before launching Phase 6, even though Phase 6 had already run.
+
+R2 repair:
+
+- Patched `scripts/p77_budgeted_corrected_metric_training.py` so
+  `validation_improvement_observed_explanatory_only` remains populated only
+  for non-evidence runs.  Evidence runs now set it to `false` because
+  validation improvement is the frozen selector.
+- Added a focused regression assertion in
+  `tests/highdim/test_p77_budgeted_corrected_metric_training.py`.
+- Reran focused pytest: `9 passed, 2 warnings`.
+- Reran the exact reviewed Phase 6 command to regenerate the raw JSON.
+- Regenerated the compact review manifest.
+- Verified the repaired JSON records
+  `validation_improvement_observed_explanatory_only=false` and
+  `validation_improved_for_selection=true`.
+- Patched this stale next-action record.
+
+Gate status:
+
+- PHASE6_REPAIRED_PENDING_CLAUDE_REVIEW_R3
+
+Claude execution review R3:
+
+- `p77-phase6-execution-review-r3-compact-repair`: `VERDICT: BLOCK`.
+- Claude confirmed the R2 validation-boundary and stale-ledger blockers were
+  repaired.
+- New R3 blocker: the stop handoff still had a stale early-context sentence
+  saying no training run had been launched, contradicting the later Phase 6
+  section.
+
+R3 repair:
+
+- Patched the stop handoff to say no training run was launched through Phase 5
+  and the reviewed Phase 6 evidence command has now been launched and recorded.
+
+Gate status:
+
+- PHASE6_REPAIRED_PENDING_CLAUDE_REVIEW_R4
+
+Claude execution review R4:
+
+- `p77-phase6-execution-review-r4-final-bookkeeping`: `VERDICT: AGREE`.
+- Claude agreed the stale stop-handoff statement was repaired.
+- Claude agreed the Phase 6 evidence result remains internally consistent:
+  `overall_status=pass`, `blockers=[]`,
+  `fit_quality_claim_permitted=true`,
+  `validation_improved_for_selection=true`, and
+  `validation_improvement_observed_explanatory_only=false`.
+- Claude found no new overclaim and no remaining stale next-action
+  contradiction in the reviewed artifacts.
+
+Gate status:
+
+- PHASE6_CLAUDE_AGREE_READY_FOR_PHASE7_DECISION
+
+Next action:
+
+- Execute Phase 7 decision-boundary planning when requested or as the next
+  runbook phase.  Do not launch new evidence from Phase 7.
 
 ### 2026-06-19 - Governance Patch - GENERALIZED_SCOPED_CODE_EDIT_RULE
 

@@ -658,7 +658,9 @@ def _validation_summary(
         "trained_corrected_validation_CE": trained,
         "absolute_CE_change_trained_minus_baseline": absolute,
         "relative_CE_change": absolute / denominator,
-        "validation_improvement_observed_explanatory_only": observed_improvement,
+        "validation_improvement_observed_explanatory_only": (
+            observed_improvement if not fit_quality_claim_permitted else False
+        ),
         "fit_quality_claim_permitted": bool(fit_quality_claim_permitted),
         "validation_improved_for_selection": (
             observed_improvement if fit_quality_claim_permitted else None

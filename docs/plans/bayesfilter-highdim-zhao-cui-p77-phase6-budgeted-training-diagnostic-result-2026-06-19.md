@@ -1,7 +1,7 @@
 # P77 Phase 6 Result: Budgeted Corrected-Metric Training Diagnostic
 
 metadata_date: 2026-06-20
-status: PHASE6_LOCAL_CHECKS_PASS_PENDING_CLAUDE_REVIEW
+status: PHASE6_CLAUDE_AGREE_READY_FOR_PHASE7_DECISION
 master_program: docs/plans/bayesfilter-highdim-zhao-cui-p77-corrected-metric-training-master-program-2026-06-19.md
 runbook: docs/plans/bayesfilter-highdim-zhao-cui-p77-visible-gated-execution-runbook-2026-06-19.md
 subplan: docs/plans/bayesfilter-highdim-zhao-cui-p77-phase6-budgeted-training-diagnostic-subplan-2026-06-19.md
@@ -58,7 +58,7 @@ Artifact:
 | Learning rate | `0.001` |
 | Degree/rank | `2 / 4` |
 | CPU-only flag | `CUDA_VISIBLE_DEVICES=-1` |
-| Wall time recorded by runner | `14.356` seconds |
+| Wall time recorded by runner | `14.989` seconds |
 
 ## Validation Result
 
@@ -87,6 +87,7 @@ The JSON recorded:
 - `fit_quality_claim_permitted=true`;
 - `all_requested_batches_completed=true`;
 - `completed_training_samples=40960`;
+- `validation_improvement_observed_explanatory_only=false`;
 - `audit_used_for_selection=false`;
 - `source_route_prefit_used=false`;
 - `default_behavior_changed=false`.
@@ -173,9 +174,14 @@ Postcheck result:
 - JSON parsed;
 - required evidence, budget, validation, audit-exclusion, source-prefit, and
   default-change fields were present.
+- Claude R2 found and the runner repaired a validation-boundary artifact bug:
+  evidence runs must not label validation improvement as explanatory-only.
+  The repaired JSON now records
+  `validation_improvement_observed_explanatory_only=false` while preserving
+  `validation_improved_for_selection=true`.
 
 ## Phase 7 Handoff
 
-Phase 7 may begin after Claude agrees this Phase 6 result and the Phase 7
-subplan.  Phase 7 should classify the result and decide the next evidence
-boundary without retroactively changing Phase 6 criteria.
+Claude R4 agreed this Phase 6 result and the Phase 7 subplan.  Phase 7 may
+now classify the result and decide the next evidence boundary without
+retroactively changing Phase 6 criteria.

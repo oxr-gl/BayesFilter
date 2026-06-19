@@ -54,6 +54,79 @@ def build_annealed_transport_warmstart_state_tf(
     )
 
 
+def build_annealed_transport_coldstart_state_tf(
+    scaled_particles: tf.Tensor,
+    log_weights: tf.Tensor,
+    *,
+    epsilon: float | tf.Tensor,
+    scaling: float | tf.Tensor,
+    transport_plan_mode: str = "streaming",
+    row_chunk_size: int = DEFAULT_STREAMING_CHUNK_SIZE,
+    col_chunk_size: int = DEFAULT_STREAMING_CHUNK_SIZE,
+) -> AnnealedTransportWarmstartStateTF:
+    x = tf.cast(scaled_particles, DTYPE)
+    logw = tf.cast(log_weights, DTYPE)
+    if len(x.shape) != 3 or len(logw.shape) != 2:
+        raise ValueError("scaled_particles must be [B,N,D] and log_weights must be [B,N]")
+    batch_size = tf.shape(x)[0]
+    num_particles = tf.shape(x)[1]
+    if transport_plan_mode not in {"dense", "streaming"}:
+        raise ValueError("transport_plan_mode must be 'dense' or 'streaming'")
+    float_n = tf.cast(num_particles, DTYPE)
+    log_n = tf.math.log(float_n)
+    uniform_log_weight = -log_n * tf.ones_like(logw)
+    epsilon_tensor = _epsilon_per_batch(tf.convert_to_tensor(epsilon, dtype=DTYPE), batch_size)
+    scaling_tensor = tf.reshape(tf.cast(scaling, DTYPE), [])
+    particles_diameter = _filterflow_exact_max_min(x, x)
+    epsilon_0 = particles_diameter ** 2
+    if transport_plan_mode == "streaming":
+        a_y = _filterflow_streaming_softmin(
+            epsilon_0,
+            x,
+            x,
+            logw,
+            row_chunk_size=row_chunk_size,
+            col_chunk_size=col_chunk_size,
+        )
+        b_x = _filterflow_streaming_softmin(
+            epsilon_0,
+            x,
+            x,
+            uniform_log_weight,
+            row_chunk_size=row_chunk_size,
+            col_chunk_size=col_chunk_size,
+        )
+        a_x = _filterflow_streaming_softmin(
+            epsilon_0,
+            x,
+            x,
+            logw,
+            row_chunk_size=row_chunk_size,
+            col_chunk_size=col_chunk_size,
+        )
+        b_y = _filterflow_streaming_softmin(
+            epsilon_0,
+            x,
+            x,
+            uniform_log_weight,
+            row_chunk_size=row_chunk_size,
+            col_chunk_size=col_chunk_size,
+        )
+    else:
+        cost = _filterflow_exact_cost(x, x)
+        a_y = _filterflow_exact_softmin(epsilon_0, cost, logw)
+        b_x = _filterflow_exact_softmin(epsilon_0, cost, uniform_log_weight)
+        a_x = _filterflow_exact_softmin(epsilon_0, cost, logw)
+        b_y = _filterflow_exact_softmin(epsilon_0, cost, uniform_log_weight)
+    return build_annealed_transport_warmstart_state_tf(
+        a_y,
+        b_x,
+        a_x,
+        b_y,
+        tf.ones([batch_size], dtype=tf.bool),
+    )
+
+
 def annealed_transport_resample_tf(
     particles: tf.Tensor,
     log_weights: tf.Tensor,

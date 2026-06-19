@@ -56,8 +56,8 @@ def _parse_float_csv(value: str, *, expected: int) -> list[float]:
 
 def _parse_offsets(value: str) -> list[float]:
     parsed = [float(item.strip()) for item in str(value).split(",") if item.strip()]
-    if len(parsed) not in (7, 9):
-        raise ValueError("regression offsets must contain 7 or 9 values")
+    if len(parsed) not in (7, 9, 15, 17):
+        raise ValueError("regression offsets must contain 7, 9, 15, or 17 values")
     if not all(math.isfinite(item) for item in parsed):
         raise ValueError("regression offsets must be finite")
     if not any(item < 0.0 for item in parsed) or not any(item > 0.0 for item in parsed):
@@ -102,6 +102,30 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--min-adaptive-base-step", type=float, default=2.5e-4)
     parser.add_argument("--max-adaptive-base-step", type=float, default=5.0e-2)
     parser.add_argument("--regression-offsets", default="-4,-3,-2,-1,0,1,2,3,4")
+    parser.add_argument(
+        "--trim-extreme-offsets",
+        type=int,
+        default=0,
+        help=(
+            "number of largest and smallest FD offsets to evaluate but exclude "
+            "from the regression fit"
+        ),
+    )
+    parser.add_argument(
+        "--fd-evaluation-mode",
+        choices=("serial", "batched-theta"),
+        default="serial",
+        help="batched-theta folds offset points into the filter batch axis",
+    )
+    parser.add_argument(
+        "--theta-offset-batch-size",
+        type=int,
+        default=0,
+        help=(
+            "maximum number of FD theta offsets per batched-theta value call; "
+            "0 evaluates all offsets in one call"
+        ),
+    )
     parser.add_argument(
         "--basis-set",
         choices=(
@@ -204,6 +228,12 @@ def _parse_args() -> argparse.Namespace:
         raise ValueError("adaptive base-step bounds must be positive")
     if args.min_adaptive_base_step > args.max_adaptive_base_step:
         raise ValueError("min-adaptive-base-step must be <= max-adaptive-base-step")
+    if args.trim_extreme_offsets < 0:
+        raise ValueError("trim-extreme-offsets must be nonnegative")
+    if 2 * args.trim_extreme_offsets >= len(args.regression_offsets_values) - 2:
+        raise ValueError("trim-extreme-offsets leaves too few regression points")
+    if args.theta_offset_batch_size < 0:
+        raise ValueError("theta-offset-batch-size must be nonnegative")
     if args.sinkhorn_iterations <= 0:
         raise ValueError("sinkhorn_iterations must be positive")
     if args.row_chunk_size <= 0 or args.col_chunk_size <= 0 or args.particle_chunk_size <= 0:
@@ -523,6 +553,139 @@ def _value_at_theta(
     return objective
 
 
+def _batched_theta_contexts(
+    contexts: list[dict[str, Any]],
+    theta_rows: tf.Tensor,
+) -> tuple[list[dict[str, Any]], int]:
+    rows = tf.convert_to_tensor(theta_rows, dtype=p8p.DTYPE)
+    if rows.shape.rank != 2 or rows.shape[1] != len(p8p.PARAMETER_NAMES):
+        raise ValueError("theta_rows must have shape [num_offsets, parameter_dim]")
+    num_offsets = int(rows.shape[0])
+    if num_offsets <= 0:
+        raise ValueError("expected at least one theta row")
+    batched_contexts = []
+    for context in contexts:
+        seeds = [int(seed) for seed in context["seeds"]]
+        tensors = context["tensors"]
+        tiled_tensors = dict(tensors)
+        tiled_tensors["initial_particles"] = tf.repeat(
+            tf.convert_to_tensor(tensors["initial_particles"], dtype=p8p.DTYPE),
+            repeats=num_offsets,
+            axis=0,
+        )
+        tiled_tensors["fixed_resampling_mask"] = tf.repeat(
+            tf.convert_to_tensor(tensors["fixed_resampling_mask"]),
+            repeats=num_offsets,
+            axis=0,
+        )
+        tiled_tensors["transition_matrix"] = tf.repeat(
+            tf.convert_to_tensor(tensors["transition_matrix"], dtype=p8p.DTYPE),
+            repeats=num_offsets,
+            axis=0,
+        )
+        tiled_tensors["transition_covariance"] = tf.repeat(
+            tf.convert_to_tensor(tensors["transition_covariance"], dtype=p8p.DTYPE),
+            repeats=num_offsets,
+            axis=0,
+        )
+        grouped_args = _args_for_seed_group(
+            context["args"],
+            [seed for seed in seeds for _ in range(num_offsets)],
+        )
+        batched_contexts.append(
+            {
+                "args": grouped_args,
+                "seeds": [seed for seed in seeds for _ in range(num_offsets)],
+                "source_seed_count": len(seeds),
+                "num_offsets": num_offsets,
+                "theta_rows": rows,
+                "tensors": tiled_tensors,
+            }
+        )
+    return batched_contexts, num_offsets
+
+
+def _value_at_theta_rows(
+    contexts: list[dict[str, Any]],
+    theta_rows: tf.Tensor,
+    *,
+    theta_offset_batch_size: int = 0,
+) -> tf.Tensor:
+    rows = tf.convert_to_tensor(theta_rows, dtype=p8p.DTYPE)
+    if theta_offset_batch_size > 0 and int(rows.shape[0]) > theta_offset_batch_size:
+        chunks = []
+        for start in range(0, int(rows.shape[0]), int(theta_offset_batch_size)):
+            chunks.append(
+                _value_at_theta_rows(
+                    contexts,
+                    rows[start : start + int(theta_offset_batch_size)],
+                    theta_offset_batch_size=0,
+                )
+            )
+        return tf.concat(chunks, axis=0)
+    batched_contexts, num_offsets = _batched_theta_contexts(contexts, rows)
+    weighted_values = []
+    total_seeds = 0
+    for context in batched_contexts:
+        repeated_theta_rows = tf.tile(
+            rows,
+            [int(context["source_seed_count"]), 1],
+        )
+        theta_components = tuple(tf.unstack(repeated_theta_rows, axis=1))
+        _objective, value = p8p._objective_from_components(
+            context["tensors"],
+            context["args"],
+            theta_components,  # type: ignore[arg-type]
+        )
+        value_by_seed_offset = tf.reshape(
+            value,
+            [int(context["source_seed_count"]), num_offsets],
+        )
+        weighted_values.append(tf.reduce_sum(value_by_seed_offset, axis=0))
+        total_seeds += int(context["source_seed_count"])
+    return tf.add_n(weighted_values) / tf.cast(total_seeds, p8p.DTYPE)
+
+
+def _trim_extreme_points(
+    xs: tf.Tensor,
+    y: tf.Tensor,
+    theta_rows: tf.Tensor,
+    trim_count: int,
+) -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, dict[str, Any]]:
+    if trim_count <= 0:
+        return (
+            xs,
+            y,
+            theta_rows,
+            {
+                "trimmed": False,
+                "trim_extreme_offsets": 0,
+                "fit_point_count": int(xs.shape[0]),
+            },
+        )
+    order = tf.argsort(xs)
+    keep_order = order[trim_count : int(xs.shape[0]) - trim_count]
+    fit_xs = tf.gather(xs, keep_order)
+    fit_y = tf.gather(y, keep_order)
+    fit_theta_rows = tf.gather(theta_rows, keep_order)
+    return (
+        fit_xs,
+        fit_y,
+        fit_theta_rows,
+        {
+            "trimmed": True,
+            "trim_extreme_offsets": int(trim_count),
+            "evaluated_point_count": int(xs.shape[0]),
+            "fit_point_count": int(fit_xs.shape[0]),
+            "dropped_x_values": [
+                float(item)
+                for item in tf.gather(xs, order[:trim_count]).numpy().tolist()
+                + tf.gather(xs, order[int(xs.shape[0]) - trim_count :]).numpy().tolist()
+            ],
+        },
+    )
+
+
 def _regression_diagnostic_for_direction(
     contexts: list[dict[str, Any]],
     args: argparse.Namespace,
@@ -536,14 +699,25 @@ def _regression_diagnostic_for_direction(
 ) -> dict[str, Any]:
     offsets = tf.constant(args.regression_offsets_values, dtype=p8p.DTYPE)
     xs = offsets * tf.constant(float(base_step), dtype=p8p.DTYPE)
-    values = []
-    theta_rows = []
-    for x_value in tf.unstack(xs):
-        theta = theta0 + x_value * direction
-        values.append(_value_at_theta(contexts, theta))
-        theta_rows.append([float(item) for item in theta.numpy().tolist()])
-    y = tf.stack(values)
-    fit = _linear_regression(xs, y)
+    theta_rows_tensor = theta0[tf.newaxis, :] + xs[:, tf.newaxis] * direction[tf.newaxis, :]
+    if args.fd_evaluation_mode == "batched-theta":
+        y = _value_at_theta_rows(
+            contexts,
+            theta_rows_tensor,
+            theta_offset_batch_size=int(args.theta_offset_batch_size),
+        )
+    else:
+        values = []
+        for theta in tf.unstack(theta_rows_tensor, axis=0):
+            values.append(_value_at_theta(contexts, theta))
+        y = tf.stack(values)
+    fit_xs, fit_y, fit_theta_rows, trim_record = _trim_extreme_points(
+        xs,
+        y,
+        theta_rows_tensor,
+        int(args.trim_extreme_offsets),
+    )
+    fit = _linear_regression(fit_xs, fit_y)
     ad_directional = tf.reduce_sum(gradient * direction)
     residual = float(ad_directional.numpy()) - fit["slope"]
     combined_se = fit["slope_standard_error"]
@@ -554,8 +728,19 @@ def _regression_diagnostic_for_direction(
         "base_step": float(base_step),
         "offsets": [float(item) for item in args.regression_offsets_values],
         "x_values": [float(item) for item in xs.numpy().tolist()],
-        "theta_values": theta_rows,
+        "theta_values": [
+            [float(item) for item in row]
+            for row in theta_rows_tensor.numpy().tolist()
+        ],
         "objective_values": [float(item) for item in y.numpy().tolist()],
+        "fd_evaluation_mode": args.fd_evaluation_mode,
+        "fit_x_values": [float(item) for item in fit_xs.numpy().tolist()],
+        "fit_theta_values": [
+            [float(item) for item in row]
+            for row in fit_theta_rows.numpy().tolist()
+        ],
+        "fit_objective_values": [float(item) for item in fit_y.numpy().tolist()],
+        "trim_extreme_points": trim_record,
         "ad_directional_derivative": float(ad_directional.numpy()),
         "regression_slope": fit["slope"],
         "ad_minus_regression_slope": residual,
