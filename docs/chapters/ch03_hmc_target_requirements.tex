@@ -24,17 +24,24 @@ where $\ell$ is the log likelihood returned by the chosen filtering backend.
 For HMC, the value alone is not enough.  The backend and transform jointly
 define the gradient seen by the sampler.  If a custom gradient is used, it must
 be the gradient of the same scalar target value, not the gradient of a nearby
-surrogate unless the sampler is explicitly corrected for that surrogate.
+surrogate unless the sampler is explicitly corrected for that surrogate.  In
+particular, if the filtering backend exposes likelihood derivatives in model
+parameter coordinates \(\theta\), the HMC wrapper must still construct the full
+sampler-coordinate target in \(u\)-space by adding the prior and transform
+Jacobian terms from Definition~\ref{def:bf-filtering-target}.
 
 \section{Finite Failure Policy}
 \label{sec:bf-finite-failure-policy}
 
 Invalid parameters are ordinary events during HMC warmup and exploration.  A
 BayesFilter target must decide how to handle them.  The preferred policy is to
-return a deterministic low log density and finite fallback gradient for known
-invalid regions, while separately recording diagnostics for the reason.  A
-linear-algebra failure that aborts the process is not an HMC-compatible failure
-mode.
+return a deterministic low log density together with the exact derivative of that
+same returned fallback scalar for known invalid regions, while separately
+recording diagnostics for the reason.  If the fallback scalar is constant on the
+invalid region, the corresponding gradient must be zero.  A finite surrogate
+direction that is not the derivative of the returned scalar is not HMC-safe
+unless the sampler is explicitly corrected for that surrogate.  A linear-algebra
+failure that aborts the process is not an HMC-compatible failure mode.
 
 The policy must be explicit for:
 \begin{itemize}

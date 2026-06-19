@@ -129,6 +129,17 @@ def _zhaocui_value(theta: tf.Tensor, observations: tf.Tensor, sigma: tf.Tensor, 
     ).log_likelihood
 
 
+def _fixed_sgqf_value(theta: tf.Tensor, observations: tf.Tensor, sigma: tf.Tensor, *, sparse_level: int = 2) -> tf.Tensor:
+    gamma, beta = _physical_from_theta(theta)
+    return highdim.independent_panel_sv_mixture_fixed_sgqf_filter(
+        observations,
+        gamma=gamma,
+        beta=beta,
+        sigma=sigma,
+        sparse_level=sparse_level,
+    ).log_likelihood
+
+
 def _value_and_score(value_fn, theta: tf.Tensor) -> tuple[tf.Tensor, tf.Tensor]:
     theta = tf.convert_to_tensor(theta, dtype=DTYPE)
     with tf.GradientTape() as tape:
@@ -217,6 +228,18 @@ def test_p47_m3_cut4_matches_kalman_on_same_ksc_mixture_target_value_and_score(d
 
 
 @pytest.mark.parametrize("dim", [1, 2, 3])
+def test_p47_m3_fixed_sgqf_matches_kalman_on_same_ksc_mixture_target_value_only(dim: int) -> None:
+    observations = _observations(dim)
+    gamma, beta, sigma = _physical_parameters(dim)
+    theta = _theta_from_physical(gamma, beta)
+
+    kalman_value = _kalman_value(theta, observations, sigma)
+    sgqf_value = _fixed_sgqf_value(theta, observations, sigma)
+
+    tf.debugging.assert_near(sgqf_value, kalman_value, atol=2e-5, rtol=2e-5)
+
+
+@pytest.mark.parametrize("dim", [1, 2, 3])
 def test_p47_m3_zhaocui_matches_dense_on_same_ksc_mixture_target_value_and_score(dim: int) -> None:
     observations = _observations(dim)
     gamma, beta, sigma = _physical_parameters(dim)
@@ -275,6 +298,18 @@ def test_p47_m3_cut4_and_zhaocui_direct_gap_is_bounded_on_ksc_target(dim: int) -
 
 
 @pytest.mark.parametrize("dim", [1, 2, 3])
+def test_p47_m3_fixed_sgqf_and_cut4_direct_gap_is_bounded_on_ksc_target_value_only(dim: int) -> None:
+    observations = _observations(dim)
+    gamma, beta, sigma = _physical_parameters(dim)
+    theta = _theta_from_physical(gamma, beta)
+
+    cut4_value = _cut4_value(theta, observations, sigma)
+    sgqf_value = _fixed_sgqf_value(theta, observations, sigma)
+
+    tf.debugging.assert_near(sgqf_value, cut4_value, atol=2e-5, rtol=2e-5)
+
+
+@pytest.mark.parametrize("dim", [1, 2, 3])
 def test_p47_m3_cut4_and_zhaocui_are_same_declared_ksc_target_but_not_native_sv(dim: int) -> None:
     observations = _observations(dim)
     gamma, beta, sigma = _physical_parameters(dim)
@@ -299,6 +334,31 @@ def test_p47_m3_cut4_and_zhaocui_are_same_declared_ksc_target_but_not_native_sv(
     assert "not exact native SV likelihood" in zhaocui.diagnostics["non_claims"]
     assert "not native generalized SV/CNS estimator" in zhaocui.diagnostics["non_claims"]
     assert "not adaptive MATLAB TT-cross/SIRT reproduction" in zhaocui.diagnostics["non_claims"]
+
+
+@pytest.mark.parametrize("dim", [1, 2, 3])
+def test_p47_m3_fixed_sgqf_is_same_declared_ksc_target_but_not_native_sv(dim: int) -> None:
+    observations = _observations(dim)
+    gamma, beta, sigma = _physical_parameters(dim)
+    sgqf = highdim.independent_panel_sv_mixture_fixed_sgqf_filter(
+        observations,
+        gamma=gamma,
+        beta=beta,
+        sigma=sigma,
+        sparse_level=2,
+    )
+    cut4 = highdim.independent_panel_sv_mixture_cut4_filter(
+        observations,
+        gamma=gamma,
+        beta=beta,
+        sigma=sigma,
+    )
+
+    assert sgqf.diagnostics["target_scope"] == cut4.diagnostics["target_scope"]
+    assert sgqf.diagnostics["backend"] == "fixed_sgqf_independent_panel_transformed_sv_gaussian_mixture"
+    assert "not exact native SV likelihood" in sgqf.diagnostics["non_claims"]
+    assert "no KSC importance reweighting" in sgqf.diagnostics["non_claims"]
+    assert "no coupled multivariate SV claim" in sgqf.diagnostics["non_claims"]
 
 
 def _dense_mixture_panel_value(theta: tf.Tensor, observations: tf.Tensor, sigma: tf.Tensor) -> tf.Tensor:

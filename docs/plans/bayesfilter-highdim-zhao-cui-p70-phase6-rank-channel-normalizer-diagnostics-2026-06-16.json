@@ -1,0 +1,118 @@
+{
+  "diagnostic_scope": "p70_phase6_bounded_four_row_repaired_fixed_fit",
+  "evidence_contract": {
+    "baseline_comparator": "P69 Phase 5c constant-path one-sweep diagnosis.",
+    "explanatory_only": [
+      "fit residual",
+      "per-channel scores",
+      "basis-channel norms",
+      "raw holdout/replay residuals",
+      "target-value scale summaries",
+      "weighted ESS",
+      "condition warnings",
+      "below-preferred row status"
+    ],
+    "nonclaims": [
+      "no d18 correctness claim",
+      "no rank/degree promotion",
+      "no scaling claim",
+      "no HMC readiness claim",
+      "no adaptive Zhao-Cui parity claim",
+      "no author-code failure claim",
+      "no claim that the original bug is fixed"
+    ],
+    "primary_criterion": "For every executed repaired diagnostic row: row adequacy is not hard-failed; the fitter returns HighDimStatus.OK; extra declared channels pass the Phase 4 activity predicate; normalizer predicates pass; holdout and replay diagnostics exist, are finite, are disjoint from fit rows, and have normalized residuals at most 10; no condition-number veto.",
+    "question": "Does the Phase 5 repaired fixed fitting machinery activate declared rank channels and keep normalizer/holdout/replay/condition diagnostics bounded on the bounded diagnostic rows?",
+    "veto_diagnostics": [
+      "hard row-adequacy failure",
+      "nonfinite target or fit output",
+      "rank_channel_activity_failed",
+      "defensive-only or nonfinite normalizer",
+      "normalized holdout/replay residual above 10",
+      "branch identity drift",
+      "condition-number veto",
+      "missing diagnostic row identity",
+      "threshold mismatch from Phase 4/5"
+    ]
+  },
+  "gate_summary": {},
+  "master_program": "docs/plans/bayesfilter-highdim-zhao-cui-p70-ukf-guided-fixed-branch-master-program-2026-06-16.md",
+  "metadata_date": "2026-06-16",
+  "nonclaims": [
+    "no d18 correctness claim",
+    "no rank/degree promotion",
+    "no scaling claim",
+    "no HMC readiness claim",
+    "no adaptive Zhao-Cui parity claim",
+    "no author-code failure claim",
+    "no claim that the original bug is fixed"
+  ],
+  "rows": {},
+  "run_manifest": {
+    "command": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp python scripts/p70_phase6_rank_channel_normalizer_diagnostic.py",
+    "cpu_gpu_status": "cpu_only_cuda_visible_devices_minus_1",
+    "elapsed_seconds": 0.002,
+    "environment": {
+      "CUDA_VISIBLE_DEVICES": "-1",
+      "MPLCONFIGDIR": "/tmp"
+    },
+    "git_state": {
+      "dirty": true,
+      "head": "5fdd0819ce0eb2994fb0509e66d9e9cce5f2d47c",
+      "status_short_count": 258
+    },
+    "output": "docs/plans/bayesfilter-highdim-zhao-cui-p70-phase6-rank-channel-normalizer-diagnostics-2026-06-16.json",
+    "random_seeds": {
+      "model_simulation": 5901,
+      "step1_holdout_prior": 7301,
+      "step1_holdout_process_noise": 7401,
+      "step1_replay_prior": 7311,
+      "step1_replay_process_noise": 7501,
+      "step2_holdout_process_noise": 7402,
+      "step2_replay_process_noise": 7502
+    },
+    "script": "scripts/p70_phase6_rank_channel_normalizer_diagnostic.py"
+  },
+  "source_route_controls": {
+    "cpu_only": true,
+    "p69_mechanics_reused": true,
+    "p70_result_contract_added": true,
+    "row_specs": [
+      [
+        "rank_candidate_1_2_fit36",
+        1,
+        2,
+        36
+      ],
+      [
+        "rank_stronger_1_3_fit36",
+        1,
+        3,
+        36
+      ],
+      [
+        "degree_candidate_1_2_fit24",
+        1,
+        2,
+        24
+      ],
+      [
+        "degree_stronger_2_2_fit24",
+        2,
+        2,
+        24
+      ]
+    ],
+    "script_role": "p70_phase6_terminal_diagnostic",
+    "source_route_semantics_changed": false,
+    "thresholds_changed": false
+  },
+  "status": "P70_PHASE6_DIAGNOSTIC_RUNNING",
+  "subplan": "docs/plans/bayesfilter-highdim-zhao-cui-p70-phase6-rank-channel-normalizer-diagnostic-subplan-2026-06-16.md",
+  "terminal_scope": {
+    "exact_approved_command": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp python scripts/p70_phase6_rank_channel_normalizer_diagnostic.py",
+    "one_command_one_assessment": true,
+    "post_output_retuning_forbidden": true,
+    "same_approval_second_variant_forbidden": true
+  }
+}

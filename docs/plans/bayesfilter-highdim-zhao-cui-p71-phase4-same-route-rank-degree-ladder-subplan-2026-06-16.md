@@ -1,7 +1,7 @@
 # P71 Phase 4 Subplan: Same-Route Rank And Degree Ladder
 
 metadata_date: 2026-06-16
-status: DRAFT_PENDING_PHASE3_RESULT
+status: BLOCKED_CLAUDE_REVIEW_AGREE
 master_program: docs/plans/bayesfilter-highdim-zhao-cui-p71-sir-d18-full-validation-master-program-2026-06-16.md
 phase: 4
 
@@ -15,6 +15,13 @@ validation.
 
 - Phase 3 passed finite numeric evaluator/value checks.
 - Phase 3 preserved branch identity and nonclaims.
+- Phase 3 finite values are not accuracy, correctness, rank convergence,
+  scaling, or HMC-readiness evidence.
+- The Phase 2 row-adequacy boundary remains active:
+  `diagnostic_only_below_preferred_rows`.  Phase 4 may treat this only as a
+  carried structural caution, not as sample coverage or convergence proof.
+- The P60 high-rank comparator remains condition-vetoed.  Phase 4 begins under
+  that known boundary and must not hide, reinterpret, or treat it as repaired.
 
 ## Required Artifacts
 
@@ -59,9 +66,9 @@ reviewed subplan before seeing new ladder output.
 | Field | Contract |
 | --- | --- |
 | Question | Does the same source-route branch remain stable under adjacent rank and degree changes without hidden source-route drift? |
-| Baseline/comparator | Phase 3 admitted candidate branch, adjacent rank candidate, and adjacent degree candidate; authorized differences are `fit_rank` or `fit_degree` only. |
+| Baseline/comparator | Phase 3 admitted finite-value candidate branch, the Phase 2 execution-only JSON row-adequacy boundary, the known P60 condition-veto boundary, adjacent rank candidate, and adjacent degree candidate; authorized differences are `fit_rank` or `fit_degree` only. |
 | Primary criterion | Predeclared rank/degree ladder passes source invariants, finite normalizers, the frozen bounded-delta thresholds above, non-defensive-only transport, channel activity, and condition diagnostics. |
-| Veto diagnostics | Source-route invariant drift, branch identity drift outside authorized field, defensive-only transport, rank-channel collapse, nonfinite normalizers, or thresholds changed after output. |
+| Veto diagnostics | Source-route invariant drift, branch identity drift outside authorized field, defensive-only transport, rank-channel collapse, nonfinite normalizers, condition-number warning/veto including the known P60 high-rank veto if reproduced, row-adequacy boundary misuse, or thresholds changed after output. |
 | Explanatory diagnostics | Log-marginal deltas, normalizer increments, ESS, condition numbers, channel norms, holdout/replay residuals. |
 | Not concluded | No filtering accuracy, no d50/d100 scaling, no HMC readiness. |
 | Artifact | Phase 4 result note and ladder artifact. |
@@ -71,6 +78,10 @@ reviewed subplan before seeing new ladder output.
 - Do not use low/high closeness alone as correctness.
 - Do not promote degree/rank by in-sample fit residual alone.
 - Do not hide condition-number vetoes.
+- Do not present Phase 3 finite values or Phase 2 row adequacy as correctness
+  evidence.
+- Do not treat the P60 high-rank condition veto as repaired unless Phase 4
+  produces a reviewed non-veto ladder artifact under this subplan.
 - Do not run accuracy gates until the structural gate passes.
 
 ## Exact Next-Phase Handoff Conditions

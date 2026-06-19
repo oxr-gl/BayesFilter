@@ -119,8 +119,13 @@ Chapter~\ref{ch:bf-highdim-nonlinear-foundations}, an HMC implementation for
 parameters \(\theta=\tau(q)\) targets the exact posterior only if its potential
 uses \eqref{eq:bf-hd-hmc-potential} and its gradient is
 \eqref{eq:bf-hd-analytical-hmc-gradient} with
-\(\nabla_\theta\ell_T\) computed from the exact likelihood normalizers or an
-exactly corrected likelihood estimator.
+\(\nabla_\theta\ell_T\) computed from the exact likelihood normalizers.
+If the filter supplies only an approximate scalar \(\widehat\ell_T\), then
+ordinary HMC can at most target the declared approximate posterior defined by
+that scalar.  Recovering the exact posterior from an approximate or randomized
+likelihood would require a separately defined exact-target extended-state or
+Metropolis correction scheme; such a scheme is outside the scope of this
+chapter.
 \end{proposition}
 
 Plain-English claim: HMC can only be trusted for the posterior whose scalar
@@ -129,11 +134,11 @@ the posterior density in the unconstrained coordinate \(q\).  Assumptions:
 the transform is differentiable with valid support/Jacobian, the likelihood
 normalizers are finite and positive, and the likelihood gradient is the one
 derived from those normalizers.  Approximation step: replacing
-\(\ell_T\) by \(\widehat\ell_T\) changes the target unless an exact correction
-is supplied.  Failure if assumptions break: HMC may still run and report ESS,
-but the chain no longer targets the stated posterior.  Industrial
-interpretation: same-scalar parity is a promotion gate before speed or
-geometry improvements matter.
+\(\ell_T\) by \(\widehat\ell_T\) changes the target unless a separately defined
+exact-target correction scheme is introduced.  Failure if assumptions break: HMC
+may still run and report ESS, but the chain no longer targets the stated
+posterior.  Industrial interpretation: same-scalar parity is a promotion gate
+before speed or geometry improvements matter.
 
 \begin{proof}
 The posterior density in \(\theta\) coordinates is proportional to
@@ -218,13 +223,13 @@ localization gates, or invalid-state penalties enter the calculation, the
 reported gradient is defensible only after the reported scalar has been named.
 Finite differences check scalar parity; they do not prove exactness.  An
 approximate-filter gradient cannot be described as an exact posterior gradient
-or exact state-space likelihood gradient unless an exact correction proof is
-part of the method.
+or exact state-space likelihood gradient unless a separately specified
+exact-target correction scheme has been defined and justified.
 
 Chapter~\ref{ch:bf-highdim-gaussian-quadrature} now gives the concrete
 Gaussian/quadrature case: the scalar is the approximate Gaussian innovation
-likelihood in \eqref{eq:bf-hd-gq-loglik}, and the score is
-\eqref{eq:bf-hd-gq-score}.  That formula covers fixed EKF/UKF/CKF,
+likelihood in \eqref{eq:p31-fsgq-loglik}, and the score is
+\eqref{eq:p31-score}.  That formula covers fixed EKF/UKF/CKF,
 high-degree cubature, tensor-product Gauss--Hermite, and fixed sparse-grid
 branches only for the approximate scalar they report.  Chapter~\ref{ch:bf-highdim-particle-transport-tensor}
 then records why ordinary resampling particles, adaptive TT ranks, TT-cross
@@ -295,7 +300,11 @@ bad curvature are not cosmetic warnings.
 NUTS is a valuable reference and diagnostic sampler, but this monograph does
 not promote TFP NUTS or any dynamic-control-flow sampler as a BayesFilter
 production default for nonlinear SSMs.  That is an engineering boundary, not a
-claim that NUTS is mathematically inferior.
+claim that NUTS is mathematically inferior.  The later HMC chapters,
+Chapter~\ref{ch:bf-hmc-for-state-space} and
+Chapter~\ref{ch:bf-transport-surrogates}, carry the broader sampler and
+transport-policy discussion; the role here is only to state which high-dimensional
+filter targets are admissible inputs to those later decisions.
 
 \section{RMHMC And Metric Burden}
 \label{sec:bf-hd-rmhmc}
@@ -453,3 +462,14 @@ backend, no RMHMC backend, no tensor/KR transport-preconditioned HMC backend,
 and no NAWM posterior recovery benchmark.  The chapter defines a research
 ladder.  It does not promote HMC, NUTS, RMHMC, NeuTra, XLA, or GPU execution as
 production-ready for nonlinear state-space models.
+
+This chapter imports the exact-target and likelihood-normalizer contract from
+Chapter~\ref{ch:bf-highdim-nonlinear-foundations}, the approximate Gaussian
+innovation scalar and score only from
+Chapter~\ref{ch:bf-highdim-gaussian-quadrature}, and the particle/transport/TT/TN
+object boundaries only from Chapter~\ref{ch:bf-highdim-particle-transport-tensor}.
+It does not re-license those chapters' approximation families as exact targets,
+validated transport backends, or production-ready HMC components.  Exported
+forward, Chapter~\ref{ch:bf-highdim-candidate-synthesis} may consume only the
+same-scalar, Jacobian, divergence, and promotion-ladder consequences stated
+here, not a stronger convergence or deployment claim.

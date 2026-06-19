@@ -9,6 +9,14 @@ import tensorflow as tf
 
 
 DTYPE = tf.float64
+_CANONICAL_GAUGE_POLICY = "mean_log_u_zero"
+
+
+@dataclass(frozen=True)
+class SinkhornLogStateTF:
+    log_u: tf.Tensor
+    log_v: tf.Tensor
+    gauge_policy: str = "none"
 
 
 @dataclass(frozen=True)
@@ -17,6 +25,8 @@ class SinkhornTFResult:
     coupling: tf.Tensor
     source_weights: tf.Tensor
     target_weights: tf.Tensor
+    final_state: SinkhornLogStateTF
+    canonicalized_final_state: SinkhornLogStateTF
     diagnostics: dict[str, Any]
 
 
@@ -25,6 +35,51 @@ def pairwise_squared_euclidean_tf(x: tf.Tensor, y: tf.Tensor | None = None) -> t
     y = x if y is None else tf.cast(y, DTYPE)
     diff = x[:, None, :] - y[None, :, :]
     return tf.reduce_sum(diff * diff, axis=2)
+
+
+def build_sinkhorn_log_state_tf(
+    log_u: tf.Tensor,
+    log_v: tf.Tensor,
+    *,
+    gauge_policy: str = "none",
+) -> SinkhornLogStateTF:
+    return SinkhornLogStateTF(
+        log_u=tf.reshape(tf.cast(log_u, DTYPE), [-1]),
+        log_v=tf.reshape(tf.cast(log_v, DTYPE), [-1]),
+        gauge_policy=gauge_policy,
+    )
+
+
+def canonicalize_sinkhorn_log_state_tf(
+    state_or_log_u: SinkhornLogStateTF | tf.Tensor,
+    log_v: tf.Tensor | None = None,
+    *,
+    gauge_policy: str = _CANONICAL_GAUGE_POLICY,
+) -> SinkhornLogStateTF:
+    if gauge_policy != _CANONICAL_GAUGE_POLICY:
+        raise ValueError(f"unsupported gauge policy: {gauge_policy}")
+    state = _coerce_state(state_or_log_u, log_v=log_v)
+    offset = tf.reduce_mean(state.log_u)
+    return SinkhornLogStateTF(
+        log_u=state.log_u - offset,
+        log_v=state.log_v + offset,
+        gauge_policy=gauge_policy,
+    )
+
+
+def sinkhorn_coupling_from_log_state_tf(
+    state_or_log_u: SinkhornLogStateTF | tf.Tensor,
+    *,
+    epsilon: float,
+    cost: tf.Tensor,
+    log_v: tf.Tensor | None = None,
+) -> tf.Tensor:
+    if epsilon <= 0.0:
+        raise ValueError("epsilon must be positive")
+    state = _coerce_state(state_or_log_u, log_v=log_v)
+    cost_matrix = tf.cast(cost, DTYPE)
+    kernel_log = -cost_matrix / tf.constant(epsilon, dtype=DTYPE)
+    return tf.exp(state.log_u[:, None] + kernel_log + state.log_v[None, :])
 
 
 def sinkhorn_resample_tf(
@@ -36,6 +91,9 @@ def sinkhorn_resample_tf(
     tolerance: float = 1e-7,
     cost: tf.Tensor | None = None,
     stabilization: str = "log_domain",
+    initial_state: SinkhornLogStateTF | None = None,
+    initial_log_u: tf.Tensor | None = None,
+    initial_log_v: tf.Tensor | None = None,
 ) -> SinkhornTFResult:
     if epsilon <= 0.0:
         raise ValueError("epsilon must be positive")
@@ -43,6 +101,11 @@ def sinkhorn_resample_tf(
         raise ValueError("max_iterations must be positive")
     if stabilization != "log_domain":
         raise ValueError("only log_domain stabilization is implemented")
+    if initial_state is not None and (initial_log_u is not None or initial_log_v is not None):
+        raise ValueError("pass either initial_state or initial_log_u/initial_log_v, not both")
+    if (initial_log_u is None) != (initial_log_v is None):
+        raise ValueError("initial_log_u and initial_log_v must be provided together")
+
     x = tf.cast(particles, DTYPE)
     if len(x.shape) == 1:
         x = x[:, None]
@@ -57,8 +120,24 @@ def sinkhorn_resample_tf(
     log_source = tf.math.log(tf.maximum(source, tf.constant(1e-300, dtype=DTYPE)))
     log_target = tf.math.log(target)
     kernel_log = -cost_matrix / tf.constant(epsilon, dtype=DTYPE)
-    log_u = tf.zeros([n], dtype=DTYPE)
-    log_v = tf.zeros([n], dtype=DTYPE)
+
+    provided_initial_state = _resolve_initial_state(
+        n=n,
+        initial_state=initial_state,
+        initial_log_u=initial_log_u,
+        initial_log_v=initial_log_v,
+    )
+    if provided_initial_state is None:
+        log_u = tf.zeros([n], dtype=DTYPE)
+        log_v = tf.zeros([n], dtype=DTYPE)
+        initialization_policy = "zeros"
+        initial_state_gauge_policy = "none"
+    else:
+        log_u = provided_initial_state.log_u
+        log_v = provided_initial_state.log_v
+        initialization_policy = "provided_log_state"
+        initial_state_gauge_policy = provided_initial_state.gauge_policy
+
     iterations_used = max_iterations
 
     for iteration in range(1, max_iterations + 1):
@@ -72,12 +151,12 @@ def sinkhorn_resample_tf(
                 iterations_used = iteration
                 break
 
-    coupling = tf.exp(log_u[:, None] + kernel_log + log_v[None, :])
-    column_mass = tf.reduce_sum(coupling, axis=0)
-    safe_column_mass = tf.maximum(column_mass, tf.constant(1e-300, dtype=DTYPE))
-    relaxed_particles = tf.linalg.matmul(coupling, x, transpose_a=True) / safe_column_mass[:, None]
+    final_state = build_sinkhorn_log_state_tf(log_u, log_v)
+    canonicalized_final_state = canonicalize_sinkhorn_log_state_tf(final_state)
+    coupling = sinkhorn_coupling_from_log_state_tf(final_state, epsilon=epsilon, cost=cost_matrix)
+    relaxed_particles = _relaxed_particles_from_coupling_tf(coupling, x)
     row_residuals = tf.reduce_sum(coupling, axis=1) - source
-    column_residuals = column_mass - target
+    column_residuals = tf.reduce_sum(coupling, axis=0) - target
     diagnostics = {
         "component_id": "finite_sinkhorn_relaxed_resampler_tf",
         "mathematical_object": "finite_budget_entropic_ot_coupling",
@@ -88,6 +167,10 @@ def sinkhorn_resample_tf(
         "stabilization": stabilization,
         "cost_function": "pairwise_squared_euclidean",
         "target_marginal": "uniform",
+        "initialization_policy": initialization_policy,
+        "initial_state_gauge_policy": initial_state_gauge_policy,
+        "final_state_gauge_policy": final_state.gauge_policy,
+        "canonicalized_final_state_gauge_policy": canonicalized_final_state.gauge_policy,
         "max_row_residual": _float(tf.reduce_max(tf.abs(row_residuals))),
         "max_column_residual": _float(tf.reduce_max(tf.abs(column_residuals))),
         "total_mass_residual": _float(tf.abs(tf.reduce_sum(coupling) - 1.0)),
@@ -110,8 +193,54 @@ def sinkhorn_resample_tf(
         coupling=coupling,
         source_weights=source,
         target_weights=target,
+        final_state=final_state,
+        canonicalized_final_state=canonicalized_final_state,
         diagnostics=diagnostics,
     )
+
+
+def _resolve_initial_state(
+    *,
+    n: tf.Tensor,
+    initial_state: SinkhornLogStateTF | None,
+    initial_log_u: tf.Tensor | None,
+    initial_log_v: tf.Tensor | None,
+) -> SinkhornLogStateTF | None:
+    if initial_state is not None:
+        state = build_sinkhorn_log_state_tf(
+            initial_state.log_u,
+            initial_state.log_v,
+            gauge_policy=initial_state.gauge_policy,
+        )
+    elif initial_log_u is not None and initial_log_v is not None:
+        state = build_sinkhorn_log_state_tf(initial_log_u, initial_log_v)
+    else:
+        return None
+    if bool((tf.size(state.log_u) != n).numpy()) or bool((tf.size(state.log_v) != n).numpy()):
+        raise ValueError("initial Sinkhorn state must match particle count")
+    return state
+
+
+def _coerce_state(
+    state_or_log_u: SinkhornLogStateTF | tf.Tensor,
+    *,
+    log_v: tf.Tensor | None,
+) -> SinkhornLogStateTF:
+    if isinstance(state_or_log_u, SinkhornLogStateTF):
+        return build_sinkhorn_log_state_tf(
+            state_or_log_u.log_u,
+            state_or_log_u.log_v,
+            gauge_policy=state_or_log_u.gauge_policy,
+        )
+    if log_v is None:
+        raise ValueError("log_v is required when passing raw log_u")
+    return build_sinkhorn_log_state_tf(state_or_log_u, log_v, gauge_policy="none")
+
+
+def _relaxed_particles_from_coupling_tf(coupling: tf.Tensor, particles: tf.Tensor) -> tf.Tensor:
+    column_mass = tf.reduce_sum(coupling, axis=0)
+    safe_column_mass = tf.maximum(column_mass, tf.constant(1e-300, dtype=DTYPE))
+    return tf.linalg.matmul(coupling, particles, transpose_a=True) / safe_column_mass[:, None]
 
 
 def _float(value: tf.Tensor) -> float:

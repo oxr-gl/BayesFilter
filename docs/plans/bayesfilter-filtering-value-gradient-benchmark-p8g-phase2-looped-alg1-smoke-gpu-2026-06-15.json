@@ -1,0 +1,97 @@
+{
+  "bottleneck_hypothesis": {
+    "first_vectorization_targets": [
+      "batch per-particle Algorithm 1 UKF predict/update operations",
+      "move per-time particle transforms into TensorFlow graph kernels",
+      "keep five-seed orchestration outside the serious GPU kernel until G2/G4 route is vectorized"
+    ],
+    "known_python_loops": [
+      "outer Python seed loop in P8g profile harness",
+      "current TensorFlow filter implementation iterates over time in Python/eager mode",
+      "current Algorithm 1 LEDH reference route iterates over particles for per-particle UKF/flow state"
+    ]
+  },
+  "device_diagnostics": {
+    "devices_used_by_result_tensors": [
+      "/job:localhost/replica:0/task:0/device:GPU:0"
+    ],
+    "no_silent_cpu_fallback_claim": true
+  },
+  "nonclaims": [
+    "prefix profile only",
+    "not tuned particle-count evidence",
+    "not a GPU speedup claim after rewrite",
+    "not gradient correctness",
+    "not HMC readiness",
+    "not a filter ranking"
+  ],
+  "per_seed_results": [
+    {
+      "average_log_likelihood": -0.782682759136567,
+      "effective_sample_size_mean": 19.394075001814517,
+      "effective_sample_size_min": 10.038917351885756,
+      "ess_device": "/job:localhost/replica:0/task:0/device:GPU:0",
+      "filtered_means_device": "/job:localhost/replica:0/task:0/device:GPU:0",
+      "finite": true,
+      "log_likelihood": -7.82682759136567,
+      "log_likelihood_device": "/job:localhost/replica:0/task:0/device:GPU:0",
+      "method_id": "ledh_pfpf_alg1_ukf_current_actual_sv_raw_p8g_prefix_T10_tf",
+      "resampling_count": 0,
+      "route_identifiers": {
+        "covariance_route": "per_particle_ukf_prediction_update",
+        "flow_anchor_route": "zero_noise_transition",
+        "flow_source_route": "li_coates_2017_algorithm1_ledh_pfpf",
+        "method_generation": "li_coates_algorithm1_ukf_covariance_lifecycle",
+        "previous_ledh_pfpf_ot_evidence_status": "quarantined",
+        "resampling_route": "none"
+      },
+      "runtime_seconds": 20.251935,
+      "seed": 81120
+    }
+  ],
+  "phase": "P8G_G1_CURRENT_BOTTLENECK_PROFILE",
+  "profile_scope": {
+    "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+    "full_horizon": 1000,
+    "horizon_prefix": 10,
+    "particle_count": 32,
+    "route_label": "actual_sv_raw",
+    "route_variant": "current_looped_particles",
+    "row_id": "zhao_cui_sv_actual_nongaussian_T1000",
+    "seed_count": 1,
+    "seeds": [
+      81120
+    ]
+  },
+  "run_manifest": {
+    "command": "scripts/filtering_value_gradient_benchmark_run_p8d_numeric.py --profile-p8g-ledh-prefix --row zhao_cui_sv_actual_nongaussian_T1000 --algorithm ledh_pfpf_alg1_ukf_current --horizon 10 --particles 32 --seeds 81120 --device gpu --g0-manifest docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8g-phase0-gpu-probe-result-2026-06-15.md --output-json docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8g-phase2-looped-alg1-smoke-gpu-2026-06-15.json",
+    "cuda_visible_devices": "None",
+    "device_context": "/GPU:0",
+    "dirty_state_summary": "71 git-status-short entries",
+    "environment": "TensorFlow/TensorFlow Probability profile harness",
+    "g0_manifest": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8g-phase0-gpu-probe-result-2026-06-15.md",
+    "git_commit": "eae3f22fb8fe4a7740d7dc67066522303aaaf083",
+    "marker_device": "/job:localhost/replica:0/task:0/device:GPU:0",
+    "requested_device": "gpu",
+    "tf_logical_gpus": [
+      "/device:GPU:0"
+    ],
+    "tf_physical_gpus": [
+      "/physical_device:GPU:0"
+    ],
+    "vectorized_particles": false
+  },
+  "schema_version": "filter_bench.p8g_profile.v1",
+  "status": "executed_p8g_prefix_profile",
+  "timing": {
+    "mean_seed_runtime_seconds": 20.251935,
+    "seconds_per_seed_time_particle": 0.063321712,
+    "wall_seconds": 20.262948
+  },
+  "value_summary": {
+    "mc_standard_error": 0.0,
+    "mean_average_log_likelihood": -0.782682759136567,
+    "mean_log_likelihood": -7.82682759136567,
+    "sample_standard_deviation": 0.0
+  }
+}

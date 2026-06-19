@@ -1,0 +1,183 @@
+{
+  "bottleneck_hypothesis": {
+    "first_vectorization_targets": [
+      "batch per-particle Algorithm 1 UKF predict/update operations",
+      "move per-time particle transforms into TensorFlow graph kernels",
+      "keep five-seed orchestration outside the serious GPU kernel until G2/G4 route is vectorized"
+    ],
+    "known_python_loops": [
+      "outer Python seed loop in P8g profile harness",
+      "current TensorFlow filter implementation iterates over time in Python/eager mode",
+      "current Algorithm 1 LEDH implementation iterates over particles for per-particle UKF/flow state"
+    ]
+  },
+  "device_diagnostics": {
+    "devices_used_by_result_tensors": [
+      "/job:localhost/replica:0/task:0/device:CPU:0"
+    ],
+    "no_silent_cpu_fallback_claim": false
+  },
+  "nonclaims": [
+    "prefix profile only",
+    "not tuned particle-count evidence",
+    "not a GPU speedup claim after rewrite",
+    "not gradient correctness",
+    "not HMC readiness",
+    "not a filter ranking"
+  ],
+  "per_seed_results": [
+    {
+      "average_log_likelihood": -0.6848110587682068,
+      "effective_sample_size_mean": 6.8110473927736646,
+      "effective_sample_size_min": 1.2175669915685323,
+      "ess_device": "/job:localhost/replica:0/task:0/device:CPU:0",
+      "filtered_means_device": "/job:localhost/replica:0/task:0/device:CPU:0",
+      "finite": true,
+      "log_likelihood": -34.24055293841034,
+      "log_likelihood_device": "/job:localhost/replica:0/task:0/device:CPU:0",
+      "method_id": "ledh_pfpf_alg1_ukf_current_actual_sv_raw_p8g_prefix_T50_tf",
+      "resampling_count": 0,
+      "route_identifiers": {
+        "covariance_route": "per_particle_ukf_prediction_update",
+        "flow_anchor_route": "zero_noise_transition",
+        "flow_source_route": "li_coates_2017_algorithm1_ledh_pfpf",
+        "method_generation": "li_coates_algorithm1_ukf_covariance_lifecycle",
+        "previous_ledh_pfpf_ot_evidence_status": "quarantined",
+        "resampling_route": "none"
+      },
+      "runtime_seconds": 16.48249,
+      "seed": 81120
+    },
+    {
+      "average_log_likelihood": -0.5763335902758504,
+      "effective_sample_size_mean": 5.567144583575969,
+      "effective_sample_size_min": 1.0438328828699233,
+      "ess_device": "/job:localhost/replica:0/task:0/device:CPU:0",
+      "filtered_means_device": "/job:localhost/replica:0/task:0/device:CPU:0",
+      "finite": true,
+      "log_likelihood": -28.816679513792522,
+      "log_likelihood_device": "/job:localhost/replica:0/task:0/device:CPU:0",
+      "method_id": "ledh_pfpf_alg1_ukf_current_actual_sv_raw_p8g_prefix_T50_tf",
+      "resampling_count": 0,
+      "route_identifiers": {
+        "covariance_route": "per_particle_ukf_prediction_update",
+        "flow_anchor_route": "zero_noise_transition",
+        "flow_source_route": "li_coates_2017_algorithm1_ledh_pfpf",
+        "method_generation": "li_coates_algorithm1_ukf_covariance_lifecycle",
+        "previous_ledh_pfpf_ot_evidence_status": "quarantined",
+        "resampling_route": "none"
+      },
+      "runtime_seconds": 17.239233,
+      "seed": 81121
+    },
+    {
+      "average_log_likelihood": -0.6609630840524937,
+      "effective_sample_size_mean": 6.423218137931565,
+      "effective_sample_size_min": 1.1673074029126145,
+      "ess_device": "/job:localhost/replica:0/task:0/device:CPU:0",
+      "filtered_means_device": "/job:localhost/replica:0/task:0/device:CPU:0",
+      "finite": true,
+      "log_likelihood": -33.04815420262469,
+      "log_likelihood_device": "/job:localhost/replica:0/task:0/device:CPU:0",
+      "method_id": "ledh_pfpf_alg1_ukf_current_actual_sv_raw_p8g_prefix_T50_tf",
+      "resampling_count": 0,
+      "route_identifiers": {
+        "covariance_route": "per_particle_ukf_prediction_update",
+        "flow_anchor_route": "zero_noise_transition",
+        "flow_source_route": "li_coates_2017_algorithm1_ledh_pfpf",
+        "method_generation": "li_coates_algorithm1_ukf_covariance_lifecycle",
+        "previous_ledh_pfpf_ot_evidence_status": "quarantined",
+        "resampling_route": "none"
+      },
+      "runtime_seconds": 17.242515,
+      "seed": 81122
+    },
+    {
+      "average_log_likelihood": -0.6898898776596021,
+      "effective_sample_size_mean": 6.069842227770676,
+      "effective_sample_size_min": 1.3116692345019847,
+      "ess_device": "/job:localhost/replica:0/task:0/device:CPU:0",
+      "filtered_means_device": "/job:localhost/replica:0/task:0/device:CPU:0",
+      "finite": true,
+      "log_likelihood": -34.4944938829801,
+      "log_likelihood_device": "/job:localhost/replica:0/task:0/device:CPU:0",
+      "method_id": "ledh_pfpf_alg1_ukf_current_actual_sv_raw_p8g_prefix_T50_tf",
+      "resampling_count": 0,
+      "route_identifiers": {
+        "covariance_route": "per_particle_ukf_prediction_update",
+        "flow_anchor_route": "zero_noise_transition",
+        "flow_source_route": "li_coates_2017_algorithm1_ledh_pfpf",
+        "method_generation": "li_coates_algorithm1_ukf_covariance_lifecycle",
+        "previous_ledh_pfpf_ot_evidence_status": "quarantined",
+        "resampling_route": "none"
+      },
+      "runtime_seconds": 16.393977,
+      "seed": 81123
+    },
+    {
+      "average_log_likelihood": -0.6936378571665238,
+      "effective_sample_size_mean": 8.269362410883026,
+      "effective_sample_size_min": 1.6203192921261156,
+      "ess_device": "/job:localhost/replica:0/task:0/device:CPU:0",
+      "filtered_means_device": "/job:localhost/replica:0/task:0/device:CPU:0",
+      "finite": true,
+      "log_likelihood": -34.681892858326194,
+      "log_likelihood_device": "/job:localhost/replica:0/task:0/device:CPU:0",
+      "method_id": "ledh_pfpf_alg1_ukf_current_actual_sv_raw_p8g_prefix_T50_tf",
+      "resampling_count": 0,
+      "route_identifiers": {
+        "covariance_route": "per_particle_ukf_prediction_update",
+        "flow_anchor_route": "zero_noise_transition",
+        "flow_source_route": "li_coates_2017_algorithm1_ledh_pfpf",
+        "method_generation": "li_coates_algorithm1_ukf_covariance_lifecycle",
+        "previous_ledh_pfpf_ot_evidence_status": "quarantined",
+        "resampling_route": "none"
+      },
+      "runtime_seconds": 16.699932,
+      "seed": 81124
+    }
+  ],
+  "phase": "P8G_G1_CURRENT_BOTTLENECK_PROFILE",
+  "profile_scope": {
+    "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+    "full_horizon": 1000,
+    "horizon_prefix": 50,
+    "particle_count": 32,
+    "route_label": "actual_sv_raw",
+    "row_id": "zhao_cui_sv_actual_nongaussian_T1000",
+    "seed_count": 5,
+    "seeds": [
+      81120,
+      81121,
+      81122,
+      81123,
+      81124
+    ]
+  },
+  "run_manifest": {
+    "command": "scripts/filtering_value_gradient_benchmark_run_p8d_numeric.py --profile-p8g-ledh-prefix --row zhao_cui_sv_actual_nongaussian_T1000 --algorithm ledh_pfpf_alg1_ukf_current --horizon 50 --particles 32 --seeds 81120,81121,81122,81123,81124 --device cpu --output-json docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8g-phase1-profile-cpu-2026-06-15.json",
+    "cuda_visible_devices": "-1",
+    "device_context": "/CPU:0",
+    "dirty_state_summary": "64 git-status-short entries",
+    "environment": "TensorFlow/TensorFlow Probability profile harness",
+    "g0_manifest": null,
+    "git_commit": "eae3f22fb8fe4a7740d7dc67066522303aaaf083",
+    "marker_device": "/job:localhost/replica:0/task:0/device:CPU:0",
+    "requested_device": "cpu",
+    "tf_logical_gpus": [],
+    "tf_physical_gpus": []
+  },
+  "schema_version": "filter_bench.p8g_profile.v1",
+  "status": "executed_p8g_prefix_profile",
+  "timing": {
+    "mean_seed_runtime_seconds": 16.811629,
+    "seconds_per_seed_time_particle": 0.010508571,
+    "wall_seconds": 84.068564
+  },
+  "value_summary": {
+    "mc_standard_error": 1.0974483362407534,
+    "mean_average_log_likelihood": -0.6611270935845355,
+    "mean_log_likelihood": -33.05635467922677,
+    "sample_standard_deviation": 2.453969081628371
+  }
+}

@@ -1,0 +1,2014 @@
+{
+  "diagnostic_scope": "p73_phase5_bounded_renewal_real_p73_a_rows",
+  "evidence_contract": {
+    "baseline_comparator": "P72 Phase 5 blocked diagnostic row rank_candidate_1_2_fit36.",
+    "explanatory_only": [
+      "training loss",
+      "fit-cloud cross-entropy",
+      "runtime",
+      "condition spectra beyond frozen gate"
+    ],
+    "nonclaims": [
+      "no P73 lower-gate pass claim",
+      "no repaired P72 diagnostic claim",
+      "no d18 validation claim",
+      "no HMC readiness claim",
+      "no rank or degree promotion",
+      "no scaling claim",
+      "no adaptive Zhao-Cui source-faithful parity claim"
+    ],
+    "primary_criterion": "P73-A row must pass fit, fresh guard, fresh audit, guard-line, audit-line, support, normalizer, condition/effective-rank, rank-activity, and NO_AUDIT_COEFFICIENT_SELECTION gates.",
+    "question": "Does one-renewal P73-A reduce or clear the P72 lower-gate blockers under fresh guard/audit certification without training on same-round audit data?",
+    "veto_diagnostics": [
+      "audit or audit-line points in coefficient selection",
+      "certification on newly added training points",
+      "nonfinite values",
+      "residual/line/support/normalizer/condition/rank block",
+      "threshold drift",
+      "P73-B executed despite blocked optimizer"
+    ]
+  },
+  "gate_summary": {
+    "baseline_comparator": "P72 Phase 5 blocked rank_candidate_1_2_fit36 row",
+    "failed_row_labels": [
+      "rank_candidate_1_2_fit36"
+    ],
+    "nonclaims": [
+      "no P73 lower-gate pass claim",
+      "no repaired P72 diagnostic claim",
+      "no d18 validation claim",
+      "no HMC readiness claim",
+      "no rank or degree promotion",
+      "no scaling claim",
+      "no adaptive Zhao-Cui source-faithful parity claim"
+    ],
+    "overall_status": "block",
+    "p73_b_optimizer_status": "P73_B_OPTIMIZER_BLOCKED_NONLINEAR_OBJECTIVE_NOT_IMPLEMENTED",
+    "phase5_diagnostic_executed": true,
+    "schema_only_sentinel_present": false,
+    "smoke_only_not_phase5_evidence": false
+  },
+  "master_program": "docs/plans/bayesfilter-highdim-zhao-cui-p73-density-aware-renewed-support-master-program-2026-06-17.md",
+  "metadata_date": "2026-06-17",
+  "nonclaims": [
+    "no P73 lower-gate pass claim",
+    "no repaired P72 diagnostic claim",
+    "no d18 validation claim",
+    "no HMC readiness claim",
+    "no rank or degree promotion",
+    "no scaling claim",
+    "no adaptive Zhao-Cui source-faithful parity claim"
+  ],
+  "rows": {
+    "rank_candidate_1_2_fit36": {
+      "arms": {
+        "p73_a_renewal_only": {
+          "status": "BLOCK_P73_DENSITY_AWARE_RENEWED_SUPPORT_LOWER_GATE",
+          "steps": [
+            {
+              "A1_point_count": 72,
+              "E0_point_count": 62,
+              "F0_point_count": 36,
+              "G1_point_count": 36,
+              "N1_point_count": 36,
+              "condition_effective_rank_gate": {
+                "condition_number_admission": 10000000000.0,
+                "condition_number_max": 1761.7168521119065,
+                "effective_rank_min": 4.0,
+                "effective_rank_threshold": 1.0,
+                "low_level_solver_veto_unchanged": 100000000000000.0,
+                "p72_gate_role": "wrapper_admission_not_low_level_solver_abort",
+                "reasons": [],
+                "status": "pass"
+              },
+              "degree": 1,
+              "density_aware_objective": {
+                "alpha_max": 0.4212860856392256,
+                "alpha_min": 3.086597799221537e-14,
+                "alpha_sum": 1.0,
+                "cross_entropy": 36.92645846526344,
+                "density_aware_objective_status": "included_as_opt_in_diagnostic_arm",
+                "lambda_ce": 0.1,
+                "log_density_max": -36.47509086806754,
+                "log_density_min": -62.90807979350026,
+                "no_audit_coefficient_selection": {
+                  "NO_AUDIT_COEFFICIENT_SELECTION": true,
+                  "audit_line_point_count": 13,
+                  "audit_point_count": 72,
+                  "coefficient_cloud_hashes": [
+                    "eea900d30c3adf14f5c1e981e7126bb7581eb2e07c89e401448167974c83558a"
+                  ],
+                  "coefficient_point_count": 134,
+                  "enrichment_point_count": 0,
+                  "nonclaims": [
+                    "predicate pass is provenance evidence only",
+                    "predicate pass is not a lower-gate repair claim"
+                  ],
+                  "overlap_hashes": [],
+                  "predicate_id": "NO_AUDIT_COEFFICIENT_SELECTION",
+                  "reasons": [],
+                  "renewal_round": 1,
+                  "same_round_audit_cloud_hashes": [
+                    "076aa2e0cd0a8a65e7bd637a8434e7adfc7c41a08e5e59fe8885f33cae8f3b4b",
+                    "1cda53432d7e7b061c8871cf9bf5e4d94eba0b416e2e8eeb53eaafaa2acf18ca"
+                  ],
+                  "same_round_audit_line_cloud_hashes": [
+                    "2df4d8b3445067e761ef65acabd24c28bf41b9587e386074905300ab8b3f3000"
+                  ],
+                  "status": "pass"
+                },
+                "nonclaims": [
+                  "cross-entropy evaluation is not nonlinear optimizer evidence",
+                  "training-support objective values are explanatory only"
+                ],
+                "p73_b_optimizer_status": "P73_B_OPTIMIZER_BLOCKED_NONLINEAR_OBJECTIVE_NOT_IMPLEMENTED",
+                "reasons": [],
+                "renewal_round": 1,
+                "status": "pass",
+                "support_point_count": 134,
+                "support_point_hash": "e2764487ecee3b43ca257cf4a7e1be251bc351b206a63e050c1f7dba9321b2c0",
+                "target_hash": "f2509505681647befcdc32ad3f8020010f71a477099370b7476fd5a6efee76f3",
+                "weight_hash": "3536d2a98e2dfdfea6195ca2f137ec747162a6a07eb94ac21b45390c7e78cf8e",
+                "weighted_cross_entropy": 3.692645846526344
+              },
+              "enrichment_boundary": {
+                "allowed_source_channels": [
+                  "guard",
+                  "guard_line"
+                ],
+                "enrichment_point_count": 62,
+                "forbidden_source_channels": [
+                  "audit",
+                  "audit_line"
+                ],
+                "reasons": [],
+                "rule": "E_r subset G_r union L_r_guard",
+                "status": "pass"
+              },
+              "fit_point_count": 134,
+              "fit_status": "OK",
+              "fit_termination_reason": "max_sweeps_exhausted",
+              "gate_summary": {
+                "condition_effective_rank_gate": {
+                  "condition_number_admission": 10000000000.0,
+                  "condition_number_max": 1761.7168521119065,
+                  "effective_rank_min": 4.0,
+                  "effective_rank_threshold": 1.0,
+                  "low_level_solver_veto_unchanged": 100000000000000.0,
+                  "p72_gate_role": "wrapper_admission_not_low_level_solver_abort",
+                  "reasons": [],
+                  "status": "pass"
+                },
+                "line_gate": {
+                  "channels": {
+                    "audit_line": {
+                      "direct_target_evaluation_required": true,
+                      "endpoint_growth_ratio_max": 12.541648963006482,
+                      "line_hash": "2df4d8b3445067e761ef65acabd24c28bf41b9587e386074905300ab8b3f3000",
+                      "line_manifest": {
+                        "duplicate_removal": "deterministic_exact_column_key_on_fixed_line_cloud",
+                        "line_fractions": [
+                          0.0,
+                          0.25,
+                          0.5,
+                          0.75,
+                          1.0
+                        ],
+                        "line_hash": "b48c3d4a244d327b64880adc57255de9611b169cea3c607298e0d6f65ffac5cd",
+                        "line_point_count": 13,
+                        "line_start_indices": [
+                          0,
+                          0,
+                          1,
+                          2,
+                          0,
+                          1,
+                          2,
+                          0,
+                          1,
+                          2,
+                          0,
+                          1,
+                          2
+                        ],
+                        "policy_id": "p72_guard_line_points.v1",
+                        "raw_line_point_count": 15,
+                        "selected_guard_indices": [
+                          31,
+                          24,
+                          33
+                        ]
+                      },
+                      "line_point_count": 13,
+                      "line_point_hash": "93c68687c380dd69f34cd912b209581cb6852a5661d726ea3b61c99f0b690702",
+                      "line_points": "[[ 2.46690904e-02 -8.64594825e-02 -1.46290528e-01  6.60920223e-02\n  -1.97588055e-01 -3.17250146e-01  1.07514954e-01 -3.08716628e-01\n  -4.88209764e-01  1.48937886e-01 -4.19845201e-01 -6.59169382e-01\n   1.90360818e-01]\n [-2.73940978e-03  7.55076208e-02  1.10580365e-01 -5.55725225e-03\n   1.53754651e-01  2.23900140e-01 -8.37509472e-03  2.32001682e-01\n   3.37219915e-01 -1.11929372e-02  3.10248712e-01  4.50539690e-01\n  -1.40107797e-02]\n [-6.02929102e-02 -6.13891153e-02 -2.63584875e-01 -9.85181898e-02\n  -6.24853204e-02 -4.66876839e-01 -1.36743469e-01 -6.35815255e-02\n  -6.70168803e-01 -1.74968749e-01 -6.46777307e-02 -8.73460768e-01\n  -2.13194029e-01]\n [-2.79770941e-02  1.00772283e-02 -6.29058140e-02  8.49704867e-02\n   4.81315507e-02 -9.78345338e-02  1.97918067e-01  8.61858731e-02\n  -1.32763254e-01  3.10865648e-01  1.24240195e-01 -1.67691974e-01\n   4.23813229e-01]\n [ 1.06111723e-02 -1.32162521e-01 -7.88427273e-02 -1.22154295e-02\n  -2.74936214e-01 -1.68296627e-01 -3.50420312e-02 -4.17709908e-01\n  -2.57750526e-01 -5.78686330e-02 -5.60483601e-01 -3.47204426e-01\n  -8.06952347e-02]\n [-2.10472275e-02  3.33079778e-02  4.96638931e-02  4.42443533e-02\n   8.76631831e-02  1.20375014e-01  1.09535934e-01  1.42018388e-01\n   1.91086134e-01  1.74827515e-01  1.96373594e-01  2.61797255e-01\n   2.40119096e-01]\n [-3.76912022e-02 -8.29991654e-02  3.29195477e-03  1.39742502e-01\n  -1.28307129e-01  4.42751117e-02  3.17176207e-01 -1.73615092e-01\n   8.52582686e-02  4.94609911e-01 -2.18923055e-01  1.26241426e-01\n   6.72043615e-01]\n [ 4.18926022e-02  3.36168078e-02  1.05285567e-01  1.60632235e-01\n   2.53410133e-02  1.68678533e-01  2.79371868e-01  1.70652189e-02\n   2.32071498e-01  3.98111500e-01  8.78942446e-03  2.95464463e-01\n   5.16851133e-01]\n [ 4.93640089e-02  1.66910421e-03  1.87202561e-01 -1.72008476e-01\n  -4.60258005e-02  3.25041113e-01 -3.93380960e-01 -9.37207052e-02\n   4.62879665e-01 -6.14753445e-01 -1.41415610e-01  6.00718218e-01\n  -8.36125929e-01]\n [ 1.73330613e-01  5.65881081e-02  1.69392341e-01  2.21404556e-01\n  -6.01543966e-02  1.65454069e-01  2.69478499e-01 -1.76896901e-01\n   1.61515797e-01  3.17552442e-01 -2.93639406e-01  1.57577525e-01\n   3.65626385e-01]\n [-3.48205743e-02 -4.10563604e-02  3.02653068e-02 -1.09484090e-01\n  -4.72921466e-02  9.53511880e-02 -1.84147607e-01 -5.35279328e-02\n   1.60437069e-01 -2.58811123e-01 -5.97637189e-02  2.25522950e-01\n  -3.33474639e-01]\n [-2.77944249e-02 -1.06794336e-01  1.03513202e-01 -1.80636947e-01\n  -1.85794248e-01  2.34820829e-01 -3.33479469e-01 -2.64794159e-01\n   3.66128457e-01 -4.86321991e-01 -3.43794071e-01  4.97436084e-01\n  -6.39164513e-01]\n [-1.67104556e-02  1.30365475e-01 -9.89416382e-02 -2.16458894e-01\n   2.77441406e-01 -1.81172821e-01 -4.16207332e-01  4.24517337e-01\n  -2.63404004e-01 -6.15955770e-01  5.71593268e-01 -3.45635186e-01\n  -8.15704208e-01]\n [ 9.86672782e-02  3.74339922e-02  3.81538244e-02 -9.44302370e-02\n  -2.37992938e-02 -2.23596293e-02 -2.87527752e-01 -8.50325798e-02\n  -8.28730831e-02 -4.80625267e-01 -1.46265866e-01 -1.43386537e-01\n  -6.73722783e-01]\n [-1.35814281e-01 -1.04193164e-01 -9.70625748e-02 -3.51860710e-01\n  -7.25720481e-02 -5.83108689e-02 -5.67907140e-01 -4.09509318e-02\n  -1.95591631e-02 -7.83953570e-01 -9.32981559e-03  1.91925427e-02\n  -1.00000000e+00]\n [ 7.79965314e-02 -8.58040190e-02  1.04190343e-01  5.22611300e-02\n  -2.49604569e-01  1.30384155e-01  2.65257286e-02 -4.13405120e-01\n   1.56577967e-01  7.90327179e-04 -5.77205670e-01  1.82771779e-01\n  -2.49450742e-02]\n [-1.53343835e-01 -5.06043568e-02 -4.10533702e-02 -3.19318389e-01\n   5.21351214e-02  7.12370945e-02 -4.85292943e-01  1.54874600e-01\n   1.83527559e-01 -6.51267498e-01  2.57614078e-01  2.95818024e-01\n  -8.17242052e-01]\n [-4.33224301e-02 -1.29953797e-01 -2.44232350e-01  1.92324792e-01\n  -2.16585164e-01 -4.45142270e-01  4.27972013e-01 -3.03216531e-01\n  -6.46052190e-01  6.63619235e-01 -3.89847898e-01 -8.46962109e-01\n   8.99266457e-01]\n [-1.61137171e-02  8.12277445e-04  1.83592669e-02  5.76604773e-02\n   1.77382719e-02  5.28322508e-02  1.31434672e-01  3.46642664e-02\n   8.73052347e-02  2.05208866e-01  5.15902609e-02  1.21778219e-01\n   2.78983060e-01]\n [-5.11503453e-02  5.40276610e-02 -1.89149630e-01  4.30398580e-02\n   1.59205667e-01 -3.27148914e-01  1.37230061e-01  2.64383674e-01\n  -4.65148198e-01  2.31420265e-01  3.69561680e-01 -6.03147483e-01\n   3.25610468e-01]\n [-1.64042106e-01 -1.12232441e-01 -2.26556475e-01 -5.07058115e-02\n  -6.04227759e-02 -2.89070843e-01  6.26304832e-02 -8.61311065e-03\n  -3.51585211e-01  1.75966778e-01  4.31965546e-02 -4.14099579e-01\n   2.89303073e-01]\n [-2.10806411e-02 -5.79513011e-02  1.93469756e-01 -1.95892016e-01\n  -9.48219611e-02  4.08020153e-01 -3.70703392e-01 -1.31692621e-01\n   6.22570550e-01 -5.45514767e-01 -1.68563281e-01  8.37120947e-01\n  -7.20326142e-01]\n [ 1.57772086e-02 -7.98605061e-02 -1.43824122e-01  2.10031850e-01\n  -1.75498221e-01 -3.03425453e-01  4.04286491e-01 -2.71135935e-01\n  -4.63026784e-01  5.98541132e-01 -3.66773650e-01 -6.22628115e-01\n   7.92795773e-01]\n [ 2.14980220e-02 -8.01765135e-02  4.66213113e-02 -2.33876483e-01\n  -1.81851049e-01  7.17446006e-02 -4.89250989e-01 -2.83525585e-01\n   9.68678899e-02 -7.44625494e-01 -3.85200120e-01  1.21991179e-01\n  -1.00000000e+00]\n [-5.46592324e-02  5.52223422e-02 -1.05761214e-01  1.63839787e-01\n   1.65103917e-01 -1.56863195e-01  3.82338807e-01  2.74985491e-01\n  -2.07965176e-01  6.00837826e-01  3.84867066e-01 -2.59067157e-01\n   8.19336845e-01]\n [-3.72201787e-02  6.17789877e-02  2.22084866e-01 -1.32727635e-01\n   1.60778154e-01  4.81389911e-01 -2.28235091e-01  2.59777320e-01\n   7.40694955e-01 -3.23742548e-01  3.58776487e-01  1.00000000e+00\n  -4.19250004e-01]\n [ 1.26184220e-01  6.12864575e-02  2.42082645e-01 -1.55361835e-01\n  -3.61130491e-03  3.57981070e-01 -4.36907890e-01 -6.85090673e-02\n   4.73879496e-01 -7.18453945e-01 -1.33406830e-01  5.89777921e-01\n  -1.00000000e+00]\n [ 1.19744960e-01  1.06068180e-04  3.30492836e-01 -1.51391044e-01\n  -1.19532824e-01  5.41240713e-01 -4.22527049e-01 -2.39171715e-01\n   7.51988589e-01 -6.93663053e-01 -3.58810607e-01  9.62736466e-01\n  -9.64799057e-01]\n [-1.25513104e-01 -3.44134828e-01 -5.57225197e-02  1.55865172e-01\n  -5.62756552e-01  1.40680647e-02  4.37243448e-01 -7.81378276e-01\n   8.38586490e-02  7.18621724e-01 -1.00000000e+00  1.53649233e-01\n   1.00000000e+00]\n [-2.55095754e-02  6.13376536e-02 -2.69132182e-01  2.30867818e-01\n   1.48184883e-01 -5.12754788e-01  4.87245212e-01  2.35032112e-01\n  -7.56377394e-01  7.43622606e-01  3.21879341e-01 -1.00000000e+00\n   1.00000000e+00]\n [-8.90808653e-02 -3.16810649e-01 -3.16810649e-01 -1.85655537e-01\n  -5.44540433e-01 -5.44540433e-01 -2.82230209e-01 -7.72270216e-01\n  -7.72270216e-01 -3.78804881e-01 -1.00000000e+00 -1.00000000e+00\n  -4.75379553e-01]\n [ 8.81937578e-02  2.95575861e-02  3.16145318e-01 -1.83854682e-01\n  -2.90785857e-02  5.44096879e-01 -4.55903121e-01 -8.77147574e-02\n   7.72048439e-01 -7.27951561e-01 -1.46350929e-01  1.00000000e+00\n  -1.00000000e+00]\n [ 1.11486335e-01  3.33614751e-01  3.33614751e-01  3.33614751e-01\n   5.55743167e-01  5.55743167e-01  5.55743167e-01  7.77871584e-01\n   7.77871584e-01  7.77871584e-01  1.00000000e+00  1.00000000e+00\n   1.00000000e+00]\n [ 1.89590063e-01  3.92192547e-01  3.92192547e-01  3.92192547e-01\n   5.94795031e-01  5.94795031e-01  5.94795031e-01  7.97397516e-01\n   7.97397516e-01  7.97397516e-01  1.00000000e+00  1.00000000e+00\n   1.00000000e+00]\n [-3.88177536e-02  2.20886685e-01 -2.79113315e-01  2.20886685e-01\n   4.80591123e-01 -5.19408877e-01  4.80591123e-01  7.40295562e-01\n  -7.59704438e-01  7.40295562e-01  1.00000000e+00 -1.00000000e+00\n   1.00000000e+00]\n [ 6.70076940e-02  3.00255770e-01 -1.99744230e-01  3.00255770e-01\n   5.33503847e-01 -4.66496153e-01  5.33503847e-01  7.66751923e-01\n  -7.33248077e-01  7.66751923e-01  1.00000000e+00 -1.00000000e+00\n   1.00000000e+00]]",
+                      "line_prediction_hash": "51361778d37a22bf0614ffd2e7eb48b01f17b190582f7fb6c593cd20a7b4f377",
+                      "line_prediction_max_abs": 1741.1933155259176,
+                      "line_records": [
+                        {
+                          "audit_round": 1,
+                          "cloud_hash": "2df4d8b3445067e761ef65acabd24c28bf41b9587e386074905300ab8b3f3000",
+                          "created_round": 1,
+                          "entered_training_round": null,
+                          "parent_point_ids": [],
+                          "point_id": "t1-audit_line-0",
+                          "role": "audit_line",
+                          "seed_or_constructor_label": "t1-audit_line",
+                          "source_channel": "audit_line"
+                        },
+                        {
+                          "audit_round": 1,
+                          "cloud_hash": "2df4d8b3445067e761ef65acabd24c28bf41b9587e386074905300ab8b3f3000",
+                          "created_round": 1,
+                          "entered_training_round": null,
+                          "parent_point_ids": [],
+                          "point_id": "t1-audit_line-1",
+                          "role": "audit_line",
+                          "seed_or_constructor_label": "t1-audit_line",
+                          "source_channel": "audit_line"
+                        },
+                        {
+                          "audit_round": 1,
+                          "cloud_hash": "2df4d8b3445067e761ef65acabd24c28bf41b9587e386074905300ab8b3f3000",
+                          "created_round": 1,
+                          "entered_training_round": null,
+                          "parent_point_ids": [],
+                          "point_id": "t1-audit_line-2",
+                          "role": "audit_line",
+                          "seed_or_constructor_label": "t1-audit_line",
+                          "source_channel": "audit_line"
+                        },
+                        {
+                          "audit_round": 1,
+                          "cloud_hash": "2df4d8b3445067e761ef65acabd24c28bf41b9587e386074905300ab8b3f3000",
+                          "created_round": 1,
+                          "entered_training_round": null,
+                          "parent_point_ids": [],
+                          "point_id": "t1-audit_line-3",
+                          "role": "audit_line",
+                          "seed_or_constructor_label": "t1-audit_line",
+                          "source_channel": "audit_line"
+                        },
+                        {
+                          "audit_round": 1,
+                          "cloud_hash": "2df4d8b3445067e761ef65acabd24c28bf41b9587e386074905300ab8b3f3000",
+                          "created_round": 1,
+                          "entered_training_round": null,
+                          "parent_point_ids": [],
+                          "point_id": "t1-audit_line-4",
+                          "role": "audit_line",
+                          "seed_or_constructor_label": "t1-audit_line",
+                          "source_channel": "audit_line"
+                        },
+                        {
+                          "audit_round": 1,
+                          "cloud_hash": "2df4d8b3445067e761ef65acabd24c28bf41b9587e386074905300ab8b3f3000",
+                          "created_round": 1,
+                          "entered_training_round": null,
+                          "parent_point_ids": [],
+                          "point_id": "t1-audit_line-5",
+                          "role": "audit_line",
+                          "seed_or_constructor_label": "t1-audit_line",
+                          "source_channel": "audit_line"
+                        },
+                        {
+                          "audit_round": 1,
+                          "cloud_hash": "2df4d8b3445067e761ef65acabd24c28bf41b9587e386074905300ab8b3f3000",
+                          "created_round": 1,
+                          "entered_training_round": null,
+                          "parent_point_ids": [],
+                          "point_id": "t1-audit_line-6",
+                          "role": "audit_line",
+                          "seed_or_constructor_label": "t1-audit_line",
+                          "source_channel": "audit_line"
+                        },
+                        {
+                          "audit_round": 1,
+                          "cloud_hash": "2df4d8b3445067e761ef65acabd24c28bf41b9587e386074905300ab8b3f3000",
+                          "created_round": 1,
+                          "entered_training_round": null,
+                          "parent_point_ids": [],
+                          "point_id": "t1-audit_line-7",
+                          "role": "audit_line",
+                          "seed_or_constructor_label": "t1-audit_line",
+                          "source_channel": "audit_line"
+                        },
+                        {
+                          "audit_round": 1,
+                          "cloud_hash": "2df4d8b3445067e761ef65acabd24c28bf41b9587e386074905300ab8b3f3000",
+                          "created_round": 1,
+                          "entered_training_round": null,
+                          "parent_point_ids": [],
+                          "point_id": "t1-audit_line-8",
+                          "role": "audit_line",
+                          "seed_or_constructor_label": "t1-audit_line",
+                          "source_channel": "audit_line"
+                        },
+                        {
+                          "audit_round": 1,
+                          "cloud_hash": "2df4d8b3445067e761ef65acabd24c28bf41b9587e386074905300ab8b3f3000",
+                          "created_round": 1,
+                          "entered_training_round": null,
+                          "parent_point_ids": [],
+                          "point_id": "t1-audit_line-9",
+                          "role": "audit_line",
+                          "seed_or_constructor_label": "t1-audit_line",
+                          "source_channel": "audit_line"
+                        },
+                        {
+                          "audit_round": 1,
+                          "cloud_hash": "2df4d8b3445067e761ef65acabd24c28bf41b9587e386074905300ab8b3f3000",
+                          "created_round": 1,
+                          "entered_training_round": null,
+                          "parent_point_ids": [],
+                          "point_id": "t1-audit_line-10",
+                          "role": "audit_line",
+                          "seed_or_constructor_label": "t1-audit_line",
+                          "source_channel": "audit_line"
+                        },
+                        {
+                          "audit_round": 1,
+                          "cloud_hash": "2df4d8b3445067e761ef65acabd24c28bf41b9587e386074905300ab8b3f3000",
+                          "created_round": 1,
+                          "entered_training_round": null,
+                          "parent_point_ids": [],
+                          "point_id": "t1-audit_line-11",
+                          "role": "audit_line",
+                          "seed_or_constructor_label": "t1-audit_line",
+                          "source_channel": "audit_line"
+                        },
+                        {
+                          "audit_round": 1,
+                          "cloud_hash": "2df4d8b3445067e761ef65acabd24c28bf41b9587e386074905300ab8b3f3000",
+                          "created_round": 1,
+                          "entered_training_round": null,
+                          "parent_point_ids": [],
+                          "point_id": "t1-audit_line-12",
+                          "role": "audit_line",
+                          "seed_or_constructor_label": "t1-audit_line",
+                          "source_channel": "audit_line"
+                        }
+                      ],
+                      "line_residual_max_abs": 1741.1932439697302,
+                      "line_residual_rms": 543.8468912693863,
+                      "line_role": "audit_line",
+                      "line_start_indices_available": true,
+                      "line_target_hash": "b9d7b55fd207e72a96d73539861eb8cf2f0cf9246f03847f4e85a43c7ef9c128",
+                      "line_targets": "[4.10237005e+02 2.95615921e+02 2.60754285e+02 1.46539059e+02\n 7.21329056e+01 7.38518631e+01 7.75864678e+00 5.95915107e+00\n 9.30853048e+00 6.10450506e-02 1.66652550e-01 5.21484936e-01\n 7.15561873e-05]",
+                      "reasons": [
+                        "line_rms_residual_veto"
+                      ],
+                      "status": "block",
+                      "target_scale": 49.17083705915358
+                    },
+                    "guard_line": {
+                      "direct_target_evaluation_required": true,
+                      "endpoint_growth_ratio_max": 1.0,
+                      "line_hash": "388ebac7a4a16c4c605e5c30577b9fde979b0dc2ffb637ae634b360a08ba8700",
+                      "line_manifest": {
+                        "duplicate_removal": "deterministic_exact_column_key_on_fixed_line_cloud",
+                        "line_fractions": [
+                          0.0,
+                          0.25,
+                          0.5,
+                          0.75,
+                          1.0
+                        ],
+                        "line_hash": "87c34cdd27b5c32ca2273b2dca16cd1e2551f96db61a8d5259e102905850e4fe",
+                        "line_point_count": 13,
+                        "line_start_indices": [
+                          0,
+                          0,
+                          1,
+                          2,
+                          0,
+                          1,
+                          2,
+                          0,
+                          1,
+                          2,
+                          0,
+                          1,
+                          2
+                        ],
+                        "policy_id": "p72_guard_line_points.v1",
+                        "raw_line_point_count": 15,
+                        "selected_guard_indices": [
+                          15,
+                          4,
+                          3
+                        ]
+                      },
+                      "line_point_count": 13,
+                      "line_point_hash": "af59f90f728d9197047a0ad6e0548a44c0171a2a02e17edf9c6137a588922f47",
+                      "line_points": "[[ 2.46690904e-02  6.13371613e-04  4.10304784e-02 -3.71975997e-02\n  -2.34423472e-02  5.73918663e-02 -9.90642898e-02 -4.74980660e-02\n   7.37532543e-02 -1.60930980e-01 -7.15537848e-02  9.01146422e-02\n  -2.22797670e-01]\n [-2.73940978e-03 -1.19363246e-02  2.24632903e-02 -7.02422468e-03\n  -2.11332395e-02  4.76659903e-02 -1.13090396e-02 -3.03301544e-02\n   7.28686903e-02 -1.55938545e-02 -3.95270692e-02  9.80713903e-02\n  -1.98786694e-02]\n [-6.02929102e-02  2.71683224e-03 -1.41101133e-01 -6.81543355e-02\n   6.57265746e-02 -2.21909357e-01 -7.60157607e-02  1.28736317e-01\n  -3.02717580e-01 -8.38771860e-02  1.91746059e-01 -3.83525803e-01\n  -9.17386113e-02]\n [-2.79770941e-02 -1.54244582e-02 -9.75285954e-02  6.48293305e-02\n  -2.87182225e-03 -1.67080097e-01  1.57635755e-01  9.68081366e-03\n  -2.36631598e-01  2.50442180e-01  2.22334496e-02 -3.06183100e-01\n   3.43248604e-01]\n [ 1.06111723e-02 -1.74995369e-02  1.02229347e-01  4.40102798e-02\n  -4.56102461e-02  1.93847522e-01  7.74093874e-02 -7.37209552e-02\n   2.85465697e-01  1.10808495e-01 -1.01831664e-01  3.77083872e-01\n   1.44207602e-01]\n [-2.10472275e-02  8.81690033e-02  1.80174898e-01  1.39031264e-02\n   1.97385234e-01  3.81397023e-01  4.88534803e-02  3.06601465e-01\n   5.82619148e-01  8.38038342e-02  4.15817696e-01  7.83841273e-01\n   1.18754188e-01]\n [-3.76912022e-02 -2.11963585e-02 -3.87543968e-02  4.49775129e-02\n  -4.70151490e-03 -3.98175914e-02  1.27646228e-01  1.17933287e-02\n  -4.08807860e-02  2.10314943e-01  2.82881724e-02 -4.19439806e-02\n   2.92983658e-01]\n [ 4.18926022e-02  7.70145607e-02  1.12741109e-01  1.37290496e-01\n   1.12136519e-01  1.83589615e-01  2.32688389e-01  1.47258478e-01\n   2.54438121e-01  3.28086282e-01  1.82380436e-01  3.25286628e-01\n   4.23484176e-01]\n [ 4.93640089e-02  1.82876919e-02  9.43010049e-02 -1.39149037e-01\n  -1.27886252e-02  1.39238001e-01 -3.27662083e-01 -4.38649422e-02\n   1.84174997e-01 -5.16175130e-01 -7.49412593e-02  2.29111993e-01\n  -7.04688176e-01]\n [ 1.73330613e-01  1.40140939e-01  2.47217541e-02  2.01242571e-01\n   1.06951264e-01 -1.23887105e-01  2.29154529e-01  7.37615898e-02\n  -2.72495964e-01  2.57066487e-01  4.05719154e-02 -4.21104822e-01\n   2.84978445e-01]\n [-3.48205743e-02  2.56665942e-02 -2.29645419e-01  6.19426644e-02\n   8.61537627e-02 -4.24470264e-01  1.58705903e-01  1.46640931e-01\n  -6.19295109e-01  2.55469142e-01  2.07128100e-01 -8.14119954e-01\n   3.52232381e-01]\n [-2.77944249e-02  1.63626219e-01 -1.67419939e-02 -2.32116097e-01\n   3.55046863e-01 -5.68956294e-03 -4.36437769e-01  5.46467506e-01\n   5.36286804e-03 -6.40759441e-01  7.37888150e-01  1.64152990e-02\n  -8.45081114e-01]\n [-1.67104556e-02 -6.88451851e-02  1.06831490e-01 -1.25341455e-01\n  -1.20979915e-01  2.30373436e-01 -2.33972455e-01 -1.73114644e-01\n   3.53915381e-01 -3.42603454e-01 -2.25249374e-01  4.77457327e-01\n  -4.51234454e-01]\n [ 9.86672782e-02  1.25592257e-01  4.19110325e-02 -1.75999541e-01\n   1.52517237e-01 -1.48452132e-02 -4.50666361e-01  1.79442216e-01\n  -7.16014590e-02 -7.25333180e-01  2.06367195e-01 -1.28357705e-01\n  -1.00000000e+00]\n [-1.35814281e-01 -9.41090325e-02 -3.39994492e-01 -2.93047486e-01\n  -5.24037844e-02 -5.44174703e-01 -4.50280692e-01 -1.06985364e-02\n  -7.48354914e-01 -6.07513898e-01  3.10067117e-02 -9.52535126e-01\n  -7.64747104e-01]\n [ 7.79965314e-02  6.59870908e-02 -6.64150418e-03  8.75330222e-02\n   5.39776503e-02 -9.12795397e-02  9.70695130e-02  4.19682098e-02\n  -1.75917575e-01  1.06606004e-01  2.99587693e-02 -2.60555611e-01\n   1.16142495e-01]\n [-1.53343835e-01 -1.76857392e-01  6.33217566e-02 -1.05748126e-02\n  -2.00370950e-01  2.79987348e-01  1.32194210e-01 -2.23884507e-01\n   4.96652940e-01  2.74963232e-01 -2.47398064e-01  7.13318531e-01\n   4.17732255e-01]\n [-4.33224301e-02 -7.57745733e-02  2.32925935e-02  4.31328334e-02\n  -1.08226717e-01  8.99076171e-02  1.29588097e-01 -1.40678860e-01\n   1.56522641e-01  2.16043360e-01 -1.73131003e-01  2.23137664e-01\n   3.02498624e-01]\n [-1.61137171e-02 -1.08000098e-01  2.36730642e-01 -1.81887086e-02\n  -1.99886479e-01  4.89575001e-01 -2.02637002e-02 -2.91772861e-01\n   7.42419360e-01 -2.23386918e-02 -3.83659242e-01  9.95263720e-01\n  -2.44136834e-02]\n [-5.11503453e-02 -2.12211819e-02  5.68818345e-02  5.64551745e-03\n   8.70798153e-03  1.64914014e-01  6.24413802e-02  3.86371449e-02\n   2.72946194e-01  1.19237243e-01  6.85663083e-02  3.80978374e-01\n   1.76033106e-01]\n [-1.64042106e-01 -3.73031580e-01 -3.79968262e-03 -3.73031580e-01\n  -5.82021053e-01  1.56442741e-01 -5.82021053e-01 -7.91010527e-01\n   3.16685165e-01 -7.91010527e-01 -1.00000000e+00  4.76927588e-01\n  -1.00000000e+00]\n [-2.10806411e-02 -4.31245689e-02  8.96557978e-03  1.26470030e-01\n  -6.51684968e-02  3.90118006e-02  2.74020701e-01 -8.72124247e-02\n   6.90580215e-02  4.21571373e-01 -1.09256353e-01  9.91042423e-02\n   5.69122044e-01]\n [ 1.57772086e-02  1.54781877e-02 -1.69400630e-01  1.67007006e-01\n   1.51791668e-02 -3.54578469e-01  3.18236804e-01  1.48801459e-02\n  -5.39756308e-01  4.69466602e-01  1.45811250e-02 -7.24934147e-01\n   6.20696400e-01]\n [ 2.14980220e-02  2.10306745e-02 -1.73800570e-01 -2.33876483e-01\n   2.05633270e-02 -3.69099162e-01 -4.89250989e-01  2.00959795e-02\n  -5.64397754e-01 -7.44625494e-01  1.96286320e-02 -7.59696347e-01\n  -1.00000000e+00]\n [-5.46592324e-02 -1.98037563e-02 -2.30656951e-02 -2.05932310e-01\n   1.50517199e-02  8.52784215e-03 -3.57205387e-01  4.99071960e-02\n   4.01213794e-02 -5.08478464e-01  8.47626721e-02  7.17149167e-02\n  -6.59751541e-01]\n [-3.72201787e-02  1.58096756e-02  2.22084866e-01  2.22084866e-01\n   6.88395299e-02  4.81389911e-01  4.81389911e-01  1.21869384e-01\n   7.40694955e-01  7.40694955e-01  1.74899239e-01  1.00000000e+00\n   1.00000000e+00]\n [ 1.26184220e-01  1.52144951e-01 -8.28076256e-02 -1.55361835e-01\n   1.78105682e-01 -2.91799471e-01 -4.36907890e-01  2.04066413e-01\n  -5.00791317e-01 -7.18453945e-01  2.30027144e-01 -7.09783162e-01\n  -1.00000000e+00]\n [ 1.19744960e-01  1.65914222e-01  2.38918896e-01 -1.60191280e-01\n   2.12083484e-01  3.58092832e-01 -4.40127520e-01  2.58252746e-01\n   4.77266768e-01 -7.20063760e-01  3.04422008e-01  5.96440704e-01\n  -1.00000000e+00]\n [-1.25513104e-01 -2.50275534e-01 -4.90740151e-02  1.55865172e-01\n  -3.75037963e-01  2.73650739e-02  4.37243448e-01 -4.99800393e-01\n   1.03804163e-01  7.18621724e-01 -6.24562822e-01  1.80243252e-01\n   1.00000000e+00]\n [-2.55095754e-02  6.45428483e-03 -2.50742454e-01  2.30867818e-01\n   3.84181451e-02 -4.75975332e-01  4.87245212e-01  7.03820054e-02\n  -7.01208210e-01  7.43622606e-01  1.02345866e-01 -9.26441089e-01\n   1.00000000e+00]\n [-8.90808653e-02 -3.09491897e-01 -3.16810649e-01 -3.16810649e-01\n  -5.29902928e-01 -5.44540433e-01 -5.44540433e-01 -7.50313960e-01\n  -7.72270216e-01 -7.72270216e-01 -9.70724991e-01 -1.00000000e+00\n  -1.00000000e+00]\n [ 8.81937578e-02  3.38364510e-03  3.16145318e-01  3.16145318e-01\n  -8.14264676e-02  5.44096879e-01  5.44096879e-01 -1.66236580e-01\n   7.72048439e-01  7.72048439e-01 -2.51046693e-01  1.00000000e+00\n   1.00000000e+00]\n [ 1.11486335e-01 -8.72492564e-02  3.33614751e-01  3.33614751e-01\n  -2.85984848e-01  5.55743167e-01  5.55743167e-01 -4.84720439e-01\n   7.77871584e-01  7.77871584e-01 -6.83456030e-01  1.00000000e+00\n   1.00000000e+00]\n [ 1.89590063e-01 -6.73652497e-04  3.92192547e-01  3.92192547e-01\n  -1.90937368e-01  5.94795031e-01  5.94795031e-01 -3.81201083e-01\n   7.97397516e-01  7.97397516e-01 -5.71464798e-01  1.00000000e+00\n   1.00000000e+00]\n [-3.88177536e-02 -3.51993816e-02 -1.63609714e-01  2.20886685e-01\n  -3.15810095e-02 -2.88401675e-01  4.80591123e-01 -2.79626375e-02\n  -4.13193635e-01  7.40295562e-01 -2.43442655e-02 -5.37985596e-01\n   1.00000000e+00]\n [ 6.70076940e-02  3.00255770e-01  3.00255770e-01  3.00255770e-01\n   5.33503847e-01  5.33503847e-01  5.33503847e-01  7.66751923e-01\n   7.66751923e-01  7.66751923e-01  1.00000000e+00  1.00000000e+00\n   1.00000000e+00]]",
+                      "line_prediction_hash": "2cc7108fe8bf91ff60599a5a58f9338bd4a941997b9a9a15f9735ef74a2e9548",
+                      "line_prediction_max_abs": 138.83288558480902,
+                      "line_records": [
+                        {
+                          "audit_round": null,
+                          "cloud_hash": "388ebac7a4a16c4c605e5c30577b9fde979b0dc2ffb637ae634b360a08ba8700",
+                          "created_round": 1,
+                          "entered_training_round": null,
+                          "parent_point_ids": [],
+                          "point_id": "t1-guard_line-0",
+                          "role": "guard_line",
+                          "seed_or_constructor_label": "t1-guard_line",
+                          "source_channel": "guard_line"
+                        },
+                        {
+                          "audit_round": null,
+                          "cloud_hash": "388ebac7a4a16c4c605e5c30577b9fde979b0dc2ffb637ae634b360a08ba8700",
+                          "created_round": 1,
+                          "entered_training_round": null,
+                          "parent_point_ids": [],
+                          "point_id": "t1-guard_line-1",
+                          "role": "guard_line",
+                          "seed_or_constructor_label": "t1-guard_line",
+                          "source_channel": "guard_line"
+                        },
+                        {
+                          "audit_round": null,
+                          "cloud_hash": "388ebac7a4a16c4c605e5c30577b9fde979b0dc2ffb637ae634b360a08ba8700",
+                          "created_round": 1,
+                          "entered_training_round": null,
+                          "parent_point_ids": [],
+                          "point_id": "t1-guard_line-2",
+                          "role": "guard_line",
+                          "seed_or_constructor_label": "t1-guard_line",
+                          "source_channel": "guard_line"
+                        },
+                        {
+                          "audit_round": null,
+                          "cloud_hash": "388ebac7a4a16c4c605e5c30577b9fde979b0dc2ffb637ae634b360a08ba8700",
+                          "created_round": 1,
+                          "entered_training_round": null,
+                          "parent_point_ids": [],
+                          "point_id": "t1-guard_line-3",
+                          "role": "guard_line",
+                          "seed_or_constructor_label": "t1-guard_line",
+                          "source_channel": "guard_line"
+                        },
+                        {
+                          "audit_round": null,
+                          "cloud_hash": "388ebac7a4a16c4c605e5c30577b9fde979b0dc2ffb637ae634b360a08ba8700",
+                          "created_round": 1,
+                          "entered_training_round": null,
+                          "parent_point_ids": [],
+                          "point_id": "t1-guard_line-4",
+                          "role": "guard_line",
+                          "seed_or_constructor_label": "t1-guard_line",
+                          "source_channel": "guard_line"
+                        },
+                        {
+                          "audit_round": null,
+                          "cloud_hash": "388ebac7a4a16c4c605e5c30577b9fde979b0dc2ffb637ae634b360a08ba8700",
+                          "created_round": 1,
+                          "entered_training_round": null,
+                          "parent_point_ids": [],
+                          "point_id": "t1-guard_line-5",
+                          "role": "guard_line",
+                          "seed_or_constructor_label": "t1-guard_line",
+                          "source_channel": "guard_line"
+                        },
+                        {
+                          "audit_round": null,
+                          "cloud_hash": "388ebac7a4a16c4c605e5c30577b9fde979b0dc2ffb637ae634b360a08ba8700",
+                          "created_round": 1,
+                          "entered_training_round": null,
+                          "parent_point_ids": [],
+                          "point_id": "t1-guard_line-6",
+                          "role": "guard_line",
+                          "seed_or_constructor_label": "t1-guard_line",
+                          "source_channel": "guard_line"
+                        },
+                        {
+                          "audit_round": null,
+                          "cloud_hash": "388ebac7a4a16c4c605e5c30577b9fde979b0dc2ffb637ae634b360a08ba8700",
+                          "created_round": 1,
+                          "entered_training_round": null,
+                          "parent_point_ids": [],
+                          "point_id": "t1-guard_line-7",
+                          "role": "guard_line",
+                          "seed_or_constructor_label": "t1-guard_line",
+                          "source_channel": "guard_line"
+                        },
+                        {
+                          "audit_round": null,
+                          "cloud_hash": "388ebac7a4a16c4c605e5c30577b9fde979b0dc2ffb637ae634b360a08ba8700",
+                          "created_round": 1,
+                          "entered_training_round": null,
+                          "parent_point_ids": [],
+                          "point_id": "t1-guard_line-8",
+                          "role": "guard_line",
+                          "seed_or_constructor_label": "t1-guard_line",
+                          "source_channel": "guard_line"
+                        },
+                        {
+                          "audit_round": null,
+                          "cloud_hash": "388ebac7a4a16c4c605e5c30577b9fde979b0dc2ffb637ae634b360a08ba8700",
+                          "created_round": 1,
+                          "entered_training_round": null,
+                          "parent_point_ids": [],
+                          "point_id": "t1-guard_line-9",
+                          "role": "guard_line",
+                          "seed_or_constructor_label": "t1-guard_line",
+                          "source_channel": "guard_line"
+                        },
+                        {
+                          "audit_round": null,
+                          "cloud_hash": "388ebac7a4a16c4c605e5c30577b9fde979b0dc2ffb637ae634b360a08ba8700",
+                          "created_round": 1,
+                          "entered_training_round": null,
+                          "parent_point_ids": [],
+                          "point_id": "t1-guard_line-10",
+                          "role": "guard_line",
+                          "seed_or_constructor_label": "t1-guard_line",
+                          "source_channel": "guard_line"
+                        },
+                        {
+                          "audit_round": null,
+                          "cloud_hash": "388ebac7a4a16c4c605e5c30577b9fde979b0dc2ffb637ae634b360a08ba8700",
+                          "created_round": 1,
+                          "entered_training_round": null,
+                          "parent_point_ids": [],
+                          "point_id": "t1-guard_line-11",
+                          "role": "guard_line",
+                          "seed_or_constructor_label": "t1-guard_line",
+                          "source_channel": "guard_line"
+                        },
+                        {
+                          "audit_round": null,
+                          "cloud_hash": "388ebac7a4a16c4c605e5c30577b9fde979b0dc2ffb637ae634b360a08ba8700",
+                          "created_round": 1,
+                          "entered_training_round": null,
+                          "parent_point_ids": [],
+                          "point_id": "t1-guard_line-12",
+                          "role": "guard_line",
+                          "seed_or_constructor_label": "t1-guard_line",
+                          "source_channel": "guard_line"
+                        }
+                      ],
+                      "line_residual_max_abs": 271.40411918996006,
+                      "line_residual_rms": 126.63416432592535,
+                      "line_role": "guard_line",
+                      "line_start_indices_available": true,
+                      "line_target_hash": "d650448911bc4e818a9876c33b47bd7c09ff36dc6564b445ae9ae0e1320305a2",
+                      "line_targets": "[4.10237005e+02 2.92485613e+02 1.48564890e+02 2.49765343e+02\n 9.75027073e+01 6.20481098e+00 3.55928495e+01 1.51966149e+01\n 2.98924067e-02 1.18466928e+00 1.10731257e+00 1.66143902e-05\n 9.18968513e-03]",
+                      "reasons": [],
+                      "status": "pass",
+                      "target_scale": 49.17083705915358
+                    }
+                  },
+                  "status": "block"
+                },
+                "missing_provenance_fields": [],
+                "nonclaims": [
+                  "gate pass is not d18 validation",
+                  "gate pass is not HMC readiness",
+                  "gate pass is not adaptive Zhao-Cui source-faithful parity"
+                ],
+                "normalizer_gate": {
+                  "defensive_normalizer": 1.0,
+                  "defensive_tau": 1e-08,
+                  "fit_mass_fraction": 1.0,
+                  "log_transport_normalizer": 48.21451168685503,
+                  "mixture_normalizer": 8.695536316904281e+20,
+                  "normalizer_exception": null,
+                  "reasons": [],
+                  "sqrt_square_normalizer": 8.695536316904281e+20,
+                  "status": "pass",
+                  "thresholds": {
+                    "fit_mass_fraction_min": 1e-06,
+                    "log_normalizer_abs_bound": 1000000.0,
+                    "sqrt_square_normalizer_floor": 1e-14
+                  },
+                  "transport_normalizer": 8.695536316904281e+20,
+                  "transport_normalizer_floor": 1e-12
+                },
+                "policy": {
+                  "audit_seeds": {
+                    "step1_holdout_prior": 7301,
+                    "step1_holdout_process": 7401,
+                    "step1_replay_prior": 7311,
+                    "step1_replay_process": 7501,
+                    "step2_holdout_process": 7402,
+                    "step2_replay_process": 7502
+                  },
+                  "classification": "fixed_hmc_adaptation",
+                  "effective_rank_min": 1.0,
+                  "effective_rank_tol": 1e-12,
+                  "fit_mass_fraction_min": 1e-06,
+                  "fit_ridge": 1e-10,
+                  "guard_seeds": {
+                    "step1_prior": 7321,
+                    "step1_process": 7601,
+                    "step2_process": 7602
+                  },
+                  "guard_weight_alpha": 1.0,
+                  "line_fractions": [
+                    0.0,
+                    0.25,
+                    0.5,
+                    0.75,
+                    1.0
+                  ],
+                  "line_growth_rel_veto": 1000.0,
+                  "log_normalizer_abs_bound": 1000000.0,
+                  "low_level_condition_number_veto": 100000000000000.0,
+                  "nonclaims": [
+                    "not a source-faithful adaptive Zhao-Cui reproduction",
+                    "focused tests are not repaired diagnostic evidence",
+                    "no d18 validation claim",
+                    "no HMC readiness claim"
+                  ],
+                  "p72_condition_number_admission": 10000000000.0,
+                  "policy_id": "p72_support_certified_fixed_fit_v1",
+                  "residual_max_rel_veto": 1000.0,
+                  "residual_rms_rel_veto": 10.0,
+                  "shape_penalty_weight": 0.0,
+                  "source_faithfulness_status": "extension_or_invention_for_guard_audit_gates",
+                  "sqrt_square_normalizer_floor": 1e-14
+                },
+                "provenance": {
+                  "audit_cloud_hash": "1cda53432d7e7b061c8871cf9bf5e4d94eba0b416e2e8eeb53eaafaa2acf18ca|076aa2e0cd0a8a65e7bd637a8434e7adfc7c41a08e5e59fe8885f33cae8f3b4b",
+                  "audit_exclusion_provenance": "P73 coefficient selection uses F1 only; A1 and audit-line records are excluded",
+                  "branch_identity": "8eff04a86538b62c6bd1698baa3daec0d7740121f0b7dfdd770b5a57c566ebab",
+                  "fit_cloud_hash": "eea900d30c3adf14f5c1e981e7126bb7581eb2e07c89e401448167974c83558a",
+                  "frame_hash": "2e1f9dc15c10d847564d4df02a352c6ff1e461f89e22d5090713ac1dd8c762d7",
+                  "guard_cloud_hash": "db4a1da94e751ff5c278a6397972ebc1da952b64c61a9264b30ada3a11e7d99c",
+                  "line_hash": "d9c243daa22d9bb8d76694217ddfbea1bc4a8fda01e61c471d7401c7f544bc21",
+                  "shift_constant": 50.17617924524207,
+                  "target_hash": "38d5cdc1cab9d6569415c6bfa8c0bf5cf22b26c7a4fc50b41bc13c3bbf8be3b8"
+                },
+                "rank_activity": {
+                  "activity_threshold": 0.0025284950652756147,
+                  "epsilon_channel_abs": 1e-12,
+                  "epsilon_channel_rel": 1e-08,
+                  "extra_channel_active_bond_counts": {
+                    "1": 35
+                  },
+                  "gauge_boundary": "stored_deterministic_gauge_only_not_gauge_invariant",
+                  "inactive_extra_channels": [],
+                  "minimum_active_bonds": 9,
+                  "reference_channel_score": 252849.50652756146,
+                  "score_by_bond": [
+                    [
+                      252849.50652756146,
+                      338452.87954824045
+                    ],
+                    [
+                      216.71478597425568,
+                      19805.46037873787
+                    ],
+                    [
+                      8.740522885967033,
+                      101.62189794895689
+                    ],
+                    [
+                      6.2562548856231945,
+                      8.873463932348237
+                    ],
+                    [
+                      1.8259408413706466,
+                      3.566093952896569
+                    ],
+                    [
+                      1.48670186177895,
+                      1.3424497457046536
+                    ],
+                    [
+                      2.0243843087982625,
+                      1.0401722325305118
+                    ],
+                    [
+                      2.762611155065805,
+                      2.155439333212487
+                    ],
+                    [
+                      2.80469773429832,
+                      1.098691008347856
+                    ],
+                    [
+                      2.279121319267047,
+                      0.34873708883706805
+                    ],
+                    [
+                      1.6352262936086792,
+                      1.214737051748673
+                    ],
+                    [
+                      2.1765746007436437,
+                      2.514522117857972
+                    ],
+                    [
+                      1.902672911291926,
+                      15.005468088930133
+                    ],
+                    [
+                      14.904159833242947,
+                      63.734954730086834
+                    ],
+                    [
+                      78.77183857489638,
+                      7.009098364361254
+                    ],
+                    [
+                      53.13240902649559,
+                      6.124264062037191
+                    ],
+                    [
+                      4.715026684830017,
+                      189.30518218383918
+                    ],
+                    [
+                      148.02432998192717,
+                      10.949361356471115
+                    ],
+                    [
+                      72.5744265762058,
+                      91.91712306982824
+                    ],
+                    [
+                      407.7949774189477,
+                      944.1845408277496
+                    ],
+                    [
+                      127.99218679113254,
+                      22.437012892987244
+                    ],
+                    [
+                      4.512954260941257,
+                      7.658065300465574
+                    ],
+                    [
+                      11.019484702487077,
+                      4.109471578198906
+                    ],
+                    [
+                      12.306978093156339,
+                      45.690998975536374
+                    ],
+                    [
+                      20.787059463927417,
+                      3.345886073608864
+                    ],
+                    [
+                      1.9112740325023188,
+                      320.2228549618536
+                    ],
+                    [
+                      109.93857763059034,
+                      50.77210041657808
+                    ],
+                    [
+                      57.18010524827129,
+                      92.13189837932835
+                    ],
+                    [
+                      40.89874639448181,
+                      4.343155298305466
+                    ],
+                    [
+                      1.2463734689007577,
+                      4.1756158194330375
+                    ],
+                    [
+                      4.3844029336095875,
+                      1.5273976978419848
+                    ],
+                    [
+                      4.313997523212578,
+                      18.364496746082516
+                    ],
+                    [
+                      4.392529545013219,
+                      4.171002157147555
+                    ],
+                    [
+                      9.859718118200107,
+                      8.303042684707242
+                    ],
+                    [
+                      3.981401617438511,
+                      5.057021896478882
+                    ]
+                  ],
+                  "status": "ok"
+                },
+                "reasons": [
+                  "line_block",
+                  "residual_rms_veto",
+                  "residual_max_veto"
+                ],
+                "residual_gates": {
+                  "fit": {
+                    "max_abs_residual": 21.79143688391334,
+                    "max_relative": 0.44317807438782814,
+                    "prediction_hash": "0d41ed5d0913ea58f26bbc5e543d5a990fe7656605dfa274695cbc10cfe0d81b",
+                    "raw_rms": 4.294481060908849,
+                    "rms_relative": 0.08733796936876416,
+                    "target_hash": "9e48edb00d6ce804359c4c5fa873abc3ed91149442e94062d2b6a61066bf824a",
+                    "target_scale": 49.17083705915358
+                  },
+                  "fresh_audit_holdout": {
+                    "max_abs_residual": 365640.80030591524,
+                    "max_relative": 7436.131295996476,
+                    "prediction_hash": "26b03c64a208ddc4e2d02c9ee4bc984ff01577d43c678b59724807bd8dce1848",
+                    "raw_rms": 60942.94332123217,
+                    "rms_relative": 1239.4123624114125,
+                    "target_hash": "504187d0f3a9efbcba3f8c3da591363a918b6d2c87c11bfbc552b525662a39a2",
+                    "target_scale": 49.17083705915358
+                  },
+                  "fresh_audit_replay": {
+                    "max_abs_residual": 1413.5272483998283,
+                    "max_relative": 28.74726835948155,
+                    "prediction_hash": "8a8ec7dc224bebe0f6164c4ec5baedd39b582c6a28602ce1177c5d88c666038c",
+                    "raw_rms": 275.55699302674765,
+                    "rms_relative": 5.604073664543206,
+                    "target_hash": "1e3099a2b088dacf2cd6c90fef867ce3bd13df9c66f15b9682106d4881c1143f",
+                    "target_scale": 49.17083705915358
+                  },
+                  "fresh_guard": {
+                    "max_abs_residual": 406.80743513659183,
+                    "max_relative": 8.273347770085625,
+                    "prediction_hash": "835ca41a43daea7ab1683e8dc499f153d1ac13e599eda029c58a47ba2e9fbbf7",
+                    "raw_rms": 76.33537200988064,
+                    "rms_relative": 1.5524521561031703,
+                    "target_hash": "134c975c8894be29eaa1cbe6bcb60ae9481e1c77106ebfdd7616863dff697d2f",
+                    "target_scale": 49.17083705915358
+                  },
+                  "max_relative": 7436.131295996476,
+                  "rms_relative": 1239.4123624114125
+                },
+                "status": "BLOCK_P73_DENSITY_AWARE_RENEWED_SUPPORT_LOWER_GATE",
+                "support_gates": {
+                  "fit": {
+                    "clip_fraction": 0.0,
+                    "effective_support_role": "finite_cloud_diagnostic_not_continuum_support",
+                    "fit_leave_one_out_distance_max": 3.598320369246544,
+                    "fit_point_count": 134,
+                    "fit_point_hash": "20c8d20da3771f4121956dc4d17e66b466fedd9f59452fb640481ba109625af7",
+                    "local_max_abs_before_clip": 1.0,
+                    "nearest_fit_distance_max": 0.0,
+                    "nearest_fit_distance_median": 0.0,
+                    "nearest_fit_distance_min": 0.0,
+                    "point_any_saturated_fraction": 0.6567164179104478,
+                    "point_count": 134,
+                    "point_hash": "d8fc3ec5fd85c8ba5ca5c581543826b5c5f35a50b9786aa2b43183cb98551302",
+                    "reasons": [],
+                    "role": "fit",
+                    "status": "pass",
+                    "warnings": []
+                  },
+                  "fresh": {
+                    "clip_fraction": 0.2353395061728395,
+                    "effective_support_role": "finite_cloud_diagnostic_not_continuum_support",
+                    "fit_leave_one_out_distance_max": 3.598320369246544,
+                    "fit_point_count": 134,
+                    "fit_point_hash": "20c8d20da3771f4121956dc4d17e66b466fedd9f59452fb640481ba109625af7",
+                    "local_max_abs_before_clip": 114.40545296876732,
+                    "nearest_fit_distance_max": 0.0,
+                    "nearest_fit_distance_median": 0.0,
+                    "nearest_fit_distance_min": 0.0,
+                    "point_any_saturated_fraction": 1.0,
+                    "point_count": 36,
+                    "point_hash": "254268140da08163d9363c43738f59121a318ac2fffa2e6e16af89d8416b5aa8",
+                    "reasons": [],
+                    "role": "fresh",
+                    "status": "warn",
+                    "warnings": [
+                      "positive_clip_fraction"
+                    ]
+                  },
+                  "fresh_audit_holdout": {
+                    "clip_fraction": 0.24845679012345678,
+                    "effective_support_role": "finite_cloud_diagnostic_not_continuum_support",
+                    "fit_leave_one_out_distance_max": 3.598320369246544,
+                    "fit_point_count": 134,
+                    "fit_point_hash": "20c8d20da3771f4121956dc4d17e66b466fedd9f59452fb640481ba109625af7",
+                    "local_max_abs_before_clip": 106.80479325343484,
+                    "nearest_fit_distance_max": 3.818989059862154,
+                    "nearest_fit_distance_median": 2.8924516973628602,
+                    "nearest_fit_distance_min": 2.24468511261585,
+                    "point_any_saturated_fraction": 1.0,
+                    "point_count": 36,
+                    "point_hash": "3ccc01bfec5c83d96be17c581709fb69f69a2493e39400e0f4e5ec88a5f4e8fb",
+                    "reasons": [],
+                    "role": "fresh_audit_holdout",
+                    "status": "warn",
+                    "warnings": [
+                      "positive_clip_fraction"
+                    ]
+                  },
+                  "fresh_audit_replay": {
+                    "clip_fraction": 0.24768518518518517,
+                    "effective_support_role": "finite_cloud_diagnostic_not_continuum_support",
+                    "fit_leave_one_out_distance_max": 3.598320369246544,
+                    "fit_point_count": 134,
+                    "fit_point_hash": "20c8d20da3771f4121956dc4d17e66b466fedd9f59452fb640481ba109625af7",
+                    "local_max_abs_before_clip": 142.70272944010688,
+                    "nearest_fit_distance_max": 3.408328280597732,
+                    "nearest_fit_distance_median": 2.850823956590215,
+                    "nearest_fit_distance_min": 1.931500667212083,
+                    "point_any_saturated_fraction": 1.0,
+                    "point_count": 36,
+                    "point_hash": "f4ff20dd13182462939639d87ea60bc873e481757d5ee398620f54e6ad02c8ae",
+                    "reasons": [],
+                    "role": "fresh_audit_replay",
+                    "status": "warn",
+                    "warnings": [
+                      "positive_clip_fraction"
+                    ]
+                  },
+                  "fresh_guard": {
+                    "clip_fraction": 0.2361111111111111,
+                    "effective_support_role": "finite_cloud_diagnostic_not_continuum_support",
+                    "fit_leave_one_out_distance_max": 3.598320369246544,
+                    "fit_point_count": 134,
+                    "fit_point_hash": "20c8d20da3771f4121956dc4d17e66b466fedd9f59452fb640481ba109625af7",
+                    "local_max_abs_before_clip": 120.5252568345309,
+                    "nearest_fit_distance_max": 3.5583379084614832,
+                    "nearest_fit_distance_median": 2.731253487566509,
+                    "nearest_fit_distance_min": 2.0203871861908715,
+                    "point_any_saturated_fraction": 1.0,
+                    "point_count": 36,
+                    "point_hash": "dc2651194c6a38e4d9a4927558ea9543c76084b3ca594162d448b1beca46e106",
+                    "reasons": [],
+                    "role": "fresh_guard",
+                    "status": "warn",
+                    "warnings": [
+                      "positive_clip_fraction"
+                    ]
+                  },
+                  "round0_guard_enrichment": {
+                    "clip_fraction": 0.2330246913580247,
+                    "effective_support_role": "finite_cloud_diagnostic_not_continuum_support",
+                    "fit_leave_one_out_distance_max": 3.598320369246544,
+                    "fit_point_count": 134,
+                    "fit_point_hash": "20c8d20da3771f4121956dc4d17e66b466fedd9f59452fb640481ba109625af7",
+                    "local_max_abs_before_clip": 128.88061090337862,
+                    "nearest_fit_distance_max": 0.0,
+                    "nearest_fit_distance_median": 0.0,
+                    "nearest_fit_distance_min": 0.0,
+                    "point_any_saturated_fraction": 1.0,
+                    "point_count": 36,
+                    "point_hash": "8eecc1d6b046e6ebb8d07bbaec3136206b2b95bd8cb4750407be99860a1fe587",
+                    "reasons": [],
+                    "role": "round0_guard_enrichment",
+                    "status": "warn",
+                    "warnings": [
+                      "positive_clip_fraction"
+                    ]
+                  }
+                }
+              },
+              "line_gates": {
+                "audit_line": {
+                  "direct_target_evaluation_required": true,
+                  "endpoint_growth_ratio_max": 12.541648963006482,
+                  "line_hash": "2df4d8b3445067e761ef65acabd24c28bf41b9587e386074905300ab8b3f3000",
+                  "line_manifest": {
+                    "duplicate_removal": "deterministic_exact_column_key_on_fixed_line_cloud",
+                    "line_fractions": [
+                      0.0,
+                      0.25,
+                      0.5,
+                      0.75,
+                      1.0
+                    ],
+                    "line_hash": "b48c3d4a244d327b64880adc57255de9611b169cea3c607298e0d6f65ffac5cd",
+                    "line_point_count": 13,
+                    "line_start_indices": [
+                      0,
+                      0,
+                      1,
+                      2,
+                      0,
+                      1,
+                      2,
+                      0,
+                      1,
+                      2,
+                      0,
+                      1,
+                      2
+                    ],
+                    "policy_id": "p72_guard_line_points.v1",
+                    "raw_line_point_count": 15,
+                    "selected_guard_indices": [
+                      31,
+                      24,
+                      33
+                    ]
+                  },
+                  "line_point_count": 13,
+                  "line_point_hash": "93c68687c380dd69f34cd912b209581cb6852a5661d726ea3b61c99f0b690702",
+                  "line_points": "[[ 2.46690904e-02 -8.64594825e-02 -1.46290528e-01  6.60920223e-02\n  -1.97588055e-01 -3.17250146e-01  1.07514954e-01 -3.08716628e-01\n  -4.88209764e-01  1.48937886e-01 -4.19845201e-01 -6.59169382e-01\n   1.90360818e-01]\n [-2.73940978e-03  7.55076208e-02  1.10580365e-01 -5.55725225e-03\n   1.53754651e-01  2.23900140e-01 -8.37509472e-03  2.32001682e-01\n   3.37219915e-01 -1.11929372e-02  3.10248712e-01  4.50539690e-01\n  -1.40107797e-02]\n [-6.02929102e-02 -6.13891153e-02 -2.63584875e-01 -9.85181898e-02\n  -6.24853204e-02 -4.66876839e-01 -1.36743469e-01 -6.35815255e-02\n  -6.70168803e-01 -1.74968749e-01 -6.46777307e-02 -8.73460768e-01\n  -2.13194029e-01]\n [-2.79770941e-02  1.00772283e-02 -6.29058140e-02  8.49704867e-02\n   4.81315507e-02 -9.78345338e-02  1.97918067e-01  8.61858731e-02\n  -1.32763254e-01  3.10865648e-01  1.24240195e-01 -1.67691974e-01\n   4.23813229e-01]\n [ 1.06111723e-02 -1.32162521e-01 -7.88427273e-02 -1.22154295e-02\n  -2.74936214e-01 -1.68296627e-01 -3.50420312e-02 -4.17709908e-01\n  -2.57750526e-01 -5.78686330e-02 -5.60483601e-01 -3.47204426e-01\n  -8.06952347e-02]\n [-2.10472275e-02  3.33079778e-02  4.96638931e-02  4.42443533e-02\n   8.76631831e-02  1.20375014e-01  1.09535934e-01  1.42018388e-01\n   1.91086134e-01  1.74827515e-01  1.96373594e-01  2.61797255e-01\n   2.40119096e-01]\n [-3.76912022e-02 -8.29991654e-02  3.29195477e-03  1.39742502e-01\n  -1.28307129e-01  4.42751117e-02  3.17176207e-01 -1.73615092e-01\n   8.52582686e-02  4.94609911e-01 -2.18923055e-01  1.26241426e-01\n   6.72043615e-01]\n [ 4.18926022e-02  3.36168078e-02  1.05285567e-01  1.60632235e-01\n   2.53410133e-02  1.68678533e-01  2.79371868e-01  1.70652189e-02\n   2.32071498e-01  3.98111500e-01  8.78942446e-03  2.95464463e-01\n   5.16851133e-01]\n [ 4.93640089e-02  1.66910421e-03  1.87202561e-01 -1.72008476e-01\n  -4.60258005e-02  3.25041113e-01 -3.93380960e-01 -9.37207052e-02\n   4.62879665e-01 -6.14753445e-01 -1.41415610e-01  6.00718218e-01\n  -8.36125929e-01]\n [ 1.73330613e-01  5.65881081e-02  1.69392341e-01  2.21404556e-01\n  -6.01543966e-02  1.65454069e-01  2.69478499e-01 -1.76896901e-01\n   1.61515797e-01  3.17552442e-01 -2.93639406e-01  1.57577525e-01\n   3.65626385e-01]\n [-3.48205743e-02 -4.10563604e-02  3.02653068e-02 -1.09484090e-01\n  -4.72921466e-02  9.53511880e-02 -1.84147607e-01 -5.35279328e-02\n   1.60437069e-01 -2.58811123e-01 -5.97637189e-02  2.25522950e-01\n  -3.33474639e-01]\n [-2.77944249e-02 -1.06794336e-01  1.03513202e-01 -1.80636947e-01\n  -1.85794248e-01  2.34820829e-01 -3.33479469e-01 -2.64794159e-01\n   3.66128457e-01 -4.86321991e-01 -3.43794071e-01  4.97436084e-01\n  -6.39164513e-01]\n [-1.67104556e-02  1.30365475e-01 -9.89416382e-02 -2.16458894e-01\n   2.77441406e-01 -1.81172821e-01 -4.16207332e-01  4.24517337e-01\n  -2.63404004e-01 -6.15955770e-01  5.71593268e-01 -3.45635186e-01\n  -8.15704208e-01]\n [ 9.86672782e-02  3.74339922e-02  3.81538244e-02 -9.44302370e-02\n  -2.37992938e-02 -2.23596293e-02 -2.87527752e-01 -8.50325798e-02\n  -8.28730831e-02 -4.80625267e-01 -1.46265866e-01 -1.43386537e-01\n  -6.73722783e-01]\n [-1.35814281e-01 -1.04193164e-01 -9.70625748e-02 -3.51860710e-01\n  -7.25720481e-02 -5.83108689e-02 -5.67907140e-01 -4.09509318e-02\n  -1.95591631e-02 -7.83953570e-01 -9.32981559e-03  1.91925427e-02\n  -1.00000000e+00]\n [ 7.79965314e-02 -8.58040190e-02  1.04190343e-01  5.22611300e-02\n  -2.49604569e-01  1.30384155e-01  2.65257286e-02 -4.13405120e-01\n   1.56577967e-01  7.90327179e-04 -5.77205670e-01  1.82771779e-01\n  -2.49450742e-02]\n [-1.53343835e-01 -5.06043568e-02 -4.10533702e-02 -3.19318389e-01\n   5.21351214e-02  7.12370945e-02 -4.85292943e-01  1.54874600e-01\n   1.83527559e-01 -6.51267498e-01  2.57614078e-01  2.95818024e-01\n  -8.17242052e-01]\n [-4.33224301e-02 -1.29953797e-01 -2.44232350e-01  1.92324792e-01\n  -2.16585164e-01 -4.45142270e-01  4.27972013e-01 -3.03216531e-01\n  -6.46052190e-01  6.63619235e-01 -3.89847898e-01 -8.46962109e-01\n   8.99266457e-01]\n [-1.61137171e-02  8.12277445e-04  1.83592669e-02  5.76604773e-02\n   1.77382719e-02  5.28322508e-02  1.31434672e-01  3.46642664e-02\n   8.73052347e-02  2.05208866e-01  5.15902609e-02  1.21778219e-01\n   2.78983060e-01]\n [-5.11503453e-02  5.40276610e-02 -1.89149630e-01  4.30398580e-02\n   1.59205667e-01 -3.27148914e-01  1.37230061e-01  2.64383674e-01\n  -4.65148198e-01  2.31420265e-01  3.69561680e-01 -6.03147483e-01\n   3.25610468e-01]\n [-1.64042106e-01 -1.12232441e-01 -2.26556475e-01 -5.07058115e-02\n  -6.04227759e-02 -2.89070843e-01  6.26304832e-02 -8.61311065e-03\n  -3.51585211e-01  1.75966778e-01  4.31965546e-02 -4.14099579e-01\n   2.89303073e-01]\n [-2.10806411e-02 -5.79513011e-02  1.93469756e-01 -1.95892016e-01\n  -9.48219611e-02  4.08020153e-01 -3.70703392e-01 -1.31692621e-01\n   6.22570550e-01 -5.45514767e-01 -1.68563281e-01  8.37120947e-01\n  -7.20326142e-01]\n [ 1.57772086e-02 -7.98605061e-02 -1.43824122e-01  2.10031850e-01\n  -1.75498221e-01 -3.03425453e-01  4.04286491e-01 -2.71135935e-01\n  -4.63026784e-01  5.98541132e-01 -3.66773650e-01 -6.22628115e-01\n   7.92795773e-01]\n [ 2.14980220e-02 -8.01765135e-02  4.66213113e-02 -2.33876483e-01\n  -1.81851049e-01  7.17446006e-02 -4.89250989e-01 -2.83525585e-01\n   9.68678899e-02 -7.44625494e-01 -3.85200120e-01  1.21991179e-01\n  -1.00000000e+00]\n [-5.46592324e-02  5.52223422e-02 -1.05761214e-01  1.63839787e-01\n   1.65103917e-01 -1.56863195e-01  3.82338807e-01  2.74985491e-01\n  -2.07965176e-01  6.00837826e-01  3.84867066e-01 -2.59067157e-01\n   8.19336845e-01]\n [-3.72201787e-02  6.17789877e-02  2.22084866e-01 -1.32727635e-01\n   1.60778154e-01  4.81389911e-01 -2.28235091e-01  2.59777320e-01\n   7.40694955e-01 -3.23742548e-01  3.58776487e-01  1.00000000e+00\n  -4.19250004e-01]\n [ 1.26184220e-01  6.12864575e-02  2.42082645e-01 -1.55361835e-01\n  -3.61130491e-03  3.57981070e-01 -4.36907890e-01 -6.85090673e-02\n   4.73879496e-01 -7.18453945e-01 -1.33406830e-01  5.89777921e-01\n  -1.00000000e+00]\n [ 1.19744960e-01  1.06068180e-04  3.30492836e-01 -1.51391044e-01\n  -1.19532824e-01  5.41240713e-01 -4.22527049e-01 -2.39171715e-01\n   7.51988589e-01 -6.93663053e-01 -3.58810607e-01  9.62736466e-01\n  -9.64799057e-01]\n [-1.25513104e-01 -3.44134828e-01 -5.57225197e-02  1.55865172e-01\n  -5.62756552e-01  1.40680647e-02  4.37243448e-01 -7.81378276e-01\n   8.38586490e-02  7.18621724e-01 -1.00000000e+00  1.53649233e-01\n   1.00000000e+00]\n [-2.55095754e-02  6.13376536e-02 -2.69132182e-01  2.30867818e-01\n   1.48184883e-01 -5.12754788e-01  4.87245212e-01  2.35032112e-01\n  -7.56377394e-01  7.43622606e-01  3.21879341e-01 -1.00000000e+00\n   1.00000000e+00]\n [-8.90808653e-02 -3.16810649e-01 -3.16810649e-01 -1.85655537e-01\n  -5.44540433e-01 -5.44540433e-01 -2.82230209e-01 -7.72270216e-01\n  -7.72270216e-01 -3.78804881e-01 -1.00000000e+00 -1.00000000e+00\n  -4.75379553e-01]\n [ 8.81937578e-02  2.95575861e-02  3.16145318e-01 -1.83854682e-01\n  -2.90785857e-02  5.44096879e-01 -4.55903121e-01 -8.77147574e-02\n   7.72048439e-01 -7.27951561e-01 -1.46350929e-01  1.00000000e+00\n  -1.00000000e+00]\n [ 1.11486335e-01  3.33614751e-01  3.33614751e-01  3.33614751e-01\n   5.55743167e-01  5.55743167e-01  5.55743167e-01  7.77871584e-01\n   7.77871584e-01  7.77871584e-01  1.00000000e+00  1.00000000e+00\n   1.00000000e+00]\n [ 1.89590063e-01  3.92192547e-01  3.92192547e-01  3.92192547e-01\n   5.94795031e-01  5.94795031e-01  5.94795031e-01  7.97397516e-01\n   7.97397516e-01  7.97397516e-01  1.00000000e+00  1.00000000e+00\n   1.00000000e+00]\n [-3.88177536e-02  2.20886685e-01 -2.79113315e-01  2.20886685e-01\n   4.80591123e-01 -5.19408877e-01  4.80591123e-01  7.40295562e-01\n  -7.59704438e-01  7.40295562e-01  1.00000000e+00 -1.00000000e+00\n   1.00000000e+00]\n [ 6.70076940e-02  3.00255770e-01 -1.99744230e-01  3.00255770e-01\n   5.33503847e-01 -4.66496153e-01  5.33503847e-01  7.66751923e-01\n  -7.33248077e-01  7.66751923e-01  1.00000000e+00 -1.00000000e+00\n   1.00000000e+00]]",
+                  "line_prediction_hash": "51361778d37a22bf0614ffd2e7eb48b01f17b190582f7fb6c593cd20a7b4f377",
+                  "line_prediction_max_abs": 1741.1933155259176,
+                  "line_records": [
+                    {
+                      "audit_round": 1,
+                      "cloud_hash": "2df4d8b3445067e761ef65acabd24c28bf41b9587e386074905300ab8b3f3000",
+                      "created_round": 1,
+                      "entered_training_round": null,
+                      "parent_point_ids": [],
+                      "point_id": "t1-audit_line-0",
+                      "role": "audit_line",
+                      "seed_or_constructor_label": "t1-audit_line",
+                      "source_channel": "audit_line"
+                    },
+                    {
+                      "audit_round": 1,
+                      "cloud_hash": "2df4d8b3445067e761ef65acabd24c28bf41b9587e386074905300ab8b3f3000",
+                      "created_round": 1,
+                      "entered_training_round": null,
+                      "parent_point_ids": [],
+                      "point_id": "t1-audit_line-1",
+                      "role": "audit_line",
+                      "seed_or_constructor_label": "t1-audit_line",
+                      "source_channel": "audit_line"
+                    },
+                    {
+                      "audit_round": 1,
+                      "cloud_hash": "2df4d8b3445067e761ef65acabd24c28bf41b9587e386074905300ab8b3f3000",
+                      "created_round": 1,
+                      "entered_training_round": null,
+                      "parent_point_ids": [],
+                      "point_id": "t1-audit_line-2",
+                      "role": "audit_line",
+                      "seed_or_constructor_label": "t1-audit_line",
+                      "source_channel": "audit_line"
+                    },
+                    {
+                      "audit_round": 1,
+                      "cloud_hash": "2df4d8b3445067e761ef65acabd24c28bf41b9587e386074905300ab8b3f3000",
+                      "created_round": 1,
+                      "entered_training_round": null,
+                      "parent_point_ids": [],
+                      "point_id": "t1-audit_line-3",
+                      "role": "audit_line",
+                      "seed_or_constructor_label": "t1-audit_line",
+                      "source_channel": "audit_line"
+                    },
+                    {
+                      "audit_round": 1,
+                      "cloud_hash": "2df4d8b3445067e761ef65acabd24c28bf41b9587e386074905300ab8b3f3000",
+                      "created_round": 1,
+                      "entered_training_round": null,
+                      "parent_point_ids": [],
+                      "point_id": "t1-audit_line-4",
+                      "role": "audit_line",
+                      "seed_or_constructor_label": "t1-audit_line",
+                      "source_channel": "audit_line"
+                    },
+                    {
+                      "audit_round": 1,
+                      "cloud_hash": "2df4d8b3445067e761ef65acabd24c28bf41b9587e386074905300ab8b3f3000",
+                      "created_round": 1,
+                      "entered_training_round": null,
+                      "parent_point_ids": [],
+                      "point_id": "t1-audit_line-5",
+                      "role": "audit_line",
+                      "seed_or_constructor_label": "t1-audit_line",
+                      "source_channel": "audit_line"
+                    },
+                    {
+                      "audit_round": 1,
+                      "cloud_hash": "2df4d8b3445067e761ef65acabd24c28bf41b9587e386074905300ab8b3f3000",
+                      "created_round": 1,
+                      "entered_training_round": null,
+                      "parent_point_ids": [],
+                      "point_id": "t1-audit_line-6",
+                      "role": "audit_line",
+                      "seed_or_constructor_label": "t1-audit_line",
+                      "source_channel": "audit_line"
+                    },
+                    {
+                      "audit_round": 1,
+                      "cloud_hash": "2df4d8b3445067e761ef65acabd24c28bf41b9587e386074905300ab8b3f3000",
+                      "created_round": 1,
+                      "entered_training_round": null,
+                      "parent_point_ids": [],
+                      "point_id": "t1-audit_line-7",
+                      "role": "audit_line",
+                      "seed_or_constructor_label": "t1-audit_line",
+                      "source_channel": "audit_line"
+                    },
+                    {
+                      "audit_round": 1,
+                      "cloud_hash": "2df4d8b3445067e761ef65acabd24c28bf41b9587e386074905300ab8b3f3000",
+                      "created_round": 1,
+                      "entered_training_round": null,
+                      "parent_point_ids": [],
+                      "point_id": "t1-audit_line-8",
+                      "role": "audit_line",
+                      "seed_or_constructor_label": "t1-audit_line",
+                      "source_channel": "audit_line"
+                    },
+                    {
+                      "audit_round": 1,
+                      "cloud_hash": "2df4d8b3445067e761ef65acabd24c28bf41b9587e386074905300ab8b3f3000",
+                      "created_round": 1,
+                      "entered_training_round": null,
+                      "parent_point_ids": [],
+                      "point_id": "t1-audit_line-9",
+                      "role": "audit_line",
+                      "seed_or_constructor_label": "t1-audit_line",
+                      "source_channel": "audit_line"
+                    },
+                    {
+                      "audit_round": 1,
+                      "cloud_hash": "2df4d8b3445067e761ef65acabd24c28bf41b9587e386074905300ab8b3f3000",
+                      "created_round": 1,
+                      "entered_training_round": null,
+                      "parent_point_ids": [],
+                      "point_id": "t1-audit_line-10",
+                      "role": "audit_line",
+                      "seed_or_constructor_label": "t1-audit_line",
+                      "source_channel": "audit_line"
+                    },
+                    {
+                      "audit_round": 1,
+                      "cloud_hash": "2df4d8b3445067e761ef65acabd24c28bf41b9587e386074905300ab8b3f3000",
+                      "created_round": 1,
+                      "entered_training_round": null,
+                      "parent_point_ids": [],
+                      "point_id": "t1-audit_line-11",
+                      "role": "audit_line",
+                      "seed_or_constructor_label": "t1-audit_line",
+                      "source_channel": "audit_line"
+                    },
+                    {
+                      "audit_round": 1,
+                      "cloud_hash": "2df4d8b3445067e761ef65acabd24c28bf41b9587e386074905300ab8b3f3000",
+                      "created_round": 1,
+                      "entered_training_round": null,
+                      "parent_point_ids": [],
+                      "point_id": "t1-audit_line-12",
+                      "role": "audit_line",
+                      "seed_or_constructor_label": "t1-audit_line",
+                      "source_channel": "audit_line"
+                    }
+                  ],
+                  "line_residual_max_abs": 1741.1932439697302,
+                  "line_residual_rms": 543.8468912693863,
+                  "line_role": "audit_line",
+                  "line_start_indices_available": true,
+                  "line_target_hash": "b9d7b55fd207e72a96d73539861eb8cf2f0cf9246f03847f4e85a43c7ef9c128",
+                  "line_targets": "[4.10237005e+02 2.95615921e+02 2.60754285e+02 1.46539059e+02\n 7.21329056e+01 7.38518631e+01 7.75864678e+00 5.95915107e+00\n 9.30853048e+00 6.10450506e-02 1.66652550e-01 5.21484936e-01\n 7.15561873e-05]",
+                  "reasons": [
+                    "line_rms_residual_veto"
+                  ],
+                  "status": "block",
+                  "target_scale": 49.17083705915358
+                },
+                "guard_line": {
+                  "direct_target_evaluation_required": true,
+                  "endpoint_growth_ratio_max": 1.0,
+                  "line_hash": "388ebac7a4a16c4c605e5c30577b9fde979b0dc2ffb637ae634b360a08ba8700",
+                  "line_manifest": {
+                    "duplicate_removal": "deterministic_exact_column_key_on_fixed_line_cloud",
+                    "line_fractions": [
+                      0.0,
+                      0.25,
+                      0.5,
+                      0.75,
+                      1.0
+                    ],
+                    "line_hash": "87c34cdd27b5c32ca2273b2dca16cd1e2551f96db61a8d5259e102905850e4fe",
+                    "line_point_count": 13,
+                    "line_start_indices": [
+                      0,
+                      0,
+                      1,
+                      2,
+                      0,
+                      1,
+                      2,
+                      0,
+                      1,
+                      2,
+                      0,
+                      1,
+                      2
+                    ],
+                    "policy_id": "p72_guard_line_points.v1",
+                    "raw_line_point_count": 15,
+                    "selected_guard_indices": [
+                      15,
+                      4,
+                      3
+                    ]
+                  },
+                  "line_point_count": 13,
+                  "line_point_hash": "af59f90f728d9197047a0ad6e0548a44c0171a2a02e17edf9c6137a588922f47",
+                  "line_points": "[[ 2.46690904e-02  6.13371613e-04  4.10304784e-02 -3.71975997e-02\n  -2.34423472e-02  5.73918663e-02 -9.90642898e-02 -4.74980660e-02\n   7.37532543e-02 -1.60930980e-01 -7.15537848e-02  9.01146422e-02\n  -2.22797670e-01]\n [-2.73940978e-03 -1.19363246e-02  2.24632903e-02 -7.02422468e-03\n  -2.11332395e-02  4.76659903e-02 -1.13090396e-02 -3.03301544e-02\n   7.28686903e-02 -1.55938545e-02 -3.95270692e-02  9.80713903e-02\n  -1.98786694e-02]\n [-6.02929102e-02  2.71683224e-03 -1.41101133e-01 -6.81543355e-02\n   6.57265746e-02 -2.21909357e-01 -7.60157607e-02  1.28736317e-01\n  -3.02717580e-01 -8.38771860e-02  1.91746059e-01 -3.83525803e-01\n  -9.17386113e-02]\n [-2.79770941e-02 -1.54244582e-02 -9.75285954e-02  6.48293305e-02\n  -2.87182225e-03 -1.67080097e-01  1.57635755e-01  9.68081366e-03\n  -2.36631598e-01  2.50442180e-01  2.22334496e-02 -3.06183100e-01\n   3.43248604e-01]\n [ 1.06111723e-02 -1.74995369e-02  1.02229347e-01  4.40102798e-02\n  -4.56102461e-02  1.93847522e-01  7.74093874e-02 -7.37209552e-02\n   2.85465697e-01  1.10808495e-01 -1.01831664e-01  3.77083872e-01\n   1.44207602e-01]\n [-2.10472275e-02  8.81690033e-02  1.80174898e-01  1.39031264e-02\n   1.97385234e-01  3.81397023e-01  4.88534803e-02  3.06601465e-01\n   5.82619148e-01  8.38038342e-02  4.15817696e-01  7.83841273e-01\n   1.18754188e-01]\n [-3.76912022e-02 -2.11963585e-02 -3.87543968e-02  4.49775129e-02\n  -4.70151490e-03 -3.98175914e-02  1.27646228e-01  1.17933287e-02\n  -4.08807860e-02  2.10314943e-01  2.82881724e-02 -4.19439806e-02\n   2.92983658e-01]\n [ 4.18926022e-02  7.70145607e-02  1.12741109e-01  1.37290496e-01\n   1.12136519e-01  1.83589615e-01  2.32688389e-01  1.47258478e-01\n   2.54438121e-01  3.28086282e-01  1.82380436e-01  3.25286628e-01\n   4.23484176e-01]\n [ 4.93640089e-02  1.82876919e-02  9.43010049e-02 -1.39149037e-01\n  -1.27886252e-02  1.39238001e-01 -3.27662083e-01 -4.38649422e-02\n   1.84174997e-01 -5.16175130e-01 -7.49412593e-02  2.29111993e-01\n  -7.04688176e-01]\n [ 1.73330613e-01  1.40140939e-01  2.47217541e-02  2.01242571e-01\n   1.06951264e-01 -1.23887105e-01  2.29154529e-01  7.37615898e-02\n  -2.72495964e-01  2.57066487e-01  4.05719154e-02 -4.21104822e-01\n   2.84978445e-01]\n [-3.48205743e-02  2.56665942e-02 -2.29645419e-01  6.19426644e-02\n   8.61537627e-02 -4.24470264e-01  1.58705903e-01  1.46640931e-01\n  -6.19295109e-01  2.55469142e-01  2.07128100e-01 -8.14119954e-01\n   3.52232381e-01]\n [-2.77944249e-02  1.63626219e-01 -1.67419939e-02 -2.32116097e-01\n   3.55046863e-01 -5.68956294e-03 -4.36437769e-01  5.46467506e-01\n   5.36286804e-03 -6.40759441e-01  7.37888150e-01  1.64152990e-02\n  -8.45081114e-01]\n [-1.67104556e-02 -6.88451851e-02  1.06831490e-01 -1.25341455e-01\n  -1.20979915e-01  2.30373436e-01 -2.33972455e-01 -1.73114644e-01\n   3.53915381e-01 -3.42603454e-01 -2.25249374e-01  4.77457327e-01\n  -4.51234454e-01]\n [ 9.86672782e-02  1.25592257e-01  4.19110325e-02 -1.75999541e-01\n   1.52517237e-01 -1.48452132e-02 -4.50666361e-01  1.79442216e-01\n  -7.16014590e-02 -7.25333180e-01  2.06367195e-01 -1.28357705e-01\n  -1.00000000e+00]\n [-1.35814281e-01 -9.41090325e-02 -3.39994492e-01 -2.93047486e-01\n  -5.24037844e-02 -5.44174703e-01 -4.50280692e-01 -1.06985364e-02\n  -7.48354914e-01 -6.07513898e-01  3.10067117e-02 -9.52535126e-01\n  -7.64747104e-01]\n [ 7.79965314e-02  6.59870908e-02 -6.64150418e-03  8.75330222e-02\n   5.39776503e-02 -9.12795397e-02  9.70695130e-02  4.19682098e-02\n  -1.75917575e-01  1.06606004e-01  2.99587693e-02 -2.60555611e-01\n   1.16142495e-01]\n [-1.53343835e-01 -1.76857392e-01  6.33217566e-02 -1.05748126e-02\n  -2.00370950e-01  2.79987348e-01  1.32194210e-01 -2.23884507e-01\n   4.96652940e-01  2.74963232e-01 -2.47398064e-01  7.13318531e-01\n   4.17732255e-01]\n [-4.33224301e-02 -7.57745733e-02  2.32925935e-02  4.31328334e-02\n  -1.08226717e-01  8.99076171e-02  1.29588097e-01 -1.40678860e-01\n   1.56522641e-01  2.16043360e-01 -1.73131003e-01  2.23137664e-01\n   3.02498624e-01]\n [-1.61137171e-02 -1.08000098e-01  2.36730642e-01 -1.81887086e-02\n  -1.99886479e-01  4.89575001e-01 -2.02637002e-02 -2.91772861e-01\n   7.42419360e-01 -2.23386918e-02 -3.83659242e-01  9.95263720e-01\n  -2.44136834e-02]\n [-5.11503453e-02 -2.12211819e-02  5.68818345e-02  5.64551745e-03\n   8.70798153e-03  1.64914014e-01  6.24413802e-02  3.86371449e-02\n   2.72946194e-01  1.19237243e-01  6.85663083e-02  3.80978374e-01\n   1.76033106e-01]\n [-1.64042106e-01 -3.73031580e-01 -3.79968262e-03 -3.73031580e-01\n  -5.82021053e-01  1.56442741e-01 -5.82021053e-01 -7.91010527e-01\n   3.16685165e-01 -7.91010527e-01 -1.00000000e+00  4.76927588e-01\n  -1.00000000e+00]\n [-2.10806411e-02 -4.31245689e-02  8.96557978e-03  1.26470030e-01\n  -6.51684968e-02  3.90118006e-02  2.74020701e-01 -8.72124247e-02\n   6.90580215e-02  4.21571373e-01 -1.09256353e-01  9.91042423e-02\n   5.69122044e-01]\n [ 1.57772086e-02  1.54781877e-02 -1.69400630e-01  1.67007006e-01\n   1.51791668e-02 -3.54578469e-01  3.18236804e-01  1.48801459e-02\n  -5.39756308e-01  4.69466602e-01  1.45811250e-02 -7.24934147e-01\n   6.20696400e-01]\n [ 2.14980220e-02  2.10306745e-02 -1.73800570e-01 -2.33876483e-01\n   2.05633270e-02 -3.69099162e-01 -4.89250989e-01  2.00959795e-02\n  -5.64397754e-01 -7.44625494e-01  1.96286320e-02 -7.59696347e-01\n  -1.00000000e+00]\n [-5.46592324e-02 -1.98037563e-02 -2.30656951e-02 -2.05932310e-01\n   1.50517199e-02  8.52784215e-03 -3.57205387e-01  4.99071960e-02\n   4.01213794e-02 -5.08478464e-01  8.47626721e-02  7.17149167e-02\n  -6.59751541e-01]\n [-3.72201787e-02  1.58096756e-02  2.22084866e-01  2.22084866e-01\n   6.88395299e-02  4.81389911e-01  4.81389911e-01  1.21869384e-01\n   7.40694955e-01  7.40694955e-01  1.74899239e-01  1.00000000e+00\n   1.00000000e+00]\n [ 1.26184220e-01  1.52144951e-01 -8.28076256e-02 -1.55361835e-01\n   1.78105682e-01 -2.91799471e-01 -4.36907890e-01  2.04066413e-01\n  -5.00791317e-01 -7.18453945e-01  2.30027144e-01 -7.09783162e-01\n  -1.00000000e+00]\n [ 1.19744960e-01  1.65914222e-01  2.38918896e-01 -1.60191280e-01\n   2.12083484e-01  3.58092832e-01 -4.40127520e-01  2.58252746e-01\n   4.77266768e-01 -7.20063760e-01  3.04422008e-01  5.96440704e-01\n  -1.00000000e+00]\n [-1.25513104e-01 -2.50275534e-01 -4.90740151e-02  1.55865172e-01\n  -3.75037963e-01  2.73650739e-02  4.37243448e-01 -4.99800393e-01\n   1.03804163e-01  7.18621724e-01 -6.24562822e-01  1.80243252e-01\n   1.00000000e+00]\n [-2.55095754e-02  6.45428483e-03 -2.50742454e-01  2.30867818e-01\n   3.84181451e-02 -4.75975332e-01  4.87245212e-01  7.03820054e-02\n  -7.01208210e-01  7.43622606e-01  1.02345866e-01 -9.26441089e-01\n   1.00000000e+00]\n [-8.90808653e-02 -3.09491897e-01 -3.16810649e-01 -3.16810649e-01\n  -5.29902928e-01 -5.44540433e-01 -5.44540433e-01 -7.50313960e-01\n  -7.72270216e-01 -7.72270216e-01 -9.70724991e-01 -1.00000000e+00\n  -1.00000000e+00]\n [ 8.81937578e-02  3.38364510e-03  3.16145318e-01  3.16145318e-01\n  -8.14264676e-02  5.44096879e-01  5.44096879e-01 -1.66236580e-01\n   7.72048439e-01  7.72048439e-01 -2.51046693e-01  1.00000000e+00\n   1.00000000e+00]\n [ 1.11486335e-01 -8.72492564e-02  3.33614751e-01  3.33614751e-01\n  -2.85984848e-01  5.55743167e-01  5.55743167e-01 -4.84720439e-01\n   7.77871584e-01  7.77871584e-01 -6.83456030e-01  1.00000000e+00\n   1.00000000e+00]\n [ 1.89590063e-01 -6.73652497e-04  3.92192547e-01  3.92192547e-01\n  -1.90937368e-01  5.94795031e-01  5.94795031e-01 -3.81201083e-01\n   7.97397516e-01  7.97397516e-01 -5.71464798e-01  1.00000000e+00\n   1.00000000e+00]\n [-3.88177536e-02 -3.51993816e-02 -1.63609714e-01  2.20886685e-01\n  -3.15810095e-02 -2.88401675e-01  4.80591123e-01 -2.79626375e-02\n  -4.13193635e-01  7.40295562e-01 -2.43442655e-02 -5.37985596e-01\n   1.00000000e+00]\n [ 6.70076940e-02  3.00255770e-01  3.00255770e-01  3.00255770e-01\n   5.33503847e-01  5.33503847e-01  5.33503847e-01  7.66751923e-01\n   7.66751923e-01  7.66751923e-01  1.00000000e+00  1.00000000e+00\n   1.00000000e+00]]",
+                  "line_prediction_hash": "2cc7108fe8bf91ff60599a5a58f9338bd4a941997b9a9a15f9735ef74a2e9548",
+                  "line_prediction_max_abs": 138.83288558480902,
+                  "line_records": [
+                    {
+                      "audit_round": null,
+                      "cloud_hash": "388ebac7a4a16c4c605e5c30577b9fde979b0dc2ffb637ae634b360a08ba8700",
+                      "created_round": 1,
+                      "entered_training_round": null,
+                      "parent_point_ids": [],
+                      "point_id": "t1-guard_line-0",
+                      "role": "guard_line",
+                      "seed_or_constructor_label": "t1-guard_line",
+                      "source_channel": "guard_line"
+                    },
+                    {
+                      "audit_round": null,
+                      "cloud_hash": "388ebac7a4a16c4c605e5c30577b9fde979b0dc2ffb637ae634b360a08ba8700",
+                      "created_round": 1,
+                      "entered_training_round": null,
+                      "parent_point_ids": [],
+                      "point_id": "t1-guard_line-1",
+                      "role": "guard_line",
+                      "seed_or_constructor_label": "t1-guard_line",
+                      "source_channel": "guard_line"
+                    },
+                    {
+                      "audit_round": null,
+                      "cloud_hash": "388ebac7a4a16c4c605e5c30577b9fde979b0dc2ffb637ae634b360a08ba8700",
+                      "created_round": 1,
+                      "entered_training_round": null,
+                      "parent_point_ids": [],
+                      "point_id": "t1-guard_line-2",
+                      "role": "guard_line",
+                      "seed_or_constructor_label": "t1-guard_line",
+                      "source_channel": "guard_line"
+                    },
+                    {
+                      "audit_round": null,
+                      "cloud_hash": "388ebac7a4a16c4c605e5c30577b9fde979b0dc2ffb637ae634b360a08ba8700",
+                      "created_round": 1,
+                      "entered_training_round": null,
+                      "parent_point_ids": [],
+                      "point_id": "t1-guard_line-3",
+                      "role": "guard_line",
+                      "seed_or_constructor_label": "t1-guard_line",
+                      "source_channel": "guard_line"
+                    },
+                    {
+                      "audit_round": null,
+                      "cloud_hash": "388ebac7a4a16c4c605e5c30577b9fde979b0dc2ffb637ae634b360a08ba8700",
+                      "created_round": 1,
+                      "entered_training_round": null,
+                      "parent_point_ids": [],
+                      "point_id": "t1-guard_line-4",
+                      "role": "guard_line",
+                      "seed_or_constructor_label": "t1-guard_line",
+                      "source_channel": "guard_line"
+                    },
+                    {
+                      "audit_round": null,
+                      "cloud_hash": "388ebac7a4a16c4c605e5c30577b9fde979b0dc2ffb637ae634b360a08ba8700",
+                      "created_round": 1,
+                      "entered_training_round": null,
+                      "parent_point_ids": [],
+                      "point_id": "t1-guard_line-5",
+                      "role": "guard_line",
+                      "seed_or_constructor_label": "t1-guard_line",
+                      "source_channel": "guard_line"
+                    },
+                    {
+                      "audit_round": null,
+                      "cloud_hash": "388ebac7a4a16c4c605e5c30577b9fde979b0dc2ffb637ae634b360a08ba8700",
+                      "created_round": 1,
+                      "entered_training_round": null,
+                      "parent_point_ids": [],
+                      "point_id": "t1-guard_line-6",
+                      "role": "guard_line",
+                      "seed_or_constructor_label": "t1-guard_line",
+                      "source_channel": "guard_line"
+                    },
+                    {
+                      "audit_round": null,
+                      "cloud_hash": "388ebac7a4a16c4c605e5c30577b9fde979b0dc2ffb637ae634b360a08ba8700",
+                      "created_round": 1,
+                      "entered_training_round": null,
+                      "parent_point_ids": [],
+                      "point_id": "t1-guard_line-7",
+                      "role": "guard_line",
+                      "seed_or_constructor_label": "t1-guard_line",
+                      "source_channel": "guard_line"
+                    },
+                    {
+                      "audit_round": null,
+                      "cloud_hash": "388ebac7a4a16c4c605e5c30577b9fde979b0dc2ffb637ae634b360a08ba8700",
+                      "created_round": 1,
+                      "entered_training_round": null,
+                      "parent_point_ids": [],
+                      "point_id": "t1-guard_line-8",
+                      "role": "guard_line",
+                      "seed_or_constructor_label": "t1-guard_line",
+                      "source_channel": "guard_line"
+                    },
+                    {
+                      "audit_round": null,
+                      "cloud_hash": "388ebac7a4a16c4c605e5c30577b9fde979b0dc2ffb637ae634b360a08ba8700",
+                      "created_round": 1,
+                      "entered_training_round": null,
+                      "parent_point_ids": [],
+                      "point_id": "t1-guard_line-9",
+                      "role": "guard_line",
+                      "seed_or_constructor_label": "t1-guard_line",
+                      "source_channel": "guard_line"
+                    },
+                    {
+                      "audit_round": null,
+                      "cloud_hash": "388ebac7a4a16c4c605e5c30577b9fde979b0dc2ffb637ae634b360a08ba8700",
+                      "created_round": 1,
+                      "entered_training_round": null,
+                      "parent_point_ids": [],
+                      "point_id": "t1-guard_line-10",
+                      "role": "guard_line",
+                      "seed_or_constructor_label": "t1-guard_line",
+                      "source_channel": "guard_line"
+                    },
+                    {
+                      "audit_round": null,
+                      "cloud_hash": "388ebac7a4a16c4c605e5c30577b9fde979b0dc2ffb637ae634b360a08ba8700",
+                      "created_round": 1,
+                      "entered_training_round": null,
+                      "parent_point_ids": [],
+                      "point_id": "t1-guard_line-11",
+                      "role": "guard_line",
+                      "seed_or_constructor_label": "t1-guard_line",
+                      "source_channel": "guard_line"
+                    },
+                    {
+                      "audit_round": null,
+                      "cloud_hash": "388ebac7a4a16c4c605e5c30577b9fde979b0dc2ffb637ae634b360a08ba8700",
+                      "created_round": 1,
+                      "entered_training_round": null,
+                      "parent_point_ids": [],
+                      "point_id": "t1-guard_line-12",
+                      "role": "guard_line",
+                      "seed_or_constructor_label": "t1-guard_line",
+                      "source_channel": "guard_line"
+                    }
+                  ],
+                  "line_residual_max_abs": 271.40411918996006,
+                  "line_residual_rms": 126.63416432592535,
+                  "line_role": "guard_line",
+                  "line_start_indices_available": true,
+                  "line_target_hash": "d650448911bc4e818a9876c33b47bd7c09ff36dc6564b445ae9ae0e1320305a2",
+                  "line_targets": "[4.10237005e+02 2.92485613e+02 1.48564890e+02 2.49765343e+02\n 9.75027073e+01 6.20481098e+00 3.55928495e+01 1.51966149e+01\n 2.98924067e-02 1.18466928e+00 1.10731257e+00 1.66143902e-05\n 9.18968513e-03]",
+                  "reasons": [],
+                  "status": "pass",
+                  "target_scale": 49.17083705915358
+                }
+              },
+              "no_audit_coefficient_selection": {
+                "NO_AUDIT_COEFFICIENT_SELECTION": true,
+                "audit_line_point_count": 13,
+                "audit_point_count": 72,
+                "coefficient_cloud_hashes": [
+                  "eea900d30c3adf14f5c1e981e7126bb7581eb2e07c89e401448167974c83558a"
+                ],
+                "coefficient_point_count": 134,
+                "enrichment_point_count": 62,
+                "nonclaims": [
+                  "predicate pass is provenance evidence only",
+                  "predicate pass is not a lower-gate repair claim"
+                ],
+                "overlap_hashes": [],
+                "predicate_id": "NO_AUDIT_COEFFICIENT_SELECTION",
+                "reasons": [],
+                "renewal_round": 1,
+                "same_round_audit_cloud_hashes": [
+                  "076aa2e0cd0a8a65e7bd637a8434e7adfc7c41a08e5e59fe8885f33cae8f3b4b",
+                  "1cda53432d7e7b061c8871cf9bf5e4d94eba0b416e2e8eeb53eaafaa2acf18ca"
+                ],
+                "same_round_audit_line_cloud_hashes": [
+                  "2df4d8b3445067e761ef65acabd24c28bf41b9587e386074905300ab8b3f3000"
+                ],
+                "status": "pass"
+              },
+              "nonclaims": [
+                "no P73 lower-gate pass claim",
+                "no repaired P72 diagnostic claim",
+                "no d18 validation claim",
+                "no HMC readiness claim",
+                "no rank or degree promotion",
+                "no scaling claim",
+                "no adaptive Zhao-Cui source-faithful parity claim"
+              ],
+              "normalizer_gate": {
+                "defensive_normalizer": 1.0,
+                "defensive_tau": 1e-08,
+                "fit_mass_fraction": 1.0,
+                "log_transport_normalizer": 48.21451168685503,
+                "mixture_normalizer": 8.695536316904281e+20,
+                "normalizer_exception": null,
+                "reasons": [],
+                "sqrt_square_normalizer": 8.695536316904281e+20,
+                "status": "pass",
+                "thresholds": {
+                  "fit_mass_fraction_min": 1e-06,
+                  "log_normalizer_abs_bound": 1000000.0,
+                  "sqrt_square_normalizer_floor": 1e-14
+                },
+                "transport_normalizer": 8.695536316904281e+20,
+                "transport_normalizer_floor": 1e-12
+              },
+              "p73_b_optimizer_status": "P73_B_OPTIMIZER_BLOCKED_NONLINEAR_OBJECTIVE_NOT_IMPLEMENTED",
+              "rank": 2,
+              "rank_activity": {
+                "activity_threshold": 0.0025284950652756147,
+                "epsilon_channel_abs": 1e-12,
+                "epsilon_channel_rel": 1e-08,
+                "extra_channel_active_bond_counts": {
+                  "1": 35
+                },
+                "gauge_boundary": "stored_deterministic_gauge_only_not_gauge_invariant",
+                "inactive_extra_channels": [],
+                "minimum_active_bonds": 9,
+                "reference_channel_score": 252849.50652756146,
+                "score_by_bond": [
+                  [
+                    252849.50652756146,
+                    338452.87954824045
+                  ],
+                  [
+                    216.71478597425568,
+                    19805.46037873787
+                  ],
+                  [
+                    8.740522885967033,
+                    101.62189794895689
+                  ],
+                  [
+                    6.2562548856231945,
+                    8.873463932348237
+                  ],
+                  [
+                    1.8259408413706466,
+                    3.566093952896569
+                  ],
+                  [
+                    1.48670186177895,
+                    1.3424497457046536
+                  ],
+                  [
+                    2.0243843087982625,
+                    1.0401722325305118
+                  ],
+                  [
+                    2.762611155065805,
+                    2.155439333212487
+                  ],
+                  [
+                    2.80469773429832,
+                    1.098691008347856
+                  ],
+                  [
+                    2.279121319267047,
+                    0.34873708883706805
+                  ],
+                  [
+                    1.6352262936086792,
+                    1.214737051748673
+                  ],
+                  [
+                    2.1765746007436437,
+                    2.514522117857972
+                  ],
+                  [
+                    1.902672911291926,
+                    15.005468088930133
+                  ],
+                  [
+                    14.904159833242947,
+                    63.734954730086834
+                  ],
+                  [
+                    78.77183857489638,
+                    7.009098364361254
+                  ],
+                  [
+                    53.13240902649559,
+                    6.124264062037191
+                  ],
+                  [
+                    4.715026684830017,
+                    189.30518218383918
+                  ],
+                  [
+                    148.02432998192717,
+                    10.949361356471115
+                  ],
+                  [
+                    72.5744265762058,
+                    91.91712306982824
+                  ],
+                  [
+                    407.7949774189477,
+                    944.1845408277496
+                  ],
+                  [
+                    127.99218679113254,
+                    22.437012892987244
+                  ],
+                  [
+                    4.512954260941257,
+                    7.658065300465574
+                  ],
+                  [
+                    11.019484702487077,
+                    4.109471578198906
+                  ],
+                  [
+                    12.306978093156339,
+                    45.690998975536374
+                  ],
+                  [
+                    20.787059463927417,
+                    3.345886073608864
+                  ],
+                  [
+                    1.9112740325023188,
+                    320.2228549618536
+                  ],
+                  [
+                    109.93857763059034,
+                    50.77210041657808
+                  ],
+                  [
+                    57.18010524827129,
+                    92.13189837932835
+                  ],
+                  [
+                    40.89874639448181,
+                    4.343155298305466
+                  ],
+                  [
+                    1.2463734689007577,
+                    4.1756158194330375
+                  ],
+                  [
+                    4.3844029336095875,
+                    1.5273976978419848
+                  ],
+                  [
+                    4.313997523212578,
+                    18.364496746082516
+                  ],
+                  [
+                    4.392529545013219,
+                    4.171002157147555
+                  ],
+                  [
+                    9.859718118200107,
+                    8.303042684707242
+                  ],
+                  [
+                    3.981401617438511,
+                    5.057021896478882
+                  ]
+                ],
+                "status": "ok"
+              },
+              "renewal_provenance": {
+                "A1_hashes": [
+                  "1cda53432d7e7b061c8871cf9bf5e4d94eba0b416e2e8eeb53eaafaa2acf18ca",
+                  "076aa2e0cd0a8a65e7bd637a8434e7adfc7c41a08e5e59fe8885f33cae8f3b4b"
+                ],
+                "E0_hash": "a1026fd8abd45e873bddf5a5b6377293679b0637e0ea0e9e71ffdc21f235560a",
+                "F0_hash": "25b89b5c0700fa00ec570b14570298fb040bde91ffc1b8c944f1d32764a8f27d",
+                "F1_hash": "eea900d30c3adf14f5c1e981e7126bb7581eb2e07c89e401448167974c83558a",
+                "G1_hash": "db4a1da94e751ff5c278a6397972ebc1da952b64c61a9264b30ada3a11e7d99c",
+                "N1_hash": "a3221ae15e1cd985b39ff2d5b36a38ad683f5986e20a5afa17441d862bdc89e0",
+                "audit_exclusion_provenance": "P73 coefficient selection uses F1 only; A1 and audit-line records are excluded",
+                "audit_line_hash": "2df4d8b3445067e761ef65acabd24c28bf41b9587e386074905300ab8b3f3000",
+                "branch_identity": "8eff04a86538b62c6bd1698baa3daec0d7740121f0b7dfdd770b5a57c566ebab",
+                "classification": "extension_or_invention_for_renewal_and_audit_gates",
+                "frame_hash": "2e1f9dc15c10d847564d4df02a352c6ff1e461f89e22d5090713ac1dd8c762d7",
+                "guard_line_hash": "388ebac7a4a16c4c605e5c30577b9fde979b0dc2ffb637ae634b360a08ba8700",
+                "no_audit_coefficient_selection": {
+                  "NO_AUDIT_COEFFICIENT_SELECTION": true,
+                  "audit_line_point_count": 13,
+                  "audit_point_count": 72,
+                  "coefficient_cloud_hashes": [
+                    "eea900d30c3adf14f5c1e981e7126bb7581eb2e07c89e401448167974c83558a"
+                  ],
+                  "coefficient_point_count": 134,
+                  "enrichment_point_count": 62,
+                  "nonclaims": [
+                    "predicate pass is provenance evidence only",
+                    "predicate pass is not a lower-gate repair claim"
+                  ],
+                  "overlap_hashes": [],
+                  "predicate_id": "NO_AUDIT_COEFFICIENT_SELECTION",
+                  "reasons": [],
+                  "renewal_round": 1,
+                  "same_round_audit_cloud_hashes": [
+                    "076aa2e0cd0a8a65e7bd637a8434e7adfc7c41a08e5e59fe8885f33cae8f3b4b",
+                    "1cda53432d7e7b061c8871cf9bf5e4d94eba0b416e2e8eeb53eaafaa2acf18ca"
+                  ],
+                  "same_round_audit_line_cloud_hashes": [
+                    "2df4d8b3445067e761ef65acabd24c28bf41b9587e386074905300ab8b3f3000"
+                  ],
+                  "status": "pass"
+                },
+                "nonclaims": [
+                  "P73 renewal provenance is not source-faithful Zhao-Cui evidence",
+                  "provenance hashes are not validation evidence"
+                ],
+                "policy_id": "p73_provenance_manifest.v1",
+                "shift_constant": 50.17617924524207,
+                "target_hash": "38d5cdc1cab9d6569415c6bfa8c0bf5cf22b26c7a4fc50b41bc13c3bbf8be3b8"
+              },
+              "residual_gates": {
+                "fit": {
+                  "max_abs_residual": 21.79143688391334,
+                  "max_relative": 0.44317807438782814,
+                  "prediction_hash": "0d41ed5d0913ea58f26bbc5e543d5a990fe7656605dfa274695cbc10cfe0d81b",
+                  "raw_rms": 4.294481060908849,
+                  "rms_relative": 0.08733796936876416,
+                  "target_hash": "9e48edb00d6ce804359c4c5fa873abc3ed91149442e94062d2b6a61066bf824a",
+                  "target_scale": 49.17083705915358
+                },
+                "fresh_audit_holdout": {
+                  "max_abs_residual": 365640.80030591524,
+                  "max_relative": 7436.131295996476,
+                  "prediction_hash": "26b03c64a208ddc4e2d02c9ee4bc984ff01577d43c678b59724807bd8dce1848",
+                  "raw_rms": 60942.94332123217,
+                  "rms_relative": 1239.4123624114125,
+                  "target_hash": "504187d0f3a9efbcba3f8c3da591363a918b6d2c87c11bfbc552b525662a39a2",
+                  "target_scale": 49.17083705915358
+                },
+                "fresh_audit_replay": {
+                  "max_abs_residual": 1413.5272483998283,
+                  "max_relative": 28.74726835948155,
+                  "prediction_hash": "8a8ec7dc224bebe0f6164c4ec5baedd39b582c6a28602ce1177c5d88c666038c",
+                  "raw_rms": 275.55699302674765,
+                  "rms_relative": 5.604073664543206,
+                  "target_hash": "1e3099a2b088dacf2cd6c90fef867ce3bd13df9c66f15b9682106d4881c1143f",
+                  "target_scale": 49.17083705915358
+                },
+                "fresh_guard": {
+                  "max_abs_residual": 406.80743513659183,
+                  "max_relative": 8.273347770085625,
+                  "prediction_hash": "835ca41a43daea7ab1683e8dc499f153d1ac13e599eda029c58a47ba2e9fbbf7",
+                  "raw_rms": 76.33537200988064,
+                  "rms_relative": 1.5524521561031703,
+                  "target_hash": "134c975c8894be29eaa1cbe6bcb60ae9481e1c77106ebfdd7616863dff697d2f",
+                  "target_scale": 49.17083705915358
+                },
+                "max_relative": 7436.131295996476,
+                "rms_relative": 1239.4123624114125
+              },
+              "status": "BLOCK_P73_DENSITY_AWARE_RENEWED_SUPPORT_LOWER_GATE",
+              "support_gates": {
+                "fit": {
+                  "clip_fraction": 0.0,
+                  "effective_support_role": "finite_cloud_diagnostic_not_continuum_support",
+                  "fit_leave_one_out_distance_max": 3.598320369246544,
+                  "fit_point_count": 134,
+                  "fit_point_hash": "20c8d20da3771f4121956dc4d17e66b466fedd9f59452fb640481ba109625af7",
+                  "local_max_abs_before_clip": 1.0,
+                  "nearest_fit_distance_max": 0.0,
+                  "nearest_fit_distance_median": 0.0,
+                  "nearest_fit_distance_min": 0.0,
+                  "point_any_saturated_fraction": 0.6567164179104478,
+                  "point_count": 134,
+                  "point_hash": "d8fc3ec5fd85c8ba5ca5c581543826b5c5f35a50b9786aa2b43183cb98551302",
+                  "reasons": [],
+                  "role": "fit",
+                  "status": "pass",
+                  "warnings": []
+                },
+                "fresh": {
+                  "clip_fraction": 0.2353395061728395,
+                  "effective_support_role": "finite_cloud_diagnostic_not_continuum_support",
+                  "fit_leave_one_out_distance_max": 3.598320369246544,
+                  "fit_point_count": 134,
+                  "fit_point_hash": "20c8d20da3771f4121956dc4d17e66b466fedd9f59452fb640481ba109625af7",
+                  "local_max_abs_before_clip": 114.40545296876732,
+                  "nearest_fit_distance_max": 0.0,
+                  "nearest_fit_distance_median": 0.0,
+                  "nearest_fit_distance_min": 0.0,
+                  "point_any_saturated_fraction": 1.0,
+                  "point_count": 36,
+                  "point_hash": "254268140da08163d9363c43738f59121a318ac2fffa2e6e16af89d8416b5aa8",
+                  "reasons": [],
+                  "role": "fresh",
+                  "status": "warn",
+                  "warnings": [
+                    "positive_clip_fraction"
+                  ]
+                },
+                "fresh_audit_holdout": {
+                  "clip_fraction": 0.24845679012345678,
+                  "effective_support_role": "finite_cloud_diagnostic_not_continuum_support",
+                  "fit_leave_one_out_distance_max": 3.598320369246544,
+                  "fit_point_count": 134,
+                  "fit_point_hash": "20c8d20da3771f4121956dc4d17e66b466fedd9f59452fb640481ba109625af7",
+                  "local_max_abs_before_clip": 106.80479325343484,
+                  "nearest_fit_distance_max": 3.818989059862154,
+                  "nearest_fit_distance_median": 2.8924516973628602,
+                  "nearest_fit_distance_min": 2.24468511261585,
+                  "point_any_saturated_fraction": 1.0,
+                  "point_count": 36,
+                  "point_hash": "3ccc01bfec5c83d96be17c581709fb69f69a2493e39400e0f4e5ec88a5f4e8fb",
+                  "reasons": [],
+                  "role": "fresh_audit_holdout",
+                  "status": "warn",
+                  "warnings": [
+                    "positive_clip_fraction"
+                  ]
+                },
+                "fresh_audit_replay": {
+                  "clip_fraction": 0.24768518518518517,
+                  "effective_support_role": "finite_cloud_diagnostic_not_continuum_support",
+                  "fit_leave_one_out_distance_max": 3.598320369246544,
+                  "fit_point_count": 134,
+                  "fit_point_hash": "20c8d20da3771f4121956dc4d17e66b466fedd9f59452fb640481ba109625af7",
+                  "local_max_abs_before_clip": 142.70272944010688,
+                  "nearest_fit_distance_max": 3.408328280597732,
+                  "nearest_fit_distance_median": 2.850823956590215,
+                  "nearest_fit_distance_min": 1.931500667212083,
+                  "point_any_saturated_fraction": 1.0,
+                  "point_count": 36,
+                  "point_hash": "f4ff20dd13182462939639d87ea60bc873e481757d5ee398620f54e6ad02c8ae",
+                  "reasons": [],
+                  "role": "fresh_audit_replay",
+                  "status": "warn",
+                  "warnings": [
+                    "positive_clip_fraction"
+                  ]
+                },
+                "fresh_guard": {
+                  "clip_fraction": 0.2361111111111111,
+                  "effective_support_role": "finite_cloud_diagnostic_not_continuum_support",
+                  "fit_leave_one_out_distance_max": 3.598320369246544,
+                  "fit_point_count": 134,
+                  "fit_point_hash": "20c8d20da3771f4121956dc4d17e66b466fedd9f59452fb640481ba109625af7",
+                  "local_max_abs_before_clip": 120.5252568345309,
+                  "nearest_fit_distance_max": 3.5583379084614832,
+                  "nearest_fit_distance_median": 2.731253487566509,
+                  "nearest_fit_distance_min": 2.0203871861908715,
+                  "point_any_saturated_fraction": 1.0,
+                  "point_count": 36,
+                  "point_hash": "dc2651194c6a38e4d9a4927558ea9543c76084b3ca594162d448b1beca46e106",
+                  "reasons": [],
+                  "role": "fresh_guard",
+                  "status": "warn",
+                  "warnings": [
+                    "positive_clip_fraction"
+                  ]
+                },
+                "round0_guard_enrichment": {
+                  "clip_fraction": 0.2330246913580247,
+                  "effective_support_role": "finite_cloud_diagnostic_not_continuum_support",
+                  "fit_leave_one_out_distance_max": 3.598320369246544,
+                  "fit_point_count": 134,
+                  "fit_point_hash": "20c8d20da3771f4121956dc4d17e66b466fedd9f59452fb640481ba109625af7",
+                  "local_max_abs_before_clip": 128.88061090337862,
+                  "nearest_fit_distance_max": 0.0,
+                  "nearest_fit_distance_median": 0.0,
+                  "nearest_fit_distance_min": 0.0,
+                  "point_any_saturated_fraction": 1.0,
+                  "point_count": 36,
+                  "point_hash": "8eecc1d6b046e6ebb8d07bbaec3136206b2b95bd8cb4750407be99860a1fe587",
+                  "reasons": [],
+                  "role": "round0_guard_enrichment",
+                  "status": "warn",
+                  "warnings": [
+                    "positive_clip_fraction"
+                  ]
+                }
+              },
+              "time_index": 1,
+              "training_batch_manifest": {
+                "audit_line_point_count_used_for_training": 0,
+                "audit_point_count_used_for_training": 0,
+                "fit_point_count": 134,
+                "fit_point_hash": "4e028383b55969c4a463f905ea05439560fd782ec70afef854eae67fc7cb40f5",
+                "fit_target_hash": "a9f0ce48ea49787a1ff80fb4ca9a1a43848ec7dda1406de24be4f670b8c52bca",
+                "fit_weight_hash": "4bf96498d62e81d5284c1590e0d2ddd14d6888d0c0f7fc4026126d1292f3e652",
+                "fit_weight_mass": 0.9999999999999998,
+                "guard_point_count_used_for_training": 0,
+                "no_audit_coefficient_selection": {
+                  "NO_AUDIT_COEFFICIENT_SELECTION": true,
+                  "audit_line_point_count": 0,
+                  "audit_point_count": 0,
+                  "coefficient_cloud_hashes": [
+                    "eea900d30c3adf14f5c1e981e7126bb7581eb2e07c89e401448167974c83558a"
+                  ],
+                  "coefficient_point_count": 134,
+                  "enrichment_point_count": 0,
+                  "nonclaims": [
+                    "predicate pass is provenance evidence only",
+                    "predicate pass is not a lower-gate repair claim"
+                  ],
+                  "overlap_hashes": [],
+                  "predicate_id": "NO_AUDIT_COEFFICIENT_SELECTION",
+                  "reasons": [],
+                  "renewal_round": 1,
+                  "same_round_audit_cloud_hashes": [],
+                  "same_round_audit_line_cloud_hashes": [],
+                  "status": "pass"
+                },
+                "nonclaims": [
+                  "P73 training batch excludes same-round guard and audit clouds",
+                  "batch construction is not lower-gate evidence"
+                ],
+                "policy_id": "p73_F1_only_training_batch.v1",
+                "renewal_round": 1,
+                "training_point_hash": "b522229b017a3af0d69f6e8e62f3ef65aa08442f3e79cb15d070dfc1e342c136",
+                "training_rule": "coefficients_selected_from_F_1_only",
+                "training_target_hash": "a4c018c30e07ede95e35bd6c7f2d9cc5fd77cab3faa9a530fbfc7a20b2e2fc0d"
+              }
+            },
+            {
+              "degree": 1,
+              "fit_sample_count": 36,
+              "fit_status": "not_fit_prior_step_gate_blocked",
+              "gate_summary": {
+                "prior_step_reasons": [
+                  "line_block",
+                  "residual_rms_veto",
+                  "residual_max_veto"
+                ],
+                "reasons": [
+                  "prior_step_gate_blocked_no_retained_object"
+                ],
+                "status": "BLOCK_P73_DENSITY_AWARE_RENEWED_SUPPORT_LOWER_GATE"
+              },
+              "nonclaims": [
+                "no P73 lower-gate pass claim",
+                "no repaired P72 diagnostic claim",
+                "no d18 validation claim",
+                "no HMC readiness claim",
+                "no rank or degree promotion",
+                "no scaling claim",
+                "no adaptive Zhao-Cui source-faithful parity claim"
+              ],
+              "p73_b_optimizer_status": "P73_B_OPTIMIZER_BLOCKED_NONLINEAR_OBJECTIVE_NOT_IMPLEMENTED",
+              "phase5_diagnostic_executed": true,
+              "prior_step_reasons": [
+                "line_block",
+                "residual_rms_veto",
+                "residual_max_veto"
+              ],
+              "rank": 2,
+              "skip_reason": "prior_step_gate_blocked_no_retained_object",
+              "skipped_after_time_index": 1,
+              "smoke_only_not_phase5_evidence": false,
+              "status": "BLOCK_P73_DENSITY_AWARE_RENEWED_SUPPORT_LOWER_GATE",
+              "time_index": 2
+            }
+          ]
+        },
+        "p73_b_density_aware_optin": {
+          "density_aware_objective_status": "included_as_opt_in_diagnostic_arm",
+          "nonclaims": [
+            "P73-B is not runnable in Phase 5 while this status is active",
+            "least-squares reweighting is not treated as cross-entropy optimization"
+          ],
+          "phase5_runnable": false,
+          "reason": "Phase 4 implements objective evaluation only; the nonlinear TensorFlow refinement is not yet implemented.",
+          "status": "P73_B_OPTIMIZER_BLOCKED_NONLINEAR_OBJECTIVE_NOT_IMPLEMENTED"
+        }
+      },
+      "degree": 1,
+      "fit_sample_count": 36,
+      "label": "rank_candidate_1_2_fit36",
+      "nonclaims": [
+        "no P73 lower-gate pass claim",
+        "no repaired P72 diagnostic claim",
+        "no d18 validation claim",
+        "no HMC readiness claim",
+        "no rank or degree promotion",
+        "no scaling claim",
+        "no adaptive Zhao-Cui source-faithful parity claim"
+      ],
+      "phase5_diagnostic_executed": true,
+      "rank": 2,
+      "row_block_reason": "step1_gate_blocked_no_retained_object",
+      "sequential_log_marginal_likelihood": null,
+      "sequential_status": "not_run_prior_step_gate_blocked",
+      "smoke_only_not_phase5_evidence": false,
+      "status": "BLOCK_P73_DENSITY_AWARE_RENEWED_SUPPORT_LOWER_GATE"
+    }
+  },
+  "run_manifest": {
+    "command": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp python scripts/p73_density_aware_renewal_diagnostic.py",
+    "cpu_gpu_status": "cpu_only_cuda_visible_devices_minus_1",
+    "cpu_only_intent": "CUDA_VISIBLE_DEVICES=-1",
+    "elapsed_seconds": 13.283,
+    "environment": {
+      "CUDA_VISIBLE_DEVICES": "-1",
+      "MPLCONFIGDIR": "/tmp"
+    },
+    "git_state": {
+      "dirty": true,
+      "head": "d52727c555d81783ce5a46b448d299429cb350f1",
+      "status_short_count": 469
+    },
+    "output": "docs/plans/bayesfilter-highdim-zhao-cui-p73-bounded-renewal-diagnostic-2026-06-17.json",
+    "random_seeds": {
+      "model_simulation": 5901,
+      "p73": {
+        "round0_guard": {
+          "step1_prior": 7321,
+          "step1_process": 7601,
+          "step2_process": 7602
+        },
+        "round1_audit_holdout": {
+          "step1_prior": 7351,
+          "step1_process": 7631,
+          "step2_process": 7632
+        },
+        "round1_audit_replay": {
+          "step1_prior": 7361,
+          "step1_process": 7641,
+          "step2_process": 7642
+        },
+        "round1_fresh": {
+          "step1_prior": 7331,
+          "step1_process": 7611,
+          "step2_process": 7612
+        },
+        "round1_guard": {
+          "step1_prior": 7341,
+          "step1_process": 7621,
+          "step2_process": 7622
+        }
+      }
+    },
+    "row_specs": [
+      [
+        "rank_candidate_1_2_fit36",
+        1,
+        2,
+        36
+      ]
+    ],
+    "script": "scripts/p73_density_aware_renewal_diagnostic.py"
+  },
+  "source_route_controls": {
+    "cpu_only": true,
+    "p73_b_optimizer_status": "P73_B_OPTIMIZER_BLOCKED_NONLINEAR_OBJECTIVE_NOT_IMPLEMENTED",
+    "phase5_diagnostic_executed": true,
+    "policy": {
+      "classification": {
+        "density_aware_cross_entropy": "extension_or_invention",
+        "squared_tt_density_route": "fixed_hmc_adaptation",
+        "staged_renewal": "extension_or_invention",
+        "strict_audit_exclusion": "extension_or_invention"
+      },
+      "condition_penalty_weight": 0.0,
+      "density_aware_objective_status": "included_as_opt_in_diagnostic_arm",
+      "enrichment_rule": "E_0_may_use_guard_or_guard_line_never_audit",
+      "eps_log": 1e-300,
+      "inherited_p72_thresholds": {
+        "audit_rms_relative_veto": 10.0,
+        "condition_number_admission": 10000000000.0,
+        "effective_rank_min": 1.0,
+        "effective_rank_tol": 1e-12,
+        "fit_mass_fraction_min": 1e-06,
+        "fit_rms_relative_veto": 10.0,
+        "guard_rms_relative_veto": 10.0,
+        "line_growth_relative_veto": 1000.0,
+        "log_normalizer_abs_bound": 1000000.0,
+        "low_level_condition_number_veto": 100000000000000.0,
+        "residual_max_relative_veto": 1000.0,
+        "sqrt_square_normalizer_floor": 1e-14
+      },
+      "lambda_ce": 0.1,
+      "line_penalty_weight": 0.0,
+      "no_audit_predicate": "NO_AUDIT_COEFFICIENT_SELECTION",
+      "nonclaims": [
+        "not a source-faithful adaptive Zhao-Cui reproduction",
+        "P73 renewal and audit gates are fixed-variant evidence safeguards",
+        "cross-entropy values are explanatory unless downstream fresh-audit gates pass",
+        "focused tests are not repaired lower-gate evidence",
+        "no d18 validation claim",
+        "no HMC readiness claim",
+        "no rank promotion claim"
+      ],
+      "p72_policy_id": "p72_support_certified_fixed_fit_v1",
+      "p73_a_role": "mandatory_renewal_only_square_root_regression",
+      "p73_b_optimizer_status": "P73_B_OPTIMIZER_BLOCKED_NONLINEAR_OBJECTIVE_NOT_IMPLEMENTED",
+      "p73_b_role": "opt_in_density_aware_diagnostic_arm",
+      "policy_id": "p73_density_aware_renewed_support_v1",
+      "rank_promotion": "deferred",
+      "renewal_count": 1,
+      "training_rule": "coefficients_selected_from_F_1_only"
+    },
+    "schema_only_default_path": false,
+    "script_role": "p73_phase5_real_bounded_renewal_diagnostic_runner",
+    "smoke_only_not_phase5_evidence": false,
+    "source_route_semantics_changed": false,
+    "thresholds_changed": false
+  },
+  "status": "P73_PHASE5_DENSITY_AWARE_RENEWAL_BLOCKED",
+  "subplan": "docs/plans/bayesfilter-highdim-zhao-cui-p73-phase5-bounded-renewal-diagnostic-subplan-2026-06-17.md"
+}

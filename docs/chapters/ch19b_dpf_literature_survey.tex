@@ -637,6 +637,17 @@ path is the transported proposal particle whose density must later be corrected.
 Using a single global affine map, or linearizing every particle at a fixed
 cloud-level point, is therefore not Li--Coates Algorithm~1 LEDH.
 
+The same source-faithfulness point applies to the per-particle covariance
+objects.  The covariance $P^i$ is part of the Li--Coates Algorithm~1 state used
+to construct the particle-local LEDH coefficients; BayesFilter does not treat
+this covariance state as a new filter invention.  When a later differentiable
+OT or Sinkhorn resampling layer is attached to this Algorithm~1 route, the
+additional BayesFilter obligation is bookkeeping: specify how the covariance
+auxiliary state is carried through the chosen transport map, and test that this
+carry rule preserves the intended route.  The transport layer supplies the
+resampling relaxation; it does not replace the source algorithm's covariance
+lifecycle or by itself prove HMC suitability.
+
 This construction explains both the attraction and the danger of LEDH.  The
 attraction is that each particle uses a local approximation intended to track
 nonlinear observation geometry more closely than a single global

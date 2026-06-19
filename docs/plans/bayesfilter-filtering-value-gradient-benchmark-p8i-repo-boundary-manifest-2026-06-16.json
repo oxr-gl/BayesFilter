@@ -1,0 +1,93 @@
+{
+  "schema_version": "bayesfilter.p8i.repo_boundary_manifest.v1",
+  "date": "2026-06-16",
+  "status": "phase8_closeout_reviewed_closed",
+  "commit_or_push_performed": false,
+  "fresh_commit_or_push_request_required": true,
+  "intended_p8i_groups": {
+    "p8i_docs_and_artifacts": {
+      "path_pattern": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8i-*",
+      "status": "untracked_or_modified_p8i_closeout_files",
+      "include_in_future_p8i_commit": true
+    },
+    "dpf_runner_and_tests": {
+      "paths": [
+        "scripts/filtering_value_gradient_benchmark_run_p8d_numeric.py",
+        "tests/highdim/test_filtering_value_gradient_benchmark_p8d_numeric.py"
+      ],
+      "status": "tracked_modified",
+      "include_in_future_p8i_commit": true,
+      "boundary_note": "These files carry the P8i/P8h DPF runner, provenance, blocker, GPU, gradient, and HMC diagnostic support used by the P8i artifacts."
+    }
+  },
+  "excluded_dirty_groups_without_fresh_approval": [
+    {
+      "group": "Zhao-Cui high-dimensional lane",
+      "examples": [
+        "bayesfilter/highdim/__init__.py",
+        "bayesfilter/highdim/fitting.py",
+        "bayesfilter/highdim/source_route.py",
+        "docs/plans/bayesfilter-highdim-zhao-cui-*",
+        "tests/highdim/test_p59_author_sir_step_spec_assembly.py",
+        "tests/highdim/test_p60_author_sir_rank_comparator.py"
+      ],
+      "reason": "User explicitly said the monograph/Zhao-Cui work is not this lane."
+    },
+    {
+      "group": "Monograph/editorial lane",
+      "examples": [
+        "docs/chapters/ch19b_dpf_literature_survey.tex",
+        "docs/chapters/ch19e_dpf_hmc_target_suitability.tex",
+        "docs/chapters/ch32_diff_resampling_neural_ot.tex",
+        "docs/chapters/ch34_highdim_gaussian_and_sparse_quadrature.tex",
+        "docs/chapters/ch35_highdim_particle_transport_tensor_filters.tex",
+        "docs/chapters/ch36_nonlinear_ssm_hmc_research_program.tex",
+        "docs/chapters/ch37_highdim_filtering_candidate_synthesis.tex",
+        "docs/main.pdf",
+        "docs/preamble.tex",
+        "docs/plans/bayesfilter-highdim-monograph-*"
+      ],
+      "reason": "Out of scope for P8i closeout."
+    },
+    {
+      "group": "P8e/P8f/P8g/P8h historical artifacts",
+      "examples": [
+        "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8e-*",
+        "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8f-*",
+        "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8g-*",
+        "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-*"
+      ],
+      "reason": "Historical provenance and predecessor artifacts; not expanded or reclassified by Phase 8 without a separate request."
+    },
+    {
+      "group": "Other unrelated comparison programs",
+      "examples": [
+        "docs/plans/bayesfilter-fixed-sgqf-nonlinear-model-suite-comparison-*",
+        "scripts/p67_author_sir_adjacent_ladder_diagnostics.py",
+        "scripts/p69_phase5c_rank_activity_degree_normalizer_diagnostic.py",
+        "tests/highdim/test_p66_author_sir_fixed_branch_validation_ladder.py",
+        "tests/highdim/test_p69_phase5c_diagnostic_script.py"
+      ],
+      "reason": "Separate programs and diagnostics outside P8i."
+    }
+  ],
+  "p8i_nonclaims_to_preserve_in_any_future_commit_message": [
+    "no production HMC readiness",
+    "no posterior convergence",
+    "no valid tuning",
+    "no NUTS readiness",
+    "no stochastic PF marginal-gradient correctness",
+    "no exact nonlinear likelihood correctness",
+    "no full GPU scaling law",
+    "no generic high-dimensional LEDH readiness",
+    "no filter ranking",
+    "no default sampler policy"
+  ],
+  "future_staging_rule": "Stage only docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8i-* plus the two DPF runner/test files unless the user gives fresh explicit approval for additional files.",
+  "phase8_stop_conditions_observed": {
+    "intended_p8i_files_separable": true,
+    "commit_or_push_attempted": false,
+    "unrelated_dirty_work_included": false,
+    "destructive_action_required": false
+  }
+}

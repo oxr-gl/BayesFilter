@@ -320,13 +320,17 @@ before a run.  A minimal default table is:
 These are implementation tolerances, not scientific outcomes.  Changing them
 after seeing posterior plots invalidates the benchmark interpretation.
 
-\section[Particle Collapse]{Defect 1: Particle Collapse Is Exponential Without Structure}
+\section[Particle Collapse]{Defect 1: Log-Weight Dispersion Can Become Exponential Without Structure}
 \label{sec:bf-hd-defect-particles}
 
 The bootstrap and SIR filters in Chapter~\ref{ch:bf-highdim-particle-transport-tensor}
-are honest baselines because their collapse mechanism is visible.  Let
-$W_i=\exp(L_i)$ be unnormalized weights and
-$\bar W_i=W_i/\sum_{j=1}^N W_j$.  The effective sample size is
+are honest baselines because their collapse mechanism is visible.  The aim of
+this section is not to prove the strongest available particle-collapse theorem.
+It is to record a heuristic defect calculus showing why, without locality,
+guided proposals, or tempering, the variance scale entering the weights can grow
+rapidly with effective dimension.  The sharper asymptotic statements belong to
+the cited particle-filter literature; the present derivation is a warning model,
+not a complete theorem of exponential collapse.
 \begin{equation}
   \operatorname{ESS}=\frac{1}{\sum_{i=1}^N \bar W_i^2}.
   \label{eq:bf-hd-synth-ess}
@@ -346,10 +350,11 @@ calculus behind the high-dimensional particle-filter warnings of
 \begin{proposition}[Log-weight variance warning]
 \label{prop:bf-hd-particle-collapse-calculus}
 If the log-weight variance grows like
-\(\Var(L_i)=v_d\asymp d_{\mathrm{eff}}\sigma_\ell^2\), then a particle filter
-with proposal independent of the current observation can enter a regime where
-normalized weights are dominated by a small number of particles unless ensemble
-size grows very aggressively with that dispersion scale.
+\(\Var(L_i)=v_d\asymp d_{\mathrm{eff}}\sigma_\ell^2\), then the associated
+importance-weight dispersion scale grows exponentially in \(v_d\) under the
+lognormal heuristic below.  In that regime, a particle filter with proposal
+independent of the current observation can enter a practically severe collapse
+regime unless ensemble size grows very aggressively with that dispersion scale.
 \end{proposition}
 
 \begin{proof}[Derivation]
@@ -362,10 +367,9 @@ The usual importance-sampling variance factor is therefore exponential in
 \(v_d\).  Since the denominator of \eqref{eq:bf-hd-synth-ess} is driven by the
 largest normalized weights, stable ESS typically requires sample growth that
 offsets this exponential dispersion.  The cited papers give sharper asymptotic
-statements under stronger assumptions; the monograph uses this calculation to
-expose the industrial defect: without locality, guided proposals, or likelihood
-tempering, dimension enters through log-likelihood variance, not through a
-benign constant.
+statements under stronger assumptions; the monograph uses this calculation only
+to justify a heuristic defect warning about log-weight dispersion, not to claim a
+full theorem of exponential particle collapse for every proposal/model pair.
 \end{proof}
 
 \section{Validation Benchmarks And Promotion Logic}

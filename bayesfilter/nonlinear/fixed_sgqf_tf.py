@@ -820,21 +820,25 @@ def _cholesky_factor_or_failure(
     stage: str,
 ) -> tuple[tf.Tensor | None, Mapping[str, object], TFFixedSGQFStepFailure | None]:
     sym_matrix = _symmetrize(matrix)
-    eigenvalues = tf.linalg.eigvalsh(sym_matrix)
+    eigenvalues, eigenvectors = tf.linalg.eigh(sym_matrix)
     min_eigenvalue = tf.reduce_min(eigenvalues)
     diagnostics = {
         "min_eigenvalue": min_eigenvalue,
         "epsilon": tf.convert_to_tensor(epsilon, dtype=tf.float64),
         "symmetrized_matrix": sym_matrix,
     }
-    if min_eigenvalue < tf.convert_to_tensor(epsilon, dtype=tf.float64):
+    if min_eigenvalue < tf.convert_to_tensor(0.0, dtype=tf.float64):
         return None, diagnostics, TFFixedSGQFStepFailure(
             time_index=time_index,
             stage=stage,
             reason="positive_definiteness_veto",
             diagnostics=diagnostics,
         )
-    factor = tf.linalg.cholesky(sym_matrix)
+    if min_eigenvalue >= tf.convert_to_tensor(epsilon, dtype=tf.float64):
+        factor = tf.linalg.cholesky(sym_matrix)
+    else:
+        factor_eigenvalues = tf.maximum(eigenvalues, tf.convert_to_tensor(0.0, dtype=tf.float64))
+        factor = eigenvectors @ tf.linalg.diag(tf.sqrt(factor_eigenvalues))
     return factor, diagnostics, None
 
 

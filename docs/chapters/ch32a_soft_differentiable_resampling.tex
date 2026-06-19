@@ -1,0 +1,213 @@
+\chapter{Soft Differentiable Resampling}
+\label{ch:bf-dpf-soft-resampling}
+
+The previous chapters established the classical particle-filter setting in which a
+weighted cloud of particles is turned back into an equally weighted cloud by a
+resampling step.  The mathematical difficulty is that the standard resampling map
+is discrete: it duplicates some particles, deletes others, and changes abruptly
+when weights cross threshold values.  That makes naive pathwise differentiation
+break down.
+
+This chapter studies the simplest smooth replacement of that discrete step.  It
+does not introduce optimal transport yet.  Its narrower task is to show, in the
+smallest possible setting, how differentiability can be bought by changing the
+resampling map itself.
+
+\section{What problem this chapter solves}
+\label{sec:bf-soft-what-problem}
+
+Suppose a weighted particle cloud is
+\begin{equation}
+\label{eq:bf-soft-weighted-cloud}
+  \hat\pi_t^N(dx)
+  =
+  \sum_{i=1}^N w_t^{(i)}\,\delta_{x_t^{(i)}}(dx),
+  \qquad
+  w_t^{(i)}\ge 0,
+  \quad
+  \sum_{i=1}^N w_t^{(i)}=1.
+\end{equation}
+Classical multinomial resampling tries to convert this into an equally weighted
+cloud by drawing ancestor indices from the categorical law defined by the weights.
+This is fine as a simulation rule.  It is not fine if one wants the realized
+output cloud to depend smoothly on the weights.
+
+The chapter therefore asks one very specific question:
+\begin{quote}
+How can we make the resampled cloud depend more smoothly on the weights, and what
+bias is introduced when we do so?
+\end{quote}
+
+\section{Running two-particle discontinuity cell}
+\label{sec:bf-soft-two-particle-cell}
+
+The smallest useful example has two particles.  Let
+\[
+  x_1=-1,
+  \qquad
+  x_2=2,
+  \qquad
+  w=(p,1-p),
+  \qquad
+  p\in(0,1),
+\]
+and let one fixed common random number \(U\in(0,1)\) be used to define the first
+resampled ancestor.  Standard categorical resampling chooses
+\begin{equation}
+\label{eq:bf-soft-categorical-choice}
+  a(U,p)
+  =
+  \begin{cases}
+    1, & U\le p,\\
+    2, & U>p.
+  \end{cases}
+\end{equation}
+For a fixed \(U\), this is a step function of \(p\): small changes in the weight
+usually do nothing, and then a threshold crossing changes the realized ancestor
+abruptly.
+
+\paragraph{Plain-language takeaway.}
+If the algorithm literally copies an ancestor chosen by a discrete threshold, the
+output particle usually stays exactly the same when the weights move a little.  A
+pathwise derivative of that realized output is therefore typically zero until a
+jump occurs.
+
+\section{Classical resampling bottleneck}
+\label{sec:bf-soft-bottleneck}
+
+For standard multinomial resampling, the equal-weight cloud is obtained by
+sampling ancestor indices
+\[
+  a_j\sim\mathrm{Categorical}(w_t^{(1:N)})
+\]
+and setting
+\begin{equation}
+\label{eq:bf-soft-hard-resample}
+  \tilde x_t^{(j)} = x_t^{(a_j)}.
+\end{equation}
+This map is exact for the classical resampling law, but it is not pathwise
+differentiable with respect to the weights because the realized ancestor path is
+piecewise constant in those weights.
+
+\section{Soft resampling rule}
+\label{sec:bf-soft-rule}
+
+A simple smooth surrogate interpolates between the sampled ancestor and the
+weighted mean of the cloud.  Define
+\begin{equation}
+\label{eq:bf-soft-mean}
+  \bar x_t = \sum_{i=1}^N w_t^{(i)}x_t^{(i)},
+\end{equation}
+and then set
+\begin{equation}
+\label{eq:bf-soft-rule-eqn}
+  \tilde x_t^{(j)}
+  =
+  \alpha x_t^{(a_j)} + (1-\alpha)\bar x_t,
+  \qquad
+  \alpha\in[0,1].
+\end{equation}
+When \(\alpha=1\), the rule reduces to hard categorical resampling.  When
+\(\alpha<1\), the output depends smoothly on the weighted mean, so the realized
+output cloud becomes less discontinuous as a function of the weights.
+
+\section{Worked two-particle calculation}
+\label{sec:bf-soft-worked-cell}
+
+In the two-particle cell,
+\[
+  \bar x = p(-1)+(1-p)2 = 2-3p.
+\]
+The soft-resampling output for one realized ancestor is therefore
+\begin{align}
+\label{eq:bf-soft-two-particle-output}
+  \tilde x(U,p)
+  &=
+  \alpha x_{a(U,p)} + (1-\alpha)(2-3p).
+\end{align}
+Two immediate facts are now visible.
+
+First, when the ancestor is held fixed, the dependence on \(p\) is smooth through
+the weighted mean term.  Second, the object being computed has changed: the
+surrogate particle is no longer equal to the chosen ancestor itself unless
+\(\alpha=1\).
+
+The weighted mean is preserved in conditional expectation because
+\begin{equation}
+\label{eq:bf-soft-mean-preservation}
+  \mathbb E[\tilde x_t^{(j)}\mid X,w]
+  =
+  \alpha\sum_i w_i x_i + (1-\alpha)\bar x_t
+  =
+  \bar x_t.
+\end{equation}
+So the surrogate keeps the first-moment center of mass, but not necessarily other
+nonlinear summaries of the cloud.
+
+\section{Algorithm: soft differentiable resampling}
+\label{sec:bf-soft-algorithm}
+
+\begin{algorithm}[ht]
+\caption{\texttt{soft\_resampling\_step}}
+\begin{algorithmic}[1]
+\Require weighted particle cloud \(\{x_i,w_i\}_{i=1}^N\), interpolation parameter \(\alpha\in[0,1]\), realized ancestor indices \(a_j\) if hard ancestors are retained, or a separately declared softened ancestor rule if they are not
+\Ensure equal-weight surrogate cloud \(\widetilde X=(\tilde x^{(1)},\ldots,\tilde x^{(N)})\) and the declared ancestor policy
+\State Compute the weighted mean \(\bar x = \sum_{i=1}^N w_i x_i\)
+\For{each output index \(j=1,\ldots,N\)}
+  \State Form \(\tilde x^{(j)} = \alpha x_{a_j} + (1-\alpha)\bar x\)
+\EndFor
+\State Return the equal-weight cloud \(\widetilde X\), the chosen \(\alpha\), and the declared ancestor policy used to define \(a_j\)
+\end{algorithmic}
+\end{algorithm}
+
+\paragraph{Approximation enters here.}
+This algorithm is not another notation for categorical resampling.  It is a new
+surrogate object that trades exactness for smoother dependence on the weights.
+
+\section{Filtering-loop insertion point}
+\label{sec:bf-soft-loop}
+
+Inside the filtering loop, the soft surrogate sits exactly where hard resampling
+would have sat:
+\begin{equation}
+\label{eq:bf-soft-loop}
+  \{x_i,w_i\}_{i=1}^N
+  \xrightarrow{\mathrm{soft\ resampling}}
+  \{\tilde x^{(j)},1/N\}_{j=1}^N.
+\end{equation}
+It changes only the equal-weighting rule.  It does not, by itself, change the
+preceding weighting rule or add an OT correction.
+
+\section{Verification contract}
+\label{sec:bf-soft-verification}
+
+A minimal verification pass should check:
+\begin{enumerate}[label=(\arabic*)]
+  \item the weighted mean is preserved as in
+  \eqref{eq:bf-soft-mean-preservation},
+  \item the surrogate becomes the hard categorical rule when \(\alpha=1\),
+  \item nonlinear test-function bias is visible when expected,
+  \item the declared ancestor policy is recorded explicitly,
+  \item any downstream gradient claim states whether ancestors remain discrete or
+  are themselves relaxed.
+\end{enumerate}
+
+A failed mean-preservation check is evidence that the surrogate has been
+implemented incorrectly.  A successful mean-preservation check is not evidence
+that the classical categorical target has been preserved.
+
+\section{What this chapter does and does not claim}
+\label{sec:bf-soft-boundary}
+
+This chapter teaches the simplest smooth resampling surrogate and its bias.  It
+does \emph{not} claim:
+\begin{itemize}
+  \item that the surrogate preserves the exact categorical resampling law,
+  \item that preserving the weighted mean preserves the full distribution,
+  \item that the resulting scalar is automatically the same target later used by
+  HMC or training.
+\end{itemize}
+Its role is narrower: it shows, in the smallest possible setting, how
+resampling can be made smoother and where the resulting approximation enters.
+
+\FloatBarrier

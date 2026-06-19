@@ -312,8 +312,11 @@ and set
    \mu_{t,k}^{\rm pilot}+\gamma s_{t,k}^{\rm pilot}],
   \label{eq:bf-hd-squared-tt-domain-policy}
 \end{equation}
-with fixed expansion factor \(\gamma\).  The out-of-domain diagnostic at fitting
-or proposal points is
+with fixed expansion factor \(\gamma\).  In the current fixed-variant fitting
+story, these pilot moments may come from a Gaussian scout such as a UKF warm
+start.  The scout provides a local frame and an initialization region; it is not
+a certificate that the represented density is already correct.  The
+out-of-domain diagnostic at fitting or proposal points is
 \begin{equation}
   \delta_{\rm out}=
   \frac1N\sum_{j=1}^N \mathbf{1}\{r_{t,k}^{(j)}\notin[\ell_{t,k},u_{t,k}]\ \text{for some }k\},
@@ -349,13 +352,89 @@ parameter and then reused for same-branch finite differences.  This is the
 meaning of the chapter's boxed convention that the fit is carried out in source
 scale while the reported scalar returns to the unshifted evidence scale.
 
+\subsection{Square-Root Fitting Object Versus Density Audit Object}
+\label{sec:bf-hd-squared-tt-density-audit}
+
+The fixed-variant fitting lane needs one further distinction.  The TT sweep may
+be written in square-root form, but the scientific object being evaluated is a
+density.  Write the represented nonnegative object as
+\begin{equation}
+  q_\theta(z)=h_\theta(z)^2+\tau q_0(z),
+  \qquad
+  Z_\theta=\int q_\theta(z)\dd z,
+  \qquad
+  p_\theta(z)=\frac{q_\theta(z)}{Z_\theta},
+  \label{eq:bf-hd-squared-tt-density-object}
+\end{equation}
+where \(h_\theta\) is the trainable square-root TT field, \(q_0\) is the fixed
+defensive reference density, and \(\tau>0\) is the defensive mixture weight.
+If the target square-root field is \(s(z)\), then the target density is
+\begin{equation}
+  p_\star(z)\propto s(z)^2.
+  \label{eq:bf-hd-squared-tt-target-density}
+\end{equation}
+Therefore a raw square-root residual,
+\begin{equation}
+  h_\theta(z_i)\approx s(z_i),
+  \label{eq:bf-hd-squared-tt-square-root-residual}
+\end{equation}
+is not yet the primary heldout criterion.  The reported density depends on the
+square, the defensive component, and the normalizer \(Z_\theta\).  Sign, scale,
+and local amplitude errors in \(h_\theta\) need not map one-for-one to density
+quality after normalization.  Square-root residuals are therefore fitting
+diagnostics, not promotion criteria by themselves.
+
+For a weighted batch
+\begin{equation}
+  B=\{(z_i,w_i,s_i)\}_{i=1}^n,
+  \label{eq:bf-hd-squared-tt-heldout-batch}
+\end{equation}
+the target-only empirical measure is
+\begin{equation}
+  \alpha_i^{\rm hold}
+  =
+  \frac{w_i s_i^2}{\sum_j w_j s_j^2},
+  \label{eq:bf-hd-squared-tt-heldout-alpha}
+\end{equation}
+and the corresponding density cross-entropy is
+\begin{equation}
+  \widehat{\mathcal L}_{\rm hold}(\theta)
+  =
+  -\sum_i \alpha_i^{\rm hold}\log q_\theta(z_i)
+  +\log Z_\theta.
+  \label{eq:bf-hd-squared-tt-heldout-cross-entropy}
+\end{equation}
+This target-only measure is the corrected heldout audit object for the
+fixed-variant lane.  The historical helper
+\begin{equation}
+  \alpha_i^{\rm old}
+  \propto
+  w_i\bigl(s_i^2+\tau q_0(z_i)\bigr)
+  \label{eq:bf-hd-squared-tt-old-helper-alpha}
+\end{equation}
+mixes the defensive reference density into the empirical target.  That helper may
+still be useful as a boundary comparator or internal training-support convention,
+but it is not the heldout target measure and should not be reported as if it
+were the scientific density criterion.
+
+This correction also changes how fitting evidence should be narrated.  A UKF
+warm start can supply local geometry and a mini-batch training run can improve
+the represented density over that geometry, but success is judged by the
+target-only heldout cross-entropy in
+\eqref{eq:bf-hd-squared-tt-heldout-cross-entropy}, not by the old
+\(\tau q_0\)-smoothed helper and not by square-root residuals alone.
+
 \section{Initialization And Sweep Order}
 \label{sec:bf-hd-squared-tt-init-sweeps}
 
 The branch must also save the deterministic initialization and sweep rule.  A
-useful baseline is constant-channel initialization: initialize every core to zero
-except the constant channel, and let one bidirectional sweep mean updates in the
-order
+constant-channel initialization is a useful mechanical baseline, but it should
+not be confused with the preferred fixed-variant fitting narrative once a
+deterministic geometric warm start is available.  When a Gaussian scout such as
+a UKF provides the pilot frame, the current mathematical story is that the
+branch record should freeze a warm start derived from that scout rather than
+revert to random or purely constant initialization.  Let one bidirectional sweep
+mean updates in the order
 \begin{equation}
   1,2,\ldots,D,D-1,\ldots,1.
   \label{eq:bf-hd-squared-tt-sweep-order}

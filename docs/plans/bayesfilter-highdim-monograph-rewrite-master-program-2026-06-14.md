@@ -13,6 +13,14 @@ chapters provide a stable skeleton.  They do not.  The rewrite should instead us
 `p47` and `p50` as the strongest authored source manuscripts and rebuild the
 block so it reads coherently inside the monograph.
 
+As of the blocker-clearance pass recorded in
+`docs/plans/bayesfilter-highdim-monograph-rewrite-blocker-clearance-reset-memo-2026-06-15.md`,
+the immediate `ch34` integration blocker is cleared and `docs/main.tex` builds
+successfully.  Build success is therefore now baseline context to preserve, not
+the primary open gate.  Phase 1 should be treated as a completed prerequisite /
+maintenance baseline, and active execution should resume with the editorial and
+source-discipline passes for Phases 2--5.
+
 ## Governing Purpose
 
 The purpose of this program is to replace the current disconnected
@@ -150,6 +158,9 @@ Deliverables:
 Purpose:
 - rebuild the deterministic Gaussian / sparse-grid lane using `p47` as the
   primary authored source.
+- current status: the main `ch34` blocker is cleared, the chapter is integrated,
+  and further work on `ch34` should be treated as maintenance/editorial
+  refinement rather than as the live program gate.
 
 Key content to carry:
 - GHQ family clarification,
@@ -169,8 +180,10 @@ Rule:
 
 ## Phase 2 — Rewrite `ch35` from `p50`
 Purpose:
-- rebuild the TT / KR / fixed-branch lane using `p50` as the primary authored
-  source.
+- use `p50` as the primary authored source base for the TT / KR / fixed-branch
+  lane, but treat the current integrated `ch35` as an already-formed monograph
+  chapter that now needs an editorial and source-discipline pass rather than a
+  blank-sheet rewrite.
 
 Key content to carry:
 - running example discipline,
@@ -184,15 +197,21 @@ Key content to carry:
 - validation framing.
 
 Rule:
-- the rewritten chapter should read as a chapter, not as a reorganized technical
-  note,
-- and implementation-facing details should be staged around what matters and what
-  is subtle.
+- the active work is now a bounded chapter-refinement pass: source-anchor audit,
+  claim-discipline tightening, chapter-flow cleanup, and import/export cleanup
+  for downstream `ch36` and `ch37` use;
+- the chapter should read as one canonical TT / KR lane chapter, not as a
+  reorganized technical note;
+- implementation-facing details should stay staged around what matters and what
+  is subtle;
+- later Phase 5 editorial cleanup may refine prose further, but must not expand
+  the technical scope or weaken Zhao--Cui source-anchor discipline.
 
 ## Phase 3 — Rewrite `ch36` as the high-dimensional target/HMC consequence chapter
 Purpose:
-- rebuild the HMC research-program chapter so it clearly imports objects from the
-  rewritten `ch34` and `ch35` rather than behaving as a detached research note.
+- treat the current integrated `ch36` as structurally present and run a bounded
+  consequence-discipline and citation-boundary pass so it clearly imports objects
+  from `ch34` and `ch35` rather than behaving as a detached research note.
 
 Key content:
 - transformed-target discipline,
@@ -202,13 +221,18 @@ Key content:
 - limits of adaptive or branch-changing algorithms under HMC.
 
 Rule:
-- generic HMC target doctrine remains anchored in earlier HMC chapters;
-  this chapter should be the high-dimensional specialization.
+- generic HMC target doctrine remains anchored in earlier HMC chapters; this
+  chapter should be the high-dimensional specialization;
+- the active work is import/export tightening, same-scalar claim discipline, and
+  removal of residual drift back into generic HMC exposition;
+- later Phase 5 editorial cleanup may refine prose further, but must not reopen
+  lane construction or expand technical scope.
 
 ## Phase 4 — Rewrite `ch37` as synthesis
 Purpose:
-- turn `ch37` into a true synthesis chapter that uses the rewritten `ch34` and
-  `ch35` as inputs.
+- treat the current integrated `ch37` as structurally present and run a bounded
+  synthesis-pruning and promotion-rule audit using the finalized `ch34` and
+  `ch35` exports as inputs.
 
 Key content:
 - selection criteria,
@@ -220,19 +244,27 @@ Key content:
 Rule:
 - no long derivations,
 - no repeated pedagogy,
-- only synthesis and decision logic.
+- only synthesis and decision logic;
+- the active work is pruning repeated derivation, auditing that each
+  promotion/veto statement traces back to exported upstream objects, and
+  tightening source-risk / non-claim language;
+- later Phase 5 editorial cleanup may refine prose further, but must not expand
+  the chapter’s technical claims.
 
 ## Phase 5 — `main.tex` integration and cleanup
 Purpose:
-- rebuild the whole monograph with the rewritten block,
-- repair labels, citations, references, and cross-chapter continuity,
+- preserve a green whole-monograph build while the refined high-dimensional block
+  receives its final editorial, provenance, and integration closeout;
+- repair labels, citations, references, and cross-chapter continuity created or
+  exposed by those editorial passes;
 - verify that the rewritten block now reads coherently inside the whole book.
 
 Deliverables:
-- clean or materially cleaner `main.tex` build,
-- cross-reference repair,
-- bibliography resolution,
-- final integration assessment.
+- a maintained green `docs/main.tex` build rather than a one-time build gate,
+- cross-reference and bibliography repair,
+- one bounded post-build editorial/source-discipline pass across `ch34`--`ch37`,
+- final integration and provenance assessment showing that no new technical
+  claims were introduced during editorial cleanup.
 
 ## Subplan structure
 
@@ -260,6 +292,11 @@ This master program should be supported by one subplan per phase:
 5. Repetition is allowed only when it deepens the concept.
 6. Validation and HMC chapters should test or specialize previously defined
    objects, not restart the derivation from scratch.
+7. After the first stable integrated build, one bounded editorial/source-discipline
+   pass across `ch34`--`ch37` is in scope to tighten prose, normalize source and
+   non-claim language, and remove duplication revealed only by integrated
+   reading; this pass must not introduce new mathematics, new implementation
+   claims, or weakened source-faithfulness discipline.
 
 ## Verification criteria for the program
 
@@ -274,6 +311,9 @@ The program succeeds when:
 5. `ch37` reads as synthesis rather than as another parallel note;
 6. `docs/main.tex` compiles with the new block and its citations/references are
    materially cleaner;
-7. a future reader or future agent can understand why the high-dimensional block
+7. the block remains build-stable while bounded editorial/source-discipline
+   passes tighten source/claim discipline, chapter boundaries, and duplication
+   without introducing new technical claims;
+8. a future reader or future agent can understand why the high-dimensional block
    exists without needing hidden long-context memory from earlier drafting
    history.

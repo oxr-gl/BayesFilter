@@ -1,0 +1,103 @@
+{
+  "evidence_contract": {
+    "baseline": "Phase 5 LEDH OT first failure at seed 81120 with P8h Sinkhorn settings.",
+    "not_concluded": [
+      "particle adequacy",
+      "leaderboard completion",
+      "selected LEDH OT repair",
+      "gradient correctness",
+      "HMC/NUTS readiness",
+      "Zhao-Cui TT/SIRT source-faithfulness",
+      "production readiness"
+    ],
+    "primary_criterion": "Record first resampling event scale and whether a bounded scale-adaptive epsilon probe is a plausible reviewed repair candidate.",
+    "question": "What cost, state, weight, and Sinkhorn residual scales explain the P8j SIR d18 LEDH OT Phase 5 failure?"
+  },
+  "nonclaims": [
+    "diagnostic only",
+    "not a Phase 5 rerun",
+    "not a selected particle count",
+    "not a selected LEDH OT repair",
+    "not leaderboard evidence",
+    "not gradient or HMC evidence"
+  ],
+  "phase": "P8J_PHASE5B_SIR_TUNING_BLOCKER_REPAIR",
+  "prefix_log_likelihood_before_event": -35.83408717192045,
+  "repair_classification": "candidate_requires_review_before_phase5_rerun",
+  "resampling_event": {
+    "cost_max": 237.97475859459587,
+    "cost_mean": 116.56402657134574,
+    "cost_min": 0.0,
+    "cost_over_epsilon_max": 237.97475859459587,
+    "cost_over_epsilon_mean": 116.56402657134574,
+    "cost_std": 50.14188736765255,
+    "ess": 3.994563427987881,
+    "ess_ratio": 0.24966021424924256,
+    "ess_threshold_ratio": 1.01,
+    "particle_count": 16,
+    "post_flow_abs_max": 491.5373057604676,
+    "post_flow_abs_mean": 247.75239066263208,
+    "post_flow_component_std_max": 2.5593671145550005,
+    "post_flow_component_std_min": 1.2362493126763427,
+    "sinkhorn_epsilon": 1.0,
+    "sinkhorn_iterations": 200,
+    "sinkhorn_tolerance": 1e-06,
+    "source_weight_entropy": 1.8632941989996548,
+    "source_weight_max": 0.4565806477311872,
+    "source_weight_min": 0.0005741327232378748,
+    "source_weight_perplexity": 6.444932731362863,
+    "source_weight_sum_residual": 0.0,
+    "state_dimension": 18,
+    "time_index": 0
+  },
+  "run_manifest": {
+    "command": "scripts/filtering_value_gradient_benchmark_run_p8d_numeric.py --p8j-sir-ot-sinkhorn-diagnostic --row sir --horizon 20 --particles 16 --seeds 81120 --device gpu --g0-manifest docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8g-phase0-gpu-probe-result-2026-06-15.md --runtime-budget-seconds 1800 --p8h-resampling-route ot_sinkhorn_barycentric_covariance_carry --output-json docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8j-phase5b-ledh-ot-sinkhorn-diagnostic-2026-06-17.json",
+    "device_context": "/GPU:0",
+    "dirty_state_summary": "395 git-status-short entries",
+    "environment": "TensorFlow/TensorFlow Probability P8j Phase 5b Sinkhorn diagnostic",
+    "g0_manifest": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8g-phase0-gpu-probe-result-2026-06-15.md",
+    "git_commit": "94069066a70df6f1f0f2b53d32b9d452bd67f891",
+    "marker_device": "/job:localhost/replica:0/task:0/device:GPU:0",
+    "requested_device": "gpu",
+    "runtime_budget_seconds": 1800.0,
+    "tf_logical_gpus": [
+      "/device:GPU:0"
+    ],
+    "tf_physical_gpus": [
+      "/physical_device:GPU:0"
+    ],
+    "wall_seconds": 2.910114
+  },
+  "scale_adaptive_probe": {
+    "canonical_transport_row_sum_residual": 2.220446049250313e-16,
+    "epsilon": 116.56402657134574,
+    "finite": true,
+    "probe_kind": "scale_adaptive_epsilon_equal_max_nominal_or_cost_mean",
+    "sinkhorn_iterations": 500,
+    "sinkhorn_tolerance": 1e-06,
+    "transport_helper_max_column_residual": 4.163336342344337e-17,
+    "transport_helper_max_row_residual": 4.788947016720613e-13
+  },
+  "schema_version": "filter_bench.p8j_sir_ot_sinkhorn_diagnostic.v1",
+  "scope": {
+    "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+    "ess_threshold_ratio": 1.01,
+    "full_horizon": 20,
+    "horizon_prefix": 20,
+    "nominal_sinkhorn_epsilon": 1.0,
+    "nominal_sinkhorn_iterations": 200,
+    "nominal_sinkhorn_tolerance": 1e-06,
+    "particle_count": 16,
+    "resampling_route": "ot_sinkhorn_barycentric_covariance_carry",
+    "route_label": "spatial_sir_austria_j9_T20",
+    "route_variant": "p8j_sir_d18_ot_resampled_alg1",
+    "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+    "seed": 81120
+  },
+  "sinkhorn_failure": {
+    "failure_error_type": "FloatingPointError",
+    "failure_message": "Sinkhorn row residual exceeded tolerance envelope",
+    "nominal_settings_failed": true
+  },
+  "status": "executed_p8j_sir_ot_sinkhorn_diagnostic"
+}

@@ -16,12 +16,16 @@ import tensorflow as tf
 
 from experiments.dpf_implementation.tf_tfp.resampling import annealed_transport_tf
 from experiments.dpf_implementation.tf_tfp.resampling.annealed_transport_tf import (
+    AnnealedTransportWarmstartStateTF,
     DEFAULT_STREAMING_CHUNK_SIZE,
+    _maybe_stop,
     _clip_transport_upstream_gradient,
     _filterflow_custom_gradient_transport_matrix,
     _filterflow_exact_transport_matrix,
     _filterflow_scale,
     _filterflow_streaming_transport,
+    _transport_ad_stop_scale,
+    _validate_transport_ad_mode,
 )
 
 
@@ -485,6 +489,7 @@ def batched_ledh_flow_core_tf(
     observation_fn: Callable[[tf.Tensor], tf.Tensor],
     observation_jacobian_fn: Callable[[tf.Tensor], tf.Tensor],
     observation_residual_fn: Callable[[tf.Tensor, tf.Tensor], tf.Tensor],
+    prior_mean_fn: Callable[[tf.Tensor], tf.Tensor] | None = None,
     jitter: float | tf.Tensor = 1.0e-9,
 ) -> BatchedLEDHFlowTensors:
     """Vectorized one-step LEDH affine flow over parameter rows and particles."""
@@ -541,7 +546,20 @@ def batched_ledh_flow_core_tf(
         "observation_covariance",
     )
 
-    prior_means = tf.einsum("bnj,bdj->bnd", ancestors, transition_matrix)
+    if prior_mean_fn is None:
+        prior_means = tf.einsum("bnj,bdj->bnd", ancestors, transition_matrix)
+    else:
+        prior_means = _to_float_tensor(
+            prior_mean_fn(ancestors),
+            "prior_mean_fn output",
+        )
+        _require_static_rank(prior_means, 3, "prior_mean_fn output")
+        if _static_shape(prior_means, "prior_mean_fn output") != (
+            batch_size,
+            num_particles,
+            state_dim,
+        ):
+            raise ValueError("prior_mean_fn output shape mismatch")
     pre_flow_log_density = _batched_gaussian_logpdf(
         x0 - prior_means,
         transition_covariance,
@@ -642,8 +660,10 @@ def batched_annealed_transport_core_tf(
     max_iterations: int | tf.Tensor = 100,
     transport_gradient_mode: str = "filterflow_clipped",
     transport_plan_mode: str = "dense",
+    transport_ad_mode: str = "stabilized",
     row_chunk_size: int = DEFAULT_STREAMING_CHUNK_SIZE,
     col_chunk_size: int = DEFAULT_STREAMING_CHUNK_SIZE,
+    warmstart_state: AnnealedTransportWarmstartStateTF | None = None,
 ) -> BatchedAnnealedTransportTensors:
     """Apply annealed transport to fixed-mask rows without eager branch logic."""
 
@@ -655,6 +675,7 @@ def batched_annealed_transport_core_tf(
         )
     if transport_plan_mode not in {"dense", "streaming"}:
         raise ValueError("transport_plan_mode must be 'dense' or 'streaming'")
+    _validate_transport_ad_mode(transport_ad_mode)
     if transport_plan_mode == "streaming" and transport_gradient_mode != "raw":
         raise ValueError("streaming transport currently supports transport_gradient_mode='raw' only")
     if row_chunk_size <= 0 or col_chunk_size <= 0:
@@ -683,9 +704,15 @@ def batched_annealed_transport_core_tf(
         "fixed_resampling_mask batch size",
     )
 
-    centered = x - tf.stop_gradient(tf.reduce_mean(x, axis=1, keepdims=True))
+    center = tf.reduce_mean(x, axis=1, keepdims=True)
+    center = _maybe_stop(center, stop=_transport_ad_stop_scale(transport_ad_mode))
+    centered = x - center
     scale = _filterflow_scale(x)
-    scaled_x = centered / tf.stop_gradient(scale[:, None, None])
+    scale_for_division = _maybe_stop(
+        scale,
+        stop=_transport_ad_stop_scale(transport_ad_mode),
+    )
+    scaled_x = centered / scale_for_division[:, None, None]
     epsilon_tensor = tf.convert_to_tensor(epsilon, dtype=DTYPE)
     scaling_tensor = tf.convert_to_tensor(scaling, dtype=DTYPE)
     threshold_tensor = tf.convert_to_tensor(convergence_threshold, dtype=DTYPE)
@@ -709,6 +736,8 @@ def batched_annealed_transport_core_tf(
             num_particles_tensor,
             row_chunk_size=row_chunk_size,
             col_chunk_size=col_chunk_size,
+            transport_ad_mode=transport_ad_mode,
+            warmstart_state=warmstart_state,
         )
     elif transport_gradient_mode == "filterflow_custom_op":
         transport_matrix, _iterations = _filterflow_custom_gradient_transport_matrix(
@@ -735,6 +764,8 @@ def batched_annealed_transport_core_tf(
             threshold_tensor,
             max_iterations_tensor,
             num_particles_tensor,
+            transport_ad_mode=transport_ad_mode,
+            warmstart_state=warmstart_state,
         )
         if transport_gradient_mode == "filterflow_clipped":
             transport_matrix = _clip_transport_upstream_gradient(transport_matrix)
@@ -786,6 +817,7 @@ def batched_ledh_pfpf_ot_value_core_tf(
     ledh_jitter: float | tf.Tensor = 1.0e-9,
     transport_gradient_mode: str = "filterflow_clipped",
     transport_plan_mode: str = "dense",
+    transport_ad_mode: str = "stabilized",
     row_chunk_size: int = DEFAULT_STREAMING_CHUNK_SIZE,
     col_chunk_size: int = DEFAULT_STREAMING_CHUNK_SIZE,
 ) -> BatchedLEDHPFPFOTValueTensors:
@@ -895,6 +927,7 @@ def batched_ledh_pfpf_ot_value_core_tf(
             max_iterations=sinkhorn_iterations,
             transport_gradient_mode=transport_gradient_mode,
             transport_plan_mode=transport_plan_mode,
+            transport_ad_mode=transport_ad_mode,
             row_chunk_size=row_chunk_size,
             col_chunk_size=col_chunk_size,
         )

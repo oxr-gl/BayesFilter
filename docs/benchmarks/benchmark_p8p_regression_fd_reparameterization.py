@@ -1,0 +1,781 @@
+"""P8p regression finite-difference diagnostics in reparameterized directions.
+
+This companion diagnostic keeps the P8p SIR d18 target and TF32 route intact,
+but replaces single-pair finite differences with symmetric local linear
+regression along raw, physics-informed, and locally whitened directions.
+"""
+
+from __future__ import annotations
+
+import argparse
+import datetime as _dt
+import json
+import math
+import os
+import platform
+import sys
+import time
+from pathlib import Path
+from typing import Any
+
+
+_PRE_PARSER = argparse.ArgumentParser(add_help=False, allow_abbrev=False)
+_PRE_PARSER.add_argument("--device-scope", choices=("cpu", "visible"), default="visible")
+_PRE_PARSER.add_argument("--cuda-visible-devices", default=None)
+_PRE_ARGS, _UNKNOWN = _PRE_PARSER.parse_known_args()
+if _PRE_ARGS.device_scope == "cpu":
+    os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+elif _PRE_ARGS.cuda_visible_devices is not None:
+    os.environ["CUDA_VISIBLE_DEVICES"] = _PRE_ARGS.cuda_visible_devices
+os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "1")
+
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+import tensorflow as tf
+
+from docs.benchmarks import benchmark_p8p_parameterized_sir_gradient as p8p
+
+
+def _parse_int_csv(value: str) -> list[int]:
+    parsed = [int(item.strip()) for item in str(value).split(",") if item.strip()]
+    if not parsed:
+        raise ValueError("expected at least one integer")
+    return parsed
+
+
+def _parse_float_csv(value: str, *, expected: int) -> list[float]:
+    parsed = [float(item.strip()) for item in str(value).split(",") if item.strip()]
+    if len(parsed) != expected:
+        raise ValueError(f"expected {expected} comma-separated floats")
+    if not all(math.isfinite(item) for item in parsed):
+        raise ValueError("expected finite floats")
+    return parsed
+
+
+def _parse_offsets(value: str) -> list[float]:
+    parsed = [float(item.strip()) for item in str(value).split(",") if item.strip()]
+    if len(parsed) not in (7, 9):
+        raise ValueError("regression offsets must contain 7 or 9 values")
+    if not all(math.isfinite(item) for item in parsed):
+        raise ValueError("regression offsets must be finite")
+    if not any(item < 0.0 for item in parsed) or not any(item > 0.0 for item in parsed):
+        raise ValueError("regression offsets must include negative and positive values")
+    return parsed
+
+
+def _parse_positive_float_csv(value: str) -> list[float]:
+    parsed = [float(item.strip()) for item in str(value).split(",") if item.strip()]
+    if not parsed:
+        raise ValueError("expected at least one positive float")
+    if not all(math.isfinite(item) and item > 0.0 for item in parsed):
+        raise ValueError("base steps must be positive finite values")
+    return parsed
+
+
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__, allow_abbrev=False)
+    parser.add_argument("--batch-seeds", default="81120,81121,81122,81123,81124")
+    parser.add_argument("--time-steps", type=int, default=3)
+    parser.add_argument("--num-particles", type=int, default=16)
+    parser.add_argument("--theta", default="0.02,-0.01,0.01")
+    parser.add_argument("--phase-label", default="P8p regression FD reparameterization")
+    parser.add_argument("--base-step", type=float, default=0.001)
+    parser.add_argument("--base-step-ladder", default="")
+    parser.add_argument(
+        "--base-step-mode",
+        choices=("fixed", "ad-signal"),
+        default="fixed",
+        help=(
+            "fixed uses --base-step-ladder as absolute steps; ad-signal chooses "
+            "a direction-specific step from the AD directional derivative and "
+            "uses --adaptive-step-factors for nested windows"
+        ),
+    )
+    parser.add_argument("--target-objective-delta", type=float, default=0.15)
+    parser.add_argument("--adaptive-step-factors", default="1.0,0.5,0.25")
+    parser.add_argument("--min-adaptive-base-step", type=float, default=2.5e-4)
+    parser.add_argument("--max-adaptive-base-step", type=float, default=5.0e-2)
+    parser.add_argument("--regression-offsets", default="-4,-3,-2,-1,0,1,2,3,4")
+    parser.add_argument(
+        "--basis-set",
+        choices=(
+            "raw-physics-whitened",
+            "raw",
+            "physics",
+            "whitened",
+            "semantic-orthogonal",
+        ),
+        default="raw-physics-whitened",
+    )
+    parser.add_argument("--transport-policy", choices=("active-all", "active-odd", "no-resampling"), default="active-all")
+    parser.add_argument("--sinkhorn-iterations", type=int, default=10)
+    parser.add_argument("--sinkhorn-epsilon", type=float, default=1.0)
+    parser.add_argument("--annealed-scaling", type=float, default=0.9)
+    parser.add_argument("--annealed-convergence-threshold", type=float, default=1.0e-3)
+    parser.add_argument(
+        "--transport-plan-mode",
+        choices=("streaming", "dense"),
+        default="streaming",
+    )
+    parser.add_argument(
+        "--transport-ad-mode",
+        choices=(
+            "stabilized",
+            "diff-scale",
+            "diff-keys",
+            "diff-potentials",
+            "full",
+        ),
+        default="stabilized",
+    )
+    parser.add_argument("--row-chunk-size", type=int, default=16)
+    parser.add_argument("--col-chunk-size", type=int, default=16)
+    parser.add_argument("--particle-chunk-size", type=int, default=16)
+    parser.add_argument("--dtype", choices=("float64", "float32"), default="float32")
+    parser.add_argument("--tf32-mode", choices=("default", "enabled", "disabled"), default="enabled")
+    parser.add_argument("--device", default="/GPU:0")
+    parser.add_argument("--device-scope", choices=("cpu", "visible"), default=_PRE_ARGS.device_scope)
+    parser.add_argument("--cuda-visible-devices", default=_PRE_ARGS.cuda_visible_devices)
+    parser.add_argument("--expect-device-kind", choices=("any", "cpu", "gpu"), default="gpu")
+    parser.add_argument(
+        "--seed-microbatch-size",
+        type=int,
+        default=0,
+        help=(
+            "evaluate seed groups sequentially and combine them exactly as the "
+            "batch mean; 0 means evaluate all seeds in one batch"
+        ),
+    )
+    parser.add_argument(
+        "--ad-evaluation-mode",
+        choices=("reverse-gradient", "forward-jvp"),
+        default="reverse-gradient",
+        help=(
+            "reverse-gradient computes a full parameter gradient; forward-jvp "
+            "uses one forward-mode directional derivative per raw parameter"
+        ),
+    )
+    parser.add_argument("--output", required=True)
+    args = parser.parse_args()
+    args.batch_seeds = _parse_int_csv(args.batch_seeds)
+    args.theta_values = _parse_float_csv(args.theta, expected=3)
+    args.regression_offsets_values = _parse_offsets(args.regression_offsets)
+    args.base_step_ladder_values = (
+        _parse_positive_float_csv(args.base_step_ladder)
+        if args.base_step_ladder.strip()
+        else [float(args.base_step)]
+    )
+    args.adaptive_step_factor_values = _parse_positive_float_csv(args.adaptive_step_factors)
+    if args.time_steps <= 0:
+        raise ValueError("time_steps must be positive")
+    if args.num_particles <= 1:
+        raise ValueError("num_particles must be greater than one")
+    if args.base_step <= 0.0:
+        raise ValueError("base_step must be positive")
+    if args.target_objective_delta <= 0.0:
+        raise ValueError("target-objective-delta must be positive")
+    if args.min_adaptive_base_step <= 0.0 or args.max_adaptive_base_step <= 0.0:
+        raise ValueError("adaptive base-step bounds must be positive")
+    if args.min_adaptive_base_step > args.max_adaptive_base_step:
+        raise ValueError("min-adaptive-base-step must be <= max-adaptive-base-step")
+    if args.sinkhorn_iterations <= 0:
+        raise ValueError("sinkhorn_iterations must be positive")
+    if args.row_chunk_size <= 0 or args.col_chunk_size <= 0 or args.particle_chunk_size <= 0:
+        raise ValueError("chunk sizes must be positive")
+    if args.seed_microbatch_size < 0:
+        raise ValueError("seed-microbatch-size must be nonnegative")
+    return args
+
+
+def _as_matrix(rows: list[list[float]]) -> tf.Tensor:
+    return tf.constant(rows, dtype=p8p.DTYPE)
+
+
+def _normalise_columns(matrix: tf.Tensor) -> tf.Tensor:
+    norms = tf.linalg.norm(matrix, axis=0)
+    return matrix / norms[tf.newaxis, :]
+
+
+def _metric_inner(metric: tf.Tensor, lhs: tf.Tensor, rhs: tf.Tensor) -> tf.Tensor:
+    return tf.tensordot(lhs, tf.linalg.matvec(metric, rhs), axes=1)
+
+
+def _metric_gram_schmidt_columns(
+    columns: tf.Tensor,
+    metric: tf.Tensor,
+) -> tf.Tensor:
+    metric = tf.convert_to_tensor(metric, dtype=p8p.DTYPE)
+    output = []
+    for column in tf.unstack(columns, axis=1):
+        vector = tf.identity(column)
+        for previous in output:
+            denominator = _metric_inner(metric, previous, previous)
+            projection = _metric_inner(metric, previous, vector) / denominator
+            vector = vector - projection * previous
+        norm = tf.sqrt(tf.maximum(_metric_inner(metric, vector, vector), tf.constant(1.0e-30, p8p.DTYPE)))
+        output.append(vector / norm)
+    return tf.stack(output, axis=1)
+
+
+def _basis_matrices(seed_gradient_covariance: tf.Tensor, basis_set: str) -> list[dict[str, Any]]:
+    sqrt2 = math.sqrt(2.0)
+    raw = _as_matrix(
+        [
+            [1.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0],
+            [0.0, 0.0, 1.0],
+        ]
+    )
+    physics = _as_matrix(
+        [
+            [1.0 / sqrt2, 1.0 / sqrt2, 0.0],
+            [-1.0 / sqrt2, 1.0 / sqrt2, 0.0],
+            [0.0, 0.0, 1.0],
+        ]
+    )
+    outputs: list[dict[str, Any]] = []
+    if basis_set in ("raw-physics-whitened", "raw"):
+        outputs.append(
+            {
+                "basis_name": "raw_theta",
+                "direction_names": list(p8p.PARAMETER_NAMES),
+                "matrix_columns": raw,
+                "construction": "identity in original theta coordinates",
+            }
+        )
+    if basis_set in ("raw-physics-whitened", "physics"):
+        outputs.append(
+            {
+                "basis_name": "physics_rho_tau_omega",
+                "direction_names": ["rho_log_kappa_minus_log_nu", "tau_common_rate", "omega_obs_noise"],
+                "matrix_columns": physics,
+                "construction": "rho=(a-b)/sqrt2, tau=(a+b)/sqrt2, omega=c; columns map coordinate increments to original theta",
+            }
+        )
+    if basis_set in ("raw-physics-whitened", "whitened"):
+        jitter = tf.constant(1.0e-6, dtype=p8p.DTYPE)
+        cov = tf.convert_to_tensor(seed_gradient_covariance, dtype=p8p.DTYPE)
+        eigvals, eigvecs = tf.linalg.eigh(cov + jitter * tf.eye(3, dtype=p8p.DTYPE))
+        whitening_columns = eigvecs / tf.sqrt(tf.maximum(eigvals, jitter))[tf.newaxis, :]
+        whitening_columns = _normalise_columns(whitening_columns)
+        outputs.append(
+            {
+                "basis_name": "local_seed_gradient_whitened",
+                "direction_names": ["whitened_0", "whitened_1", "whitened_2"],
+                "matrix_columns": whitening_columns,
+                "construction": "eigenvectors of seed-gradient covariance scaled by inverse sqrt eigenvalue and normalized in theta coordinates",
+                "seed_gradient_covariance_eigenvalues": [
+                    float(item) for item in eigvals.numpy().tolist()
+                ],
+            }
+        )
+    if basis_set == "semantic-orthogonal":
+        jitter = tf.constant(1.0e-6, dtype=p8p.DTYPE)
+        metric = tf.convert_to_tensor(seed_gradient_covariance, dtype=p8p.DTYPE) + jitter * tf.eye(3, dtype=p8p.DTYPE)
+        semantic_orthogonal = _metric_gram_schmidt_columns(physics, metric)
+        outputs.append(
+            {
+                "basis_name": "semantic_metric_orthogonal",
+                "direction_names": [
+                    "rho",
+                    "tau_perp_given_rho",
+                    "omega_perp_given_rho_tau",
+                ],
+                "matrix_columns": semantic_orthogonal,
+                "construction": (
+                    "Gram-Schmidt of rho=(a-b)/sqrt2, tau=(a+b)/sqrt2, omega=c "
+                    "under the local seed-gradient covariance metric; columns map "
+                    "coordinate increments to original theta"
+                ),
+                "seed_gradient_metric": p8p._to_float_matrix(metric),
+            }
+        )
+    return outputs
+
+
+def _linear_regression(xs: tf.Tensor, ys: tf.Tensor) -> dict[str, float]:
+    x = tf.convert_to_tensor(xs, dtype=p8p.DTYPE)
+    y = tf.convert_to_tensor(ys, dtype=p8p.DTYPE)
+    x_mean = tf.reduce_mean(x)
+    y_mean = tf.reduce_mean(y)
+    x_centered = x - x_mean
+    y_centered = y - y_mean
+    sxx = tf.reduce_sum(tf.square(x_centered))
+    slope = tf.reduce_sum(x_centered * y_centered) / sxx
+    intercept = y_mean - slope * x_mean
+    fitted = intercept + slope * x
+    residuals = y - fitted
+    sse = tf.reduce_sum(tf.square(residuals))
+    sst = tf.reduce_sum(tf.square(y_centered))
+    dof = tf.cast(tf.shape(x)[0] - 2, p8p.DTYPE)
+    residual_variance = sse / tf.maximum(dof, tf.constant(1.0, dtype=p8p.DTYPE))
+    slope_se = tf.sqrt(residual_variance / sxx)
+    r_squared = tf.constant(1.0, dtype=p8p.DTYPE) - sse / tf.maximum(
+        sst,
+        tf.constant(1.0e-30, dtype=p8p.DTYPE),
+    )
+    return {
+        "slope": float(slope.numpy()),
+        "intercept": float(intercept.numpy()),
+        "slope_standard_error": float(slope_se.numpy()),
+        "residual_sse": float(sse.numpy()),
+        "r_squared": float(r_squared.numpy()),
+        "max_abs_residual": float(tf.reduce_max(tf.abs(residuals)).numpy()),
+    }
+
+
+def _seed_groups(args: argparse.Namespace) -> list[list[int]]:
+    microbatch_size = int(args.seed_microbatch_size)
+    if microbatch_size <= 0 or microbatch_size >= len(args.batch_seeds):
+        return [[int(seed) for seed in args.batch_seeds]]
+    return [
+        [int(seed) for seed in args.batch_seeds[start : start + microbatch_size]]
+        for start in range(0, len(args.batch_seeds), microbatch_size)
+    ]
+
+
+def _args_for_seed_group(args: argparse.Namespace, seeds: list[int]) -> argparse.Namespace:
+    grouped = argparse.Namespace(**vars(args))
+    grouped.batch_seeds = [int(seed) for seed in seeds]
+    return grouped
+
+
+def _build_microbatch_contexts(
+    args: argparse.Namespace,
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    contexts = []
+    first_semantics: dict[str, Any] | None = None
+    groups = _seed_groups(args)
+    for seeds in groups:
+        grouped_args = _args_for_seed_group(args, seeds)
+        tensors, semantics = p8p._build_base_tensors(grouped_args)
+        if first_semantics is None:
+            first_semantics = dict(semantics)
+        contexts.append(
+            {
+                "args": grouped_args,
+                "seeds": [int(seed) for seed in seeds],
+                "tensors": tensors,
+            }
+        )
+    if first_semantics is None:
+        raise ValueError("expected at least one seed microbatch")
+    first_semantics["seed_microbatching"] = {
+        "enabled": len(groups) > 1,
+        "seed_microbatch_size": int(args.seed_microbatch_size),
+        "seed_groups": [[int(seed) for seed in group] for group in groups],
+        "combination_rule": "exact seed-weighted batch mean over independent fixed-seed evaluations",
+    }
+    return contexts, first_semantics
+
+
+def _objective_from_contexts(
+    contexts: list[dict[str, Any]],
+    theta_components: tuple[tf.Tensor, tf.Tensor, tf.Tensor],
+) -> tuple[tf.Tensor, tf.Tensor]:
+    weighted_objectives = []
+    values = []
+    total = 0
+    for context in contexts:
+        objective, value = p8p._objective_from_components(
+            context["tensors"],
+            context["args"],
+            theta_components,
+        )
+        weight = len(context["seeds"])
+        weighted_objectives.append(objective * tf.cast(weight, p8p.DTYPE))
+        values.append(value)
+        total += weight
+    combined_objective = tf.add_n(weighted_objectives) / tf.cast(total, p8p.DTYPE)
+    return combined_objective, tf.concat(values, axis=0)
+
+
+def _gradient_diagnostic_for_contexts(
+    contexts: list[dict[str, Any]],
+    theta_values: list[float],
+) -> dict[str, Any]:
+    per_seed_gradients = []
+    values = []
+    connected = []
+    for context in contexts:
+        if len(context["seeds"]) == 1:
+            theta_components = p8p._theta_components(theta_values)
+            with tf.GradientTape() as tape:
+                for component in theta_components:
+                    tape.watch(component)
+                objective, value = p8p._objective_from_components(
+                    context["tensors"],
+                    context["args"],
+                    theta_components,
+                )
+            gradients = tape.gradient(objective, theta_components)
+            connected.append(all(gradient is not None for gradient in gradients))
+            per_seed_gradients.append(
+                tf.stack(
+                    [
+                        tf.constant(float("nan"), dtype=p8p.DTYPE)
+                        if gradient is None
+                        else tf.convert_to_tensor(gradient, dtype=p8p.DTYPE)
+                        for gradient in gradients
+                    ],
+                    axis=0,
+                )[tf.newaxis, :]
+            )
+            values.append(tf.convert_to_tensor(value, dtype=p8p.DTYPE))
+        else:
+            diag = p8p._gradient_diagnostic(
+                context["tensors"],
+                context["args"],
+                theta_values,
+            )
+            per_seed_gradients.append(tf.convert_to_tensor(diag["per_seed_gradient"], dtype=p8p.DTYPE))
+            values.append(tf.convert_to_tensor(diag["log_likelihood"], dtype=p8p.DTYPE))
+            connected.append(bool(diag["gradients_connected"]))
+    per_seed_gradient = tf.concat(per_seed_gradients, axis=0)
+    value = tf.concat(values, axis=0)
+    return {
+        "objective": tf.reduce_mean(value),
+        "log_likelihood": value,
+        "gradient_tensor": tf.reduce_mean(per_seed_gradient, axis=0),
+        "per_seed_gradient": per_seed_gradient,
+        "gradients_connected": bool(all(connected)),
+    }
+
+
+def _forward_jvp_diagnostic_for_contexts(
+    contexts: list[dict[str, Any]],
+    theta_values: list[float],
+) -> dict[str, Any]:
+    values: list[tf.Tensor] = []
+    per_seed_columns: list[tf.Tensor] = []
+    connected = []
+    raw_directions = tf.eye(len(p8p.PARAMETER_NAMES), dtype=p8p.DTYPE)
+    for direction_index, raw_direction in enumerate(tf.unstack(raw_directions, axis=0)):
+        direction_jvps = []
+        direction_values = []
+        for context in contexts:
+            theta_components = p8p._theta_components(theta_values)
+            tangent_components = tuple(
+                tf.convert_to_tensor(item, dtype=p8p.DTYPE)
+                for item in tf.unstack(raw_direction)
+            )
+            with tf.autodiff.ForwardAccumulator(theta_components, tangent_components) as accumulator:
+                _objective, value = p8p._objective_from_components(
+                    context["tensors"],
+                    context["args"],
+                    theta_components,
+                )
+            value_jvp = accumulator.jvp(value)
+            connected.append(value_jvp is not None)
+            if value_jvp is None:
+                value_jvp = tf.fill(tf.shape(value), tf.constant(float("nan"), dtype=p8p.DTYPE))
+            direction_jvps.append(tf.reshape(tf.convert_to_tensor(value_jvp, dtype=p8p.DTYPE), [-1]))
+            if direction_index == 0:
+                direction_values.append(tf.reshape(tf.convert_to_tensor(value, dtype=p8p.DTYPE), [-1]))
+        per_seed_columns.append(tf.concat(direction_jvps, axis=0))
+        if direction_index == 0:
+            values = direction_values
+    value = tf.concat(values, axis=0)
+    per_seed_gradient = tf.stack(per_seed_columns, axis=1)
+    return {
+        "objective": tf.reduce_mean(value),
+        "log_likelihood": value,
+        "gradient_tensor": tf.reduce_mean(per_seed_gradient, axis=0),
+        "per_seed_gradient": per_seed_gradient,
+        "gradients_connected": bool(all(connected)),
+    }
+
+
+def _value_at_theta(
+    contexts: list[dict[str, Any]],
+    theta: tf.Tensor,
+) -> tf.Tensor:
+    objective, _value = _objective_from_contexts(
+        contexts,
+        tuple(tf.unstack(tf.convert_to_tensor(theta, dtype=p8p.DTYPE))),  # type: ignore[arg-type]
+    )
+    return objective
+
+
+def _regression_diagnostic_for_direction(
+    contexts: list[dict[str, Any]],
+    args: argparse.Namespace,
+    theta0: tf.Tensor,
+    gradient: tf.Tensor,
+    direction: tf.Tensor,
+    *,
+    basis_name: str,
+    direction_name: str,
+    base_step: float,
+) -> dict[str, Any]:
+    offsets = tf.constant(args.regression_offsets_values, dtype=p8p.DTYPE)
+    xs = offsets * tf.constant(float(base_step), dtype=p8p.DTYPE)
+    values = []
+    theta_rows = []
+    for x_value in tf.unstack(xs):
+        theta = theta0 + x_value * direction
+        values.append(_value_at_theta(contexts, theta))
+        theta_rows.append([float(item) for item in theta.numpy().tolist()])
+    y = tf.stack(values)
+    fit = _linear_regression(xs, y)
+    ad_directional = tf.reduce_sum(gradient * direction)
+    residual = float(ad_directional.numpy()) - fit["slope"]
+    combined_se = fit["slope_standard_error"]
+    return {
+        "basis_name": basis_name,
+        "direction_name": direction_name,
+        "direction_original_theta": [float(item) for item in direction.numpy().tolist()],
+        "base_step": float(base_step),
+        "offsets": [float(item) for item in args.regression_offsets_values],
+        "x_values": [float(item) for item in xs.numpy().tolist()],
+        "theta_values": theta_rows,
+        "objective_values": [float(item) for item in y.numpy().tolist()],
+        "ad_directional_derivative": float(ad_directional.numpy()),
+        "regression_slope": fit["slope"],
+        "ad_minus_regression_slope": residual,
+        "regression_slope_standard_error": fit["slope_standard_error"],
+        "ad_minus_slope_over_slope_se": (
+            residual / combined_se if combined_se > 0.0 else None
+        ),
+        "regression_intercept": fit["intercept"],
+        "regression_residual_sse": fit["residual_sse"],
+        "regression_max_abs_residual": fit["max_abs_residual"],
+        "regression_r_squared": fit["r_squared"],
+    }
+
+
+def _base_steps_for_direction(
+    args: argparse.Namespace,
+    gradient: tf.Tensor,
+    direction: tf.Tensor,
+) -> tuple[list[float], dict[str, Any]]:
+    if args.base_step_mode == "fixed":
+        return (
+            [float(item) for item in args.base_step_ladder_values],
+            {
+                "mode": "fixed",
+                "absolute_base_steps": [float(item) for item in args.base_step_ladder_values],
+            },
+        )
+
+    ad_directional = tf.reduce_sum(gradient * direction)
+    ad_abs = float(tf.abs(ad_directional).numpy())
+    max_offset = max(abs(float(item)) for item in args.regression_offsets_values)
+    unconstrained = args.target_objective_delta / max(
+        ad_abs * max_offset,
+        1.0e-12,
+    )
+    selected = min(
+        max(unconstrained, float(args.min_adaptive_base_step)),
+        float(args.max_adaptive_base_step),
+    )
+    steps = [selected * float(factor) for factor in args.adaptive_step_factor_values]
+    steps = [
+        min(
+            max(float(step), float(args.min_adaptive_base_step)),
+            float(args.max_adaptive_base_step),
+        )
+        for step in steps
+    ]
+    deduped_steps = []
+    for step in steps:
+        if not any(math.isclose(step, previous, rel_tol=1.0e-12, abs_tol=0.0) for previous in deduped_steps):
+            deduped_steps.append(step)
+    return (
+        deduped_steps,
+        {
+            "mode": "ad-signal",
+            "ad_directional_derivative": float(ad_directional.numpy()),
+            "target_objective_delta_at_max_offset": float(args.target_objective_delta),
+            "max_abs_offset": float(max_offset),
+            "unconstrained_base_step": float(unconstrained),
+            "selected_base_step": float(selected),
+            "adaptive_step_factors": [float(item) for item in args.adaptive_step_factor_values],
+            "min_adaptive_base_step": float(args.min_adaptive_base_step),
+            "max_adaptive_base_step": float(args.max_adaptive_base_step),
+            "absolute_base_steps": [float(item) for item in deduped_steps],
+        },
+    )
+
+
+def _plateau_summary(direction_results: list[dict[str, Any]]) -> dict[str, Any]:
+    if len(direction_results) < 2:
+        return {
+            "checked": False,
+            "reason": "at least two base steps are required",
+        }
+    ordered = sorted(direction_results, key=lambda item: item["base_step"], reverse=True)
+    slopes = [float(item["regression_slope"]) for item in ordered]
+    base_steps = [float(item["base_step"]) for item in ordered]
+    adjacent = []
+    for left, right in zip(ordered, ordered[1:], strict=False):
+        delta = float(right["regression_slope"]) - float(left["regression_slope"])
+        scale = max(1.0, abs(float(right["regression_slope"])), abs(float(left["regression_slope"])))
+        adjacent.append(
+            {
+                "from_base_step": float(left["base_step"]),
+                "to_base_step": float(right["base_step"]),
+                "slope_delta": delta,
+                "relative_delta": abs(delta) / scale,
+            }
+        )
+    return {
+        "checked": True,
+        "base_steps": base_steps,
+        "slopes": slopes,
+        "adjacent_slope_deltas": adjacent,
+        "smallest_window_slope": slopes[-1],
+        "largest_window_slope": slopes[0],
+        "range": max(slopes) - min(slopes),
+    }
+
+
+def _validate_device(tensors: tuple[tf.Tensor, ...], expect_device_kind: str) -> list[str]:
+    devices = [tensor.device for tensor in tensors]
+    if expect_device_kind == "gpu":
+        if not all("GPU" in device.upper() for device in devices):
+            raise RuntimeError(f"expected GPU tensors, got {devices}")
+    elif expect_device_kind == "cpu":
+        if not all("CPU" in device.upper() for device in devices):
+            raise RuntimeError(f"expected CPU tensors, got {devices}")
+    return devices
+
+
+def main() -> None:
+    args = _parse_args()
+    precision = p8p._configure_precision(args)
+    physical_gpus, logical_gpus = p8p._configure_gpus()
+    contexts, sir_semantics = _build_microbatch_contexts(args)
+    theta0 = tf.constant(args.theta_values, dtype=p8p.DTYPE)
+    start = time.perf_counter()
+    with tf.device(args.device):
+        if args.ad_evaluation_mode == "forward-jvp":
+            gradient_diag = _forward_jvp_diagnostic_for_contexts(contexts, args.theta_values)
+        else:
+            gradient_diag = _gradient_diagnostic_for_contexts(contexts, args.theta_values)
+        objective = gradient_diag["objective"]
+        gradient = gradient_diag["gradient_tensor"]
+        per_seed_gradient = gradient_diag["per_seed_gradient"]
+        geometry = p8p._gradient_geometry_summary(per_seed_gradient)
+        seed_covariance = tf.constant(geometry["seed_gradient_covariance"], dtype=p8p.DTYPE)
+        basis_results = []
+        for basis in _basis_matrices(seed_covariance, args.basis_set):
+            matrix = tf.convert_to_tensor(basis["matrix_columns"], dtype=p8p.DTYPE)
+            direction_results = []
+            for index, direction_name in enumerate(basis["direction_names"]):
+                window_results = []
+                direction = matrix[:, index]
+                base_steps, step_selection = _base_steps_for_direction(args, gradient, direction)
+                for base_step in base_steps:
+                    window_results.append(
+                        _regression_diagnostic_for_direction(
+                            contexts,
+                            args,
+                            theta0,
+                            gradient,
+                            direction,
+                            basis_name=basis["basis_name"],
+                            direction_name=direction_name,
+                            base_step=base_step,
+                        )
+                    )
+                direction_results.append(
+                    {
+                        "direction_name": direction_name,
+                        "direction_original_theta": [
+                            float(item) for item in matrix[:, index].numpy().tolist()
+                        ],
+                        "base_step_selection": step_selection,
+                        "ad_directional_derivative": window_results[0][
+                            "ad_directional_derivative"
+                        ],
+                        "window_results": window_results,
+                        "plateau_summary": _plateau_summary(window_results),
+                    }
+                )
+            basis_record = dict(basis)
+            basis_record["matrix_columns"] = p8p._to_float_matrix(matrix)
+            basis_record["direction_results"] = direction_results
+            basis_results.append(basis_record)
+    elapsed = time.perf_counter() - start
+    output_devices = _validate_device((objective, gradient), args.expect_device_kind)
+    result = {
+        "schema_version": "filter_bench.p8p_regression_fd_reparameterization.v1",
+        "timestamp_utc": _dt.datetime.now(tz=_dt.timezone.utc).isoformat(),
+        "host": platform.node(),
+        "python_version": platform.python_version(),
+        "tensorflow_version": tf.__version__,
+        "git_commit": p8p._git_commit(),
+        "phase": args.phase_label,
+        "elapsed_seconds": elapsed,
+        "physical_gpus": physical_gpus,
+        "logical_gpus": logical_gpus,
+        "device": args.device,
+        "device_scope": args.device_scope,
+        "expect_device_kind": args.expect_device_kind,
+        "output_devices": output_devices,
+        "precision": precision,
+        "shape": {
+            "batch_size": len(args.batch_seeds),
+            "time_steps": args.time_steps,
+            "num_particles": args.num_particles,
+            "state_dim": 18,
+            "obs_dim": 9,
+            "parameter_dim": 3,
+            "seed_microbatch_size": int(args.seed_microbatch_size),
+            "seed_microbatch_count": len(contexts),
+            "ad_evaluation_mode": args.ad_evaluation_mode,
+        },
+        "sir_semantics": sir_semantics,
+        "theta": dict(zip(p8p.PARAMETER_NAMES, [float(x) for x in args.theta_values], strict=True)),
+        "parameter_order": list(p8p.PARAMETER_NAMES),
+        "objective": float(objective.numpy()),
+        "gradient": dict(zip(p8p.PARAMETER_NAMES, p8p._to_float_list(gradient), strict=True)),
+        "per_seed_gradient_contributions": p8p._to_float_matrix(per_seed_gradient),
+        "monte_carlo_gradient_noise": p8p._mc_noise_summary(per_seed_gradient),
+        "seed_gradient_geometry": geometry,
+        "regression_fd": {
+            "method": "ordinary least squares fit f(theta0 + x direction) = intercept + slope * x",
+            "ad_evaluation_mode": args.ad_evaluation_mode,
+            "base_step": float(args.base_step),
+            "base_step_ladder": [float(item) for item in args.base_step_ladder_values],
+            "base_step_mode": args.base_step_mode,
+            "target_objective_delta": float(args.target_objective_delta),
+            "adaptive_step_factors": [float(item) for item in args.adaptive_step_factor_values],
+            "min_adaptive_base_step": float(args.min_adaptive_base_step),
+            "max_adaptive_base_step": float(args.max_adaptive_base_step),
+            "offsets": [float(item) for item in args.regression_offsets_values],
+            "basis_set": args.basis_set,
+            "basis_results": basis_results,
+        },
+        "transport_policy": args.transport_policy,
+        "transport": {
+            "value_core_mode": "streaming",
+            "transport_plan_mode": args.transport_plan_mode,
+            "transport_ad_mode": args.transport_ad_mode,
+            "gradient_mode": "raw",
+            "row_chunk_size": args.row_chunk_size,
+            "col_chunk_size": args.col_chunk_size,
+            "particle_chunk_size": args.particle_chunk_size,
+            "sinkhorn_iterations": args.sinkhorn_iterations,
+            "sinkhorn_epsilon": args.sinkhorn_epsilon,
+            "annealed_scaling": args.annealed_scaling,
+            "annealed_convergence_threshold": args.annealed_convergence_threshold,
+        },
+        "nonclaims": list(p8p.NONCLAIMS)
+        + [
+            "regression FD diagnostic only",
+            "not a global reparameterization proof",
+            "not HMC geometry adequacy evidence",
+        ],
+    }
+    output_path = Path(args.output)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    print(json.dumps(result, indent=2, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()

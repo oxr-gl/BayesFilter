@@ -1,0 +1,313 @@
+{
+  "config": {
+    "basis_dim_tuple": [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    "classification": "extension_or_invention",
+    "denominator_floor": 1e-300,
+    "dimension": 36,
+    "gradient_clip_norm": 100.0,
+    "l2_weight": 1e-08,
+    "learning_rate": 0.001,
+    "logz_anchor_weight": 0.0,
+    "measure_convention": {
+      "density_measure": "REFERENCE_MEASURE",
+      "dtype_name": "float64",
+      "mass_measure": "REFERENCE_MEASURE",
+      "physical_coordinate_name": "r",
+      "reference_coordinate_name": "z",
+      "reference_weight_name": "omega"
+    },
+    "metadata": {
+      "extension_or_invention": true,
+      "fixture": "p75_author_sir_step1_target_pilot"
+    },
+    "nonclaims": [
+      "not source-faithful Zhao-Cui",
+      "not lower-gate repair evidence",
+      "not validation evidence",
+      "not HMC readiness evidence",
+      "not rank or degree promotion evidence",
+      "smoke loss is not pilot evidence"
+    ],
+    "normalizer_floor": 1e-14,
+    "ranks": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "schema_version": "p75_stochastic_density_training.v1",
+    "seed": 7501,
+    "tau": 1e-08
+  },
+  "diagnostic_scope": "p75_author_sir_step1_target_pilot_not_validation",
+  "gate_summary": {
+    "audit_reasons": [
+      "audit_line_veto"
+    ],
+    "audit_status": "block",
+    "completed_batches": 2,
+    "nonclaims": [
+      "not source-faithful Zhao-Cui",
+      "not lower-gate repair evidence",
+      "not validation evidence",
+      "not HMC readiness evidence",
+      "not rank or degree promotion evidence",
+      "smoke loss is not pilot evidence"
+    ],
+    "overall_status": "block",
+    "p73_b_optimizer_status": "P73_B_OPTIMIZER_BLOCKED_NONLINEAR_OBJECTIVE_NOT_IMPLEMENTED",
+    "stop_reason": "max_batches_completed",
+    "target_pilot_executed": true
+  },
+  "master_program": "docs/plans/bayesfilter-highdim-zhao-cui-p75-stochastic-density-training-master-program-2026-06-17.md",
+  "metadata_date": "2026-06-17",
+  "nonclaims": [
+    "not source-faithful Zhao-Cui",
+    "not lower-gate repair evidence",
+    "not validation evidence",
+    "not HMC readiness evidence",
+    "not rank or degree promotion evidence",
+    "smoke loss is not pilot evidence",
+    "one-step target pilot is not full sequential lower-gate repair",
+    "fresh-audit gates are pilot diagnostics unless reviewed in Phase 4"
+  ],
+  "p73_regression": {
+    "density_aware_objective_status": "included_as_opt_in_diagnostic_arm",
+    "nonclaims": [
+      "P73-B is not runnable in Phase 5 while this status is active",
+      "least-squares reweighting is not treated as cross-entropy optimization"
+    ],
+    "phase5_runnable": false,
+    "reason": "Phase 4 implements objective evaluation only; the nonlinear TensorFlow refinement is not yet implemented.",
+    "status": "P73_B_OPTIMIZER_BLOCKED_NONLINEAR_OBJECTIVE_NOT_IMPLEMENTED"
+  },
+  "phase4_target_pilot_executed": true,
+  "run_manifest": {
+    "command": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp python scripts/p75_stochastic_density_training_pilot.py --output docs/plans/bayesfilter-highdim-zhao-cui-p75-target-smoke-2026-06-17.json --target-pilot --degree 1 --rank 1 --batch-size 16 --batches 2 --max-seconds 180.0 --seed 7501",
+    "cpu_gpu_status": "cpu_only_cuda_visible_devices_minus_1",
+    "cpu_only_intent": "CUDA_VISIBLE_DEVICES=-1",
+    "elapsed_seconds": 0.921,
+    "environment": {
+      "CUDA_VISIBLE_DEVICES": "-1",
+      "MPLCONFIGDIR": "/tmp"
+    },
+    "git_state": {
+      "dirty": true,
+      "head": "b1f400d5cb7e88d6b10072a23344f1286542f492",
+      "status_short_count": 539
+    },
+    "output": "docs/plans/bayesfilter-highdim-zhao-cui-p75-target-smoke-2026-06-17.json",
+    "script": "scripts/p75_stochastic_density_training_pilot.py"
+  },
+  "schema_only": false,
+  "smoke_only_not_pilot_evidence": false,
+  "status": "P75_TARGET_PILOT_COMPLETED",
+  "subplan": "docs/plans/bayesfilter-highdim-zhao-cui-p75-phase3-optin-implementation-subplan-2026-06-17.md",
+  "target_pilot": {
+    "batch_size": 16,
+    "completed_batches": 2,
+    "degree": 1,
+    "final_terms": {
+      "alpha_max": 0.7131277639337752,
+      "alpha_min": 0.015254753654147489,
+      "alpha_sum": 0.9999999999999998,
+      "gradient_norm": 8.65590982995174e-09,
+      "log_normalizer": -18.420680743952367,
+      "nonclaims": [
+        "not source-faithful Zhao-Cui",
+        "not lower-gate repair evidence",
+        "not validation evidence",
+        "not HMC readiness evidence",
+        "not rank or degree promotion evidence",
+        "smoke loss is not pilot evidence"
+      ],
+      "normalizer": 1e-08,
+      "regularization": 1.8731193746063783e-09,
+      "rho_max": 1e-08,
+      "rho_min": 1e-08,
+      "status": "ok",
+      "total_loss": 1.8731158218926995e-09,
+      "weighted_empirical_cross_entropy": 18.420680743952364
+    },
+    "fresh_audit": {
+      "audit_seed_policy": {
+        "holdout_prior": 7301,
+        "holdout_process": 7401,
+        "not_training_seeds": true,
+        "replay_prior": 7311,
+        "replay_process": 7501
+      },
+      "holdout": {
+        "max_abs_residual": 0.08070643848915113,
+        "max_relative": 3.9999999809592586,
+        "raw_rms": 0.020176609718332184,
+        "rms_relative": 1.0,
+        "target_scale": 0.020176609718332184
+      },
+      "line_gate": {
+        "direct_target_evaluation_required": true,
+        "endpoint_growth_ratio_max": 1.4070277127730339e-46,
+        "line_point_count": 13,
+        "line_point_hash": "fd52197fb4e8e306f2517eab9e9d5c908b367bd64b8aa15276d615921aed6a79",
+        "line_prediction_hash": "e21f49fc7e574bf3833e5bef78fd7a4b680d83cde9ba12741850f9f9be1b3a6b",
+        "line_prediction_max_abs": 2.83890490234991e-48,
+        "line_residual_max_abs": 48.138132786642366,
+        "line_residual_rms": 13.433258339581773,
+        "line_start_indices_available": true,
+        "line_target_hash": "5455ac1b04229eb712be28e1e80a0feb7c22f9a1ec01437f8831cc2474c0ec67",
+        "reasons": [
+          "line_max_residual_veto",
+          "line_rms_residual_veto"
+        ],
+        "status": "block",
+        "target_scale": 0.020176609718332184
+      },
+      "reasons": [
+        "audit_line_veto"
+      ],
+      "replay": {
+        "max_abs_residual": 1.6130740926407308e-05,
+        "max_relative": 3.113086321753927,
+        "raw_rms": 5.1815912760553246e-06,
+        "rms_relative": 1.0,
+        "target_scale": 5.1815912760553246e-06
+      },
+      "status": "block"
+    },
+    "max_seconds": 180.0,
+    "rank": 1,
+    "requested_batches": 2,
+    "step_trace": [
+      {
+        "elapsed_seconds": 0.568,
+        "step": 1,
+        "terms": {
+          "alpha_max": 0.951059113952294,
+          "alpha_min": 0.002690442734742061,
+          "alpha_sum": 0.9999999999999999,
+          "gradient_norm": 8.655964548461923e-09,
+          "log_normalizer": -18.420680743952367,
+          "nonclaims": [
+            "not source-faithful Zhao-Cui",
+            "not lower-gate repair evidence",
+            "not validation evidence",
+            "not HMC readiness evidence",
+            "not rank or degree promotion evidence",
+            "smoke loss is not pilot evidence"
+          ],
+          "normalizer": 1e-08,
+          "regularization": 1.8731430566057404e-09,
+          "rho_max": 1e-08,
+          "rho_min": 1e-08,
+          "status": "ok",
+          "total_loss": 1.8731466093194192e-09,
+          "weighted_empirical_cross_entropy": 18.42068074395237
+        }
+      },
+      {
+        "elapsed_seconds": 0.695,
+        "step": 2,
+        "terms": {
+          "alpha_max": 0.7131277639337752,
+          "alpha_min": 0.015254753654147489,
+          "alpha_sum": 0.9999999999999998,
+          "gradient_norm": 8.65590982995174e-09,
+          "log_normalizer": -18.420680743952367,
+          "nonclaims": [
+            "not source-faithful Zhao-Cui",
+            "not lower-gate repair evidence",
+            "not validation evidence",
+            "not HMC readiness evidence",
+            "not rank or degree promotion evidence",
+            "smoke loss is not pilot evidence"
+          ],
+          "normalizer": 1e-08,
+          "regularization": 1.8731193746063783e-09,
+          "rho_max": 1e-08,
+          "rho_min": 1e-08,
+          "status": "ok",
+          "total_loss": 1.8731158218926995e-09,
+          "weighted_empirical_cross_entropy": 18.420680743952364
+        }
+      }
+    ],
+    "stop_reason": "max_batches_completed",
+    "target_dimension": 36,
+    "time_index": 1,
+    "training_seed_policy": {
+      "audit_seed_overlap": false,
+      "prior_seed_base": 875000,
+      "process_seed_base": 876000
+    }
+  }
+}

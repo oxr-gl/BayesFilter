@@ -1,0 +1,221 @@
+{
+  "blocker": null,
+  "device_diagnostics": {
+    "devices_used_by_success_tensors": [
+      "/job:localhost/replica:0/task:0/device:GPU:0"
+    ],
+    "marker_device": "/job:localhost/replica:0/task:0/device:GPU:0",
+    "no_silent_cpu_fallback_claim": true,
+    "trusted_gpu": true
+  },
+  "evidence_contract": {
+    "baseline": "Reviewed Phase 5 selected route/count, reviewed Phase 6 OT-gradient scalar, and reviewed Phase 7 GPU feasibility profile.",
+    "not_concluded": [
+      "production HMC readiness",
+      "posterior convergence",
+      "valid tuning",
+      "NUTS readiness",
+      "stochastic PF marginal-gradient correctness",
+      "full-horizon HMC feasibility",
+      "filter ranking",
+      "default sampler policy"
+    ],
+    "primary_criterion": "Sample-chain execution with trusted GPU tensors, finite initial value/gradient, finite samples and trace log quantities, exact route/count/configuration, and no runtime/OOM blocker; otherwise explicit blocker.",
+    "question": "Can the selected P8h OT-resampled scalar-SV value/gradient graph execute inside a tiny fixed-kernel TFP HMC chain on trusted GPU?",
+    "veto_diagnostics": [
+      "missing reviewed route/count provenance",
+      "no-resampling route",
+      "wrong particle count",
+      "untrusted GPU or CPU fallback",
+      "HMC execution error without blocker classification",
+      "nonfinite initial value or gradient",
+      "disconnected gradient",
+      "nonfinite samples",
+      "nonfinite target log probability or log accept ratio"
+    ]
+  },
+  "hmc_diagnostics": {
+    "acceptance_rate": 1.0,
+    "log_accept_ratio_finite": true,
+    "max_log_accept_ratio": 2.8212486652412494e-08,
+    "max_target_log_prob": -2.7351398246781278,
+    "min_log_accept_ratio": -2.724200109938124e-08,
+    "min_target_log_prob": -2.737643874537946,
+    "sample_chain_returned": true,
+    "sample_displacement_l2": 0.002514811172017426,
+    "sample_shape": [
+      2,
+      2
+    ],
+    "samples_finite": true,
+    "target_log_prob_finite": true
+  },
+  "initial_diagnostics": {
+    "first_resampling_diagnostics": {
+      "backend": "tensorflow",
+      "canonical_transport_matrix_convention": "target_by_source_row_stochastic",
+      "canonical_transport_particle_delta_vs_helper": 1.1102230246251565e-16,
+      "canonical_transport_row_sum_max": 1.0000000000000002,
+      "canonical_transport_row_sum_min": 1.0,
+      "canonical_transport_row_sum_residual": 2.220446049250313e-16,
+      "canonical_transport_row_sum_tolerance": 0.005,
+      "canonical_transport_shape": [
+        5,
+        5
+      ],
+      "component_id": "li_coates_algorithm1_ledh_pfpf_ukf_time_step",
+      "covariance_carry_psd_projection_residual": 0.0,
+      "covariance_carry_route": "same_transport_barycentric_covariance_carry",
+      "covariance_route": "per_particle_ukf_prediction_update",
+      "covariance_transport_shape": [
+        5,
+        5
+      ],
+      "epsilon": 1.0,
+      "ess": 4.563879671385777,
+      "ess_ratio": 0.9127759342771554,
+      "ess_trigger_threshold": 1.01,
+      "ess_triggered": true,
+      "finite_auxiliary_terminal": true,
+      "finite_carried_covariances": true,
+      "finite_corrected_log_weights": true,
+      "finite_forward_log_det": true,
+      "finite_particles": true,
+      "finite_post_flow": true,
+      "finite_predicted_covariances": true,
+      "finite_transport": true,
+      "finite_updated_covariances": true,
+      "flow_anchor_route": "zero_noise_transition",
+      "flow_source_route": "li_coates_2017_algorithm1_ledh_pfpf",
+      "max_corrected_log_weight": -1.766723811371421,
+      "max_forward_log_det": -0.24756207866235563,
+      "max_iterations": 200,
+      "max_prediction_floor_count": 0,
+      "method_generation": "li_coates_algorithm1_ukf_covariance_lifecycle",
+      "min_carried_covariance_eigenvalue": 0.8771929824561404,
+      "min_corrected_log_weight": -2.6154331366695853,
+      "min_determinant_sign_product": 1.0,
+      "min_forward_log_det": -0.24756207866235563,
+      "min_predicted_covariance_eigenvalue": 1.5625,
+      "pfpf_correction": "log_target_transition_plus_observation_minus_q0_plus_forward_logdet",
+      "pfpf_correction_route": "algorithm1_pfpf_corrected_log_weight_pre_resampling",
+      "pseudo_time_step_count": 1,
+      "pseudo_time_sum": 1.0,
+      "raw_transport_matrix_convention": "source_by_target_coupling",
+      "relaxed_resampling_not_categorical": true,
+      "resampled": true,
+      "resampling_method": "fixed_target_sinkhorn",
+      "resampling_route": "ot_sinkhorn_barycentric_covariance_carry",
+      "same_affine_trace_available": true,
+      "sinkhorn_iterations": 200,
+      "state_transport_shape": [
+        5,
+        5
+      ],
+      "time_index": 0,
+      "transport_column_mass_max": 0.19999999999999998,
+      "transport_column_mass_min": 0.19999999999999996,
+      "transport_gradient_mode": "filterflow_clipped",
+      "transport_helper_backend": "tensorflow",
+      "transport_helper_component_id": "finite_sinkhorn_relaxed_resampler_tf",
+      "transport_helper_finite_coupling": true,
+      "transport_helper_finite_particles": true,
+      "transport_helper_iterations_used": 10,
+      "transport_helper_mathematical_object": "finite_budget_entropic_ot_coupling",
+      "transport_helper_max_column_residual": 5.551115123125783e-17,
+      "transport_helper_max_row_residual": 4.816837657073414e-07,
+      "transport_helper_resampling_status": "relaxed_finite_sinkhorn_not_categorical",
+      "transport_helper_total_mass_residual": 0.0,
+      "transport_mass_total_residual": 0.0,
+      "transport_method": "fixed_target_sinkhorn"
+    },
+    "initial_gradient": [
+      -0.7196653064013585,
+      -0.6863372245627708
+    ],
+    "initial_gradient_connected": true,
+    "initial_gradient_finite": true,
+    "initial_gradient_l2_norm": 0.9944731967520736,
+    "initial_log_likelihood": -2.735546047598974,
+    "initial_value_finite": true,
+    "route_identifiers": {
+      "canonical_transport_matrix_convention": "target_by_source_row_stochastic",
+      "covariance_carry_route": "same_transport_barycentric_covariance_carry",
+      "covariance_route": "per_particle_ukf_prediction_update",
+      "flow_anchor_route": "zero_noise_transition",
+      "flow_source_route": "li_coates_2017_algorithm1_ledh_pfpf",
+      "method_generation": "li_coates_algorithm1_ukf_covariance_lifecycle",
+      "p8g_no_resampling_evidence_status": "quarantined_historical_diagnostic_only",
+      "pfpf_correction_route": "algorithm1_pfpf_corrected_log_weight_pre_resampling",
+      "previous_ledh_pfpf_ot_evidence_status": "quarantined",
+      "relaxed_resampling_not_categorical": "true",
+      "resampling_route": "ot_sinkhorn_barycentric_covariance_carry",
+      "route_variant": "p8h_sv_scalar_graph_ot_resampled_alg1",
+      "transport_method": "fixed_target_sinkhorn"
+    }
+  },
+  "nonclaims": [
+    "Tier-0 fixed-kernel HMC execution smoke only",
+    "not production HMC readiness",
+    "not posterior convergence evidence",
+    "not valid tuning evidence",
+    "not NUTS readiness",
+    "not stochastic PF marginal-gradient correctness",
+    "not full-horizon HMC feasibility",
+    "not a filter ranking",
+    "not a default sampler policy"
+  ],
+  "phase": "P8H_PHASE8_HMC_TIER0_SMOKE",
+  "run_manifest": {
+    "command": "scripts/filtering_value_gradient_benchmark_run_p8d_numeric.py --p8h-hmc-tier0-smoke --row actual_sv --algorithm ledh_pfpf_alg1_ukf_current --p8h-resampling-route ot_sinkhorn_barycentric_covariance_carry --coordinate canonical_unconstrained --horizon 4 --particles 5 --seeds 81120 --device gpu --g0-manifest docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8g-phase0-gpu-probe-result-2026-06-15.md --hmc-num-results 2 --hmc-num-burnin-steps 1 --hmc-step-size 0.005 --hmc-num-leapfrog-steps 1 --output-json docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase8-hmc-tier0-smoke-gpu-2026-06-16.json --output-csv docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase8-hmc-tier0-smoke-gpu-2026-06-16.csv",
+    "cuda_visible_devices": "None",
+    "device_context": "/GPU:0",
+    "dirty_state_summary": "183 git-status-short entries",
+    "environment": "TensorFlow/TensorFlow Probability P8h Tier-0 fixed-kernel HMC smoke",
+    "g0_manifest": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8g-phase0-gpu-probe-result-2026-06-15.md",
+    "git_commit": "5fdd0819ce0eb2994fb0509e66d9e9cce5f2d47c",
+    "marker_device": "/job:localhost/replica:0/task:0/device:GPU:0",
+    "phase5_result": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase5-value-filtering-tuning-result-2026-06-15.md",
+    "phase6_result": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase6-ot-gradient-checks-result-2026-06-16.md",
+    "phase7_result": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase7-gpu-performance-scaling-result-2026-06-16.md",
+    "plan": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase8-hmc-diagnostic-tiers-subplan-2026-06-15.md",
+    "requested_device": "gpu",
+    "tf_logical_gpus": [
+      "/device:GPU:0"
+    ],
+    "tf_physical_gpus": [
+      "/physical_device:GPU:0"
+    ],
+    "wall_time_seconds": 43.934145
+  },
+  "schema_version": "filter_bench.p8h_hmc_tier0.v1",
+  "scope": {
+    "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+    "coordinate": "canonical_unconstrained",
+    "hmc_kernel": "tfp.mcmc.HamiltonianMonteCarlo",
+    "hmc_policy": "fixed_kernel_no_adaptation_tier0_execution_smoke",
+    "hmc_seed": [
+      81120,
+      82120
+    ],
+    "horizon_prefix": 4,
+    "num_burnin_steps": 1,
+    "num_leapfrog_steps": 1,
+    "num_results": 2,
+    "particle_count": 5,
+    "pf_seed": 81120,
+    "resampling_route": "ot_sinkhorn_barycentric_covariance_carry",
+    "route_variant": "p8h_sv_scalar_graph_ot_resampled_alg1",
+    "row_id": "zhao_cui_sv_actual_nongaussian_T1000",
+    "rows": [
+      "zhao_cui_sv_actual_nongaussian_T1000"
+    ],
+    "step_size": 0.005,
+    "theta_coordinate_meaning": "theta=(Phi^{-1}(gamma), log(beta)); sigma fixed at 1.0",
+    "theta_initial": [
+      0.2533471031357997,
+      -0.916290731874155
+    ]
+  },
+  "status": "executed_p8h_hmc_tier0_smoke"
+}

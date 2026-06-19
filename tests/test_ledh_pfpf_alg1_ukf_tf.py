@@ -7,10 +7,19 @@ from pathlib import Path
 
 from experiments.dpf_implementation.tf_tfp.filters.ledh_pfpf_alg1_ukf_tf import (
     METHOD_GENERATION,
+    OT_CANONICAL_TRANSPORT_CONVENTION,
+    OT_COVARIANCE_CARRY_ROUTE,
+    OT_PFPF_CORRECTION_ROUTE,
+    OT_SINKHORN_COVARIANCE_CARRY_ROUTE,
     apply_classical_resampling_state_tf,
+    apply_ot_resampling_state_tf,
     algorithm1_route_identifiers,
+    canonical_transport_from_sinkhorn_coupling_tf,
+    carry_covariances_with_canonical_transport_tf,
     ledh_alg1_coefficients_tf,
     li_coates_ledh_alg1_time_step_tf,
+    li_coates_ledh_alg1_time_step_vectorized_particles_tf,
+    run_ledh_pfpf_alg1_scalar_sv_graph_tf,
     run_ledh_pfpf_alg1_ukf_tf,
     ukf_predict_additive_tf,
     ukf_update_additive_tf,
@@ -301,6 +310,199 @@ def test_scalar_determinant_product_matches_manual_ledh_steps() -> None:
     np.testing.assert_allclose(result.forward_log_det.numpy()[0], manual, atol=1e-12)
 
 
+def test_vectorized_particle_time_step_matches_looped_reference() -> None:
+    ancestors = tf.constant([[-0.2], [0.1], [0.4]], dtype=DTYPE)
+    previous_covariances = tf.constant([[[0.2]], [[0.25]], [[0.3]]], dtype=DTYPE)
+    pre_flow = tf.constant([[-0.16], [0.09], [0.42]], dtype=DTYPE)
+    observation = tf.constant([0.15], dtype=DTYPE)
+    eps = tf.constant([0.4, 0.6], dtype=DTYPE)
+
+    def transition_mean(points: tf.Tensor, _t: int) -> tf.Tensor:
+        values = tf.reshape(points, [-1, 1])
+        return 0.8 * values + 0.05 * tf.square(values)
+
+    def transition_log_density(x_next: tf.Tensor, x_prev: tf.Tensor, t: int) -> tf.Tensor:
+        residual = tf.reshape(x_next - transition_mean(x_prev, t), [-1])
+        variance = tf.constant(0.07, dtype=DTYPE)
+        return -0.5 * (tf.math.log(2.0 * np.pi * variance) + residual * residual / variance)
+
+    def process_covariance(_x_prev: tf.Tensor, _t: int) -> tf.Tensor:
+        return tf.constant([[0.07]], dtype=DTYPE)
+
+    def observation_mean(points: tf.Tensor, _t: int) -> tf.Tensor:
+        values = tf.reshape(points, [-1, 1])
+        return values + 0.1 * tf.square(values)
+
+    def observation_jacobian(point: tf.Tensor, _t: int) -> tf.Tensor:
+        value = tf.reshape(tf.cast(point, DTYPE), [-1])[0]
+        return tf.reshape(1.0 + 0.2 * value, [1, 1])
+
+    def observation_covariance(_t: int) -> tf.Tensor:
+        return tf.constant([[0.11]], dtype=DTYPE)
+
+    looped = li_coates_ledh_alg1_time_step_tf(
+        ancestors=ancestors,
+        previous_covariances=previous_covariances,
+        pre_flow_particles=pre_flow,
+        observation=observation,
+        transition_mean_fn=transition_mean,
+        transition_log_density_fn=transition_log_density,
+        observation_mean_fn=observation_mean,
+        observation_jacobian_fn=observation_jacobian,
+        process_noise_covariance_fn=process_covariance,
+        observation_covariance_fn=observation_covariance,
+        time_index=0,
+        pseudo_time_steps=eps,
+    )
+    vectorized = li_coates_ledh_alg1_time_step_vectorized_particles_tf(
+        ancestors=ancestors,
+        previous_covariances=previous_covariances,
+        pre_flow_particles=pre_flow,
+        observation=observation,
+        transition_mean_fn=transition_mean,
+        transition_log_density_fn=transition_log_density,
+        observation_mean_fn=observation_mean,
+        observation_jacobian_fn=observation_jacobian,
+        process_noise_covariance_fn=process_covariance,
+        observation_covariance_fn=observation_covariance,
+        time_index=0,
+        pseudo_time_steps=eps,
+    )
+
+    np.testing.assert_allclose(
+        vectorized.post_flow_particles.numpy(),
+        looped.post_flow_particles.numpy(),
+        atol=1e-12,
+    )
+    np.testing.assert_allclose(
+        vectorized.predicted_covariances.numpy(),
+        looped.predicted_covariances.numpy(),
+        atol=1e-12,
+    )
+    np.testing.assert_allclose(
+        vectorized.updated_covariances.numpy(),
+        looped.updated_covariances.numpy(),
+        atol=1e-12,
+    )
+    np.testing.assert_allclose(
+        vectorized.forward_log_det.numpy(),
+        looped.forward_log_det.numpy(),
+        atol=1e-12,
+    )
+    assert vectorized.diagnostics["particle_batch_route"] == "tf_vectorized_map"
+
+
+def test_sv_scalar_graph_matches_looped_reference_for_scalar_linear_fixture() -> None:
+    gamma = tf.constant(0.72, dtype=DTYPE)
+    beta = tf.constant(1.35, dtype=DTYPE)
+    sigma = tf.constant(1.0, dtype=DTYPE)
+    observation_variance = tf.constant(2.0, dtype=DTYPE)
+    raw_observations = tf.constant([0.8, -1.2, 0.45], dtype=DTYPE)
+    flow_observations = (
+        tf.math.log(tf.square(raw_observations) + tf.constant(1e-6, dtype=DTYPE))
+        - 2.0 * tf.math.log(beta)
+    )
+    initial_covariance = tf.reshape(tf.square(sigma) / (1.0 - tf.square(gamma)), [1, 1])
+
+    def seed_pair(seed: int, salt: int) -> tf.Tensor:
+        return tf.constant([int(seed) % 2147483647, int(salt) % 2147483647], dtype=tf.int32)
+
+    def initial_sample(num_particles: int, seed: int) -> tf.Tensor:
+        return tf.sqrt(initial_covariance[0, 0]) * tf.random.stateless_normal(
+            [int(num_particles), 1],
+            seed=seed_pair(seed, 110),
+            dtype=DTYPE,
+        )
+
+    def transition_sample(particles: tf.Tensor, seed: int, time_index: int) -> tf.Tensor:
+        noise = sigma * tf.random.stateless_normal(
+            [int(particles.shape[0]), 1],
+            seed=seed_pair(seed, 1110 + int(time_index)),
+            dtype=DTYPE,
+        )
+        return gamma * tf.cast(particles, DTYPE) + noise
+
+    def transition_mean(points: tf.Tensor, _time_index: int) -> tf.Tensor:
+        return gamma * tf.cast(points, DTYPE)
+
+    def transition_log_density(next_particles: tf.Tensor, previous_particles: tf.Tensor, _time_index: int) -> tf.Tensor:
+        residual = tf.cast(next_particles, DTYPE)[:, 0] - gamma * tf.cast(previous_particles, DTYPE)[:, 0]
+        return -0.5 * tf.math.log(2.0 * np.pi * tf.square(sigma)) - 0.5 * tf.square(residual / sigma)
+
+    def observation_mean(points: tf.Tensor, _time_index: int) -> tf.Tensor:
+        return tf.cast(points, DTYPE)
+
+    def observation_jacobian(_point: tf.Tensor, _time_index: int) -> tf.Tensor:
+        return tf.eye(1, dtype=DTYPE)
+
+    def observation_log_density(points: tf.Tensor, observation: tf.Tensor, _time_index: int) -> tf.Tensor:
+        y = tf.reshape(tf.cast(observation, DTYPE), [1])[0]
+        log_scale = tf.math.log(beta) + 0.5 * tf.cast(points, DTYPE)[:, 0]
+        standardized = y * tf.exp(-log_scale)
+        return (
+            -0.5 * tf.math.log(tf.constant(2.0 * np.pi, dtype=DTYPE))
+            - log_scale
+            - 0.5 * tf.square(standardized)
+        )
+
+    def target_observation_log_density(points: tf.Tensor, _observation: tf.Tensor, time_index: int) -> tf.Tensor:
+        return observation_log_density(points, raw_observations[int(time_index)], int(time_index))
+
+    def process_covariance(_point: tf.Tensor, _time_index: int) -> tf.Tensor:
+        return tf.reshape(tf.square(sigma), [1, 1])
+
+    def observation_covariance(_time_index: int) -> tf.Tensor:
+        return tf.reshape(observation_variance, [1, 1])
+
+    looped = run_ledh_pfpf_alg1_ukf_tf(
+        observations=flow_observations,
+        initial_sample=initial_sample,
+        initial_covariance=initial_covariance,
+        transition_sample=transition_sample,
+        transition_mean_fn=transition_mean,
+        transition_log_density_fn=transition_log_density,
+        observation_mean_fn=observation_mean,
+        observation_jacobian_fn=observation_jacobian,
+        observation_log_density_fn=target_observation_log_density,
+        process_noise_covariance_fn=process_covariance,
+        observation_covariance_fn=observation_covariance,
+        seed=81120,
+        num_particles=4,
+        pseudo_time_steps=tf.constant([1.0], dtype=DTYPE),
+        resampling_route="none",
+    )
+    graph = run_ledh_pfpf_alg1_scalar_sv_graph_tf(
+        flow_observations=flow_observations,
+        raw_observations=raw_observations,
+        gamma=gamma,
+        beta=beta,
+        sigma=sigma,
+        observation_variance=observation_variance,
+        seed=81120,
+        num_particles=4,
+        pseudo_time_steps=tf.constant([1.0], dtype=DTYPE),
+    )
+
+    assert graph.finite
+    assert graph.route_identifiers["graph_specialization_route"] == "p8g_scalar_sv_graph"
+    assert graph.route_identifiers["time_loop_route"] == "tf_while_loop"
+    np.testing.assert_allclose(
+        graph.log_likelihood_estimate.numpy(),
+        looped.log_likelihood_estimate.numpy(),
+        atol=1e-10,
+    )
+    np.testing.assert_allclose(
+        graph.filtered_means.numpy(),
+        looped.filtered_means.numpy(),
+        atol=1e-10,
+    )
+    np.testing.assert_allclose(
+        graph.ess_by_time.numpy(),
+        looped.ess_by_time.numpy(),
+        atol=1e-10,
+    )
+
+
 def test_forward_log_det_matches_autodiff_jacobian_of_actual_map() -> None:
     ancestor = tf.constant([[0.2]], dtype=DTYPE)
     previous_covariances = tf.constant([[[0.3]]], dtype=DTYPE)
@@ -419,10 +621,132 @@ def test_resampling_gathers_covariances_with_particles() -> None:
     np.testing.assert_allclose(resampled_covariances.numpy()[:, 0, 0], [0.3, 0.1, 0.3])
 
 
+def test_sinkhorn_canonical_transport_and_covariance_carry_share_same_matrix() -> None:
+    coupling = tf.constant(
+        [
+            [0.30, 0.10],
+            [0.20, 0.40],
+        ],
+        dtype=DTYPE,
+    )
+    particles = tf.constant([[-1.0], [2.0]], dtype=DTYPE)
+    covariances = tf.constant([[[0.2]], [[0.8]]], dtype=DTYPE)
+
+    canonical, transport_diag = canonical_transport_from_sinkhorn_coupling_tf(coupling)
+    transported = tf.linalg.matmul(canonical, particles)
+    carried, covariance_diag = carry_covariances_with_canonical_transport_tf(
+        canonical_transport=canonical,
+        covariances=covariances,
+        covariance_floor=0.0,
+    )
+
+    expected = tf.constant(
+        [
+            [0.30 / 0.50, 0.20 / 0.50],
+            [0.10 / 0.50, 0.40 / 0.50],
+        ],
+        dtype=DTYPE,
+    )
+    np.testing.assert_allclose(canonical.numpy(), expected.numpy(), atol=1e-12)
+    np.testing.assert_allclose(tf.reduce_sum(canonical, axis=1).numpy(), [1.0, 1.0], atol=1e-12)
+    np.testing.assert_allclose(transported.numpy(), (expected @ particles).numpy(), atol=1e-12)
+    np.testing.assert_allclose(
+        carried[:, 0, 0].numpy(),
+        tf.linalg.matvec(expected, covariances[:, 0, 0]).numpy(),
+        atol=1e-12,
+    )
+    assert transport_diag["canonical_transport_matrix_convention"].numpy().decode("utf-8") == (
+        OT_CANONICAL_TRANSPORT_CONVENTION
+    )
+    assert bool(covariance_diag["finite_carried_covariances"].numpy())
+    assert covariance_diag["covariance_carry_route"].numpy().decode("utf-8") == OT_COVARIANCE_CARRY_ROUTE
+
+
+def test_apply_ot_resampling_state_tf_emits_sinkhorn_covariance_carry_diagnostics() -> None:
+    particles = tf.constant([[-1.0], [0.25], [1.5]], dtype=DTYPE)
+    covariances = tf.constant([[[0.2]], [[0.5]], [[0.9]]], dtype=DTYPE)
+    weights = tf.constant([0.80, 0.15, 0.05], dtype=DTYPE)
+    log_weights = tf.math.log(weights)
+
+    transported, carried, diagnostics = apply_ot_resampling_state_tf(
+        particles=particles,
+        covariances=covariances,
+        weights=weights,
+        log_weights=log_weights,
+        resampling_route=OT_SINKHORN_COVARIANCE_CARRY_ROUTE,
+        covariance_floor=0.0,
+        sinkhorn_epsilon=1.0,
+        sinkhorn_iterations=80,
+        sinkhorn_tolerance=1e-7,
+    )
+
+    assert transported.shape == particles.shape
+    assert carried.shape == covariances.shape
+    assert diagnostics["resampling_method"] == "fixed_target_sinkhorn"
+    assert diagnostics["relaxed_resampling_not_categorical"] is True
+    assert diagnostics["canonical_transport_matrix_convention"] == OT_CANONICAL_TRANSPORT_CONVENTION
+    assert diagnostics["covariance_carry_route"] == OT_COVARIANCE_CARRY_ROUTE
+    assert diagnostics["pfpf_correction_route"] == OT_PFPF_CORRECTION_ROUTE
+    assert diagnostics["finite_transport"] is True
+    assert diagnostics["finite_particles"] is True
+    assert diagnostics["canonical_transport_row_sum_residual"] < 1e-10
+    assert diagnostics["canonical_transport_row_sum_tolerance"] == 0.005
+    assert diagnostics["canonical_transport_shape"] == [3, 3]
+
+
+def test_ot_resampling_blocks_malformed_canonical_transport_before_state_carry(
+    monkeypatch,
+) -> None:
+    particles = tf.constant([[-1.0], [0.25], [1.5]], dtype=DTYPE)
+    covariances = tf.constant([[[0.2]], [[0.5]], [[0.9]]], dtype=DTYPE)
+    weights = tf.constant([0.80, 0.15, 0.05], dtype=DTYPE)
+
+    def malformed_transport(_coupling):
+        return (
+            tf.constant(
+                [
+                    [1.0, 0.0, 0.0],
+                    [0.0, 0.5, 0.0],
+                    [0.0, 0.0, 1.0],
+                ],
+                dtype=DTYPE,
+            ),
+            {},
+        )
+
+    monkeypatch.setattr(
+        "experiments.dpf_implementation.tf_tfp.filters.ledh_pfpf_alg1_ukf_tf.canonical_transport_from_sinkhorn_coupling_tf",
+        malformed_transport,
+    )
+    with np.testing.assert_raises(FloatingPointError):
+        apply_ot_resampling_state_tf(
+            particles=particles,
+            covariances=covariances,
+            weights=weights,
+            log_weights=tf.math.log(weights),
+            resampling_route=OT_SINKHORN_COVARIANCE_CARRY_ROUTE,
+            covariance_floor=0.0,
+            sinkhorn_epsilon=1.0,
+            sinkhorn_iterations=80,
+            sinkhorn_tolerance=1e-7,
+        )
+
+
 def test_route_identifier_rejects_old_ledh_pfpf_ot_claim() -> None:
     route = algorithm1_route_identifiers(resampling_route="none")
     assert route["method_generation"] == METHOD_GENERATION
     validate_algorithm1_route_identifiers(route)
+    ot_route = algorithm1_route_identifiers(
+        resampling_route=OT_SINKHORN_COVARIANCE_CARRY_ROUTE
+    )
+    assert ot_route["route_variant"] == "p8h_sv_scalar_graph_ot_resampled_alg1"
+    assert ot_route["covariance_carry_route"] == OT_COVARIANCE_CARRY_ROUTE
+    assert ot_route["pfpf_correction_route"] == OT_PFPF_CORRECTION_ROUTE
+    assert ot_route["canonical_transport_matrix_convention"] == OT_CANONICAL_TRANSPORT_CONVENTION
+    assert ot_route["p8g_no_resampling_evidence_status"] == (
+        "quarantined_historical_diagnostic_only"
+    )
+    validate_algorithm1_route_identifiers(ot_route)
 
     bad = dict(route)
     bad["flow_source_route"] = "dpf_ledh_pfpf_ot"
@@ -506,6 +830,84 @@ def test_small_filter_run_is_finite_and_records_route_identifiers() -> None:
     assert result.route_identifiers["method_generation"] == METHOD_GENERATION
     assert result.particle_covariances_by_time.shape == (2, 5, 1, 1)
     assert result.resampling_diagnostics[0]["flow_source_route"] == "li_coates_2017_algorithm1_ledh_pfpf"
+
+
+def test_small_filter_run_triggers_p8h_sinkhorn_ot_covariance_carry() -> None:
+    observations = tf.constant([[0.1], [0.2]], dtype=DTYPE)
+    initial_covariance = tf.constant([[0.3]], dtype=DTYPE)
+
+    def initial_sample(num_particles: int, _seed: int) -> tf.Tensor:
+        return tf.reshape(tf.linspace(tf.constant(-0.2, DTYPE), tf.constant(0.2, DTYPE), num_particles), [-1, 1])
+
+    def transition_mean(points: tf.Tensor, _t: int) -> tf.Tensor:
+        return 0.8 * tf.reshape(points, [-1, 1])
+
+    def transition_sample(ancestors: tf.Tensor, _seed: int, t: int) -> tf.Tensor:
+        offsets = tf.reshape(tf.cast(tf.range(tf.shape(ancestors)[0]), DTYPE), [-1, 1])
+        centered = offsets - tf.reduce_mean(offsets)
+        return transition_mean(ancestors, t) + 0.02 * centered
+
+    def transition_log_density(x_next: tf.Tensor, x_prev: tf.Tensor, t: int) -> tf.Tensor:
+        residual = tf.reshape(x_next - transition_mean(x_prev, t), [-1])
+        variance = tf.constant(0.04, DTYPE)
+        return -0.5 * (tf.math.log(2.0 * np.pi * variance) + residual * residual / variance)
+
+    def observation_mean(points: tf.Tensor, _t: int) -> tf.Tensor:
+        values = tf.reshape(points, [-1, 1])
+        return tf.square(values) + values
+
+    def observation_jacobian(point: tf.Tensor, _t: int) -> tf.Tensor:
+        value = tf.reshape(tf.cast(point, DTYPE), [-1])[0]
+        return tf.reshape(2.0 * value + 1.0, [1, 1])
+
+    def observation_log_density(x: tf.Tensor, y: tf.Tensor, t: int) -> tf.Tensor:
+        residual = tf.reshape(y, [1])[0] - tf.reshape(observation_mean(x, t), [-1])
+        variance = tf.constant(0.05, DTYPE)
+        return -0.5 * (tf.math.log(2.0 * np.pi * variance) + residual * residual / variance)
+
+    def process_covariance(_x_prev: tf.Tensor, _t: int) -> tf.Tensor:
+        return tf.constant([[0.04]], dtype=DTYPE)
+
+    def observation_covariance(_t: int) -> tf.Tensor:
+        return tf.constant([[0.05]], dtype=DTYPE)
+
+    result = run_ledh_pfpf_alg1_ukf_tf(
+        observations=observations,
+        initial_sample=initial_sample,
+        initial_covariance=initial_covariance,
+        transition_sample=transition_sample,
+        transition_mean_fn=transition_mean,
+        transition_log_density_fn=transition_log_density,
+        observation_mean_fn=observation_mean,
+        observation_jacobian_fn=observation_jacobian,
+        observation_log_density_fn=observation_log_density,
+        process_noise_covariance_fn=process_covariance,
+        observation_covariance_fn=observation_covariance,
+        seed=11,
+        num_particles=5,
+        pseudo_time_steps=tf.constant([0.5, 0.5], dtype=DTYPE),
+        resampling_route=OT_SINKHORN_COVARIANCE_CARRY_ROUTE,
+        ess_threshold_ratio=1.01,
+        sinkhorn_epsilon=1.0,
+        sinkhorn_iterations=80,
+        sinkhorn_tolerance=1e-7,
+    )
+
+    assert result.finite
+    assert result.resampling_count == 2
+    assert result.route_identifiers["resampling_route"] == OT_SINKHORN_COVARIANCE_CARRY_ROUTE
+    assert result.route_identifiers["route_variant"] == "p8h_sv_scalar_graph_ot_resampled_alg1"
+    first_diag = result.resampling_diagnostics[0]
+    assert first_diag["resampled"] is True
+    assert first_diag["resampling_method"] == "fixed_target_sinkhorn"
+    assert first_diag["covariance_carry_route"] == OT_COVARIANCE_CARRY_ROUTE
+    assert first_diag["pfpf_correction_route"] == OT_PFPF_CORRECTION_ROUTE
+    assert first_diag["canonical_transport_matrix_convention"] == OT_CANONICAL_TRANSPORT_CONVENTION
+    assert first_diag["relaxed_resampling_not_categorical"] is True
+    assert first_diag["finite_carried_covariances"] is True
+    assert first_diag["canonical_transport_shape"] == [5, 5]
+    assert first_diag["ess_triggered"] is True
+    assert result.particle_covariances_by_time.shape == (2, 5, 1, 1)
 
 
 def test_corrected_log_weight_matches_manual_pfpf_formula() -> None:
@@ -667,3 +1069,80 @@ def test_fixed_branch_gradient_smoke_for_no_resampling_path() -> None:
     assert gradient is not None
     assert bool(tf.math.is_finite(value).numpy())
     assert bool(tf.math.is_finite(gradient).numpy())
+
+
+def test_p8h_sinkhorn_ot_path_has_connected_gradient_smoke() -> None:
+    observations = tf.constant([[0.1], [0.2]], dtype=DTYPE)
+    initial_covariance = tf.constant([[0.3]], dtype=DTYPE)
+
+    def value_for_scale(scale: tf.Tensor) -> tf.Tensor:
+        def initial_sample(num_particles: int, _seed: int) -> tf.Tensor:
+            base = tf.linspace(tf.constant(-0.2, DTYPE), tf.constant(0.2, DTYPE), num_particles)
+            return tf.reshape(base, [-1, 1])
+
+        def transition_mean(points: tf.Tensor, _t: int) -> tf.Tensor:
+            return scale * tf.reshape(points, [-1, 1])
+
+        def transition_sample(ancestors: tf.Tensor, _seed: int, t: int) -> tf.Tensor:
+            offsets = tf.reshape(tf.cast(tf.range(tf.shape(ancestors)[0]), DTYPE), [-1, 1])
+            centered = offsets - tf.reduce_mean(offsets)
+            return transition_mean(ancestors, t) + 0.02 * centered
+
+        def transition_log_density(x_next: tf.Tensor, x_prev: tf.Tensor, t: int) -> tf.Tensor:
+            residual = tf.reshape(x_next - transition_mean(x_prev, t), [-1])
+            variance = tf.constant(0.04, DTYPE)
+            return -0.5 * (tf.math.log(2.0 * np.pi * variance) + residual * residual / variance)
+
+        def observation_mean(points: tf.Tensor, _t: int) -> tf.Tensor:
+            values = tf.reshape(points, [-1, 1])
+            return tf.square(values) + values
+
+        def observation_jacobian(point: tf.Tensor, _t: int) -> tf.Tensor:
+            value = tf.reshape(tf.cast(point, DTYPE), [-1])[0]
+            return tf.reshape(2.0 * value + 1.0, [1, 1])
+
+        def observation_log_density(x: tf.Tensor, y: tf.Tensor, t: int) -> tf.Tensor:
+            residual = tf.reshape(y, [1])[0] - tf.reshape(observation_mean(x, t), [-1])
+            variance = tf.constant(0.05, DTYPE)
+            return -0.5 * (tf.math.log(2.0 * np.pi * variance) + residual * residual / variance)
+
+        def process_covariance(_x_prev: tf.Tensor, _t: int) -> tf.Tensor:
+            return tf.constant([[0.04]], dtype=DTYPE)
+
+        def observation_covariance(_t: int) -> tf.Tensor:
+            return tf.constant([[0.05]], dtype=DTYPE)
+
+        result = run_ledh_pfpf_alg1_ukf_tf(
+            observations=observations,
+            initial_sample=initial_sample,
+            initial_covariance=initial_covariance,
+            transition_sample=transition_sample,
+            transition_mean_fn=transition_mean,
+            transition_log_density_fn=transition_log_density,
+            observation_mean_fn=observation_mean,
+            observation_jacobian_fn=observation_jacobian,
+            observation_log_density_fn=observation_log_density,
+            process_noise_covariance_fn=process_covariance,
+            observation_covariance_fn=observation_covariance,
+            seed=13,
+            num_particles=5,
+            pseudo_time_steps=tf.constant([0.5, 0.5], dtype=DTYPE),
+            resampling_route=OT_SINKHORN_COVARIANCE_CARRY_ROUTE,
+            ess_threshold_ratio=1.01,
+            sinkhorn_epsilon=1.0,
+            sinkhorn_iterations=80,
+            sinkhorn_tolerance=1e-7,
+        )
+        assert result.resampling_count == 2
+        assert result.route_identifiers["resampling_route"] == OT_SINKHORN_COVARIANCE_CARRY_ROUTE
+        return result.log_likelihood_estimate
+
+    scale = tf.Variable(0.8, dtype=DTYPE)
+    with tf.GradientTape() as tape:
+        value = value_for_scale(scale)
+    gradient = tape.gradient(value, scale)
+
+    assert gradient is not None
+    assert bool(tf.math.is_finite(value).numpy())
+    assert bool(tf.math.is_finite(gradient).numpy())
+    assert abs(float(gradient.numpy())) > 0.0

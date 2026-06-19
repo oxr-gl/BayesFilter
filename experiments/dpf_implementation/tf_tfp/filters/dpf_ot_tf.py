@@ -16,6 +16,7 @@ from experiments.dpf_implementation.tf_tfp.resampling.annealed_transport_tf impo
     annealed_transport_resample_tf,
 )
 from experiments.dpf_implementation.tf_tfp.resampling.sinkhorn_tf import (
+    SinkhornLogStateTF,
     sinkhorn_resample_tf,
 )
 
@@ -35,6 +36,7 @@ def run_ot_dpf_tf(
     transport_method: str = "annealed_transport",
     annealed_scaling: float = 0.9,
     annealed_convergence_threshold: float = 1e-3,
+    retained_teacher_warmstart_fn: Callable[[tf.Tensor, tf.Tensor, float, int], SinkhornLogStateTF] | None = None,
 ) -> ParticleFilterTFResult:
     particles = tf.cast(initial_sample(num_particles, seed), DTYPE)
     log_weights = tf.fill([num_particles], -tf.math.log(tf.cast(num_particles, DTYPE)))
@@ -67,6 +69,8 @@ def run_ot_dpf_tf(
                 sinkhorn_tolerance=sinkhorn_tolerance,
                 annealed_scaling=annealed_scaling,
                 annealed_convergence_threshold=annealed_convergence_threshold,
+                retained_teacher_warmstart_fn=retained_teacher_warmstart_fn,
+                time_index=t,
             )
             particles = resampled.particles
             log_weights = tf.fill([num_particles], -tf.math.log(tf.cast(num_particles, DTYPE)))
@@ -100,11 +104,14 @@ def run_ot_dpf_tf(
         and tf.reduce_all(tf.math.is_finite(filtered_variances_tensor)).numpy()
         and tf.reduce_all(tf.math.is_finite(ess_tensor)).numpy()
     )
-    method_suffix = (
-        "annealed_transport_tf"
-        if transport_method == "annealed_transport"
-        else "fixed_target_sinkhorn_local_comparator_tf"
-    )
+    if transport_method == "annealed_transport":
+        method_suffix = "annealed_transport_tf"
+    elif transport_method == "fixed_target_sinkhorn":
+        method_suffix = "fixed_target_sinkhorn_local_comparator_tf"
+    elif transport_method == "retained_teacher_sinkhorn_warmstart":
+        method_suffix = "retained_teacher_sinkhorn_warmstart_tf"
+    else:
+        method_suffix = transport_method
     return ParticleFilterTFResult(
         method_id=f"ot_dpf_{method_suffix}",
         seed=int(seed),
@@ -130,6 +137,8 @@ def _resample_particles(
     sinkhorn_tolerance: float,
     annealed_scaling: float,
     annealed_convergence_threshold: float,
+    retained_teacher_warmstart_fn: Callable[[tf.Tensor, tf.Tensor, float, int], SinkhornLogStateTF] | None,
+    time_index: int,
 ):
     if transport_method == "annealed_transport":
         return (
@@ -154,4 +163,52 @@ def _resample_particles(
             ),
             "fixed_target_sinkhorn_local_comparator_tf",
         )
+    if transport_method == "retained_teacher_sinkhorn_warmstart":
+        if retained_teacher_warmstart_fn is None:
+            raise ValueError(
+                "retained_teacher_warmstart_fn is required for transport_method='retained_teacher_sinkhorn_warmstart'"
+            )
+        initial_state = retained_teacher_warmstart_fn(
+            tf.cast(particles, DTYPE),
+            tf.cast(weights, DTYPE),
+            float(epsilon),
+            int(time_index),
+        )
+        result = sinkhorn_resample_tf(
+            particles,
+            weights,
+            epsilon=epsilon,
+            max_iterations=sinkhorn_iterations,
+            tolerance=sinkhorn_tolerance,
+            initial_state=initial_state,
+        )
+        diagnostics = dict(result.diagnostics)
+        diagnostics.update(
+            {
+                "warmstart_provider": getattr(retained_teacher_warmstart_fn, "__name__", type(retained_teacher_warmstart_fn).__name__),
+                "warmstart_callback_used": True,
+                "corrective_refinement_retained": True,
+                "transport_method": "retained_teacher_sinkhorn_warmstart",
+            }
+        )
+        return (
+            type(result)(
+                particles=result.particles,
+                coupling=result.coupling,
+                source_weights=result.source_weights,
+                target_weights=result.target_weights,
+                final_state=result.final_state,
+                canonicalized_final_state=result.canonicalized_final_state,
+                diagnostics=diagnostics,
+            ),
+            "retained_teacher_sinkhorn_warmstart_tf",
+        )
     raise ValueError(f"unknown transport_method: {transport_method}")
+
+
+def _finite_bool(value: tf.Tensor) -> bool:
+    return bool(tf.reduce_all(tf.math.is_finite(tf.cast(value, DTYPE))).numpy())
+
+
+def _float(value: tf.Tensor) -> float:
+    return float(tf.cast(value, DTYPE).numpy())

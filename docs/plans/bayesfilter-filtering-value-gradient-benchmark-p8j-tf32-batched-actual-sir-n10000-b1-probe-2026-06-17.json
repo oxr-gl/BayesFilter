@@ -1,0 +1,135 @@
+{
+  "batch_seeds": [
+    81120
+  ],
+  "compile_and_first_call_seconds": 17.15657041501254,
+  "cuda_visible_devices": null,
+  "device": "/GPU:0",
+  "device_scope": "visible",
+  "ess_min_by_seed": [
+    6751.9677734375
+  ],
+  "expect_device_kind": "gpu",
+  "finite_output": true,
+  "full_batched_evaluation_per_warm_call": true,
+  "git_commit": "b1f400d5cb7e88d6b10072a23344f1286542f492",
+  "gpu_memory_info_after": {
+    "current": 1478912,
+    "peak": 68695808
+  },
+  "gpu_memory_info_before": {
+    "current": 1475328,
+    "peak": 4363264
+  },
+  "history_shapes": {
+    "ess_by_time": [
+      20,
+      1
+    ],
+    "filtered_means": [
+      20,
+      1,
+      18
+    ],
+    "filtered_variances": [
+      20,
+      1,
+      18
+    ]
+  },
+  "host": "DESKTOP-RF1Q5IJ",
+  "log_likelihood": [
+    -902.333251953125
+  ],
+  "logical_gpus": [
+    "LogicalDevice(name='/device:GPU:0', device_type='GPU')"
+  ],
+  "nonclaims": [
+    "actual SIR d18 TF32/GPU feasibility probe only",
+    "not SIR d18 particle-count adequacy evidence",
+    "not leaderboard completion",
+    "not MC-SE adequacy evidence",
+    "not exact likelihood correctness",
+    "not DPF gradient correctness",
+    "not HMC/NUTS readiness",
+    "not Zhao-Cui TT/SIRT or MATLAB parity",
+    "not production/default readiness"
+  ],
+  "output_devices": [
+    "/job:localhost/replica:0/task:0/device:GPU:0"
+  ],
+  "output_shape": [
+    1
+  ],
+  "physical_gpus": [
+    "PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')"
+  ],
+  "precision": {
+    "active_dtype": "float32",
+    "default_dtype": "float32",
+    "default_tf32_mode": "enabled",
+    "dtype": "float32",
+    "fp64_reference_requires_explicit_dtype": true,
+    "precision_default_policy": "experimental_ledh_pfpf_ot_gpu_tf32",
+    "scope": "experimental_batched_ledh_pfpf_ot_gpu_performance_lane",
+    "tf32_execution_enabled": true,
+    "tf32_mode": "enabled",
+    "tf_dtype": "float32"
+  },
+  "primary_pass_5x_runtime_gate": true,
+  "python_version": "3.11.14",
+  "repeats": 1,
+  "scalar_comparator_runtime_seconds": 789.755664,
+  "scalar_comparator_scope": "P8j Phase 5d scalar actual-SIR adaptive LEDH OT N=64 five-seed trusted-GPU run",
+  "schema_version": "filter_bench.p8j_tf32_batched_actual_sir_probe.v1",
+  "shape": {
+    "batch_seed_count": 1,
+    "batch_size": 1,
+    "num_particles": 10000,
+    "obs_dim": 9,
+    "state_dim": 18,
+    "time_steps": 20
+  },
+  "sir_semantics": {
+    "actual_sir_callback_usage": "initial_sample, process/observation covariance callbacks, observation metadata, and route metadata",
+    "actual_sir_callbacks_used": true,
+    "adapter_classification": "BayesFilter DPF adapter for fixed-parameter SIR; not Zhao-Cui TT/SIRT source-faithfulness evidence",
+    "experimental_streaming_adapter_route": "batched nonlinear-prior LEDH-PFPF-OT streaming adapter with fixed process covariance, not scalar Li-Coates Algorithm 1 UKF covariance lifecycle parity",
+    "flow_observation_contract": "same_observation_gaussian_sir_infectious_components",
+    "graph_compatible_sir_transition_copy_used": true,
+    "graph_compatible_sir_transition_source": "bayesfilter.highdim.zhao_cui_sir_austria_model RK4 zhao_cui_sir_step equations, copied into TensorFlow graph form because the model validation path uses eager .numpy() checks",
+    "nonlinear_prior_mean_hook_used": true,
+    "observation_dimension": 9,
+    "process_noise_policy": "clip_susceptible_after_noise",
+    "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+    "scalar_algorithm1_ukf_covariance_lifecycle_parity_claim": false,
+    "state_dimension": 18,
+    "target_density_used_for_correction": true
+  },
+  "speedup_vs_scalar_comparator_mean_warm_call": 158.81749500733284,
+  "tensorflow_version": "2.19.1",
+  "timestamp_utc": "2026-06-17T15:13:44.605424+00:00",
+  "transport": {
+    "annealed_convergence_threshold": 0.001,
+    "annealed_scaling": 0.9,
+    "col_chunk_size": 1024,
+    "dense_transport_matrix_materialized": false,
+    "gradient_mode": "raw",
+    "particle_chunk_size": 512,
+    "plan_mode": "streaming",
+    "row_chunk_size": 1024,
+    "sinkhorn_epsilon": 1.0,
+    "sinkhorn_iterations": 10
+  },
+  "transport_policy": "active-all",
+  "warm_call_timing_summary_seconds": {
+    "max": 4.972724597901106,
+    "mean": 4.972724597901106,
+    "median": 4.972724597901106,
+    "min": 4.972724597901106
+  },
+  "warm_call_timings_seconds": [
+    4.972724597901106
+  ],
+  "warmups": 0
+}

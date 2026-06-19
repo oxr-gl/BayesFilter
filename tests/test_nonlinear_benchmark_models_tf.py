@@ -1,6 +1,7 @@
 import numpy as np
 import tensorflow as tf
 
+from bayesfilter.nonlinear.fixed_sgqf_structural_adapter_tf import tf_structural_to_fixed_sgqf_model
 from bayesfilter.testing import (
     make_affine_gaussian_structural_oracle_tf,
     make_nonlinear_accumulation_model_tf,
@@ -54,3 +55,24 @@ def test_model_c_autonomous_growth_law_and_phase_residual() -> None:
     np.testing.assert_allclose(observation.numpy(), [[expected_x**2 / 20.0]], atol=1e-14)
     np.testing.assert_allclose(residual.numpy(), [[0.0]], atol=1e-14)
     assert model.config.approximation_label == "autonomous_phase_nonlinear_growth_testing_fixture"
+
+
+
+def test_model_b_is_exact_ineligible_for_current_fixed_sgqf_structural_adapter() -> None:
+    model = make_nonlinear_accumulation_model_tf()
+    adapted = tf_structural_to_fixed_sgqf_model(model)
+
+    assert adapted.eligible is False
+    assert adapted.model is None
+    assert "exact-ineligible" in adapted.reason
+
+
+
+def test_model_c_is_exact_eligible_for_current_fixed_sgqf_structural_adapter() -> None:
+    model = make_univariate_nonlinear_growth_model_tf()
+    adapted = tf_structural_to_fixed_sgqf_model(model)
+
+    assert adapted.eligible is True
+    assert adapted.reason is None
+    assert adapted.model is not None
+    np.testing.assert_allclose(adapted.model.process_covariance.numpy(), np.array([[1.0, 0.0], [0.0, 0.0]]), atol=1e-14)

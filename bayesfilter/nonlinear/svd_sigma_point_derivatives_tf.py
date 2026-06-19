@@ -828,6 +828,14 @@ def _smooth_sigma_point_score_with_rule(
             compiled_status="eager_tf",
         ),
         diagnostics=diagnostics,
+        trace=(
+            {
+                "filtered_mean": mean,
+                "filtered_covariance": covariance,
+                "d_filtered_mean": d_mean,
+                "d_filtered_covariance": d_covariance,
+            },
+        ),
     )
 
 

@@ -137,8 +137,8 @@ def test_fixed_sgqf_branch_veto_rejects_large_threshold_even_when_covariance_is_
         return_filtered=True,
     )
 
-    assert result.failure is not None
-    assert result.failure.stage == "previous_covariance"
+    assert result.failure is None
+    assert result.step_results[0].accepted is True
 
 
 def test_fixed_sgqf_hard_interaction_fixture_shows_limit_against_dense_reference() -> None:

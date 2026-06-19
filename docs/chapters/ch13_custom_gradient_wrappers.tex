@@ -9,20 +9,25 @@ is explicitly corrected.
 \section{Same-Scalar Contract}
 \label{sec:bf-custom-gradient-same-scalar}
 
-Let the production value path return
+Let the production value path return the full sampler-coordinate posterior target
 \begin{equation}
 \label{eq:bf-custom-primal-target}
-  \mathcal{L}(\psi)
+  \mathcal{L}(u)
   =
-  \sum_{t=1}^T \ell_t(\psi) + \log p(\psi),
+  \ell(T(u);y_{1:T})
+  + \log p(T(u))
+  + \log\left|\det DT(u)\right|,
 \end{equation}
-where the likelihood terms use the same structural provider, masks, factor
+where the likelihood term uses the same structural provider, masks, factor
 branch, regularization policy, and parameter transforms declared in
 Chapters~\ref{ch:bf-structural-derivatives}--\ref{ch:bf-factor-derivatives}.
-The custom-gradient path is valid only if it returns
+When a chapter later writes a likelihood-only derivative such as
+\(\nabla_\theta \ell\), that object should be read as one component of the full
+sampler-coordinate target gradient, not as the entire HMC target by itself.  The
+custom-gradient path is valid only if it returns
 \begin{equation}
 \label{eq:bf-custom-gradient-target}
-  g_i(\psi)=\frac{\partial \mathcal{L}(\psi)}{\partial\psi_i}.
+  g_i(u)=\frac{\partial \mathcal{L}(u)}{\partial u_i}.
 \end{equation}
 If the value path evaluates a floored spectral covariance $P_+$, the gradient
 must be the derivative of that implemented value path.  If the value path uses a
@@ -52,15 +57,15 @@ the intended large-model production path.
 A custom-gradient wrapper should expose a contract equivalent to the following
 mathematical tuple:
 \[
-  \operatorname{value\_and\_score}(\psi)
+  \operatorname{value\_and\_score}(u)
   =
   \left(
-    \mathcal{L}(\psi),
-    \nabla_\psi\mathcal{L}(\psi),
-    d(\psi)
+    \mathcal{L}(u),
+    \nabla_u\mathcal{L}(u),
+    d(u)
   \right),
 \]
-where $d(\psi)$ is a diagnostic record.  The diagnostic record must include:
+where $d(u)$ is a diagnostic record.  The diagnostic record must include:
 \begin{itemize}
   \item the structural provider and parameter transform identifiers;
   \item the active observation-mask policy;
@@ -73,7 +78,12 @@ where $d(\psi)$ is a diagnostic record.  The diagnostic record must include:
 The gradient callback should return a failure status rather than silently
 replacing the derivative with zeros, prior gradients, or a different backend.
 Emergency fallbacks can be useful for optimization diagnostics, but HMC must
-know whether it is using the certified target derivative.
+know whether it is using the certified derivative of the returned scalar target.
+If the wrapper deliberately returns a finite invalid-region fallback scalar, then
+the only HMC-safe fallback gradient is the exact derivative of that fallback
+scalar.  In particular, a constant low-density fallback must have zero gradient;
+a nonzero surrogate direction defines a different target unless accompanied by an
+explicit correction scheme.
 
 \section{Hessian and Observed-Information Path}
 \label{sec:bf-custom-gradient-hessian-path}

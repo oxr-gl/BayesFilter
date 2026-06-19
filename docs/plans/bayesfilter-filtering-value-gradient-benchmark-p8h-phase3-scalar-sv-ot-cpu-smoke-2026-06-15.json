@@ -1,0 +1,171 @@
+{
+  "device_diagnostics": {
+    "devices_used_by_result_tensors": [
+      "/job:localhost/replica:0/task:0/device:CPU:0"
+    ],
+    "no_silent_cpu_fallback_claim": false
+  },
+  "nonclaims": [
+    "Phase 3 implementation smoke only",
+    "not value adequacy",
+    "not particle-count tuning",
+    "not gradient correctness",
+    "not GPU scaling",
+    "not HMC readiness",
+    "not stochastic PF marginal-gradient correctness",
+    "not exact nonlinear likelihood correctness",
+    "not a filter ranking"
+  ],
+  "p8g_quarantine": {
+    "p8g_fixed_randomness_gradient_check": "historical_no_resampling_diagnostic_only",
+    "p8g_particle_tuning": "historical_no_resampling_blocker_only",
+    "p8h_schema_reuses_p8g_metadata": false
+  },
+  "per_seed_results": [
+    {
+      "average_log_likelihood": -0.8555769760395149,
+      "effective_sample_size_mean": 2.8876439332709056,
+      "effective_sample_size_min": 2.856576192816657,
+      "ess_device": "/job:localhost/replica:0/task:0/device:CPU:0",
+      "finite": true,
+      "first_resampling_diagnostics": {
+        "backend": "tensorflow",
+        "canonical_transport_matrix_convention": "target_by_source_row_stochastic",
+        "canonical_transport_particle_delta_vs_helper": 1.1102230246251565e-16,
+        "canonical_transport_row_sum_max": 1.0000000000000002,
+        "canonical_transport_row_sum_min": 0.9999999999999999,
+        "canonical_transport_row_sum_residual": 2.220446049250313e-16,
+        "canonical_transport_row_sum_tolerance": 0.005,
+        "canonical_transport_shape": [
+          3,
+          3
+        ],
+        "component_id": "li_coates_algorithm1_ledh_pfpf_ukf_time_step",
+        "covariance_carry_psd_projection_residual": 0.0,
+        "covariance_carry_route": "same_transport_barycentric_covariance_carry",
+        "covariance_route": "per_particle_ukf_prediction_update",
+        "covariance_transport_shape": [
+          3,
+          3
+        ],
+        "epsilon": 1.0,
+        "ess": 2.856576192816657,
+        "ess_ratio": 0.9521920642722189,
+        "ess_trigger_threshold": 1.01,
+        "ess_triggered": true,
+        "finite_auxiliary_terminal": true,
+        "finite_carried_covariances": true,
+        "finite_corrected_log_weights": true,
+        "finite_forward_log_det": true,
+        "finite_particles": true,
+        "finite_post_flow": true,
+        "finite_predicted_covariances": true,
+        "finite_transport": true,
+        "finite_updated_covariances": true,
+        "flow_anchor_route": "zero_noise_transition",
+        "flow_source_route": "li_coates_2017_algorithm1_ledh_pfpf",
+        "max_corrected_log_weight": -1.2558981876054305,
+        "max_forward_log_det": -0.24756207866235563,
+        "max_iterations": 200,
+        "max_prediction_floor_count": 0,
+        "method_generation": "li_coates_algorithm1_ukf_covariance_lifecycle",
+        "min_carried_covariance_eigenvalue": 0.8771929824561404,
+        "min_corrected_log_weight": -1.8136277319484655,
+        "min_determinant_sign_product": 1.0,
+        "min_forward_log_det": -0.24756207866235563,
+        "min_predicted_covariance_eigenvalue": 1.5625,
+        "pfpf_correction": "log_target_transition_plus_observation_minus_q0_plus_forward_logdet",
+        "pfpf_correction_route": "algorithm1_pfpf_corrected_log_weight_pre_resampling",
+        "pseudo_time_step_count": 1,
+        "pseudo_time_sum": 1.0,
+        "raw_transport_matrix_convention": "source_by_target_coupling",
+        "relaxed_resampling_not_categorical": true,
+        "resampled": true,
+        "resampling_method": "fixed_target_sinkhorn",
+        "resampling_route": "ot_sinkhorn_barycentric_covariance_carry",
+        "same_affine_trace_available": true,
+        "sinkhorn_iterations": 200,
+        "state_transport_shape": [
+          3,
+          3
+        ],
+        "time_index": 0,
+        "transport_column_mass_max": 0.33333333333333337,
+        "transport_column_mass_min": 0.33333333333333326,
+        "transport_gradient_mode": "filterflow_clipped",
+        "transport_helper_backend": "tensorflow",
+        "transport_helper_component_id": "finite_sinkhorn_relaxed_resampler_tf",
+        "transport_helper_finite_coupling": true,
+        "transport_helper_finite_particles": true,
+        "transport_helper_iterations_used": 40,
+        "transport_helper_mathematical_object": "finite_budget_entropic_ot_coupling",
+        "transport_helper_max_column_residual": 5.551115123125783e-17,
+        "transport_helper_max_row_residual": 8.737513191858781e-07,
+        "transport_helper_resampling_status": "relaxed_finite_sinkhorn_not_categorical",
+        "transport_helper_total_mass_residual": 2.220446049250313e-16,
+        "transport_mass_total_residual": 2.220446049250313e-16,
+        "transport_method": "fixed_target_sinkhorn"
+      },
+      "log_likelihood": -1.7111539520790298,
+      "log_likelihood_device": "/job:localhost/replica:0/task:0/device:CPU:0",
+      "method_id": "ledh_pfpf_alg1_ukf_p8h_ot_resampled_alg1_actual_sv_raw_p8h_prefix_T2_tf",
+      "resampling_count": 2,
+      "route_identifiers": {
+        "canonical_transport_matrix_convention": "target_by_source_row_stochastic",
+        "covariance_carry_route": "same_transport_barycentric_covariance_carry",
+        "covariance_route": "per_particle_ukf_prediction_update",
+        "flow_anchor_route": "zero_noise_transition",
+        "flow_source_route": "li_coates_2017_algorithm1_ledh_pfpf",
+        "method_generation": "li_coates_algorithm1_ukf_covariance_lifecycle",
+        "p8g_no_resampling_evidence_status": "quarantined_historical_diagnostic_only",
+        "pfpf_correction_route": "algorithm1_pfpf_corrected_log_weight_pre_resampling",
+        "previous_ledh_pfpf_ot_evidence_status": "quarantined",
+        "relaxed_resampling_not_categorical": "true",
+        "resampling_route": "ot_sinkhorn_barycentric_covariance_carry",
+        "route_variant": "p8h_sv_scalar_graph_ot_resampled_alg1",
+        "transport_method": "fixed_target_sinkhorn"
+      },
+      "runtime_seconds": 1.135932,
+      "seed": 81120
+    }
+  ],
+  "phase": "P8H_PHASE3_SCALAR_SV_GPU_OT_IMPLEMENTATION",
+  "profile_scope": {
+    "algorithm_id": "ledh_pfpf_alg1_ukf_current",
+    "ess_threshold_ratio": 1.01,
+    "full_horizon": 1000,
+    "horizon_prefix": 2,
+    "particle_count": 3,
+    "resampling_route": "ot_sinkhorn_barycentric_covariance_carry",
+    "route_label": "actual_sv_raw",
+    "route_variant": "p8h_sv_scalar_graph_ot_resampled_alg1",
+    "row_id": "zhao_cui_sv_actual_nongaussian_T1000",
+    "seed_count": 1,
+    "seeds": [
+      81120
+    ],
+    "sinkhorn_epsilon": 1.0,
+    "sinkhorn_iterations": 200,
+    "sinkhorn_tolerance": 1e-06
+  },
+  "run_manifest": {
+    "command": "scripts/filtering_value_gradient_benchmark_run_p8d_numeric.py --profile-p8h-ledh-ot-prefix --row zhao_cui_sv_actual_nongaussian_T1000 --algorithm ledh_pfpf_alg1_ukf_current --horizon 2 --particles 3 --seeds 81120 --device cpu --p8h-resampling-route ot_sinkhorn_barycentric_covariance_carry --output-json docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8h-phase3-scalar-sv-ot-cpu-smoke-2026-06-15.json",
+    "cuda_visible_devices": "-1",
+    "device_context": "/CPU:0",
+    "dirty_state_summary": "155 git-status-short entries",
+    "environment": "TensorFlow/TensorFlow Probability P8h OT-resampled Algorithm 1 smoke",
+    "g0_manifest": null,
+    "git_commit": "5fdd0819ce0eb2994fb0509e66d9e9cce5f2d47c",
+    "marker_device": "/job:localhost/replica:0/task:0/device:CPU:0",
+    "requested_device": "cpu",
+    "tf_logical_gpus": [],
+    "tf_physical_gpus": [],
+    "wall_seconds": 1.145898
+  },
+  "schema_version": "filter_bench.p8h_ot_resampled_alg1_smoke.v1",
+  "status": "executed_p8h_ot_resampled_alg1_smoke",
+  "value_summary": {
+    "mean_average_log_likelihood": -0.8555769760395149,
+    "mean_log_likelihood": -1.7111539520790298
+  }
+}

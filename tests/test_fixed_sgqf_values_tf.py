@@ -3,6 +3,7 @@ import tensorflow as tf
 
 from bayesfilter import affine_structural_to_linear_gaussian_tf
 from bayesfilter.linear.kalman_tf import tf_linear_gaussian_log_likelihood
+from bayesfilter.nonlinear.fixed_sgqf_structural_adapter_tf import tf_structural_to_fixed_sgqf_model
 from bayesfilter.nonlinear.fixed_sgqf_tf import (
     TFFixedSGQFAffineModel,
     TFFixedSGQFBranchConfig,
@@ -13,7 +14,12 @@ from bayesfilter.nonlinear.fixed_sgqf_tf import (
 )
 from bayesfilter.structural import StatePartition, StructuralFilterConfig
 from bayesfilter.structural_tf import TFStructuralStateSpace, make_affine_structural_tf
-from bayesfilter.testing import dense_projection_first_step, make_nonlinear_accumulation_model_tf
+from bayesfilter.testing import (
+    dense_projection_first_step,
+    make_nonlinear_accumulation_model_tf,
+    make_univariate_nonlinear_growth_model_tf,
+    model_c_observations_tf,
+)
 
 
 OBSERVATION_TOL = 1e-10
@@ -509,3 +515,22 @@ def test_fixed_sgqf_scalar_quadratic_matches_recursive_dense_reference_through_t
     np.testing.assert_allclose(result.log_likelihood.numpy(), dense_log_likelihood, atol=1e-10)
     np.testing.assert_allclose(result.filtered_means.numpy(), np.stack(dense_means, axis=0), atol=1e-10)
     np.testing.assert_allclose(result.filtered_covariances.numpy(), np.stack(dense_covariances, axis=0), atol=1e-10)
+
+
+
+def test_fixed_sgqf_structural_model_c_adapter_matches_dense_reference_first_step() -> None:
+    structural_model = make_univariate_nonlinear_growth_model_tf()
+    adapted = tf_structural_to_fixed_sgqf_model(structural_model)
+    observations = model_c_observations_tf()[:1]
+
+    assert adapted.eligible is True
+    assert adapted.model is not None
+
+    result = tf_fixed_sgqf_filter(observations, adapted.model, cloud=tf_fixed_sgqf_cloud(dim=2, sparse_level=2), return_filtered=True)
+    dense = dense_projection_first_step(structural_model, observations[0], nodes_per_dim=17)
+
+    assert result.failure is None
+    step = result.step_results[0]
+    mismatch = abs(float(step.observation_mean.numpy()[0] - dense.observation_mean.numpy()[0]))
+    assert mismatch > 5e-1
+    assert mismatch < 7e-1

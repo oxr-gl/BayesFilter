@@ -3,8 +3,10 @@
 
 The preceding DPF chapters built a ladder of increasingly differentiable
 filtering constructions: raw particle-flow proposals, proposal-corrected
-PF-PF, differentiable resampling, entropic optimal-transport relaxation, and
-learned or amortized transport.  This chapter asks a narrower and more severe
+PF-PF, soft differentiable resampling, deterministic OT equal-weighting,
+entropic optimal-transport relaxation with Sinkhorn, retained-teacher learned
+transport acceleration, and broader learned-map or dynamic-transport surrogates.
+This chapter asks a narrower and more severe
 question.  If one of those constructions is used inside Hamiltonian Monte Carlo
 for a nonlinear DSGE or MacroFinance model, what target is the Markov chain
 intended to leave invariant?
@@ -538,24 +540,33 @@ The disciplined recommendation is:
     level before any bank-facing claim.
 \end{enumerate}
 
+For the current BayesFilter LEDH repair lane, the serious experimental route is
+therefore not a no-resampling shortcut.  The route to test is Li--Coates
+Algorithm~1 UKF LEDH with PF-PF correction and a declared Corenflos-style OT,
+Sinkhorn, or annealed-transport resampling relaxation.  Carrying the
+Algorithm~1 covariance state through that transport is an implementation
+contract for the selected route, because the covariance state belongs to
+Algorithm~1 while the transport map defines the relaxed resampling layer.  A
+no-resampling graph or fixed-randomness run can still be useful as a kernel,
+shape, or gradient-plumbing diagnostic, but it is not by itself evidence that
+the DPF route is filter-ready or HMC-ready.
+
 \section{What this chapter does and does not claim}
 \label{sec:bf-dpf-hmc-boundary}
 
 This chapter claims that DPF-HMC analysis must be organized around named scalar
-targets, value-gradient consistency, and evidence gates.  It does not claim:
+targets and value-gradient consistency.  It does not claim:
 \begin{itemize}
   \item that PF-PF has already passed finite-particle, Jacobian, compiled-path,
-    or posterior-comparison gates in BayesFilter;
+    or posterior-comparison checks in BayesFilter;
   \item that relaxed or learned resampling targets are unusable;
   \item that pseudo-marginal validity transfers to deterministic relaxed
     gradients;
   \item that nonlinear DSGE or MacroFinance DPF-HMC has been validated in this
-    repository;
-  \item that any DPF rung is approved for production use or bank governance.
+    repository.
 \end{itemize}
-The chapter's role is to make future claims auditable.  A skeptical reviewer
-should be able to identify the target sampled by each rung, the correction
-mechanism if one is claimed, and the exact evidence still missing before
-stronger banking language would be defensible.
+Its role is narrower: it clarifies which scalar target is being differentiated,
+what correction mechanism is being invoked if any, and what mathematical
+interpretation the resulting chain can support.
 
 \FloatBarrier
