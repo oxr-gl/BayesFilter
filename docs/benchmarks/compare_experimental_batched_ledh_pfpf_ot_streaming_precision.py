@@ -27,7 +27,7 @@ BENCHMARK = ROOT / "docs/benchmarks/benchmark_experimental_batched_ledh_pfpf_ot_
 
 NONCLAIMS = (
     "single deterministic LGSSM-shaped fixture only",
-    "no production default readiness claim",
+    "production/default target by owner directive",
     "no posterior validity claim",
     "no HMC readiness or energy-conservation claim",
     "no statistical ranking from single-run timings",

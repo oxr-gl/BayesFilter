@@ -1,6 +1,6 @@
 """Streaming GPU-oriented LEDH-PFPF-OT value path.
 
-This module is an experimental opt-in companion to
+This module is the streaming companion to
 ``experimental_batched_ledh_pfpf_ot_tf``.  It keeps the same deterministic
 fixed-branch accounting, but shapes the computation for XLA/GPU execution:
 
@@ -9,7 +9,9 @@ fixed-branch accounting, but shapes the computation for XLA/GPU execution:
 * streaming OT avoids returning a dense ``[B, N, N]`` transport matrix;
 * likelihood-only runs can avoid storing filtered history.
 
-It is not exported from the public BayesFilter API.
+Repository governance now treats the GPU-oriented LEDH-PFPF-OT TF32 route as
+the default production target for DPF transport work.  Public API exposure and
+HMC/posterior claims remain separately gated.
 """
 
 from __future__ import annotations

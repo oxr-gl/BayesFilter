@@ -1,7 +1,8 @@
-"""Streaming LGSSM scale benchmark for experimental LEDH-PFPF-OT.
+"""Streaming LGSSM scale benchmark for default GPU LEDH-PFPF-OT TF32.
 
-This harness measures the opt-in streaming value path.  It is designed to
-separate avoidable storage from algorithmic all-pairs OT compute:
+This harness measures the streaming value path for the repository default DPF
+transport target.  It is designed to separate avoidable storage from
+algorithmic all-pairs OT compute:
 
 * time recursion is a TensorFlow ``while_loop``;
 * streaming OT returns no dense ``[B,N,N]`` matrix;
@@ -61,10 +62,11 @@ DTYPE = tf.float32
 
 NONCLAIMS = (
     "single synthetic LGSSM-shaped fixture only",
-    "no production default readiness claim",
+    "production/default target by owner directive",
     "no CPU/GPU ranking claim",
     "no posterior validity claim",
     "no active transport gradient validation claim",
+    "no HMC readiness claim",
     "streaming removes dense transport storage but not all-pairs OT compute",
 )
 

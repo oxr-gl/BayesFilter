@@ -5,6 +5,27 @@
 BayesFilter algorithmic implementation defaults to TensorFlow and TensorFlow
 Probability.
 
+## Default Execution Target
+
+The BayesFilter repository default execution target is GPU.  CPU-only execution
+is allowed for explicit reference checks, small smoke tests, debugging, and
+sandbox-safe diagnostics, but it must not be described as the default
+production target unless a reviewed plan explicitly changes this policy.
+
+For DPF transport work, the default production algorithm target is the
+GPU-oriented LEDH-PFPF-OT TF32 route: TensorFlow/TFP implementation, `float32`
+tensors, TensorFlow TF32 execution enabled, streaming/chunked transport where
+applicable, and explicit FP64 or FP32-no-TF32 only for reference/comparison
+arms.  The historical module path under `experiments/dpf_implementation` is not
+a reason to demote this route; future agents should treat the current owner
+directive as the default production direction and should avoid reopening the
+default-vs-experimental question without new evidence or human instruction.
+
+This default-policy promotion is a product and engineering direction.  It does
+not by itself certify posterior correctness, HMC readiness, statistical
+superiority, dense Sinkhorn equivalence, or broad scientific validity.  Those
+claims still require their stated evidence gates and artifacts.
+
 New BayesFilter-owned algorithmic code must not use NumPy as its implementation
 backend.  NumPy is allowed only for:
 
@@ -29,6 +50,11 @@ represented as the BayesFilter default implementation.  If an experimental lane
 uses NumPy for a prototype or comparator, the artifact must say so explicitly
 and must preserve the gap to a TensorFlow / TensorFlow Probability
 implementation.
+
+GPU-oriented LEDH-PFPF-OT TF32 is now the default production target by owner
+directive.  Evidence artifacts may still record unresolved scientific or HMC
+gates, but they should not downgrade the default target back to "no production
+default" merely because those separate gates remain open.
 
 ## Zhao-Cui Lane Source-Anchor Gate
 

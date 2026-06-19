@@ -1,8 +1,8 @@
 """Correctness gate for streaming batched LEDH-PFPF-OT.
 
 This gate compares the new streaming value path against the existing
-fixed-branch experimental baseline on deterministic tiny fixtures.  It is a
-correctness artifact, not a performance benchmark.
+fixed-branch baseline on deterministic tiny fixtures.  It is a correctness
+artifact, not a performance benchmark.
 """
 
 from __future__ import annotations
@@ -58,8 +58,8 @@ experimental_batched_ledh_pfpf_ot_streaming_tf.DTYPE = DTYPE
 annealed_transport_tf.DTYPE = DTYPE
 
 NONCLAIMS = (
-    "experimental opt-in streaming DPF correctness gate only",
-    "no production default readiness claim",
+    "streaming DPF correctness gate only",
+    "production/default target by owner directive",
     "no GPU performance claim",
     "no posterior validity claim",
     "no active-transport finite-difference score equivalence claim",

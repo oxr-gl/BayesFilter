@@ -1,8 +1,9 @@
-"""Experimental shape contract for batched LEDH-PFPF-OT.
+"""GPU-oriented production/default target for batched LEDH-PFPF-OT.
 
-This module is intentionally not exported from the public ``bayesfilter`` API.
-It defines the fixed-contract tensor shapes needed before implementing a
-batch-native LEDH-PFPF-OT value or score recursion.
+The module path is historical.  Repository governance now treats this
+GPU-oriented LEDH-PFPF-OT TF32 route as the default production target for DPF
+transport work, while public API exposure, posterior correctness, and HMC
+readiness remain separately gated.
 """
 
 from __future__ import annotations
@@ -32,7 +33,10 @@ from experiments.dpf_implementation.tf_tfp.resampling.annealed_transport_tf impo
 DEFAULT_DTYPE = tf.float32
 DTYPE = DEFAULT_DTYPE
 DEFAULT_TF32_MODE = "enabled"
-DEFAULT_PRECISION_POLICY = "experimental_ledh_pfpf_ot_gpu_tf32"
+DEFAULT_PRECISION_POLICY = "production_ledh_pfpf_ot_gpu_tf32"
+DEFAULT_EXECUTION_TARGET = "gpu"
+DEFAULT_ALGORITHM_TARGET = "ledh_pfpf_ot_tf32"
+DEFAULT_TARGET_STATUS = "production_default_by_owner_directive"
 
 SCALAR_PARITY_ATOL = 1.0e-10
 SCALAR_PARITY_RTOL = 1.0e-10
@@ -55,23 +59,30 @@ def _sync_transport_dtype() -> None:
 
 
 def precision_policy_metadata() -> dict[str, Any]:
-    """Return the scoped precision policy for the experimental batched DPF lane."""
+    """Return the default precision policy for the batched DPF route."""
 
     return {
         "precision_default_policy": DEFAULT_PRECISION_POLICY,
+        "default_execution_target": DEFAULT_EXECUTION_TARGET,
+        "default_algorithm_target": DEFAULT_ALGORITHM_TARGET,
+        "default_target_status": DEFAULT_TARGET_STATUS,
         "default_dtype": DEFAULT_DTYPE.name,
         "active_dtype": DTYPE.name,
         "default_tf32_mode": DEFAULT_TF32_MODE,
         "fp64_reference_requires_explicit_dtype": True,
-        "scope": "experimental_batched_ledh_pfpf_ot_gpu_performance_lane",
+        "scope": "production_ledh_pfpf_ot_gpu_tf32_default_lane",
+        "historical_module_path": "experiments/dpf_implementation",
+        "public_api_exposure": "separately_gated",
     }
 
 NONCLAIMS = (
-    "experimental opt-in DPF contract only",
-    "no production default readiness claim",
+    "production/default target by owner directive",
+    "public API exposure remains separately gated",
     "no public API claim",
     "no categorical particle-filter gradient claim",
-    "no GPU performance claim",
+    "no posterior correctness claim",
+    "no HMC readiness claim",
+    "no statistical superiority claim",
 )
 
 

@@ -59,6 +59,7 @@ DEFAULT_SCALAR_COMPARATOR_SCOPE = (
 DTYPE = tf.float32
 NONCLAIMS = (
     "actual SIR d18 TF32/GPU feasibility probe only",
+    "production/default target by owner directive",
     "not SIR d18 particle-count adequacy evidence",
     "not leaderboard completion",
     "not MC-SE adequacy evidence",
@@ -66,7 +67,6 @@ NONCLAIMS = (
     "not DPF gradient correctness",
     "not HMC/NUTS readiness",
     "not Zhao-Cui TT/SIRT or MATLAB parity",
-    "not production/default readiness",
 )
 
 

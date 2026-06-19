@@ -25,7 +25,7 @@ CORRECTNESS_SCRIPT = ROOT / "docs/benchmarks/check_experimental_batched_ledh_pfp
 NONCLAIMS = (
     "timing and memory diagnostics are descriptive only",
     "no GPU superiority claim",
-    "no production default readiness claim",
+    "production/default target by owner directive",
     "no posterior validity claim",
     "no active-transport score finite-difference claim",
     "no HMC/NeuTra readiness claim",

@@ -131,6 +131,22 @@ def test_fixed_inputs_lock_shape_contract_and_uniform_weights() -> None:
         atol=1.0e-12,
     )
     assert "no categorical particle-filter gradient claim" in contract.nonclaims
+    assert "production/default target by owner directive" in contract.nonclaims
+    assert "no HMC readiness claim" in contract.nonclaims
+
+
+def test_precision_policy_records_gpu_tf32_production_default() -> None:
+    metadata = experimental_batched_ledh_pfpf_ot_tf.precision_policy_metadata()
+
+    assert metadata["precision_default_policy"] == "production_ledh_pfpf_ot_gpu_tf32"
+    assert metadata["default_execution_target"] == "gpu"
+    assert metadata["default_algorithm_target"] == "ledh_pfpf_ot_tf32"
+    assert metadata["default_target_status"] == "production_default_by_owner_directive"
+    assert metadata["default_dtype"] == "float32"
+    assert metadata["default_tf32_mode"] == "enabled"
+    assert metadata["fp64_reference_requires_explicit_dtype"] is True
+    assert metadata["public_api_exposure"] == "separately_gated"
+    assert "production" in metadata["scope"]
 
 
 def test_fixed_inputs_require_static_compatible_shapes_and_masks() -> None:
