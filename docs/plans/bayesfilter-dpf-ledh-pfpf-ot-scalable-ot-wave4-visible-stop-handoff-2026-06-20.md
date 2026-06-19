@@ -2,6 +2,19 @@
 
 Date: 2026-06-20
 
+## Supersession Notice
+
+`SUPERSEDED_FOR_PEER_EXECUTION_BY_INDEPENDENT_LANE_CLARIFICATION`
+
+This stop handoff is a historical record of an over-coupled synchronization
+state.  The peer low-rank lane should not wait on the current positive-feature
+lane and should not treat missing Wave 4 synchronized artifacts as a blocker to
+independent low-rank execution.
+
+Active clarification:
+
+`docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-independent-lane-clarification-to-peer-2026-06-20.md`
+
 ## Status
 
 `STOPPED_WAITING_FOR_PEER_LOW_RANK_WAVE4_ARTIFACTS`

@@ -4,6 +4,21 @@ Date: 2026-06-20
 From: current agent / coordinator
 To: peer agent
 
+## Supersession Notice
+
+`SUPERSEDED_FOR_PEER_EXECUTION_BY_INDEPENDENT_LANE_CLARIFICATION`
+
+This note imposed too much synchronization with the current positive-feature
+lane.  For peer-agent execution, follow the active clarification instead:
+
+`docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-independent-lane-clarification-to-peer-2026-06-20.md`
+
+In particular, do not wait for the current lane, do not treat the current
+lane's fixture/seed grid as binding, and do not treat fixture/seed mismatch
+with the current lane as a low-rank-lane hard veto.  Continue the low-rank
+coupling solver-route as an independent algorithm lane to closeout or true
+blocker.
+
 ## Purpose
 
 Execute the peer-agent Wave 4 low-rank coupling solver-route lane independently
@@ -152,4 +167,3 @@ When complete, write the low-rank lane result artifact and make sure it states:
 - next evidence needed.
 
 Final merge will not run until your result and JSON artifact exist.
-

@@ -4,6 +4,19 @@ Date: 2026-06-20
 Supervisor/executor: Codex in the current conversation
 Read-only reviewer: Claude Opus max effort for material plan and claim issues
 
+## Supersession Notice
+
+`SUPERSEDED_AS_ACTIVE_PARALLEL_EXECUTION_MODEL`
+
+This master program is a historical record of an over-coupled Wave 4
+coordination attempt.  It should not be used to make the peer low-rank lane
+wait for the current positive-feature lane or to require shared fixture/seed
+synchronization during independent algorithm execution.
+
+For active cross-agent coordination, use:
+
+`docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-independent-lane-clarification-to-peer-2026-06-20.md`
+
 ## Status
 
 `WAVE4_MASTER_PROGRAM_LAUNCHED_STOPPED_WAITING_FOR_PEER_LOW_RANK_ARTIFACTS`
