@@ -1,7 +1,7 @@
 # P77 Phase 7 Subplan: Decision Boundary After First Budgeted Diagnostic
 
 metadata_date: 2026-06-20
-status: PHASE6_LOCAL_CHECKS_PASS_PENDING_CLAUDE_REVIEW
+status: PHASE6_CLAUDE_AGREE_READY_FOR_PHASE7_DECISION
 master_program: docs/plans/bayesfilter-highdim-zhao-cui-p77-corrected-metric-training-master-program-2026-06-19.md
 runbook: docs/plans/bayesfilter-highdim-zhao-cui-p77-visible-gated-execution-runbook-2026-06-19.md
 previous_result: docs/plans/bayesfilter-highdim-zhao-cui-p77-phase6-budgeted-training-diagnostic-result-2026-06-19.md

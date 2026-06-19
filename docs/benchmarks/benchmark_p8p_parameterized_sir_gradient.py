@@ -272,11 +272,55 @@ def _scaled_parameters(
     base_nu = tf.cast(model.nu, DTYPE)
     base_observation_covariance = tf.cast(model.observation_covariance, DTYPE)
     return {
-        "kappa": base_kappa * tf.exp(log_kappa_scale),
-        "nu": base_nu * tf.exp(log_nu_scale),
-        "observation_covariance": base_observation_covariance
-        * tf.exp(tf.constant(2.0, dtype=DTYPE) * log_obs_noise_scale),
+        "kappa": _scale_vector_parameter(base_kappa, log_kappa_scale),
+        "nu": _scale_vector_parameter(base_nu, log_nu_scale),
+        "observation_covariance": _scale_matrix_parameter(
+            base_observation_covariance,
+            log_obs_noise_scale,
+        ),
     }
+
+
+def _scale_vector_parameter(base: tf.Tensor, log_scale: tf.Tensor) -> tf.Tensor:
+    scale = tf.exp(tf.convert_to_tensor(log_scale, dtype=DTYPE))
+    base = tf.convert_to_tensor(base, dtype=DTYPE)
+    if scale.shape.rank == 0:
+        return base * scale
+    if scale.shape.rank == 1:
+        return base[tf.newaxis, :] * scale[:, tf.newaxis]
+    raise ValueError("theta vector parameter scale must be scalar or rank 1")
+
+
+def _scale_matrix_parameter(base: tf.Tensor, log_scale: tf.Tensor) -> tf.Tensor:
+    scale = tf.exp(
+        tf.constant(2.0, dtype=DTYPE) * tf.convert_to_tensor(log_scale, dtype=DTYPE)
+    )
+    base = tf.convert_to_tensor(base, dtype=DTYPE)
+    if scale.shape.rank == 0:
+        return base * scale
+    if scale.shape.rank == 1:
+        return base[tf.newaxis, :, :] * scale[:, tf.newaxis, tf.newaxis]
+    raise ValueError("theta matrix parameter scale must be scalar or rank 1")
+
+
+def _batch_vector_parameter(value: tf.Tensor) -> tf.Tensor:
+    tensor = tf.convert_to_tensor(value, dtype=DTYPE)
+    if tensor.shape.rank == 1:
+        return tensor[tf.newaxis, tf.newaxis, :]
+    if tensor.shape.rank == 2:
+        return tensor[:, tf.newaxis, :]
+    raise ValueError("batch vector parameter must have rank 1 or 2")
+
+
+def _batch_matrix_parameter(value: tf.Tensor, batch_size: int) -> tf.Tensor:
+    tensor = tf.convert_to_tensor(value, dtype=DTYPE)
+    if tensor.shape.rank == 2:
+        return tf.tile(tensor[tf.newaxis, :, :], [batch_size, 1, 1])
+    if tensor.shape.rank == 3:
+        if tensor.shape[0] is not None and int(tensor.shape[0]) != batch_size:
+            raise ValueError("rank-3 matrix parameter batch dimension mismatch")
+        return tensor
+    raise ValueError("batch matrix parameter must have rank 2 or 3")
 
 
 def _make_parameterized_callbacks(
@@ -311,6 +355,12 @@ def _make_parameterized_callbacks(
     )
     batch_size = len(seeds)
     num_particles = args.num_particles
+    kappa_batch = _batch_vector_parameter(kappa)
+    nu_batch = _batch_vector_parameter(nu)
+    observation_covariance_batch = _batch_matrix_parameter(
+        observation_covariance,
+        batch_size,
+    )
 
     def apply_sir_process_noise_policy(points: tf.Tensor) -> tf.Tensor:
         susceptible = tf.maximum(points[:, :, 0::2], tf.constant(0.0, dtype=DTYPE))
@@ -333,11 +383,11 @@ def _make_parameterized_callbacks(
             tf.linalg.matmul(infectious, adjacency, transpose_b=True)
             - infectious * neighbor_degree[tf.newaxis, tf.newaxis, :]
         )
-        infection = kappa[tf.newaxis, tf.newaxis, :] * susceptible * infectious
+        infection = kappa_batch * susceptible * infectious
         d_susceptible = -infection + tf.constant(0.5, dtype=DTYPE) * susceptible_neighbor
         d_infectious = (
             infection
-            - nu[tf.newaxis, tf.newaxis, :] * infectious
+            - nu_batch * infectious
             + tf.constant(0.5, dtype=DTYPE) * infectious_neighbor
         )
         reshaped = tf.reshape(
@@ -420,16 +470,8 @@ def _make_parameterized_callbacks(
     ) -> tf.Tensor:
         del time_index
         residual = observation_fn(x) - observation[tf.newaxis, tf.newaxis, :]
-        covariance = tf.tile(
-            observation_covariance[tf.newaxis, :, :],
-            [batch_size, 1, 1],
-        )
-        return _batched_gaussian_logpdf(residual, covariance)
+        return _batched_gaussian_logpdf(residual, observation_covariance_batch)
 
-    observation_covariance_batch = tf.tile(
-        observation_covariance[tf.newaxis, :, :],
-        [batch_size, 1, 1],
-    )
     return {
         "prior_mean_fn": transition_mean,
         "pre_flow_step_fn": pre_flow_step,

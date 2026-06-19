@@ -266,6 +266,12 @@ def test_evidence_run_vetoes_validation_non_improvement(monkeypatch, tmp_path) -
     assert payload["budget_manifest"]["hard_budget_gate_passed"] is True
     assert payload["validation_summary"]["fit_quality_claim_permitted"] is True
     assert payload["validation_summary"]["validation_improved_for_selection"] is False
+    assert (
+        payload["validation_summary"][
+            "validation_improvement_observed_explanatory_only"
+        ]
+        is False
+    )
     assert payload["gate_summary"]["overall_status"] == "block"
     assert "validation_not_improved_against_untrained_ukf_baseline" in payload[
         "gate_summary"
