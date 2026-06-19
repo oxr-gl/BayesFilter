@@ -64,7 +64,7 @@ MEAN_ERROR_THRESHOLD = 3.0e-1
 SECOND_MOMENT_ERROR_THRESHOLD = 1.0
 
 NONCLAIMS = (
-    "Wave 4 positive-feature lane hard screen only",
+    "positive-feature lane hard screen only",
     "no ranking claim",
     "no speedup claim",
     "no production default change",
