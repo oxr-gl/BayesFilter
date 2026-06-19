@@ -1,7 +1,7 @@
 # P77 Visible Stop Handoff
 
 metadata_date: 2026-06-19
-status: PHASE4_LOCAL_CHECKS_PASS_PENDING_CLAUDE_REVIEW
+status: PHASE6_LOCAL_CHECKS_PASS_PENDING_CLAUDE_REVIEW
 master_program: docs/plans/bayesfilter-highdim-zhao-cui-p77-corrected-metric-training-master-program-2026-06-19.md
 runbook: docs/plans/bayesfilter-highdim-zhao-cui-p77-visible-gated-execution-runbook-2026-06-19.md
 
@@ -39,6 +39,14 @@ Current interpretation:
   in a Claude-reviewed subplan may proceed without separate human approval.
 - Claude reviewed that governance patch in
   `p77-governance-phase3-readiness-r1` and returned `VERDICT: AGREE`.
+- The runbook governance was later generalized beyond Phase 3: scoped
+  implementation-code edits in any P77 phase may proceed without separate
+  human approval when the edits are explicitly named in a Claude-reviewed
+  subplan, stay inside the named files/behavior, are executed visibly by Codex,
+  and pass focused local checks.
+- Claude reviewed the generalized governance patch in
+  `p77-governance-generalized-code-edit-review-r1` and returned
+  `VERDICT: AGREE`.
 - Phase 3 implementation has been performed only in the scoped P77 runner/test
   surface.
 - No training run has been launched.
@@ -83,8 +91,33 @@ Current gate:
 - scoped implementation `git diff --check` passed;
 - `p77-phase3-execution-review-r1` returned `VERDICT: AGREE`.
 
+Phase 5 produced:
+
+- `docs/plans/bayesfilter-highdim-zhao-cui-p77-phase5-budgeted-training-design-result-2026-06-19.md`
+- `docs/plans/bayesfilter-highdim-zhao-cui-p77-phase6-budgeted-training-diagnostic-subplan-2026-06-19.md`
+
+Current Phase 6 gate:
+
+- Phase 5 stayed design-only and froze the Phase 6 CPU-only command with
+  `learning-rate=0.001`, `batch-size=1024`, `batches=40`, and
+  `max-seconds=7200`;
+- runner now blocks evidence runs with `incomplete_batch_count` unless all
+  requested batches complete;
+- `p77-phase5-execution-review-r1` blocked on the missing incomplete-batch
+  evidence veto;
+- the blocker was repaired and `p77-phase5-execution-review-r2` returned
+  `VERDICT: AGREE`;
+- the user approved launching Phase 6;
+- Phase 6 ran the exact reviewed CPU-only evidence command;
+- `N_train=40960`, `P_theta=1656`, and all 40 requested batches completed;
+- the gate summary recorded `overall_status=pass`, `blockers=[]`,
+  `hard_budget_gate_passed=true`, and
+  `validation_improved_for_selection=true`;
+- trained corrected validation CE was `-24.339592237328375` versus untrained
+  UKF baseline `-23.797689401261703`;
+- Phase 6 result and Phase 7 decision-boundary subplan have been drafted;
+- Claude review of Phase 6 execution/result remains pending.
+
 Next action:
 
-- Send Phase 4 result and Phase 5 design-only subplan to Claude for read-only
-  execution review.
-- If Claude returns `VERDICT: AGREE`, continue to Phase 5 design-only work.
+- Send Phase 6 result and Phase 7 subplan to Claude for read-only review.

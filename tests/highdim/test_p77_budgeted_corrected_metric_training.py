@@ -272,6 +272,32 @@ def test_evidence_run_vetoes_validation_non_improvement(monkeypatch, tmp_path) -
     ]["blockers"]
 
 
+def test_evidence_run_vetoes_incomplete_batch_count(monkeypatch, tmp_path) -> None:
+    monkeypatch.setattr(
+        p77,
+        "_target_context",
+        lambda **kwargs: _context(**kwargs),
+    )
+
+    payload = p77.budgeted_corrected_metric_training_payload(
+        output=tmp_path / "incomplete.json",
+        degree=2,
+        rank=4,
+        batch_size=33120,
+        batches=2,
+        learning_rate=1e-3,
+        max_seconds=1e-12,
+        seed=7703,
+        evidence_run=True,
+    )
+
+    assert payload["budget_manifest"]["hard_budget_gate_passed"] is True
+    assert payload["completed_batches"] < payload["requested_batches"]
+    assert payload["gate_summary"]["all_requested_batches_completed"] is False
+    assert payload["gate_summary"]["overall_status"] == "block"
+    assert "incomplete_batch_count" in payload["gate_summary"]["blockers"]
+
+
 def test_runner_source_does_not_expose_failed_live_routes() -> None:
     source = Path("scripts/p77_budgeted_corrected_metric_training.py").read_text()
     forbidden = (

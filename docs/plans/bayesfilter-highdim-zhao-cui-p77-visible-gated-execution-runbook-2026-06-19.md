@@ -4,7 +4,7 @@ Date: 2026-06-19
 
 ## Status
 
-`PHASE4_LOCAL_CHECKS_PASS_PENDING_CLAUDE_REVIEW`
+`PHASE6_LOCAL_CHECKS_PASS_PENDING_CLAUDE_REVIEW`
 
 ## Role Contract
 
@@ -155,10 +155,12 @@ all of the following hold:
   change, destructive filesystem/git action, detached agent, or large
   diagnostic is involved.
 
-For P77 Phase 3, this authorizes the scoped runner/test implementation surface
-described by
-`docs/plans/bayesfilter-highdim-zhao-cui-p77-phase3-implementation-surface-subplan-2026-06-19.md`
-after Claude agrees this governance patch and Phase 3 readiness.
+This applies to every P77 phase, not only Phase 3.  If a later
+Claude-reviewed subplan explicitly names implementation-code edits and those
+edits remain inside the named files, named behavior, reviewed checks, and
+forbidden-action boundary, Codex may perform the edits visibly without asking
+for another human approval.  Claude remains a reviewer, not an executor or
+authority to cross the stop conditions below.
 
 ## Human-Required Stop Conditions
 

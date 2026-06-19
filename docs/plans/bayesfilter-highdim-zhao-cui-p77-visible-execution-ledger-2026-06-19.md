@@ -1,7 +1,7 @@
 # P77 Visible Execution Ledger
 
 metadata_date: 2026-06-19
-status: PHASE4_LOCAL_CHECKS_PASS_PENDING_CLAUDE_REVIEW
+status: PHASE6_LOCAL_CHECKS_PASS_PENDING_CLAUDE_REVIEW
 executor: Codex
 reviewer: Claude Opus max effort, read-only and bounded
 
@@ -446,7 +446,206 @@ Gate status:
 
 - PHASE4_LOCAL_CHECKS_PASS_PENDING_CLAUDE_REVIEW
 
+Claude execution review:
+
+- `p77-phase4-execution-review-r1`: `VERDICT: BLOCK`.
+- R1 blocker: current Phase 4 bookkeeping still said `7 passed, 2 warnings`
+  after the future evidence-veto repair added an eighth focused test.
+- Patched Phase 4 result, execution ledger, and stop handoff to record
+  `8 passed, 2 warnings`.
+- Reran focused pytest: `8 passed, 2 warnings`.
+- Reran `git diff --check` on touched files.
+- `p77-phase4-execution-review-r2`: `VERDICT: AGREE`.
+- Claude agreed the bookkeeping blocker was repaired and no new material
+  blocker prevents closing Phase 4.
+
+Gate status:
+
+- PHASE4_CLAUDE_AGREE_READY_FOR_PHASE5_DESIGN
+
 Next action:
 
-- Run final Phase 4 result/subplan coverage checks, then send Phase 4 result
-  and Phase 5 subplan to Claude for read-only execution review.
+- Execute Phase 5 design-only work.  Do not launch Phase 6 evidence.
+
+### 2026-06-19 - Phase 5 - BUDGETED_TRAINING_DESIGN_LOCAL_CHECKS_PASS
+
+Evidence contract:
+
+- Question: Can P77 freeze an exact, non-arbitrary first proper
+  corrected-metric training diagnostic before any evidence run?
+- Baseline/comparator: UKF-initialized untrained TT baseline evaluated by the
+  same corrected validation and replay CE roles as the trained candidate.
+- Primary criterion: Phase 5 result and Phase 6 subplan specify exact CPU-only
+  command, \(N_{\rm train}=40960\ge33120\), learning rate `0.001`,
+  validation-only pass/fail rule, replay role, no final-audit claim, veto
+  diagnostics, runtime bound, and explicit approval requirement before Phase 6.
+- Veto diagnostics: evidence command run in Phase 5, arbitrary/post-hoc tuning,
+  audit or replay selection leakage, under-budget evidence, proxy metric
+  promotion, failed-route revival, or default/GPU/network/package/destructive
+  action.
+- Non-claims: no training improvement, no hyperparameter selection from new
+  results, no proper evidence result, no lower-gate repair, no validation/HMC
+  readiness, no scaling.
+
+Actions:
+
+- Wrote Phase 5 design result.
+- Drafted Phase 6 budgeted training diagnostic subplan.
+- Froze a single-candidate Phase 6 evidence command at learning rate `0.001`.
+- Kept `0.0001` and `0.0003` as later reviewed tuning candidates, not Phase 6
+  commands.
+- Did not launch `--evidence-run` or `1024 x 40`.
+
+Artifacts:
+
+- `docs/plans/bayesfilter-highdim-zhao-cui-p77-phase5-budgeted-training-design-result-2026-06-19.md`
+- `docs/plans/bayesfilter-highdim-zhao-cui-p77-phase6-budgeted-training-diagnostic-subplan-2026-06-19.md`
+
+Local checks:
+
+- Phase 5 R1 repair added the `incomplete_batch_count` evidence-run veto and a
+  focused test proving an incomplete evidence run cannot pass.
+
+- Phase 4 JSON parsed.
+- Phase 4 non-evidence/budget/claim-fence fields were present.
+- Phase 2 and Phase 4 source-result terms were present.
+- Compileall passed for the P77 runner/test.
+- Focused pytest passed after the incomplete-evidence-run veto repair:
+  `9 passed, 2 warnings`.
+- Phase 5/Phase 6 documentation coverage checks passed.
+- `git diff --check` passed for touched Phase 5 files.
+
+Gate status:
+
+- PHASE5_LOCAL_CHECKS_PASS_PENDING_CLAUDE_REVIEW
+
+Claude execution review:
+
+- `p77-phase5-execution-review-r1`: `VERDICT: BLOCK`.
+- R1 blocker: the runner did not yet enforce the documented requirement that
+  an evidence run complete all requested batches.
+- Patched the runner and focused tests so evidence runs block with
+  `incomplete_batch_count` unless `completed_batches == requested_batches`.
+- Reran focused pytest: `9 passed, 2 warnings`.
+- Patched Phase 5/Phase 6 docs and handoff notes to record the repair.
+- `p77-phase5-execution-review-r2`: `VERDICT: AGREE`.
+- Claude agreed the R1 blocker was repaired and no new material blocker
+  prevents closing Phase 5.
+
+Gate status:
+
+- PHASE5_CLAUDE_AGREE_STOP_FOR_PHASE6_EVIDENCE_APPROVAL
+
+### 2026-06-20 - Phase 6 - BUDGETED_TRAINING_DIAGNOSTIC_LOCAL_CHECKS_PASS
+
+Evidence contract:
+
+- Question: Does the UKF-warm-started P77 runner improve corrected validation
+  CE against the untrained UKF baseline under
+  \(N_{\rm train}=40960\ge33120\)?
+- Baseline/comparator: UKF-initialized untrained TT baseline evaluated by the
+  same corrected validation role as the trained candidate.
+- Primary criterion: exact approved command completes 40 batches, records
+  `evidence_run=true`, `hard_budget_gate_passed=true`,
+  `fit_quality_claim_permitted=true`, empty blockers, and
+  `validation_improved_for_selection=true`.
+- Veto diagnostics: incomplete or under-budget run, nonfinite quantities,
+  bridge/tieout failure, CE reconstruction mismatch, alpha mass failure, seed
+  overlap, audit selection/tuning, failed-route revival, validation
+  non-improvement, default/GPU/network/package/destructive/detached action, or
+  command mismatch.
+- Non-claims: no source-faithful Zhao--Cui claim, no final audit claim, no
+  lower-gate repair, no validation/HMC readiness, no scaling, no default
+  policy, no final rank/sample/learning-rate policy.
+
+Actions:
+
+- Ran reviewed CPU-only Phase 6 command:
+  `CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp python scripts/p77_budgeted_corrected_metric_training.py --output docs/plans/bayesfilter-highdim-zhao-cui-p77-phase6-budgeted-training-diagnostic-lr1e-3-2026-06-19.json --degree 2 --rank 4 --batch-size 1024 --batches 40 --learning-rate 0.001 --max-seconds 7200 --seed 7706 --evidence-run`.
+- Wrote Phase 6 result.
+- Drafted Phase 7 decision-boundary subplan.
+
+Result summary:
+
+- `status=P77_BUDGETED_CORRECTED_METRIC_TRAINING_COMPLETED`.
+- `N_train=40960`, `P_theta=1656`,
+  `N_train_over_P_theta=24.734299516908212`.
+- `requested_batches=40`, `completed_batches=40`.
+- `gate_summary.overall_status=pass`.
+- `gate_summary.blockers=[]`.
+- `validation_improved_for_selection=true`.
+- untrained UKF baseline corrected validation CE:
+  `-23.797689401261703`.
+- trained corrected validation CE:
+  `-24.339592237328375`.
+- trained minus baseline:
+  `-0.5419028360666722`.
+- `audit_used_for_selection=false`.
+- `source_route_prefit_used=false`.
+- `default_behavior_changed=false`.
+
+Artifacts:
+
+- `docs/plans/bayesfilter-highdim-zhao-cui-p77-phase6-budgeted-training-diagnostic-lr1e-3-2026-06-19.json`
+- `docs/plans/bayesfilter-highdim-zhao-cui-p77-phase6-budgeted-training-diagnostic-result-2026-06-19.md`
+- `docs/plans/bayesfilter-highdim-zhao-cui-p77-phase7-decision-boundary-subplan-2026-06-19.md`
+
+Local checks:
+
+- Phase 6 precheck grep passed.
+- Compileall passed for the P77 runner/test.
+- Focused pytest passed: `9 passed, 2 warnings`.
+- JSON parse check passed.
+- Required evidence/budget/selection/provenance field grep passed.
+- Result/subplan boundary grep passed.
+- `git diff --check` passed for touched Phase 6 files.
+
+Gate status:
+
+- PHASE6_LOCAL_CHECKS_PASS_PENDING_CLAUDE_REVIEW
+
+Next action:
+
+- Stop for explicit human approval before launching the reviewed Phase 6
+  evidence command.
+
+### 2026-06-19 - Governance Patch - GENERALIZED_SCOPED_CODE_EDIT_RULE
+
+Question:
+
+- Should P77 keep asking for human approval before scoped implementation-code
+  edits when a phase subplan already names the edits and Claude has reviewed
+  the subplan?
+
+Decision:
+
+- No.  The runbook governance now applies the scoped code-edit rule to every
+  P77 phase, not only Phase 3.
+
+Operational rule:
+
+- Codex may perform implementation-code edits without separate human approval
+  when the edits are explicitly named in a Claude-reviewed P77 phase subplan,
+  remain inside the named files and behavior, are executed visibly in this
+  session, and pass the reviewed focused checks.
+- This does not authorize training-evidence runs, GPU/CUDA, network/package or
+  environment operations, default changes, destructive actions, detached
+  agents, large diagnostics, or post-result criterion changes.
+
+Local checks:
+
+- Governance/status grep passed for P77 runbook, master program, Phase 6
+  subplan, and stop handoff.
+- Focused pytest passed:
+  `9 passed, 2 warnings`.
+- `git diff --check` passed for the touched P77 governance/code/test files.
+
+Claude review:
+
+- `p77-governance-generalized-code-edit-review-r1`: `VERDICT: AGREE`.
+- Claude agreed the generalized governance patch does what was intended and
+  preserves the Phase 6 explicit evidence-approval gate.
+
+Gate status:
+
+- PHASE5_CLAUDE_AGREE_STOP_FOR_PHASE6_EVIDENCE_APPROVAL

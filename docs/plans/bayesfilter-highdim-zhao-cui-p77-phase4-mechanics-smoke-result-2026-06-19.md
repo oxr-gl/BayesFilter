@@ -1,7 +1,7 @@
 # P77 Phase 4 Result: Tiny Training Mechanics Smoke
 
 metadata_date: 2026-06-19
-status: PHASE4_LOCAL_CHECKS_PASS_PENDING_CLAUDE_REVIEW
+status: PHASE4_CLAUDE_AGREE_READY_FOR_PHASE5_DESIGN
 master_program: docs/plans/bayesfilter-highdim-zhao-cui-p77-corrected-metric-training-master-program-2026-06-19.md
 runbook: docs/plans/bayesfilter-highdim-zhao-cui-p77-visible-gated-execution-runbook-2026-06-19.md
 subplan: docs/plans/bayesfilter-highdim-zhao-cui-p77-phase4-mechanics-smoke-subplan-2026-06-19.md
@@ -183,3 +183,14 @@ Phase 5 should be design-only.  It should freeze the exact proper budgeted
 training diagnostic command(s), learning-rate handling, pass/fail rule,
 replay/audit use, runtime bounds, and approval boundary for Phase 6.  Phase 5
 must not launch the `1024 x 40` evidence run.
+
+Claude execution review:
+
+- `p77-phase4-execution-review-r1`: `VERDICT: BLOCK`.
+- R1 blocker was stale current-gate bookkeeping: Phase 4 still recorded
+  `7 passed, 2 warnings` after the future evidence-veto repair added an eighth
+  focused test.
+- Patched the Phase 4 result, execution ledger, and stop handoff to record
+  `8 passed, 2 warnings`; reran focused pytest and `git diff --check`.
+- `p77-phase4-execution-review-r2`: `VERDICT: AGREE`.
+- Claude agreed Phase 4 may close and Phase 5 may proceed as design-only.

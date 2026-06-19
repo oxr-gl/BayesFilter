@@ -74,6 +74,10 @@ def _parse_positive_float_csv(value: str) -> list[float]:
     return parsed
 
 
+def _parse_string_csv(value: str) -> list[str]:
+    return [item.strip() for item in str(value).split(",") if item.strip()]
+
+
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__, allow_abbrev=False)
     parser.add_argument("--batch-seeds", default="81120,81121,81122,81123,81124")
@@ -157,6 +161,25 @@ def _parse_args() -> argparse.Namespace:
             "uses one forward-mode directional derivative per raw parameter"
         ),
     )
+    parser.add_argument(
+        "--direction-filter",
+        default="",
+        help=(
+            "optional comma-separated direction names to evaluate within the "
+            "selected basis set; empty evaluates all directions"
+        ),
+    )
+    parser.add_argument(
+        "--fd-mode",
+        choices=("enabled", "ad-only"),
+        default="enabled",
+        help="ad-only records the objective, gradient, and seed MCSE without FD lines",
+    )
+    parser.add_argument(
+        "--progress-output",
+        default="",
+        help="optional JSON file updated after AD and after each FD window",
+    )
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
     args.batch_seeds = _parse_int_csv(args.batch_seeds)
@@ -168,6 +191,7 @@ def _parse_args() -> argparse.Namespace:
         else [float(args.base_step)]
     )
     args.adaptive_step_factor_values = _parse_positive_float_csv(args.adaptive_step_factors)
+    args.direction_filter_values = _parse_string_csv(args.direction_filter)
     if args.time_steps <= 0:
         raise ValueError("time_steps must be positive")
     if args.num_particles <= 1:
@@ -643,6 +667,34 @@ def _validate_device(tensors: tuple[tf.Tensor, ...], expect_device_kind: str) ->
     return devices
 
 
+def _write_progress(
+    args: argparse.Namespace,
+    *,
+    start: float,
+    stage: str,
+    completed: list[dict[str, Any]],
+    current: dict[str, Any] | None = None,
+) -> None:
+    if not args.progress_output:
+        return
+    progress_path = Path(args.progress_output)
+    progress_path.parent.mkdir(parents=True, exist_ok=True)
+    record = {
+        "timestamp_utc": _dt.datetime.now(tz=_dt.timezone.utc).isoformat(),
+        "phase": args.phase_label,
+        "stage": stage,
+        "elapsed_seconds": time.perf_counter() - start,
+        "output": args.output,
+        "direction_filter": list(args.direction_filter_values),
+        "completed": completed,
+        "current": current,
+    }
+    progress_path.write_text(
+        json.dumps(record, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
+
 def main() -> None:
     args = _parse_args()
     precision = p8p._configure_precision(args)
@@ -660,45 +712,101 @@ def main() -> None:
         per_seed_gradient = gradient_diag["per_seed_gradient"]
         geometry = p8p._gradient_geometry_summary(per_seed_gradient)
         seed_covariance = tf.constant(geometry["seed_gradient_covariance"], dtype=p8p.DTYPE)
+        completed_progress: list[dict[str, Any]] = []
+        _write_progress(
+            args,
+            start=start,
+            stage="ad_complete",
+            completed=completed_progress,
+            current=None,
+        )
         basis_results = []
-        for basis in _basis_matrices(seed_covariance, args.basis_set):
-            matrix = tf.convert_to_tensor(basis["matrix_columns"], dtype=p8p.DTYPE)
-            direction_results = []
-            for index, direction_name in enumerate(basis["direction_names"]):
-                window_results = []
-                direction = matrix[:, index]
-                base_steps, step_selection = _base_steps_for_direction(args, gradient, direction)
-                for base_step in base_steps:
-                    window_results.append(
-                        _regression_diagnostic_for_direction(
-                            contexts,
-                            args,
-                            theta0,
-                            gradient,
-                            direction,
-                            basis_name=basis["basis_name"],
-                            direction_name=direction_name,
-                            base_step=base_step,
-                        )
+        if args.fd_mode == "enabled":
+            for basis in _basis_matrices(seed_covariance, args.basis_set):
+                matrix = tf.convert_to_tensor(basis["matrix_columns"], dtype=p8p.DTYPE)
+                direction_results = []
+                for index, direction_name in enumerate(basis["direction_names"]):
+                    if (
+                        args.direction_filter_values
+                        and direction_name not in args.direction_filter_values
+                    ):
+                        continue
+                    window_results = []
+                    direction = matrix[:, index]
+                    base_steps, step_selection = _base_steps_for_direction(
+                        args,
+                        gradient,
+                        direction,
                     )
-                direction_results.append(
-                    {
-                        "direction_name": direction_name,
-                        "direction_original_theta": [
-                            float(item) for item in matrix[:, index].numpy().tolist()
-                        ],
-                        "base_step_selection": step_selection,
-                        "ad_directional_derivative": window_results[0][
-                            "ad_directional_derivative"
-                        ],
-                        "window_results": window_results,
-                        "plateau_summary": _plateau_summary(window_results),
-                    }
+                    for base_step in base_steps:
+                        _write_progress(
+                            args,
+                            start=start,
+                            stage="fd_window_started",
+                            completed=completed_progress,
+                            current={
+                                "basis_name": basis["basis_name"],
+                                "direction_name": direction_name,
+                                "base_step": float(base_step),
+                            },
+                        )
+                        window_results.append(
+                            _regression_diagnostic_for_direction(
+                                contexts,
+                                args,
+                                theta0,
+                                gradient,
+                                direction,
+                                basis_name=basis["basis_name"],
+                                direction_name=direction_name,
+                                base_step=base_step,
+                            )
+                        )
+                        completed_progress.append(
+                            {
+                                "basis_name": basis["basis_name"],
+                                "direction_name": direction_name,
+                                "base_step": float(base_step),
+                                "regression_slope": float(
+                                    window_results[-1]["regression_slope"]
+                                ),
+                                "ad_minus_regression_slope": float(
+                                    window_results[-1]["ad_minus_regression_slope"]
+                                ),
+                            }
+                        )
+                        _write_progress(
+                            args,
+                            start=start,
+                            stage="fd_window_complete",
+                            completed=completed_progress,
+                            current=None,
+                        )
+                    direction_results.append(
+                        {
+                            "direction_name": direction_name,
+                            "direction_original_theta": [
+                                float(item) for item in matrix[:, index].numpy().tolist()
+                            ],
+                            "base_step_selection": step_selection,
+                            "ad_directional_derivative": window_results[0][
+                                "ad_directional_derivative"
+                            ],
+                            "window_results": window_results,
+                            "plateau_summary": _plateau_summary(window_results),
+                        }
+                    )
+                basis_record = dict(basis)
+                basis_record["matrix_columns"] = p8p._to_float_matrix(matrix)
+                basis_record["direction_results"] = direction_results
+                basis_results.append(basis_record)
+            if args.direction_filter_values and not any(
+                basis["direction_results"] for basis in basis_results
+            ):
+                raise ValueError(
+                    "direction-filter did not match any direction in the selected basis set: "
+                    + ",".join(args.direction_filter_values)
                 )
-            basis_record = dict(basis)
-            basis_record["matrix_columns"] = p8p._to_float_matrix(matrix)
-            basis_record["direction_results"] = direction_results
-            basis_results.append(basis_record)
     elapsed = time.perf_counter() - start
     output_devices = _validate_device((objective, gradient), args.expect_device_kind)
     result = {

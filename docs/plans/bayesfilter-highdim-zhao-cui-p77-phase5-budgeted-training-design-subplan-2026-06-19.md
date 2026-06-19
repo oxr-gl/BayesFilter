@@ -1,7 +1,7 @@
 # P77 Phase 5 Subplan: Proper Budgeted Training Diagnostic Design
 
 metadata_date: 2026-06-19
-status: DRAFT_PENDING_PHASE4_EXECUTION_REVIEW
+status: PHASE5_LOCAL_CHECKS_PASS_PENDING_CLAUDE_REVIEW
 master_program: docs/plans/bayesfilter-highdim-zhao-cui-p77-corrected-metric-training-master-program-2026-06-19.md
 runbook: docs/plans/bayesfilter-highdim-zhao-cui-p77-visible-gated-execution-runbook-2026-06-19.md
 previous_result: docs/plans/bayesfilter-highdim-zhao-cui-p77-phase4-mechanics-smoke-result-2026-06-19.md

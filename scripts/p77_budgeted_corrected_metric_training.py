@@ -378,6 +378,8 @@ def budgeted_corrected_metric_training_payload(
     blockers = []
     if completed_batches <= 0:
         blockers.append("no_completed_batches")
+    if bool(evidence_run) and int(completed_batches) != int(batches):
+        blockers.append("incomplete_batch_count")
     blockers.extend(metric_vetoes)
     if bool(evidence_run) and completed_batches * int(batch_size) < int(
         budget_manifest["minimum_training_samples"]
@@ -421,6 +423,10 @@ def budgeted_corrected_metric_training_payload(
                 "bridge_status": bridge["status"],
                 "hard_budget_gate_passed": bool(budget_manifest["hard_budget_gate_passed"]),
                 "evidence_run": bool(evidence_run),
+                "requested_batches": int(batches),
+                "completed_batches": int(completed_batches),
+                "all_requested_batches_completed": int(completed_batches)
+                == int(batches),
                 "completed_training_samples": int(completed_batches * int(batch_size)),
                 "validation_improvement_observed_explanatory_only": validation_summary[
                     "validation_improvement_observed_explanatory_only"
@@ -706,6 +712,15 @@ def _training_blocked_payload(
     trace: Sequence[Mapping[str, Any]],
     final_terms=None,
 ) -> Mapping[str, Any]:
+    blockers = [str(blocker)]
+    if bool(base.get("evidence_run", False)) and int(completed_batches) != int(
+        requested_batches
+    ):
+        blockers.append("incomplete_batch_count")
+    if bool(base.get("evidence_run", False)) and int(
+        completed_batches * int(base.get("batch_size", 0))
+    ) < int(dict(base.get("budget_manifest", {})).get("minimum_training_samples", 0)):
+        blockers.append("completed_training_samples_below_20P")
     payload = {
         **dict(base),
         "status": STATUS_TRAINING_BLOCKED,
@@ -723,8 +738,20 @@ def _training_blocked_payload(
         "metric_batches": {},
         "gate_summary": {
             "overall_status": "block",
-            "blockers": (str(blocker),),
+            "blockers": tuple(dict.fromkeys(blockers)),
+            "evidence_run": bool(base.get("evidence_run", False)),
+            "hard_budget_gate_passed": bool(
+                dict(base.get("budget_manifest", {})).get(
+                    "hard_budget_gate_passed", False
+                )
+            ),
             "completed_batches": int(completed_batches),
+            "requested_batches": int(requested_batches),
+            "all_requested_batches_completed": int(completed_batches)
+            == int(requested_batches),
+            "completed_training_samples": int(
+                completed_batches * int(base.get("batch_size", 0))
+            ),
             "stop_reason": str(stop_reason),
             "not lower-gate repair": True,
             "not HMC readiness": True,

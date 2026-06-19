@@ -1,7 +1,7 @@
 # P77 Claude Review Ledger
 
 metadata_date: 2026-06-19
-status: PHASE4_LOCAL_CHECKS_PASS_PENDING_CLAUDE_REVIEW
+status: PHASE5_CLAUDE_AGREE_STOP_FOR_PHASE6_EVIDENCE_APPROVAL
 reviewer: Claude Opus max effort, read-only and bounded
 
 ## Reviews
@@ -330,3 +330,150 @@ Summary:
   preserved.
 - Claude agreed Phase 4 is ready as a tiny CPU-only non-evidence mechanics
   smoke.
+
+### Phase 4 Execution Review R1
+
+Artifacts:
+
+- `docs/plans/bayesfilter-highdim-zhao-cui-p77-phase4-mechanics-smoke-subplan-2026-06-19.md`
+- `docs/plans/bayesfilter-highdim-zhao-cui-p77-phase4-mechanics-smoke-result-2026-06-19.md`
+- `docs/plans/bayesfilter-highdim-zhao-cui-p77-phase4-mechanics-smoke-2026-06-19.json`
+- `docs/plans/bayesfilter-highdim-zhao-cui-p77-phase5-budgeted-training-design-subplan-2026-06-19.md`
+- `scripts/p77_budgeted_corrected_metric_training.py`
+- `tests/highdim/test_p77_budgeted_corrected_metric_training.py`
+- P77 master program, runbook, execution ledger, review ledger, and stop
+  handoff.
+
+Claude verdict:
+
+- `VERDICT: BLOCK`
+
+Summary:
+
+- Claude agreed Phase 4 stayed tiny, CPU-only, non-evidence, and did not run
+  `1024 x 40` or pass `--evidence-run`.
+- Claude agreed the manifest-labeling repair prevents smoke CE movement from
+  becoming fit-quality evidence.
+- Claude agreed the future evidence veto for validation non-improvement is
+  sensible and tested without a real evidence command.
+- Claude agreed Phase 5 is design-only and preserves explicit human approval
+  before Phase 6 evidence execution.
+- Claude blocked only on stale current-gate bookkeeping: Phase 4 artifacts said
+  `7 passed, 2 warnings` after the evidence-veto repair added an eighth test.
+
+R1 repair:
+
+- Patched the Phase 4 result, execution ledger, and stop handoff to record
+  `8 passed, 2 warnings`.
+- Reran focused pytest and `git diff --check`.
+
+### Phase 4 Execution Review R2
+
+Artifacts:
+
+- repaired
+  `docs/plans/bayesfilter-highdim-zhao-cui-p77-phase4-mechanics-smoke-result-2026-06-19.md`
+- repaired P77 execution ledger and stop handoff.
+- `tests/highdim/test_p77_budgeted_corrected_metric_training.py`
+- `scripts/p77_budgeted_corrected_metric_training.py`
+- `docs/plans/bayesfilter-highdim-zhao-cui-p77-phase5-budgeted-training-design-subplan-2026-06-19.md`
+
+Claude verdict:
+
+- `VERDICT: AGREE`
+
+Summary:
+
+- Claude verified the current focused test file has eight tests.
+- Claude verified current Phase 4 bookkeeping is synchronized to
+  `8 passed, 2 warnings`.
+- Claude found no lingering `7 passed` in the current Phase 4 bookkeeping set.
+- Claude agreed the evidence-veto repair and non-evidence smoke labeling are
+  reflected in code, tests, and result notes.
+- Claude agreed no new material blocker prevents Phase 4 closure and Phase 5
+  design-only continuation.
+
+### Phase 5 Execution Review R1
+
+Artifacts:
+
+- `docs/plans/bayesfilter-highdim-zhao-cui-p77-phase5-budgeted-training-design-result-2026-06-19.md`
+- `docs/plans/bayesfilter-highdim-zhao-cui-p77-phase6-budgeted-training-diagnostic-subplan-2026-06-19.md`
+- `scripts/p77_budgeted_corrected_metric_training.py`
+- `tests/highdim/test_p77_budgeted_corrected_metric_training.py`
+- P77 master program, runbook, execution ledger, review ledger, and stop
+  handoff.
+
+Claude verdict:
+
+- `VERDICT: BLOCK`
+
+Summary:
+
+- Claude agreed Phase 5 stayed design-only, froze a single-candidate
+  `learning-rate=0.001` Phase 6 command, preserved explicit user approval
+  before evidence, treated replay as validity/explanatory, made no final-audit
+  claim, and synchronized state artifacts.
+- Claude blocked because the runner did not yet enforce the documented
+  requirement that an evidence run complete all requested batches.
+
+R1 repair:
+
+- Patched the runner so evidence runs block with `incomplete_batch_count`
+  unless `completed_batches == requested_batches`.
+- Patched normal and training-blocked payloads to report requested/completed
+  batch accounting.
+- Added focused test
+  `test_evidence_run_vetoes_incomplete_batch_count`.
+- Reran focused pytest: `9 passed, 2 warnings`.
+- Patched Phase 5/Phase 6 docs and handoff notes.
+
+### Phase 5 Execution Review R2
+
+Artifacts:
+
+- repaired `scripts/p77_budgeted_corrected_metric_training.py`
+- repaired `tests/highdim/test_p77_budgeted_corrected_metric_training.py`
+- repaired
+  `docs/plans/bayesfilter-highdim-zhao-cui-p77-phase5-budgeted-training-design-result-2026-06-19.md`
+- repaired
+  `docs/plans/bayesfilter-highdim-zhao-cui-p77-phase6-budgeted-training-diagnostic-subplan-2026-06-19.md`
+- repaired execution ledger and stop handoff.
+
+Claude verdict:
+
+- `VERDICT: AGREE`
+
+Summary:
+
+- Claude verified the R1 blocker was repaired in runner logic, tests, and
+  Phase 5/6 artifacts.
+- Claude found no new material blocker for closing Phase 5.
+- Claude confirmed Phase 6 still requires explicit user approval and has not
+  been launched.
+
+### Generalized Scoped Code-Edit Governance Review R1
+
+Artifacts:
+
+- `docs/plans/bayesfilter-highdim-zhao-cui-p77-visible-gated-execution-runbook-2026-06-19.md`
+- `docs/plans/bayesfilter-highdim-zhao-cui-p77-corrected-metric-training-master-program-2026-06-19.md`
+- `docs/plans/bayesfilter-highdim-zhao-cui-p77-phase6-budgeted-training-diagnostic-subplan-2026-06-19.md`
+
+Claude verdict:
+
+- `VERDICT: AGREE`
+
+Summary:
+
+- Claude agreed the runbook now permits scoped implementation-code edits
+  without repeated human approval when the edits are explicitly named in a
+  Claude-reviewed phase subplan, remain inside the named files/behavior, are
+  executed visibly by Codex, and pass focused local checks.
+- Claude agreed boundary safety is preserved because training-evidence runs,
+  GPU/CUDA, network/package/environment operations, default changes,
+  destructive actions, detached agents, large diagnostics, and non-convergent
+  review loops still require a human stop.
+- Claude agreed the master program and Phase 6 subplan remain consistent:
+  Phase 6 still requires explicit approval before launching the frozen
+  `1024 x 40` evidence command.
