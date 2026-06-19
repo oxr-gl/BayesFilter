@@ -23,6 +23,13 @@ def _args(mode: str) -> argparse.Namespace:
         device="/CPU:0",
         device_scope="cpu",
         cuda_visible_devices=None,
+        plan_path="docs/plans/test-positive-feature-plan.md",
+        result_path="docs/plans/test-positive-feature-result.md",
+        program_id="test_positive_feature_program",
+        pass_status=WAVE4_POSITIVE_PASS,
+        fail_status="TEST_POSITIVE_FEATURE_FAILED",
+        report_title="Test Positive-Feature Validation",
+        next_evidence_needed="test next evidence",
         output="/tmp/wave4-positive.json",
         markdown_output="/tmp/wave4-positive.md",
     )
@@ -52,4 +59,3 @@ def test_wave4_positive_feature_full_contract_has_no_ranking() -> None:
     for row in result["rows"]:
         assert row["validity_pass"]
         assert row["transport_diagnostics"]["transport_matrix_materialized"] is False
-

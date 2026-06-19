@@ -87,6 +87,16 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--device", default="/CPU:0")
     parser.add_argument("--device-scope", choices=("cpu", "visible"), default=_PRE_ARGS.device_scope)
     parser.add_argument("--cuda-visible-devices", default=_PRE_ARGS.cuda_visible_devices)
+    parser.add_argument("--plan-path", default=PLAN_PATH)
+    parser.add_argument("--result-path", default=RESULT_PATH)
+    parser.add_argument("--program-id", default="wave4_positive_feature_validation")
+    parser.add_argument("--pass-status", default=WAVE4_POSITIVE_PASS)
+    parser.add_argument("--fail-status", default=WAVE4_POSITIVE_FAIL)
+    parser.add_argument("--report-title", default="Wave 4 Positive-Feature Validation")
+    parser.add_argument(
+        "--next-evidence-needed",
+        default="peer lane result and final merge before any larger validation decision",
+    )
     parser.add_argument("--output", required=True)
     parser.add_argument("--markdown-output", required=True)
     args = parser.parse_args()
@@ -415,9 +425,13 @@ def build_result(args: argparse.Namespace) -> dict[str, Any]:
         "viable_for_later_validation": status == "PASS",
     }
     total_wall_time = time.perf_counter() - build_start
+    program_status = args.pass_status if status == "PASS" else args.fail_status
     return {
         "status": status,
         "wave4_status": WAVE4_POSITIVE_PASS if status == "PASS" else WAVE4_POSITIVE_FAIL,
+        "program_id": str(args.program_id),
+        "program_status": str(program_status),
+        "report_title": str(args.report_title),
         "mode": args.mode,
         "lane_id": LANE_ID,
         "candidate_id": CANDIDATE_ID,
@@ -449,7 +463,7 @@ def build_result(args: argparse.Namespace) -> dict[str, Any]:
                 "per-seed tables",
             ],
             "default_readiness": "not assessed",
-            "next_evidence_needed": "peer lane result and final merge before any larger validation decision",
+            "next_evidence_needed": str(args.next_evidence_needed),
         },
         "evidence_contract": {
             "question": "Does the positive-feature lane remain viable under replicated downstream resampling screens?",
@@ -463,13 +477,14 @@ def build_result(args: argparse.Namespace) -> dict[str, Any]:
             "python": sys.version,
             "platform": platform.platform(),
             "tensorflow_version": tf.__version__,
+            "program_id": str(args.program_id),
             "device_scope": args.device_scope,
             "cuda_visible_devices": os.environ.get("CUDA_VISIBLE_DEVICES"),
             "device": args.device,
             "command": " ".join(sys.argv),
             "argv": list(sys.argv),
-            "plan_path": PLAN_PATH,
-            "result_path": RESULT_PATH,
+            "plan_path": str(args.plan_path),
+            "result_path": str(args.result_path),
             "json_output_path": str(args.output),
             "markdown_output_path": str(args.markdown_output),
             "fixtures": list(fixtures),
@@ -483,9 +498,10 @@ def build_result(args: argparse.Namespace) -> dict[str, Any]:
 
 def _write_markdown(result: dict[str, Any], path: Path) -> None:
     lines = [
-        "# Wave 4 Positive-Feature Validation",
+        f"# {result['report_title']}",
         "",
         f"- Status: `{result['status']}`",
+        f"- Program status: `{result['program_status']}`",
         f"- Wave 4 status: `{result['wave4_status']}`",
         f"- Lane: `{result['lane_id']}`",
         f"- Candidate: `{result['candidate_id']}`",
