@@ -11,6 +11,18 @@ __all__ = [
     "TFQRLinearDerivativeBackend",
     "TFLinearValueBackend",
     "TFSVDLinearValueBackend",
+    "TFLinearGaussianStateSpaceFirstDerivatives",
+    "SVD_LINEAR_SCORE_STATUS_BLOCKED_ACTIVE_FLOOR",
+    "SVD_LINEAR_SCORE_STATUS_INVALID_EIGENSOLVER_INPUT",
+    "SVD_LINEAR_SCORE_STATUS_VALID_PRE_REGULARIZED",
+    "StationaryLGSSMFirstDerivativeCoverage",
+    "continuous_lyapunov_first_derivatives_tf",
+    "continuous_lyapunov_solution_tf",
+    "diffusion_from_cholesky_first_derivatives_tf",
+    "first_to_full_linear_gaussian_derivatives",
+    "matrix_exponential_frechet_tf",
+    "stationary_lgssm_first_derivative_coverage",
+    "stationary_lgssm_from_continuous_first_derivatives_tf",
     "tf_qr_linear_gaussian_log_likelihood",
     "tf_qr_linear_gaussian_score",
     "tf_qr_linear_gaussian_score_hessian",
@@ -26,7 +38,10 @@ __all__ = [
     "tf_masked_kalman_filter",
     "tf_masked_kalman_log_likelihood",
     "tf_svd_kalman_log_likelihood",
+    "tf_svd_linear_gaussian_score_first_order",
+    "tf_svd_linear_gaussian_score_first_order_graph_status",
     "tf_svd_linear_gaussian_score_hessian",
+    "tf_svd_linear_gaussian_score_hessian_graph_status",
     "tf_svd_linear_gaussian_log_likelihood",
     "tf_svd_masked_kalman_log_likelihood",
     "cholesky_factor",
@@ -54,6 +69,38 @@ _EXPORT_MODULES = {
     "TFQRLinearDerivativeBackend": "bayesfilter.linear.kalman_qr_derivatives_tf",
     "TFLinearValueBackend": "bayesfilter.linear.kalman_tf",
     "TFSVDLinearValueBackend": "bayesfilter.linear.kalman_svd_tf",
+    "TFLinearGaussianStateSpaceFirstDerivatives": "bayesfilter.linear.types_tf",
+    "SVD_LINEAR_SCORE_STATUS_BLOCKED_ACTIVE_FLOOR": (
+        "bayesfilter.linear.kalman_svd_derivatives_tf"
+    ),
+    "SVD_LINEAR_SCORE_STATUS_INVALID_EIGENSOLVER_INPUT": (
+        "bayesfilter.linear.kalman_svd_derivatives_tf"
+    ),
+    "SVD_LINEAR_SCORE_STATUS_VALID_PRE_REGULARIZED": (
+        "bayesfilter.linear.kalman_svd_derivatives_tf"
+    ),
+    "StationaryLGSSMFirstDerivativeCoverage": (
+        "bayesfilter.linear.stationary_lgssm_derivatives_tf"
+    ),
+    "continuous_lyapunov_first_derivatives_tf": (
+        "bayesfilter.linear.stationary_lgssm_derivatives_tf"
+    ),
+    "continuous_lyapunov_solution_tf": (
+        "bayesfilter.linear.stationary_lgssm_derivatives_tf"
+    ),
+    "diffusion_from_cholesky_first_derivatives_tf": (
+        "bayesfilter.linear.stationary_lgssm_derivatives_tf"
+    ),
+    "first_to_full_linear_gaussian_derivatives": "bayesfilter.linear.types_tf",
+    "matrix_exponential_frechet_tf": (
+        "bayesfilter.linear.stationary_lgssm_derivatives_tf"
+    ),
+    "stationary_lgssm_first_derivative_coverage": (
+        "bayesfilter.linear.stationary_lgssm_derivatives_tf"
+    ),
+    "stationary_lgssm_from_continuous_first_derivatives_tf": (
+        "bayesfilter.linear.stationary_lgssm_derivatives_tf"
+    ),
     "tf_qr_linear_gaussian_log_likelihood": "bayesfilter.linear.kalman_qr_tf",
     "tf_qr_linear_gaussian_score": (
         "bayesfilter.linear.kalman_qr_derivatives_tf"
@@ -79,7 +126,16 @@ _EXPORT_MODULES = {
     "tf_masked_kalman_filter": "bayesfilter.linear.kalman_tf",
     "tf_masked_kalman_log_likelihood": "bayesfilter.linear.kalman_tf",
     "tf_svd_kalman_log_likelihood": "bayesfilter.linear.kalman_svd_tf",
+    "tf_svd_linear_gaussian_score_first_order": (
+        "bayesfilter.linear.kalman_svd_derivatives_tf"
+    ),
+    "tf_svd_linear_gaussian_score_first_order_graph_status": (
+        "bayesfilter.linear.kalman_svd_derivatives_tf"
+    ),
     "tf_svd_linear_gaussian_score_hessian": (
+        "bayesfilter.linear.kalman_svd_derivatives_tf"
+    ),
+    "tf_svd_linear_gaussian_score_hessian_graph_status": (
         "bayesfilter.linear.kalman_svd_derivatives_tf"
     ),
     "tf_svd_linear_gaussian_log_likelihood": "bayesfilter.linear.kalman_svd_tf",

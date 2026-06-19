@@ -19,7 +19,6 @@ from bayesfilter.nonlinear.sigma_points_tf import (
     tf_unit_sigma_point_rule,
 )
 
-
 TFBatchedTransitionFn = Callable[[tf.Tensor, tf.Tensor], tf.Tensor]
 TFBatchedObservationFn = Callable[[tf.Tensor], tf.Tensor]
 TFBatchedResidualFn = Callable[[tf.Tensor, tf.Tensor, tf.Tensor], tf.Tensor]
@@ -28,7 +27,12 @@ TFBatchedTransitionInnovationJacobianFn = Callable[[tf.Tensor, tf.Tensor], tf.Te
 TFBatchedTransitionParameterDerivativeFn = Callable[[tf.Tensor, tf.Tensor], tf.Tensor]
 TFBatchedObservationStateJacobianFn = Callable[[tf.Tensor], tf.Tensor]
 TFBatchedObservationParameterDerivativeFn = Callable[[tf.Tensor], tf.Tensor]
-TFBatchedSVDBackend = Literal["tf_svd_cubature", "tf_svd_ukf", "tf_svd_cut4"]
+TFBatchedSVDBackend = Literal[
+    "tf_svd_cubature",
+    "tf_svd_ukf",
+    "tf_svd_cut4",
+    "tf_principal_sqrt_ukf",
+]
 
 
 @dataclass(frozen=True)
@@ -228,6 +232,36 @@ def _as_observation_matrix(observations: tf.Tensor) -> tf.Tensor:
     if y.shape[0] is None:
         raise ValueError("experimental sigma-point filters require static observation length")
     return y
+
+
+def _principal_sqrt_frechet_derivative_from_eigh(
+    eigenvectors: tf.Tensor,
+    sqrt_eigenvalues: tf.Tensor,
+    d_covariance: tf.Tensor,
+) -> tf.Tensor:
+    """Compute the SPD principal-square-root Frechet derivative in eigenbasis."""
+
+    transformed_rhs = tf.einsum(
+        "bia,bpij,bjc->bpac",
+        eigenvectors,
+        d_covariance,
+        eigenvectors,
+    )
+    denominator = (
+        sqrt_eigenvalues[:, :, tf.newaxis]
+        + sqrt_eigenvalues[:, tf.newaxis, :]
+    )
+    transformed_derivative = (
+        transformed_rhs / denominator[:, tf.newaxis, :, :]
+    )
+    return _symmetrize(
+        tf.einsum(
+            "bia,bpac,bjc->bpij",
+            eigenvectors,
+            transformed_derivative,
+            eigenvectors,
+        )
+    )
 
 
 def _check_model_derivative_shapes(
@@ -484,6 +518,130 @@ def _checked_batched_smooth_eigh_factor_first_derivatives(
     )
 
 
+def _checked_batched_principal_sqrt_factor_first_derivatives(
+    covariance: tf.Tensor,
+    d_covariance: tf.Tensor,
+    *,
+    singular_floor: tf.Tensor,
+    fixed_null_tolerance: tf.Tensor,
+    label: str,
+    lyapunov_tolerance: tf.Tensor | float = 1.0e-10,
+) -> TFBatchedSmoothEighFactorFirstDerivatives:
+    covariance = _symmetrize(covariance)
+    d_covariance = _symmetrize(d_covariance)
+    (
+        eigenvalues,
+        floored,
+        eigenvectors,
+        _implemented_covariance,
+        psd_projection_residual,
+    ) = _batched_psd_eigh(covariance, singular_floor)
+    active_floors = _batched_floor_count(eigenvalues, singular_floor)
+    structural_null_count = tf.zeros(tf.shape(eigenvalues)[0], dtype=tf.int32)
+    structural_null_covariance_residual = tf.zeros(
+        tf.shape(eigenvalues)[0],
+        dtype=tf.float64,
+    )
+    fixed_null_residual = tf.zeros(tf.shape(eigenvalues)[0], dtype=tf.float64)
+    min_gap = _batched_min_eigen_gap(eigenvalues)
+
+    batch_zeros = tf.zeros(tf.shape(eigenvalues)[0], dtype=tf.int32)
+    assertions = [
+        tf.debugging.assert_equal(
+            active_floors,
+            batch_zeros,
+            message=f"blocked_active_floor: {label} floor is active",
+        ),
+        tf.debugging.assert_greater(
+            tf.reduce_min(eigenvalues),
+            singular_floor,
+            message=f"blocked_non_spd_principal_sqrt: {label} is not strict SPD",
+        ),
+        tf.debugging.assert_all_finite(
+            eigenvalues,
+            f"blocked_nonfinite_factor: {label} eigenvalues are nonfinite",
+        ),
+        tf.debugging.assert_less_equal(
+            structural_null_covariance_residual,
+            fixed_null_tolerance,
+            message=f"blocked_structural_null_covariance: {label} null support has positive variance",
+        ),
+        tf.debugging.assert_less_equal(
+            fixed_null_residual,
+            fixed_null_tolerance,
+            message=f"blocked_moving_structural_null: {label} null support is parameter-dependent",
+        ),
+    ]
+    with tf.control_dependencies(assertions):
+        eigenvalues = tf.identity(eigenvalues)
+        floored = tf.identity(floored)
+        eigenvectors = tf.identity(eigenvectors)
+
+    sqrt_eigenvalues = tf.sqrt(floored)
+    factor = (
+        eigenvectors
+        @ tf.linalg.diag(sqrt_eigenvalues)
+        @ tf.linalg.matrix_transpose(eigenvectors)
+    )
+    d_factor = _principal_sqrt_frechet_derivative_from_eigh(
+        eigenvectors,
+        sqrt_eigenvalues,
+        d_covariance,
+    )
+    implemented_covariance = _symmetrize(factor @ tf.linalg.matrix_transpose(factor))
+    psd_projection_residual = tf.linalg.norm(
+        implemented_covariance - covariance,
+        axis=[-2, -1],
+    )
+    lyapunov_residual = tf.linalg.norm(
+        factor[:, tf.newaxis, :, :] @ d_factor
+        + d_factor @ factor[:, tf.newaxis, :, :]
+        - d_covariance,
+        axis=[-2, -1],
+    )
+    reconstructed = tf.matmul(
+        d_factor,
+        factor[:, tf.newaxis, :, :],
+        transpose_b=True,
+    ) + tf.matmul(
+        factor[:, tf.newaxis, :, :],
+        d_factor,
+        transpose_b=True,
+    )
+    reconstruction_residual = tf.linalg.norm(
+        reconstructed - d_covariance,
+        axis=[-2, -1],
+    )
+    max_residual = tf.maximum(lyapunov_residual, reconstruction_residual)
+    lyapunov_tolerance = tf.convert_to_tensor(lyapunov_tolerance, dtype=tf.float64)
+    with tf.control_dependencies(
+        [
+            tf.debugging.assert_less_equal(
+                tf.reduce_max(max_residual),
+                lyapunov_tolerance,
+                message=f"blocked_principal_sqrt_reconstruction: {label} derivative reconstruction failed",
+            )
+        ]
+    ):
+        d_factor = tf.identity(d_factor)
+
+    return TFBatchedSmoothEighFactorFirstDerivatives(
+        eigenvalues=eigenvalues,
+        floored_eigenvalues=floored,
+        eigenvectors=eigenvectors,
+        factor=factor,
+        d_factor=d_factor,
+        implemented_covariance=implemented_covariance,
+        floor_count=active_floors,
+        min_eigen_gap=min_gap,
+        psd_projection_residual=psd_projection_residual,
+        derivative_reconstruction_residual=tf.reduce_max(max_residual, axis=-1),
+        structural_null_count=structural_null_count,
+        structural_null_covariance_residual=structural_null_covariance_residual,
+        fixed_null_derivative_residual=fixed_null_residual,
+    )
+
+
 def _weighted_covariance(centered: tf.Tensor, weights: tf.Tensor) -> tf.Tensor:
     return _symmetrize(tf.einsum("r,bri,brj->bij", weights, centered, centered))
 
@@ -519,6 +677,17 @@ def _rule_for_backend(
                 kappa=0.0,
             ),
             "tf_svd_ukf",
+        )
+    if backend == "tf_principal_sqrt_ukf":
+        return (
+            tf_unit_sigma_point_rule(
+                aug_dim,
+                rule="unscented",
+                alpha=1.0,
+                beta=2.0,
+                kappa=0.0,
+            ),
+            "tf_principal_sqrt_ukf",
         )
     if backend == "tf_svd_cut4":
         return tf_cut4g_sigma_point_rule(aug_dim), "tf_svd_cut4"
@@ -666,16 +835,30 @@ def tf_batched_svd_sigma_point_value_and_score_with_rule(
             ],
             axis=2,
         )
-        placement = _checked_batched_smooth_eigh_factor_first_derivatives(
-            aug_covariance,
-            d_aug_covariance,
-            singular_floor=placement_floor,
-            rank_tolerance=rank_tolerance,
-            spectral_gap_tolerance=spectral_gap_tolerance,
-            fixed_null_tolerance=fixed_null_tolerance,
-            label="SVD sigma-point placement",
-            allow_fixed_null_support=allow_fixed_null_support,
-        )
+        if backend_name == "tf_principal_sqrt_ukf":
+            if allow_fixed_null_support:
+                raise ValueError(
+                    "tf_principal_sqrt_ukf is strict-SPD-only in Phase 3 and "
+                    "does not support structural null branches"
+                )
+            placement = _checked_batched_principal_sqrt_factor_first_derivatives(
+                aug_covariance,
+                d_aug_covariance,
+                singular_floor=placement_floor,
+                fixed_null_tolerance=fixed_null_tolerance,
+                label="principal-sqrt sigma-point placement",
+            )
+        else:
+            placement = _checked_batched_smooth_eigh_factor_first_derivatives(
+                aug_covariance,
+                d_aug_covariance,
+                singular_floor=placement_floor,
+                rank_tolerance=rank_tolerance,
+                spectral_gap_tolerance=spectral_gap_tolerance,
+                fixed_null_tolerance=fixed_null_tolerance,
+                label="SVD sigma-point placement",
+                allow_fixed_null_support=allow_fixed_null_support,
+            )
         point_offsets = tf.einsum("ra,bda->brd", sigma_rule.offsets, placement.factor)
         aug_points = aug_mean[:, tf.newaxis, :] + point_offsets
         d_point_offsets = tf.einsum("rd,bpad->bpra", sigma_rule.offsets, placement.d_factor)
@@ -1086,14 +1269,22 @@ def tf_batched_svd_sigma_point_value_and_score_with_rule(
         "innovation_floor_count": max_innovation_floor_count,
         "implemented_innovation_covariance": last_implemented_innovation_covariance,
         "derivative_branch": tf.constant(
-            "structural_fixed_support_no_active_floor"
-            if allow_fixed_null_support
-            else "smooth_simple_spectrum_no_active_floor"
+            "strict_spd_principal_sqrt"
+            if backend_name == "tf_principal_sqrt_ukf"
+            else (
+                "structural_fixed_support_no_active_floor"
+                if allow_fixed_null_support
+                else "smooth_simple_spectrum_no_active_floor"
+            )
         ),
         "derivative_method": tf.constant(
-            "analytic_first_order_structural_fixed_support"
-            if allow_fixed_null_support
-            else "analytic_first_order_smooth_branch"
+            "analytic_first_order_principal_sqrt_sylvester"
+            if backend_name == "tf_principal_sqrt_ukf"
+            else (
+                "analytic_first_order_structural_fixed_support"
+                if allow_fixed_null_support
+                else "analytic_first_order_smooth_branch"
+            )
         ),
         "derivative_provider": tf.constant(derivatives.name),
     }

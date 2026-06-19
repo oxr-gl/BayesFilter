@@ -147,6 +147,53 @@ def test_svd_scalar_loop_mode_is_available_for_feasibility_artifacts() -> None:
     assert "scalar-compiled-loop" in help_result.stdout
 
 
+def test_svd_harness_lists_principal_sqrt_backend_and_blocks_scalar_comparator() -> None:
+    help_result = subprocess.run(
+        [
+            PYTHON,
+            str(
+                ROOT
+                / "docs/benchmarks/benchmark_experimental_batched_svd_sigma_point_cpu_gpu.py"
+            ),
+            "--help",
+        ],
+        check=True,
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
+
+    assert "tf_principal_sqrt_ukf" in help_result.stdout
+
+    output = Path("/tmp") / "experimental-svd-principal-sqrt-parity-blocked.json"
+    command = [
+        PYTHON,
+        str(ROOT / "docs/benchmarks/benchmark_experimental_batched_svd_sigma_point_cpu_gpu.py"),
+        "--mode",
+        "parity",
+        "--backend",
+        "tf_principal_sqrt_ukf",
+        "--batch-size",
+        "2",
+        "--time-steps",
+        "3",
+        "--state-dim",
+        "2",
+        "--obs-dim",
+        "2",
+        "--parameter-dim",
+        "2",
+        "--output",
+        str(output),
+    ]
+    env = os.environ.copy()
+    env["CUDA_VISIBLE_DEVICES"] = "-1"
+    result = subprocess.run(command, cwd=ROOT, env=env, capture_output=True, text=True)
+
+    assert result.returncode != 0
+    assert "no scalar score comparator" in result.stderr
+
+
 def test_ledh_pfpf_ot_compiled_value_tiny_cpu_json() -> None:
     result = _run_benchmark(
         "docs/benchmarks/benchmark_experimental_batched_ledh_pfpf_ot_cpu_gpu.py",

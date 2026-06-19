@@ -1,0 +1,359 @@
+{
+  "algorithm_family": "low_rank_coupling_solver_route_validation",
+  "candidate_record": {
+    "baseline_comparator": "phase1_dense_streaming_baseline_context_only_not_promotion",
+    "candidate_id": "wave2_low_rank_coupling_validation",
+    "diagnostic_roles": {
+      "algorithm_complete_lane": "explanatory",
+      "hard_vetoes": "continuation_veto",
+      "materialized_tiny_apply_parity": "hard_veto",
+      "max_factor_marginal_residual": "hard_veto",
+      "max_induced_column_residual": "hard_veto",
+      "max_induced_row_residual": "hard_veto",
+      "source_route_components": "hard_veto",
+      "thresholds": "explanatory",
+      "validity_pass": "hard_veto"
+    },
+    "diagnostics": {
+      "algorithm_complete_lane": "peer_agent_low_rank_coupling_validation",
+      "hard_vetoes": [],
+      "materialized_tiny_apply_parity": 1.1102230246251565e-16,
+      "max_factor_marginal_residual": 1.1449623765757977e-07,
+      "max_induced_column_residual": 5.724811882323877e-07,
+      "max_induced_row_residual": 5.267489473492759e-07,
+      "source_route_components": {
+        "cost_nudged_assignment_kernel": "extension_or_invention",
+        "deterministic_initialization": "fixed_hmc_adaptation",
+        "dykstra_style_projection": "source_faithful",
+        "factor_marginal_diagnostics": "source_faithful",
+        "factored_coupling_parameterization": "source_faithful",
+        "fixed_iteration_schedule": "fixed_hmc_adaptation",
+        "low_rank_lazy_apply": "source_faithful",
+        "phase1_scaled_transport_adapter": "fixed_hmc_adaptation"
+      },
+      "thresholds": {
+        "factor_and_induced_residual_hard_veto": 0.005,
+        "materialized_apply_parity_hard_veto": 1e-10,
+        "runtime_memory_role": "explanatory_only"
+      },
+      "validity_pass": true,
+      "wave2_status": "LOW_RANK_COUPLING_VALIDATION_PASSED_DIAGNOSTIC_ONLY"
+    },
+    "execution_manifest": {
+      "command": "scalable_ot_wave2_low_rank_coupling_validation.py",
+      "cuda_visible_devices": "-1",
+      "device": "/CPU:0",
+      "device_scope": "cpu",
+      "dtype": "tf.float64",
+      "git_commit": "b4156c4b0cbfdc443440fc6df4b6044e09040abb",
+      "plan_path": "docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-wave2-low-rank-coupling-master-program-2026-06-19.md",
+      "platform": "Linux-6.8.0-111-generic-x86_64-with-glibc2.35",
+      "python": "3.13.13 | packaged by Anaconda, Inc. | (main, Apr 14 2026, 06:19:41) [GCC 14.3.0]",
+      "tensorflow_version": "2.20.0",
+      "timestamp_utc": "2026-06-19T10:12:37.533983+00:00"
+    },
+    "nonclaims": [
+      "Wave 2 peer-agent low-rank coupling validation only",
+      "semantic replacement, not dense Sinkhorn equivalence",
+      "no full low-rank Sinkhorn solver-fidelity claim for extension components",
+      "no speedup claim",
+      "no ranking claim",
+      "no production default change",
+      "no posterior correctness claim",
+      "no HMC readiness claim",
+      "no public API readiness claim",
+      "no broad scalable-OT selection claim"
+    ],
+    "schema_version": "scalable_ot_candidate_result_v1",
+    "semantic_class": "semantic_replacement",
+    "source_route": "extension_or_invention",
+    "source_status": "source_locked",
+    "transport_object": {
+      "blocked_reason": null,
+      "factor_shapes": {
+        "Q": [
+          6,
+          3
+        ],
+        "R": [
+          6,
+          3
+        ],
+        "g": [
+          3
+        ]
+      },
+      "kind": "low_rank_coupling_factors",
+      "materialized": false,
+      "not_materialized_reason": "low_rank_coupling_factors_nonmaterialized",
+      "orientation": "target_rows_source_columns_phase1_scaled",
+      "semantic_output": "full_state_particles",
+      "shape": null
+    }
+  },
+  "entry_context_status": "LOW_RANK_SOLVER_ROUTE_PASSED_DIAGNOSTIC_ONLY",
+  "hard_vetoes": [],
+  "manifest": {
+    "command": "scalable_ot_wave2_low_rank_coupling_validation.py",
+    "cuda_visible_devices": "-1",
+    "device": "/CPU:0",
+    "device_scope": "cpu",
+    "dtype": "tf.float64",
+    "git_commit": "b4156c4b0cbfdc443440fc6df4b6044e09040abb",
+    "plan_path": "docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-wave2-low-rank-coupling-master-program-2026-06-19.md",
+    "platform": "Linux-6.8.0-111-generic-x86_64-with-glibc2.35",
+    "python": "3.13.13 | packaged by Anaconda, Inc. | (main, Apr 14 2026, 06:19:41) [GCC 14.3.0]",
+    "tensorflow_version": "2.20.0",
+    "timestamp_utc": "2026-06-19T10:12:37.533983+00:00"
+  },
+  "nonclaims": [
+    "Wave 2 peer-agent low-rank coupling validation only",
+    "semantic replacement, not dense Sinkhorn equivalence",
+    "no full low-rank Sinkhorn solver-fidelity claim for extension components",
+    "no speedup claim",
+    "no ranking claim",
+    "no production default change",
+    "no posterior correctness claim",
+    "no HMC readiness claim",
+    "no public API readiness claim",
+    "no broad scalable-OT selection claim"
+  ],
+  "owner": "peer_agent",
+  "rows": [
+    {
+      "factor_shapes": {
+        "Q": [
+          1,
+          5,
+          3
+        ],
+        "R": [
+          1,
+          5,
+          3
+        ],
+        "g": [
+          1,
+          3
+        ]
+      },
+      "finite_factors": true,
+      "finite_particles": true,
+      "fixture": "tiny_manual",
+      "hard_vetoes": [],
+      "input_shape": {
+        "log_weights": [
+          1,
+          5
+        ],
+        "particles": [
+          1,
+          5,
+          3
+        ]
+      },
+      "materialized_column_residual": 5.724811882323877e-07,
+      "materialized_row_residual": 5.267489473492759e-07,
+      "materialized_tiny_apply_parity": 2.7755575615628914e-17,
+      "max_factor_marginal_residual": 1.1449623765757977e-07,
+      "max_induced_column_residual": 5.724811882323877e-07,
+      "max_induced_row_residual": 5.267489473492759e-07,
+      "min_g": 0.28397962215566175,
+      "min_q": 0.0055939663304666026,
+      "min_r": 0.0025395774428169328,
+      "nonnegative_factors": true,
+      "orientation": "target_rows_source_columns_phase1_scaled",
+      "positive_g": true,
+      "projection_error": 5.906869498389922e-07,
+      "projection_floor_hits": 0.0,
+      "projection_iterations_used": 12,
+      "projection_min_denominator": 0.21468342471127516,
+      "rank": 3,
+      "semantic_output": "full_state_particles",
+      "source_route": "extension_or_invention",
+      "source_route_components": {
+        "cost_nudged_assignment_kernel": "extension_or_invention",
+        "deterministic_initialization": "fixed_hmc_adaptation",
+        "dykstra_style_projection": "source_faithful",
+        "factor_marginal_diagnostics": "source_faithful",
+        "factored_coupling_parameterization": "source_faithful",
+        "fixed_iteration_schedule": "fixed_hmc_adaptation",
+        "low_rank_lazy_apply": "source_faithful",
+        "phase1_scaled_transport_adapter": "fixed_hmc_adaptation"
+      },
+      "transport_object_kind": "low_rank_coupling_factors",
+      "validity_pass": true,
+      "wall_time_seconds_explanatory": 0.08664153004065156
+    },
+    {
+      "factor_shapes": {
+        "Q": [
+          2,
+          5,
+          3
+        ],
+        "R": [
+          2,
+          5,
+          3
+        ],
+        "g": [
+          2,
+          3
+        ]
+      },
+      "finite_factors": true,
+      "finite_particles": true,
+      "fixture": "small_batch",
+      "hard_vetoes": [],
+      "input_shape": {
+        "log_weights": [
+          2,
+          5
+        ],
+        "particles": [
+          2,
+          5,
+          3
+        ]
+      },
+      "materialized_column_residual": 2.181369691545143e-07,
+      "materialized_row_residual": 2.2243166397650782e-07,
+      "materialized_tiny_apply_parity": 1.1102230246251565e-16,
+      "max_factor_marginal_residual": 4.4486332784199334e-08,
+      "max_induced_column_residual": 2.181369693765589e-07,
+      "max_induced_row_residual": 2.2243166419855243e-07,
+      "min_g": 0.28397963216781014,
+      "min_q": 0.00559396240912015,
+      "min_r": 0.002539575536989899,
+      "nonnegative_factors": true,
+      "orientation": "target_rows_source_columns_phase1_scaled",
+      "positive_g": true,
+      "projection_error": 4.4840210940144676e-07,
+      "projection_floor_hits": 0.0,
+      "projection_iterations_used": 13,
+      "projection_min_denominator": 0.21468337984247987,
+      "rank": 3,
+      "semantic_output": "full_state_particles",
+      "source_route": "extension_or_invention",
+      "source_route_components": {
+        "cost_nudged_assignment_kernel": "extension_or_invention",
+        "deterministic_initialization": "fixed_hmc_adaptation",
+        "dykstra_style_projection": "source_faithful",
+        "factor_marginal_diagnostics": "source_faithful",
+        "factored_coupling_parameterization": "source_faithful",
+        "fixed_iteration_schedule": "fixed_hmc_adaptation",
+        "low_rank_lazy_apply": "source_faithful",
+        "phase1_scaled_transport_adapter": "fixed_hmc_adaptation"
+      },
+      "transport_object_kind": "low_rank_coupling_factors",
+      "validity_pass": true,
+      "wall_time_seconds_explanatory": 0.04638322303071618
+    },
+    {
+      "factor_shapes": {
+        "Q": [
+          2,
+          6,
+          3
+        ],
+        "R": [
+          2,
+          6,
+          3
+        ],
+        "g": [
+          2,
+          3
+        ]
+      },
+      "finite_factors": true,
+      "finite_particles": true,
+      "fixture": "wider_state",
+      "hard_vetoes": [],
+      "input_shape": {
+        "log_weights": [
+          2,
+          6
+        ],
+        "particles": [
+          2,
+          6,
+          4
+        ]
+      },
+      "materialized_column_residual": 2.256637872122269e-07,
+      "materialized_row_residual": 2.0395947486484545e-07,
+      "materialized_tiny_apply_parity": 5.551115123125783e-17,
+      "max_factor_marginal_residual": 3.761063119278596e-08,
+      "max_induced_column_residual": 2.256637872122269e-07,
+      "max_induced_row_residual": 2.0395947486484545e-07,
+      "min_g": 0.2918515245981971,
+      "min_q": 0.007006144762305576,
+      "min_r": 0.003965134855230339,
+      "nonnegative_factors": true,
+      "orientation": "target_rows_source_columns_phase1_scaled",
+      "positive_g": true,
+      "projection_error": 3.317370992628188e-07,
+      "projection_floor_hits": 0.0,
+      "projection_iterations_used": 11,
+      "projection_min_denominator": 0.23347102781435852,
+      "rank": 3,
+      "semantic_output": "full_state_particles",
+      "source_route": "extension_or_invention",
+      "source_route_components": {
+        "cost_nudged_assignment_kernel": "extension_or_invention",
+        "deterministic_initialization": "fixed_hmc_adaptation",
+        "dykstra_style_projection": "source_faithful",
+        "factor_marginal_diagnostics": "source_faithful",
+        "factored_coupling_parameterization": "source_faithful",
+        "fixed_iteration_schedule": "fixed_hmc_adaptation",
+        "low_rank_lazy_apply": "source_faithful",
+        "phase1_scaled_transport_adapter": "fixed_hmc_adaptation"
+      },
+      "transport_object_kind": "low_rank_coupling_factors",
+      "validity_pass": true,
+      "wall_time_seconds_explanatory": 0.03873268305324018
+    }
+  ],
+  "semantic_class": "semantic_replacement",
+  "settings": {
+    "alpha": 1e-08,
+    "assignment_epsilon": 0.45,
+    "convergence_threshold": 1e-06,
+    "denominator_floor": 1e-30,
+    "max_projection_iterations": 240,
+    "rank": 3
+  },
+  "source_route": "extension_or_invention",
+  "source_route_components": {
+    "cost_nudged_assignment_kernel": "extension_or_invention",
+    "deterministic_initialization": "fixed_hmc_adaptation",
+    "dykstra_style_projection": "source_faithful",
+    "factor_marginal_diagnostics": "source_faithful",
+    "factored_coupling_parameterization": "source_faithful",
+    "fixed_iteration_schedule": "fixed_hmc_adaptation",
+    "low_rank_lazy_apply": "source_faithful",
+    "phase1_scaled_transport_adapter": "fixed_hmc_adaptation"
+  },
+  "status": "PASS",
+  "summary": {
+    "max_factor_marginal_residual": 1.1449623765757977e-07,
+    "max_induced_column_residual": 5.724811882323877e-07,
+    "max_induced_row_residual": 5.267489473492759e-07,
+    "max_materialized_tiny_apply_parity": 1.1102230246251565e-16,
+    "max_projection_error": 5.906869498389922e-07,
+    "max_projection_floor_hits": 0.0,
+    "min_g": 0.28397962215566175,
+    "min_q": 0.00559396240912015,
+    "min_r": 0.002539575536989899,
+    "total_wall_time_seconds_explanatory": 0.17175743612460792
+  },
+  "thresholds": {
+    "factor_and_induced_residual_hard_veto": 0.005,
+    "materialized_apply_parity_hard_veto": 1e-10,
+    "runtime_memory_role": "explanatory_only"
+  },
+  "validity_pass": true,
+  "wave2_status": "LOW_RANK_COUPLING_VALIDATION_PASSED_DIAGNOSTIC_ONLY"
+}

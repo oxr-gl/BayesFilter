@@ -38,6 +38,20 @@ class BatchedQuadraticAdapter:
         return -0.5 * tf.reduce_sum(tf.square(values), axis=-1), -values
 
 
+class TelemetryBatchedQuadraticAdapter(BatchedQuadraticAdapter):
+    def target_status_telemetry(self, theta: tf.Tensor) -> dict[str, tf.Tensor]:
+        values = tf.convert_to_tensor(theta, dtype=tf.float64)
+        status_shape = tf.shape(values)[:-1]
+        return {
+            "status_code": tf.zeros(status_shape, dtype=tf.int32),
+            "valid_pre_regularized_score": tf.ones(status_shape, dtype=tf.bool),
+            "floor_count_value": tf.zeros(status_shape, dtype=tf.int32),
+            "min_innovation_eigenvalue": tf.fill(status_shape, tf.constant(0.5, dtype=tf.float64)),
+            "innovation_condition_estimate": tf.fill(status_shape, tf.constant(2.0, dtype=tf.float64)),
+            "regularization_derivative_target": tf.zeros(status_shape, dtype=tf.int32),
+        }
+
+
 class ScalarOnlyQuadraticAdapter(BatchedQuadraticAdapter):
     def log_prob_and_grad(self, theta: tf.Tensor) -> tuple[tf.Tensor, tf.Tensor]:
         values = tf.convert_to_tensor(theta, dtype=tf.float64)
@@ -165,6 +179,146 @@ def test_latent_affine_batch_value_score_adapter_calls_base_once_and_applies_cha
     np.testing.assert_allclose(score.numpy(), (-theta) @ factor)
     assert value.shape == (3,)
     assert score.shape == (3, 3)
+
+
+def test_latent_affine_transform_helpers_preserve_sample_leading_axes() -> None:
+    base = BatchedQuadraticAdapter()
+    center = np.array([0.25, -0.5, 0.75])
+    factor = np.array(
+        [
+            [2.0, 0.1, 0.0],
+            [0.0, 1.5, -0.2],
+            [0.3, 0.0, 1.25],
+        ]
+    )
+    transform = LatentAffineHMCTransform(
+        center=center,
+        factor=factor,
+        covariance_provenance="unit_test_covariance",
+    )
+    adapter = LatentAffineBatchValueScoreAdapter(
+        base_adapter=base,
+        transform=transform,
+        target_scope="latent_affine_batch_fixture",
+    )
+    z = tf.reshape(tf.range(24, dtype=tf.float64), (2, 4, 3)) / 10.0
+    theta_score = -adapter.latent_to_position(z)
+
+    theta = adapter.latent_to_position(z)
+    latent_score = adapter.theta_score_to_latent_score(theta_score)
+
+    np.testing.assert_allclose(theta.numpy(), center + z.numpy() @ factor.T)
+    np.testing.assert_allclose(latent_score.numpy(), theta_score.numpy() @ factor)
+    assert theta.shape == (2, 4, 3)
+    assert latent_score.shape == (2, 4, 3)
+
+
+def test_latent_affine_target_status_telemetry_maps_to_position_coordinates() -> None:
+    base = TelemetryBatchedQuadraticAdapter()
+    center = np.array([0.25, -0.5, 0.75])
+    factor = np.array(
+        [
+            [2.0, 0.1, 0.0],
+            [0.0, 1.5, -0.2],
+            [0.3, 0.0, 1.25],
+        ]
+    )
+    transform = LatentAffineHMCTransform(
+        center=center,
+        factor=factor,
+        covariance_provenance="unit_test_covariance",
+    )
+    adapter = LatentAffineBatchValueScoreAdapter(
+        base_adapter=base,
+        transform=transform,
+        target_scope="latent_affine_batch_fixture",
+    )
+
+    telemetry = adapter.target_status_telemetry(_theta_batch())
+
+    assert set(telemetry) == {
+        "status_code",
+        "valid_pre_regularized_score",
+        "floor_count_value",
+        "min_innovation_eigenvalue",
+        "innovation_condition_estimate",
+        "regularization_derivative_target",
+    }
+    assert telemetry["status_code"].shape == (3,)
+    assert bool(tf.reduce_all(telemetry["valid_pre_regularized_score"]).numpy()) is True
+
+
+def test_latent_affine_target_status_telemetry_fails_closed_without_base_method() -> None:
+    transform = LatentAffineHMCTransform(
+        center=np.zeros(3),
+        factor=np.eye(3),
+        covariance_provenance="unit_test_covariance",
+    )
+    adapter = LatentAffineBatchValueScoreAdapter(
+        base_adapter=BatchedQuadraticAdapter(),
+        transform=transform,
+        target_scope="latent_affine_batch_fixture",
+    )
+
+    with pytest.raises(TypeError, match="target_status_telemetry"):
+        adapter.target_status_telemetry(_theta_batch())
+
+
+def test_latent_affine_wrapper_preserves_graph_native_base_authority() -> None:
+    base = BatchedQuadraticAdapter()
+    transform = LatentAffineHMCTransform(
+        center=np.zeros(3),
+        factor=np.eye(3),
+        covariance_provenance="unit_test_covariance",
+    )
+    adapter = LatentAffineBatchValueScoreAdapter(
+        base_adapter=base,
+        transform=transform,
+        target_scope="latent_affine_batch_fixture",
+        xla_hmc_ready=True,
+    )
+
+    capability = adapter.value_score_capability()
+
+    assert capability.value_score_authority == "graph_native"
+    assert capability.xla_hmc_ready is True
+    assert any("base value/score authority: graph_native" in claim for claim in capability.nonclaims)
+
+
+def test_latent_affine_wrapper_cannot_promote_gradient_tape_fallback_base() -> None:
+    class FallbackBase(CountingBatchedQuadraticAdapter):
+        def value_score_capability(self) -> ValueScoreCapability:
+            return ValueScoreCapability(
+                value_score_authority="gradient_tape_fallback",
+                xla_hmc_ready=False,
+                runtime_backend="fallback_fixture",
+                target_scope="fallback_fixture",
+                nonclaims=("fallback fixture only",),
+            )
+
+    transform = LatentAffineHMCTransform(
+        center=np.zeros(3),
+        factor=np.eye(3),
+        covariance_provenance="unit_test_covariance",
+    )
+    adapter = LatentAffineBatchValueScoreAdapter(
+        base_adapter=FallbackBase(),
+        transform=transform,
+        target_scope="latent_affine_batch_fixture",
+        xla_hmc_ready=True,
+        full_chain_xla_diagnostic_ready=True,
+    )
+
+    capability = adapter.value_score_capability()
+
+    assert capability.value_score_authority == "gradient_tape_fallback"
+    assert capability.xla_hmc_ready is False
+    assert capability.is_accepted_xla_hmc_authority is False
+    assert capability.full_chain_xla_diagnostic_ready is False
+    assert any(
+        "latent wrapper cannot promote fallback base authority" in claim
+        for claim in capability.nonclaims
+    )
 
 
 def test_batch_native_target_tf_function_reuses_concrete_function() -> None:

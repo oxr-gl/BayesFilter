@@ -119,6 +119,110 @@ class TFLinearGaussianStateSpace:
 
 
 @dataclass(frozen=True)
+class TFLinearGaussianStateSpaceFirstDerivatives:
+    """First-order TF derivatives of an LGSSM for score-only backends.
+
+    SVD/eigh score-only backends consume first derivatives of the
+    state-space law and do not certify Hessian authority. Keeping this payload
+    separate avoids forcing HMC-facing score paths to allocate unused ``p x p``
+    second-derivative tensors.
+    """
+
+    d_initial_mean: tf.Tensor
+    d_initial_covariance: tf.Tensor
+    d_transition_offset: tf.Tensor
+    d_transition_matrix: tf.Tensor
+    d_transition_covariance: tf.Tensor
+    d_observation_offset: tf.Tensor
+    d_observation_matrix: tf.Tensor
+    d_observation_covariance: tf.Tensor
+
+    def __post_init__(self) -> None:
+        for name in self.__dataclass_fields__:
+            object.__setattr__(
+                self,
+                name,
+                tf.convert_to_tensor(getattr(self, name), dtype=tf.float64),
+            )
+        self.validate_static_shapes()
+
+    @property
+    def parameter_dim(self) -> int | None:
+        return self.d_initial_mean.shape[0]
+
+    @property
+    def state_dim(self) -> int | None:
+        return self.d_initial_mean.shape[-1]
+
+    @property
+    def observation_dim(self) -> int | None:
+        return self.d_observation_offset.shape[-1]
+
+    def validate_static_shapes(self) -> None:
+        p = self.parameter_dim
+        n = self.state_dim
+        m = self.observation_dim
+        if p is None or n is None or m is None:
+            return
+        expected = {
+            "d_initial_mean": (p, n),
+            "d_initial_covariance": (p, n, n),
+            "d_transition_offset": (p, n),
+            "d_transition_matrix": (p, n, n),
+            "d_transition_covariance": (p, n, n),
+            "d_observation_offset": (p, m),
+            "d_observation_matrix": (p, m, n),
+            "d_observation_covariance": (p, m, m),
+        }
+        for name, shape in expected.items():
+            if tuple(getattr(self, name).shape.as_list()) != shape:
+                raise ValueError(f"{name} has shape {getattr(self, name).shape}, expected {shape}")
+
+    def to_full_derivatives(self) -> "TFLinearGaussianStateSpaceDerivatives":
+        """Return a full derivative payload with zero second derivatives.
+
+        This is a compatibility adapter, not Hessian authority.
+        """
+
+        p = self.parameter_dim
+        n = self.state_dim
+        m = self.observation_dim
+        if p is None or n is None or m is None:
+            raise ValueError("first-order derivative conversion requires static dimensions")
+        zeros_ppn = tf.zeros([p, p, n], dtype=tf.float64)
+        zeros_ppnn = tf.zeros([p, p, n, n], dtype=tf.float64)
+        zeros_ppm = tf.zeros([p, p, m], dtype=tf.float64)
+        zeros_ppmn = tf.zeros([p, p, m, n], dtype=tf.float64)
+        zeros_ppmm = tf.zeros([p, p, m, m], dtype=tf.float64)
+        return TFLinearGaussianStateSpaceDerivatives(
+            d_initial_mean=self.d_initial_mean,
+            d_initial_covariance=self.d_initial_covariance,
+            d_transition_offset=self.d_transition_offset,
+            d_transition_matrix=self.d_transition_matrix,
+            d_transition_covariance=self.d_transition_covariance,
+            d_observation_offset=self.d_observation_offset,
+            d_observation_matrix=self.d_observation_matrix,
+            d_observation_covariance=self.d_observation_covariance,
+            d2_initial_mean=zeros_ppn,
+            d2_initial_covariance=zeros_ppnn,
+            d2_transition_offset=zeros_ppn,
+            d2_transition_matrix=zeros_ppnn,
+            d2_transition_covariance=zeros_ppnn,
+            d2_observation_offset=zeros_ppm,
+            d2_observation_matrix=zeros_ppmn,
+            d2_observation_covariance=zeros_ppmm,
+        )
+
+
+def first_to_full_linear_gaussian_derivatives(
+    derivatives: TFLinearGaussianStateSpaceFirstDerivatives,
+) -> "TFLinearGaussianStateSpaceDerivatives":
+    """Convert first-order LGSSM derivatives to the legacy full container."""
+
+    return derivatives.to_full_derivatives()
+
+
+@dataclass(frozen=True)
 class TFLinearGaussianStateSpaceDerivatives:
     """First- and second-order TF derivatives of an LGSSM."""
 

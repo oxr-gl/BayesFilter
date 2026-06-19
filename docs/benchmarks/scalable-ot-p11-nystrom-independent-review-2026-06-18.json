@@ -1,0 +1,116 @@
+{
+  "agent_b_recommended_decision": "AGREE_WITH_NONBLOCKING_FINDINGS",
+  "artifact_paths": {
+    "agent_a_json": "docs/benchmarks/scalable-ot-p11-reduced-rank-nystrom-ladder-diagnostics-2026-06-18.json",
+    "agent_a_result": "docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-p11-reduced-rank-nystrom-ladder-result-2026-06-18.md"
+  },
+  "blocks_agree": false,
+  "finding_counts_by_severity": {
+    "BLOCKER": 0,
+    "HIGH": 0,
+    "LOW": 2,
+    "MEDIUM": 0
+  },
+  "findings": [
+    {
+      "blocks_agree": false,
+      "evidence": "| Manifest/schema content check | `PASS` | Local JSON check validated all 23 nested `candidate_records`, baseline prefix, required dense-reference error fields, fixture set, and schema warnings. |",
+      "field": null,
+      "finding_id": "result_nested_candidate_records_wording",
+      "line": 63,
+      "message": "Result note uses stale nested candidate_records wording while JSON uses direct top-level records.",
+      "path": "docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-p11-reduced-rank-nystrom-ladder-result-2026-06-18.md",
+      "recommendation": "Refresh result prose to say direct top-level candidate_records.",
+      "severity": "LOW"
+    },
+    {
+      "blocks_agree": false,
+      "evidence": "| Baseline/comparator | Phase 1 local dense/streaming TensorFlow comparator, with dense-reference particle errors computed against the dense member.  Every nested candidate record uses `baseline_comparator` beginning `phase1_dense_streaming`. |",
+      "field": null,
+      "finding_id": "result_nested_candidate_wording",
+      "line": 27,
+      "message": "Result note uses stale nested-candidate wording while JSON uses direct top-level candidate_records.",
+      "path": "docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-p11-reduced-rank-nystrom-ladder-result-2026-06-18.md",
+      "recommendation": "Refresh result prose to say direct top-level candidate_records, without changing Agent B review evidence.",
+      "severity": "LOW"
+    }
+  ],
+  "manifest": {
+    "agent_b_boundary": "read_only_review_of_agent_a_artifacts",
+    "not_concluded": [
+      "no speedup claim",
+      "no ranking claim",
+      "no production/default readiness",
+      "no posterior correctness",
+      "no HMC readiness",
+      "no public API readiness"
+    ],
+    "platform": "Linux-6.8.0-111-generic-x86_64-with-glibc2.35",
+    "python": "3.13.13 | packaged by Anaconda, Inc. | (main, Apr 14 2026, 06:19:41) [GCC 14.3.0]",
+    "review_script": "docs/benchmarks/scalable_ot_p11_nystrom_independent_review.py"
+  },
+  "metrics": {
+    "fixtures": {
+      "high_dim_locality": [
+        "16",
+        "2",
+        "4",
+        "8",
+        "full"
+      ],
+      "high_dim_low_rank": [
+        "16",
+        "2",
+        "4",
+        "8",
+        "full"
+      ],
+      "ledh_specific_smoke": [
+        "16",
+        "2",
+        "4",
+        "8",
+        "full"
+      ],
+      "small_parity": [
+        "2",
+        "4",
+        "8",
+        "full"
+      ],
+      "tiny_manual": [
+        "1",
+        "2",
+        "3",
+        "full"
+      ]
+    },
+    "high_dim_locality_dense_roles": [
+      "explanatory"
+    ],
+    "record_count": 23,
+    "reduced_viable_ranks": {
+      "high_dim_low_rank": [
+        "16",
+        "2",
+        "4",
+        "8"
+      ],
+      "ledh_specific_smoke": [
+        "16",
+        "4",
+        "8"
+      ],
+      "small_parity": [
+        "2",
+        "4",
+        "8"
+      ],
+      "tiny_manual": [
+        "3"
+      ]
+    },
+    "schema_warning_count": 0
+  },
+  "review_status": "COMPLETED"
+}

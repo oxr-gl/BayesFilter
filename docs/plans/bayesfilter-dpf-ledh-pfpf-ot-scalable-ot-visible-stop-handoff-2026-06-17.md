@@ -8,7 +8,8 @@ Date: 2026-06-17
 
 ## Current Phase
 
-Master program complete after Phase 10 comparative decision.
+Phase 11 Agent A reduced-rank Nystrom ladder complete; Agent B independent
+review may begin.
 
 ## Last Completed Gate
 
@@ -45,6 +46,7 @@ Last completed phase gate:
 - `docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-p10-comparative-decision-result-2026-06-17.md`
 - `docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-reset-memo-2026-06-17.md`
 - `docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-p10-claude-review-round-01-2026-06-17.md`
+- `docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-p11-reduced-rank-nystrom-ladder-result-2026-06-18.md`
 
 ## Active Blockers
 
@@ -91,6 +93,12 @@ as sufficient to close Phase 2.  This is recorded in:
   result and reset memo are complete and reviewed.  The final status is
   `PHASE_10_COMPARATIVE_DECISION_COMPLETED_NO_DEFAULT_ALGORITHM_YET`.
   No scalable OT default has been selected.
+- Phase 11 Agent A reduced-rank Nystrom ladder completed with status
+  `PHASE_11_REDUCED_RANK_NYSTROM_LADDER_PASSED_DIAGNOSTIC_ONLY`.
+  Treat this as diagnostic continuation evidence only.  Do not treat it as a
+  speedup, ranking, posterior-correctness, HMC-readiness, public API,
+  production/default-readiness, or statistically supported ranking claim.
+  Agent B may begin independent review of Agent A artifacts.
 - Low-rank coupling is a semantic replacement unless a separate exact/parity
   contract is written.  Dense-reference error is explanatory unless the Phase 6
   subplan explicitly declares otherwise before execution.
@@ -101,12 +109,18 @@ Resume from the visible runbook:
 
 - `docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-visible-gated-execution-runbook-2026-06-17.md`
 
-The master program is complete.  If continuing, start a new reviewed subplan
-for the recommended next program:
+Agent B can begin independent review from:
 
-- reduced-rank Nystrom ladder with Phase 1 plus LEDH-specific fixtures,
-  dense-reference validity gates, memory/runtime proxy as explanatory until
-  validity passes, and no default/ranking claims before downstream evidence.
+- `docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-agent-b-independent-test-review-harness-plan-2026-06-18.md`
+
+Agent A artifacts to review:
+
+- `experiments/dpf_implementation/tf_tfp/resampling/nystrom_transport_tf.py`
+- `tests/test_nystrom_transport_tf.py`
+- `docs/benchmarks/scalable_ot_p11_reduced_rank_nystrom_ladder_diagnostics.py`
+- `docs/benchmarks/scalable-ot-p11-reduced-rank-nystrom-ladder-diagnostics-2026-06-18.json`
+- `docs/benchmarks/scalable-ot-p11-reduced-rank-nystrom-ladder-diagnostics-2026-06-18.md`
+- `docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-p11-reduced-rank-nystrom-ladder-result-2026-06-18.md`
 
 For review context, also read:
 

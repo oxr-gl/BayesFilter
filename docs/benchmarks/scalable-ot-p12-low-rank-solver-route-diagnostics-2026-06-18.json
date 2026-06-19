@@ -1,0 +1,393 @@
+{
+  "candidate_record": {
+    "baseline_comparator": "phase1_dense_streaming_baseline_2026_06_17_descriptive_semantic_delta",
+    "candidate_id": "phase12_low_rank_coupling_solver_route",
+    "diagnostic_roles": {
+      "dense_reference_max_abs_particle_error_explanatory": "explanatory",
+      "dense_reference_rms_particle_error_explanatory": "explanatory",
+      "hard_vetoes": "continuation_veto",
+      "implementation_scope": "explanatory",
+      "materialized_tiny_apply_parity": "hard_veto",
+      "max_factor_marginal_residual": "hard_veto",
+      "max_induced_column_residual": "hard_veto",
+      "max_induced_row_residual": "hard_veto",
+      "source_route_components": "explanatory",
+      "thresholds": "explanatory",
+      "validity_pass": "hard_veto"
+    },
+    "diagnostics": {
+      "dense_reference_max_abs_particle_error_explanatory": 0.46574164630404097,
+      "dense_reference_rms_particle_error_explanatory": 0.17239026337349234,
+      "hard_vetoes": [],
+      "implementation_scope": "solver_route_dykstra_projection_diagnostic",
+      "materialized_tiny_apply_parity": 1.1102230246251565e-16,
+      "max_factor_marginal_residual": 1.1449623765757977e-07,
+      "max_induced_column_residual": 5.724811882323877e-07,
+      "max_induced_row_residual": 5.267489473492759e-07,
+      "phase12_status": "LOW_RANK_SOLVER_ROUTE_PASSED_DIAGNOSTIC_ONLY",
+      "source_route_components": {
+        "cost_nudged_assignment_kernel": "extension_or_invention",
+        "deterministic_initialization": "fixed_hmc_adaptation",
+        "dykstra_style_projection": "source_faithful",
+        "factor_marginal_diagnostics": "source_faithful",
+        "factored_coupling_parameterization": "source_faithful",
+        "fixed_iteration_schedule": "fixed_hmc_adaptation",
+        "low_rank_lazy_apply": "source_faithful",
+        "phase1_scaled_transport_adapter": "fixed_hmc_adaptation"
+      },
+      "thresholds": {
+        "dense_reference_error_role": "explanatory_only_for_semantic_replacement",
+        "factor_and_induced_residual_hard_veto": 0.005,
+        "materialized_apply_parity_hard_veto": 1e-10
+      },
+      "validity_pass": true
+    },
+    "execution_manifest": {
+      "command": "scalable_ot_p12_low_rank_solver_route_diagnostics.py",
+      "cuda_visible_devices": "-1",
+      "device": "/CPU:0",
+      "device_scope": "cpu",
+      "dtype": "tf.float64",
+      "git_commit": "b4156c4b0cbfdc443440fc6df4b6044e09040abb",
+      "plan_path": "docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-p12-low-rank-solver-route-subplan-2026-06-18.md",
+      "platform": "Linux-6.8.0-111-generic-x86_64-with-glibc2.35",
+      "python": "3.13.13 | packaged by Anaconda, Inc. | (main, Apr 14 2026, 06:19:41) [GCC 14.3.0]",
+      "tensorflow_version": "2.20.0",
+      "timestamp_utc": "2026-06-18T21:43:11.267771+00:00"
+    },
+    "nonclaims": [
+      "Agent C P12 low-rank coupling solver-route diagnostics only",
+      "semantic replacement, not dense Sinkhorn equivalence",
+      "no full low-rank Sinkhorn solver-fidelity claim for extension components",
+      "no speedup claim",
+      "no ranking claim",
+      "no production default change",
+      "no posterior correctness claim",
+      "no HMC readiness claim",
+      "no public API readiness claim"
+    ],
+    "schema_version": "scalable_ot_candidate_result_v1",
+    "semantic_class": "semantic_replacement",
+    "source_route": "extension_or_invention",
+    "source_status": "source_locked",
+    "transport_object": {
+      "blocked_reason": null,
+      "factor_shapes": {
+        "Q": [
+          5,
+          3
+        ],
+        "R": [
+          5,
+          3
+        ],
+        "g": [
+          3
+        ]
+      },
+      "kind": "low_rank_coupling_factors",
+      "materialized": false,
+      "not_materialized_reason": "low_rank_coupling_factors_nonmaterialized",
+      "orientation": "target_rows_source_columns_phase1_scaled",
+      "semantic_output": "full_state_particles",
+      "shape": null
+    }
+  },
+  "hard_vetoes": [],
+  "implementation_scope": "solver_route_dykstra_projection_diagnostic",
+  "manifest": {
+    "command": "scalable_ot_p12_low_rank_solver_route_diagnostics.py",
+    "cuda_visible_devices": "-1",
+    "device": "/CPU:0",
+    "device_scope": "cpu",
+    "dtype": "tf.float64",
+    "git_commit": "b4156c4b0cbfdc443440fc6df4b6044e09040abb",
+    "plan_path": "docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-p12-low-rank-solver-route-subplan-2026-06-18.md",
+    "platform": "Linux-6.8.0-111-generic-x86_64-with-glibc2.35",
+    "python": "3.13.13 | packaged by Anaconda, Inc. | (main, Apr 14 2026, 06:19:41) [GCC 14.3.0]",
+    "tensorflow_version": "2.20.0",
+    "timestamp_utc": "2026-06-18T21:43:11.267771+00:00"
+  },
+  "nonclaims": [
+    "Agent C P12 low-rank coupling solver-route diagnostics only",
+    "semantic replacement, not dense Sinkhorn equivalence",
+    "no full low-rank Sinkhorn solver-fidelity claim for extension components",
+    "no speedup claim",
+    "no ranking claim",
+    "no production default change",
+    "no posterior correctness claim",
+    "no HMC readiness claim",
+    "no public API readiness claim"
+  ],
+  "phase12_status": "LOW_RANK_SOLVER_ROUTE_PASSED_DIAGNOSTIC_ONLY",
+  "rows": [
+    {
+      "dense_reference_max_abs_particle_error_explanatory": 0.3783889328670624,
+      "dense_reference_rms_particle_error_explanatory": 0.15902969634941674,
+      "diagnostics": {
+        "alpha": 1e-08,
+        "assignment_epsilon": 0.45,
+        "backend": "tensorflow",
+        "component_id": "low_rank_coupling_solver_tf",
+        "convergence_threshold": 1e-06,
+        "denominator_floor": 1e-30,
+        "factor_shapes": {
+          "Q": [
+            1,
+            5,
+            3
+          ],
+          "R": [
+            1,
+            5,
+            3
+          ],
+          "g": [
+            1,
+            3
+          ]
+        },
+        "finite_factors": true,
+        "finite_particles": true,
+        "implementation_scope": "solver_route_dykstra_projection_diagnostic",
+        "mathematical_object": "low_rank_coupling_solver_route",
+        "max_factor_marginal_residual": 1.1449623765757977e-07,
+        "max_induced_column_residual": 5.724811882323877e-07,
+        "max_induced_row_residual": 5.267489473492759e-07,
+        "max_projection_iterations": 240,
+        "max_q_column_residual": 5.551115123125783e-17,
+        "max_q_row_residual": 1.0534978950316187e-07,
+        "max_r_column_residual": 5.551115123125783e-17,
+        "max_r_row_residual": 1.1449623765757977e-07,
+        "min_g": 0.28397962215566175,
+        "min_q": 0.0055939663304666026,
+        "min_r": 0.0025395774428169328,
+        "nonclaims": [
+          "Agent C P12 solver-route diagnostic only",
+          "semantic replacement, not dense Sinkhorn equivalence",
+          "no full low-rank Sinkhorn solver-fidelity claim for extension components",
+          "no speedup claim",
+          "no ranking claim",
+          "no production default change",
+          "no posterior correctness claim",
+          "no HMC readiness claim",
+          "no public API readiness claim"
+        ],
+        "nonnegative_factors": true,
+        "not_materialized_reason": "low_rank_coupling_factors_nonmaterialized",
+        "orientation": "target_rows_source_columns_phase1_scaled",
+        "positive_g": true,
+        "projection_error": 5.906869498389922e-07,
+        "projection_floor_hits": 0.0,
+        "projection_iterations_used": 12,
+        "projection_min_denominator": 0.21468342471127516,
+        "rank": 3,
+        "semantic_class": "semantic_replacement",
+        "semantic_output": "full_state_particles",
+        "solver_fidelity": "diagnostic_solver_route_not_full_lowrank_sinkhorn_fidelity",
+        "source_route": "extension_or_invention",
+        "source_route_components": {
+          "cost_nudged_assignment_kernel": "extension_or_invention",
+          "deterministic_initialization": "fixed_hmc_adaptation",
+          "dykstra_style_projection": "source_faithful",
+          "factor_marginal_diagnostics": "source_faithful",
+          "factored_coupling_parameterization": "source_faithful",
+          "fixed_iteration_schedule": "fixed_hmc_adaptation",
+          "low_rank_lazy_apply": "source_faithful",
+          "phase1_scaled_transport_adapter": "fixed_hmc_adaptation"
+        },
+        "source_status": "source_locked",
+        "transport_matrix_materialized": false,
+        "transport_object_kind": "low_rank_coupling_factors"
+      },
+      "factor_shapes": {
+        "Q": [
+          1,
+          5,
+          3
+        ],
+        "R": [
+          1,
+          5,
+          3
+        ],
+        "g": [
+          1,
+          3
+        ]
+      },
+      "fixture": "tiny_manual_solver",
+      "input_shape": {
+        "log_weights": [
+          1,
+          5
+        ],
+        "particles": [
+          1,
+          5,
+          3
+        ]
+      },
+      "materialized_column_residual": 5.724811882323877e-07,
+      "materialized_row_residual": 5.267489473492759e-07,
+      "materialized_tiny_apply_parity": 2.7755575615628914e-17,
+      "max_factor_marginal_residual": 1.1449623765757977e-07,
+      "max_induced_column_residual": 5.724811882323877e-07,
+      "max_induced_row_residual": 5.267489473492759e-07,
+      "rank": 3,
+      "validity_pass": true,
+      "wall_time_seconds": 0.06290503311902285
+    },
+    {
+      "dense_reference_max_abs_particle_error_explanatory": 0.46574164630404097,
+      "dense_reference_rms_particle_error_explanatory": 0.17239026337349234,
+      "diagnostics": {
+        "alpha": 1e-08,
+        "assignment_epsilon": 0.45,
+        "backend": "tensorflow",
+        "component_id": "low_rank_coupling_solver_tf",
+        "convergence_threshold": 1e-06,
+        "denominator_floor": 1e-30,
+        "factor_shapes": {
+          "Q": [
+            2,
+            5,
+            3
+          ],
+          "R": [
+            2,
+            5,
+            3
+          ],
+          "g": [
+            2,
+            3
+          ]
+        },
+        "finite_factors": true,
+        "finite_particles": true,
+        "implementation_scope": "solver_route_dykstra_projection_diagnostic",
+        "mathematical_object": "low_rank_coupling_solver_route",
+        "max_factor_marginal_residual": 4.4486332784199334e-08,
+        "max_induced_column_residual": 2.181369693765589e-07,
+        "max_induced_row_residual": 2.2243166419855243e-07,
+        "max_projection_iterations": 240,
+        "max_q_column_residual": 1.6653345369377348e-16,
+        "max_q_row_residual": 4.4486332784199334e-08,
+        "max_r_column_residual": 1.1102230246251565e-16,
+        "max_r_row_residual": 4.362739386420955e-08,
+        "min_g": 0.28397963216781014,
+        "min_q": 0.00559396240912015,
+        "min_r": 0.002539575536989899,
+        "nonclaims": [
+          "Agent C P12 solver-route diagnostic only",
+          "semantic replacement, not dense Sinkhorn equivalence",
+          "no full low-rank Sinkhorn solver-fidelity claim for extension components",
+          "no speedup claim",
+          "no ranking claim",
+          "no production default change",
+          "no posterior correctness claim",
+          "no HMC readiness claim",
+          "no public API readiness claim"
+        ],
+        "nonnegative_factors": true,
+        "not_materialized_reason": "low_rank_coupling_factors_nonmaterialized",
+        "orientation": "target_rows_source_columns_phase1_scaled",
+        "positive_g": true,
+        "projection_error": 4.4840210940144676e-07,
+        "projection_floor_hits": 0.0,
+        "projection_iterations_used": 13,
+        "projection_min_denominator": 0.21468337984247987,
+        "rank": 3,
+        "semantic_class": "semantic_replacement",
+        "semantic_output": "full_state_particles",
+        "solver_fidelity": "diagnostic_solver_route_not_full_lowrank_sinkhorn_fidelity",
+        "source_route": "extension_or_invention",
+        "source_route_components": {
+          "cost_nudged_assignment_kernel": "extension_or_invention",
+          "deterministic_initialization": "fixed_hmc_adaptation",
+          "dykstra_style_projection": "source_faithful",
+          "factor_marginal_diagnostics": "source_faithful",
+          "factored_coupling_parameterization": "source_faithful",
+          "fixed_iteration_schedule": "fixed_hmc_adaptation",
+          "low_rank_lazy_apply": "source_faithful",
+          "phase1_scaled_transport_adapter": "fixed_hmc_adaptation"
+        },
+        "source_status": "source_locked",
+        "transport_matrix_materialized": false,
+        "transport_object_kind": "low_rank_coupling_factors"
+      },
+      "factor_shapes": {
+        "Q": [
+          2,
+          5,
+          3
+        ],
+        "R": [
+          2,
+          5,
+          3
+        ],
+        "g": [
+          2,
+          3
+        ]
+      },
+      "fixture": "small_batch_solver",
+      "input_shape": {
+        "log_weights": [
+          2,
+          5
+        ],
+        "particles": [
+          2,
+          5,
+          3
+        ]
+      },
+      "materialized_column_residual": 2.181369691545143e-07,
+      "materialized_row_residual": 2.2243166397650782e-07,
+      "materialized_tiny_apply_parity": 1.1102230246251565e-16,
+      "max_factor_marginal_residual": 4.4486332784199334e-08,
+      "max_induced_column_residual": 2.181369693765589e-07,
+      "max_induced_row_residual": 2.2243166419855243e-07,
+      "rank": 3,
+      "validity_pass": true,
+      "wall_time_seconds": 0.045490231830626726
+    }
+  ],
+  "semantic_class": "semantic_replacement",
+  "settings": {
+    "alpha": 1e-08,
+    "assignment_epsilon": 0.45,
+    "convergence_threshold": 1e-06,
+    "denominator_floor": 1e-30,
+    "max_projection_iterations": 240,
+    "rank": 3
+  },
+  "source_route_components": {
+    "cost_nudged_assignment_kernel": "extension_or_invention",
+    "deterministic_initialization": "fixed_hmc_adaptation",
+    "dykstra_style_projection": "source_faithful",
+    "factor_marginal_diagnostics": "source_faithful",
+    "factored_coupling_parameterization": "source_faithful",
+    "fixed_iteration_schedule": "fixed_hmc_adaptation",
+    "low_rank_lazy_apply": "source_faithful",
+    "phase1_scaled_transport_adapter": "fixed_hmc_adaptation"
+  },
+  "status": "PASS",
+  "summary": {
+    "max_dense_reference_particle_error_explanatory": 0.46574164630404097,
+    "max_dense_reference_rms_error_explanatory": 0.17239026337349234,
+    "max_factor_marginal_residual": 1.1449623765757977e-07,
+    "max_induced_column_residual": 5.724811882323877e-07,
+    "max_induced_row_residual": 5.267489473492759e-07,
+    "max_materialized_tiny_apply_parity": 1.1102230246251565e-16
+  },
+  "thresholds": {
+    "dense_reference_error_role": "explanatory_only_for_semantic_replacement",
+    "factor_and_induced_residual_hard_veto": 0.005,
+    "materialized_apply_parity_hard_veto": 1e-10
+  },
+  "validity_pass": true
+}

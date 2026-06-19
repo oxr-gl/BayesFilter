@@ -2,8 +2,26 @@ import numpy as np
 import pytest
 import tensorflow as tf
 
+from bayesfilter import (
+    tf_svd_linear_gaussian_score_first_order as top_level_svd_first_order,
+)
+from bayesfilter import (
+    tf_svd_linear_gaussian_score_first_order_graph_status as top_level_svd_first_order_graph_status,
+)
 from bayesfilter import tf_svd_linear_gaussian_score_hessian as top_level_svd_score
-from bayesfilter.linear import tf_svd_linear_gaussian_score_hessian
+from bayesfilter import (
+    tf_svd_linear_gaussian_score_hessian_graph_status as top_level_svd_graph_status,
+)
+from bayesfilter.linear import (
+    SVD_LINEAR_SCORE_STATUS_BLOCKED_ACTIVE_FLOOR,
+    SVD_LINEAR_SCORE_STATUS_INVALID_EIGENSOLVER_INPUT,
+    SVD_LINEAR_SCORE_STATUS_VALID_PRE_REGULARIZED,
+    first_to_full_linear_gaussian_derivatives,
+    tf_svd_linear_gaussian_score_first_order,
+    tf_svd_linear_gaussian_score_first_order_graph_status,
+    tf_svd_linear_gaussian_score_hessian,
+    tf_svd_linear_gaussian_score_hessian_graph_status,
+)
 from bayesfilter.linear.kalman_qr_derivatives_tf import tf_qr_linear_gaussian_score_hessian
 from bayesfilter.linear.kalman_svd_derivatives_tf import (
     BlockedSVDSolveLogdetDerivativeError,
@@ -16,6 +34,7 @@ from bayesfilter.linear.types import (
 from bayesfilter.linear.types_tf import (
     TFLinearGaussianStateSpace,
     TFLinearGaussianStateSpaceDerivatives,
+    TFLinearGaussianStateSpaceFirstDerivatives,
 )
 from bayesfilter.linear.kalman_derivatives_numpy import solve_kalman_score_hessian
 from bayesfilter.results_tf import TFFilterDerivativeResult
@@ -78,6 +97,20 @@ def _derivatives() -> TFLinearGaussianStateSpaceDerivatives:
         d2_observation_offset=zeros_ppm,
         d2_observation_matrix=zeros_ppmn,
         d2_observation_covariance=zeros_ppmm,
+    )
+
+
+def _first_derivatives() -> TFLinearGaussianStateSpaceFirstDerivatives:
+    derivatives = _derivatives()
+    return TFLinearGaussianStateSpaceFirstDerivatives(
+        d_initial_mean=derivatives.d_initial_mean,
+        d_initial_covariance=derivatives.d_initial_covariance,
+        d_transition_offset=derivatives.d_transition_offset,
+        d_transition_matrix=derivatives.d_transition_matrix,
+        d_transition_covariance=derivatives.d_transition_covariance,
+        d_observation_offset=derivatives.d_observation_offset,
+        d_observation_matrix=derivatives.d_observation_matrix,
+        d_observation_covariance=derivatives.d_observation_covariance,
     )
 
 
@@ -190,6 +223,290 @@ def test_svd_score_rejects_graph_wrapped_public_wrapper_without_derivative_claim
     assert "BlockedSVDSolveLogdetDerivativeError" in str(exc_info.value)
 
 
+def test_svd_graph_status_eager_valid_state_matches_public_wrapper() -> None:
+    model = _model(tf.eye(2, dtype=tf.float64) * 0.7)
+    derivatives = _derivatives()
+
+    reference = tf_svd_linear_gaussian_score_hessian(_observations(), model, derivatives)
+    result = tf_svd_linear_gaussian_score_hessian_graph_status(
+        _observations(),
+        model,
+        derivatives,
+    )
+
+    assert isinstance(result, TFFilterDerivativeResult)
+    assert result.metadata.filter_name == "tf_svd_solve_logdet_score_kalman_graph_status"
+    assert result.diagnostics.regularization.derivative_target == "blocked"
+    assert result.diagnostics.extra["status_label"].startswith("tensor_status_code")
+    assert int(result.diagnostics.regularization.floor_count.numpy()) == 0
+    assert int(result.diagnostics.extra["status_code"].numpy()) == (
+        SVD_LINEAR_SCORE_STATUS_VALID_PRE_REGULARIZED
+    )
+    assert bool(result.diagnostics.extra["valid_pre_regularized_score"].numpy())
+    assert not bool(result.diagnostics.extra["active_floor_blocked"].numpy())
+    np.testing.assert_allclose(
+        result.log_likelihood.numpy(),
+        reference.log_likelihood.numpy(),
+        atol=1e-10,
+    )
+    np.testing.assert_allclose(
+        result.score.numpy(),
+        reference.score.numpy(),
+        rtol=1e-8,
+        atol=1e-8,
+    )
+
+
+def test_svd_graph_status_tf_function_valid_state_matches_public_wrapper() -> None:
+    model = _model(tf.eye(2, dtype=tf.float64) * 0.7)
+    derivatives = _derivatives()
+    reference = tf_svd_linear_gaussian_score_hessian(_observations(), model, derivatives)
+
+    @tf.function(reduce_retracing=True)
+    def graph_call(shift: tf.Tensor):
+        result = tf_svd_linear_gaussian_score_hessian_graph_status(
+            _observations() + shift,
+            model,
+            derivatives,
+        )
+        return (
+            result.log_likelihood,
+            result.score,
+            result.diagnostics.extra["status_code"],
+            result.diagnostics.extra["valid_pre_regularized_score"],
+            result.diagnostics.extra["active_floor_blocked"],
+            result.diagnostics.regularization.floor_count,
+        )
+
+    log_likelihood, score, status_code, valid, blocked, floor_count_value = graph_call(
+        tf.zeros_like(_observations())
+    )
+
+    assert int(status_code.numpy()) == SVD_LINEAR_SCORE_STATUS_VALID_PRE_REGULARIZED
+    assert bool(valid.numpy())
+    assert not bool(blocked.numpy())
+    assert int(floor_count_value.numpy()) == 0
+    np.testing.assert_allclose(log_likelihood.numpy(), reference.log_likelihood.numpy(), atol=1e-10)
+    np.testing.assert_allclose(score.numpy(), reference.score.numpy(), rtol=1e-8, atol=1e-8)
+
+
+def test_svd_graph_status_active_floor_returns_blocked_tensor_diagnostics() -> None:
+    model = _model(tf.eye(2, dtype=tf.float64) * 0.7)
+    derivatives = _derivatives()
+
+    @tf.function(reduce_retracing=True)
+    def graph_call():
+        result = tf_svd_linear_gaussian_score_hessian_graph_status(
+            _observations(),
+            model,
+            derivatives,
+            singular_floor=1.0,
+        )
+        return (
+            result.log_likelihood,
+            result.score,
+            result.diagnostics.extra["status_code"],
+            result.diagnostics.extra["valid_pre_regularized_score"],
+            result.diagnostics.extra["active_floor_blocked"],
+            result.diagnostics.regularization.floor_count,
+            result.diagnostics.extra["status_blocked_active_floor_code"],
+        )
+
+    (
+        log_likelihood,
+        score,
+        status_code,
+        valid,
+        blocked,
+        floor_count_value,
+        blocked_status_code,
+    ) = graph_call()
+
+    assert int(status_code.numpy()) == SVD_LINEAR_SCORE_STATUS_BLOCKED_ACTIVE_FLOOR
+    assert int(blocked_status_code.numpy()) == SVD_LINEAR_SCORE_STATUS_BLOCKED_ACTIVE_FLOOR
+    assert not bool(valid.numpy())
+    assert bool(blocked.numpy())
+    assert int(floor_count_value.numpy()) > 0
+    assert log_likelihood.shape == ()
+    assert score.shape == (3,)
+
+
+def test_svd_graph_status_invalid_covariance_returns_tensor_status_without_eigh_raise() -> None:
+    model = _model(tf.constant([[0.7, np.nan], [np.nan, 0.7]], dtype=tf.float64))
+    derivatives = _derivatives()
+
+    @tf.function(reduce_retracing=True)
+    def graph_call():
+        result = tf_svd_linear_gaussian_score_hessian_graph_status(
+            _observations(),
+            model,
+            derivatives,
+        )
+        return (
+            result.log_likelihood,
+            result.score,
+            result.diagnostics.extra["status_code"],
+            result.diagnostics.extra["valid_pre_regularized_score"],
+            result.diagnostics.extra["invalid_eigensolver_input"],
+            result.diagnostics.extra["nonfinite_covariance"],
+            result.diagnostics.extra["active_floor_blocked"],
+            result.diagnostics.extra["status_invalid_eigensolver_input_code"],
+            result.diagnostics.regularization.floor_count,
+        )
+
+    (
+        log_likelihood,
+        score,
+        status_code,
+        valid,
+        invalid_eigensolver_input,
+        nonfinite_covariance,
+        active_floor_blocked,
+        invalid_status_code,
+        floor_count_value,
+    ) = graph_call()
+
+    assert int(status_code.numpy()) == SVD_LINEAR_SCORE_STATUS_INVALID_EIGENSOLVER_INPUT
+    assert int(invalid_status_code.numpy()) == SVD_LINEAR_SCORE_STATUS_INVALID_EIGENSOLVER_INPUT
+    assert not bool(valid.numpy())
+    assert bool(invalid_eigensolver_input.numpy())
+    assert bool(nonfinite_covariance.numpy())
+    assert not bool(active_floor_blocked.numpy())
+    assert int(floor_count_value.numpy()) == 0
+    assert log_likelihood.shape == ()
+    assert score.shape == (3,)
+
+
+def test_first_order_derivative_conversion_zero_fills_second_derivatives() -> None:
+    first_derivatives = _first_derivatives()
+
+    full = first_to_full_linear_gaussian_derivatives(first_derivatives)
+
+    np.testing.assert_allclose(
+        full.d_observation_offset.numpy(),
+        first_derivatives.d_observation_offset.numpy(),
+    )
+    np.testing.assert_allclose(
+        full.d_observation_covariance.numpy(),
+        first_derivatives.d_observation_covariance.numpy(),
+    )
+    for tensor in (
+        full.d2_initial_mean,
+        full.d2_initial_covariance,
+        full.d2_transition_offset,
+        full.d2_transition_matrix,
+        full.d2_transition_covariance,
+        full.d2_observation_offset,
+        full.d2_observation_matrix,
+        full.d2_observation_covariance,
+    ):
+        assert not np.any(tensor.numpy())
+
+
+def test_svd_first_order_score_matches_full_derivative_score() -> None:
+    model = _model(tf.eye(2, dtype=tf.float64) * 0.7)
+    full_derivatives = _derivatives()
+    first_derivatives = _first_derivatives()
+
+    reference = tf_svd_linear_gaussian_score_hessian(
+        _observations(),
+        model,
+        full_derivatives,
+    )
+    result = tf_svd_linear_gaussian_score_first_order(
+        _observations(),
+        model,
+        first_derivatives,
+    )
+    top_level_result = top_level_svd_first_order(
+        _observations(),
+        model,
+        first_derivatives,
+    )
+
+    assert result.hessian is None
+    assert result.metadata.filter_name == "tf_svd_solve_logdet_score_first_order_kalman"
+    np.testing.assert_allclose(result.log_likelihood.numpy(), reference.log_likelihood.numpy())
+    np.testing.assert_allclose(result.score.numpy(), reference.score.numpy())
+    np.testing.assert_allclose(top_level_result.score.numpy(), reference.score.numpy())
+
+
+def test_svd_first_order_graph_status_matches_full_graph_status() -> None:
+    model = _model(tf.eye(2, dtype=tf.float64) * 0.7)
+    full_derivatives = _derivatives()
+    first_derivatives = _first_derivatives()
+
+    reference = tf_svd_linear_gaussian_score_hessian_graph_status(
+        _observations(),
+        model,
+        full_derivatives,
+    )
+    result = tf_svd_linear_gaussian_score_first_order_graph_status(
+        _observations(),
+        model,
+        first_derivatives,
+    )
+    top_level_result = top_level_svd_first_order_graph_status(
+        _observations(),
+        model,
+        first_derivatives,
+    )
+
+    assert result.hessian is None
+    assert (
+        result.metadata.filter_name
+        == "tf_svd_solve_logdet_score_first_order_kalman_graph_status"
+    )
+    assert int(result.diagnostics.extra["status_code"].numpy()) == (
+        SVD_LINEAR_SCORE_STATUS_VALID_PRE_REGULARIZED
+    )
+    assert bool(result.diagnostics.extra["valid_pre_regularized_score"].numpy())
+    np.testing.assert_allclose(result.log_likelihood.numpy(), reference.log_likelihood.numpy())
+    np.testing.assert_allclose(result.score.numpy(), reference.score.numpy())
+    np.testing.assert_allclose(top_level_result.score.numpy(), reference.score.numpy())
+
+
+def test_svd_first_order_graph_status_preserves_blocked_and_invalid_status_codes() -> None:
+    first_derivatives = _first_derivatives()
+
+    @tf.function(reduce_retracing=True)
+    def active_floor_call():
+        result = tf_svd_linear_gaussian_score_first_order_graph_status(
+            _observations(),
+            _model(tf.eye(2, dtype=tf.float64) * 0.7),
+            first_derivatives,
+            singular_floor=1.0,
+        )
+        return (
+            result.diagnostics.extra["status_code"],
+            result.diagnostics.extra["active_floor_blocked"],
+            result.diagnostics.extra["valid_pre_regularized_score"],
+        )
+
+    @tf.function(reduce_retracing=True)
+    def invalid_covariance_call():
+        result = tf_svd_linear_gaussian_score_first_order_graph_status(
+            _observations(),
+            _model(tf.constant([[0.7, np.nan], [np.nan, 0.7]], dtype=tf.float64)),
+            first_derivatives,
+        )
+        return (
+            result.diagnostics.extra["status_code"],
+            result.diagnostics.extra["invalid_eigensolver_input"],
+            result.diagnostics.extra["valid_pre_regularized_score"],
+        )
+
+    active_status, active_blocked, active_valid = active_floor_call()
+    invalid_status, invalid_input, invalid_valid = invalid_covariance_call()
+
+    assert int(active_status.numpy()) == SVD_LINEAR_SCORE_STATUS_BLOCKED_ACTIVE_FLOOR
+    assert bool(active_blocked.numpy())
+    assert not bool(active_valid.numpy())
+    assert int(invalid_status.numpy()) == SVD_LINEAR_SCORE_STATUS_INVALID_EIGENSOLVER_INPUT
+    assert bool(invalid_input.numpy())
+    assert not bool(invalid_valid.numpy())
+
+
 def test_svd_score_matches_qr_derivative_and_svd_value_likelihood() -> None:
     model = _model(tf.eye(2, dtype=tf.float64) * 0.7)
     derivatives = _derivatives()
@@ -218,6 +535,7 @@ def test_svd_score_metadata_diagnostics_and_exports() -> None:
     derivatives = _derivatives()
 
     result = top_level_svd_score(_observations(), model, derivatives)
+    graph_status = top_level_svd_graph_status(_observations(), model, derivatives)
 
     assert result.metadata.filter_name == "tf_svd_solve_logdet_score_kalman"
     assert result.metadata.differentiability_status == "analytic_score_only"
@@ -233,6 +551,7 @@ def test_svd_score_metadata_diagnostics_and_exports() -> None:
     assert int(result.diagnostics.regularization.floor_count.numpy()) == 0
     assert result.diagnostics.extra["min_innovation_eigenvalue"].numpy() > 0.0
     assert result.diagnostics.extra["innovation_condition_estimate"].numpy() >= 1.0
+    assert graph_status.metadata.filter_name == "tf_svd_solve_logdet_score_kalman_graph_status"
 
 
 def test_svd_score_rejects_masks_and_unknown_backend() -> None:

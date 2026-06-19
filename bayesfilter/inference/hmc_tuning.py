@@ -1012,6 +1012,7 @@ class FixedTrajectoryTuningResult:
             else self.selected_candidate.payload(),
             "selected_num_leapfrog_steps": self.selected_num_leapfrog_steps,
             "selected_trajectory_length": self.selected_trajectory_length,
+            "no_further_adaptation": self.selected_candidate is not None,
             "production_leapfrog_rule": self.production_leapfrog_rule,
             "blocker_reason": self.blocker_reason,
             "diagnostics": {

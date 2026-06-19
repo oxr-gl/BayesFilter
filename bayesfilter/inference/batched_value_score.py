@@ -30,6 +30,13 @@ NONCLAIMS = (
     "no scientific validity claim",
 )
 
+_GRAPH_NATIVE_AUTHORITIES = frozenset(
+    {
+        "graph_native",
+        "reviewed_gradient_tape_xla_exception",
+    }
+)
+
 
 @dataclass(frozen=True)
 class BatchValueScoreMetadata:
@@ -285,29 +292,49 @@ class LatentAffineBatchValueScoreAdapter:
         self.nonclaims = tuple(str(item) for item in nonclaims) or NONCLAIMS
 
     def value_score_capability(self) -> ValueScoreCapability:
+        base_capability = value_score_capability(self.base_adapter)
+        graph_native_base = base_capability.value_score_authority in _GRAPH_NATIVE_AUTHORITIES
+        authority = base_capability.value_score_authority
+        xla_ready = bool(
+            self.xla_hmc_ready
+            and graph_native_base
+            and base_capability.is_accepted_xla_hmc_authority
+        )
+        full_chain_ready = bool(
+            self.full_chain_xla_diagnostic_ready
+            and xla_ready
+            and base_capability.is_accepted_full_chain_xla_diagnostic_authority
+        )
+        nonclaims = self.nonclaims + (
+            f"base value/score authority: {base_capability.value_score_authority}",
+            "latent wrapper cannot promote fallback base authority",
+        )
         return ValueScoreCapability(
-            value_score_authority="graph_native",
-            xla_hmc_ready=self.xla_hmc_ready,
-            full_chain_xla_diagnostic_ready=self.full_chain_xla_diagnostic_ready,
+            value_score_authority=authority,
+            xla_hmc_ready=xla_ready,
+            full_chain_xla_diagnostic_ready=full_chain_ready,
             runtime_backend=self.runtime_backend,
             evidence_path=self.evidence_path,
             target_scope=self.target_scope,
-            nonclaims=self.nonclaims,
+            nonclaims=nonclaims,
         )
 
     def initial_position(self) -> tf.Tensor:
         return tf.zeros((self.parameter_dim,), dtype=tf.float64)
 
     def latent_to_position(self, z: Any) -> tf.Tensor:
-        z_tensor = self._validate_latent_tensor(z)
+        z_tensor = self._validate_latent_tensor(z, allow_sample_axes=True)
         center = tf.convert_to_tensor(self.transform.center, dtype=z_tensor.dtype)
         factor = tf.convert_to_tensor(self.transform.factor, dtype=z_tensor.dtype)
-        return center + tf.linalg.matvec(factor, z_tensor) if z_tensor.shape.rank == 1 else center + tf.linalg.matmul(z_tensor, factor, transpose_b=True)
+        return center + tf.tensordot(z_tensor, factor, axes=[[-1], [1]])
 
     def theta_score_to_latent_score(self, theta_score: Any) -> tf.Tensor:
-        score_tensor = self._validate_position_tensor(theta_score)
+        score_tensor = self._validate_position_tensor(
+            theta_score,
+            allow_sample_axes=True,
+        )
         factor = tf.convert_to_tensor(self.transform.factor, dtype=score_tensor.dtype)
-        return tf.linalg.matvec(factor, score_tensor, transpose_a=True) if score_tensor.shape.rank == 1 else tf.linalg.matmul(score_tensor, factor)
+        return tf.tensordot(score_tensor, factor, axes=[[-1], [0]])
 
     def log_prob_and_grad(self, z: Any) -> tuple[tf.Tensor, tf.Tensor]:
         z_tensor = self._validate_latent_tensor(z)
@@ -318,16 +345,70 @@ class LatentAffineBatchValueScoreAdapter:
         _validate_value_score_shapes(theta=theta, value=value_tensor, score=theta_score_tensor)
         return value_tensor, self.theta_score_to_latent_score(theta_score_tensor)
 
-    def _validate_latent_tensor(self, value: Any) -> tf.Tensor:
-        tensor = tf.convert_to_tensor(value, dtype=tf.float64)
-        return self._validate_trailing_dimension(tensor, "latent coordinate")
+    def target_status_telemetry(self, z: Any) -> Mapping[str, Any]:
+        """Return base-target telemetry after applying the latent transform.
 
-    def _validate_position_tensor(self, value: Any) -> tf.Tensor:
-        tensor = tf.convert_to_tensor(value, dtype=tf.float64)
-        return self._validate_trailing_dimension(tensor, "position/score")
+        HMC trace collection is owned by BayesFilter, while model-specific
+        target status is owned by the wrapped adapter.  This method is an
+        explicit bridge for retained-chain-step telemetry; it does not change
+        value/score semantics and fails closed when the base adapter lacks the
+        reviewed telemetry method.
+        """
 
-    def _validate_trailing_dimension(self, tensor: tf.Tensor, label: str) -> tf.Tensor:
-        if tensor.shape.rank not in (1, 2):
+        telemetry = getattr(self.base_adapter, "target_status_telemetry", None)
+        if not callable(telemetry):
+            raise TypeError("base_adapter must expose target_status_telemetry")
+        z_tensor = self._validate_latent_tensor(z)
+        theta = self.latent_to_position(z_tensor)
+        payload = telemetry(theta)
+        if not isinstance(payload, Mapping):
+            raise TypeError("target_status_telemetry must return a mapping")
+        return payload
+
+    def _validate_latent_tensor(
+        self,
+        value: Any,
+        *,
+        allow_sample_axes: bool = False,
+    ) -> tf.Tensor:
+        tensor = tf.convert_to_tensor(value, dtype=tf.float64)
+        return self._validate_trailing_dimension(
+            tensor,
+            "latent coordinate",
+            allow_sample_axes=allow_sample_axes,
+        )
+
+    def _validate_position_tensor(
+        self,
+        value: Any,
+        *,
+        allow_sample_axes: bool = False,
+    ) -> tf.Tensor:
+        tensor = tf.convert_to_tensor(value, dtype=tf.float64)
+        return self._validate_trailing_dimension(
+            tensor,
+            "position/score",
+            allow_sample_axes=allow_sample_axes,
+        )
+
+    def _validate_trailing_dimension(
+        self,
+        tensor: tf.Tensor,
+        label: str,
+        *,
+        allow_sample_axes: bool = False,
+    ) -> tf.Tensor:
+        min_rank = 1
+        max_rank = None if allow_sample_axes else 2
+        if tensor.shape.rank is None:
+            raise ValueError(f"{label} tensor must have static rank")
+        if tensor.shape.rank < min_rank or (
+            max_rank is not None and tensor.shape.rank > max_rank
+        ):
+            if allow_sample_axes:
+                raise ValueError(
+                    f"{label} tensor must have rank at least 1 with trailing parameter dimension"
+                )
             raise ValueError(f"{label} tensor must have rank 1 or rank 2")
         trailing = tensor.shape[-1]
         if trailing is None:

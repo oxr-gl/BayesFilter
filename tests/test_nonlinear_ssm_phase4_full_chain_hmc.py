@@ -62,6 +62,39 @@ class ReviewedBatchedGaussianAdapter(ReviewedGaussianAdapter):
         return -0.5 * tf.reduce_sum(tf.square(values), axis=-1), -values
 
 
+class TelemetryBatchedGaussianAdapter(ReviewedBatchedGaussianAdapter):
+    def adapter_signature(self) -> str:
+        return "phase4-telemetry-batched-gaussian-v1"
+
+    def target_status_telemetry(self, theta: tf.Tensor) -> dict[str, tf.Tensor]:
+        values = tf.convert_to_tensor(theta, dtype=tf.float64)
+        status_shape = tf.shape(values)[:-1]
+        min_eigen = 0.5 + 0.0 * tf.reduce_sum(values, axis=-1)
+        condition = 2.0 + 0.0 * tf.reduce_sum(values, axis=-1)
+        return {
+            "status_code": tf.zeros(status_shape, dtype=tf.int32),
+            "valid_pre_regularized_score": tf.ones(status_shape, dtype=tf.bool),
+            "floor_count_value": tf.zeros(status_shape, dtype=tf.int32),
+            "min_innovation_eigenvalue": tf.cast(min_eigen, tf.float64),
+            "innovation_condition_estimate": tf.cast(condition, tf.float64),
+            "regularization_derivative_target": tf.zeros(status_shape, dtype=tf.int32),
+        }
+
+
+class NonvalidTelemetryBatchedGaussianAdapter(TelemetryBatchedGaussianAdapter):
+    def target_status_telemetry(self, theta: tf.Tensor) -> dict[str, tf.Tensor]:
+        values = tf.convert_to_tensor(theta, dtype=tf.float64)
+        status_shape = tf.shape(values)[:-1]
+        return {
+            "status_code": tf.ones(status_shape, dtype=tf.int32),
+            "valid_pre_regularized_score": tf.zeros(status_shape, dtype=tf.bool),
+            "floor_count_value": tf.ones(status_shape, dtype=tf.int32),
+            "min_innovation_eigenvalue": tf.zeros(status_shape, dtype=tf.float64),
+            "innovation_condition_estimate": tf.fill(status_shape, tf.constant(1.0e12, dtype=tf.float64)),
+            "regularization_derivative_target": tf.zeros(status_shape, dtype=tf.int32),
+        }
+
+
 class BadBatchedGaussianAdapter(ReviewedBatchedGaussianAdapter):
     def log_prob_and_grad(self, theta: tf.Tensor) -> tuple[tf.Tensor, tf.Tensor]:
         values = tf.convert_to_tensor(theta, dtype=tf.float64)
@@ -250,6 +283,104 @@ def test_phase4_chain_batched_full_chain_hmc_broadcasts_upstream_gradients() -> 
     assert result.metadata["requested_target_scope"] == "phase4_reviewed_batched_gaussian"
     assert result.metadata["jit_compile"] is True
     assert "no sampler convergence claim" in result.metadata["nonclaims"]
+
+
+def test_phase4_target_status_trace_policy_preserves_default_trace_when_disabled() -> None:
+    config = _batched_config()
+
+    assert config.target_status_trace_policy == "none"
+    assert config.signature_payload()["target_status_trace_policy"] == "none"
+
+    result = run_full_chain_tfp_hmc(
+        TelemetryBatchedGaussianAdapter(),
+        tf.constant([[0.1, -0.2], [0.2, 0.1]], dtype=tf.float64),
+        config,
+    )
+
+    assert set(result.trace) == {"is_accepted", "log_accept_ratio", "target_log_prob"}
+    assert "target_status_telemetry" not in result.trace
+    assert result.metadata["target_status_trace_policy"] == "none"
+
+
+def test_phase4_target_status_trace_policy_fails_closed_without_adapter_method() -> None:
+    config = FullChainHMCConfig(
+        num_results=2,
+        num_burnin_steps=1,
+        step_size=0.05,
+        num_leapfrog_steps=1,
+        seed=(20260618, 10),
+        use_xla=False,
+        trace_policy="standard",
+        target_status_trace_policy="per_chain_step",
+        target_scope="phase4_reviewed_batched_gaussian",
+    )
+
+    with pytest.raises(TypeError, match="target_status_telemetry"):
+        run_full_chain_tfp_hmc(
+            ReviewedBatchedGaussianAdapter(),
+            tf.constant([[0.1, -0.2], [0.2, 0.1]], dtype=tf.float64),
+            config,
+        )
+
+
+def test_phase4_target_status_trace_policy_records_raw_and_summary_telemetry() -> None:
+    initial_state = tf.constant(
+        [[0.1, -0.2], [0.2, 0.1]],
+        dtype=tf.float64,
+    )
+    config = FullChainHMCConfig(
+        num_results=3,
+        num_burnin_steps=1,
+        step_size=0.05,
+        num_leapfrog_steps=1,
+        seed=(20260618, 11),
+        use_xla=False,
+        trace_policy="standard",
+        target_status_trace_policy="per_chain_step",
+        target_scope="phase4_reviewed_batched_gaussian",
+    )
+
+    result = run_full_chain_tfp_hmc(
+        TelemetryBatchedGaussianAdapter(),
+        initial_state,
+        config,
+    )
+
+    assert result.samples.shape == (3, 2, 2)
+    assert set(result.trace) == {
+        "is_accepted",
+        "log_accept_ratio",
+        "target_log_prob",
+        "target_status_telemetry",
+    }
+    telemetry = result.trace["target_status_telemetry"]
+    assert telemetry["status_code"].shape == (3, 2)
+    assert telemetry["valid_pre_regularized_score"].shape == (3, 2)
+    summary = result.diagnostics["target_status_telemetry"]
+    assert int(summary["trace_entry_count"].numpy()) == 6
+    assert int(summary["status_nonvalid_count"].numpy()) == 0
+    assert bool(summary["all_status_valid"].numpy()) is True
+    assert int(summary["floor_count_total"].numpy()) == 0
+    assert int(summary["max_floor_count_value"].numpy()) == 0
+    assert float(summary["min_min_innovation_eigenvalue"].numpy()) == pytest.approx(0.5)
+    assert float(summary["max_innovation_condition_estimate"].numpy()) == pytest.approx(2.0)
+    assert bool(summary["telemetry_failure_veto"].numpy()) is False
+    assert result.metadata["target_status_trace_policy"] == "per_chain_step"
+
+
+def test_phase4_target_status_diagnostics_records_nonvalid_status_as_veto() -> None:
+    import bayesfilter.inference.hmc as hmc_module
+
+    telemetry = NonvalidTelemetryBatchedGaussianAdapter().target_status_telemetry(
+        tf.constant([[0.1, -0.2], [0.2, 0.1]], dtype=tf.float64)
+    )
+
+    summary = hmc_module._target_status_telemetry_diagnostics(telemetry)
+
+    assert int(summary["trace_entry_count"].numpy()) == 2
+    assert int(summary["status_nonvalid_count"].numpy()) == 2
+    assert bool(summary["all_status_valid"].numpy()) is False
+    assert bool(summary["telemetry_failure_veto"].numpy()) is True
 
 
 def test_phase4_reusable_full_chain_runner_reuses_compiled_shape_and_seed_argument() -> None:

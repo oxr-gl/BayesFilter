@@ -1,7 +1,7 @@
 """Experimental TensorFlow fixed-rank Nystrom annealed transport.
 
-This module is Phase 4 infrastructure for the scalable OT program.  It is an
-experimental candidate path only; it does not change BayesFilter defaults.
+This module is experimental infrastructure for the scalable OT program.  It is
+an experimental candidate path only; it does not change BayesFilter defaults.
 """
 
 from __future__ import annotations
@@ -174,7 +174,7 @@ def nystrom_transport_resample_tf(
         "finite_factors": bool(finite_factors.numpy()),
         "finite_particles": bool(finite_particles.numpy()),
         "nonclaims": [
-            "experimental Phase 4 candidate only",
+            "experimental scalable OT candidate only",
             "no speedup claim",
             "no ranking claim",
             "no production default change",

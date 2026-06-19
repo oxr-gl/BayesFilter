@@ -1,0 +1,174 @@
+{
+  "artifact_audit": {
+    "artifact_audit_pass": true,
+    "artifact_hard_vetoes": [],
+    "artifacts": {
+      "low_rank_coupling": {
+        "candidate_id": "wave2_low_rank_coupling_validation",
+        "exists": true,
+        "hard_vetoes": [],
+        "path": "docs/benchmarks/scalable-ot-wave2-low-rank-coupling-validation-2026-06-19.json",
+        "schema_warnings": [],
+        "semantic_class": "semantic_replacement",
+        "source_route": "extension_or_invention",
+        "status": "PASS",
+        "transport_kind": "low_rank_coupling_factors",
+        "transport_materialized": false,
+        "wave2_status": "LOW_RANK_COUPLING_VALIDATION_PASSED_DIAGNOSTIC_ONLY"
+      },
+      "positive_feature": {
+        "candidate_id": "wave2_positive_feature_sinkhorn_diagnostic",
+        "exists": true,
+        "hard_vetoes": [],
+        "path": "docs/benchmarks/scalable-ot-wave2-positive-feature-diagnostics-2026-06-19.json",
+        "schema_warnings": [],
+        "semantic_class": "semantic_replacement",
+        "source_route": "fixed_hmc_adaptation",
+        "status": "PASS",
+        "transport_kind": "kernel_factors",
+        "transport_materialized": false,
+        "wave2_status": "POSITIVE_FEATURE_SINKHORN_PASSED_DIAGNOSTIC_ONLY"
+      }
+    }
+  },
+  "hard_vetoes": [],
+  "manifest": {
+    "command": "scalable_ot_wave3_downstream_smoke.py",
+    "cuda_visible_devices": "-1",
+    "device": "/CPU:0",
+    "device_scope": "cpu",
+    "git_commit": "b4156c4b0cbfdc443440fc6df4b6044e09040abb",
+    "plan_path": "docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-wave3-master-program-2026-06-19.md",
+    "platform": "Linux-6.8.0-111-generic-x86_64-with-glibc2.35",
+    "python": "3.13.13 | packaged by Anaconda, Inc. | (main, Apr 14 2026, 06:19:41) [GCC 14.3.0]",
+    "tensorflow_version": "2.20.0",
+    "timestamp_utc": "2026-06-19T11:17:26.917288+00:00"
+  },
+  "mode": "smoke",
+  "nonclaims": [
+    "Wave 3 downstream smoke diagnostics only",
+    "no ranking claim",
+    "no speedup claim",
+    "no production default change",
+    "no posterior correctness claim",
+    "no HMC readiness claim",
+    "no public API readiness claim",
+    "no dense Sinkhorn equivalence claim",
+    "no broad scalable-OT selection claim"
+  ],
+  "rows": [
+    {
+      "candidate": "low_rank_coupling",
+      "diagnostics": {
+        "log_weight_normalization_residual": 0.0,
+        "max_abs_output_particle_explanatory": 0.35012583199720326,
+        "max_factor_marginal_residual": 1.1449623765757977e-07,
+        "max_induced_column_residual": 5.724811882323877e-07,
+        "max_induced_row_residual": 5.267489473492759e-07,
+        "max_mean_delta_from_input_explanatory": 0.10749988863063936,
+        "max_variance_delta_from_input_explanatory": 0.11301190541765649,
+        "wall_time_seconds_explanatory": 0.08784064394421875
+      },
+      "finite_particles": true,
+      "finite_transport_object": true,
+      "fixture": "tiny_manual_common",
+      "hard_vetoes": [],
+      "particles_shape": [
+        1,
+        5,
+        3
+      ],
+      "sign_check_pass": true,
+      "transport_kind": "low_rank_coupling_factors",
+      "validity_pass": true
+    },
+    {
+      "candidate": "positive_feature",
+      "diagnostics": {
+        "log_weight_normalization_residual": 0.0,
+        "max_abs_output_particle_explanatory": 0.28559495923601175,
+        "max_column_residual": 2.220446049250313e-16,
+        "max_mean_delta_from_input_explanatory": 0.10749999999999996,
+        "max_row_residual": 9.786381496623697e-05,
+        "max_variance_delta_from_input_explanatory": 0.12145618201109595,
+        "wall_time_seconds_explanatory": 0.011624305974692106
+      },
+      "finite_particles": true,
+      "finite_transport_object": true,
+      "fixture": "tiny_manual_common",
+      "hard_vetoes": [],
+      "particles_shape": [
+        1,
+        5,
+        3
+      ],
+      "sign_check_pass": true,
+      "transport_kind": "kernel_factors",
+      "validity_pass": true
+    },
+    {
+      "candidate": "low_rank_coupling",
+      "diagnostics": {
+        "log_weight_normalization_residual": 0.0,
+        "max_abs_output_particle_explanatory": 0.32881034915391255,
+        "max_factor_marginal_residual": 1.2648710437379584e-07,
+        "max_induced_column_residual": 7.589226265203308e-07,
+        "max_induced_row_residual": 7.013386270626754e-07,
+        "max_mean_delta_from_input_explanatory": 0.1238998519074508,
+        "max_variance_delta_from_input_explanatory": 0.1575841573621026,
+        "wall_time_seconds_explanatory": 0.045003086095675826
+      },
+      "finite_particles": true,
+      "finite_transport_object": true,
+      "fixture": "wider_state_common",
+      "hard_vetoes": [],
+      "particles_shape": [
+        1,
+        6,
+        4
+      ],
+      "sign_check_pass": true,
+      "transport_kind": "low_rank_coupling_factors",
+      "validity_pass": true
+    },
+    {
+      "candidate": "positive_feature",
+      "diagnostics": {
+        "log_weight_normalization_residual": 0.0,
+        "max_abs_output_particle_explanatory": 0.2617909708168455,
+        "max_column_residual": 0.0,
+        "max_mean_delta_from_input_explanatory": 0.12390000000000008,
+        "max_row_residual": 1.0780281418765192e-05,
+        "max_variance_delta_from_input_explanatory": 0.16591543519494686,
+        "wall_time_seconds_explanatory": 0.010137796867638826
+      },
+      "finite_particles": true,
+      "finite_transport_object": true,
+      "fixture": "wider_state_common",
+      "hard_vetoes": [],
+      "particles_shape": [
+        1,
+        6,
+        4
+      ],
+      "sign_check_pass": true,
+      "transport_kind": "kernel_factors",
+      "validity_pass": true
+    }
+  ],
+  "settings": {
+    "epsilon": 0.5,
+    "low_rank_assignment_epsilon": 0.45,
+    "low_rank_rank": 3,
+    "positive_feature_count": 128
+  },
+  "status": "PASS",
+  "summary": {
+    "max_mean_delta_from_input_explanatory": 0.12390000000000008,
+    "max_variance_delta_from_input_explanatory": 0.16591543519494686,
+    "max_wall_time_seconds_explanatory": 0.08784064394421875,
+    "num_hard_vetoes": 0,
+    "num_rows": 4
+  },
+  "wave3_status": "WAVE3_DOWNSTREAM_SMOKE_PASSED_NO_RANKING"
+}

@@ -143,6 +143,7 @@ def test_fixed_trajectory_tuning_consumes_phase4_frozen_mass_and_step():
     assert result.selected_trajectory_length == pytest.approx(
         result.frozen_step_size * result.selected_num_leapfrog_steps
     )
+    assert payload["no_further_adaptation"] is True
     assert payload["diagnostics"]["acceptance_band_role"] == (
         "closed tuning promotion screen only"
     )

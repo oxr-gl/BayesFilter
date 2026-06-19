@@ -28,6 +28,7 @@ ExperimentalBatchedBackend = Literal[
     "tf_batched_kalman",
     "tf_svd_ukf",
     "tf_svd_cubature",
+    "tf_principal_sqrt_ukf",
 ]
 
 NONCLAIMS = (
@@ -160,7 +161,7 @@ def experimental_batched_svd_sigma_point_value_score(
 ) -> ExperimentalBatchedValueScoreResult:
     """Return batched SVD sigma-point value+score with experimental metadata."""
 
-    if backend not in ("tf_svd_ukf", "tf_svd_cubature"):
+    if backend not in ("tf_svd_ukf", "tf_svd_cubature", "tf_principal_sqrt_ukf"):
         raise ValueError(f"unsupported experimental batched SVD backend: {backend}")
     value, score, diagnostics = tf_batched_svd_sigma_point_value_and_score(
         observations,

@@ -33,6 +33,9 @@ from tests.test_experimental_batched_svd_sigma_point_nonlinear_tf import (
     _scalar_rows,
     _theta_batch as _nonlinear_theta_batch,
 )
+from tests.test_experimental_batched_svd_sigma_point_tf import (
+    _repeated_positive_model_and_derivatives,
+)
 
 
 def test_experimental_interface_kalman_wrapper_matches_kernel() -> None:
@@ -88,6 +91,72 @@ def test_experimental_interface_svd_wrapper_matches_nonlinear_kernel() -> None:
     assert wrapped.metadata.experimental is True
     assert wrapped.metadata.scalar_fallback_used is False
     assert "no production default readiness claim" in wrapped.metadata.nonclaims
+
+
+def test_experimental_interface_principal_sqrt_wrapper_matches_kernel() -> None:
+    theta_batch = _nonlinear_theta_batch()
+    model, derivatives = _batched_model_and_derivatives(theta_batch)
+    kwargs = {
+        "backend": "tf_principal_sqrt_ukf",
+        "innovation_floor": tf.constant(1.0e-12, dtype=tf.float64),
+        "spectral_gap_tolerance": tf.constant(1.0e-8, dtype=tf.float64),
+        "allow_fixed_null_support": False,
+    }
+    observations = tf.constant([[0.10], [0.04], [0.16]], dtype=tf.float64)
+    wrapped = experimental_batched_svd_sigma_point_value_score(
+        observations,
+        model,
+        derivatives,
+        **kwargs,
+    )
+    raw_value, raw_score, raw_diagnostics = tf_batched_svd_sigma_point_value_and_score(
+        observations,
+        model,
+        derivatives,
+        **kwargs,
+    )
+
+    np.testing.assert_allclose(wrapped.value.numpy(), raw_value.numpy(), atol=1.0e-8)
+    np.testing.assert_allclose(wrapped.score.numpy(), raw_score.numpy(), atol=1.0e-7)
+    assert wrapped.value.shape == raw_value.shape == (2,)
+    assert wrapped.score.shape == raw_score.shape == (2, 3)
+    assert wrapped.metadata.backend == "tf_principal_sqrt_ukf"
+    assert wrapped.metadata.experimental is True
+    assert wrapped.metadata.scalar_fallback_used is False
+    assert wrapped.diagnostics["backend"].numpy() == raw_diagnostics["backend"].numpy()
+    assert "no production default readiness claim" in wrapped.metadata.nonclaims
+
+
+def test_experimental_interface_principal_sqrt_repeated_positive_wrapper_path() -> None:
+    observations, model, derivatives = _repeated_positive_model_and_derivatives()
+
+    with pytest.raises(tf.errors.InvalidArgumentError, match="blocked_weak_spectral_gap"):
+        experimental_batched_svd_sigma_point_value_score(
+            observations,
+            model,
+            derivatives,
+            backend="tf_svd_ukf",
+            spectral_gap_tolerance=tf.constant(1.0e-10, dtype=tf.float64),
+        )
+
+    wrapped = experimental_batched_svd_sigma_point_value_score(
+        observations,
+        model,
+        derivatives,
+        backend="tf_principal_sqrt_ukf",
+        spectral_gap_tolerance=tf.constant(1.0e-10, dtype=tf.float64),
+        allow_fixed_null_support=False,
+    )
+
+    assert np.isfinite(wrapped.value.numpy()).all()
+    assert np.isfinite(wrapped.score.numpy()).all()
+    assert wrapped.metadata.backend == "tf_principal_sqrt_ukf"
+    assert wrapped.diagnostics["backend"].numpy() == b"tf_principal_sqrt_ukf"
+    np.testing.assert_allclose(
+        wrapped.diagnostics["factor_derivative_reconstruction_residual"].numpy(),
+        np.zeros([2]),
+        atol=1.0e-10,
+    )
 
 
 def test_experimental_interface_svd_wrapper_rejects_cut4_default_scope() -> None:

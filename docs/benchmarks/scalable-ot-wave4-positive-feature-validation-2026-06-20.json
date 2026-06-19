@@ -1,0 +1,480 @@
+{
+  "candidate_id": "positive_feature_sinkhorn",
+  "entry_audit": {
+    "entry_audit_pass": true,
+    "entry_hard_vetoes": [],
+    "records": {
+      "wave2_positive": {
+        "exists": true,
+        "hard_vetoes": [],
+        "path": "docs/benchmarks/scalable-ot-wave2-positive-feature-diagnostics-2026-06-19.json",
+        "schema_warnings": [],
+        "wave2_status": "POSITIVE_FEATURE_SINKHORN_PASSED_DIAGNOSTIC_ONLY"
+      },
+      "wave3_smoke": {
+        "exists": true,
+        "hard_vetoes": [],
+        "path": "docs/benchmarks/scalable-ot-wave3-downstream-smoke-2026-06-19.json",
+        "wave3_status": "WAVE3_DOWNSTREAM_SMOKE_PASSED_NO_RANKING"
+      }
+    }
+  },
+  "evidence_contract": {
+    "baseline_comparator": "exact weighted input estimates; naive uniform-no-transport is explanatory only",
+    "primary_pass_criterion": "empty hard vetoes across entry audit, transport validity, residual, and moment screens",
+    "question": "Does the positive-feature lane remain viable under replicated downstream resampling screens?",
+    "ranking_rule": "no ranking in current lane"
+  },
+  "hard_vetoes": [],
+  "inference_status": {
+    "default_readiness": "not assessed",
+    "descriptive_only_differences": [
+      "naive uniform estimator errors",
+      "candidate minus naive deltas",
+      "wall time",
+      "per-seed tables"
+    ],
+    "hard_veto_screen": "passed",
+    "next_evidence_needed": "peer lane result and final merge before any larger validation decision",
+    "statistically_supported_ranking": "none"
+  },
+  "lane_id": "current_agent_positive_feature",
+  "manifest": {
+    "argv": [
+      "docs/benchmarks/scalable_ot_wave4_positive_feature_validation.py",
+      "--mode",
+      "full",
+      "--output",
+      "docs/benchmarks/scalable-ot-wave4-positive-feature-validation-2026-06-20.json",
+      "--markdown-output",
+      "docs/benchmarks/scalable-ot-wave4-positive-feature-validation-2026-06-20.md"
+    ],
+    "command": "docs/benchmarks/scalable_ot_wave4_positive_feature_validation.py --mode full --output docs/benchmarks/scalable-ot-wave4-positive-feature-validation-2026-06-20.json --markdown-output docs/benchmarks/scalable-ot-wave4-positive-feature-validation-2026-06-20.md",
+    "cpu_only_note": "CUDA_VISIBLE_DEVICES=-1 hides GPU devices for deliberate CPU-scoped diagnostics when device_scope=cpu",
+    "cuda_visible_devices": "-1",
+    "device": "/CPU:0",
+    "device_scope": "cpu",
+    "fixtures": [
+      "weighted_curve",
+      "bimodal_tail",
+      "high_dim_low_rank"
+    ],
+    "git_commit": "b4156c4b0cbfdc443440fc6df4b6044e09040abb",
+    "json_output_path": "docs/benchmarks/scalable-ot-wave4-positive-feature-validation-2026-06-20.json",
+    "markdown_output_path": "docs/benchmarks/scalable-ot-wave4-positive-feature-validation-2026-06-20.md",
+    "plan_path": "docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-wave4-p02-current-positive-feature-validation-subplan-2026-06-20.md",
+    "platform": "Linux-6.8.0-111-generic-x86_64-with-glibc2.35",
+    "python": "3.13.13 | packaged by Anaconda, Inc. | (main, Apr 14 2026, 06:19:41) [GCC 14.3.0]",
+    "result_path": "docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-wave4-positive-feature-result-2026-06-20.md",
+    "seeds": [
+      101,
+      202,
+      303
+    ],
+    "tensorflow_version": "2.20.0",
+    "timestamp_utc": "2026-06-19T17:19:32.482853+00:00",
+    "total_wall_time_seconds": 0.2306078220717609
+  },
+  "mode": "full",
+  "nonclaims": [
+    "Wave 4 positive-feature lane hard screen only",
+    "no ranking claim",
+    "no speedup claim",
+    "no production default change",
+    "no posterior correctness claim",
+    "no HMC readiness claim",
+    "no public API readiness claim",
+    "no dense Sinkhorn equivalence claim",
+    "no broad scalable-OT selection claim"
+  ],
+  "rows": [
+    {
+      "candidate_id": "positive_feature_sinkhorn",
+      "candidate_minus_naive_mean_error_explanatory": -0.2054221101985698,
+      "candidate_minus_naive_second_moment_error_explanatory": 0.48660446208241614,
+      "candidate_weighted_mean_error": 8.326672684688674e-17,
+      "candidate_weighted_second_moment_error": 0.5107560983412932,
+      "finite_particles": true,
+      "fixture": "weighted_curve",
+      "fixture_summary": {
+        "fixture": "weighted_curve",
+        "num_particles": 16,
+        "seed": 101,
+        "seeded_pseudorandom_terms": "small fourth-coordinate perturbation",
+        "state_dim": 4
+      },
+      "hard_vetoes": [],
+      "lane_id": "current_agent_positive_feature",
+      "log_weight_normalization_residual": 0.0,
+      "naive_uniform_mean_error_explanatory": 0.20542211019856987,
+      "naive_uniform_second_moment_error_explanatory": 0.024151636258877063,
+      "particles_shape": [
+        1,
+        16,
+        4
+      ],
+      "seed": 101,
+      "shape_match": true,
+      "transport_diagnostics": {
+        "finite_features": true,
+        "iterations_used": 3,
+        "max_column_residual": 2.220446049250313e-16,
+        "max_row_residual": 3.0793308748666703e-05,
+        "positive_features": true,
+        "transport_matrix_materialized": false,
+        "transport_object_kind": "kernel_factors"
+      },
+      "validity_pass": true,
+      "wall_time_seconds_explanatory": 0.03913629590533674
+    },
+    {
+      "candidate_id": "positive_feature_sinkhorn",
+      "candidate_minus_naive_mean_error_explanatory": -0.2072315650920007,
+      "candidate_minus_naive_second_moment_error_explanatory": 0.4841927886818977,
+      "candidate_weighted_mean_error": 4.163336342344337e-17,
+      "candidate_weighted_second_moment_error": 0.5172404210116275,
+      "finite_particles": true,
+      "fixture": "weighted_curve",
+      "fixture_summary": {
+        "fixture": "weighted_curve",
+        "num_particles": 16,
+        "seed": 202,
+        "seeded_pseudorandom_terms": "small fourth-coordinate perturbation",
+        "state_dim": 4
+      },
+      "hard_vetoes": [],
+      "lane_id": "current_agent_positive_feature",
+      "log_weight_normalization_residual": 0.0,
+      "naive_uniform_mean_error_explanatory": 0.20723156509200075,
+      "naive_uniform_second_moment_error_explanatory": 0.03304763232972979,
+      "particles_shape": [
+        1,
+        16,
+        4
+      ],
+      "seed": 202,
+      "shape_match": true,
+      "transport_diagnostics": {
+        "finite_features": true,
+        "iterations_used": 3,
+        "max_column_residual": 1.1102230246251565e-16,
+        "max_row_residual": 2.54259578178484e-05,
+        "positive_features": true,
+        "transport_matrix_materialized": false,
+        "transport_object_kind": "kernel_factors"
+      },
+      "validity_pass": true,
+      "wall_time_seconds_explanatory": 0.008355387952178717
+    },
+    {
+      "candidate_id": "positive_feature_sinkhorn",
+      "candidate_minus_naive_mean_error_explanatory": -0.20937031283759788,
+      "candidate_minus_naive_second_moment_error_explanatory": 0.48064982385703947,
+      "candidate_weighted_mean_error": 5.551115123125783e-17,
+      "candidate_weighted_second_moment_error": 0.5218176843417068,
+      "finite_particles": true,
+      "fixture": "weighted_curve",
+      "fixture_summary": {
+        "fixture": "weighted_curve",
+        "num_particles": 16,
+        "seed": 303,
+        "seeded_pseudorandom_terms": "small fourth-coordinate perturbation",
+        "state_dim": 4
+      },
+      "hard_vetoes": [],
+      "lane_id": "current_agent_positive_feature",
+      "log_weight_normalization_residual": 0.0,
+      "naive_uniform_mean_error_explanatory": 0.20937031283759794,
+      "naive_uniform_second_moment_error_explanatory": 0.04116786048466736,
+      "particles_shape": [
+        1,
+        16,
+        4
+      ],
+      "seed": 303,
+      "shape_match": true,
+      "transport_diagnostics": {
+        "finite_features": true,
+        "iterations_used": 3,
+        "max_column_residual": 1.1102230246251565e-16,
+        "max_row_residual": 1.7437591052327228e-05,
+        "positive_features": true,
+        "transport_matrix_materialized": false,
+        "transport_object_kind": "kernel_factors"
+      },
+      "validity_pass": true,
+      "wall_time_seconds_explanatory": 0.00816814904101193
+    },
+    {
+      "candidate_id": "positive_feature_sinkhorn",
+      "candidate_minus_naive_mean_error_explanatory": -0.8881955929820685,
+      "candidate_minus_naive_second_moment_error_explanatory": 0.4408715355892343,
+      "candidate_weighted_mean_error": 1.1102230246251565e-16,
+      "candidate_weighted_second_moment_error": 0.5050291279706552,
+      "finite_particles": true,
+      "fixture": "bimodal_tail",
+      "fixture_summary": {
+        "fixture": "bimodal_tail",
+        "num_particles": 20,
+        "seed": 101,
+        "seeded_pseudorandom_terms": "small clustered Gaussian perturbation",
+        "state_dim": 6
+      },
+      "hard_vetoes": [],
+      "lane_id": "current_agent_positive_feature",
+      "log_weight_normalization_residual": 0.0,
+      "naive_uniform_mean_error_explanatory": 0.8881955929820686,
+      "naive_uniform_second_moment_error_explanatory": 0.06415759238142094,
+      "particles_shape": [
+        1,
+        20,
+        6
+      ],
+      "seed": 101,
+      "shape_match": true,
+      "transport_diagnostics": {
+        "finite_features": true,
+        "iterations_used": 3,
+        "max_column_residual": 0.0,
+        "max_row_residual": 2.427318281039703e-06,
+        "positive_features": true,
+        "transport_matrix_materialized": false,
+        "transport_object_kind": "kernel_factors"
+      },
+      "validity_pass": true,
+      "wall_time_seconds_explanatory": 0.00807614903897047
+    },
+    {
+      "candidate_id": "positive_feature_sinkhorn",
+      "candidate_minus_naive_mean_error_explanatory": -0.8745192538369138,
+      "candidate_minus_naive_second_moment_error_explanatory": 0.46873466525615015,
+      "candidate_weighted_mean_error": 2.220446049250313e-16,
+      "candidate_weighted_second_moment_error": 0.48594716149287853,
+      "finite_particles": true,
+      "fixture": "bimodal_tail",
+      "fixture_summary": {
+        "fixture": "bimodal_tail",
+        "num_particles": 20,
+        "seed": 202,
+        "seeded_pseudorandom_terms": "small clustered Gaussian perturbation",
+        "state_dim": 6
+      },
+      "hard_vetoes": [],
+      "lane_id": "current_agent_positive_feature",
+      "log_weight_normalization_residual": 0.0,
+      "naive_uniform_mean_error_explanatory": 0.874519253836914,
+      "naive_uniform_second_moment_error_explanatory": 0.01721249623672838,
+      "particles_shape": [
+        1,
+        20,
+        6
+      ],
+      "seed": 202,
+      "shape_match": true,
+      "transport_diagnostics": {
+        "finite_features": true,
+        "iterations_used": 3,
+        "max_column_residual": 2.7755575615628914e-17,
+        "max_row_residual": 2.895191715257539e-06,
+        "positive_features": true,
+        "transport_matrix_materialized": false,
+        "transport_object_kind": "kernel_factors"
+      },
+      "validity_pass": true,
+      "wall_time_seconds_explanatory": 0.008094079094007611
+    },
+    {
+      "candidate_id": "positive_feature_sinkhorn",
+      "candidate_minus_naive_mean_error_explanatory": -0.8545212965626432,
+      "candidate_minus_naive_second_moment_error_explanatory": 0.41564560537144923,
+      "candidate_weighted_mean_error": 1.1102230246251565e-16,
+      "candidate_weighted_second_moment_error": 0.46385681466627204,
+      "finite_particles": true,
+      "fixture": "bimodal_tail",
+      "fixture_summary": {
+        "fixture": "bimodal_tail",
+        "num_particles": 20,
+        "seed": 303,
+        "seeded_pseudorandom_terms": "small clustered Gaussian perturbation",
+        "state_dim": 6
+      },
+      "hard_vetoes": [],
+      "lane_id": "current_agent_positive_feature",
+      "log_weight_normalization_residual": 0.0,
+      "naive_uniform_mean_error_explanatory": 0.8545212965626433,
+      "naive_uniform_second_moment_error_explanatory": 0.04821120929482281,
+      "particles_shape": [
+        1,
+        20,
+        6
+      ],
+      "seed": 303,
+      "shape_match": true,
+      "transport_diagnostics": {
+        "finite_features": true,
+        "iterations_used": 3,
+        "max_column_residual": 2.220446049250313e-16,
+        "max_row_residual": 3.661968153045869e-06,
+        "positive_features": true,
+        "transport_matrix_materialized": false,
+        "transport_object_kind": "kernel_factors"
+      },
+      "validity_pass": true,
+      "wall_time_seconds_explanatory": 0.008057677885517478
+    },
+    {
+      "candidate_id": "positive_feature_sinkhorn",
+      "candidate_minus_naive_mean_error_explanatory": -0.04915116013363768,
+      "candidate_minus_naive_second_moment_error_explanatory": 0.2918062561460758,
+      "candidate_weighted_mean_error": 6.245004513516506e-17,
+      "candidate_weighted_second_moment_error": 0.32335169702508665,
+      "finite_particles": true,
+      "fixture": "high_dim_low_rank",
+      "fixture_summary": {
+        "fixture": "high_dim_low_rank",
+        "latent_dim": 3,
+        "num_particles": 24,
+        "seed": 101,
+        "seeded_pseudorandom_terms": "orthonormal basis and small noise",
+        "state_dim": 12
+      },
+      "hard_vetoes": [],
+      "lane_id": "current_agent_positive_feature",
+      "log_weight_normalization_residual": 0.0,
+      "naive_uniform_mean_error_explanatory": 0.04915116013363774,
+      "naive_uniform_second_moment_error_explanatory": 0.031545440879010844,
+      "particles_shape": [
+        1,
+        24,
+        12
+      ],
+      "seed": 101,
+      "shape_match": true,
+      "transport_diagnostics": {
+        "finite_features": true,
+        "iterations_used": 2,
+        "max_column_residual": 1.1102230246251565e-16,
+        "max_row_residual": 3.385579348869072e-06,
+        "positive_features": true,
+        "transport_matrix_materialized": false,
+        "transport_object_kind": "kernel_factors"
+      },
+      "validity_pass": true,
+      "wall_time_seconds_explanatory": 0.007024480029940605
+    },
+    {
+      "candidate_id": "positive_feature_sinkhorn",
+      "candidate_minus_naive_mean_error_explanatory": -0.05275910330884972,
+      "candidate_minus_naive_second_moment_error_explanatory": 0.27242981364668883,
+      "candidate_weighted_mean_error": 5.377642775528102e-17,
+      "candidate_weighted_second_moment_error": 0.30251782125965754,
+      "finite_particles": true,
+      "fixture": "high_dim_low_rank",
+      "fixture_summary": {
+        "fixture": "high_dim_low_rank",
+        "latent_dim": 3,
+        "num_particles": 24,
+        "seed": 202,
+        "seeded_pseudorandom_terms": "orthonormal basis and small noise",
+        "state_dim": 12
+      },
+      "hard_vetoes": [],
+      "lane_id": "current_agent_positive_feature",
+      "log_weight_normalization_residual": 0.0,
+      "naive_uniform_mean_error_explanatory": 0.052759103308849774,
+      "naive_uniform_second_moment_error_explanatory": 0.03008800761296873,
+      "particles_shape": [
+        1,
+        24,
+        12
+      ],
+      "seed": 202,
+      "shape_match": true,
+      "transport_diagnostics": {
+        "finite_features": true,
+        "iterations_used": 2,
+        "max_column_residual": 1.1102230246251565e-16,
+        "max_row_residual": 1.0722198451995624e-05,
+        "positive_features": true,
+        "transport_matrix_materialized": false,
+        "transport_object_kind": "kernel_factors"
+      },
+      "validity_pass": true,
+      "wall_time_seconds_explanatory": 0.007005710154771805
+    },
+    {
+      "candidate_id": "positive_feature_sinkhorn",
+      "candidate_minus_naive_mean_error_explanatory": -0.04271215503288294,
+      "candidate_minus_naive_second_moment_error_explanatory": 0.1463456336432921,
+      "candidate_weighted_mean_error": 6.245004513516506e-17,
+      "candidate_weighted_second_moment_error": 0.16711289319648584,
+      "finite_particles": true,
+      "fixture": "high_dim_low_rank",
+      "fixture_summary": {
+        "fixture": "high_dim_low_rank",
+        "latent_dim": 3,
+        "num_particles": 24,
+        "seed": 303,
+        "seeded_pseudorandom_terms": "orthonormal basis and small noise",
+        "state_dim": 12
+      },
+      "hard_vetoes": [],
+      "lane_id": "current_agent_positive_feature",
+      "log_weight_normalization_residual": 0.0,
+      "naive_uniform_mean_error_explanatory": 0.042712155032883004,
+      "naive_uniform_second_moment_error_explanatory": 0.02076725955319375,
+      "particles_shape": [
+        1,
+        24,
+        12
+      ],
+      "seed": 303,
+      "shape_match": true,
+      "transport_diagnostics": {
+        "finite_features": true,
+        "iterations_used": 2,
+        "max_column_residual": 1.1102230246251565e-16,
+        "max_row_residual": 2.98635660365143e-05,
+        "positive_features": true,
+        "transport_matrix_materialized": false,
+        "transport_object_kind": "kernel_factors"
+      },
+      "validity_pass": true,
+      "wall_time_seconds_explanatory": 0.006966170854866505
+    }
+  ],
+  "settings": {
+    "convergence_threshold": 0.0001,
+    "epsilon": 0.5,
+    "fixtures": [
+      "weighted_curve",
+      "bimodal_tail",
+      "high_dim_low_rank"
+    ],
+    "max_iterations": 160,
+    "num_features": 128,
+    "seeds": [
+      101,
+      202,
+      303
+    ],
+    "thresholds": {
+      "log_weight_normalization": 1e-10,
+      "transport_residual": 0.05,
+      "weighted_mean_error": 0.3,
+      "weighted_second_moment_error": 1.0
+    }
+  },
+  "status": "PASS",
+  "summary": {
+    "max_candidate_weighted_mean_error": 2.220446049250313e-16,
+    "max_candidate_weighted_second_moment_error": 0.5218176843417068,
+    "max_transport_residual": 3.0793308748666703e-05,
+    "max_wall_time_seconds_explanatory": 0.03913629590533674,
+    "num_hard_vetoes": 0,
+    "num_rows": 9,
+    "ranking_statistically_supported": false,
+    "viable_for_later_validation": true
+  },
+  "wave4_status": "WAVE4_POSITIVE_FEATURE_VALIDATION_PASSED_HARD_SCREEN_NO_RANKING"
+}

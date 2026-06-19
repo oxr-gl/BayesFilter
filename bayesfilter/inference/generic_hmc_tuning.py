@@ -303,6 +303,7 @@ class GenericHMCTuningResult:
             "selected_seed": (
                 None if selected_candidate is None else selected_candidate.seed
             ),
+            "no_further_adaptation": selected_candidate is not None,
             "candidate_payload_hash": stable_config_hash(
                 tuple(item.payload() for item in self.candidate_results)
             ),
@@ -350,6 +351,7 @@ class GenericHMCTuningResult:
             "selected_seed": (
                 None if selected_candidate is None else selected_candidate.seed
             ),
+            "no_further_adaptation": selected_candidate is not None,
             "heldout_candidate": (
                 None if self.heldout_candidate is None else self.heldout_candidate.payload()
             ),
@@ -767,6 +769,7 @@ class GenericHMCTuningArtifact:
                 "candidate_evaluation_hash": stable_config_hash(candidate_payloads),
                 "selected_candidate_index": self.selected_candidate_index,
                 "seed": self.seed,
+                "no_further_adaptation": selected is not None,
             },
             "diagnostics": {
                 "passed": self.passed,
@@ -778,6 +781,7 @@ class GenericHMCTuningArtifact:
             },
             "vetoes": self.vetoes,
             "nonclaims": self.nonclaims,
+            "no_further_adaptation": selected is not None,
         }
 
 

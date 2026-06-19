@@ -49,6 +49,14 @@ from bayesfilter.inference.generic_hmc_tuning import (
     orchestrate_generic_hmc_tuning,
     run_generic_hmc_tuning_orchestration,
 )
+from bayesfilter.inference.hmc_budget_ladder import (
+    BUDGET_LADDER_NONCLAIMS,
+    FixedMassHMCTuningBudgetCallbackResult,
+    FixedMassHMCTuningBudgetLadderConfig,
+    FixedMassHMCTuningBudgetLadderResult,
+    FixedMassHMCTuningBudgetRound,
+    run_fixed_mass_hmc_tuning_budget_ladder,
+)
 from bayesfilter.inference.hmc_tuning import (
     FixedTrajectoryCandidateResult,
     FixedTrajectoryTuningConfig,
@@ -128,6 +136,7 @@ __all__ = [
     "BackendParityGate",
     "BackendParityResult",
     "BackendParityRow",
+    "BUDGET_LADDER_NONCLAIMS",
     "BatchValueScoreMetadata",
     "BatchValueScoreResult",
     "CovariancePositiveDefiniteError",
@@ -136,6 +145,10 @@ __all__ = [
     "FixedTrajectoryTuningConfig",
     "FixedTrajectoryTuningResult",
     "FixedMassStepTuningResult",
+    "FixedMassHMCTuningBudgetCallbackResult",
+    "FixedMassHMCTuningBudgetLadderConfig",
+    "FixedMassHMCTuningBudgetLadderResult",
+    "FixedMassHMCTuningBudgetRound",
     "FullChainHMCConfig",
     "FullChainHMCRunResult",
     "GENERIC_HMC_TUNING_NONCLAIMS",
@@ -196,6 +209,7 @@ __all__ = [
     "regularize_precision",
     "require_executable_tuning_policy",
     "run_fixed_mass_step_tuning_diagnostic",
+    "run_fixed_mass_hmc_tuning_budget_ladder",
     "run_fixed_trajectory_tuning_diagnostic",
     "run_generic_hmc_tuning_orchestration",
     "run_gaussian_dual_averaging_diagnostic",

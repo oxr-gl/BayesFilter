@@ -666,6 +666,81 @@ The residuals in
 the minimum spectral gap, the active-floor set, and any fallback branch are part
 of the derivative output contract.
 
+\section{Principal-Square-Root Placement Backend}
+\label{sec:bf-svd-principal-sqrt-backend}
+
+The preceding eigenderivative formulas define the historical
+\texttt{tf\_svd\_ukf} branch.  BayesFilter also has a distinct experimental
+backend, \texttt{tf\_principal\_sqrt\_ukf}, whose factor is the principal
+matrix square root rather than a signed or ordered eigenvector column factor.
+The two names are backend contracts, not aliases.
+
+On a strict-SPD branch, let
+\[
+  P\in\mathbb S_{++}^n,\qquad
+  S=P^{1/2}=S^\top\succ0,\qquad
+  S^2=P .
+\]
+For a covariance perturbation $dP$, the Frechet derivative of the principal
+square root is the unique solution $dS$ of the Sylvester equation
+\begin{equation}
+\label{eq:bf-svd-principal-sqrt-sylvester-first}
+  S\,dS+dS\,S=dP .
+\end{equation}
+Equivalently, for a parameter component $\theta_i$,
+\begin{equation}
+\label{eq:bf-svd-principal-sqrt-first}
+  S\,\dot S^{(i)}+\dot S^{(i)}S=\dot P^{(i)} .
+\end{equation}
+Because the eigenvalues of strict-SPD $S$ are positive, the linear
+Sylvester operator $X\mapsto SX+XS$ is invertible on all matrices.  This is the
+reason the principal-square-root derivative does not contain the active
+repeated-positive-eigenvalue denominators that appear in
+\eqref{eq:bf-svd-eigenvector-first}.  This statement is only a strict-SPD
+square-root derivative statement.  It is not a rank-loss theorem, not a
+structural-null completion rule, and not an HMC convergence result.
+
+For second derivatives on the same strict-SPD branch, differentiate
+\eqref{eq:bf-svd-principal-sqrt-first} once more:
+\begin{equation}
+\label{eq:bf-svd-principal-sqrt-second}
+  S\,\ddot S^{(ij)}+\ddot S^{(ij)}S
+  =
+  \ddot P^{(ij)}
+  -\dot S^{(i)}\dot S^{(j)}
+  -\dot S^{(j)}\dot S^{(i)} .
+\end{equation}
+Thus the same Sylvester primitive supplies the Hessian-level square-root
+factor derivative once $\dot S^{(i)}$, $\dot S^{(j)}$, and
+$\ddot P^{(ij)}$ are available.
+
+The sigma-point rule has square-root gauge freedom.  If $C C^\top=P$, then
+the standardized point cloud $\chi^{(r)}=m+C\xi^{(r)}$ matches the same first
+and second Gaussian moments whenever the chosen rule's offsets and weights
+have the required standardized moment identities.  Replacing an eigenvector
+factor $C=U\Lambda^{1/2}$ by the principal factor $S=P^{1/2}$ is therefore a
+change of square-root gauge for moment placement.  It does not imply that
+nonlinear propagated values may differ only by roundoff: after a nonlinear map
+$g$, the clouds $\{g(m+C\xi^{(r)})\}$ and $\{g(m+S\xi^{(r)})\}$ may differ.
+BayesFilter must therefore validate the implemented likelihood and score, not
+claim nonlinear value identity across gauges.
+
+The current principal-square-root backend is strict-SPD only.  It must keep
+fixed-null support disabled unless a separate reviewed branch specifies how
+structural nulls, active floors, and rank-deficient covariance laws are
+represented and differentiated.  Required diagnostics for this backend include
+the Sylvester residual in
+\eqref{eq:bf-svd-principal-sqrt-first}, the reconstruction residual
+$\dot P^{(i)}-(\dot S^{(i)}S+S\dot S^{(i)})$, minimum eigenvalue of $P$, any
+jitter or floor policy, and eager/compiled parity for the complete
+value-and-score path.
+
+The Phase 2026-06 strict-SPD implementation evidence is bounded: repeated
+positive-spectrum fixtures, reconstruction checks, compiled value/score smoke,
+and the two-candidate NK replay are engineering artifacts.  They do not
+establish posterior correctness, HMC convergence, runtime superiority,
+GPU readiness, default readiness, or full baseline launch readiness.
+
 \section{Validation Targets for SVD Score and Hessian}
 \label{sec:bf-svd-sp-derivative-validation}
 

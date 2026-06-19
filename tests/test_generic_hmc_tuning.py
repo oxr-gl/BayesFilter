@@ -73,6 +73,7 @@ def test_generic_hmc_tuning_artifact_selects_and_serializes_stably():
     assert payload["selected_num_leapfrog_steps"] == 3
     assert payload["selected_trajectory_length"] == 0.75
     assert payload["selected_seed"] == (20260614, 11)
+    assert payload["no_further_adaptation"] is True
     assert payload["candidate_results"][1]["candidate_index"] == 1
     assert payload["candidate_results"][1]["checkpoint_payload_hash"]
     assert payload["checkpoint_paths"]["selected_candidate"].endswith(
@@ -82,6 +83,7 @@ def test_generic_hmc_tuning_artifact_selects_and_serializes_stably():
         "heldout_candidate_0001.json"
     )
     assert payload["checkpoint_payload"]["selected_seed"] == (20260614, 11)
+    assert payload["checkpoint_payload"]["no_further_adaptation"] is True
     assert payload["checkpoint_payload"]["candidate_payload_hash"]
     assert payload["heldout_confirmation"]["status"] == "passed"
     assert payload["diagnostic_roles"]["heldout_confirmation"] == (

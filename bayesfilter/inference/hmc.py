@@ -516,6 +516,7 @@ class FullChainHMCConfig:
     seed: tuple[int, int]
     use_xla: bool = False
     trace_policy: str = "standard"
+    target_status_trace_policy: str = "none"
     adaptation_policy: str = "fixed_kernel_no_adaptation"
     tuning_policy: str | HMCTuningPolicy | None = None
     target_scope: str | None = None
@@ -546,6 +547,16 @@ class FullChainHMCConfig:
         if policy not in {"standard", "reduced"}:
             raise ValueError("trace_policy must be 'standard' or 'reduced'")
         object.__setattr__(self, "trace_policy", policy)
+        target_status_policy = str(self.target_status_trace_policy)
+        if target_status_policy not in {"none", "per_chain_step"}:
+            raise ValueError(
+                "target_status_trace_policy must be 'none' or 'per_chain_step'"
+            )
+        if target_status_policy != "none" and policy != "standard":
+            raise ValueError(
+                "target-status telemetry requires trace_policy='standard'"
+            )
+        object.__setattr__(self, "target_status_trace_policy", target_status_policy)
         adaptation_policy = str(self.adaptation_policy)
         if self.tuning_policy is None:
             if adaptation_policy != "fixed_kernel_no_adaptation":
@@ -595,6 +606,7 @@ class FullChainHMCConfig:
             "use_xla": self.use_xla,
             "chain_execution_mode": self.chain_execution_mode,
             "trace_policy": self.trace_policy,
+            "target_status_trace_policy": self.target_status_trace_policy,
             "adaptation_policy": self.adaptation_policy,
             "tuning_policy": self.tuning_policy.payload(),
             "target_scope": self.target_scope,
@@ -653,7 +665,7 @@ class ReusableFullChainHMCRunner:
             adapter,
             dtype=self._state_dtype,
         )
-        self._trace_fn = _trace_fn_for_config(config)
+        self._trace_fn = _trace_fn_for_config(config, adapter=adapter)
         self._runner = self._build_runner()
         self._call_count = 0
         self._first_call_s: float | None = None
@@ -787,10 +799,15 @@ class ReusableFullChainHMCRunner:
             "jit_compile": config.use_xla,
             "chain_execution_mode": config.chain_execution_mode,
             "trace_policy": config.trace_policy,
+            "target_status_trace_policy": config.target_status_trace_policy,
             "adaptation_policy": config.adaptation_policy,
             "tuning_policy": config.tuning_policy.payload(),
             "adaptation_policy_source": config.tuning_policy.source,
-            "trace_unavailability": _trace_unavailability(config.trace_policy, trace),
+            "trace_unavailability": _trace_unavailability(
+                config.trace_policy,
+                trace,
+                target_status_trace_policy=config.target_status_trace_policy,
+            ),
             "value_score_authority": capability.value_score_authority,
             "target_scope": capability.target_scope,
             "requested_target_scope": config.target_scope,
@@ -938,7 +955,7 @@ def run_full_chain_tfp_hmc(
                 dtype=state.dtype,
             ),
     )
-    trace_fn = _trace_fn_for_config(config)
+    trace_fn = _trace_fn_for_config(config, adapter=adapter)
     runner = _build_sample_chain_runner(config, kernel, trace_fn, state)
     sample_chain_start = time.perf_counter()
     samples, trace = runner()
@@ -954,12 +971,14 @@ def run_full_chain_tfp_hmc(
         "jit_compile": config.use_xla,
         "chain_execution_mode": config.chain_execution_mode,
         "trace_policy": config.trace_policy,
+        "target_status_trace_policy": config.target_status_trace_policy,
         "adaptation_policy": config.adaptation_policy,
         "tuning_policy": config.tuning_policy.payload(),
         "adaptation_policy_source": config.tuning_policy.source,
         "trace_unavailability": _trace_unavailability(
             config.trace_policy,
             trace if isinstance(trace, Mapping) else None,
+            target_status_trace_policy=config.target_status_trace_policy,
         ),
         "value_score_authority": capability.value_score_authority,
         "target_scope": capability.target_scope,
@@ -1265,12 +1284,35 @@ def _build_sample_chain_runner(
     return tf.function(run_chain, reduce_retracing=True)
 
 
-def _trace_fn_for_config(config: FullChainHMCConfig) -> Callable[[Any, Any], Mapping[str, Any]]:
+def _trace_fn_for_config(
+    config: FullChainHMCConfig,
+    *,
+    adapter: Any | None = None,
+) -> Callable[[Any, Any], Mapping[str, Any]]:
+    if config.target_status_trace_policy != "none":
+        if adapter is None or not callable(getattr(adapter, "target_status_telemetry", None)):
+            raise TypeError(
+                "target_status_trace_policy='per_chain_step' requires adapter "
+                "target_status_telemetry"
+            )
     if config.trace_policy != "standard":
         return _reduced_trace_fn
+    if config.target_status_trace_policy == "per_chain_step":
+        if config.tuning_policy.uses_dual_averaging:
+            return _adaptive_standard_trace_fn_with_target_status(adapter)
+        return _standard_trace_fn_with_target_status(adapter)
     if config.tuning_policy.uses_dual_averaging:
         return _adaptive_standard_trace_fn
     return _standard_trace_fn
+
+
+def _standard_trace_fn_with_target_status(adapter: Any) -> Callable[[Any, Any], Mapping[str, Any]]:
+    def trace_fn(state: Any, kernel_results: Any) -> Mapping[str, Any]:
+        trace = dict(_standard_trace_fn(state, kernel_results))
+        trace["target_status_telemetry"] = adapter.target_status_telemetry(state)
+        return trace
+
+    return trace_fn
 
 
 def _standard_trace_fn(_state: Any, kernel_results: Any) -> Mapping[str, Any]:
@@ -1281,6 +1323,15 @@ def _standard_trace_fn(_state: Any, kernel_results: Any) -> Mapping[str, Any]:
     }
     trace.update(_native_divergence_trace(kernel_results))
     return trace
+
+
+def _adaptive_standard_trace_fn_with_target_status(adapter: Any) -> Callable[[Any, Any], Mapping[str, Any]]:
+    def trace_fn(state: Any, kernel_results: Any) -> Mapping[str, Any]:
+        trace = dict(_adaptive_standard_trace_fn(state, kernel_results))
+        trace["target_status_telemetry"] = adapter.target_status_telemetry(state)
+        return trace
+
+    return trace_fn
 
 
 def _adaptive_standard_trace_fn(_state: Any, kernel_results: Any) -> Mapping[str, Any]:
@@ -1349,22 +1400,36 @@ def _reduced_trace_fn(_state: Any, _kernel_results: Any) -> Mapping[str, Any]:
 def _trace_unavailability(
     trace_policy: str,
     trace: Mapping[str, Any] | None = None,
+    *,
+    target_status_trace_policy: str = "none",
 ) -> Mapping[str, str]:
+    target_status_trace_policy = str(target_status_trace_policy)
     if trace_policy == "standard":
+        unavailable = {}
         if trace is not None and "divergence" not in trace:
-            return {
-                "divergence": (
-                    "native boolean divergence field not exposed by "
-                    "TensorFlow Probability HMC kernel results"
-                ),
-            }
-        return {}
+            unavailable.update(
+                {
+                    "divergence": (
+                        "native boolean divergence field not exposed by "
+                        "TensorFlow Probability HMC kernel results"
+                    ),
+                }
+            )
+        if (
+            target_status_trace_policy == "per_chain_step"
+            and trace is not None
+            and "target_status_telemetry" not in trace
+        ):
+            unavailable["target_status_telemetry"] = "target-status trace missing"
+        return unavailable
     unavailable = {
         "is_accepted": "reduced trace policy",
         "log_accept_ratio": "reduced trace policy",
         "target_log_prob": "reduced trace policy",
         "divergence": "reduced trace policy",
     }
+    if target_status_trace_policy != "none":
+        unavailable["target_status_telemetry"] = "reduced trace policy"
     return unavailable
 
 
@@ -1408,6 +1473,10 @@ def _full_chain_hmc_diagnostics(
     if "target_log_prob" in trace:
         diagnostics["min_target_log_prob"] = tf.reduce_min(trace["target_log_prob"])
         diagnostics["max_target_log_prob"] = tf.reduce_max(trace["target_log_prob"])
+    if "target_status_telemetry" in trace:
+        diagnostics["target_status_telemetry"] = _target_status_telemetry_diagnostics(
+            trace["target_status_telemetry"]
+        )
     if "step_size" in trace:
         step_size = tf.convert_to_tensor(trace["step_size"], dtype=tf.float64)
         diagnostics["final_step_size"] = step_size[-1]
@@ -1425,6 +1494,49 @@ def _full_chain_hmc_diagnostics(
         )
         diagnostics["num_adaptation_steps"] = tf.reshape(adaptation_steps, [-1])[-1]
     return diagnostics
+
+
+def _target_status_telemetry_diagnostics(telemetry: Mapping[str, Any]) -> Mapping[str, Any]:
+    import tensorflow as tf
+
+    if not isinstance(telemetry, Mapping):
+        raise TypeError("target_status_telemetry trace must be a mapping")
+    required = (
+        "status_code",
+        "valid_pre_regularized_score",
+        "floor_count_value",
+        "min_innovation_eigenvalue",
+        "innovation_condition_estimate",
+    )
+    missing = tuple(key for key in required if key not in telemetry)
+    if missing:
+        raise ValueError(
+            "target_status_telemetry missing required fields: " + ", ".join(missing)
+        )
+    status = tf.convert_to_tensor(telemetry["status_code"], dtype=tf.int32)
+    valid = tf.convert_to_tensor(telemetry["valid_pre_regularized_score"], dtype=tf.bool)
+    floors = tf.convert_to_tensor(telemetry["floor_count_value"], dtype=tf.int32)
+    min_eigen = tf.convert_to_tensor(telemetry["min_innovation_eigenvalue"], dtype=tf.float64)
+    condition = tf.convert_to_tensor(
+        telemetry["innovation_condition_estimate"],
+        dtype=tf.float64,
+    )
+    status_nonvalid = tf.logical_or(
+        tf.not_equal(status, tf.zeros_like(status)),
+        tf.logical_not(valid),
+    )
+    return {
+        "trace_entry_count": tf.size(status),
+        "status_nonvalid_count": tf.reduce_sum(tf.cast(status_nonvalid, tf.int32)),
+        "all_status_valid": tf.reduce_all(tf.logical_not(status_nonvalid)),
+        "floor_count_total": tf.reduce_sum(floors),
+        "max_floor_count_value": tf.reduce_max(floors),
+        "min_min_innovation_eigenvalue": tf.reduce_min(min_eigen),
+        "max_innovation_condition_estimate": tf.reduce_max(condition),
+        "telemetry_failure_veto": tf.logical_not(
+            tf.reduce_all(tf.logical_not(status_nonvalid))
+        ),
+    }
 
 
 def program_signature(payload: Mapping[str, Any] | Any) -> str:

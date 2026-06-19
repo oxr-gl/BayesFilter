@@ -46,6 +46,43 @@ def test_nystrom_transport_returns_kernel_factors_and_uniform_weights() -> None:
     )
 
 
+def test_nystrom_transport_supports_reduced_rank_kernel_factors() -> None:
+    particles = tf.constant(
+        [
+            [
+                [-0.40, 0.05, 0.10],
+                [-0.20, -0.10, 0.00],
+                [0.00, 0.15, -0.05],
+                [0.15, -0.05, 0.20],
+                [0.30, 0.10, -0.10],
+                [0.45, -0.15, 0.05],
+            ]
+        ],
+        dtype=DTYPE,
+    )
+    weights = tf.constant([[0.08, 0.12, 0.18, 0.22, 0.17, 0.23]], dtype=DTYPE)
+
+    result = nystrom_transport_resample_tf(
+        particles,
+        tf.math.log(weights),
+        rank=2,
+        epsilon=0.5,
+        max_iterations=100,
+    )
+
+    assert result.particles.shape == particles.shape
+    assert result.left_factor.shape == (1, 6, 2)
+    assert result.core_matrix.shape == (1, 2, 2)
+    assert result.scaling_u.shape == (1, 6)
+    assert result.scaling_v.shape == (1, 6)
+    assert result.diagnostics["rank"] == 2
+    assert result.diagnostics["landmark_indices"] == [0, 5]
+    assert result.diagnostics["finite_particles"]
+    assert result.diagnostics["finite_factors"]
+    assert np.isfinite(result.diagnostics["max_row_residual"])
+    assert np.isfinite(result.diagnostics["max_column_residual"])
+
+
 def test_nystrom_transport_rejects_rank_above_particle_count() -> None:
     particles = tf.zeros([1, 3, 2], dtype=DTYPE)
     log_weights = tf.math.log(tf.ones([1, 3], dtype=DTYPE) / 3.0)

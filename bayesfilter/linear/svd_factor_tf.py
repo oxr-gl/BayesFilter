@@ -37,6 +37,59 @@ def psd_eigh(
     )
 
 
+def psd_eigh_graph_status(
+    covariance: tf.Tensor,
+    singular_floor: tf.Tensor | float,
+) -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
+    """Return a PSD eigensystem after guarding nonfinite eigensolver inputs.
+
+    This is a graph-status helper for callers that must return tensor
+    diagnostics instead of letting ``tf.linalg.eigh`` abort on invalid
+    covariance entries.  When the covariance is nonfinite, the eigensolver sees
+    a benign identity covariance only so graph execution can complete; callers
+    must treat the returned score/value payload as blocked diagnostics.
+    """
+
+    covariance = symmetrize(covariance)
+    floor = tf.cast(singular_floor, tf.float64)
+    covariance_is_finite = tf.reduce_all(tf.math.is_finite(covariance))
+    floor_is_finite = tf.math.is_finite(floor)
+    valid_eigensolver_input = tf.logical_and(covariance_is_finite, floor_is_finite)
+    dimension = tf.shape(covariance)[0]
+    safe_floor = tf.cond(
+        floor_is_finite,
+        lambda: floor,
+        lambda: tf.constant(1.0, dtype=tf.float64),
+    )
+    benign_scale = tf.maximum(tf.abs(safe_floor), tf.constant(1.0, dtype=tf.float64))
+    benign_covariance = benign_scale * tf.eye(dimension, dtype=tf.float64)
+    safe_covariance = tf.cond(
+        valid_eigensolver_input,
+        lambda: covariance,
+        lambda: benign_covariance,
+    )
+    eigenvalues, eigenvectors = tf.linalg.eigh(safe_covariance)
+    floored_eigenvalues = tf.maximum(eigenvalues, safe_floor)
+    implemented_covariance = (
+        eigenvectors
+        @ tf.linalg.diag(floored_eigenvalues)
+        @ tf.linalg.matrix_transpose(eigenvectors)
+    )
+    residual = tf.cond(
+        valid_eigensolver_input,
+        lambda: tf.linalg.norm(implemented_covariance - covariance),
+        lambda: tf.constant(float("nan"), dtype=tf.float64),
+    )
+    return (
+        eigenvalues,
+        floored_eigenvalues,
+        eigenvectors,
+        implemented_covariance,
+        residual,
+        tf.logical_not(valid_eigensolver_input),
+    )
+
+
 def eigh_solve(
     eigenvectors: tf.Tensor,
     eigenvalues: tf.Tensor,

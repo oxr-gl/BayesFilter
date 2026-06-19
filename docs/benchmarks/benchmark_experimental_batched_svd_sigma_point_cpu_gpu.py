@@ -60,7 +60,12 @@ from bayesfilter.structural import StatePartition
 from bayesfilter.structural_tf import make_affine_structural_tf
 
 
-BACKENDS = ("tf_svd_cubature", "tf_svd_ukf", "tf_svd_cut4")
+BACKENDS = (
+    "tf_svd_cubature",
+    "tf_svd_ukf",
+    "tf_svd_cut4",
+    "tf_principal_sqrt_ukf",
+)
 
 
 def _parse_rows(value: str, batch_size: int) -> list[int]:
@@ -468,6 +473,11 @@ def _scalar_score(
         result = tf_svd_ukf_score(observations, model, derivatives, **kwargs)
     elif backend == "tf_svd_cut4":
         result = tf_svd_cut4_score(observations, model, derivatives, **kwargs)
+    elif backend == "tf_principal_sqrt_ukf":
+        raise ValueError(
+            "tf_principal_sqrt_ukf has no scalar score comparator in this "
+            "experimental harness"
+        )
     else:
         raise ValueError(f"unknown backend: {backend}")
     return float(result.log_likelihood.numpy()), result.score.numpy()
@@ -570,13 +580,20 @@ def _scalar_compiled_calls(
                     derivatives,
                     **kwargs,
                 )
-            else:
+            elif args.backend == "tf_svd_cut4":
                 result = tf_svd_cut4_score(
                     observations,
                     model,
                     derivatives,
                     **kwargs,
                 )
+            elif args.backend == "tf_principal_sqrt_ukf":
+                raise ValueError(
+                    "tf_principal_sqrt_ukf has no scalar compiled-loop "
+                    "comparator in this experimental harness"
+                )
+            else:
+                raise ValueError(f"unknown backend: {args.backend}")
             return result.log_likelihood, result.score
 
         calls.append(compiled_call)

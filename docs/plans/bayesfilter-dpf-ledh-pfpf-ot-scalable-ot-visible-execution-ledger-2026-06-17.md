@@ -1063,3 +1063,53 @@ Next action:
 - The scalable OT master program is complete.  The next separate program, if
   desired, should be a reviewed reduced-rank Nystrom ladder with LEDH-specific
   fixtures and no default/ranking claims before downstream evidence.
+
+### 2026-06-18T17:08:59+08:00 - Phase 11 - REDUCED_RANK_NYSTROM_LADDER_AGENT_A_COMPLETED
+
+Evidence contract:
+
+- Question: Does the reduced-rank Nystrom factor route preserve finite,
+  schema-valid transport and dense-reference agreement well enough on Phase 1
+  and LEDH-specific fixtures to justify deeper LEDH-PFPF-OT testing?
+- Baseline/comparator: Phase 1 dense/streaming TensorFlow comparator, with
+  dense-reference errors computed against the dense member and every candidate
+  record using a `baseline_comparator` beginning `phase1_dense_streaming`.
+- Primary criterion: at least one genuinely reduced rank per promotion fixture
+  passes finite checks, row/column residual thresholds, dense-reference
+  max/RMS thresholds, and Phase 3 schema validation.
+- Veto diagnostics: nonfinite values, invalid shapes, missing kernel factors,
+  row/column residual failure, missing dense-reference errors, invalid schema,
+  source-route overclaim, non-TensorFlow route, or memory/runtime promoted
+  before validity.
+- Non-claims: no speedup, ranking, posterior correctness, HMC readiness, public
+  API readiness, production/default readiness, or statistically supported
+  ranking.
+
+Actions:
+
+- Refreshed Nystrom implementation wording without changing defaults or public
+  API.
+- Added focused reduced-rank Nystrom unit coverage.
+- Added Phase 11 reduced-rank Nystrom ladder diagnostic script.
+- Ran syntax check, focused pytest, `/tmp` smoke, official CPU-only diagnostic,
+  and manifest/schema content check.
+- Wrote Phase 11 result note.
+
+Artifacts:
+
+- `experiments/dpf_implementation/tf_tfp/resampling/nystrom_transport_tf.py`
+- `tests/test_nystrom_transport_tf.py`
+- `docs/benchmarks/scalable_ot_p11_reduced_rank_nystrom_ladder_diagnostics.py`
+- `docs/benchmarks/scalable-ot-p11-reduced-rank-nystrom-ladder-diagnostics-2026-06-18.json`
+- `docs/benchmarks/scalable-ot-p11-reduced-rank-nystrom-ladder-diagnostics-2026-06-18.md`
+- `docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-p11-reduced-rank-nystrom-ladder-result-2026-06-18.md`
+
+Gate status:
+
+- `PHASE_11_REDUCED_RANK_NYSTROM_LADDER_PASSED_DIAGNOSTIC_ONLY`
+
+Next action:
+
+- Agent B can begin independent review of Agent A artifacts.  Continue to keep
+  runtime/memory proxy fields explanatory and preserve all non-claims until a
+  reviewed downstream LEDH-PFPF-OT evidence contract says otherwise.
