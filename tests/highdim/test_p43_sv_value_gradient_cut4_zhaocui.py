@@ -7,6 +7,8 @@ import tensorflow as tf
 import tensorflow_probability as tfp
 
 import bayesfilter.highdim as highdim
+import bayesfilter.highdim.sv_mixture_cut4 as sv_mixture_cut4_module
+from bayesfilter.nonlinear.sigma_points_tf import tf_svd_sigma_point_filter
 from bayesfilter.nonlinear.svd_cut_tf import tf_svd_cut4_filter
 from bayesfilter.structural import StatePartition, StructuralFilterConfig
 from bayesfilter.structural_tf import TFStructuralStateSpace
@@ -130,6 +132,58 @@ def _ksc_fixed_sgqf_value(
     ).log_likelihood
 
 
+def _ksc_single_component_time0_ukf_value(
+    theta: tf.Tensor,
+    observations: tf.Tensor,
+    sigma: tf.Tensor,
+    *,
+    component: int,
+) -> tf.Tensor:
+    gamma, beta = _physical_from_theta(theta)
+    z = highdim.transformed_sv_panel_observations(observations, offset=tf.constant(1e-8, dtype=tf.float64))
+    mixture = highdim.ksc_1998_log_chi_square_mixture()
+    current_mean = tf.zeros([1], dtype=tf.float64)
+    current_covariance = tf.linalg.diag(tf.square(sigma) / (1.0 - tf.square(gamma)))
+    structural = sv_mixture_cut4_module._panel_transformed_sv_component_ukf_structural_model(
+        current_mean=current_mean,
+        current_covariance=current_covariance,
+        gamma=gamma,
+        beta=beta,
+        sigma=sigma,
+        mixture_means=tf.reshape(mixture.means[component], [1]),
+        mixture_variances=tf.reshape(mixture.variances[component], [1]),
+        time_index=0,
+    )
+    result = tf_svd_sigma_point_filter(
+        z[0:1],
+        structural,
+        backend="tf_svd_ukf",
+        innovation_floor=tf.constant(1e-12, dtype=tf.float64),
+        return_filtered=True,
+    )
+    return result.log_likelihood
+
+
+def _ksc_time0_ukf_wrapper_value(theta: tf.Tensor, observations: tf.Tensor, sigma: tf.Tensor) -> tf.Tensor:
+    gamma, beta = _physical_from_theta(theta)
+    return highdim.independent_panel_sv_mixture_ukf_filter(
+        observations[:1],
+        gamma=gamma,
+        beta=beta,
+        sigma=sigma,
+    ).log_likelihood
+
+
+def _ksc_two_observation_ukf_wrapper_value(theta: tf.Tensor, observations: tf.Tensor, sigma: tf.Tensor) -> tf.Tensor:
+    gamma, beta = _physical_from_theta(theta)
+    return highdim.independent_panel_sv_mixture_ukf_filter(
+        observations[:2],
+        gamma=gamma,
+        beta=beta,
+        sigma=sigma,
+    ).log_likelihood
+
+
 def _exact_dense_value(theta: tf.Tensor, observations: tf.Tensor, sigma: tf.Tensor) -> tf.Tensor:
     gamma, beta = _physical_from_theta(theta)
     return highdim.exact_transformed_sv_independent_panel_dense_reference(
@@ -161,6 +215,27 @@ def _exact_tt_value(
     ).log_likelihood
 
 
+def _exact_tt_score(
+    theta: tf.Tensor,
+    observations: tf.Tensor,
+    sigma: tf.Tensor,
+    *,
+    seed: str,
+) -> tf.Tensor:
+    gamma, beta = _physical_from_theta(theta)
+    derivative_config = highdim.FixedBranchDerivativeConfig(parameter_indices=tuple(range(int(theta.shape[0]))))
+    return highdim.exact_transformed_sv_independent_panel_zhaocui_tt_score(
+        observations,
+        gamma=gamma,
+        beta=beta,
+        sigma=sigma,
+        config=_tt_config(seed),
+        derivative_config=derivative_config,
+        fixture_id=f"p43.exact-transformed-score.{seed}",
+        branch_seed_prefix=f"p43-exact-transformed-score-{seed}",
+    ).score
+
+
 def _value_and_score(value_fn, theta: tf.Tensor) -> tuple[tf.Tensor, tf.Tensor]:
     theta = tf.convert_to_tensor(theta, dtype=tf.float64)
     with tf.GradientTape() as tape:
@@ -170,6 +245,17 @@ def _value_and_score(value_fn, theta: tf.Tensor) -> tuple[tf.Tensor, tf.Tensor]:
     if score is None:
         raise AssertionError("GradientTape returned None")
     return value, score
+
+
+def _centered_finite_difference_score(value_fn, theta: tf.Tensor, step: float = 1e-5) -> tf.Tensor:
+    theta_tensor = tf.convert_to_tensor(theta, dtype=tf.float64)
+    score = []
+    for axis in range(int(theta_tensor.shape[0])):
+        direction = tf.one_hot(axis, int(theta_tensor.shape[0]), dtype=tf.float64) * tf.constant(step, dtype=tf.float64)
+        plus = value_fn(theta_tensor + direction)
+        minus = value_fn(theta_tensor - direction)
+        score.append((plus - minus) / (2.0 * tf.constant(step, dtype=tf.float64)))
+    return tf.stack(score)
 
 
 def _relative_error(candidate: tf.Tensor, reference: tf.Tensor) -> tf.Tensor:
@@ -233,6 +319,82 @@ def test_p43_ksc_cut4_matches_kalman_value_and_diagnostic_score(dim: int) -> Non
     _assert_directional_residuals(cut4_score, kalman_score, atol=2e-8)
 
 
+def test_p43_ksc_ukf_single_component_time0_score_matches_centered_finite_difference() -> None:
+    observations = _observations(1)
+    gamma, beta, sigma = _physical_parameters(1)
+    theta = _theta_from_physical(gamma, beta)
+    z = highdim.transformed_sv_panel_observations(observations, offset=tf.constant(1e-8, dtype=tf.float64))
+    mixture = highdim.ksc_1998_log_chi_square_mixture()
+    current_mean = tf.zeros([1], dtype=tf.float64)
+    current_covariance = tf.linalg.diag(tf.square(sigma) / (1.0 - tf.square(gamma)))
+    d_current_mean = tf.zeros([2, 1], dtype=tf.float64)
+    d_current_covariance = sv_mixture_cut4_module._gamma_seed_covariance_derivatives(gamma, sigma)
+    component = 0
+
+    analytic = sv_mixture_cut4_module._ukf_component_score_update(
+        observation=z[0],
+        current_mean=current_mean,
+        current_covariance=current_covariance,
+        d_current_mean=d_current_mean,
+        d_current_covariance=d_current_covariance,
+        gamma=gamma,
+        beta=beta,
+        sigma=sigma,
+        mixture_means=tf.reshape(mixture.means[component], [1]),
+        mixture_variances=tf.reshape(mixture.variances[component], [1]),
+        time_index=0,
+    )
+    finite_difference = _centered_finite_difference_score(
+        lambda current_theta: _ksc_single_component_time0_ukf_value(
+            current_theta,
+            observations,
+            sigma,
+            component=component,
+        ),
+        theta,
+    )
+
+    tf.debugging.assert_near(analytic.score, finite_difference, atol=2e-6, rtol=2e-6)
+
+
+def test_p43_ksc_ukf_time0_wrapper_score_matches_centered_finite_difference() -> None:
+    observations = _observations(1)
+    gamma, beta, sigma = _physical_parameters(1)
+    theta = _theta_from_physical(gamma, beta)
+
+    analytic = highdim.independent_panel_sv_mixture_ukf_score(
+        observations[:1],
+        gamma=gamma,
+        beta=beta,
+        sigma=sigma,
+    )
+    finite_difference = _centered_finite_difference_score(
+        lambda current_theta: _ksc_time0_ukf_wrapper_value(current_theta, observations, sigma),
+        theta,
+    )
+
+    tf.debugging.assert_near(analytic.score, finite_difference, atol=2e-6, rtol=2e-6)
+
+
+def test_p43_ksc_ukf_two_observation_wrapper_score_matches_centered_finite_difference() -> None:
+    observations = _observations(1)
+    gamma, beta, sigma = _physical_parameters(1)
+    theta = _theta_from_physical(gamma, beta)
+
+    analytic = highdim.independent_panel_sv_mixture_ukf_score(
+        observations[:2],
+        gamma=gamma,
+        beta=beta,
+        sigma=sigma,
+    )
+    finite_difference = _centered_finite_difference_score(
+        lambda current_theta: _ksc_two_observation_ukf_wrapper_value(current_theta, observations, sigma),
+        theta,
+    )
+
+    tf.debugging.assert_near(analytic.score, finite_difference, atol=2e-6, rtol=2e-6)
+
+
 @pytest.mark.parametrize("dim", [1, 2, 3])
 def test_p43_ksc_fixed_sgqf_matches_kalman_value_only(dim: int) -> None:
     observations = _observations(dim)
@@ -255,14 +417,17 @@ def test_p43_exact_transformed_zhaocui_matches_dense_value_and_diagnostic_score(
         lambda current_theta: _exact_dense_value(current_theta, observations, sigma),
         theta,
     )
-    tt_value, tt_score = _value_and_score(
-        lambda current_theta: _exact_tt_value(
-            current_theta,
-            observations,
-            sigma,
-            seed=f"dim-{dim}",
-        ),
+    tt_value = _exact_tt_value(
         theta,
+        observations,
+        sigma,
+        seed=f"dim-{dim}",
+    )
+    tt_score = _exact_tt_score(
+        theta,
+        observations,
+        sigma,
+        seed=f"dim-{dim}",
     )
 
     tf.debugging.assert_near(tt_value, dense_value, atol=2e-6, rtol=2e-6)

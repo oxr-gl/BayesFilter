@@ -129,6 +129,21 @@ def _zhaocui_value(theta: tf.Tensor, observations: tf.Tensor, sigma: tf.Tensor, 
     ).log_likelihood
 
 
+def _zhaocui_score(theta: tf.Tensor, observations: tf.Tensor, sigma: tf.Tensor, *, seed: str) -> tf.Tensor:
+    gamma, beta = _physical_from_theta(theta)
+    derivative_config = highdim.FixedBranchDerivativeConfig(parameter_indices=tuple(range(int(theta.shape[0]))))
+    return highdim.independent_panel_sv_mixture_zhaocui_tt_score(
+        observations,
+        gamma=gamma,
+        beta=beta,
+        sigma=sigma,
+        config=_tt_config(seed),
+        derivative_config=derivative_config,
+        branch_seed_prefix=f"p47-ksc-mixture-zhaocui-score-{seed}",
+        fixture_id=f"p47.ksc-mixture-score.{seed}",
+    ).score
+
+
 def _fixed_sgqf_value(theta: tf.Tensor, observations: tf.Tensor, sigma: tf.Tensor, *, sparse_level: int = 2) -> tf.Tensor:
     gamma, beta = _physical_from_theta(theta)
     return highdim.independent_panel_sv_mixture_fixed_sgqf_filter(
@@ -249,14 +264,17 @@ def test_p47_m3_zhaocui_matches_dense_on_same_ksc_mixture_target_value_and_score
         lambda current_theta: _dense_mixture_panel_value(current_theta, observations, sigma),
         theta,
     )
-    tt_value, tt_score = _value_and_score(
-        lambda current_theta: _zhaocui_value(
-            current_theta,
-            observations,
-            sigma,
-            seed=f"dim-{dim}",
-        ),
+    tt_value = _zhaocui_value(
         theta,
+        observations,
+        sigma,
+        seed=f"dim-{dim}",
+    )
+    tt_score = _zhaocui_score(
+        theta,
+        observations,
+        sigma,
+        seed=f"dim-{dim}",
     )
 
     tf.debugging.assert_near(tt_value, dense_value, atol=2e-2, rtol=8e-3)
@@ -279,14 +297,17 @@ def test_p47_m3_cut4_and_zhaocui_direct_gap_is_bounded_on_ksc_target(dim: int) -
         lambda current_theta: _cut4_value(current_theta, observations, sigma),
         theta,
     )
-    tt_value, tt_score = _value_and_score(
-        lambda current_theta: _zhaocui_value(
-            current_theta,
-            observations,
-            sigma,
-            seed=f"direct-dim-{dim}",
-        ),
+    tt_value = _zhaocui_value(
         theta,
+        observations,
+        sigma,
+        seed=f"direct-dim-{dim}",
+    )
+    tt_score = _zhaocui_score(
+        theta,
+        observations,
+        sigma,
+        seed=f"direct-dim-{dim}",
     )
 
     tf.debugging.assert_near(cut4_value, dense_value, atol=2e-3, rtol=2e-3)

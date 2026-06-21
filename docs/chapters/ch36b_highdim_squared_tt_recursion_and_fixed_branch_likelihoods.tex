@@ -168,9 +168,102 @@ The square-density object additionally stores mass contractions
   \dd r_{k+1:D},
   \label{eq:bf-hd-squared-tt-mass-contraction}
 \end{equation}
-with analogous left-side contractions for reverse-order marginals.  These are
-not decorative arrays; they are the finite-dimensional objects through which
-marginals, normalizers, and later derivatives are actually computed.
+To make one retained-coordinate marginal explicit, suppose the retained state is
+stored as the last coordinate $z_D=z_t$ and the previous-state coordinates are
+$z_1,\ldots,z_{D-1}$.  Then the reverse-order marginal is represented by the
+left-side contractions
+\begin{equation}
+  M_{<0}=1,
+  \qquad
+  M_{<j}[b,b']
+  =
+  \sum_{a,a',\ell,\ell'}
+  M_{<j-1}[a,a']
+  C_j[a,\ell,b]
+  C_j[a',\ell',b']
+  B_j[\ell,\ell'],
+  \qquad j=1,\ldots,D-1,
+  \label{eq:bf-hd-squared-tt-left-mass-recursion}
+\end{equation}
+where $B_j$ is the frozen basis mass matrix.  The retained numerator is then the
+finite-dimensional contraction
+\begin{equation}
+\begin{aligned}
+  a_t(z_D;\beta)
+  &=
+  e^{-c_t}
+  \sum_{b,b',\ell,\ell'}
+  M_{<D-1}[b,b']
+  C_D[b,\ell,1]
+  C_D[b',\ell',1]
+  b_D(z_D)[\ell]
+  b_D(z_D)[\ell']\\
+  &\quad+
+  \tau_t
+  \int \lambda_t(z_D,z_{1:D-1})\dd z_{1:D-1},
+  \label{eq:bf-hd-squared-tt-retained-numerator-contraction}
+\end{aligned}
+\end{equation}
+which is the saved carried object queried by the next step.  Its derivative on
+the same frozen branch is obtained by the dotted left-side recursion
+\begin{equation}
+\begin{aligned}
+  \dot M_{<j}[b,b']
+  &=
+  \sum_{a,a',\ell,\ell'}
+  \dot M_{<j-1}[a,a']
+  C_j[a,\ell,b]
+  C_j[a',\ell',b']
+  B_j[\ell,\ell']\\
+  &\quad+
+  \sum_{a,a',\ell,\ell'}
+  M_{<j-1}[a,a']
+  \dot C_j[a,\ell,b]
+  C_j[a',\ell',b']
+  B_j[\ell,\ell']\\
+  &\quad+
+  \sum_{a,a',\ell,\ell'}
+  M_{<j-1}[a,a']
+  C_j[a,\ell,b]
+  \dot C_j[a',\ell',b']
+  B_j[\ell,\ell'],
+  \label{eq:bf-hd-squared-tt-dot-left-mass-recursion}
+\end{aligned}
+\end{equation}
+starting from $\dot M_{<0}=0$, and the resulting retained-numerator derivative
+\begin{equation}
+\begin{aligned}
+  \dot a_t(z_D;\beta)
+  &=
+  e^{-c_t}
+  \sum_{b,b',\ell,\ell'}
+  \dot M_{<D-1}[b,b']
+  C_D[b,\ell,1]
+  C_D[b',\ell',1]
+  b_D(z_D)[\ell]
+  b_D(z_D)[\ell']\\
+  &\quad+
+  e^{-c_t}
+  \sum_{b,b',\ell,\ell'}
+  M_{<D-1}[b,b']
+  \dot C_D[b,\ell,1]
+  C_D[b',\ell',1]
+  b_D(z_D)[\ell]
+  b_D(z_D)[\ell']\\
+  &\quad+
+  e^{-c_t}
+  \sum_{b,b',\ell,\ell'}
+  M_{<D-1}[b,b']
+  C_D[b,\ell,1]
+  \dot C_D[b',\ell',1]
+  b_D(z_D)[\ell]
+  b_D(z_D)[\ell'].
+  \label{eq:bf-hd-squared-tt-dot-retained-numerator}
+\end{aligned}
+\end{equation}
+These are not decorative arrays; together with the right-side contractions they
+are the finite-dimensional objects through which marginals, normalizers,
+retained evaluators, and later same-branch derivatives are actually computed.
 
 The resulting fixed-branch scalar has the form
 \begin{equation}

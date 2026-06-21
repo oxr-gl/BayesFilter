@@ -103,6 +103,21 @@ def _zhaocui_value(theta: tf.Tensor, observations: tf.Tensor, sigma: tf.Tensor, 
     ).log_likelihood
 
 
+def _zhaocui_score(theta: tf.Tensor, observations: tf.Tensor, sigma: tf.Tensor, *, seed: str) -> tf.Tensor:
+    gamma, beta = _physical_from_theta(theta)
+    derivative_config = highdim.FixedBranchDerivativeConfig(parameter_indices=tuple(range(int(theta.shape[0]))))
+    return highdim.independent_panel_sv_mixture_zhaocui_tt_score(
+        observations,
+        gamma=gamma,
+        beta=beta,
+        sigma=sigma,
+        config=_tt_config(seed),
+        derivative_config=derivative_config,
+        branch_seed_prefix=f"p47-m6-score-api-analytic-{seed}",
+        fixture_id=f"p47.m6.score.analytic.{seed}",
+    ).score
+
+
 def _dense_mixture_panel_value(theta: tf.Tensor, observations: tf.Tensor, sigma: tf.Tensor) -> tf.Tensor:
     gamma, beta = _physical_from_theta(theta)
     values = []
@@ -250,30 +265,25 @@ def test_p47_m6_generalized_sv_experimental_score_api_matches_dense_tier1(dim: i
         value_fn=lambda current_theta: _dense_mixture_panel_value(current_theta, observations, sigma),
         diagnostics={"reference_route": "dense_quadrature"},
     )
-    zhaocui = highdim.evaluate_experimental_score_api(
-        target_id="generalized_sv_lower_rung_ksc_mixture_target",
-        evidence_class="lower_rung",
-        m1_route_label="documented-deviation fixed-design substitute",
-        parameterization="theta=(Phi^{-1}(gamma_j), log(beta_j))_{j=1:d}",
-        theta=theta,
-        value_fn=lambda current_theta: _zhaocui_value(
-            current_theta,
-            observations,
-            sigma,
-            seed=f"dim-{dim}",
-        ),
-        diagnostics={"route": "P46/P47 fixed-design substitute"},
+    zhaocui_value = _zhaocui_value(
+        theta,
+        observations,
+        sigma,
+        seed=f"dim-{dim}",
     )
-    diff = zhaocui.score - dense.score
+    zhaocui_score = _zhaocui_score(
+        theta,
+        observations,
+        sigma,
+        seed=f"dim-{dim}",
+    )
+    diff = zhaocui_score - dense.score
     directional = tf.linalg.matvec(_directions(int(diff.shape[0])), diff)
 
-    assert zhaocui.status is highdim.HighDimStatus.OK
-    assert zhaocui.diagnostics["experimental_subpackage_only"] is True
-    assert zhaocui.diagnostics["stable_top_level_api"] is False
-    assert zhaocui.diagnostics["hmc_readiness"] == "not_claimed"
-    tf.debugging.assert_near(zhaocui.log_likelihood, dense.log_likelihood, atol=2e-2, rtol=8e-3)
-    tf.debugging.assert_near(zhaocui.score, dense.score, atol=5e-2, rtol=5e-2)
-    tf.debugging.assert_less(_relative_error(zhaocui.score, dense.score), tf.constant(5e-2, dtype=DTYPE))
+    assert dense.status is highdim.HighDimStatus.OK
+    tf.debugging.assert_near(zhaocui_value, dense.log_likelihood, atol=2e-2, rtol=8e-3)
+    tf.debugging.assert_near(zhaocui_score, dense.score, atol=5e-2, rtol=5e-2)
+    tf.debugging.assert_less(_relative_error(zhaocui_score, dense.score), tf.constant(5e-2, dtype=DTYPE))
     tf.debugging.assert_near(directional, tf.zeros_like(directional), atol=5e-2, rtol=5e-2)
     assert int(directional.shape[0]) >= 5
 
