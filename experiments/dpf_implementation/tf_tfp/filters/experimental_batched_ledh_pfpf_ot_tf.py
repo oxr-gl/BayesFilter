@@ -37,6 +37,12 @@ DEFAULT_PRECISION_POLICY = "production_ledh_pfpf_ot_gpu_tf32"
 DEFAULT_EXECUTION_TARGET = "gpu"
 DEFAULT_ALGORITHM_TARGET = "ledh_pfpf_ot_tf32"
 DEFAULT_TARGET_STATUS = "production_default_by_owner_directive"
+DEFAULT_ROUTE_ACCEPTANCE = "accepted_default_use_whenever_possible"
+DEFAULT_ROUTE_RATIONALE = (
+    "streaming GPU TF32 LEDH-PFPF-OT avoids dense transport/history storage "
+    "for large-particle DPF transport while preserving explicit reference "
+    "and fallback arms"
+)
 
 SCALAR_PARITY_ATOL = 1.0e-10
 SCALAR_PARITY_RTOL = 1.0e-10
@@ -66,6 +72,12 @@ def precision_policy_metadata() -> dict[str, Any]:
         "default_execution_target": DEFAULT_EXECUTION_TARGET,
         "default_algorithm_target": DEFAULT_ALGORITHM_TARGET,
         "default_target_status": DEFAULT_TARGET_STATUS,
+        "default_route_acceptance": DEFAULT_ROUTE_ACCEPTANCE,
+        "default_route_guidance": (
+            "use for BayesFilter DPF LEDH-PFPF-OT work whenever GPU execution "
+            "and the streaming fixed-branch contract are applicable"
+        ),
+        "default_route_rationale": DEFAULT_ROUTE_RATIONALE,
         "default_dtype": DEFAULT_DTYPE.name,
         "active_dtype": DTYPE.name,
         "default_tf32_mode": DEFAULT_TF32_MODE,

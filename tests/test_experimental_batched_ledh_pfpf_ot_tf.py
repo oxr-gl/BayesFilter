@@ -142,6 +142,11 @@ def test_precision_policy_records_gpu_tf32_production_default() -> None:
     assert metadata["default_execution_target"] == "gpu"
     assert metadata["default_algorithm_target"] == "ledh_pfpf_ot_tf32"
     assert metadata["default_target_status"] == "production_default_by_owner_directive"
+    assert metadata["default_route_acceptance"] == "accepted_default_use_whenever_possible"
+    assert "use for BayesFilter DPF LEDH-PFPF-OT work whenever" in metadata[
+        "default_route_guidance"
+    ]
+    assert "avoids dense transport/history storage" in metadata["default_route_rationale"]
     assert metadata["default_dtype"] == "float32"
     assert metadata["default_tf32_mode"] == "enabled"
     assert metadata["fp64_reference_requires_explicit_dtype"] is True

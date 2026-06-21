@@ -5,6 +5,15 @@
 GPU-oriented LEDH-PFPF-OT TF32 is promoted to the BayesFilter DPF transport
 production/default target by explicit owner directive on 2026-06-20.
 
+Update on 2026-06-21: the large-particle efficiency program certified the same
+route as the acceptable default operational route for BayesFilter DPF
+LEDH-PFPF-OT work whenever GPU execution and the streaming fixed-branch contract
+are applicable. See:
+
+- `docs/plans/bayesfilter-dpf-ledh-pfpf-ot-large-particle-efficiency-p06-closeout-result-2026-06-21.md`
+- `docs/plans/bayesfilter-dpf-ledh-pfpf-ot-large-particle-efficiency-p03-streaming-large-n-ladder-result-2026-06-21.md`
+- `docs/plans/bayesfilter-dpf-ledh-pfpf-ot-large-particle-efficiency-p04-tf32-vs-fp32-runtime-result-2026-06-21.md`
+
 The default route is:
 
 - TensorFlow / TensorFlow Probability implementation;
@@ -14,6 +23,12 @@ The default route is:
 - streaming/chunked transport where applicable;
 - explicit FP64 and FP32-no-TF32 arms retained as reference, comparison, smoke,
   or fallback modes.
+
+Operational default guidance: use this route whenever possible for BayesFilter
+DPF LEDH-PFPF-OT transport work. Use explicit non-default/reference modes only
+when a reviewed diagnostic requires FP64, FP32-no-TF32, dense/non-streaming
+small-reference behavior, public API exposure testing, posterior correctness
+testing, or HMC-readiness testing.
 
 The historical module path under `experiments/dpf_implementation` is not a
 demotion signal for this route.  Public API exposure remains separately gated.
@@ -118,7 +133,7 @@ rewritten.
 | Field | Status |
 | --- | --- |
 | Default-policy decision | Adopted by owner directive for DPF transport work. |
-| Primary criterion | Governance and live metadata patched to record GPU-oriented LEDH-PFPF-OT TF32 as production/default. |
+| Primary criterion | Governance and live metadata patched to record GPU-oriented LEDH-PFPF-OT TF32 as production/default; 2026-06-21 large-particle evidence certified it as the acceptable operational default whenever applicable. |
 | Veto diagnostics | No reference controls removed; FP64/FP32-no-TF32 remain explicit arms. |
 | Main uncertainty | Scientific and HMC readiness gates remain open and must be tested separately. |
 | Next justified action | Future DPF transport work should start from GPU-oriented LEDH-PFPF-OT TF32 unless a reviewed artifact or human directive supersedes it. |

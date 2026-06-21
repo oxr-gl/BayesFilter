@@ -1,0 +1,450 @@
+{
+  "artifact_dir": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-large-particle-efficiency-p04-tf32-vs-fp32-gpu-children-2026-06-21",
+  "child_timeout_seconds": 3600,
+  "children": [
+    {
+      "arm_id": "fp32_tf32_enabled",
+      "benchmark": {
+        "compile_and_first_call_seconds": 25.014469312038273,
+        "compiled_unit": "streaming_batched_ledh_pfpf_ot_lgssm_value",
+        "cuda_visible_devices": "1",
+        "device": "/GPU:0",
+        "device_scope": "visible",
+        "ess_by_time_preview": [],
+        "expect_device_kind": "gpu",
+        "filtered_means_preview": [],
+        "filtered_variances_preview": [],
+        "finite_output": true,
+        "gpu_memory_info_after": {
+          "current": 2097664,
+          "peak": 77677056
+        },
+        "gpu_memory_info_before": {
+          "current": 2097408,
+          "peak": 2097408
+        },
+        "history_shapes": {
+          "ess_by_time": [
+            0,
+            1
+          ],
+          "filtered_means": [
+            0,
+            1,
+            20
+          ],
+          "filtered_variances": [
+            0,
+            1,
+            20
+          ]
+        },
+        "host": "ubuntu-MZ72-HB2-00",
+        "jit_compile": true,
+        "log_likelihood_preview": [
+          327.7008056640625
+        ],
+        "logical_gpus": [
+          "LogicalDevice(name='/device:GPU:0', device_type='GPU')"
+        ],
+        "nonclaims": [
+          "single synthetic LGSSM-shaped fixture only",
+          "production/default target by owner directive",
+          "no CPU/GPU ranking claim",
+          "no posterior validity claim",
+          "no active transport gradient validation claim",
+          "no HMC readiness claim",
+          "streaming removes dense transport storage but not all-pairs OT compute"
+        ],
+        "output_devices": [
+          "/job:localhost/replica:0/task:0/device:GPU:0"
+        ],
+        "output_shape": [
+          1
+        ],
+        "particle_chunk_size": 256,
+        "physical_gpus": [
+          "PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')"
+        ],
+        "precision": {
+          "active_dtype": "float32",
+          "default_algorithm_target": "ledh_pfpf_ot_tf32",
+          "default_dtype": "float32",
+          "default_execution_target": "gpu",
+          "default_target_status": "production_default_by_owner_directive",
+          "default_tf32_mode": "enabled",
+          "dtype": "float32",
+          "fp64_reference_requires_explicit_dtype": true,
+          "historical_module_path": "experiments/dpf_implementation",
+          "precision_default_policy": "production_ledh_pfpf_ot_gpu_tf32",
+          "public_api_exposure": "separately_gated",
+          "scope": "production_ledh_pfpf_ot_gpu_tf32_default_lane",
+          "tf32_execution_enabled": true,
+          "tf32_mode": "enabled",
+          "tf_dtype": "float32"
+        },
+        "proposal_mode": "callback",
+        "python_version": "3.13.13",
+        "repeats": 1,
+        "return_history": false,
+        "seed": 20260621,
+        "shape": {
+          "batch_size": 1,
+          "num_particles": 10000,
+          "obs_dim": 20,
+          "state_dim": 20,
+          "time_steps": 80
+        },
+        "stores_full_pre_flow_particles": false,
+        "tensorflow_version": "2.20.0",
+        "timestamp_utc": "2026-06-21T06:23:01.224775+00:00",
+        "transport": {
+          "annealed_convergence_threshold": 0.001,
+          "annealed_scaling": 0.9,
+          "col_chunk_size": 1024,
+          "dense_transport_matrix_materialized": false,
+          "gradient_mode": "raw",
+          "plan_mode": "streaming",
+          "row_chunk_size": 1024,
+          "sinkhorn_epsilon": 0.5,
+          "sinkhorn_iterations": 4
+        },
+        "transport_policy": "active-all",
+        "warm_call_timing_summary_seconds": {
+          "max": 11.870695133926347,
+          "mean": 11.870695133926347,
+          "median": 11.870695133926347,
+          "min": 11.870695133926347
+        },
+        "warm_call_timings_seconds": [
+          11.870695133926347
+        ],
+        "warmstart_mode": "none",
+        "warmups": 0
+      },
+      "command": [
+        "/home/ubuntu/anaconda3/envs/tfgpu/bin/python",
+        "/home/ubuntu/python/BayesFilter/docs/benchmarks/benchmark_experimental_batched_ledh_pfpf_ot_streaming_lgssm.py",
+        "--device-scope",
+        "visible",
+        "--device",
+        "/GPU:0",
+        "--expect-device-kind",
+        "gpu",
+        "--batch-size",
+        "1",
+        "--time-steps",
+        "80",
+        "--num-particles",
+        "10000",
+        "--state-dim",
+        "20",
+        "--obs-dim",
+        "20",
+        "--transport-policy",
+        "active-all",
+        "--proposal-mode",
+        "callback",
+        "--sinkhorn-iterations",
+        "4",
+        "--sinkhorn-epsilon",
+        "0.5",
+        "--annealed-scaling",
+        "0.9",
+        "--annealed-convergence-threshold",
+        "0.001",
+        "--row-chunk-size",
+        "1024",
+        "--col-chunk-size",
+        "1024",
+        "--particle-chunk-size",
+        "256",
+        "--warmups",
+        "0",
+        "--repeats",
+        "1",
+        "--seed",
+        "20260621",
+        "--dtype",
+        "float32",
+        "--tf32-mode",
+        "enabled",
+        "--output",
+        "docs/benchmarks/experimental-batched-ledh-pfpf-ot-large-particle-efficiency-p04-tf32-vs-fp32-gpu-children-2026-06-21/fp32_tf32_enabled.json",
+        "--markdown-output",
+        "docs/benchmarks/experimental-batched-ledh-pfpf-ot-large-particle-efficiency-p04-tf32-vs-fp32-gpu-children-2026-06-21/fp32_tf32_enabled.md",
+        "--cuda-visible-devices",
+        "1"
+      ],
+      "elapsed_seconds": 40.349858831148595,
+      "hard_gate": {
+        "checks": {
+          "artifact_present": true,
+          "child_passed": true,
+          "device_kind": true,
+          "finite_output": true,
+          "no_dense_transport_matrix": true,
+          "no_full_pre_flow_storage": true,
+          "no_return_history": true,
+          "precision_metadata": true,
+          "streaming_plan_mode": true
+        },
+        "passed": true
+      },
+      "json_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-large-particle-efficiency-p04-tf32-vs-fp32-gpu-children-2026-06-21/fp32_tf32_enabled.json",
+      "markdown_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-large-particle-efficiency-p04-tf32-vs-fp32-gpu-children-2026-06-21/fp32_tf32_enabled.md",
+      "passed": true,
+      "returncode": 0,
+      "stderr_tail": "WARNING: All log messages before absl::InitializeLog() is called are written to STDERR\nI0000 00:00:1782022944.252770 3773950 gpu_device.cc:2020] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 30421 MB memory:  -> device: 0, name: NVIDIA GeForce RTX 4080 SUPER, pci bus id: 0000:81:00.0, compute capability: 8.9\nI0000 00:00:1782022957.382391 3773950 device_compiler.h:196] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.\n",
+      "stdout_tail": "{\n  \"compile_and_first_call_seconds\": 25.014469312038273,\n  \"compiled_unit\": \"streaming_batched_ledh_pfpf_ot_lgssm_value\",\n  \"cuda_visible_devices\": \"1\",\n  \"device\": \"/GPU:0\",\n  \"device_scope\": \"visible\",\n  \"ess_by_time_preview\": [],\n  \"expect_device_kind\": \"gpu\",\n  \"filtered_means_preview\": [],\n  \"filtered_variances_preview\": [],\n  \"finite_output\": true,\n  \"gpu_memory_info_after\": {\n    \"current\": 2097664,\n    \"peak\": 77677056\n  },\n  \"gpu_memory_info_before\": {\n    \"current\": 2097408,\n    \"peak\": 2097408\n  },\n  \"history_shapes\": {\n    \"ess_by_time\": [\n      0,\n      1\n    ],\n    \"filtered_means\": [\n      0,\n      1,\n      20\n    ],\n    \"filtered_variances\": [\n      0,\n      1,\n      20\n    ]\n  },\n  \"host\": \"ubuntu-MZ72-HB2-00\",\n  \"jit_compile\": true,\n  \"log_likelihood_preview\": [\n    327.7008056640625\n  ],\n  \"logical_gpus\": [\n    \"LogicalDevice(name='/device:GPU:0', device_type='GPU')\"\n  ],\n  \"nonclaims\": [\n    \"single synthetic LGSSM-shaped fixture only\",\n    \"production/default target by owner directive\",\n    \"no CPU/GPU ranking claim\",\n    \"no posterior validity claim\",\n    \"no active transport gradient validation claim\",\n    \"no HMC readiness claim\",\n    \"streaming removes dense transport storage but not all-pairs OT compute\"\n  ],\n  \"output_devices\": [\n    \"/job:localhost/replica:0/task:0/device:GPU:0\"\n  ],\n  \"output_shape\": [\n    1\n  ],\n  \"particle_chunk_size\": 256,\n  \"physical_gpus\": [\n    \"PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')\"\n  ],\n  \"precision\": {\n    \"active_dtype\": \"float32\",\n    \"default_algorithm_target\": \"ledh_pfpf_ot_tf32\",\n    \"default_dtype\": \"float32\",\n    \"default_execution_target\": \"gpu\",\n    \"default_target_status\": \"production_default_by_owner_directive\",\n    \"default_tf32_mode\": \"enabled\",\n    \"dtype\": \"float32\",\n    \"fp64_reference_requires_explicit_dtype\": true,\n    \"historical_module_path\": \"experiments/dpf_implementation\",\n    \"precision_default_policy\": \"production_ledh_pfpf_ot_gpu_tf32\",\n    \"public_api_exposure\": \"separately_gated\",\n    \"scope\": \"production_ledh_pfpf_ot_gpu_tf32_default_lane\",\n    \"tf32_execution_enabled\": true,\n    \"tf32_mode\": \"enabled\",\n    \"tf_dtype\": \"float32\"\n  },\n  \"proposal_mode\": \"callback\",\n  \"python_version\": \"3.13.13\",\n  \"repeats\": 1,\n  \"return_history\": false,\n  \"seed\": 20260621,\n  \"shape\": {\n    \"batch_size\": 1,\n    \"num_particles\": 10000,\n    \"obs_dim\": 20,\n    \"state_dim\": 20,\n    \"time_steps\": 80\n  },\n  \"stores_full_pre_flow_particles\": false,\n  \"tensorflow_version\": \"2.20.0\",\n  \"timestamp_utc\": \"2026-06-21T06:23:01.224775+00:00\",\n  \"transport\": {\n    \"annealed_convergence_threshold\": 0.001,\n    \"annealed_scaling\": 0.9,\n    \"col_chunk_size\": 1024,\n    \"dense_transport_matrix_materialized\": false,\n    \"gradient_mode\": \"raw\",\n    \"plan_mode\": \"streaming\",\n    \"row_chunk_size\": 1024,\n    \"sinkhorn_epsilon\": 0.5,\n    \"sinkhorn_iterations\": 4\n  },\n  \"transport_policy\": \"active-all\",\n  \"warm_call_timing_summary_seconds\": {\n    \"max\": 11.870695133926347,\n    \"mean\": 11.870695133926347,\n    \"median\": 11.870695133926347,\n    \"min\": 11.870695133926347\n  },\n  \"warm_call_timings_seconds\": [\n    11.870695133926347\n  ],\n  \"warmstart_mode\": \"none\",\n  \"warmups\": 0\n}\n"
+    },
+    {
+      "arm_id": "fp32_tf32_disabled",
+      "benchmark": {
+        "compile_and_first_call_seconds": 23.42192833404988,
+        "compiled_unit": "streaming_batched_ledh_pfpf_ot_lgssm_value",
+        "cuda_visible_devices": "1",
+        "device": "/GPU:0",
+        "device_scope": "visible",
+        "ess_by_time_preview": [],
+        "expect_device_kind": "gpu",
+        "filtered_means_preview": [],
+        "filtered_variances_preview": [],
+        "finite_output": true,
+        "gpu_memory_info_after": {
+          "current": 2097664,
+          "peak": 18875392
+        },
+        "gpu_memory_info_before": {
+          "current": 2097408,
+          "peak": 2097408
+        },
+        "history_shapes": {
+          "ess_by_time": [
+            0,
+            1
+          ],
+          "filtered_means": [
+            0,
+            1,
+            20
+          ],
+          "filtered_variances": [
+            0,
+            1,
+            20
+          ]
+        },
+        "host": "ubuntu-MZ72-HB2-00",
+        "jit_compile": true,
+        "log_likelihood_preview": [
+          327.7242431640625
+        ],
+        "logical_gpus": [
+          "LogicalDevice(name='/device:GPU:0', device_type='GPU')"
+        ],
+        "nonclaims": [
+          "single synthetic LGSSM-shaped fixture only",
+          "production/default target by owner directive",
+          "no CPU/GPU ranking claim",
+          "no posterior validity claim",
+          "no active transport gradient validation claim",
+          "no HMC readiness claim",
+          "streaming removes dense transport storage but not all-pairs OT compute"
+        ],
+        "output_devices": [
+          "/job:localhost/replica:0/task:0/device:GPU:0"
+        ],
+        "output_shape": [
+          1
+        ],
+        "particle_chunk_size": 256,
+        "physical_gpus": [
+          "PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')"
+        ],
+        "precision": {
+          "active_dtype": "float32",
+          "default_algorithm_target": "ledh_pfpf_ot_tf32",
+          "default_dtype": "float32",
+          "default_execution_target": "gpu",
+          "default_target_status": "production_default_by_owner_directive",
+          "default_tf32_mode": "enabled",
+          "dtype": "float32",
+          "fp64_reference_requires_explicit_dtype": true,
+          "historical_module_path": "experiments/dpf_implementation",
+          "precision_default_policy": "production_ledh_pfpf_ot_gpu_tf32",
+          "public_api_exposure": "separately_gated",
+          "scope": "production_ledh_pfpf_ot_gpu_tf32_default_lane",
+          "tf32_execution_enabled": false,
+          "tf32_mode": "disabled",
+          "tf_dtype": "float32"
+        },
+        "proposal_mode": "callback",
+        "python_version": "3.13.13",
+        "repeats": 1,
+        "return_history": false,
+        "seed": 20260621,
+        "shape": {
+          "batch_size": 1,
+          "num_particles": 10000,
+          "obs_dim": 20,
+          "state_dim": 20,
+          "time_steps": 80
+        },
+        "stores_full_pre_flow_particles": false,
+        "tensorflow_version": "2.20.0",
+        "timestamp_utc": "2026-06-21T06:23:40.309938+00:00",
+        "transport": {
+          "annealed_convergence_threshold": 0.001,
+          "annealed_scaling": 0.9,
+          "col_chunk_size": 1024,
+          "dense_transport_matrix_materialized": false,
+          "gradient_mode": "raw",
+          "plan_mode": "streaming",
+          "row_chunk_size": 1024,
+          "sinkhorn_epsilon": 0.5,
+          "sinkhorn_iterations": 4
+        },
+        "transport_policy": "active-all",
+        "warm_call_timing_summary_seconds": {
+          "max": 12.24538614996709,
+          "mean": 12.24538614996709,
+          "median": 12.24538614996709,
+          "min": 12.24538614996709
+        },
+        "warm_call_timings_seconds": [
+          12.24538614996709
+        ],
+        "warmstart_mode": "none",
+        "warmups": 0
+      },
+      "command": [
+        "/home/ubuntu/anaconda3/envs/tfgpu/bin/python",
+        "/home/ubuntu/python/BayesFilter/docs/benchmarks/benchmark_experimental_batched_ledh_pfpf_ot_streaming_lgssm.py",
+        "--device-scope",
+        "visible",
+        "--device",
+        "/GPU:0",
+        "--expect-device-kind",
+        "gpu",
+        "--batch-size",
+        "1",
+        "--time-steps",
+        "80",
+        "--num-particles",
+        "10000",
+        "--state-dim",
+        "20",
+        "--obs-dim",
+        "20",
+        "--transport-policy",
+        "active-all",
+        "--proposal-mode",
+        "callback",
+        "--sinkhorn-iterations",
+        "4",
+        "--sinkhorn-epsilon",
+        "0.5",
+        "--annealed-scaling",
+        "0.9",
+        "--annealed-convergence-threshold",
+        "0.001",
+        "--row-chunk-size",
+        "1024",
+        "--col-chunk-size",
+        "1024",
+        "--particle-chunk-size",
+        "256",
+        "--warmups",
+        "0",
+        "--repeats",
+        "1",
+        "--seed",
+        "20260621",
+        "--dtype",
+        "float32",
+        "--tf32-mode",
+        "disabled",
+        "--output",
+        "docs/benchmarks/experimental-batched-ledh-pfpf-ot-large-particle-efficiency-p04-tf32-vs-fp32-gpu-children-2026-06-21/fp32_tf32_disabled.json",
+        "--markdown-output",
+        "docs/benchmarks/experimental-batched-ledh-pfpf-ot-large-particle-efficiency-p04-tf32-vs-fp32-gpu-children-2026-06-21/fp32_tf32_disabled.md",
+        "--cuda-visible-devices",
+        "1"
+      ],
+      "elapsed_seconds": 39.061799485003576,
+      "hard_gate": {
+        "checks": {
+          "artifact_present": true,
+          "child_passed": true,
+          "device_kind": true,
+          "finite_output": true,
+          "no_dense_transport_matrix": true,
+          "no_full_pre_flow_storage": true,
+          "no_return_history": true,
+          "precision_metadata": true,
+          "streaming_plan_mode": true
+        },
+        "passed": true
+      },
+      "json_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-large-particle-efficiency-p04-tf32-vs-fp32-gpu-children-2026-06-21/fp32_tf32_disabled.json",
+      "markdown_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-large-particle-efficiency-p04-tf32-vs-fp32-gpu-children-2026-06-21/fp32_tf32_disabled.md",
+      "passed": true,
+      "returncode": 0,
+      "stderr_tail": "WARNING: All log messages before absl::InitializeLog() is called are written to STDERR\nI0000 00:00:1782022984.537452 3774944 gpu_device.cc:2020] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 30421 MB memory:  -> device: 0, name: NVIDIA GeForce RTX 4080 SUPER, pci bus id: 0000:81:00.0, compute capability: 8.9\nI0000 00:00:1782022995.662463 3774944 device_compiler.h:196] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.\n",
+      "stdout_tail": "{\n  \"compile_and_first_call_seconds\": 23.42192833404988,\n  \"compiled_unit\": \"streaming_batched_ledh_pfpf_ot_lgssm_value\",\n  \"cuda_visible_devices\": \"1\",\n  \"device\": \"/GPU:0\",\n  \"device_scope\": \"visible\",\n  \"ess_by_time_preview\": [],\n  \"expect_device_kind\": \"gpu\",\n  \"filtered_means_preview\": [],\n  \"filtered_variances_preview\": [],\n  \"finite_output\": true,\n  \"gpu_memory_info_after\": {\n    \"current\": 2097664,\n    \"peak\": 18875392\n  },\n  \"gpu_memory_info_before\": {\n    \"current\": 2097408,\n    \"peak\": 2097408\n  },\n  \"history_shapes\": {\n    \"ess_by_time\": [\n      0,\n      1\n    ],\n    \"filtered_means\": [\n      0,\n      1,\n      20\n    ],\n    \"filtered_variances\": [\n      0,\n      1,\n      20\n    ]\n  },\n  \"host\": \"ubuntu-MZ72-HB2-00\",\n  \"jit_compile\": true,\n  \"log_likelihood_preview\": [\n    327.7242431640625\n  ],\n  \"logical_gpus\": [\n    \"LogicalDevice(name='/device:GPU:0', device_type='GPU')\"\n  ],\n  \"nonclaims\": [\n    \"single synthetic LGSSM-shaped fixture only\",\n    \"production/default target by owner directive\",\n    \"no CPU/GPU ranking claim\",\n    \"no posterior validity claim\",\n    \"no active transport gradient validation claim\",\n    \"no HMC readiness claim\",\n    \"streaming removes dense transport storage but not all-pairs OT compute\"\n  ],\n  \"output_devices\": [\n    \"/job:localhost/replica:0/task:0/device:GPU:0\"\n  ],\n  \"output_shape\": [\n    1\n  ],\n  \"particle_chunk_size\": 256,\n  \"physical_gpus\": [\n    \"PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')\"\n  ],\n  \"precision\": {\n    \"active_dtype\": \"float32\",\n    \"default_algorithm_target\": \"ledh_pfpf_ot_tf32\",\n    \"default_dtype\": \"float32\",\n    \"default_execution_target\": \"gpu\",\n    \"default_target_status\": \"production_default_by_owner_directive\",\n    \"default_tf32_mode\": \"enabled\",\n    \"dtype\": \"float32\",\n    \"fp64_reference_requires_explicit_dtype\": true,\n    \"historical_module_path\": \"experiments/dpf_implementation\",\n    \"precision_default_policy\": \"production_ledh_pfpf_ot_gpu_tf32\",\n    \"public_api_exposure\": \"separately_gated\",\n    \"scope\": \"production_ledh_pfpf_ot_gpu_tf32_default_lane\",\n    \"tf32_execution_enabled\": false,\n    \"tf32_mode\": \"disabled\",\n    \"tf_dtype\": \"float32\"\n  },\n  \"proposal_mode\": \"callback\",\n  \"python_version\": \"3.13.13\",\n  \"repeats\": 1,\n  \"return_history\": false,\n  \"seed\": 20260621,\n  \"shape\": {\n    \"batch_size\": 1,\n    \"num_particles\": 10000,\n    \"obs_dim\": 20,\n    \"state_dim\": 20,\n    \"time_steps\": 80\n  },\n  \"stores_full_pre_flow_particles\": false,\n  \"tensorflow_version\": \"2.20.0\",\n  \"timestamp_utc\": \"2026-06-21T06:23:40.309938+00:00\",\n  \"transport\": {\n    \"annealed_convergence_threshold\": 0.001,\n    \"annealed_scaling\": 0.9,\n    \"col_chunk_size\": 1024,\n    \"dense_transport_matrix_materialized\": false,\n    \"gradient_mode\": \"raw\",\n    \"plan_mode\": \"streaming\",\n    \"row_chunk_size\": 1024,\n    \"sinkhorn_epsilon\": 0.5,\n    \"sinkhorn_iterations\": 4\n  },\n  \"transport_policy\": \"active-all\",\n  \"warm_call_timing_summary_seconds\": {\n    \"max\": 12.24538614996709,\n    \"mean\": 12.24538614996709,\n    \"median\": 12.24538614996709,\n    \"min\": 12.24538614996709\n  },\n  \"warm_call_timings_seconds\": [\n    12.24538614996709\n  ],\n  \"warmstart_mode\": \"none\",\n  \"warmups\": 0\n}\n"
+    }
+  ],
+  "comparison": {
+    "disabled_warm_median_seconds": 12.24538614996709,
+    "enabled_to_disabled_warm_median_ratio": 0.9694014536208195,
+    "enabled_warm_median_seconds": 11.870695133926347,
+    "matched_config_except_tf32": true,
+    "timing_interpretation": "descriptive_only"
+  },
+  "cuda_visible_devices_arg": "1",
+  "device": "/GPU:0",
+  "device_scope": "visible",
+  "expect_device_kind": "gpu",
+  "gpu_selection": {
+    "child_gpu_mapping_contract": "child CUDA_VISIBLE_DEVICES remaps selected physical GPU to logical /GPU:0",
+    "nvidia_smi_summary": {
+      "gpu1": {
+        "classification": "selected_clean_at_p04_just_in_time_preflight",
+        "compute_apps": "none",
+        "memory_total_mib": 32760,
+        "memory_used_mib": 18,
+        "utilization_percent": 0
+      }
+    },
+    "reason": "jit_clean_gpu1_p04_preflight",
+    "selected_physical_gpu": "1"
+  },
+  "host": "ubuntu-MZ72-HB2-00",
+  "nonclaims": [
+    "parent orchestration/reporting wrapper only",
+    "single synthetic LGSSM-shaped benchmark fixture",
+    "runtime and memory are descriptive unless a separate uncertainty plan is used",
+    "no posterior correctness claim",
+    "no HMC readiness claim",
+    "no dense Sinkhorn equivalence claim",
+    "no public API readiness claim"
+  ],
+  "overall_passed": true,
+  "phase_elapsed_seconds": 79.41282888804562,
+  "phase_wall_time_budget_seconds": 10800,
+  "proposal_mode": "callback",
+  "python_executable": "/home/ubuntu/anaconda3/envs/tfgpu/bin/python",
+  "python_version": "3.13.13",
+  "run_kind": "tf32-vs-fp32",
+  "seed": 20260621,
+  "shape": {
+    "batch_size": 1,
+    "num_particles": 10000,
+    "obs_dim": 20,
+    "state_dim": 20,
+    "time_steps": 80
+  },
+  "timestamp_utc": "2026-06-21T06:23:41.450895+00:00",
+  "transport_policy": "active-all"
+}
