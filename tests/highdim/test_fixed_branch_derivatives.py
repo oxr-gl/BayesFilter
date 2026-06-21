@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 import tensorflow as tf
+import tensorflow_probability as tfp
 
 import bayesfilter.highdim as highdim
 
@@ -68,6 +69,65 @@ def _dot_tt(product: highdim.ProductBasis) -> tuple[highdim.TTCore, ...]:
         highdim.TTCore(tf.constant([[[0.1, -0.05], [0.03, 0.02]]], dtype=tf.float64)),
         highdim.TTCore(tf.constant([[[0.02], [-0.04]], [[0.06], [0.01]]], dtype=tf.float64)),
     )
+
+
+def _score_config(seed: str = "p37-score") -> highdim.FixedBranchFilterConfig:
+    convention = _convention()
+    product_basis = highdim.ProductBasis(
+        [highdim.LegendreBasis1D(highdim.BoundedInterval(-1.0, 1.0), 48)],
+        convention,
+    )
+    return highdim.FixedBranchFilterConfig(
+        fit_config=highdim.FixedTTFitConfig(
+            ranks=(1, 1),
+            ridge=1e-12,
+            max_sweeps=2,
+            sweep_order=(0,),
+            row_budget=512,
+            column_budget=128,
+            dense_matrix_byte_budget=200_000,
+            normal_matrix_byte_budget=100_000,
+            condition_number_warning=1e10,
+            condition_number_veto=1e14,
+            holdout_tolerance=5e-4,
+        ),
+        density_tau=0.0,
+        normalizer_floor=1e-12,
+        denominator_floor=1e-12,
+        retained_storage_byte_budget=10_000_000,
+        coordinate_maps=(
+            highdim.AffineCoordinateMap(
+                offset=tf.constant([0.0], dtype=tf.float64),
+                matrix=tf.constant([[8.0]], dtype=tf.float64),
+            ),
+        ),
+        measure_convention=convention,
+        deterministic_seed=seed,
+        product_basis=product_basis,
+        initial_cores=(
+            highdim.TTCore(tf.ones([1, product_basis.bases[0].basis_dim, 1], dtype=tf.float64)),
+        ),
+        fit_quadrature_order=141,
+    )
+
+
+def _observations() -> tf.Tensor:
+    return tf.constant([[0.12], [-0.07]], dtype=tf.float64)
+
+
+def _physical_parameters() -> tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
+    gamma = tf.constant([0.60], dtype=tf.float64)
+    beta = tf.constant([0.40], dtype=tf.float64)
+    sigma = tf.constant([1.00], dtype=tf.float64)
+    return gamma, beta, sigma
+
+
+def _theta_from_physical(gamma: tf.Tensor, beta: tf.Tensor) -> tf.Tensor:
+    standard_normal = tfp.distributions.Normal(
+        loc=tf.constant(0.0, dtype=tf.float64),
+        scale=tf.constant(1.0, dtype=tf.float64),
+    )
+    return tf.reshape(tf.stack([standard_normal.quantile(gamma), tf.math.log(beta)], axis=1), [-1])
 
 
 def test_target_derivative_matches_finite_difference():
@@ -444,3 +504,32 @@ def test_derivative_solve_failure_status():
     )
 
     assert result.status is highdim.HighDimStatus.DERIVATIVE_SOLVE_FAILURE
+
+
+def test_scalar_fixed_design_tt_score_path_matches_same_branch_fd_for_exact_transformed_sv() -> None:
+    observations = _observations()
+    gamma, beta, sigma = _physical_parameters()
+    theta = _theta_from_physical(gamma, beta)
+    model = highdim.ExactTransformedSVSSM(sigma=sigma[0])
+    z = highdim.exact_transformed_sv_observations(observations)
+    config = _score_config("p37-score-exact")
+    derivative_config = highdim.FixedBranchDerivativeConfig(parameter_indices=(0,))
+
+    result = highdim.scalar_nonlinear_fixed_design_tt_score_path(
+        model,
+        theta,
+        z,
+        config,
+        derivative_config,
+        fixture_id="p37.score.exact-transformed.v1",
+        initial_target_id="p37.score.exact.initial.v1",
+        transition_target_id="p37.score.exact.transition.v1",
+        branch_seed_prefix="p37-score-exact",
+    )
+
+    assert result.status is highdim.HighDimStatus.OK
+    assert result.score.shape == (1,)
+    assert result.finite_difference_table.valid_rows()
+    assert result.diagnostics["score_path"] == "scalar_nonlinear_fixed_design_tt_score_path"
+    assert result.diagnostics["fixed_branch_only"] is True
+    assert float(result.finite_difference_table.max_abs_error().numpy()) < 5e-2

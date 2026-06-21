@@ -298,6 +298,72 @@ target contains \(\widehat p_t\), so its derivative contains
 next-step gradient is incomplete even if the current-step score is numerically
 correct.
 
+\paragraph{Saved retained-filter object and query rule.}
+The phrase “save the carried object” must denote a finite-dimensional evaluator,
+not an informal function name.  For retained state dimension $m>1$, let the
+retained block use the product basis
+\begin{equation}
+  b_t(z_t)=b_{t,1}(z_{t,1})\otimes\cdots\otimes b_{t,m}(z_{t,m})
+  \in\R^{p_{\rm ret}},
+  \qquad
+  p_{\rm ret}=\prod_{j=1}^m p_j.
+  \label{eq:bf-hd-ttkr-retained-product-basis}
+\end{equation}
+The retained numerator is represented by a coefficient matrix
+\begin{equation}
+  a_t(z_t;\beta)=b_t(z_t)^\top Q_t(\beta)b_t(z_t),
+  \qquad
+  Q_t\in\R^{p_{\rm ret}\times p_{\rm ret}},
+  \label{eq:bf-hd-ttkr-retained-Q}
+\end{equation}
+and its derivative uses the matching dotted matrix
+\begin{equation}
+  \dot a_t(z_t;\beta)=b_t(z_t)^\top \dot Q_t(\beta)b_t(z_t),
+  \qquad
+  \dot Q_t\in\R^{p_{\rm ret}\times p_{\rm ret}}.
+  \label{eq:bf-hd-ttkr-retained-dot-Q}
+\end{equation}
+Normalize the stored evaluator by
+\begin{equation}
+  P_t=\frac{Q_t}{\widehat Z_t},
+  \qquad
+  \dot P_t=
+  \frac{\dot Q_t}{\widehat Z_t}
+  -
+  \frac{Q_t\dot{\widehat Z}_t}{\widehat Z_t^2}.
+  \label{eq:bf-hd-ttkr-retained-P}
+\end{equation}
+For next-step query points $z_t^{\rm query}(j)$, build the retained-basis matrix
+\begin{equation}
+  B^{\rm query}[j,:]=b_t(z_t^{\rm query}(j))^\top,
+  \qquad
+  B^{\rm query}\in\R^{M\times p_{\rm ret}},
+  \label{eq:bf-hd-ttkr-retained-query-basis}
+\end{equation}
+and evaluate the saved carried object by
+\begin{equation}
+  \widehat p_t^{\rm ref}[j]
+  =
+  B^{\rm query}[j,:]P_tB^{\rm query}[j,:]^\top,
+  \qquad
+  \dot{\widehat p}_t^{\rm ref}[j]
+  =
+  B^{\rm query}[j,:]\dot P_tB^{\rm query}[j,:]^\top.
+  \label{eq:bf-hd-ttkr-retained-query-rule}
+\end{equation}
+The next-step query rule is that $z_t^{\rm query}(j)$ is the previous-state block
+of the fixed branch's fitting point at time $t+1$.  A later implementation may
+store $Q_t$ in TT, low-rank, or sparse form, but only if it preserves the same
+evaluator and derivative evaluator in
+\eqref{eq:bf-hd-ttkr-retained-query-rule}.  This is the stored-field convention
+that closes the derivative recursion on the same branch.
+
+\paragraph{Branch-manifest reporting hook.}
+Derivative and finite-difference reports for this lane should therefore carry a
+TT/KR branch-manifest identifier together with the saved-field convention, so
+that branch-valid rows certify equality of the actual retained evaluator rather
+than only superficial notation.
+
 \paragraph{Compact derivative-reading checklists.}
 A later implementation review should be able to verify the derivative lane block
 by block:
