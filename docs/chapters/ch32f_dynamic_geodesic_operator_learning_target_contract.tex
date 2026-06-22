@@ -1,8 +1,8 @@
 \chapter{Dynamic Geodesic and Operator Learners, and the Filtering Target Contract}
 \label{ch:bf-neural-ot-dynamic-target-contract}
 
-The previous chapter treated direct map-learning families such as ICNN/Brenier and
-Monge-gap approaches.  The present chapter changes the learned object again.
+The previous chapter treated direct map-learning families such as ICNN/Brenier
+and Monge-gap approaches.  The present chapter changes the learned object again.
 Instead of asking the network to learn one static transport map, it asks what
 happens when the learned object is a dynamic transport path, a velocity field, or
 an operator acting on families of measures.
@@ -12,11 +12,10 @@ implementation chapter.  Its job is to explain why these broader learned familie
 carry an even heavier target-status burden than retained-teacher acceleration or
 static direct-map learning.
 
-\section{Reader orientation: what changes here?}
+\section{What changes when the learned object becomes richer?}
 \label{sec:bf-neural-ot-dynamic-orientation}
 
 The easiest way to read this chapter is to keep the following contrast in mind.
-
 \begin{itemize}
   \item The retained-teacher neural chapter learned how to solve a declared
   transport teacher faster.
@@ -27,29 +26,10 @@ The easiest way to read this chapter is to keep the following contrast in mind.
 \end{itemize}
 
 So the main burden is not just implementation difficulty.  It is target drift:
-what scalar is now being computed, and what target would a later optimizer or HMC
-routine actually be differentiating?
+what scalar is now being computed, and what target would a later optimizer or
+HMC routine actually be differentiating?
 
-\section{Object inventory for dynamic and operator learners}
-\label{sec:bf-neural-ot-dynamic-object}
-
-A dynamic transport learner no longer tries to produce one final map
-\(T\).  Instead it may try to learn:
-\begin{itemize}
-  \item a geodesic path \(\rho_\lambda\) between source and target measures,
-  \item a velocity field \(v_\lambda(x)\) generating that path,
-  \item or an operator \(\mathcal G\) that maps input measures to output
-  trajectories or output measures.
-\end{itemize}
-This is a larger algorithmic change because the learned object is not merely a
-replacement map.  It is a representation of how transport unfolds.
-
-\paragraph{Reader checkpoint.}
-The present chapter has crossed another object boundary.  A dynamic learner is not
-just another static map family.  It tries to represent motion or evolution, not
-only the endpoint transformation.
-
-\section{Static map versus dynamic path: a toy contrast}
+\section{Running path-versus-map example}
 \label{sec:bf-neural-ot-dynamic-toy-contrast}
 
 A tiny one-dimensional toy example makes the distinction concrete.  Suppose the
@@ -76,32 +56,72 @@ function of pseudo-time \(\lambda\in[0,1]\).  One simple path is
   \qquad
   \lambda\in[0,1].
 \end{equation}
-At \(\lambda=0\) the source points are unchanged, and at \(\lambda=1\) they have
-reached the target points.  The endpoint transformation is the same as the static
-map, but the learned object is richer: it describes the whole path, not just the
-final location.
+At \(\lambda=0\) the source points are unchanged, and at \(\lambda=1\) they
+have reached the target points.  The endpoint transformation is the same as the
+static map, but the learned object is richer: it describes the whole path, not
+just the final location.
 
-This toy distinction is enough for the present chapter.  It shows why a dynamic
-learner carries more structure, more opportunity, and more target risk than a
-single direct map.
+This distinction matters because later code need not use only the endpoint.
+Once intermediate positions, path functionals, or operator outputs enter the
+scalar that is differentiated downstream, two learners with the same endpoint
+map can still define different effective targets.
+
+\paragraph{Plain-language takeaway.}
+A richer learned transport object can preserve the same endpoint while changing
+what downstream code means by the value and gradient it consumes.
+
+\section{Richer-object audit: endpoint, path, scalar, gradient}
+\label{sec:bf-neural-ot-dynamic-object}
+\label{sec:bf-neural-ot-dynamic-same-scalar}
+
+A dynamic transport learner no longer tries to produce one final map
+\(T\).  Instead it may try to learn:
+\begin{itemize}
+  \item a geodesic path \(\rho_\lambda\) between source and target measures,
+  \item a velocity field \(v_\lambda(x)\) generating that path,
+  \item or an operator \(\mathcal G\) that maps input measures to output
+  trajectories or output measures.
+\end{itemize}
+This is a larger algorithmic change because the learned object is not merely a
+replacement map.  It is a representation of how transport unfolds.
+
+The most important target-contract warning survives every change of learned
+object.  If a downstream routine uses a scalar \(\widetilde L\) built from a
+learned map, path, or operator, then the reported gradient must differentiate
+that same scalar.  Even if this value-gradient parity holds, the result is
+coherent only for the learned target unless a correction returns to the teacher
+or original target.
+
+\begin{center}
+\small
+\begin{tabular}{p{0.24\textwidth} p{0.22\textwidth} p{0.42\textwidth}}
+\toprule
+Learned object & What may change & First audit question \\
+\midrule
+static map & endpoint cloud & does the learned endpoint preserve the intended downstream scalar? \\
+dynamic path / velocity field & endpoint plus whole trajectory & is the reported gradient tied to the same scalar built from that path? \\
+operator on measures or clouds & family-level input-output rule & what target is induced across the family of problems, and is it the one later code interprets? \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Reader checkpoint.}
+The present chapter has crossed another object boundary.  A dynamic learner is
+not just another static map family.  It changes the target-status burden because
+more than the endpoint may now matter.
 
 \section{Dynamic geodesic learners}
 \label{sec:bf-neural-ot-dynamic-geodesic}
 
 Some neural OT papers learn Wasserstein geodesics or associated velocity fields.
 These are mathematically appealing because particle-flow filtering already has a
-pseudo-time flavor.  The attraction is therefore obvious: perhaps one could learn
-reusable transport dynamics instead of solving a fresh static problem each time.
+pseudo-time flavor.  The attraction is therefore obvious: perhaps one could
+learn reusable transport dynamics instead of solving a fresh static problem each
+time.
 
-The caution is equally important.  A dynamic geodesic learner does not answer the
-same question as a retained finite Sinkhorn solver.  It learns a richer object and
-must therefore be judged against a richer target contract.
-
-\paragraph{Reader checkpoint.}
-A geodesic learner is not just a faster static map and not just a warm-started
-solver.  It is a learner for the entire transport path or for the dynamics
-generating that path.  That greater ambition is why the chapter is more about
-burden and verification than about a single near-implementable core algorithm.
+The caution is equally important.  A dynamic geodesic learner does not answer
+the same question as a retained finite Sinkhorn solver.  It learns a richer
+object and must therefore be judged against a richer target contract.
 
 \begin{algorithm}[ht]
 \caption{\texttt{train\_dynamic\_transport\_path}}
@@ -120,96 +140,63 @@ burden and verification than about a single near-implementable core algorithm.
   \State Compute any declared pathwise regularizers, such as smoothness or action penalties
   \State Backpropagate the total loss and update the parameters
 \EndWhile
-\State On held-out clouds, evaluate endpoint fit, path regularity, discretization sensitivity, and downstream scalar sensitivity
-\State Return the trained path/velocity object together with the declared diagnostics
+  \State On held-out clouds, evaluate endpoint fit, path regularity,
+  discretization sensitivity, and downstream scalar sensitivity
+  \State Return the trained path/velocity object together with the declared
+  diagnostics
 \end{algorithmic}
 \end{algorithm}
 
-\section{Operator-learning families}
+\section{Operator learners}
 \label{sec:bf-neural-ot-dynamic-operator}
 
-A related family learns operators on spaces of measures.  In such approaches, the
-input is itself a measure or empirical cloud, and the output is either another
-measure, a path of measures, or a set of latent coordinates describing the
-transport.  This is useful as a representation idea, but it moves even farther
-from the finite retained-teacher transport layer of the previous chapters.
+A related family learns operators on spaces of measures.  In such approaches,
+the input is itself a measure or empirical cloud, and the output is either
+another measure, a path of measures, or a set of latent coordinates describing
+the transport.  This is useful as a representation idea, but it moves even
+farther from the finite retained-teacher transport layer of the previous
+chapters.
 
 The main conceptual advantage is reuse across families of problems.  The main
-conceptual cost is that the learned object is even less tied to a single declared
-teacher solve.  That makes these methods valuable as research-direction chapters,
-but not as the default first implementation route in this monograph.
+conceptual cost is that the learned object is even less tied to a single
+declared teacher solve.  That makes these methods valuable as research-direction
+chapters, but not as the default first implementation route in this monograph.
 
-\section{Adjacent boundary-marker families}
+\section{Target-changing boundary families}
 \label{sec:bf-neural-ot-dynamic-boundary-families}
-
-Several nearby families remain useful only as boundary markers in this monograph:
-- measure-to-measure regression operators,
-- local Wasserstein regression,
-- manifold or Riemannian neural OT.
-
-These show that neural transport ideas extend beyond the current finite-cloud
-Euclidean BayesFilter setting.  They do not, by themselves, answer the present
-implementation question.
-
-\subsection{Sliced, subspace, and localization families as target-changing lanes}
 \label{sec:bf-neural-ot-dynamic-sliced-localized}
 
-The scalable-OT survey gives this chapter a more precise boundary around several
-important high-dimensional families.  Sliced and subspace OT methods attack high
-dimension by projecting the measures onto one-dimensional directions or selected
-subspaces before solving lower-dimensional transport problems.  Localization and
-block-structured OT instead exploit state-space structure by transporting local
-blocks or using localized costs rather than one global cloud-wide coupling.
+Several important high-dimensional families fit this chapter because they should
+not be read as compressed dense-teacher solvers by default.  Sliced and
+subspace OT methods attack high dimension by projecting the measures onto
+one-dimensional directions or selected subspaces before solving lower-
+dimensional transport problems.  Localization and block-structured OT instead
+exploit state-space structure by transporting local blocks or using localized
+costs rather than one global cloud-wide coupling.
 
-These methods are mathematically important, but in the BayesFilter monograph they
-should not be described as mere compressed versions of the dense entropic teacher.
-A projected one-dimensional or subspace transport, or a block-localized transport,
-is generally a different transport object from the full-state dense coupling used
-in the previous chapters.  That means the main burden here is target
-interpretation rather than just solver engineering.
+These methods are mathematically important, but in the BayesFilter monograph
+they should usually be read as target-changing or structure-changing candidates.
+A projected or localized transport is generally a different transport object
+from the full-state dense coupling used in the previous chapters.  Their first
+audit question is therefore no longer only teacher-preservation residual.  It
+is: what transport object is now being applied to the filtering ensemble, and
+what scalar target would a later optimizer or HMC routine actually
+differentiate if this object were embedded downstream?
 
-In that sense, sliced/subspace and localization families fit the present chapter
-better than the retained-teacher chapter.  Their primary promise is not simply to
-reach the same teacher object faster.  Their promise is to define a more tractable
-transport rule in high dimension.  The price is that the resulting output cloud
-must usually be read as a new resampling approximation unless a separate argument
-shows how the projected or localized transport reconstructs the intended
-full-state object.
+Several additional families remain useful only as boundary markers here:
+measure-to-measure regression operators, local Wasserstein regression, and
+manifold or Riemannian neural OT.  They show how quickly the learned object can
+drift from the current finite-cloud Euclidean teacher, but they do not by
+themselves answer the present implementation question.
 
-This chapter therefore treats these families as target-changing or
-structure-changing candidates by default.  They may still be useful and even
-necessary in high dimension, but their first audit question is no longer only
-teacher-preservation residual.  It is: what transport object is now being applied
-to the filtering ensemble, and what scalar target would a later optimizer or HMC
-routine actually differentiate if this object were embedded downstream?
-
-\section{Same-scalar rule revisited}
-\label{sec:bf-neural-ot-dynamic-same-scalar}
-
-The most important target-contract warning survives every change of learned object.
-If a downstream routine uses a scalar \(\widetilde L\) built from a learned map,
-path, or operator, then the reported gradient must differentiate that same scalar.
-Even if this value-gradient parity holds, the result is coherent only for the
-learned target unless a correction returns to the teacher or original target.
-
-The small toy example from the earlier chapter already showed how a learned output
-cloud can change a simple downstream scalar.  The same logic becomes more severe
-here because the learned object is richer and therefore has more ways to drift from
-the teacher semantics.  A path learner can change not only the final cloud, but
-also the whole trajectory through which intermediate summaries are defined.
-
-\paragraph{Plain-language takeaway.}
-A smooth learned path is not automatically a faithful path for the original target.
-It may simply be a coherent path for a different learned target.
-
-\section{Consistency notes for richer learned objects}
+\section{Unified target-contract checklist}
 \label{sec:bf-neural-ot-dynamic-promotion}
 
 For richer learned objects, a few mathematical consistency checks are especially
 important:
 \begin{enumerate}[label=(\roman*)]
-  \item whether endpoint or pathwise improvement is accompanied by stability of the
-  downstream scalar,
+  \item whether endpoint or pathwise improvement is accompanied by stability of
+  the downstream scalar,
   \item whether the learned object behaves robustly under weight, dimension, or
   particle-count shift,
   \item whether a reported gradient is the gradient of the same scalar value that
@@ -217,9 +204,9 @@ important:
   \item whether any claim of target preservation is supported by an explicit
   correction mechanism rather than by smoothness or speed alone.
 \end{enumerate}
-These are not governance gates.  They are simply the mathematical checks needed to
-understand what object is being computed and whether it remains identifiable from
-the declared scalar and learned path or operator.
+These are not governance gates.  They are simply the mathematical checks needed
+to understand what object is being computed and whether it remains identifiable
+from the declared scalar and learned path or operator.
 
 \begin{algorithm}[ht]
 \caption{\texttt{audit\_dynamic\_transport\_target\_contract}}
@@ -234,11 +221,14 @@ the declared scalar and learned path or operator.
     \State Compute the baseline scalar and, where applicable, the baseline gradient
     \State Record scalar and gradient gaps relative to the baseline
   \EndIf
-  \State Check that the reported gradient is tied to the same scalar \(\widetilde L\)
-  \State Evaluate shift robustness under particle-count, weight, and context variation
+  \State Check that the reported gradient is tied to the same scalar
+  \(\widetilde L\)
+  \State Evaluate shift robustness under particle-count, weight, and context
+  variation
   \State Record any failed scalar, gradient, or robustness condition
 \EndFor
-\State Return the full consistency report and the strongest interpretation of the learned object consistent with those results
+\State Return the full consistency report and the strongest interpretation of the
+learned object consistent with those results
 \end{algorithmic}
 \end{algorithm}
 
@@ -252,9 +242,10 @@ uses?
 \label{sec:bf-neural-ot-dynamic-handoff}
 
 This chapter stops at the target-status burden created by broader dynamic and
-operator learners.  It does not settle the HMC question.  That full taxonomy still
-belongs to Chapter~\ref{ch:bf-dpf-hmc-target-suitability}, which interprets the
-scalar and gradient contracts rung by rung across the whole DPF ladder.
+operator learners.  It does not settle the HMC question.  That full taxonomy
+still belongs to Chapter~\ref{ch:bf-dpf-hmc-target-suitability}, which
+interprets the scalar and gradient contracts rung by rung across the whole DPF
+ladder.
 
 \section{What this chapter does and does not claim}
 \label{sec:bf-neural-ot-dynamic-boundary}
@@ -264,9 +255,10 @@ secondary research directions in this monograph.  It does \emph{not} claim:
 \begin{itemize}
   \item that geodesic, operator, and adjacent measure/manifold families solve the
   same implementation problem as retained-teacher acceleration,
-  \item that a richer learned object is automatically more useful for BayesFilter,
-  \item that these families are already ready for the same implementation status as
-  the earlier chapters.
+  \item that a richer learned object is automatically more useful for
+  BayesFilter,
+  \item that these families are already ready for the same implementation status
+  as the earlier chapters.
 \end{itemize}
 Its role is to close the expanded OT block responsibly by keeping the broadest
 learned families in view while preserving the main algorithmic center of gravity

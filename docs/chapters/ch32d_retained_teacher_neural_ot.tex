@@ -1,32 +1,48 @@
 \chapter{Retained-Teacher Neural OT Warm Starts}
 \label{ch:bf-dpf-learned-ot}
 
-The previous chapter fixed the entropic OT and Sinkhorn layer as a fully declared
-teacher object.  The present chapter introduces the narrowest neural extension of
-that teacher: do not replace the teacher; learn how to start it better.
+The preceding OT chapters fixed the entropic OT and Sinkhorn layer as a fully
+declared teacher object.  The present chapter introduces the narrowest neural
+extension of that teacher: do not replace the teacher; learn how to start it
+better.
 
 This is the main implementation-bearing neural chapter of the OT block.  Its
 question is narrower than ``can a network learn transport?''  It asks instead:
 can a network predict a good internal solver state so that a retained corrective
-Sinkhorn phase needs less work while still protecting the declared teacher object?
+Sinkhorn phase needs less work while still protecting the declared teacher
+object?
 
-\section{Objects and conventions}
+\section{What problem this chapter solves}
 \label{sec:bf-learned-ot-objects}
 
-Let \(X=(x_1,\ldots,x_N)^\top\in\mathbb R^{N\times d_x}\) be the weighted source
-cloud and \(w\in\Delta_N\) its normalized weights.  Let
+Let \(X=(x_1,\ldots,x_N)^\top\in\mathbb R^{N\times d_x}\) be the weighted
+source cloud and let \(w\in\Delta_N\) be its normalized weights.  Let
 \(u=(1/N,\ldots,1/N)\) be the equal target marginal, and let
 \(C(X,Z)\in\mathbb R^{N\times N}\) be the declared transport cost matrix.  The
-teacher coupling is either the exact regularized OT optimizer
-\(\Pi_\varepsilon^\star\) or the finite numerical teacher
-\(\Pi_{\varepsilon,K}\).  The barycentric teacher output is
-\begin{equation}
-\label{eq:bf-learned-ot-barycentric-teacher}
-  Y_\tau(X,w,\varepsilon)=B(\Pi_\tau(X,w,\varepsilon)).
-\end{equation}
+previous chapter already fixed the finite entropic-OT/Sinkhorn route as the
+reference computational teacher for turning this weighted cloud into an
+equal-weight cloud.
 
-The student does not directly define a new target cloud at first.  It predicts a
-solver-relevant latent quantity such as dual variables or scaling vectors.  Write
+The practical question now is not whether the teacher should be changed, but
+whether its execution path can be improved.  The chapter therefore asks:
+\begin{quote}
+Can we learn a solver-relevant latent state that makes the retained corrective
+Sinkhorn solve cheaper while still returning to the same declared finite teacher
+object after correction?
+\end{quote}
+
+\section{Running warm-start cell}
+\label{sec:bf-learned-ot-running-cell}
+
+Keep the same three-particle setting as the previous OT chapters: a weighted
+source cloud, an equal target marginal, a declared quadratic cost, a
+regularization level \(\varepsilon\), and a finite Sinkhorn budget \(K\).  The
+finite numerical teacher is the coupling
+\(\Pi_{\varepsilon,K}(X,w)\) produced by that declared Sinkhorn route.
+
+A warm-start learner does not try to predict the transported output cloud first.
+It tries to predict a latent teacher coordinate, such as dual variables,
+log-scalings, or scaling vectors, that initializes the corrective solve.  Write
 \begin{equation}
 \label{eq:bf-learned-ot-student-map}
   h_\psi = S_\psi(X,w;\varepsilon,N,d_x),
@@ -34,34 +50,18 @@ solver-relevant latent quantity such as dual variables or scaling vectors.  Writ
 where \(h_\psi\) is later translated into the initialization of the retained
 corrective Sinkhorn solver.
 
-\subsection{Retained-teacher approximation family, not one architecture}
-\label{sec:bf-learned-ot-retained-family}
+The operational contrast is then simple:
+\begin{itemize}
+  \item a naive initialization changes only how quickly the solver reaches the
+  finite teacher,
+  \item a learned initialization also changes only that execution path,
+  \item the corrected coupling and barycentric output are still judged against
+  the same declared finite teacher object.
+\end{itemize}
 
-The scalable-OT survey suggests broadening the reader's orientation here before
-committing to one neural warm-start architecture.  The retained-teacher lane is
-best understood as a family of approximations that all try to preserve a declared
-entropic teacher object while reducing the cost of reaching or applying it.
-Warm-start predictors are the narrowest member of that family, but they are not
-the only one.
-
-Representative retained-teacher approximation routes include:
-\begin{enumerate}[label=(\roman*)]
-  \item learned warm starts for dual or scaling variables,
-  \item Nystrom kernel factorizations that approximate the Gibbs kernel while
-    keeping a teacher-style scaling structure,
-  \item positive-feature Sinkhorn variants that replace the dense kernel by a
-    positive low-rank feature factorization,
-  \item direct low-rank transport factorizations when the resulting transported
-    object is still audited against the teacher output,
-  \item stochastic or minibatch routes used only as teacher-side approximations
-    rather than silently promoted to full replacement resampling rules.
-\end{enumerate}
-The common doctrine is that these routes should still be judged first by how well
-they preserve the declared teacher coupling or teacher barycentric output.  They
-are not automatically semantics-preserving merely because they are faster than a
-dense Sinkhorn pass.  Their status depends on whether the approximation changes
-only the execution path, the kernel/coupling family, or the final transported
-object itself.
+\paragraph{Plain-language takeaway.}
+A warm-start learner is not asked to invent the transport result.  It is asked
+to guess a better place from which the retained teacher solver should begin.
 
 \section{What the teacher computes}
 \label{sec:bf-learned-ot-hierarchy}
@@ -72,10 +72,20 @@ most important teacher objects are:
 \begin{enumerate}[label=(\roman*)]
   \item the exact regularized coupling \(\Pi_\varepsilon^\star\),
   \item the finite numerical teacher \(\Pi_{\varepsilon,K}\),
-  \item the barycentric teacher output \(Y_\tau=B(\Pi_\tau)\).
+  \item the barycentric teacher output
+  \begin{equation}
+  \label{eq:bf-learned-ot-barycentric-teacher}
+    Y_\tau(X,w,\varepsilon)=B(\Pi_\tau(X,w,\varepsilon)).
+  \end{equation}
 \end{enumerate}
-The chapter’s neural route is only intended to accelerate the finite teacher, not
-to redefine these objects.
+The chapter’s neural route is only intended to accelerate the finite teacher,
+not to redefine these objects.
+
+\paragraph{Object audit.}
+The learned quantity is a latent solver state.  The corrected transport object is
+still the finite teacher-side coupling or its barycentric output.  In the
+vocabulary of the OT block, this is an execution-path approximation, not a
+transport-object change.
 
 \section{Algorithm: retained-teacher warm-started Sinkhorn}
 \label{sec:bf-learned-ot-teacher}
@@ -104,7 +114,7 @@ named latent teacher coordinate.
 The declared transport constraints, the EOT objective, and the corrected
 barycentric output after refinement.
 
-\section{Training objective and deployment contract}
+\section{Evidence contract for retained-teacher learning}
 \label{sec:bf-learned-ot-training-objective}
 
 Let \(h_\tau\) denote the teacher latent target and let
@@ -125,7 +135,7 @@ In practice, the deployment claim is not about this loss alone.  It is about
 whether the corrected route preserves the teacher output well enough on held-out
 and stress-test clouds.
 
-\section{Permutation symmetry}
+\subsection{Permutation symmetry as a design check}
 \label{sec:bf-learned-ot-symmetry}
 
 Particle labels are arbitrary.  For a permutation matrix
@@ -141,10 +151,11 @@ permutation symmetry.  In the output-cloud case the natural condition is
 \end{equation}
 This is a necessary condition, not a target-correctness theorem.
 
-\section{Residual hierarchy}
+\subsection{Residual hierarchy}
 \label{sec:bf-learned-ot-residuals}
 
-The first deployment residual is the teacher-student discrepancy after correction:
+The first deployment residual is the teacher-student discrepancy after
+correction:
 \begin{equation}
 \label{eq:bf-learned-ot-residual}
   R_{\psi,\tau}(X,w,\varepsilon)
@@ -153,34 +164,32 @@ The first deployment residual is the teacher-student discrepancy after correctio
   -
   B(\Pi_\tau(X,w,\varepsilon)).
 \end{equation}
-This residual does not by itself control filtering or HMC target error.  It only
-measures how well the corrected student reproduces the chosen teacher.
+This residual does not by itself control filtering or HMC target error.  It
+only measures how well the corrected student reproduces the chosen teacher.
 
-\subsection{How the broader retained-teacher approximations fit here}
-\label{sec:bf-learned-ot-broader-retained}
+A practical retained-teacher claim should keep the following evidence contract
+explicit:
+\begin{enumerate}[label=(\arabic*)]
+  \item the predicted latent teacher object is named explicitly,
+  \item the corrected route satisfies the declared row/column residual
+  contract,
+  \item the corrected cloud discrepancy remains below the declared threshold on
+  the tested envelope,
+  \item the correction budget \(K_{\mathrm{corr}}\) or stopping rule is
+  declared,
+  \item any downstream scalar or HMC-adjacent target is checked only after the
+  corrected output is formed.
+\end{enumerate}
 
-The same residual logic gives the chapter a place to classify the broader
-scalable-OT approximations from the survey.  If a Nystrom factorization, a
-positive-feature kernel, or a low-rank coupling factorization is proposed as a
-retained-teacher acceleration, then the first audit question is still teacher
-preservation: how close is the transported cloud or coupling application to the
-declared teacher route from Chapter~\ref{ch:bf-dpf-entropic-ot-sinkhorn}?
+\subsection{Where broader retained-teacher families fit}
+\label{sec:bf-learned-ot-retained-family}
 
-For example, a kernel-factor route may replace the dense Gibbs kernel by a
-factorized approximation while still producing a coupling application of the same
-schematic form.  A low-rank coupling route may store and apply transport through
-structured factors rather than a dense matrix.  A stochastic or minibatch route
-may reduce computation by solving smaller transport subproblems.  In all such
-cases, this chapter's doctrine is the same: they are still retained-teacher
-candidates only if the approximation error is measured against the teacher object
-rather than hidden behind speedups alone.
-
-That is why the residual hierarchy should be read broadly.  The diagnostic is not
-restricted to one neural warm-start map.  It is the first reusable test for any
-approximation family that claims to accelerate the teacher without changing the
-meaning of the transported output.  Once the approximation stops being naturally
-judged by teacher-preservation residuals, it belongs in the later target-changing
-chapters instead of this retained-teacher one.
+Warm-start predictors are the narrowest retained-teacher lane.  Other scalable
+OT families --- such as Nystrom, positive-feature, low-rank, or minibatch
+teacher-side approximations --- may still belong to the same lane only when
+their first audit question is teacher preservation rather than speed alone.
+Once the approximation is no longer naturally judged by teacher-preservation
+residuals, it belongs in the later target-changing chapters instead of this one.
 
 \section{Filtering-loop insertion point}
 \label{sec:bf-learned-ot-loop}
@@ -194,11 +203,12 @@ layer:
   \xrightarrow{\mathrm{student\ warm\ start + retained\ Sinkhorn}}
   \{\tilde x^{(j)},1/N\}_{j=1}^N.
 \end{equation}
-It accelerates the equal-weighting layer after the weighted cloud has already been
-formed.  It does not redefine the earlier particle-weighting rule itself.
+It accelerates the equal-weighting layer after the weighted cloud has already
+been formed.  It does not redefine the earlier particle-weighting rule itself.
 
-\section{Verification notes}
+\section{Verification and non-claims}
 \label{sec:bf-learned-ot-verification}
+\label{sec:bf-learned-ot-boundary}
 
 A practical implementation should still check a few local quantities carefully:
 \begin{enumerate}[label=(\arabic*)]
@@ -207,20 +217,15 @@ A practical implementation should still check a few local quantities carefully:
   \item the corrected route satisfies the row/column residual contract,
   \item teacher-student cloud discrepancy remains below the declared threshold on
   the tested envelope,
-  \item the downstream scalar is checked whenever the learned route is embedded in
-  a filtering likelihood or HMC target.
+  \item the downstream scalar is checked whenever the learned route is embedded
+  in a filtering likelihood or HMC target.
 \end{enumerate}
 
 These checks are mathematical and numerical, not bureaucratic.  Their purpose is
 only to ensure that the reader can tell whether the implementation is still
 computing the declared teacher-student object or has drifted to a different one.
 
-\section{What this chapter does and does not claim}
-\label{sec:bf-learned-ot-boundary}
-
-This chapter teaches the main implementation-bearing neural route in the OT block:
-retain the EOT/Sinkhorn teacher and learn how to start it better.  It does
-\emph{not} claim:
+This chapter does \emph{not} claim:
 \begin{itemize}
   \item that the student replaces the teacher object,
   \item that small teacher-student residuals automatically imply posterior or HMC

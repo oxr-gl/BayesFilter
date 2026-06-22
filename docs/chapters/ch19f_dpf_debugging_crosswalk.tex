@@ -6,9 +6,9 @@ particle filtering, particle-flow transport, proposal correction,
 differentiable resampling, OT/Sinkhorn relaxation, learned transport, and HMC
 target interpretation.  This chapter turns that separation into a verification
 contract.  Its purpose is not to validate any implementation by prose.  Its
-purpose is to tell a coding agent or reviewer which equation, controlled
-example, implementation quantity, tolerance, and failure interpretation belongs
-to each layer.
+purpose is to tell the reader which equation, controlled example,
+implementation quantity, tolerance, and failure interpretation belongs to each
+layer.
 
 The contract is deliberately ordered.  Target and value-gradient checks come
 before tuning.  Teacher-map diagnostics come before learned-map diagnostics.
@@ -42,7 +42,7 @@ without first proving that it is the intended path.
 \section{Proposal log-probability autodiff topology}
 \label{sec:bf-dpf-proposal-logprob-ad-topology}
 
-The most expensive debugging lesson in the FilterFlow/BayesFilter comparison
+The most expensive debugging lesson in the BayesFilter/FilterFlow comparison
 was not a floating-point tolerance issue and not a seed issue.  It was an
 autodiff-topology issue in the adapted proposal log probability.  The forward
 numbers can be exactly right while the derivative is wrong if the proposal
@@ -74,8 +74,8 @@ The last term is not the log probability of a random-number-generation event.
 It is the density of the realized particle value under the declared proposal
 law.
 
-In the linear-Gaussian adapted-proposal case used by the row-173 debug trace,
-the optimal proposal satisfies
+In the linear-Gaussian adapted-proposal case used by one representative debug
+trace, the optimal proposal satisfies
 \begin{equation}
 \label{eq:bf-dpf-optimal-proposal-identity}
   q_\theta(x_t\mid x_{t-1},y_t)
@@ -235,7 +235,7 @@ The V2 production suite contains six rows:
 \texttt{predator\_prey\_rk4}.
 \end{gathered}
 \]
-The closed V2 run on 2026-06-07 reported:
+The closed deterministic comparison reported:
 \begin{itemize}
   \item density tie-out: all six rows matched, with maximum absolute delta
     \(0\);
@@ -264,7 +264,7 @@ while the BayesFilter and FilterFlow AD gradients still matched exactly under
 the fixed-branch scalar.  This is recorded as a numerical diagnostic, not as a
 promotion criterion and not as a veto.
 
-Two robustness diagnostics sit below the production V2 gate:
+Two robustness diagnostics sit below this gate:
 \begin{itemize}
   \item a seeded fixed-ancestor diagnostic generated three frozen ancestor
     schedules and replayed them across all six V2 rows.  All \(18\) executed
@@ -281,9 +281,9 @@ The non-claims are part of the contract.  The BayesFilter/FilterFlow tie-out
 does not prove filter correctness, does not prove that either implementation is
 mathematically correct, does not validate stochastic resampling distributions,
 does not validate gradients through random or discrete ancestor selection, and
-does not compare to student implementations, TT/SIRT, dense quadrature, paper
-tables, GPU behavior, HMC behavior, DSGE behavior, scalability, deployment, or
-production readiness.
+does not compare to student implementations, tensor-train or sparse-grid
+alternatives, dense quadrature, paper tables, GPU behavior, HMC behavior, DSGE
+behavior, scalability, deployment, or production readiness.
 
 \section{Equation-to-test matrix}
 \label{sec:bf-dpf-debug-equation-test-matrix}
