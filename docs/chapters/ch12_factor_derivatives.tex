@@ -83,8 +83,6 @@ Then the Cholesky factor derivative is
 \label{eq:bf-factor-cholesky-first}
   \dot L^{(i)} = L G^{(i)}.
 \end{equation}
-This is the BayesFilter restatement of source label
-\texttt{eq:first\_cholesky\_derivative}.
 
 For a second derivative, remove the known first-order products before applying
 the same triangular split:
@@ -104,8 +102,7 @@ Then
 \label{eq:bf-factor-cholesky-second}
   \ddot L^{(ij)} = L H^{(ij)}.
 \end{equation}
-This restates source label \texttt{eq:second\_cholesky\_derivative}.  The
-formulas are local smooth-branch formulas: they require a positive diagonal and
+The formulas are local smooth-branch formulas: they require a positive diagonal and
 become numerically fragile near a Cholesky pivot boundary.  A backend that adds
 jitter before Cholesky must report whether its derivatives target the original
 $A$ or the implemented $A+\delta I$.
@@ -141,8 +138,6 @@ Then
 \label{eq:bf-factor-qr-q-first}
   \dot Q^{(i)} &= Q\Omega^{(i)}+(I-QQ^\top)\dot M^{(i)}R^{-1}.
 \end{align}
-Equation~\eqref{eq:bf-factor-qr-r-first} restates source label
-\texttt{eq:first\_qr\_r\_derivative}.
 
 For second derivatives, define the effective second-order stack derivative
 \[
@@ -178,11 +173,9 @@ Then
 \label{eq:bf-factor-qr-q-second}
   \ddot Q^{(ij)} &= Q\Gamma^{(ij)}+(I-QQ^\top)E^{(ij)}R^{-1}.
 \end{align}
-Equation~\eqref{eq:bf-factor-qr-r-second} restates source label
-\texttt{eq:second\_qr\_r\_derivative}.  The QR formulas are local to a fixed
-rank and sign branch.  Pivoting, column-rank loss, or diagonal sign corrections
-are branch events and must be reported as derivative-policy events, not hidden
-inside a smooth Hessian claim.
+The QR formulas are local to a fixed rank and sign branch.  Pivoting,
+column-rank loss, or diagonal sign corrections are branch events and must be
+reported as derivative-policy events, not hidden inside a smooth Hessian claim.
 
 \section{Square-Root Kalman Stacks}
 \label{sec:bf-factor-kalman-stacks}

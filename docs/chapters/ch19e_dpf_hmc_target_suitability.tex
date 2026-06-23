@@ -1,11 +1,13 @@
 \chapter{DPF HMC Target Correctness and Structural-Model Suitability}
 \label{ch:bf-dpf-hmc-target-suitability}
 
-The preceding DPF chapters built a ladder of increasingly differentiable
-filtering constructions: raw particle-flow proposals, proposal-corrected
-PF-PF, soft differentiable resampling, deterministic OT equal-weighting,
-entropic optimal-transport relaxation with Sinkhorn, retained-teacher learned
-transport acceleration, and broader learned-map or dynamic-transport surrogates.
+The preceding particle, transport, and learned-surrogate chapters built a ladder
+of increasingly differentiable filtering constructions: raw particle-flow
+proposals, proposal-corrected PF-PF, soft differentiable resampling,
+deterministic OT equal-weighting, entropic optimal-transport relaxation with
+Sinkhorn, custom-gradient LEDH-PFPF-OT differentiation for the declared finite
+value path, retained-teacher learned transport acceleration, and broader
+learned-map or dynamic-transport surrogates.
 This chapter asks a narrower and more severe
 question.  If one of those constructions is used inside Hamiltonian Monte Carlo
 for a nonlinear DSGE or MacroFinance model, what target is the Markov chain
@@ -27,8 +29,8 @@ separate three questions:
     deliberately approximate value;
   \item whether the gradient supplied to the integrator is the derivative of
     that same scalar value;
-  \item whether the evidence is strong enough for research, bank-facing, or
-    production-governance language.
+  \item whether the evidence is strong enough for exploratory, research, or
+    broader external claims.
 \end{enumerate}
 
 \section{Objects in the HMC target contract}
@@ -227,8 +229,8 @@ remaining evidence burden is substantial:
     whether it is pseudo-marginal extended-space MCMC, a fixed-randomness
     deterministic approximation, or a noisy-gradient diagnostic.
 \end{itemize}
-Thus PF-PF is a plausible first research rung for DPF-HMC experiments, not an
-HMC-validity theorem and not a bank-governance result.
+Thus PF-PF is a plausible first research rung for DPF-HMC experiments, not a
+full HMC-validity theorem and not by itself a stronger external claim.
 
 \subsection{Soft differentiable resampling}
 
@@ -470,16 +472,16 @@ Learned-surrogate HMC pending correction or validation. \\
 \bottomrule
 \end{longtable}
 
-\section{Evidence gates for banking language}
+\section{Evidence ladder for stronger external language}
 \label{sec:bf-dpf-hmc-banking-gates}
 
 The chapter's recommendation is evidence-gated.  A method can be mathematically
-interesting, credible as a research prototype, and still not ready for a
-bank-facing model-risk claim.  The following gates constrain all wording in this
-chapter and in later experiments.
+interesting, credible as a research prototype, and still not yet justify
+stronger external claims.  The following ladder constrains the wording used in
+this chapter and in later experiments.
 
 \begin{longtable}{@{}p{0.18\textwidth} p{0.24\textwidth} p{0.27\textwidth} p{0.21\textwidth}@{}}
-\caption{Evidence ladder for DPF-HMC banking and governance language.}
+\caption{Evidence ladder for DPF-HMC claim language.}
 \label{tab:bf-dpf-hmc-banking-evidence}\\
 \toprule
 Claim level & Allowed claim & Required evidence & Disallowed shortcut \\
@@ -499,57 +501,55 @@ The rung has a defensible target interpretation for a named model class. &
 Source-grounded derivation, repeated fixed-seed and varied-seed tests,
 posterior comparisons, failure-region diagnostics. &
 Treating a toy result as evidence for DSGE or MacroFinance deployment. \\
-Bank-facing research claim &
-The rung can support a restricted internal research conclusion under model-risk
-controls. &
-Reproducible artifacts, model-specific stress tests, challenger comparisons,
-audit trail, documented limitations. &
+Broader external claim &
+The rung supports a restricted external research conclusion with stated
+limitations. &
+Reproducible demonstrations, model-specific stress tests, challenger
+comparisons, and documented limitations. &
 Using runtime improvement as target-correctness evidence. \\
-Production or governance claim &
-The rung is approved for controlled production use in a defined workflow. &
+Operational claim &
+The rung is proposed for controlled use in a defined workflow. &
 Independent review, change control, monitoring, rollback, data and model
-governance, stability across releases. &
-Inferring production readiness from chapter-level mathematics. \\
+stability across releases. &
+Inferring operational readiness from chapter-level mathematics. \\
 \bottomrule
 \end{longtable}
 
-No rung in this chapter is promoted to production or bank-governance status.
-The strongest current recommendation is a bounded experimental hypothesis:
-prioritize proposal-corrected PF-PF first because it is the first rung with an
-explicit proposal-correction interpretation, then compare relaxed and learned
-rungs as deliberately changed targets.  The hypothesis remains conditional on
-the finite-particle, Jacobian, randomness, compilation, and posterior-comparison
-gates stated above.
+No rung in this chapter is promoted to an operational claim.  The strongest
+current recommendation is a bounded experimental hypothesis: prioritize
+proposal-corrected PF-PF first because it is the first rung with an explicit
+proposal-correction interpretation, then compare relaxed and learned rungs as
+deliberately changed targets.  The hypothesis remains conditional on the finite-
+particle, Jacobian, randomness, compilation, and posterior-comparison checks
+stated above.
 
-\section{BayesFilter recommendation}
+\section{Recommendation}
 \label{sec:bf-dpf-hmc-recommendation}
 
 The disciplined recommendation is:
 \begin{enumerate}[label=(\roman*)]
   \item use EDH and LEDH as recovery and approximation benchmarks, not as
-    generic exact HMC targets;
+generic exact HMC targets;
   \item treat proposal-corrected PF-PF as the first experimental hypothesis with
     an explicit proposal-correction interpretation and a defensible value-side
     target story, subject to finite-particle, Jacobian, randomness,
-    compilation, and posterior-comparison gates;
+    compilation, and posterior-comparison checks;
   \item label soft resampling and OT/EOT as relaxed-target HMC unless a
     correction restores the original categorical or trusted target;
   \item label learned OT as learned-surrogate HMC unless a correction or
     posterior-error argument justifies stronger wording;
-  \item require DSGE and MacroFinance promotion evidence at the model-class
-    level before any bank-facing claim.
+  \item require model-class evidence before any stronger external claim.
 \end{enumerate}
 
-For the current BayesFilter LEDH repair lane, the serious experimental route is
-therefore not a no-resampling shortcut.  The route to test is Li--Coates
-Algorithm~1 UKF LEDH with PF-PF correction and a declared Corenflos-style OT,
-Sinkhorn, or annealed-transport resampling relaxation.  Carrying the
-Algorithm~1 covariance state through that transport is an implementation
-contract for the selected route, because the covariance state belongs to
-Algorithm~1 while the transport map defines the relaxed resampling layer.  A
-no-resampling graph or fixed-randomness run can still be useful as a kernel,
-shape, or gradient-plumbing diagnostic, but it is not by itself evidence that
-the DPF route is filter-ready or HMC-ready.
+For the current repair lane, the serious experimental route is therefore not a
+no-resampling shortcut.  The route to test is Li--Coates Algorithm~1 UKF LEDH
+with PF-PF correction and a declared OT, Sinkhorn, or annealed-transport
+resampling relaxation.  Carrying the Algorithm~1 covariance state through that
+transport is an implementation contract for the selected route, because the
+covariance state belongs to Algorithm~1 while the transport map defines the
+relaxed resampling layer.  A no-resampling graph or fixed-randomness run can
+still be useful as a kernel, shape, or gradient-plumbing diagnostic, but it is
+not by itself evidence that the DPF route is filter-ready or HMC-ready.
 
 \section{What this chapter does and does not claim}
 \label{sec:bf-dpf-hmc-boundary}
@@ -558,12 +558,12 @@ This chapter claims that DPF-HMC analysis must be organized around named scalar
 targets and value-gradient consistency.  It does not claim:
 \begin{itemize}
   \item that PF-PF has already passed finite-particle, Jacobian, compiled-path,
-    or posterior-comparison checks in BayesFilter;
-  \item that relaxed or learned resampling targets are unusable;
+    or posterior-comparison checks,
+  \item that relaxed or learned resampling targets are unusable,
   \item that pseudo-marginal validity transfers to deterministic relaxed
-    gradients;
-  \item that nonlinear DSGE or MacroFinance DPF-HMC has been validated in this
-    repository.
+    gradients,
+  \item that nonlinear DSGE or MacroFinance DPF-HMC has already been fully
+    validated.
 \end{itemize}
 Its role is narrower: it clarifies which scalar target is being differentiated,
 what correction mechanism is being invoked if any, and what mathematical

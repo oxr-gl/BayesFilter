@@ -1,10 +1,8 @@
 \chapter{DPF Literature-to-Debugging Verification Contract}
 \label{ch:bf-dpf-debug-crosswalk}
 
-The preceding DPF chapters separate the mathematical layers: classical
-particle filtering, particle-flow transport, proposal correction,
-differentiable resampling, OT/Sinkhorn relaxation, learned transport, and HMC
-target interpretation.  This chapter turns that separation into a verification
+The preceding chapter turned the DPF and transport staircase into a target-status
+taxonomy.  The present chapter turns that taxonomy into a verification
 contract.  Its purpose is not to validate any implementation by prose.  Its
 purpose is to tell the reader which equation, controlled example,
 implementation quantity, tolerance, and failure interpretation belongs to each
@@ -42,7 +40,7 @@ without first proving that it is the intended path.
 \section{Proposal log-probability autodiff topology}
 \label{sec:bf-dpf-proposal-logprob-ad-topology}
 
-The most expensive debugging lesson in the BayesFilter/FilterFlow comparison
+The most expensive debugging lesson in one same-object implementation tie-out
 was not a floating-point tolerance issue and not a seed issue.  It was an
 autodiff-topology issue in the adapted proposal log probability.  The forward
 numbers can be exactly right while the derivative is wrong if the proposal
@@ -184,8 +182,8 @@ and the normalized carry discrepancy fell to about
 \[
   1.45\times 10^{-11}.
 \]
-These numbers are row-specific evidence for the FilterFlow/BayesFilter
-comparison; the general rule is the topology rule above.
+These numbers are evidence from one concrete comparison trace; the general rule
+is the topology rule above.
 
 The audit implication is strict.  A DPF implementation may pass value replay,
 seed replay, particle replay, and proposal-log-probability value replay while
@@ -194,20 +192,19 @@ that is used for gradient comparison must therefore check the proposal
 log-probability VJP as a density evaluation at the realized particle, not only
 the scalar log-probability value.
 
-\section{BayesFilter/FilterFlow deterministic tie-out contract}
+\section{Same-object deterministic tie-out contract}
 \label{sec:bf-dpf-bf-filterflow-deterministic-tieout}
 
-The production BayesFilter/FilterFlow comparison is a same-object
-implementation tie-out, not an oracle test.  The only statement it supports is
-conditional:
+A deterministic implementation tie-out is a same-object comparison, not an
+oracle test.  The only statement it supports is conditional:
 
 \begin{quote}
-Under the frozen V2 deterministic comparison contract, BayesFilter and the
-executable local FilterFlow-side adapters match on the declared density,
-filter-path, fixed-ancestor, and fixed-branch AD-gradient surfaces.
+Under a frozen deterministic comparison contract, two implementations can be
+shown to match on declared density, filter-path, fixed-ancestor, and fixed-
+branch AD-gradient surfaces.
 \end{quote}
 
-The contract freezes the objects that would otherwise make a particle filter
+The contract freezes the objects that would otherwise make a particle-filter
 comparison ambiguous:
 \begin{enumerate}[label=(\roman*)]
   \item the model row and physical parameter vector;
@@ -224,7 +221,7 @@ The comparison deliberately avoids random-number-generator equality.  When an
 ancestor schedule is needed, it is treated as data.  Both sides receive the same
 schedule and replay the same branch.
 
-The V2 production suite contains six rows:
+The illustrative comparison suite contained six rows:
 \[
 \begin{gathered}
 \texttt{lgssm\_2d\_h25\_rich},\quad
@@ -254,7 +251,7 @@ success.
 
 Finite differences are diagnostic-only in this contract.  They are useful for
 finding gross scalar/gradient wiring mistakes, but they are not stable enough
-to be a gate for the DPF comparison.  In the V2 gradient artifact the
+to be a gate for the comparison.  In one gradient artifact the
 range-bearing same-implementation finite-difference diagnostic had maximum
 reported discrepancy about
 \[
@@ -267,14 +264,14 @@ promotion criterion and not as a veto.
 Two robustness diagnostics sit below this gate:
 \begin{itemize}
   \item a seeded fixed-ancestor diagnostic generated three frozen ancestor
-    schedules and replayed them across all six V2 rows.  All \(18\) executed
+    schedules and replayed them across the full comparison suite.  All executed
     rows matched with maximum absolute delta \(0\).  This is branch-robustness
     evidence only; it is not a stochastic-resampling distribution claim;
   \item a controlled one-dimensional LGSSM horizon ladder compared \(T=2\) and
     \(T=4\).  Both scenarios had implementation agreement.  The \(T=4\)
-    scenario retained a forward residual veto in the older Sinkhorn residual
-    diagnostic, so the ladder is explanatory and does not change the V2
-    production conclusion.
+    scenario retained a forward residual veto in an older Sinkhorn residual
+    diagnostic, so the ladder is explanatory and does not change the main
+    deterministic comparison conclusion.
 \end{itemize}
 
 The non-claims are part of the contract.  The BayesFilter/FilterFlow tie-out
@@ -650,7 +647,7 @@ were trying to prove exact parity with the same teacher object.
 \label{sec:bf-dpf-debug-promotion-thresholds}
 
 \begin{longtable}{@{}p{0.19\textwidth} p{0.30\textwidth} p{0.30\textwidth} p{0.13\textwidth}@{}}
-\caption{Promotion thresholds for DPF implementation claims.}
+\caption{Claim thresholds for DPF implementation interpretations.}
 \label{tab:bf-dpf-debug-promotion-thresholds}\\
 \toprule
 Claim level & Required passing evidence & Disallowed interpretation & Gate \\
@@ -671,16 +668,16 @@ checks pass on named model classes with sensitivity reports. &
 Generalizing beyond tested $N$, $d_x$, $\varepsilon$, model class, or target
 status. &
 May make bounded research claims. \\
-Bank-facing research claim &
+Broader external claim &
 Research checks plus posterior comparisons, stress regimes, reproducible
-artifacts, and documented failure policies. &
-Claiming production suitability from a chapter or benchmark alone. &
-Requires model-risk review. \\
-Production or governance claim &
+demonstrations, and documented failure policies. &
+Claiming deployment suitability from a chapter or benchmark alone. &
+Requires separate domain review. \\
+Operational deployment claim &
 Independent review, change control, monitoring, rollback, data/model
 governance, release stability, and ongoing diagnostics. &
-Assuming academic derivation or local tests are sufficient approval. &
-Requires separate governance process. \\
+Assuming chapter-level mathematics alone is sufficient approval. &
+Requires a separate operational process. \\
 \bottomrule
 \end{longtable}
 
@@ -690,8 +687,7 @@ Requires separate governance process. \\
 This chapter does not validate any DPF implementation.  It defines the
 minimum diagnostic evidence needed to interpret failures and to avoid promoting
 a method beyond its evidence.  The word ``validate'' is therefore reserved for a
-specific equation-local check or for a separately governed model-risk process;
-it is not used here as a blanket claim about DPF, learned OT, HMC, or banking
-deployment.
+specific equation-local check or for a separately administered external review;
+it is not used here as a blanket claim about DPF, learned OT, or HMC.
 
 \FloatBarrier
