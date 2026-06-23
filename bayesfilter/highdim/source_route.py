@@ -95,6 +95,12 @@ P58_M9_ALLOWED_COMPARATOR_TIERS = (
 
 P58_M9_SOURCE_ROUTE_PIPELINE_KIND = "author_sir_fixed_ttsirt_source_route"
 P58_M9_AUTHOR_SIR_TARGET_ID = "zhao_cui_sir_austria_d18"
+P83_MINIMAL_TRANSPORT_SLICE_READY_STATUS = (
+    "PASS_P83_MINIMAL_SOURCE_ROUTE_TRANSPORT_SLICE"
+)
+P83_MINIMAL_TRANSPORT_SLICE_BLOCK_STATUS = (
+    "BLOCK_P83_MINIMAL_SOURCE_ROUTE_TRANSPORT_SLICE"
+)
 
 P59_9A_PASS_STATUS = "PASS_P59_9A_AUTHOR_SIR_36D_TARGET_FIT_PREP"
 P59_9A_BLOCK_STATUS = "BLOCK_P59_9A_AUTHOR_SIR_36D_TARGET_FIT_PREP"
@@ -1355,6 +1361,147 @@ class P58M9SourceRoutePipelineReadiness:
                 "no S&P 500 reproduction",
             ),
         }
+
+
+@dataclass(frozen=True)
+class P83MinimalTransportSliceReadiness:
+    """Phase-3 fail-closed gate for the minimal fixed-TTSIRT transport slice."""
+
+    status: str
+    blockers: tuple[str, ...]
+    manifest: Mapping[str, object]
+
+    def __post_init__(self) -> None:
+        status = str(self.status)
+        allowed = {
+            P83_MINIMAL_TRANSPORT_SLICE_READY_STATUS,
+            P83_MINIMAL_TRANSPORT_SLICE_BLOCK_STATUS,
+        }
+        if status not in allowed:
+            raise ValueError("unknown P83 minimal transport slice readiness status")
+        blockers = tuple(str(blocker) for blocker in self.blockers)
+        if status == P83_MINIMAL_TRANSPORT_SLICE_READY_STATUS and blockers:
+            raise ValueError("ready status cannot carry blockers")
+        if status != P83_MINIMAL_TRANSPORT_SLICE_READY_STATUS and not blockers:
+            raise ValueError("blocked status requires at least one blocker")
+        object.__setattr__(self, "status", status)
+        object.__setattr__(self, "blockers", blockers)
+        object.__setattr__(self, "manifest", freeze_mapping(self.manifest))
+
+    @property
+    def ready_for_p83_minimal_slice(self) -> bool:
+        return self.status == P83_MINIMAL_TRANSPORT_SLICE_READY_STATUS
+
+    def manifest_payload(self) -> Mapping[str, object]:
+        return {
+            "family": "P83MinimalTransportSliceReadiness",
+            "status": self.status,
+            "ready_for_p83_minimal_slice": self.ready_for_p83_minimal_slice,
+            "blockers": self.blockers,
+            "manifest": self.manifest,
+            "nonclaims": (
+                "no production KR closure",
+                "no d18 correctness",
+                "no author-scale fit quality",
+                "no derivative readiness",
+                "no LEDH readiness",
+                "no HMC readiness",
+            ),
+        }
+
+
+def p83_minimal_transport_slice_readiness(
+    manifest: Mapping[str, object],
+) -> P83MinimalTransportSliceReadiness:
+    """Fail closed unless the P83 minimal fixed-TTSIRT slice is honest.
+
+    This metadata gate is intentionally narrower than P58/P59 launch readiness.
+    It only checks that a positive-defensive fixed-TTSIRT transport exposes the
+    retained-marginal, CDF, proposal, and nonclaim metadata required by P83.
+    """
+
+    if not isinstance(manifest, Mapping):
+        raise TypeError("manifest must be a mapping")
+    data = dict(manifest)
+    transport_data = data.get("transport_object")
+    if isinstance(transport_data, Mapping):
+        transport = dict(transport_data)
+    else:
+        transport = data
+    blockers: list[str] = []
+
+    if str(transport.get("source_contract_level", "")) != "fixed_ttsirt":
+        blockers.append("missing_fixed_ttsirt_contract_level")
+    if transport.get("tt_cores_declared") is not True:
+        blockers.append("missing_tt_cores_declared")
+    if transport.get("defensive_density_declared") is not True:
+        blockers.append("missing_defensive_density_declared")
+    if transport.get("defensive_mass_positive") is not True:
+        blockers.append("missing_positive_defensive_mass")
+    if (
+        str(transport.get("proposition2_marginal_backend", ""))
+        != "paired_core_mass_contraction_prefix_suffix"
+    ):
+        blockers.append("missing_paired_core_marginal_backend")
+    if (
+        str(transport.get("conditional_cdf_backend", ""))
+        != "numerical_grid_trapezoid_bisection"
+    ):
+        blockers.append("missing_numerical_grid_cdf_backend")
+    if (
+        str(transport.get("conditional_cdf_route_class", ""))
+        != "fixed_hmc_adaptation_diagnostic_approximation"
+    ):
+        blockers.append("missing_diagnostic_cdf_route_class")
+    if transport.get("production_kr_closure") is not False:
+        blockers.append("production_kr_closure_not_false")
+    if str(transport.get("proposal_density_backend", "")) != "eval_pdf_on_local_samples":
+        blockers.append("missing_eval_pdf_proposal_backend")
+
+    nonclaims = tuple(str(item) for item in transport.get("p83_nonclaims", ()))
+    for required in (
+        "no production KR closure",
+        "no d18 correctness",
+        "no derivative readiness",
+        "no LEDH readiness",
+        "no HMC readiness",
+    ):
+        if required not in nonclaims:
+            blockers.append(f"missing_p83_nonclaim:{required}")
+
+    strings = _flatten_manifest_strings(transport)
+    for marker in SOURCE_ROUTE_FORBIDDEN_DRIFT_MARKERS:
+        if any(marker in text for text in strings):
+            blockers.append(f"forbidden_source_route_marker:{marker}")
+
+    if blockers:
+        return P83MinimalTransportSliceReadiness(
+            status=P83_MINIMAL_TRANSPORT_SLICE_BLOCK_STATUS,
+            blockers=tuple(blockers),
+            manifest=data,
+        )
+    return P83MinimalTransportSliceReadiness(
+        status=P83_MINIMAL_TRANSPORT_SLICE_READY_STATUS,
+        blockers=(),
+        manifest=data,
+    )
+
+
+def _flatten_manifest_strings(value: object) -> tuple[str, ...]:
+    if isinstance(value, Mapping):
+        rows: list[str] = []
+        for key, child in value.items():
+            rows.extend(_flatten_manifest_strings(key))
+            rows.extend(_flatten_manifest_strings(child))
+        return tuple(rows)
+    if isinstance(value, (tuple, list, set, frozenset)):
+        rows = []
+        for child in value:
+            rows.extend(_flatten_manifest_strings(child))
+        return tuple(rows)
+    if isinstance(value, str):
+        return (value,)
+    return ()
 
 
 def p58_m9_source_route_pipeline_readiness(
