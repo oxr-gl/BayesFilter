@@ -154,22 +154,22 @@ def batched_ledh_flow_streaming_particles_tf(
 
     chunk_size = int(particle_chunk_size)
     chunk_tensor = tf.constant(chunk_size, dtype=tf.int32)
-    num_particles_tensor = tf.shape(x0)[1]
-    num_blocks = (num_particles_tensor + chunk_tensor - 1) // chunk_tensor
+    num_particles_tensor = tf.constant(int(num_particles), dtype=tf.int32)
+    num_blocks = (int(num_particles) + chunk_size - 1) // chunk_size
 
     post_blocks = tf.TensorArray(
         dtype=DTYPE,
-        size=num_blocks,
+        size=int(num_blocks),
         element_shape=tf.TensorShape([batch_size, chunk_size, state_dim]),
     )
     pre_log_blocks = tf.TensorArray(
         dtype=DTYPE,
-        size=num_blocks,
+        size=int(num_blocks),
         element_shape=tf.TensorShape([batch_size, chunk_size]),
     )
     logdet_blocks = tf.TensorArray(
         dtype=DTYPE,
-        size=num_blocks,
+        size=int(num_blocks),
         element_shape=tf.TensorShape([batch_size, chunk_size]),
     )
 
@@ -218,13 +218,13 @@ def batched_ledh_flow_streaming_particles_tf(
             logdet_blocks,
         ),
         parallel_iterations=1,
-        maximum_iterations=num_blocks,
+        maximum_iterations=int(num_blocks),
     )
 
     post_flow = _flatten_particle_blocks_3d(
         post_blocks,
         batch_size=batch_size,
-        num_blocks=num_blocks,
+        num_blocks=int(num_blocks),
         chunk_size=chunk_size,
         num_particles=num_particles_tensor,
         state_dim=state_dim,
@@ -232,14 +232,14 @@ def batched_ledh_flow_streaming_particles_tf(
     pre_log = _flatten_particle_blocks_2d(
         pre_log_blocks,
         batch_size=batch_size,
-        num_blocks=num_blocks,
+        num_blocks=int(num_blocks),
         chunk_size=chunk_size,
         num_particles=num_particles_tensor,
     )
     logdet = _flatten_particle_blocks_2d(
         logdet_blocks,
         batch_size=batch_size,
-        num_blocks=num_blocks,
+        num_blocks=int(num_blocks),
         chunk_size=chunk_size,
         num_particles=num_particles_tensor,
     )

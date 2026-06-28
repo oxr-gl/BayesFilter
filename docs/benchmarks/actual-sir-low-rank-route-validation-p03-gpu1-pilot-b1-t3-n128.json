@@ -1,0 +1,693 @@
+{
+  "actual_sir_semantics_pass": true,
+  "algorithm_under_test": "actual-SIR d18 LEDH/PFPF-OT streaming route versus low-rank coupling solver-route resampling",
+  "batch_seeds": [
+    81120
+  ],
+  "hard_vetoes": [],
+  "nonclaims": [
+    "actual-SIR d18 route-validation harness only",
+    "no posterior correctness claim",
+    "no HMC readiness claim",
+    "no public API readiness claim",
+    "no production/default readiness claim",
+    "no dense Sinkhorn equivalence claim",
+    "no broad scalable-OT selection claim",
+    "no statistical ranking claim"
+  ],
+  "paired_comparability": {
+    "filtered_mean_relative_l2": 5.854510336321461e-05,
+    "filtered_mean_rms": 0.01891072400372485,
+    "filtered_variance_relative_l2": 0.03281402423857326,
+    "filtered_variance_rms": 0.07344178512742626,
+    "final_particle_mean_abs_l2": 0.12282905353751702,
+    "final_particle_mean_relative_l2": 9.536511051882375e-05,
+    "log_likelihood_delta_by_seed": [
+      0.0072021484375
+    ],
+    "log_likelihood_max_abs_delta": 0.0072021484375,
+    "log_likelihood_mean_abs_delta": 0.0072021484375,
+    "role": "diagnostic_until_p03_aggregate_enforces_support_rows",
+    "thresholds": {
+      "filtered_mean_relative_l2": 0.2,
+      "filtered_mean_rms": 2.5,
+      "filtered_variance_relative_l2": 0.75,
+      "filtered_variance_rms": 25.0,
+      "final_particle_mean_abs_l2": 25.0,
+      "final_particle_mean_relative_l2": 0.2,
+      "log_likelihood_max_abs_delta": 10.0,
+      "log_likelihood_mean_abs_delta": 5.0,
+      "warm_median_streaming_over_low_rank": 1.25
+    },
+    "warm_median_streaming_over_low_rank": 0.013227149097951144
+  },
+  "phase": "ACTUAL-SIR-LR-P03-GPU1-PILOT-B1-T3-N128",
+  "route_request": "both",
+  "routes_executed": [
+    "streaming",
+    "low_rank"
+  ],
+  "rows": [
+    {
+      "active_resampling_batch_entries": 3,
+      "active_resampling_mask_count": 3,
+      "annealed_convergence_threshold": 0.001,
+      "annealed_scaling": 0.9,
+      "batch_seeds": [
+        81120
+      ],
+      "batch_size": 1,
+      "compiled_core_delta_vs_diagnostic_loop": {
+        "ess_max_abs_delta_vs_diagnostic_loop": 8.435989379882812,
+        "filtered_mean_max_abs_delta_vs_diagnostic_loop": 0.9669189453125,
+        "filtered_variance_max_abs_delta_vs_diagnostic_loop": 0.8485903739929199,
+        "log_likelihood_max_abs_delta_vs_diagnostic_loop": 0.18503570556640625
+      },
+      "diagnostic_loop_seconds_explanatory": 5.898379178950563,
+      "ess_by_time": [
+        [
+          86.67887115478516
+        ],
+        [
+          127.6738052368164
+        ],
+        [
+          127.14769744873047
+        ]
+      ],
+      "ess_fraction_min": 0.677178680896759,
+      "ess_max": 127.6738052368164,
+      "ess_min": 86.67887115478516,
+      "filtered_means": [
+        [
+          [
+            470.18096923828125,
+            22.94697380065918,
+            472.4538879394531,
+            21.723129272460938,
+            475.1177978515625,
+            19.000743865966797,
+            476.8521728515625,
+            18.32813262939453,
+            479.63433837890625,
+            15.650197982788086,
+            481.240234375,
+            15.055368423461914,
+            484.10711669921875,
+            12.318033218383789,
+            486.05841064453125,
+            11.42615032196045,
+            487.923095703125,
+            9.689653396606445
+          ]
+        ],
+        [
+          [
+            442.4300231933594,
+            39.57196044921875,
+            445.8798522949219,
+            37.63564682006836,
+            451.8377990722656,
+            33.28961181640625,
+            454.1039733886719,
+            32.31597137451172,
+            460.0362548828125,
+            27.574066162109375,
+            461.97119140625,
+            27.00491714477539,
+            468.36865234375,
+            22.33768081665039,
+            471.2134704589844,
+            20.578182220458984,
+            475.1141052246094,
+            17.560989379882812
+          ]
+        ],
+        [
+          [
+            399.6082458496094,
+            63.86541748046875,
+            404.63372802734375,
+            60.95331573486328,
+            414.7037353515625,
+            54.87030792236328,
+            417.4829406738281,
+            53.81392288208008,
+            428.1243896484375,
+            46.56132125854492,
+            430.1995849609375,
+            45.88299560546875,
+            441.51629638671875,
+            38.34157180786133,
+            446.2708740234375,
+            35.54695510864258,
+            452.87445068359375,
+            31.071510314941406
+          ]
+        ]
+      ],
+      "filtered_variances": [
+        [
+          [
+            2.7797489166259766,
+            4.313260555267334,
+            2.500673532485962,
+            3.042307138442993,
+            3.635155200958252,
+            3.7719311714172363,
+            3.066650152206421,
+            3.658876419067383,
+            3.1464357376098633,
+            3.9446074962615967,
+            3.7848260402679443,
+            4.832550048828125,
+            3.564887046813965,
+            3.4371695518493652,
+            3.8354969024658203,
+            3.6009809970855713,
+            3.2928547859191895,
+            3.280785083770752
+          ]
+        ],
+        [
+          [
+            1.148468255996704,
+            1.0403705835342407,
+            0.9665022492408752,
+            1.109753966331482,
+            1.3517496585845947,
+            1.0762858390808105,
+            1.3674794435501099,
+            1.0075174570083618,
+            1.1801886558532715,
+            0.8920254707336426,
+            1.0097339153289795,
+            1.3003449440002441,
+            1.3169026374816895,
+            1.3735661506652832,
+            1.0259135961532593,
+            1.038666844367981,
+            1.0857212543487549,
+            0.8640947341918945
+          ]
+        ],
+        [
+          [
+            1.0875694751739502,
+            1.0837053060531616,
+            1.096708059310913,
+            1.142538070678711,
+            1.046789288520813,
+            0.9855197072029114,
+            0.9873411059379578,
+            0.8029768466949463,
+            0.9174695014953613,
+            0.894210159778595,
+            1.04550302028656,
+            1.0072391033172607,
+            0.9984031319618225,
+            1.0207360982894897,
+            0.9058223366737366,
+            1.2083148956298828,
+            0.989666223526001,
+            0.9288783073425293
+          ]
+        ]
+      ],
+      "final_logsumexp_residual": 0.0,
+      "final_particle_mean": [
+        [
+          399.6082763671875,
+          63.86541748046875,
+          404.6336975097656,
+          60.95331954956055,
+          414.7037353515625,
+          54.87030792236328,
+          417.48297119140625,
+          53.81391525268555,
+          428.1243896484375,
+          46.561317443847656,
+          430.1995849609375,
+          45.88299560546875,
+          441.516357421875,
+          38.341575622558594,
+          446.2708740234375,
+          35.54695510864258,
+          452.87445068359375,
+          31.071514129638672
+        ]
+      ],
+      "finite_ess_by_time": true,
+      "finite_filtered_means": true,
+      "finite_filtered_variances": true,
+      "finite_final_log_weights": true,
+      "finite_final_particles": true,
+      "finite_log_likelihood": true,
+      "first_call_seconds": 15.78780368808657,
+      "gpu_memory_info_after": {
+        "current": 61440,
+        "peak": 50642944
+      },
+      "gpu_memory_info_before": {
+        "current": 59392,
+        "peak": 21252352
+      },
+      "hard_vetoes": [],
+      "log_likelihood": [
+        -120.29072570800781
+      ],
+      "memory_maxrss_kb_explanatory": 2574156,
+      "num_particles": 128,
+      "obs_dim": 9,
+      "output_devices": [
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0"
+      ],
+      "repeats": 1,
+      "route": "streaming",
+      "route_invocations": 3,
+      "sinkhorn_epsilon": 1.0,
+      "sinkhorn_iterations": 3,
+      "state_dim": 18,
+      "status": "PASS",
+      "streaming_max_column_residual": 0.0,
+      "streaming_max_row_residual": 0.00241696834564209,
+      "streaming_timing_source": "compiled_core",
+      "time_steps": 3,
+      "transport_matrix_materialized": false,
+      "transport_matrix_shapes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "transport_object_kind": "streaming_transport",
+      "warm_call_timing_summary_seconds": {
+        "max": 0.011133016087114811,
+        "mean": 0.011133016087114811,
+        "median": 0.011133016087114811,
+        "min": 0.011133016087114811
+      },
+      "warm_call_timings_seconds": [
+        0.011133016087114811
+      ],
+      "warmups": 0
+    },
+    {
+      "active_resampling_batch_entries": 3,
+      "active_resampling_mask_count": 3,
+      "all_finite_factors": true,
+      "all_nonnegative_factors": true,
+      "all_positive_g": true,
+      "batch_seeds": [
+        81120
+      ],
+      "batch_size": 1,
+      "ess_by_time": [
+        [
+          86.67887115478516
+        ],
+        [
+          127.49284362792969
+        ],
+        [
+          127.2386245727539
+        ]
+      ],
+      "ess_fraction_min": 0.677178680896759,
+      "ess_max": 127.49284362792969,
+      "ess_min": 86.67887115478516,
+      "filtered_means": [
+        [
+          [
+            470.18096923828125,
+            22.94697380065918,
+            472.4538879394531,
+            21.723129272460938,
+            475.1177978515625,
+            19.000743865966797,
+            476.8521728515625,
+            18.32813262939453,
+            479.63433837890625,
+            15.650197982788086,
+            481.240234375,
+            15.055368423461914,
+            484.10711669921875,
+            12.318033218383789,
+            486.05841064453125,
+            11.42615032196045,
+            487.923095703125,
+            9.689653396606445
+          ]
+        ],
+        [
+          [
+            442.45159912109375,
+            39.55358123779297,
+            445.87457275390625,
+            37.64777374267578,
+            451.85650634765625,
+            33.301055908203125,
+            454.093505859375,
+            32.31505584716797,
+            460.01025390625,
+            27.579994201660156,
+            461.99371337890625,
+            26.978382110595703,
+            468.35595703125,
+            22.350502014160156,
+            471.2099304199219,
+            20.567440032958984,
+            475.1177978515625,
+            17.5478458404541
+          ]
+        ],
+        [
+          [
+            399.6439208984375,
+            63.8121337890625,
+            404.59808349609375,
+            60.97786331176758,
+            414.72119140625,
+            54.88664245605469,
+            417.50927734375,
+            53.78620910644531,
+            428.1095886230469,
+            46.547481536865234,
+            430.2286682128906,
+            45.848697662353516,
+            441.48333740234375,
+            38.3585319519043,
+            446.27569580078125,
+            35.539615631103516,
+            452.9149475097656,
+            31.031047821044922
+          ]
+        ]
+      ],
+      "filtered_variances": [
+        [
+          [
+            2.7797489166259766,
+            4.313260555267334,
+            2.500673532485962,
+            3.042307138442993,
+            3.635155200958252,
+            3.7719311714172363,
+            3.066650152206421,
+            3.658876419067383,
+            3.1464357376098633,
+            3.9446074962615967,
+            3.7848260402679443,
+            4.832550048828125,
+            3.564887046813965,
+            3.4371695518493652,
+            3.8354969024658203,
+            3.6009809970855713,
+            3.2928547859191895,
+            3.280785083770752
+          ]
+        ],
+        [
+          [
+            1.3827024698257446,
+            1.2393872737884521,
+            0.862189531326294,
+            1.1259835958480835,
+            1.2060778141021729,
+            1.0656580924987793,
+            1.4246002435684204,
+            0.9522649645805359,
+            1.0756206512451172,
+            0.9748298525810242,
+            1.0495975017547607,
+            1.2520217895507812,
+            1.2008225917816162,
+            1.5081303119659424,
+            1.1888561248779297,
+            1.2270400524139404,
+            0.9604905843734741,
+            0.9044022560119629
+          ]
+        ],
+        [
+          [
+            1.1206969022750854,
+            1.1536214351654053,
+            1.168967604637146,
+            1.1549909114837646,
+            0.9793365597724915,
+            0.9803403615951538,
+            1.0377039909362793,
+            0.8174377083778381,
+            0.8937991261482239,
+            0.9169554710388184,
+            1.0807240009307861,
+            1.0176973342895508,
+            1.0141091346740723,
+            0.9946613311767578,
+            0.8913968801498413,
+            1.2476396560668945,
+            0.9717612266540527,
+            0.9640876054763794
+          ]
+        ]
+      ],
+      "final_logsumexp_residual": 0.0,
+      "final_particle_mean": [
+        [
+          399.64312744140625,
+          63.81201171875,
+          404.5972900390625,
+          60.97774124145508,
+          414.72039794921875,
+          54.886539459228516,
+          417.50848388671875,
+          53.786102294921875,
+          428.1087646484375,
+          46.547386169433594,
+          430.2278137207031,
+          45.84860610961914,
+          441.48248291015625,
+          38.35845947265625,
+          446.27484130859375,
+          35.5395393371582,
+          452.9140625,
+          31.03098487854004
+        ]
+      ],
+      "finite_ess_by_time": true,
+      "finite_filtered_means": true,
+      "finite_filtered_variances": true,
+      "finite_final_log_weights": true,
+      "finite_final_particles": true,
+      "finite_log_likelihood": true,
+      "first_call_seconds": 1.7868331097997725,
+      "gpu_memory_info_after": {
+        "current": 100096,
+        "peak": 50642944
+      },
+      "gpu_memory_info_before": {
+        "current": 60416,
+        "peak": 50642944
+      },
+      "hard_vetoes": [],
+      "log_likelihood": [
+        -120.28352355957031
+      ],
+      "low_rank_alpha": 1e-08,
+      "low_rank_assignment_epsilon": 0.25,
+      "low_rank_convergence_threshold": 1e-06,
+      "low_rank_denominator_floor": 1e-30,
+      "low_rank_max_projection_iterations": 120,
+      "low_rank_rank": 32,
+      "max_factor_marginal_residual": 2.2398307919502258e-07,
+      "max_induced_column_residual": 1.9073486328125e-06,
+      "max_induced_row_residual": 2.8789043426513672e-05,
+      "memory_maxrss_kb_explanatory": 2574156,
+      "num_particles": 128,
+      "obs_dim": 9,
+      "output_devices": [
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0"
+      ],
+      "projection_iterations_used_max_explanatory": 13.0,
+      "repeats": 1,
+      "route": "low_rank",
+      "route_invocations": 3,
+      "source_route_components": {
+        "cost_nudged_assignment_kernel": "extension_or_invention",
+        "deterministic_initialization": "fixed_hmc_adaptation",
+        "dykstra_style_projection": "source_faithful",
+        "factor_marginal_diagnostics": "source_faithful",
+        "factored_coupling_parameterization": "source_faithful",
+        "fixed_iteration_schedule": "fixed_hmc_adaptation",
+        "low_rank_lazy_apply": "source_faithful",
+        "phase1_scaled_transport_adapter": "fixed_hmc_adaptation"
+      },
+      "state_dim": 18,
+      "status": "PASS",
+      "time_steps": 3,
+      "transport_matrix_materialized": false,
+      "transport_matrix_shapes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "transport_object_kind": "low_rank_coupling_factors",
+      "transport_object_kind_diagnostics": [
+        "low_rank_coupling_factors",
+        "low_rank_coupling_factors",
+        "low_rank_coupling_factors"
+      ],
+      "warm_call_timing_summary_seconds": {
+        "max": 0.8416791860945523,
+        "mean": 0.8416791860945523,
+        "median": 0.8416791860945523,
+        "min": 0.8416791860945523
+      },
+      "warm_call_timings_seconds": [
+        0.8416791860945523
+      ],
+      "warmups": 0
+    }
+  ],
+  "run_manifest": {
+    "command": "docs/benchmarks/benchmark_actual_sir_low_rank_route_validation.py --route both --streaming-timing-source compiled_core --batch-seeds 81120 --time-steps 3 --num-particles 128 --transport-policy active-all --sinkhorn-iterations 3 --row-chunk-size 64 --col-chunk-size 64 --particle-chunk-size 64 --low-rank-rank 32 --low-rank-assignment-epsilon 0.25 --low-rank-max-projection-iterations 120 --warmups 0 --repeats 1 --device-scope visible --cuda-visible-devices 1 --device /GPU:0 --expect-device-kind gpu --tf32-mode enabled --phase-id ACTUAL-SIR-LR-P03-GPU1-PILOT-B1-T3-N128 --output docs/benchmarks/actual-sir-low-rank-route-validation-p03-gpu1-pilot-b1-t3-n128.json --markdown-output docs/benchmarks/actual-sir-low-rank-route-validation-p03-gpu1-pilot-b1-t3-n128.md",
+    "cuda_visible_devices": "1",
+    "device": "/GPU:0",
+    "device_scope": "visible",
+    "ended_at": "2026-06-21T07:39:19.440170+00:00",
+    "expect_device_kind": "gpu",
+    "git_commit": "c4690d153e6a73173e20f33f55c44827ee5f298d",
+    "git_status_short": "M bayesfilter/__init__.py\n M bayesfilter/inference/__init__.py\n M bayesfilter/inference/hmc.py\n M memory.md\n M tests/test_experimental_batched_benchmark_harness.py\n M tests/test_hmc_fixed_mass_step_tuning.py\n M tests/test_nonlinear_ssm_phase4_full_chain_hmc.py\n M tests/test_v1_public_api.py\n?? bayesfilter/inference/hmc_kernel_tuning.py\n?? docs/benchmarks/actual-sir-low-rank-route-validation-p01-compiled-core-check-2026-06-21.json\n?? docs/benchmarks/actual-sir-low-rank-route-validation-p01-compiled-core-check-2026-06-21.md\n?? docs/benchmarks/actual-sir-low-rank-route-validation-p01-harness-smoke-2026-06-21.json\n?? docs/benchmarks/actual-sir-low-rank-route-validation-p01-harness-smoke-2026-06-21.md\n?? docs/benchmarks/actual-sir-low-rank-route-validation-smoke-2026-06-21-row-b1-t20-n256.json\n?? docs/benchmarks/actual-sir-low-rank-route-validation-smoke-2026-06-21-row-b1-t20-n256.md\n?? docs/benchmarks/actual-sir-low-rank-route-validation-smoke-2026-06-21-row-b1-t3-n128.json\n?? docs/benchmarks/actual-sir-low-rank-route-validation-smoke-2026-06-21-row-b1-t3-n128.md\n?? docs/benchmarks/actual-sir-low-rank-route-validation-smoke-2026-06-21.json\n?? docs/benchmarks/actual-sir-low-rank-route-validation-smoke-2026-06-21.md\n?? docs/benchmarks/benchmark_actual_sir_low_rank_route_validation.py\n?? docs/benchmarks/compare_experimental_batched_ledh_pfpf_ot_streaming_quality.py\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-impact-p01-correctness-cpu-2026-06-20.json\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-impact-p01-correctness-cpu-2026-06-20.md\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-impact-p02-precision-gpu-2026-06-20.json\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-impact-p02-precision-gpu-2026-06-20.md\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-impact-p02-precision-gpu-children-2026-06-20/\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-impact-p03-target-gpu-2026-06-20.json\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-impact-p03-target-gpu-2026-06-20.md\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-impact-p05-hmc-mechanics-cpu-2026-06-20.json\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-impact-p05-hmc-mechanics-cpu-2026-06-20.md\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-2026-06-20.json\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-2026-06-20.md\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-children-2026-06-20/\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-large-particle-efficiency-p03-streaming-large-n-gpu-children-2026-06-21/\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-large-n-2026-06-21-row-low_rank-n100000.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-large-n-2026-06-21-row-low_rank-n100000.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-large-n-2026-06-21-row-low_rank-n50000.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-large-n-2026-06-21-row-low_rank-n50000.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-large-n-2026-06-21.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-large-n-2026-06-21.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n100000.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n100000.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n1024.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n1024.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n16384.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n16384.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n2048.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n2048.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n32768.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n32768.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n4096.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n4096.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n50000.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n50000.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n8192.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n8192.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n1024.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n1024.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n16384.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n16384.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n2048.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n2048.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n32768.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n32768.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n4096.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n4096.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n8192.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n8192.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-pilot-2026-06-21.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-pilot-2026-06-21.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-small-2026-06-21.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-small-2026-06-21.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-integration-gpu-scale-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-integration-gpu-scale-2026-06-20.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-integration-medium-cpu-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-integration-medium-cpu-2026-06-20.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-integration-small-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-integration-small-2026-06-20.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-integration-tuning-cpu-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-integration-tuning-cpu-2026-06-20.md\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-focused-tuning-cpu-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-focused-tuning-cpu-2026-06-20.md\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-gpu-scale-tuned-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-gpu-scale-tuned-2026-06-20.md\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-medium-cpu-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-medium-cpu-2026-06-20.md\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-medium-cpu-tuned-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-medium-cpu-tuned-2026-06-20.md\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-small-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-small-2026-06-20.md\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-tuning-cpu-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-tuning-cpu-2026-06-20.md\n?? docs/benchmarks/scalable_ot_low_rank_ledh_pfpf_efficiency.py\n?? docs/benchmarks/scalable_ot_low_rank_ledh_pfpf_integration_smoke.py\n?? docs/benchmarks/scalable_ot_low_rank_tf32_scale_smoke.py\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-claude-review-ledger-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-master-program-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-p00-governance-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-p00-governance-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-p01-harness-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-p01-harness-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-p02-smoke-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-p02-smoke-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-p03-paired-ladder-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-p04-large-n-envelope-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-p05-closeout-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-visible-execution-ledger-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-visible-gated-execution-runbook-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-visible-stop-handoff-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-claude-review-ledger-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-master-program-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p00-governance-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p00-governance-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p01-correctness-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p01-correctness-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p02-precision-gpu-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p02-precision-gpu-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p03-target-gpu-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p03-target-gpu-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p04-performance-memory-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p04-performance-memory-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p05-hmc-mechanics-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p05-hmc-mechanics-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p06-closeout-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-visible-execution-ledger-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-visible-gated-execution-runbook-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-visible-stop-handoff-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-claude-review-ledger-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-master-program-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-next-target-shape-repeated-stability-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-p00-governance-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-p00-governance-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-p01-harness-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-p01-harness-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-p02-medium-gpu-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-p02-medium-gpu-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-p03-closeout-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-visible-execution-ledger-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-visible-gated-execution-runbook-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-visible-stop-handoff-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-claude-review-ledger-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-master-program-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-p00-governance-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-p00-governance-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-p01-harness-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-p01-harness-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-p02-paired-gpu-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-p02-paired-gpu-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-p03-large-n-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-p03-large-n-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-p04-closeout-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-visible-execution-ledger-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-visible-gated-execution-plan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-visible-stop-handoff-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-claude-review-ledger-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-master-program-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p00-governance-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p00-governance-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p01-harness-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p01-harness-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p02-tuning-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p02-tuning-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p03-medium-cpu-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p03-medium-cpu-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p04-trusted-gpu-scale-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p04-trusted-gpu-scale-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p05-closeout-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-visible-execution-ledger-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-visible-gated-execution-plan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-visible-stop-handoff-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-claude-review-ledger-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-master-program-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-p00-governance-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-p00-governance-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-p01-implementation-harness-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-p02-small-reference-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-p03-downstream-smoke-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-p04-gpu-scale-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-p05-closeout-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-visible-execution-ledger-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-visible-gated-execution-runbook-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-visible-stop-handoff-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-claude-review-ledger-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-master-program-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p00-governance-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p00-governance-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p01-harness-invariants-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p01-harness-invariants-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p02-medium-cpu-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p02-medium-cpu-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p02a-tuning-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p02a-tuning-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p02b-focused-tuning-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p02b-focused-tuning-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p02c-medium-cpu-tuned-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p02c-medium-cpu-tuned-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p03-trusted-gpu-scale-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p03-trusted-gpu-scale-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p04-closeout-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-visible-execution-ledger-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-visible-gated-execution-plan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-visible-stop-handoff-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-two-lane-gpu-coordination-record-2026-06-21.md\n?? docs/plans/bayesfilter_hmc_fixed_mass_dual_averaging_xla_probe_result_2026_06_20.md\n?? docs/plans/bayesfilter_hmc_fixed_mass_dual_averaging_xla_probe_review_ledger_2026_06_20.md\n?? docs/plans/bayesfilter_hmc_fixed_mass_dual_averaging_xla_probe_subplan_2026_06_20.md\n?? tests/test_actual_sir_low_rank_route_validation.py\n?? tests/test_hmc_kernel_tuning_geometry.py\n?? tests/test_low_rank_ledh_pfpf_efficiency.py\n?? tests/test_low_rank_ledh_pfpf_integration_smoke.py\n?? tests/test_low_rank_tf32_scale_smoke.py",
+    "gpu_fallback_status": "none_recorded_by_harness",
+    "logical_gpus": [
+      "LogicalDevice(name='/device:GPU:0', device_type='GPU')"
+    ],
+    "markdown_output": "docs/benchmarks/actual-sir-low-rank-route-validation-p03-gpu1-pilot-b1-t3-n128.md",
+    "nvidia_smi_rows": [
+      {
+        "index": "0",
+        "memory_used_mib": "1185",
+        "name": "NVIDIA GeForce RTX 4080 SUPER",
+        "utilization_gpu_percent": "38",
+        "uuid": "GPU-a008e90f-259e-df57-7988-63b6831fff68"
+      },
+      {
+        "index": "1",
+        "memory_used_mib": "30693",
+        "name": "NVIDIA GeForce RTX 4080 SUPER",
+        "utilization_gpu_percent": "0",
+        "uuid": "GPU-a1ea1946-07c0-8ed5-2ba1-d96f82c89cd3"
+      }
+    ],
+    "output": "docs/benchmarks/actual-sir-low-rank-route-validation-p03-gpu1-pilot-b1-t3-n128.json",
+    "phase_id": "ACTUAL-SIR-LR-P03-GPU1-PILOT-B1-T3-N128",
+    "physical_gpus": [
+      "PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')"
+    ],
+    "plan_path": "docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-master-program-2026-06-21.md",
+    "platform": "Linux-6.8.0-111-generic-x86_64-with-glibc2.35",
+    "precision": {
+      "active_dtype": "float32",
+      "default_algorithm_target": "ledh_pfpf_ot_tf32",
+      "default_dtype": "float32",
+      "default_execution_target": "gpu",
+      "default_route_acceptance": "accepted_default_use_whenever_possible",
+      "default_route_guidance": "use for BayesFilter DPF LEDH-PFPF-OT work whenever GPU execution and the streaming fixed-branch contract are applicable",
+      "default_route_rationale": "streaming GPU TF32 LEDH-PFPF-OT avoids dense transport/history storage for large-particle DPF transport while preserving explicit reference and fallback arms",
+      "default_target_status": "production_default_by_owner_directive",
+      "default_tf32_mode": "enabled",
+      "dtype": "float32",
+      "fp64_reference_requires_explicit_dtype": true,
+      "historical_module_path": "experiments/dpf_implementation",
+      "precision_default_policy": "production_ledh_pfpf_ot_gpu_tf32",
+      "public_api_exposure": "separately_gated",
+      "scope": "production_ledh_pfpf_ot_gpu_tf32_default_lane",
+      "tf32_execution_enabled": true,
+      "tf32_mode": "enabled",
+      "tf_dtype": "float32"
+    },
+    "python_executable": "/home/ubuntu/anaconda3/envs/tfgpu/bin/python",
+    "python_version": "3.13.13",
+    "requested_cuda_visible_devices": "1",
+    "selected_physical_gpu": {
+      "index": "1",
+      "memory_used_mib": "30693",
+      "name": "NVIDIA GeForce RTX 4080 SUPER",
+      "status": "selected",
+      "utilization_gpu_percent": "0",
+      "uuid": "GPU-a1ea1946-07c0-8ed5-2ba1-d96f82c89cd3"
+    },
+    "started_at": "2026-06-21T07:38:55.096946+00:00",
+    "tensorflow_version": "2.20.0",
+    "wall_time_seconds": 24.34322176198475,
+    "working_directory": "/home/ubuntu/python/BayesFilter"
+  },
+  "schema_version": "actual_sir_low_rank_route_validation.v1",
+  "shape": {
+    "batch_size": 1,
+    "num_particles": 128,
+    "obs_dim": 9,
+    "state_dim": 18,
+    "time_steps": 3
+  },
+  "sir_semantics": {
+    "actual_sir_callback_usage": "initial_sample, process/observation covariance callbacks, observation metadata, and route metadata",
+    "actual_sir_callbacks_used": true,
+    "adapter_classification": "BayesFilter DPF adapter for fixed-parameter SIR; not Zhao-Cui TT/SIRT source-faithfulness evidence",
+    "experimental_streaming_adapter_route": "batched nonlinear-prior LEDH-PFPF-OT streaming adapter with fixed process covariance, not scalar Li-Coates Algorithm 1 UKF covariance lifecycle parity",
+    "flow_observation_contract": "same_observation_gaussian_sir_infectious_components",
+    "graph_compatible_sir_transition_copy_used": true,
+    "graph_compatible_sir_transition_source": "bayesfilter.highdim.zhao_cui_sir_austria_model RK4 zhao_cui_sir_step equations, copied into TensorFlow graph form because the model validation path uses eager .numpy() checks",
+    "nonlinear_prior_mean_hook_used": true,
+    "observation_dimension": 9,
+    "process_noise_policy": "clip_susceptible_after_noise",
+    "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+    "scalar_algorithm1_ukf_covariance_lifecycle_parity_claim": false,
+    "state_dimension": 18,
+    "target_density_used_for_correction": true
+  },
+  "status": "PASS",
+  "thresholds": {
+    "ess_fraction_min": 0.01,
+    "factor_marginal_residual": 0.005,
+    "final_logsumexp_residual": 1e-05,
+    "low_rank_transport_matrix_shape_suffix": [
+      0,
+      0
+    ],
+    "runtime_memory_role": "explanatory_except_p03_promotion_screen"
+  },
+  "transport_policy": "active-all"
+}

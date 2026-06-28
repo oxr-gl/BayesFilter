@@ -1,0 +1,101 @@
+{
+  "artifacts": {
+    "summary_json": "docs/benchmarks/svd-nystrom-nohmc-promotion-p04c2-streaming-gpu-tf32-jit-isolation-summary-2026-06-26.json"
+  },
+  "interpretation": {
+    "classification": "P04C2_GPU_DEVICE_STREAMING_NONFINITE",
+    "not_concluded": [
+      "no threshold freeze",
+      "no P04C resume",
+      "no seed exclusion",
+      "no SVD-Nystrom rejection",
+      "no P05 launch",
+      "no promotion/default/scientific/HMC claim"
+    ],
+    "reason": "GPU no-TF32/no-JIT seed 84101 streaming row failed while P04C1 CPU no-TF32/no-JIT seed 84101 control passed."
+  },
+  "phase": "SVD-NYSTROM-NOHMC-PROMOTION-P04C2-REPAIRED-RERUN",
+  "rows": [
+    {
+      "capture_route_exceptions": true,
+      "exception": {
+        "message": "Graph execution error:\n\nDetected at node while/while/MatrixInverse defined at (most recent call last):\n  File \"/home/ubuntu/python/BayesFilter/docs/benchmarks/benchmark_svd_nystrom_range_bearing_gate.py\", line 1325, in <module>\n\n  File \"/home/ubuntu/python/BayesFilter/docs/benchmarks/benchmark_svd_nystrom_range_bearing_gate.py\", line 1312, in main\n\n  File \"/home/ubuntu/python/BayesFilter/docs/benchmarks/benchmark_svd_nystrom_range_bearing_gate.py\", line 1063, in build_result\n\n  File \"/home/ubuntu/python/BayesFilter/docs/benchmarks/benchmark_svd_nystrom_range_bearing_gate.py\", line 1010, in compiled_streaming\n\n  File \"/home/ubuntu/python/BayesFilter/docs/benchmarks/benchmark_svd_nystrom_range_bearing_gate.py\", line 740, in _streaming_outputs\n\n  File \"/home/ubuntu/python/BayesFilter/experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_streaming_tf.py\", line 473, in streaming_batched_ledh_pfpf_ot_value_core_tf\n\n  File \"/home/ubuntu/python/BayesFilter/experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_streaming_tf.py\", line 537, in streaming_batched_ledh_pfpf_ot_value_core_tf\n\n  File \"/home/ubuntu/python/BayesFilter/experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_streaming_tf.py\", line 510, in history_body\n\n  File \"/home/ubuntu/python/BayesFilter/experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_streaming_tf.py\", line 370, in step_body\n\n  File \"/home/ubuntu/python/BayesFilter/experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_streaming_tf.py\", line 211, in batched_ledh_flow_streaming_particles_tf\n\n  File \"/home/ubuntu/python/BayesFilter/experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_streaming_tf.py\", line 192, in body\n\n  File \"/home/ubuntu/python/BayesFilter/experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_tf.py\", line 628, in batched_ledh_flow_core_tf\n\nInput is not invertible.\n\t [[{{node while/while/MatrixInverse}}]] [Op:__inference_compiled_streaming_4954]",
+        "module": "tensorflow.python.framework.errors_impl",
+        "stage": "compile_and_first",
+        "type": "InvalidArgumentError"
+      },
+      "hard_vetoes": [
+        "streaming:route_exception"
+      ],
+      "jit_compile": false,
+      "json_artifact": "docs/benchmarks/svd-nystrom-nohmc-promotion-p04c2-gpu-tf32-nojit-seed84101-2026-06-26.json",
+      "logical_gpus": [
+        "LogicalDevice(name='/device:GPU:0', device_type='GPU')"
+      ],
+      "markdown_artifact": "docs/benchmarks/svd-nystrom-nohmc-promotion-p04c2-gpu-tf32-nojit-seed84101-2026-06-26.md",
+      "route_hard_vetoes": [
+        "route_exception"
+      ],
+      "route_status": "FAIL",
+      "row": "gpu-tf32-nojit-84101",
+      "status": "FAIL",
+      "tf32_execution_enabled": true
+    },
+    {
+      "capture_route_exceptions": true,
+      "ess_fraction_min": NaN,
+      "hard_vetoes": [
+        "streaming:nonfinite_log_likelihood",
+        "streaming:nonfinite_filtered_means",
+        "streaming:nonfinite_filtered_variances",
+        "streaming:nonfinite_ess_by_time"
+      ],
+      "jit_compile": true,
+      "json_artifact": "docs/benchmarks/svd-nystrom-nohmc-promotion-p04c2-gpu-notf32-jit-seed84101-2026-06-26.json",
+      "log_likelihood": [
+        NaN
+      ],
+      "logical_gpus": [
+        "LogicalDevice(name='/device:GPU:0', device_type='GPU')"
+      ],
+      "markdown_artifact": "docs/benchmarks/svd-nystrom-nohmc-promotion-p04c2-gpu-notf32-jit-seed84101-2026-06-26.md",
+      "route_hard_vetoes": [
+        "nonfinite_log_likelihood",
+        "nonfinite_filtered_means",
+        "nonfinite_filtered_variances",
+        "nonfinite_ess_by_time"
+      ],
+      "route_status": "FAIL",
+      "row": "gpu-notf32-jit-84101",
+      "status": "FAIL",
+      "tf32_execution_enabled": false
+    },
+    {
+      "capture_route_exceptions": true,
+      "exception": {
+        "message": "Graph execution error:\n\nDetected at node while/while/MatrixInverse defined at (most recent call last):\n  File \"/home/ubuntu/python/BayesFilter/docs/benchmarks/benchmark_svd_nystrom_range_bearing_gate.py\", line 1325, in <module>\n\n  File \"/home/ubuntu/python/BayesFilter/docs/benchmarks/benchmark_svd_nystrom_range_bearing_gate.py\", line 1312, in main\n\n  File \"/home/ubuntu/python/BayesFilter/docs/benchmarks/benchmark_svd_nystrom_range_bearing_gate.py\", line 1063, in build_result\n\n  File \"/home/ubuntu/python/BayesFilter/docs/benchmarks/benchmark_svd_nystrom_range_bearing_gate.py\", line 1010, in compiled_streaming\n\n  File \"/home/ubuntu/python/BayesFilter/docs/benchmarks/benchmark_svd_nystrom_range_bearing_gate.py\", line 740, in _streaming_outputs\n\n  File \"/home/ubuntu/python/BayesFilter/experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_streaming_tf.py\", line 473, in streaming_batched_ledh_pfpf_ot_value_core_tf\n\n  File \"/home/ubuntu/python/BayesFilter/experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_streaming_tf.py\", line 537, in streaming_batched_ledh_pfpf_ot_value_core_tf\n\n  File \"/home/ubuntu/python/BayesFilter/experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_streaming_tf.py\", line 510, in history_body\n\n  File \"/home/ubuntu/python/BayesFilter/experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_streaming_tf.py\", line 370, in step_body\n\n  File \"/home/ubuntu/python/BayesFilter/experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_streaming_tf.py\", line 211, in batched_ledh_flow_streaming_particles_tf\n\n  File \"/home/ubuntu/python/BayesFilter/experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_streaming_tf.py\", line 192, in body\n\n  File \"/home/ubuntu/python/BayesFilter/experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_tf.py\", line 628, in batched_ledh_flow_core_tf\n\nInput is not invertible.\n\t [[{{node while/while/MatrixInverse}}]] [Op:__inference_compiled_streaming_4954]",
+        "module": "tensorflow.python.framework.errors_impl",
+        "stage": "compile_and_first",
+        "type": "InvalidArgumentError"
+      },
+      "hard_vetoes": [
+        "streaming:route_exception"
+      ],
+      "jit_compile": false,
+      "json_artifact": "docs/benchmarks/svd-nystrom-nohmc-promotion-p04c2-gpu-notf32-nojit-seed84101-2026-06-26.json",
+      "logical_gpus": [
+        "LogicalDevice(name='/device:GPU:0', device_type='GPU')"
+      ],
+      "markdown_artifact": "docs/benchmarks/svd-nystrom-nohmc-promotion-p04c2-gpu-notf32-nojit-seed84101-2026-06-26.md",
+      "route_hard_vetoes": [
+        "route_exception"
+      ],
+      "route_status": "FAIL",
+      "row": "gpu-notf32-nojit-84101",
+      "status": "FAIL",
+      "tf32_execution_enabled": false
+    }
+  ],
+  "schema_version": "svd_nystrom_nohmc_promotion_p04c2_streaming_gpu_tf32_jit_isolation_summary.v1",
+  "status": "P04C2_GPU_DEVICE_STREAMING_NONFINITE"
+}

@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+import sys
+import types
+
 import numpy as np
 import pytest
 
+import bayesfilter.inference.hmc as hmc_runtime
 from bayesfilter.inference import (
     FullChainHMCConfig,
     HMCTuningPolicy,
@@ -296,8 +300,14 @@ def test_fixed_mass_step_tuning_rejects_non_fixed_mass_policy():
         )
 
 
-def test_xla_dual_averaging_remains_blocked_for_phase3():
-    with pytest.raises(ValueError, match="dual-averaging HMC is not reviewed for XLA"):
+def test_xla_generic_dual_averaging_remains_blocked_for_phase3():
+    generic_policy = HMCTuningPolicy.dual_averaging_step_size(
+        num_adaptation_steps=3,
+        target_accept_prob=0.75,
+        source="tests/test_hmc_fixed_mass_step_tuning.py",
+    )
+
+    with pytest.raises(ValueError, match="fixed_mass_dual_averaging"):
         FullChainHMCConfig(
             num_results=4,
             num_burnin_steps=4,
@@ -305,8 +315,82 @@ def test_xla_dual_averaging_remains_blocked_for_phase3():
             num_leapfrog_steps=2,
             seed=(20260613, 12),
             use_xla=True,
-            tuning_policy=_policy(),
+            tuning_policy=generic_policy,
         )
+
+
+def test_sample_chain_runner_selects_eager_nonjit_and_xla_paths(monkeypatch):
+    function_calls: list[dict[str, object]] = []
+    sample_chain_calls: list[dict[str, object]] = []
+
+    class FakeFunction:
+        def __init__(self, fn, kwargs):
+            self.fn = fn
+            self.kwargs = dict(kwargs)
+
+        def __call__(self):
+            return self.fn()
+
+    def fake_function(fn, **kwargs):
+        function_calls.append(dict(kwargs))
+        return FakeFunction(fn, kwargs)
+
+    def fake_sample_chain(**kwargs):
+        sample_chain_calls.append(dict(kwargs))
+        return "samples", {"trace": "ok"}
+
+    fake_tf = types.SimpleNamespace(
+        int32="int32",
+        constant=lambda value, dtype=None: ("constant", value, dtype),
+        function=fake_function,
+    )
+    fake_tfp = types.SimpleNamespace(
+        mcmc=types.SimpleNamespace(sample_chain=fake_sample_chain)
+    )
+    monkeypatch.setitem(sys.modules, "tensorflow", fake_tf)
+    monkeypatch.setitem(sys.modules, "tensorflow_probability", fake_tfp)
+
+    def config(**overrides):
+        payload = {
+            "num_results": 4,
+            "num_burnin_steps": 1,
+            "step_size": 0.05,
+            "num_leapfrog_steps": 2,
+            "seed": (20260613, 15),
+        }
+        payload.update(overrides)
+        return FullChainHMCConfig(**payload)
+
+    eager_runner = hmc_runtime._build_sample_chain_runner(
+        config(chain_execution_mode="eager"),
+        kernel="kernel",
+        trace_fn=lambda _state, _results: {},
+        initial_state="state",
+    )
+    assert not isinstance(eager_runner, FakeFunction)
+    assert eager_runner() == ("samples", {"trace": "ok"})
+    assert function_calls == []
+
+    tf_runner = hmc_runtime._build_sample_chain_runner(
+        config(chain_execution_mode="tf_function"),
+        kernel="kernel",
+        trace_fn=lambda _state, _results: {},
+        initial_state="state",
+    )
+    assert isinstance(tf_runner, FakeFunction)
+    assert tf_runner.kwargs["reduce_retracing"] is True
+    assert "jit_compile" not in tf_runner.kwargs
+
+    xla_runner = hmc_runtime._build_sample_chain_runner(
+        config(chain_execution_mode="tf_function", use_xla=True),
+        kernel="kernel",
+        trace_fn=lambda _state, _results: {},
+        initial_state="state",
+    )
+    assert isinstance(xla_runner, FakeFunction)
+    assert xla_runner.kwargs["jit_compile"] is True
+    assert xla_runner.kwargs["reduce_retracing"] is True
+    assert len(sample_chain_calls) == 1
 
 
 def test_full_chain_hmc_rejects_generic_dual_averaging_policy_in_phase3():

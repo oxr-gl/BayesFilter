@@ -11,6 +11,7 @@ import pytest
 import tensorflow as tf
 
 from bayesfilter.inference import (
+    FixedTransportValueScoreAdapter,
     LatentAffineBatchValueScoreAdapter,
     LatentAffineHMCTransform,
     ValueScoreCapability,
@@ -71,6 +72,70 @@ class Float32OutputBatchedQuadraticAdapter(BatchedQuadraticAdapter):
     def log_prob_and_grad(self, theta: tf.Tensor) -> tuple[tf.Tensor, tf.Tensor]:
         values = tf.cast(tf.convert_to_tensor(theta), tf.float32)
         return -0.5 * tf.reduce_sum(tf.square(values), axis=-1), -values
+
+
+class AffineFixedTransport:
+    parameter_dim = 3
+
+    def __init__(self) -> None:
+        self.shift = tf.constant([0.25, -0.5, 0.75], dtype=tf.float64)
+        self.factor = tf.constant(
+            [
+                [2.0, 0.1, 0.0],
+                [0.0, 1.5, -0.2],
+                [0.3, 0.0, 1.25],
+            ],
+            dtype=tf.float64,
+        )
+        self.batch_calls = 0
+        self.scalar_calls = 0
+
+    def manifest_payload(self) -> dict[str, object]:
+        return {
+            "schema": "affine_fixed_transport_fixture.v1",
+            "parameter_dim": self.parameter_dim,
+            "shift": self.shift.numpy().tolist(),
+            "factor": self.factor.numpy().tolist(),
+        }
+
+    def forward(self, z: tf.Tensor) -> tf.Tensor:
+        self.scalar_calls += 1
+        values = tf.convert_to_tensor(z, dtype=tf.float64)
+        return self.shift + tf.linalg.matvec(self.factor, values)
+
+    def forward_batch(self, z_batch: tf.Tensor) -> tf.Tensor:
+        self.batch_calls += 1
+        values = tf.convert_to_tensor(z_batch, dtype=tf.float64)
+        return self.shift + tf.linalg.matmul(values, self.factor, transpose_b=True)
+
+    def log_abs_det_jacobian(self, z: tf.Tensor) -> tf.Tensor:
+        del z
+        _sign, log_abs_det = tf.linalg.slogdet(self.factor)
+        return log_abs_det
+
+    def log_abs_det_jacobian_batch(self, z_batch: tf.Tensor) -> tf.Tensor:
+        values = tf.convert_to_tensor(z_batch, dtype=tf.float64)
+        _sign, log_abs_det = tf.linalg.slogdet(self.factor)
+        return tf.fill(tf.shape(values)[:1], log_abs_det)
+
+
+class NoManifestTransport(AffineFixedTransport):
+    manifest_payload = None
+
+
+class NoBatchTransport(AffineFixedTransport):
+    forward_batch = None
+
+    def log_abs_det_jacobian_batch(self, z_batch: tf.Tensor) -> tf.Tensor:
+        return super().log_abs_det_jacobian_batch(z_batch)
+
+
+class NoScalarLogdetTransport(AffineFixedTransport):
+    log_abs_det_jacobian = None
+
+
+class NoBatchLogdetTransport(AffineFixedTransport):
+    log_abs_det_jacobian_batch = None
 
 
 def _theta_batch() -> tf.Tensor:
@@ -262,6 +327,162 @@ def test_latent_affine_target_status_telemetry_fails_closed_without_base_method(
 
     with pytest.raises(TypeError, match="target_status_telemetry"):
         adapter.target_status_telemetry(_theta_batch())
+
+
+def test_fixed_transport_value_score_adapter_batch_chain_rule_and_signature() -> None:
+    base = CountingBatchedQuadraticAdapter()
+    transport = AffineFixedTransport()
+    adapter = FixedTransportValueScoreAdapter(
+        base_adapter=base,
+        transport=transport,
+        target_scope="fixed_transport_fixture",
+        xla_hmc_ready=True,
+    )
+    z = _theta_batch()
+
+    value, score = adapter.log_prob_and_grad_batch(z)
+    u = transport.shift.numpy() + z.numpy() @ transport.factor.numpy().T
+    logdet = np.linalg.slogdet(transport.factor.numpy())[1]
+
+    assert base.calls == 1
+    assert transport.batch_calls == 1
+    assert transport.scalar_calls == 0
+    np.testing.assert_allclose(value.numpy(), -0.5 * np.sum(u * u, axis=-1) + logdet)
+    np.testing.assert_allclose(score.numpy(), (-u) @ transport.factor.numpy())
+    assert value.shape == (3,)
+    assert score.shape == (3, 3)
+    payload = adapter.adapter_signature_payload()
+    assert payload["schema"] == "bayesfilter.fixed_transport_value_score_adapter.v1"
+    assert payload["fixed_transport_manifest_hash"] == adapter.transport_manifest_hash
+    assert payload["target_scope"] == "fixed_transport_fixture"
+    assert payload["value_score_authority"] == "graph_native"
+    assert payload["batch_native"] is True
+    assert len(adapter.adapter_signature()) == 64
+
+
+def test_fixed_transport_value_score_adapter_scalar_chain_rule() -> None:
+    base = CountingBatchedQuadraticAdapter()
+    transport = AffineFixedTransport()
+    adapter = FixedTransportValueScoreAdapter(
+        base_adapter=base,
+        transport=transport,
+        target_scope="fixed_transport_fixture",
+    )
+    z = tf.constant([0.1, -0.2, 0.3], dtype=tf.float64)
+
+    value, score = adapter.log_prob_and_grad(z)
+    u = transport.shift.numpy() + transport.factor.numpy() @ z.numpy()
+    logdet = np.linalg.slogdet(transport.factor.numpy())[1]
+
+    assert base.calls == 1
+    assert transport.scalar_calls == 1
+    np.testing.assert_allclose(value.numpy(), -0.5 * np.sum(u * u) + logdet)
+    np.testing.assert_allclose(score.numpy(), transport.factor.numpy().T @ (-u))
+    assert value.shape == ()
+    assert score.shape == (3,)
+
+
+def test_fixed_transport_target_custom_gradient_matches_adapter_score() -> None:
+    z = _theta_batch()
+    adapter = FixedTransportValueScoreAdapter(
+        base_adapter=BatchedQuadraticAdapter(),
+        transport=AffineFixedTransport(),
+        target_scope="fixed_transport_fixture",
+    )
+    target = reviewed_value_score_target_fn(adapter, require_batched=True)
+
+    with tf.GradientTape() as tape:
+        tape.watch(z)
+        value = target(z)
+    gradient = tape.gradient(value, z)
+    direct_value, direct_score = adapter.log_prob_and_grad_batch(z)
+
+    np.testing.assert_allclose(value.numpy(), direct_value.numpy())
+    np.testing.assert_allclose(gradient.numpy(), direct_score.numpy())
+
+
+def test_fixed_transport_wrapper_preserves_authority_without_promoting_fallback() -> None:
+    class FallbackBase(BatchedQuadraticAdapter):
+        def value_score_capability(self) -> ValueScoreCapability:
+            return ValueScoreCapability(
+                value_score_authority="gradient_tape_fallback",
+                xla_hmc_ready=False,
+                runtime_backend="fallback_fixture",
+                target_scope="fallback_base",
+                nonclaims=("fallback fixture only",),
+            )
+
+    adapter = FixedTransportValueScoreAdapter(
+        base_adapter=FallbackBase(),
+        transport=AffineFixedTransport(),
+        target_scope="fixed_transport_fixture",
+        xla_hmc_ready=True,
+        full_chain_xla_diagnostic_ready=True,
+    )
+
+    capability = adapter.value_score_capability()
+
+    assert capability.value_score_authority == "gradient_tape_fallback"
+    assert capability.xla_hmc_ready is False
+    assert capability.full_chain_xla_diagnostic_ready is False
+    assert capability.target_scope == "fixed_transport_fixture"
+    assert any(
+        "fixed transport wrapper cannot promote fallback base authority" in claim
+        for claim in capability.nonclaims
+    )
+
+
+def test_fixed_transport_adapter_fails_closed_for_missing_manifest_or_batch_methods() -> None:
+    with pytest.raises(TypeError, match="manifest_payload"):
+        FixedTransportValueScoreAdapter(
+            base_adapter=BatchedQuadraticAdapter(),
+            transport=NoManifestTransport(),
+            target_scope="fixed_transport_fixture",
+        )
+
+    with pytest.raises(TypeError, match="forward_batch"):
+        FixedTransportValueScoreAdapter(
+            base_adapter=BatchedQuadraticAdapter(),
+            transport=NoBatchTransport(),
+            target_scope="fixed_transport_fixture",
+            batch_native=True,
+        )
+
+    adapter = FixedTransportValueScoreAdapter(
+        base_adapter=BatchedQuadraticAdapter(),
+        transport=NoBatchTransport(),
+        target_scope="fixed_transport_fixture",
+        batch_native=False,
+    )
+    with pytest.raises(ValueError, match="batch-native transport"):
+        adapter.log_prob_and_grad_batch(_theta_batch())
+
+
+def test_fixed_transport_adapter_fails_closed_for_missing_logdet_methods() -> None:
+    with pytest.raises(TypeError, match="log_abs_det_jacobian"):
+        FixedTransportValueScoreAdapter(
+            base_adapter=BatchedQuadraticAdapter(),
+            transport=NoScalarLogdetTransport(),
+            target_scope="fixed_transport_fixture",
+        )
+
+    with pytest.raises(TypeError, match="log_abs_det_jacobian_batch"):
+        FixedTransportValueScoreAdapter(
+            base_adapter=BatchedQuadraticAdapter(),
+            transport=NoBatchLogdetTransport(),
+            target_scope="fixed_transport_fixture",
+            batch_native=True,
+        )
+
+    adapter = FixedTransportValueScoreAdapter(
+        base_adapter=BatchedQuadraticAdapter(),
+        transport=NoBatchLogdetTransport(),
+        target_scope="fixed_transport_fixture",
+        batch_native=False,
+    )
+    value, score = adapter.log_prob_and_grad(tf.zeros((3,), dtype=tf.float64))
+    assert value.shape == ()
+    assert score.shape == (3,)
 
 
 def test_latent_affine_wrapper_preserves_graph_native_base_authority() -> None:

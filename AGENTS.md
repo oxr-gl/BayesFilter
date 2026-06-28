@@ -56,6 +56,48 @@ directive.  Evidence artifacts may still record unresolved scientific or HMC
 gates, but they should not downgrade the default target back to "no production
 default" merely because those separate gates remain open.
 
+## XLA JIT Default Policy
+
+Owner directive, 2026-06-26: BayesFilter-owned TensorFlow/TensorFlow
+Probability algorithmic, differentiable, gradient-bearing, benchmark, and
+production-target execution paths must default to XLA JIT compilation
+(`tf.function(..., jit_compile=True)` or an equivalent project API option that
+defaults to true).
+
+`--no-jit-compile`, `jit_compile=False`, eager-only execution, or graph mode
+without XLA is allowed only as an explicit non-default exception for reference
+checks, small smoke tests, debugging/localization, sandbox-safe diagnostics, or
+a reviewed artifact that records why XLA is not being used.  Such runs must not
+be described as the BayesFilter default execution path, default-readiness
+evidence, production-target evidence, or a replacement for the GPU/XLA route.
+
+New CLI harnesses that expose a JIT switch must default to JIT on.  If a
+non-JIT escape hatch is kept, artifacts must record `jit_compile`, and result
+notes must label non-JIT runs as debug/reference exceptions.
+
+## Managed-Session GPU Trust
+
+Owner directive, 2026-06-25: visible non-elevated GPU runs in the managed
+BayesFilter Codex session are trusted BayesFilter GPU evidence when all of the
+following hold:
+
+- the run uses the repository TensorFlow/TFP GPU/XLA path;
+- GPU visibility/provenance is recorded in the artifact;
+- TF32/XLA/device settings are recorded in the artifact;
+- the command writes structured JSON/Markdown/log artifacts under the reviewed
+  plan;
+- the artifact states the trust basis as
+  `owner_designated_managed_session_visible_gpu_trusted`;
+- no package install, network fetch, destructive git operation, model-file
+  edit, public API/default-policy change, HMC runtime, or scientific/default
+  promotion claim is smuggled into the run.
+
+This directive resolves the local execution-boundary question for BayesFilter
+GPU benchmark artifacts.  It does not lower the scientific evidence bar:
+posterior correctness, HMC readiness, statistical superiority, threshold
+calibration, public API readiness, package readiness, and broad scientific
+validity still require their stated gates and artifacts.
+
 ## Zhao-Cui Lane Source-Anchor Gate
 
 For all Zhao-Cui high-dimensional filtering work, "faithful" has a binding

@@ -136,6 +136,81 @@ bool parse_opaque(const char* opaque, size_t opaque_len, int* batch,
   return *batch > 0 && *parameters > 0 && *n > 0;
 }
 
+int principal_sqrt_one(int n, const double* covariance, double* factor,
+                       std::string* error) {
+  const size_t nn = static_cast<size_t>(n) * n;
+  if (has_nonfinite(covariance, nn)) {
+    *error = "SymmetricPrincipalSqrt: covariance must be finite";
+    return 1;
+  }
+
+  double max_abs = 0.0;
+  const double sym_residual =
+      max_abs_symmetry_residual(covariance, n, &max_abs);
+  const double sym_tolerance = 1.0e-10 * (1.0 + max_abs);
+  if (sym_residual > sym_tolerance) {
+    std::ostringstream oss;
+    oss << "SymmetricPrincipalSqrt: covariance must be symmetric; residual="
+        << sym_residual << " tolerance=" << sym_tolerance;
+    *error = oss.str();
+    return 2;
+  }
+
+  Eigen::Map<const RowMajorMatrix> covariance_map(covariance, n, n);
+  const Eigen::MatrixXd covariance_col = covariance_map;
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eig(covariance_col);
+  if (eig.info() != Eigen::Success) {
+    *error = "SymmetricPrincipalSqrt: eigensolve failed";
+    return 3;
+  }
+  const Eigen::VectorXd values = eig.eigenvalues();
+  const double min_value = values.minCoeff();
+  if (!(min_value > 0.0)) {
+    std::ostringstream oss;
+    oss << "SymmetricPrincipalSqrt: covariance must be positive definite; "
+        << "min_eigenvalue=" << min_value;
+    *error = oss.str();
+    return 4;
+  }
+
+  const Eigen::MatrixXd vectors = eig.eigenvectors();
+  const Eigen::MatrixXd sqrt_diag = values.array().sqrt().matrix().asDiagonal();
+  const Eigen::MatrixXd sqrt_matrix =
+      vectors * sqrt_diag * vectors.transpose();
+  Eigen::Map<RowMajorMatrix> factor_map(factor, n, n);
+  factor_map = sqrt_matrix;
+  return 0;
+}
+
+int principal_sqrt_batch(int batch, int n, const double* covariance,
+                         double* factor, std::string* error) {
+  const size_t nn = static_cast<size_t>(n) * n;
+  for (int b = 0; b < batch; ++b) {
+    const size_t offset = static_cast<size_t>(b) * nn;
+    const int info =
+        principal_sqrt_one(n, covariance + offset, factor + offset, error);
+    if (info != 0) return info;
+  }
+  return 0;
+}
+
+bool parse_matrix_opaque(const char* opaque, size_t opaque_len, int* batch,
+                         int* n, std::string* error) {
+  try {
+    const std::string text(opaque, opaque_len);
+    const size_t comma = text.find(',');
+    if (comma == std::string::npos) {
+      throw std::runtime_error("missing comma");
+    }
+    *batch = std::stoi(text.substr(0, comma));
+    *n = std::stoi(text.substr(comma + 1));
+  } catch (...) {
+    *error = "SymmetricPrincipalSqrtXlaImpl: cannot parse opaque shape";
+    return false;
+  }
+  return *batch > 0 && *n > 0;
+}
+
 }  // namespace
 
 extern "C" __attribute__((visibility("default"))) void SymmetricSylvesterXlaImpl(
@@ -166,6 +241,34 @@ extern "C" __attribute__((visibility("default"))) void SymmetricSylvesterXlaImpl
 
 XLA_REGISTER_CUSTOM_CALL_TARGET_WITH_SYM(
     "SymmetricSylvesterXlaImpl", SymmetricSylvesterXlaImpl, "Host");
+
+extern "C" __attribute__((visibility("default"))) void
+SymmetricPrincipalSqrtXlaImpl(void* out_raw, const void** in,
+                              const char* opaque, size_t opaque_len,
+                              XlaCustomCallStatus* status) {
+  int batch = 0;
+  int n = 0;
+  std::string error;
+  if (!parse_matrix_opaque(opaque, opaque_len, &batch, &n, &error)) {
+    XlaCustomCallStatusSetFailure(status, error.c_str(), error.size());
+    return;
+  }
+
+  const double* covariance = static_cast<const double*>(in[0]);
+  void** out = static_cast<void**>(out_raw);
+  double* factor = static_cast<double*>(out[0]);
+
+  const int info =
+      principal_sqrt_batch(batch, n, covariance, factor, &error);
+  if (info != 0) {
+    std::memset(factor, 0,
+                static_cast<size_t>(batch) * n * n * sizeof(double));
+    XlaCustomCallStatusSetFailure(status, error.c_str(), error.size());
+  }
+}
+
+XLA_REGISTER_CUSTOM_CALL_TARGET_WITH_SYM(
+    "SymmetricPrincipalSqrtXlaImpl", SymmetricPrincipalSqrtXlaImpl, "Host");
 
 #ifdef HAS_CUDA
 
@@ -216,6 +319,50 @@ SymmetricSylvesterXlaImpl_Gpu(cudaStream_t stream, void** buffers,
 
 XLA_REGISTER_CUSTOM_CALL_TARGET_WITH_SYM(
     "SymmetricSylvesterXlaImpl", SymmetricSylvesterXlaImpl_Gpu, "CUDA");
+
+extern "C" __attribute__((visibility("default"))) void
+SymmetricPrincipalSqrtXlaImpl_Gpu(cudaStream_t stream, void** buffers,
+                                  const char* opaque, size_t opaque_len,
+                                  XlaCustomCallStatus* status) {
+  int batch = 0;
+  int n = 0;
+  std::string error;
+  if (!parse_matrix_opaque(opaque, opaque_len, &batch, &n, &error)) {
+    const std::string message =
+        "SymmetricPrincipalSqrtXlaImpl (GPU): " + error;
+    XlaCustomCallStatusSetFailure(status, message.c_str(), message.size());
+    return;
+  }
+
+  const size_t nn = static_cast<size_t>(n) * n;
+  const size_t bytes = static_cast<size_t>(batch) * nn * sizeof(double);
+
+  const void* d_covariance = buffers[0];
+  void* d_factor = buffers[1];
+
+  std::vector<double> h_covariance(static_cast<size_t>(batch) * nn);
+  std::vector<double> h_factor(static_cast<size_t>(batch) * nn);
+
+  cudaDeviceSynchronize();
+  cudaMemcpyAsync(
+      h_covariance.data(), d_covariance, bytes, cudaMemcpyDeviceToHost, stream);
+  cudaStreamSynchronize(stream);
+
+  const int info = principal_sqrt_batch(
+      batch, n, h_covariance.data(), h_factor.data(), &error);
+  if (info != 0) {
+    std::memset(h_factor.data(), 0, bytes);
+    XlaCustomCallStatusSetFailure(status, error.c_str(), error.size());
+  }
+
+  cudaMemcpyAsync(d_factor, h_factor.data(), bytes, cudaMemcpyHostToDevice,
+                  stream);
+  cudaStreamSynchronize(stream);
+}
+
+XLA_REGISTER_CUSTOM_CALL_TARGET_WITH_SYM(
+    "SymmetricPrincipalSqrtXlaImpl", SymmetricPrincipalSqrtXlaImpl_Gpu,
+    "CUDA");
 
 #endif  // HAS_CUDA
 
@@ -274,6 +421,49 @@ class SymmetricSylvesterOp : public OpKernel {
 REGISTER_KERNEL_BUILDER(
     Name("SymmetricSylvester").Device(DEVICE_CPU), SymmetricSylvesterOp);
 
+REGISTER_OP("SymmetricPrincipalSqrt")
+    .Input("covariance: double")
+    .Output("factor: double")
+    .SetShapeFn([](InferenceContext* c) -> Status {
+      ShapeHandle covariance_shape;
+      TF_RETURN_IF_ERROR(c->WithRank(c->input(0), 3, &covariance_shape));
+      c->set_output(0, covariance_shape);
+      return OkStatus();
+    });
+
+class SymmetricPrincipalSqrtOp : public OpKernel {
+ public:
+  explicit SymmetricPrincipalSqrtOp(OpKernelConstruction* ctx)
+      : OpKernel(ctx) {}
+
+  void Compute(OpKernelContext* ctx) override {
+    const Tensor& covariance_t = ctx->input(0);
+    OP_REQUIRES(ctx, covariance_t.dims() == 3,
+                errors::InvalidArgument(
+                    "covariance must have shape [batch,n,n]"));
+    const int64_t batch = covariance_t.dim_size(0);
+    const int64_t n = covariance_t.dim_size(1);
+    OP_REQUIRES(ctx, batch > 0 && n > 0 && covariance_t.dim_size(2) == n,
+                errors::InvalidArgument(
+                    "covariance must be square on trailing axes"));
+
+    Tensor* factor_t = nullptr;
+    OP_REQUIRES_OK(
+        ctx, ctx->allocate_output(0, covariance_t.shape(), &factor_t));
+
+    std::string error;
+    const int info = principal_sqrt_batch(
+        static_cast<int>(batch), static_cast<int>(n),
+        covariance_t.flat<double>().data(), factor_t->flat<double>().data(),
+        &error);
+    OP_REQUIRES(ctx, info == 0, errors::InvalidArgument(error));
+  }
+};
+
+REGISTER_KERNEL_BUILDER(
+    Name("SymmetricPrincipalSqrt").Device(DEVICE_CPU),
+    SymmetricPrincipalSqrtOp);
+
 class SymmetricSylvesterXlaOp : public XlaOpKernel {
  public:
   explicit SymmetricSylvesterXlaOp(OpKernelConstruction* ctx)
@@ -317,6 +507,40 @@ class SymmetricSylvesterXlaOp : public XlaOpKernel {
 };
 
 REGISTER_XLA_OP(Name("SymmetricSylvester"), SymmetricSylvesterXlaOp);
+
+class SymmetricPrincipalSqrtXlaOp : public XlaOpKernel {
+ public:
+  explicit SymmetricPrincipalSqrtXlaOp(OpKernelConstruction* ctx)
+      : XlaOpKernel(ctx) {}
+
+  void Compile(XlaOpKernelContext* ctx) override {
+    const TensorShape covariance_shape = ctx->InputShape(0);
+    OP_REQUIRES(ctx, covariance_shape.dims() == 3,
+                errors::InvalidArgument("covariance must have rank 3"));
+    const int64_t batch = covariance_shape.dim_size(0);
+    const int64_t n = covariance_shape.dim_size(1);
+    OP_REQUIRES(ctx, batch > 0 && n > 0 && covariance_shape.dim_size(2) == n,
+                errors::InvalidArgument(
+                    "covariance must have shape [batch,n,n]"));
+
+    const xla::Shape out_shape =
+        xla::ShapeUtil::MakeShape(xla::F64, {batch, n, n});
+    const xla::Shape tuple_shape = xla::ShapeUtil::MakeTupleShape({out_shape});
+    const std::string opaque =
+        std::to_string(batch) + "," + std::to_string(n);
+    const xla::XlaOp result = xla::CustomCall(
+        ctx->builder(), "SymmetricPrincipalSqrtXlaImpl", {ctx->Input(0)},
+        tuple_shape, opaque,
+        /*has_side_effect=*/false,
+        /*output_operand_aliasing=*/{},
+        /*literal=*/nullptr,
+        xla::CustomCallSchedule::SCHEDULE_NONE,
+        xla::CustomCallApiVersion::API_VERSION_STATUS_RETURNING_UNIFIED);
+    ctx->SetOutput(0, xla::GetTupleElement(result, 0));
+  }
+};
+
+REGISTER_XLA_OP(Name("SymmetricPrincipalSqrt"), SymmetricPrincipalSqrtXlaOp);
 
 }  // namespace
 }  // namespace tensorflow

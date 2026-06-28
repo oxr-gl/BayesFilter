@@ -21,12 +21,16 @@ from bayesfilter.inference.hmc import (
     FullChainHMCConfig,
     FullChainHMCRunResult,
     PrecomputedMassArtifact,
+    build_reusable_full_chain_tfp_hmc_runner,
     program_signature,
     run_full_chain_tfp_hmc,
     stable_adapter_signature,
 )
 from bayesfilter.inference.hmc_tuning import HMCTuningPolicy
-from bayesfilter.inference.posterior_adapter import value_score_capability
+from bayesfilter.inference.posterior_adapter import (
+    ValueScoreCapability,
+    value_score_capability,
+)
 from bayesfilter.runtime import stable_config_hash
 
 
@@ -321,6 +325,7 @@ class FixedMassHMCTuningBudgetLadderResult:
     selected_round_index: int | None
     final_status: str
     diagnostic_roles: Mapping[str, str]
+    runner_route_summary: Mapping[str, Any] = field(default_factory=dict)
     nonclaims: tuple[str, ...] = BUDGET_LADDER_NONCLAIMS
 
     def __post_init__(self) -> None:
@@ -352,6 +357,7 @@ class FixedMassHMCTuningBudgetLadderResult:
         object.__setattr__(self, "final_status", str(self.final_status))
         object.__setattr__(self, "mass_artifact_payload", dict(self.mass_artifact_payload))
         object.__setattr__(self, "diagnostic_roles", dict(self.diagnostic_roles))
+        object.__setattr__(self, "runner_route_summary", dict(self.runner_route_summary))
         nonclaims = tuple(str(item) for item in self.nonclaims)
         if not nonclaims:
             raise ValueError("nonclaims must be non-empty")
@@ -398,11 +404,55 @@ class FixedMassHMCTuningBudgetLadderResult:
         }
 
     @property
+    def last_finite_tuned_round(self) -> FixedMassHMCTuningBudgetRound | None:
+        for round_result in reversed(self.rounds):
+            if round_result.tuned_step_size is not None:
+                return round_result
+        return None
+
+    @property
+    def repair_config_payload(self) -> Mapping[str, Any] | None:
+        if self.passed:
+            return None
+        repair_round = self.last_finite_tuned_round
+        if repair_round is None or repair_round.tuned_step_size is None:
+            return None
+        return {
+            "runtime": "bayesfilter.inference.run_fixed_mass_hmc_tuning_budget_ladder",
+            "handoff_role": "private_repair_step_only",
+            "step_size": repair_round.tuned_step_size,
+            "num_leapfrog_steps": self.config.num_leapfrog_steps,
+            "repair_round_index": repair_round.round_index,
+            "repair_budget": repair_round.budget,
+            "repair_classification": repair_round.classification,
+            "target_accept_prob": self.config.target_accept_prob,
+            "acceptance_band": self.config.acceptance_band,
+            "repair_band": self.config.repair_band,
+            "adapter_signature": self.adapter_signature,
+            "hmc_adapter_signature": self.hmc_adapter_signature,
+            "target_scope": self._round_target_scope(repair_round),
+            "mass_artifact_signature": self.mass_artifact_signature,
+            "target_status_trace_policy": self.config.target_status_trace_policy,
+            "tune_seed": repair_round.tune_seed,
+            "screen_seed": repair_round.screen_seed,
+            "nonclaims": (
+                *self.nonclaims,
+                "repair step is private retry state, not a selected kernel",
+            ),
+        }
+
+    @property
+    def repair_config_hash(self) -> str | None:
+        payload = self.repair_config_payload
+        return None if payload is None else stable_config_hash(payload)
+
+    @property
     def artifact_hash(self) -> str:
         return stable_config_hash(self.payload())
 
     def payload(self) -> Mapping[str, Any]:
         selected_payload = self.selected_config_payload
+        repair_payload = self.repair_config_payload
         return {
             "schema": "bayesfilter.fixed_mass_hmc_tuning_budget_ladder.v1",
             "config": self.config.payload(),
@@ -417,8 +467,14 @@ class FixedMassHMCTuningBudgetLadderResult:
             "selected_config_hash": None
             if selected_payload is None
             else stable_config_hash(selected_payload),
+            "repair_config_hash": None
+            if repair_payload is None
+            else stable_config_hash(repair_payload),
+            "repair_config_available": repair_payload is not None,
+            "repair_config_payload_exposed": False,
             "final_status": self.final_status,
             "diagnostic_roles": self.diagnostic_roles,
+            "runner_route_summary": self.runner_route_summary,
             "passed": self.passed,
             "reports_posterior_convergence": False,
             "nonclaims": self.nonclaims,
@@ -432,7 +488,15 @@ class FixedMassHMCTuningBudgetLadderResult:
         selected = self.selected_round
         if selected is None or selected.screen_config_payload is None:
             return self.config.target_scope
-        target_scope = selected.screen_config_payload.get("target_scope")
+        return self._round_target_scope(selected)
+
+    def _round_target_scope(
+        self,
+        round_result: FixedMassHMCTuningBudgetRound,
+    ) -> str | None:
+        if round_result.screen_config_payload is None:
+            return self.config.target_scope
+        target_scope = round_result.screen_config_payload.get("target_scope")
         return None if target_scope is None else str(target_scope)
 
 
@@ -475,6 +539,13 @@ def run_fixed_mass_hmc_tuning_budget_ladder(
     current_step = float(config.initial_step_size)
     selected_index: int | None = None
     final_status = "budget_exhausted"
+    use_reusable_route = (
+        run_full_chain is run_full_chain_tfp_hmc
+        and config.chain_execution_mode == "tf_function"
+    )
+    runner_cache: dict[str, Any] = {}
+    runner_contract_payloads: dict[str, Mapping[str, Any]] = {}
+    runner_route_events: list[Mapping[str, Any]] = []
 
     for round_index, budget in enumerate(config.budget_schedule):
         tune_seed = _round_seed(config.tune_seed_base, round_index)
@@ -496,7 +567,20 @@ def run_fixed_mass_hmc_tuning_budget_ladder(
         tune_result = None
         tune_error = None
         try:
-            tune_result = run_full_chain(hmc_adapter, tune_state, tune_config)
+            tune_result = _run_full_chain_with_optional_reusable_route(
+                run_full_chain=run_full_chain,
+                runner_cache=runner_cache,
+                runner_contract_payloads=runner_contract_payloads,
+                route_events=runner_route_events,
+                adapter=hmc_adapter,
+                initial_state=tune_state,
+                config=tune_config,
+                target_dimension=target_dimension,
+                mass_signature=mass_signature,
+                role="tune",
+                round_index=round_index,
+                budget=budget,
+            )
             tune_diagnostics = dict(_diagnostics_payload(tune_result))
         except Exception as exc:  # noqa: BLE001 - return a fail-closed artifact.
             tune_error = exc
@@ -551,7 +635,20 @@ def run_fixed_mass_hmc_tuning_budget_ladder(
         screen_result = None
         screen_error = None
         try:
-            screen_result = run_full_chain(hmc_adapter, screen_state, screen_config)
+            screen_result = _run_full_chain_with_optional_reusable_route(
+                run_full_chain=run_full_chain,
+                runner_cache=runner_cache,
+                runner_contract_payloads=runner_contract_payloads,
+                route_events=runner_route_events,
+                adapter=hmc_adapter,
+                initial_state=screen_state,
+                config=screen_config,
+                target_dimension=target_dimension,
+                mass_signature=mass_signature,
+                role="screen",
+                round_index=round_index,
+                budget=budget,
+            )
             screen_diagnostics = _diagnostics_payload(screen_result)
         except Exception as exc:  # noqa: BLE001 - return a fail-closed artifact.
             screen_error = exc
@@ -642,7 +739,7 @@ def run_fixed_mass_hmc_tuning_budget_ladder(
         final_status=final_status,
         diagnostic_roles={
             "acceptance_band": "tuning_screen_promotion_only",
-            "repair_band": "acceptance_repair_trigger_or_hard_veto",
+            "repair_band": "acceptance_repair_trigger",
             "finite_samples": "hard_veto",
             "log_accept_ratio_finite": "hard_veto",
             "target_status_telemetry": "hard_veto_when_enabled",
@@ -653,6 +750,15 @@ def run_fixed_mass_hmc_tuning_budget_ladder(
             "callback_repair_triggers": "promotion_veto_repair_trigger",
             "runtime": "explanatory_diagnostic",
         },
+        runner_route_summary=_runner_route_summary(
+            active_route=(
+                "fixed_mass_scoped_reusable_runner"
+                if use_reusable_route
+                else "single_use_or_injected_runner"
+            ),
+            events=tuple(runner_route_events),
+            contract_payloads=runner_contract_payloads,
+        ),
     )
 
 
@@ -690,6 +796,29 @@ class _FixedMassLatentValueScoreAdapter(LatentAffineBatchValueScoreAdapter):
 
     def adapter_signature(self) -> str:
         return self._adapter_signature
+
+    def value_score_capability(self) -> ValueScoreCapability:
+        base_capability = value_score_capability(self.base_adapter)
+        base_scope = base_capability.target_scope
+        scope_matches = base_scope is None or str(base_scope) == self.target_scope
+        preserve_xla = (
+            bool(base_capability.is_accepted_full_chain_xla_diagnostic_authority)
+            and scope_matches
+        )
+        nonclaims = self.nonclaims + (
+            f"base value/score authority: {base_capability.value_score_authority}",
+            "fixed-mass latent wrapper cannot promote fallback base authority",
+            "fixed-mass latent wrapper preserves XLA authority only from accepted base authority",
+        )
+        return ValueScoreCapability(
+            value_score_authority=base_capability.value_score_authority,
+            xla_hmc_ready=preserve_xla,
+            full_chain_xla_diagnostic_ready=preserve_xla,
+            runtime_backend=self.runtime_backend,
+            evidence_path=base_capability.evidence_path if preserve_xla else None,
+            target_scope=self.target_scope,
+            nonclaims=nonclaims,
+        )
 
 
 def _resolve_target_scope(
@@ -839,6 +968,183 @@ def _diagnostics_payload(run_result: FullChainHMCRunResult) -> Mapping[str, Any]
     return payload
 
 
+def _run_full_chain_with_optional_reusable_route(
+    *,
+    run_full_chain: RunFullChainFn,
+    runner_cache: dict[str, Any],
+    runner_contract_payloads: dict[str, Mapping[str, Any]],
+    route_events: list[Mapping[str, Any]],
+    adapter: Any,
+    initial_state: Any,
+    config: FullChainHMCConfig,
+    target_dimension: int,
+    mass_signature: str,
+    role: str,
+    round_index: int,
+    budget: int,
+) -> FullChainHMCRunResult:
+    """Run HMC through a scoped reusable runner when the static contract matches.
+
+    ``ReusableFullChainHMCRunner`` fixes TFP graph-shaping fields and accepts
+    state, seed, and step size as runtime tensor arguments.  The selected HMC
+    contract still comes from the supplied ``FullChainHMCConfig``; this wrapper
+    only changes whether BayesFilter reuses an already-built callable.
+    """
+
+    if run_full_chain is not run_full_chain_tfp_hmc or config.chain_execution_mode != "tf_function":
+        route_events.append(
+            {
+                "round_index": int(round_index),
+                "budget": int(budget),
+                "role": str(role),
+                "route": "single_use_or_injected_runner",
+                "static_contract_hash": None,
+                "call_config_hash": stable_config_hash(config.signature_payload()),
+                "runner_reused": False,
+                "used_single_use_runner": run_full_chain is run_full_chain_tfp_hmc,
+            }
+        )
+        return run_full_chain(adapter, initial_state, config)
+
+    contract_payload = _reusable_static_contract_payload(
+        config,
+        hmc_adapter_signature=stable_adapter_signature(adapter),
+        target_dimension=target_dimension,
+        mass_signature=mass_signature,
+        initial_state=initial_state,
+    )
+    contract_hash = stable_config_hash(contract_payload)
+    runner = runner_cache.get(contract_hash)
+    runner_reused = runner is not None
+    if runner is None:
+        runner = build_reusable_full_chain_tfp_hmc_runner(
+            adapter,
+            initial_state,
+            config,
+        )
+        runner_cache[contract_hash] = runner
+        runner_contract_payloads[contract_hash] = contract_payload
+    result = runner.run(
+        current_state=initial_state,
+        seed=config.seed,
+        step_size=config.step_size,
+    )
+    route_event = {
+        "round_index": int(round_index),
+        "budget": int(budget),
+        "role": str(role),
+        "route": "fixed_mass_scoped_reusable_runner",
+        "static_contract_hash": contract_hash,
+        "call_config_hash": stable_config_hash(config.signature_payload()),
+        "runner_reused": runner_reused,
+        "used_single_use_runner": False,
+    }
+    route_events.append(route_event)
+    return FullChainHMCRunResult(
+        samples=result.samples,
+        trace=result.trace,
+        diagnostics=result.diagnostics,
+        metadata={
+            **dict(result.metadata),
+            "fixed_mass_budget_ladder_route": route_event["route"],
+            "fixed_mass_budget_ladder_role": route_event["role"],
+            "fixed_mass_budget_ladder_static_contract_hash": contract_hash,
+            "fixed_mass_budget_ladder_call_config_hash": route_event[
+                "call_config_hash"
+            ],
+            "fixed_mass_budget_ladder_runner_reused": runner_reused,
+            "fixed_mass_budget_ladder_static_contract_payload": contract_payload,
+        },
+    )
+
+
+def _reusable_static_contract_payload(
+    config: FullChainHMCConfig,
+    *,
+    hmc_adapter_signature: str,
+    target_dimension: int,
+    mass_signature: str,
+    initial_state: Any,
+) -> Mapping[str, Any]:
+    payload = dict(config.signature_payload())
+    payload.pop("seed", None)
+    payload.pop("step_size", None)
+    state_contract = _reusable_state_template_contract(initial_state)
+    return {
+        "runner": "build_reusable_full_chain_tfp_hmc_runner",
+        "hmc_adapter_signature": str(hmc_adapter_signature),
+        "target_dimension": int(target_dimension),
+        "mass_artifact_signature": str(mass_signature),
+        "initial_state_shape": state_contract["initial_state_shape"],
+        "initial_state_dtype": state_contract["initial_state_dtype"],
+        "initial_state_dtype_source": state_contract["initial_state_dtype_source"],
+        "static_config": payload,
+        "dynamic_inputs": ("current_state", "seed", "step_size"),
+    }
+
+
+def _reusable_state_template_contract(initial_state: Any) -> Mapping[str, Any]:
+    import tensorflow as tf
+
+    template = tf.cast(tf.convert_to_tensor(initial_state), tf.float64)
+    if template.shape.rank is None:
+        raise ValueError("reusable HMC runner requires static state rank")
+    shape = template.shape.as_list()
+    if any(dim is None for dim in shape):
+        raise ValueError("reusable HMC runner requires fully static state shape")
+    return {
+        "initial_state_shape": tuple(int(dim) for dim in shape),
+        "initial_state_dtype": template.dtype.name,
+        "initial_state_dtype_source": "tf.cast(tf.convert_to_tensor(initial_state), tf.float64)",
+    }
+
+
+def _runner_route_summary(
+    *,
+    active_route: str,
+    events: Sequence[Mapping[str, Any]],
+    contract_payloads: Mapping[str, Mapping[str, Any]],
+) -> Mapping[str, Any]:
+    return {
+        "active_route": active_route,
+        "semantic_source": "run_fixed_mass_hmc_tuning_budget_ladder",
+        "reusable_runner_build_count": len(contract_payloads),
+        "distinct_static_runner_contract_count": len(contract_payloads),
+        "single_use_build_count": sum(
+            1 for item in events if item.get("used_single_use_runner") is True
+        ),
+        "injected_runner_call_count": sum(
+            1
+            for item in events
+            if item.get("route") == "single_use_or_injected_runner"
+            and item.get("used_single_use_runner") is False
+        ),
+        "round_route_events": tuple(dict(item) for item in events),
+        "distinct_static_runner_contracts": tuple(
+            {
+                "static_contract_hash": contract_hash,
+                "static_contract_payload": contract_payloads[contract_hash],
+            }
+            for contract_hash in sorted(contract_payloads)
+        ),
+        "fallback_to_single_use_runner": any(
+            item.get("used_single_use_runner") is True for item in events
+        )
+        and active_route == "fixed_mass_scoped_reusable_runner",
+        "fallback_status": (
+            "none"
+            if active_route == "fixed_mass_scoped_reusable_runner"
+            and not any(item.get("used_single_use_runner") is True for item in events)
+            else "inactive_reusable_route"
+        ),
+        "route_nonclaims": (
+            "route telemetry is engineering evidence only",
+            "does not change selected step or HMC kernel semantics",
+            "does not establish posterior convergence or sampler superiority",
+        ),
+    }
+
+
 def _telemetry_payload(value: Any) -> Mapping[str, Any] | None:
     if value is None:
         return None
@@ -917,10 +1223,6 @@ def _classify_screen_round(
     telemetry = screen_diagnostics.get("target_status_telemetry")
     if isinstance(telemetry, Mapping) and telemetry.get("telemetry_failure_veto_bool"):
         hard_vetoes.append("screen_target_status_telemetry_failure")
-    if _finite_number(acceptance) and not (
-        config.repair_band[0] <= float(acceptance) <= config.repair_band[1]
-    ):
-        hard_vetoes.append("screen_acceptance_outside_repair_band")
     hard_vetoes.extend(callback_result.hard_vetoes)
     if hard_vetoes:
         return (
@@ -941,18 +1243,34 @@ def _classify_screen_round(
             callback_result.repair_triggers,
         )
     promotion_vetoes = tuple(callback_result.promotion_vetoes)
-    repair_triggers = tuple(callback_result.repair_triggers)
+    repair_triggers_list = list(callback_result.repair_triggers)
+    if _finite_number(acceptance):
+        acceptance_value = float(acceptance)
+        if acceptance_value < config.repair_band[0]:
+            repair_triggers_list.append("screen_acceptance_below_repair_band")
+        elif acceptance_value > config.repair_band[1]:
+            repair_triggers_list.append("screen_acceptance_above_repair_band")
+    repair_triggers = tuple(dict.fromkeys(str(item) for item in repair_triggers_list))
     in_acceptance = (
         _finite_number(acceptance)
         and config.acceptance_band[0] <= float(acceptance) <= config.acceptance_band[1]
     )
     if promotion_vetoes or repair_triggers:
+        if promotion_vetoes or callback_result.repair_triggers:
+            return (
+                "promotion_veto_repair",
+                "promotion_veto_repair_trigger",
+                (),
+                (),
+                promotion_vetoes,
+                repair_triggers,
+            )
         return (
-            "promotion_veto_repair",
-            "promotion_veto_repair_trigger",
+            "acceptance_repair",
+            "acceptance_repair_trigger",
             (),
             (),
-            promotion_vetoes,
+            (),
             repair_triggers,
         )
     if in_acceptance:

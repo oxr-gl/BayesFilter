@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import ast
+import inspect
 import os
+import textwrap
 from types import SimpleNamespace
 
 os.environ.setdefault("CUDA_VISIBLE_DEVICES", "-1")
@@ -178,6 +181,187 @@ def _repeated_positive_model_and_derivatives() -> tuple[
         d_observation_fn=d_observation,
     )
     return observations, model, derivatives
+
+
+def _lagged_linear_model_and_derivatives(
+    theta: tf.Tensor,
+    *,
+    previous_coeff: float = 0.35,
+) -> tuple[
+    tf.Tensor,
+    TFBatchedStructuralStateSpace,
+    TFBatchedStructuralFirstDerivatives,
+]:
+    batch_size = 1
+    parameter_dim = 1
+    state_dim = 1
+    innovation_dim = 1
+    observation_dim = 1
+    transition_state = tf.constant(0.72, dtype=tf.float64)
+    transition_innovation = tf.constant(0.18, dtype=tf.float64)
+    previous_weight = tf.constant(previous_coeff, dtype=tf.float64)
+    innovation_weight = tf.constant(0.11, dtype=tf.float64)
+    next_weight = tf.constant(1.20, dtype=tf.float64)
+    theta = tf.ensure_shape(tf.convert_to_tensor(theta, dtype=tf.float64), [batch_size, 1])
+    observations = tf.constant([[0.12], [-0.03]], dtype=tf.float64)
+
+    def transition(previous: tf.Tensor, innovation: tf.Tensor) -> tf.Tensor:
+        return transition_state * previous + transition_innovation * innovation
+
+    def observe(states: tf.Tensor) -> tf.Tensor:
+        return next_weight * states
+
+    def observe_lagged(
+        previous: tf.Tensor,
+        innovation: tf.Tensor,
+        predicted: tf.Tensor,
+    ) -> tf.Tensor:
+        return (
+            previous_weight * previous
+            + innovation_weight * innovation
+            + next_weight * predicted
+        )
+
+    def transition_state_jacobian(
+        previous: tf.Tensor,
+        innovation: tf.Tensor,
+    ) -> tf.Tensor:
+        del innovation
+        return tf.fill(
+            [tf.shape(previous)[0], tf.shape(previous)[1], state_dim, state_dim],
+            transition_state,
+        )
+
+    def transition_innovation_jacobian(
+        previous: tf.Tensor,
+        innovation: tf.Tensor,
+    ) -> tf.Tensor:
+        del previous
+        return tf.fill(
+            [tf.shape(innovation)[0], tf.shape(innovation)[1], state_dim, innovation_dim],
+            transition_innovation,
+        )
+
+    def d_transition(previous: tf.Tensor, innovation: tf.Tensor) -> tf.Tensor:
+        return tf.zeros(
+            [tf.shape(previous)[0], parameter_dim, tf.shape(previous)[1], state_dim],
+            dtype=tf.float64,
+        )
+
+    def observation_state_jacobian(states: tf.Tensor) -> tf.Tensor:
+        return tf.fill(
+            [tf.shape(states)[0], tf.shape(states)[1], observation_dim, state_dim],
+            next_weight,
+        )
+
+    def d_observation(states: tf.Tensor) -> tf.Tensor:
+        return tf.zeros(
+            [tf.shape(states)[0], parameter_dim, tf.shape(states)[1], observation_dim],
+            dtype=tf.float64,
+        )
+
+    def lagged_previous_jacobian(
+        previous: tf.Tensor,
+        innovation: tf.Tensor,
+        predicted: tf.Tensor,
+    ) -> tf.Tensor:
+        del innovation, predicted
+        return tf.fill(
+            [tf.shape(previous)[0], tf.shape(previous)[1], observation_dim, state_dim],
+            previous_weight,
+        )
+
+    def lagged_innovation_jacobian(
+        previous: tf.Tensor,
+        innovation: tf.Tensor,
+        predicted: tf.Tensor,
+    ) -> tf.Tensor:
+        del previous, predicted
+        return tf.fill(
+            [tf.shape(innovation)[0], tf.shape(innovation)[1], observation_dim, innovation_dim],
+            innovation_weight,
+        )
+
+    def lagged_next_jacobian(
+        previous: tf.Tensor,
+        innovation: tf.Tensor,
+        predicted: tf.Tensor,
+    ) -> tf.Tensor:
+        del previous, innovation
+        return tf.fill(
+            [tf.shape(predicted)[0], tf.shape(predicted)[1], observation_dim, state_dim],
+            next_weight,
+        )
+
+    def d_lagged_observation(
+        previous: tf.Tensor,
+        innovation: tf.Tensor,
+        predicted: tf.Tensor,
+    ) -> tf.Tensor:
+        del innovation, predicted
+        return tf.zeros(
+            [tf.shape(previous)[0], parameter_dim, tf.shape(previous)[1], observation_dim],
+            dtype=tf.float64,
+        )
+
+    model = TFBatchedStructuralStateSpace(
+        initial_mean=theta,
+        initial_covariance=tf.constant([[[0.20]]], dtype=tf.float64),
+        innovation_covariance=tf.constant([[[0.10]]], dtype=tf.float64),
+        observation_covariance=tf.constant([[[0.07]]], dtype=tf.float64),
+        transition_fn=transition,
+        observation_fn=observe,
+        lagged_observation_fn=observe_lagged,
+    )
+    derivatives = TFBatchedStructuralFirstDerivatives(
+        d_initial_mean=tf.ones([batch_size, parameter_dim, state_dim], dtype=tf.float64),
+        d_initial_covariance=tf.zeros(
+            [batch_size, parameter_dim, state_dim, state_dim],
+            dtype=tf.float64,
+        ),
+        d_innovation_covariance=tf.zeros(
+            [batch_size, parameter_dim, innovation_dim, innovation_dim],
+            dtype=tf.float64,
+        ),
+        d_observation_covariance=tf.zeros(
+            [batch_size, parameter_dim, observation_dim, observation_dim],
+            dtype=tf.float64,
+        ),
+        transition_state_jacobian_fn=transition_state_jacobian,
+        transition_innovation_jacobian_fn=transition_innovation_jacobian,
+        d_transition_fn=d_transition,
+        observation_state_jacobian_fn=observation_state_jacobian,
+        d_observation_fn=d_observation,
+        lagged_observation_previous_jacobian_fn=lagged_previous_jacobian,
+        lagged_observation_innovation_jacobian_fn=lagged_innovation_jacobian,
+        lagged_observation_next_jacobian_fn=lagged_next_jacobian,
+        d_lagged_observation_fn=d_lagged_observation,
+    )
+    return observations, model, derivatives
+
+
+def _lagged_value_score(
+    theta: tf.Tensor,
+    *,
+    previous_coeff: float = 0.35,
+) -> tuple[tf.Tensor, tf.Tensor, dict[str, tf.Tensor]]:
+    observations, model, derivatives = _lagged_linear_model_and_derivatives(
+        theta,
+        previous_coeff=previous_coeff,
+    )
+    value, score, diagnostics = tf_batched_svd_sigma_point_value_and_score(
+        observations,
+        model,
+        derivatives,
+        backend="tf_principal_sqrt_ukf",
+        placement_floor=tf.constant(0.0, dtype=tf.float64),
+        innovation_floor=tf.constant(1.0e-12, dtype=tf.float64),
+        rank_tolerance=tf.constant(1.0e-12, dtype=tf.float64),
+        spectral_gap_tolerance=tf.constant(1.0e-10, dtype=tf.float64),
+        fixed_null_tolerance=tf.constant(1.0e-10, dtype=tf.float64),
+        jitter=tf.constant(0.0, dtype=tf.float64),
+    )
+    return value, score, dict(diagnostics)
 
 
 def _scalar_rows(
@@ -372,6 +556,83 @@ def test_principal_sqrt_helper_repeated_positive_reconstructs_derivative() -> No
     )
 
 
+def test_principal_sqrt_helper_graph_and_cpu_xla_factor_derivative_parity() -> None:
+    covariance = tf.constant(
+        [
+            [[4.0, 0.0, 0.0], [0.0, 4.0, 0.0], [0.0, 0.0, 9.0]],
+            [[3.0, 0.25, 0.0], [0.25, 4.0, 0.1], [0.0, 0.1, 6.0]],
+        ],
+        dtype=tf.float64,
+    )
+    d_covariance = tf.constant(
+        [
+            [
+                [[0.5, 0.1, -0.2], [0.1, -0.3, 0.4], [-0.2, 0.4, 0.7]],
+                [[1.0, 0.0, 0.2], [0.0, 0.6, -0.1], [0.2, -0.1, 0.8]],
+            ],
+            [
+                [[0.2, -0.2, 0.3], [-0.2, 0.9, 0.0], [0.3, 0.0, -0.4]],
+                [[0.4, 0.5, 0.0], [0.5, 0.1, -0.3], [0.0, -0.3, 0.2]],
+            ],
+        ],
+        dtype=tf.float64,
+    )
+
+    def call() -> tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
+        placement = _checked_batched_principal_sqrt_factor_first_derivatives(
+            covariance,
+            d_covariance,
+            singular_floor=tf.constant(0.0, dtype=tf.float64),
+            fixed_null_tolerance=tf.constant(1.0e-10, dtype=tf.float64),
+            label="test compiled principal-sqrt placement",
+        )
+        return (
+            placement.factor,
+            placement.d_factor,
+            placement.derivative_reconstruction_residual,
+        )
+
+    eager_factor, eager_d_factor, eager_residual = call()
+
+    @tf.function(reduce_retracing=True)
+    def graph_call() -> tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
+        return call()
+
+    @tf.function(jit_compile=True, reduce_retracing=True)
+    def xla_call() -> tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
+        return call()
+
+    graph_factor, graph_d_factor, graph_residual = graph_call()
+    xla_factor, xla_d_factor, xla_residual = xla_call()
+
+    np.testing.assert_allclose(graph_factor.numpy(), eager_factor.numpy(), atol=1.0e-11)
+    np.testing.assert_allclose(graph_d_factor.numpy(), eager_d_factor.numpy(), atol=1.0e-11)
+    np.testing.assert_allclose(graph_residual.numpy(), eager_residual.numpy(), atol=1.0e-11)
+    np.testing.assert_allclose(xla_factor.numpy(), eager_factor.numpy(), atol=1.0e-11)
+    np.testing.assert_allclose(xla_d_factor.numpy(), eager_d_factor.numpy(), atol=1.0e-11)
+    np.testing.assert_allclose(xla_residual.numpy(), eager_residual.numpy(), atol=1.0e-11)
+
+
+def test_principal_sqrt_helper_uses_compiled_factor_and_sylvester_derivative() -> None:
+    from bayesfilter.nonlinear import experimental_batched_svd_sigma_point_tf as module
+
+    source = inspect.getsource(
+        module._checked_batched_principal_sqrt_factor_first_derivatives
+    )
+    tree = ast.parse(textwrap.dedent(source))
+
+    assert "symmetric_principal_sqrt" in source
+    assert "symmetric_sylvester_solve" in source
+    assert "_principal_sqrt_frechet_derivative_from_eigh" not in source
+    assert not any(
+        isinstance(node, ast.Attribute)
+        and node.attr == "eigh"
+        and isinstance(node.value, ast.Attribute)
+        and node.value.attr == "linalg"
+        for node in ast.walk(tree)
+    )
+
+
 def test_principal_sqrt_dispatcher_passes_repeated_positive_while_svd_fails() -> None:
     observations, model, derivatives = _repeated_positive_model_and_derivatives()
 
@@ -451,6 +712,89 @@ def test_principal_sqrt_ukf_graph_and_cpu_xla_smoke() -> None:
     np.testing.assert_allclose(graph_score.numpy(), eager_score.numpy(), rtol=1.0e-5, atol=1.0e-6)
     np.testing.assert_allclose(xla_value.numpy(), eager_value.numpy(), atol=1.0e-7)
     np.testing.assert_allclose(xla_score.numpy(), eager_score.numpy(), rtol=1.0e-5, atol=1.0e-6)
+
+
+def test_lagged_observation_contract_selects_runtime_path_and_changes_value() -> None:
+    theta = tf.constant([[0.04]], dtype=tf.float64)
+    lagged_value, lagged_score, diagnostics = _lagged_value_score(
+        theta,
+        previous_coeff=0.35,
+    )
+    current_value, _current_score, current_diagnostics = _lagged_value_score(
+        theta,
+        previous_coeff=0.0,
+    )
+
+    assert diagnostics["observation_contract"].numpy() == (
+        b"lagged_previous_innovation_predicted"
+    )
+    assert bool(diagnostics["observation_contract_runtime_selected"].numpy()) is True
+    assert current_diagnostics["observation_contract"].numpy() == (
+        b"lagged_previous_innovation_predicted"
+    )
+    assert np.isfinite(lagged_value.numpy()).all()
+    assert np.isfinite(lagged_score.numpy()).all()
+    assert abs(float(lagged_value.numpy()[0] - current_value.numpy()[0])) > 1.0e-6
+
+
+def test_lagged_observation_contract_score_matches_finite_difference() -> None:
+    theta = tf.constant([[0.04]], dtype=tf.float64)
+    value, score, _diagnostics = _lagged_value_score(theta)
+    step = tf.constant(1.0e-5, dtype=tf.float64)
+    plus_value, _plus_score, _plus_diagnostics = _lagged_value_score(theta + step)
+    minus_value, _minus_score, _minus_diagnostics = _lagged_value_score(theta - step)
+    finite_difference = (plus_value - minus_value) / (2.0 * step)
+
+    assert np.isfinite(value.numpy()).all()
+    np.testing.assert_allclose(
+        score.numpy()[:, 0],
+        finite_difference.numpy(),
+        rtol=5.0e-5,
+        atol=5.0e-6,
+    )
+
+
+def test_lagged_observation_contract_cpu_xla_smoke() -> None:
+    theta = tf.constant([[0.04]], dtype=tf.float64)
+    eager_value, eager_score, eager_diagnostics = _lagged_value_score(theta)
+
+    @tf.function(jit_compile=True, reduce_retracing=True)
+    def xla_call(theta_arg: tf.Tensor) -> tuple[tf.Tensor, tf.Tensor]:
+        value, score, diagnostics = _lagged_value_score(theta_arg)
+        with tf.control_dependencies(
+            [
+                tf.debugging.assert_equal(
+                    diagnostics["observation_contract"],
+                    tf.constant("lagged_previous_innovation_predicted"),
+                ),
+                tf.debugging.assert_equal(
+                    diagnostics["observation_contract_runtime_selected"],
+                    tf.constant(True),
+                ),
+            ]
+        ):
+            return tf.identity(value), tf.identity(score)
+
+    xla_value, xla_score = xla_call(theta)
+
+    assert eager_diagnostics["observation_contract"].numpy() == (
+        b"lagged_previous_innovation_predicted"
+    )
+    np.testing.assert_allclose(xla_value.numpy(), eager_value.numpy(), atol=1.0e-8)
+    np.testing.assert_allclose(xla_score.numpy(), eager_score.numpy(), rtol=1.0e-5, atol=1.0e-6)
+
+
+def test_lagged_observation_contract_source_contract() -> None:
+    from bayesfilter.nonlinear import experimental_batched_svd_sigma_point_tf as module
+
+    source = inspect.getsource(module.tf_batched_svd_sigma_point_value_and_score_with_rule)
+    tree = ast.parse(textwrap.dedent(source))
+
+    assert "tf.while_loop" in source
+    assert "observation_contract" in source
+    assert "lagged_previous_innovation_predicted" in source
+    assert "d_lagged_observation_fn" in source
+    assert not any(isinstance(node, (ast.For, ast.AsyncFor)) for node in ast.walk(tree))
 
 
 @pytest.mark.parametrize("backend", OLD_BACKENDS)

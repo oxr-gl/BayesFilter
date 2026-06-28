@@ -1,0 +1,790 @@
+{
+  "M": 9,
+  "T": 20,
+  "calibration_seeds": [
+    82920,
+    82921,
+    82922,
+    82923,
+    82924,
+    82925,
+    82926,
+    82927,
+    82928,
+    82929,
+    82930,
+    82931
+  ],
+  "clopper_pearson": {
+    "alpha": 0.05,
+    "confidence": 0.95,
+    "method": "exact one-sided binomial upper bound by binary search on CDF",
+    "pass_if_upper_bound_lte": 0.2,
+    "upper_bound": 0.38538968236388194
+  },
+  "decision": "INCONCLUSIVE_UNDERPOWERED",
+  "descriptive_statistics": {
+    "normalized_abs_delta_max": 0.037627156575520834,
+    "normalized_abs_delta_mean": 0.014079865955171132,
+    "normalized_abs_delta_min": 0.00044148763020833334,
+    "normalized_abs_delta_sd_sample": 0.012447509086360763,
+    "normalized_abs_delta_sorted": [
+      0.00044148763020833334,
+      0.0006079779730902777,
+      0.0013675265842013889,
+      0.0016859266493055556,
+      0.004767184787326389,
+      0.008681233723958333,
+      0.009215630425347222,
+      0.011998494466145834,
+      0.016767035590277778,
+      0.022118462456597224,
+      0.022881401909722224,
+      0.027290174696180555,
+      0.03166842990451389,
+      0.037627156575520834
+    ],
+    "total_wall_time_seconds_sum": 448.461980604101
+  },
+  "deterministic_invalid": [],
+  "exceedance_rate_observed": 0.14285714285714285,
+  "exceedance_seeds": [
+    82943,
+    82944
+  ],
+  "inference_status": {
+    "default_readiness": "NO",
+    "descriptive_only_differences": "Normalized deltas, runtime, and timing ratios are descriptive unless tied to the predeclared exceedance test.",
+    "hard_veto_screen": "PASS",
+    "next_evidence_needed": "If P3 is inconclusive, use reviewed extension to 22 or 30 disjoint validation seeds; if pass, draft evidence package only for bounded value-route threshold.",
+    "statistically_supported_ranking": "NO"
+  },
+  "legacy_exit_repair_audit": {
+    "legacy_labels": [
+      "paired:paired_log_likelihood_max_abs_delta",
+      "paired:paired_log_likelihood_mean_abs_delta"
+    ],
+    "rows": [
+      {
+        "benchmark_hard_vetoes": [
+          "paired:paired_log_likelihood_mean_abs_delta"
+        ],
+        "benchmark_status": "FAIL",
+        "exceeds_tau_component": true,
+        "normalized_abs_delta": 0.037627156575520834,
+        "seed": 82943,
+        "total_abs_delta": 6.77288818359375
+      },
+      {
+        "benchmark_hard_vetoes": [
+          "paired:paired_log_likelihood_mean_abs_delta"
+        ],
+        "benchmark_status": "FAIL",
+        "exceeds_tau_component": true,
+        "normalized_abs_delta": 0.03166842990451389,
+        "seed": 82944,
+        "total_abs_delta": 5.7003173828125
+      }
+    ],
+    "rule": "Rows whose only benchmark aggregate hard vetoes are deprecated paired legacy thresholds are deterministic-valid if parsed artifact checks pass, then scored by tau_component exceedance."
+  },
+  "missing_artifacts": [],
+  "n_artifacts_present": 14,
+  "n_exceed": 2,
+  "n_planned": 14,
+  "n_valid": 14,
+  "non_exceedance_seeds": [
+    82932,
+    82933,
+    82934,
+    82935,
+    82936,
+    82937,
+    82938,
+    82939,
+    82940,
+    82941,
+    82942,
+    82945
+  ],
+  "nonclaims": [
+    "no default readiness claim",
+    "no posterior correctness claim",
+    "no HMC readiness claim",
+    "no statistical superiority claim",
+    "no broad Nystrom rejection claim",
+    "tau_component=0.03 is a bounded value-route margin, not a theorem or unique threshold"
+  ],
+  "phase": "P03_FROZEN_THRESHOLD_STATISTICAL_VALIDATION",
+  "rows": [
+    {
+      "benchmark_hard_vetoes": [],
+      "benchmark_status": "PASS",
+      "deterministic_invalid_reasons": [],
+      "deterministic_valid": true,
+      "exceeds_tau_component": false,
+      "json": "docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82932-r32-eps0p5-2026-06-24.json",
+      "legacy_threshold_only_benchmark_fail": false,
+      "log": "docs/plans/logs/actual-sir-nystrom-threshold-calibration-p03-validation-seed82932-r32-eps0p5-2026-06-24.log",
+      "markdown": "docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82932-r32-eps0p5-2026-06-24.md",
+      "normalized_abs_delta": 0.0016859266493055556,
+      "routes": {
+        "nystrom": {
+          "finite_factors": true,
+          "finite_particles": true,
+          "hard_vetoes": [],
+          "log_likelihood": [
+            -901.665771484375
+          ],
+          "max_column_residual": 1.9073486328125e-06,
+          "max_row_residual": 7.903575897216797e-05,
+          "nystrom_core_solver": "cholesky",
+          "nystrom_epsilon": 0.5,
+          "nystrom_kernel_mode": "raw",
+          "nystrom_rank": 32,
+          "nystrom_scaling_normalization": "none",
+          "output_devices": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "status": "PASS"
+        },
+        "streaming": {
+          "hard_vetoes": [],
+          "log_likelihood": [
+            -901.96923828125
+          ],
+          "output_devices": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "status": "PASS"
+        }
+      },
+      "seed": 82932,
+      "total_abs_delta": 0.303466796875,
+      "wall_time_seconds": 32.18248861585744
+    },
+    {
+      "benchmark_hard_vetoes": [],
+      "benchmark_status": "PASS",
+      "deterministic_invalid_reasons": [],
+      "deterministic_valid": true,
+      "exceeds_tau_component": false,
+      "json": "docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82933-r32-eps0p5-2026-06-24.json",
+      "legacy_threshold_only_benchmark_fail": false,
+      "log": "docs/plans/logs/actual-sir-nystrom-threshold-calibration-p03-validation-seed82933-r32-eps0p5-2026-06-24.log",
+      "markdown": "docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82933-r32-eps0p5-2026-06-24.md",
+      "normalized_abs_delta": 0.022118462456597224,
+      "routes": {
+        "nystrom": {
+          "finite_factors": true,
+          "finite_particles": true,
+          "hard_vetoes": [],
+          "log_likelihood": [
+            -904.8831787109375
+          ],
+          "max_column_residual": 1.9073486328125e-06,
+          "max_row_residual": 9.334087371826172e-05,
+          "nystrom_core_solver": "cholesky",
+          "nystrom_epsilon": 0.5,
+          "nystrom_kernel_mode": "raw",
+          "nystrom_rank": 32,
+          "nystrom_scaling_normalization": "none",
+          "output_devices": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "status": "PASS"
+        },
+        "streaming": {
+          "hard_vetoes": [],
+          "log_likelihood": [
+            -900.90185546875
+          ],
+          "output_devices": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "status": "PASS"
+        }
+      },
+      "seed": 82933,
+      "total_abs_delta": 3.9813232421875,
+      "wall_time_seconds": 31.790948410052806
+    },
+    {
+      "benchmark_hard_vetoes": [],
+      "benchmark_status": "PASS",
+      "deterministic_invalid_reasons": [],
+      "deterministic_valid": true,
+      "exceeds_tau_component": false,
+      "json": "docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82934-r32-eps0p5-2026-06-24.json",
+      "legacy_threshold_only_benchmark_fail": false,
+      "log": "docs/plans/logs/actual-sir-nystrom-threshold-calibration-p03-validation-seed82934-r32-eps0p5-2026-06-24.log",
+      "markdown": "docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82934-r32-eps0p5-2026-06-24.md",
+      "normalized_abs_delta": 0.0013675265842013889,
+      "routes": {
+        "nystrom": {
+          "finite_factors": true,
+          "finite_particles": true,
+          "hard_vetoes": [],
+          "log_likelihood": [
+            -901.2235717773438
+          ],
+          "max_column_residual": 1.430511474609375e-06,
+          "max_row_residual": 9.882450103759766e-05,
+          "nystrom_core_solver": "cholesky",
+          "nystrom_epsilon": 0.5,
+          "nystrom_kernel_mode": "raw",
+          "nystrom_rank": 32,
+          "nystrom_scaling_normalization": "none",
+          "output_devices": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "status": "PASS"
+        },
+        "streaming": {
+          "hard_vetoes": [],
+          "log_likelihood": [
+            -901.4697265625
+          ],
+          "output_devices": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "status": "PASS"
+        }
+      },
+      "seed": 82934,
+      "total_abs_delta": 0.24615478515625,
+      "wall_time_seconds": 31.892719329101965
+    },
+    {
+      "benchmark_hard_vetoes": [],
+      "benchmark_status": "PASS",
+      "deterministic_invalid_reasons": [],
+      "deterministic_valid": true,
+      "exceeds_tau_component": false,
+      "json": "docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82935-r32-eps0p5-2026-06-24.json",
+      "legacy_threshold_only_benchmark_fail": false,
+      "log": "docs/plans/logs/actual-sir-nystrom-threshold-calibration-p03-validation-seed82935-r32-eps0p5-2026-06-24.log",
+      "markdown": "docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82935-r32-eps0p5-2026-06-24.md",
+      "normalized_abs_delta": 0.009215630425347222,
+      "routes": {
+        "nystrom": {
+          "finite_factors": true,
+          "finite_particles": true,
+          "hard_vetoes": [],
+          "log_likelihood": [
+            -903.9318237304688
+          ],
+          "max_column_residual": 4.76837158203125e-06,
+          "max_row_residual": 8.445978164672852e-05,
+          "nystrom_core_solver": "cholesky",
+          "nystrom_epsilon": 0.5,
+          "nystrom_kernel_mode": "raw",
+          "nystrom_rank": 32,
+          "nystrom_scaling_normalization": "none",
+          "output_devices": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "status": "PASS"
+        },
+        "streaming": {
+          "hard_vetoes": [],
+          "log_likelihood": [
+            -902.2730102539062
+          ],
+          "output_devices": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "status": "PASS"
+        }
+      },
+      "seed": 82935,
+      "total_abs_delta": 1.6588134765625,
+      "wall_time_seconds": 31.73927085986361
+    },
+    {
+      "benchmark_hard_vetoes": [],
+      "benchmark_status": "PASS",
+      "deterministic_invalid_reasons": [],
+      "deterministic_valid": true,
+      "exceeds_tau_component": false,
+      "json": "docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82936-r32-eps0p5-2026-06-24.json",
+      "legacy_threshold_only_benchmark_fail": false,
+      "log": "docs/plans/logs/actual-sir-nystrom-threshold-calibration-p03-validation-seed82936-r32-eps0p5-2026-06-24.log",
+      "markdown": "docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82936-r32-eps0p5-2026-06-24.md",
+      "normalized_abs_delta": 0.022881401909722224,
+      "routes": {
+        "nystrom": {
+          "finite_factors": true,
+          "finite_particles": true,
+          "hard_vetoes": [],
+          "log_likelihood": [
+            -906.9932861328125
+          ],
+          "max_column_residual": 1.6689300537109375e-06,
+          "max_row_residual": 9.250640869140625e-05,
+          "nystrom_core_solver": "cholesky",
+          "nystrom_epsilon": 0.5,
+          "nystrom_kernel_mode": "raw",
+          "nystrom_rank": 32,
+          "nystrom_scaling_normalization": "none",
+          "output_devices": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "status": "PASS"
+        },
+        "streaming": {
+          "hard_vetoes": [],
+          "log_likelihood": [
+            -902.8746337890625
+          ],
+          "output_devices": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "status": "PASS"
+        }
+      },
+      "seed": 82936,
+      "total_abs_delta": 4.11865234375,
+      "wall_time_seconds": 32.36937987804413
+    },
+    {
+      "benchmark_hard_vetoes": [],
+      "benchmark_status": "PASS",
+      "deterministic_invalid_reasons": [],
+      "deterministic_valid": true,
+      "exceeds_tau_component": false,
+      "json": "docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82937-r32-eps0p5-2026-06-24.json",
+      "legacy_threshold_only_benchmark_fail": false,
+      "log": "docs/plans/logs/actual-sir-nystrom-threshold-calibration-p03-validation-seed82937-r32-eps0p5-2026-06-24.log",
+      "markdown": "docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82937-r32-eps0p5-2026-06-24.md",
+      "normalized_abs_delta": 0.004767184787326389,
+      "routes": {
+        "nystrom": {
+          "finite_factors": true,
+          "finite_particles": true,
+          "hard_vetoes": [],
+          "log_likelihood": [
+            -902.1068725585938
+          ],
+          "max_column_residual": 1.9073486328125e-06,
+          "max_row_residual": 9.21487808227539e-05,
+          "nystrom_core_solver": "cholesky",
+          "nystrom_epsilon": 0.5,
+          "nystrom_kernel_mode": "raw",
+          "nystrom_rank": 32,
+          "nystrom_scaling_normalization": "none",
+          "output_devices": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "status": "PASS"
+        },
+        "streaming": {
+          "hard_vetoes": [],
+          "log_likelihood": [
+            -901.248779296875
+          ],
+          "output_devices": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "status": "PASS"
+        }
+      },
+      "seed": 82937,
+      "total_abs_delta": 0.85809326171875,
+      "wall_time_seconds": 32.092626221012324
+    },
+    {
+      "benchmark_hard_vetoes": [],
+      "benchmark_status": "PASS",
+      "deterministic_invalid_reasons": [],
+      "deterministic_valid": true,
+      "exceeds_tau_component": false,
+      "json": "docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82938-r32-eps0p5-2026-06-24.json",
+      "legacy_threshold_only_benchmark_fail": false,
+      "log": "docs/plans/logs/actual-sir-nystrom-threshold-calibration-p03-validation-seed82938-r32-eps0p5-2026-06-24.log",
+      "markdown": "docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82938-r32-eps0p5-2026-06-24.md",
+      "normalized_abs_delta": 0.011998494466145834,
+      "routes": {
+        "nystrom": {
+          "finite_factors": true,
+          "finite_particles": true,
+          "hard_vetoes": [],
+          "log_likelihood": [
+            -903.9951171875
+          ],
+          "max_column_residual": 1.9073486328125e-06,
+          "max_row_residual": 7.987022399902344e-05,
+          "nystrom_core_solver": "cholesky",
+          "nystrom_epsilon": 0.5,
+          "nystrom_kernel_mode": "raw",
+          "nystrom_rank": 32,
+          "nystrom_scaling_normalization": "none",
+          "output_devices": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "status": "PASS"
+        },
+        "streaming": {
+          "hard_vetoes": [],
+          "log_likelihood": [
+            -901.8353881835938
+          ],
+          "output_devices": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "status": "PASS"
+        }
+      },
+      "seed": 82938,
+      "total_abs_delta": 2.15972900390625,
+      "wall_time_seconds": 32.32345513114706
+    },
+    {
+      "benchmark_hard_vetoes": [],
+      "benchmark_status": "PASS",
+      "deterministic_invalid_reasons": [],
+      "deterministic_valid": true,
+      "exceeds_tau_component": false,
+      "json": "docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82939-r32-eps0p5-2026-06-24.json",
+      "legacy_threshold_only_benchmark_fail": false,
+      "log": "docs/plans/logs/actual-sir-nystrom-threshold-calibration-p03-validation-seed82939-r32-eps0p5-2026-06-24.log",
+      "markdown": "docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82939-r32-eps0p5-2026-06-24.md",
+      "normalized_abs_delta": 0.027290174696180555,
+      "routes": {
+        "nystrom": {
+          "finite_factors": true,
+          "finite_particles": true,
+          "hard_vetoes": [],
+          "log_likelihood": [
+            -907.4970092773438
+          ],
+          "max_column_residual": 1.430511474609375e-06,
+          "max_row_residual": 8.094310760498047e-05,
+          "nystrom_core_solver": "cholesky",
+          "nystrom_epsilon": 0.5,
+          "nystrom_kernel_mode": "raw",
+          "nystrom_rank": 32,
+          "nystrom_scaling_normalization": "none",
+          "output_devices": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "status": "PASS"
+        },
+        "streaming": {
+          "hard_vetoes": [],
+          "log_likelihood": [
+            -902.5847778320312
+          ],
+          "output_devices": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "status": "PASS"
+        }
+      },
+      "seed": 82939,
+      "total_abs_delta": 4.9122314453125,
+      "wall_time_seconds": 31.424760493915528
+    },
+    {
+      "benchmark_hard_vetoes": [],
+      "benchmark_status": "PASS",
+      "deterministic_invalid_reasons": [],
+      "deterministic_valid": true,
+      "exceeds_tau_component": false,
+      "json": "docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82940-r32-eps0p5-2026-06-24.json",
+      "legacy_threshold_only_benchmark_fail": false,
+      "log": "docs/plans/logs/actual-sir-nystrom-threshold-calibration-p03-validation-seed82940-r32-eps0p5-2026-06-24.log",
+      "markdown": "docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82940-r32-eps0p5-2026-06-24.md",
+      "normalized_abs_delta": 0.016767035590277778,
+      "routes": {
+        "nystrom": {
+          "finite_factors": true,
+          "finite_particles": true,
+          "hard_vetoes": [],
+          "log_likelihood": [
+            -898.60546875
+          ],
+          "max_column_residual": 3.814697265625e-06,
+          "max_row_residual": 7.891654968261719e-05,
+          "nystrom_core_solver": "cholesky",
+          "nystrom_epsilon": 0.5,
+          "nystrom_kernel_mode": "raw",
+          "nystrom_rank": 32,
+          "nystrom_scaling_normalization": "none",
+          "output_devices": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "status": "PASS"
+        },
+        "streaming": {
+          "hard_vetoes": [],
+          "log_likelihood": [
+            -901.62353515625
+          ],
+          "output_devices": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "status": "PASS"
+        }
+      },
+      "seed": 82940,
+      "total_abs_delta": 3.01806640625,
+      "wall_time_seconds": 32.06665025604889
+    },
+    {
+      "benchmark_hard_vetoes": [],
+      "benchmark_status": "PASS",
+      "deterministic_invalid_reasons": [],
+      "deterministic_valid": true,
+      "exceeds_tau_component": false,
+      "json": "docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82941-r32-eps0p5-2026-06-24.json",
+      "legacy_threshold_only_benchmark_fail": false,
+      "log": "docs/plans/logs/actual-sir-nystrom-threshold-calibration-p03-validation-seed82941-r32-eps0p5-2026-06-24.log",
+      "markdown": "docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82941-r32-eps0p5-2026-06-24.md",
+      "normalized_abs_delta": 0.00044148763020833334,
+      "routes": {
+        "nystrom": {
+          "finite_factors": true,
+          "finite_particles": true,
+          "hard_vetoes": [],
+          "log_likelihood": [
+            -902.3380126953125
+          ],
+          "max_column_residual": 2.86102294921875e-06,
+          "max_row_residual": 8.445978164672852e-05,
+          "nystrom_core_solver": "cholesky",
+          "nystrom_epsilon": 0.5,
+          "nystrom_kernel_mode": "raw",
+          "nystrom_rank": 32,
+          "nystrom_scaling_normalization": "none",
+          "output_devices": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "status": "PASS"
+        },
+        "streaming": {
+          "hard_vetoes": [],
+          "log_likelihood": [
+            -902.258544921875
+          ],
+          "output_devices": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "status": "PASS"
+        }
+      },
+      "seed": 82941,
+      "total_abs_delta": 0.0794677734375,
+      "wall_time_seconds": 31.697864963905886
+    },
+    {
+      "benchmark_hard_vetoes": [],
+      "benchmark_status": "PASS",
+      "deterministic_invalid_reasons": [],
+      "deterministic_valid": true,
+      "exceeds_tau_component": false,
+      "json": "docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82942-r32-eps0p5-2026-06-24.json",
+      "legacy_threshold_only_benchmark_fail": false,
+      "log": "docs/plans/logs/actual-sir-nystrom-threshold-calibration-p03-validation-seed82942-r32-eps0p5-2026-06-24.log",
+      "markdown": "docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82942-r32-eps0p5-2026-06-24.md",
+      "normalized_abs_delta": 0.008681233723958333,
+      "routes": {
+        "nystrom": {
+          "finite_factors": true,
+          "finite_particles": true,
+          "hard_vetoes": [],
+          "log_likelihood": [
+            -903.1983032226562
+          ],
+          "max_column_residual": 1.9073486328125e-06,
+          "max_row_residual": 8.344650268554688e-05,
+          "nystrom_core_solver": "cholesky",
+          "nystrom_epsilon": 0.5,
+          "nystrom_kernel_mode": "raw",
+          "nystrom_rank": 32,
+          "nystrom_scaling_normalization": "none",
+          "output_devices": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "status": "PASS"
+        },
+        "streaming": {
+          "hard_vetoes": [],
+          "log_likelihood": [
+            -901.6356811523438
+          ],
+          "output_devices": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "status": "PASS"
+        }
+      },
+      "seed": 82942,
+      "total_abs_delta": 1.5626220703125,
+      "wall_time_seconds": 32.277685115113854
+    },
+    {
+      "benchmark_hard_vetoes": [
+        "paired:paired_log_likelihood_mean_abs_delta"
+      ],
+      "benchmark_status": "FAIL",
+      "deterministic_invalid_reasons": [],
+      "deterministic_valid": true,
+      "exceeds_tau_component": true,
+      "json": "docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82943-r32-eps0p5-2026-06-24.json",
+      "legacy_threshold_only_benchmark_fail": true,
+      "log": "docs/plans/logs/actual-sir-nystrom-threshold-calibration-p03-validation-seed82943-r32-eps0p5-2026-06-24.log",
+      "markdown": "docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82943-r32-eps0p5-2026-06-24.md",
+      "normalized_abs_delta": 0.037627156575520834,
+      "routes": {
+        "nystrom": {
+          "finite_factors": true,
+          "finite_particles": true,
+          "hard_vetoes": [],
+          "log_likelihood": [
+            -908.7586059570312
+          ],
+          "max_column_residual": 1.9073486328125e-06,
+          "max_row_residual": 8.20159912109375e-05,
+          "nystrom_core_solver": "cholesky",
+          "nystrom_epsilon": 0.5,
+          "nystrom_kernel_mode": "raw",
+          "nystrom_rank": 32,
+          "nystrom_scaling_normalization": "none",
+          "output_devices": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "status": "PASS"
+        },
+        "streaming": {
+          "hard_vetoes": [],
+          "log_likelihood": [
+            -901.9857177734375
+          ],
+          "output_devices": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "status": "PASS"
+        }
+      },
+      "seed": 82943,
+      "total_abs_delta": 6.77288818359375,
+      "wall_time_seconds": 31.438981923041865
+    },
+    {
+      "benchmark_hard_vetoes": [
+        "paired:paired_log_likelihood_mean_abs_delta"
+      ],
+      "benchmark_status": "FAIL",
+      "deterministic_invalid_reasons": [],
+      "deterministic_valid": true,
+      "exceeds_tau_component": true,
+      "json": "docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82944-r32-eps0p5-2026-06-24.json",
+      "legacy_threshold_only_benchmark_fail": true,
+      "log": "docs/plans/logs/actual-sir-nystrom-threshold-calibration-p03-validation-seed82944-r32-eps0p5-2026-06-24.log",
+      "markdown": "docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82944-r32-eps0p5-2026-06-24.md",
+      "normalized_abs_delta": 0.03166842990451389,
+      "routes": {
+        "nystrom": {
+          "finite_factors": true,
+          "finite_particles": true,
+          "hard_vetoes": [],
+          "log_likelihood": [
+            -906.9915161132812
+          ],
+          "max_column_residual": 5.245208740234375e-06,
+          "max_row_residual": 8.225440979003906e-05,
+          "nystrom_core_solver": "cholesky",
+          "nystrom_epsilon": 0.5,
+          "nystrom_kernel_mode": "raw",
+          "nystrom_rank": 32,
+          "nystrom_scaling_normalization": "none",
+          "output_devices": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "status": "PASS"
+        },
+        "streaming": {
+          "hard_vetoes": [],
+          "log_likelihood": [
+            -901.2911987304688
+          ],
+          "output_devices": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "status": "PASS"
+        }
+      },
+      "seed": 82944,
+      "total_abs_delta": 5.7003173828125,
+      "wall_time_seconds": 32.84464931790717
+    },
+    {
+      "benchmark_hard_vetoes": [],
+      "benchmark_status": "PASS",
+      "deterministic_invalid_reasons": [],
+      "deterministic_valid": true,
+      "exceeds_tau_component": false,
+      "json": "docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82945-r32-eps0p5-2026-06-24.json",
+      "legacy_threshold_only_benchmark_fail": false,
+      "log": "docs/plans/logs/actual-sir-nystrom-threshold-calibration-p03-validation-seed82945-r32-eps0p5-2026-06-24.log",
+      "markdown": "docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82945-r32-eps0p5-2026-06-24.md",
+      "normalized_abs_delta": 0.0006079779730902777,
+      "routes": {
+        "nystrom": {
+          "finite_factors": true,
+          "finite_particles": true,
+          "hard_vetoes": [],
+          "log_likelihood": [
+            -901.2571411132812
+          ],
+          "max_column_residual": 4.76837158203125e-06,
+          "max_row_residual": 9.989738464355469e-05,
+          "nystrom_core_solver": "cholesky",
+          "nystrom_epsilon": 0.5,
+          "nystrom_kernel_mode": "raw",
+          "nystrom_rank": 32,
+          "nystrom_scaling_normalization": "none",
+          "output_devices": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "status": "PASS"
+        },
+        "streaming": {
+          "hard_vetoes": [],
+          "log_likelihood": [
+            -901.3665771484375
+          ],
+          "output_devices": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "status": "PASS"
+        }
+      },
+      "seed": 82945,
+      "total_abs_delta": 0.10943603515625,
+      "wall_time_seconds": 32.320500089088455
+    }
+  ],
+  "schema_version": "actual_sir_nystrom_threshold_calibration_p03_summary.v1",
+  "seed_split_disjoint": true,
+  "status": "P3_INCONCLUSIVE_EXTENSION_REVIEW",
+  "tau_component": 0.03,
+  "tau_total": 5.3999999999999995,
+  "validation_seeds": [
+    82932,
+    82933,
+    82934,
+    82935,
+    82936,
+    82937,
+    82938,
+    82939,
+    82940,
+    82941,
+    82942,
+    82943,
+    82944,
+    82945
+  ]
+}

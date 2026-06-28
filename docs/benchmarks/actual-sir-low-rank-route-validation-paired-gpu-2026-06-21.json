@@ -1,0 +1,90 @@
+{
+  "schema_version": "actual_sir_low_rank_route_validation_p03_aggregate.v1",
+  "status": "TUNING_REQUIRED",
+  "phase": "ACTUAL-SIR-LR-P03-PAIRED-LADDER",
+  "date": "2026-06-21",
+  "plan_path": "docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-master-program-2026-06-21.md",
+  "result_path": "docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-p03-paired-ladder-result-2026-06-21.md",
+  "evidence_contract": {
+    "question": "On feasible paired actual-SIR d18 rows, does low-rank preserve validity/comparability and show practical runtime evidence versus compiled streaming?",
+    "baseline": "Existing compiled streaming actual-SIR TF32/GPU route timed with --streaming-timing-source compiled_core.",
+    "candidate": "Existing TensorFlow low-rank coupling solver route.",
+    "primary_support_screen": "At least two adjacent paired rows with no hard vetoes, no paired comparability vetoes, same physical GPU UUID, warmups=1, repeats=3, and warm median streaming / low_rank >= 1.25.",
+    "not_concluded": [
+      "posterior correctness",
+      "HMC readiness",
+      "public API readiness",
+      "production/default readiness",
+      "dense Sinkhorn equivalence",
+      "broad scalable-OT selection",
+      "statistical ranking"
+    ]
+  },
+  "rows_attempted": [
+    {
+      "shape": {
+        "batch_size": 5,
+        "time_steps": 20,
+        "num_particles": 1024,
+        "state_dim": 18,
+        "obs_dim": 9
+      },
+      "batch_seeds": [
+        81120,
+        81121,
+        81122,
+        81123,
+        81124
+      ],
+      "row_json": "docs/benchmarks/actual-sir-low-rank-route-validation-paired-gpu-2026-06-21-row-b5-t20-n1024.json",
+      "row_markdown": "docs/benchmarks/actual-sir-low-rank-route-validation-paired-gpu-2026-06-21-row-b5-t20-n1024.md",
+      "row_status": "PASS",
+      "hard_vetoes": [],
+      "physical_gpu_uuid": "GPU-a1ea1946-07c0-8ed5-2ba1-d96f82c89cd3",
+      "tf32_execution_enabled": true,
+      "actual_sir_semantics_pass": true,
+      "streaming_warm_median_seconds": 0.9723010780289769,
+      "low_rank_warm_median_seconds": 58.549089503940195,
+      "warm_median_streaming_over_low_rank": 0.016606596042173186,
+      "low_rank_factor_marginal_residual": 0.000008986273314803839,
+      "low_rank_projection_iterations_used_max_explanatory": 240.0,
+      "paired_comparability": {
+        "log_likelihood_max_abs_delta": 58.0933837890625,
+        "log_likelihood_mean_abs_delta": 42.93328857421875,
+        "filtered_mean_relative_l2": 0.024529629672863727,
+        "filtered_mean_rms": 4.1791288726681,
+        "filtered_variance_relative_l2": 3.460364375696834,
+        "filtered_variance_rms": 4.421087662174504,
+        "final_particle_mean_relative_l2": 0.01441203872214028,
+        "final_particle_mean_abs_l2": 3.8993016028318315
+      },
+      "paired_comparability_failures": [
+        "log_likelihood_max_abs_delta > 10.0",
+        "log_likelihood_mean_abs_delta > 5.0",
+        "filtered_mean_relative_l2 <= 0.20 passed, but filtered_mean_rms > 2.5; gate passes by relative alternative",
+        "filtered_variance_rms <= 25.0 passed, but filtered_variance_relative_l2 > 0.75; gate passes by RMS alternative"
+      ],
+      "speed_screen_failure": "warm_median_streaming_over_low_rank < 1.25"
+    }
+  ],
+  "support_rows_passing_validity_comparability_speed": 0,
+  "adjacent_support_row_count": 0,
+  "gate_assessment": {
+    "hard_validity": "PASS for attempted row",
+    "paired_comparability": "FAIL because log-likelihood paired agreement thresholds failed on the first required row",
+    "warm_time_screen": "FAIL because low-rank warm median was about 60.2x slower than compiled streaming on the first required row",
+    "large_n_handoff": "BLOCKED because P03 did not establish the required paired validity/comparability basis",
+    "decision": "TUNING_REQUIRED"
+  },
+  "nonclaims": [
+    "No speedup claim",
+    "No large-N executable-envelope claim for this actual-SIR lane",
+    "No posterior correctness claim",
+    "No HMC readiness claim",
+    "No public API readiness claim",
+    "No production/default readiness claim",
+    "No dense Sinkhorn equivalence claim",
+    "No broad scalable-OT selection claim",
+    "No statistical ranking claim"
+  ]
+}

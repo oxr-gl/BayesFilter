@@ -196,9 +196,18 @@ def test_phase4_tiny_full_chain_hmc_jit_returns_finite_samples_and_metadata() ->
     assert int(result.diagnostics["nonfinite_sample_count"].numpy()) == 0
     assert int(result.diagnostics["finite_sample_count"].numpy()) == 4
     assert np.isfinite(float(result.diagnostics["acceptance_rate"].numpy()))
-    assert result.diagnostics["divergence_status"] == "unavailable"
+    assert result.diagnostics["native_divergence_status"] == "not_exposed_by_kernel"
+    assert result.diagnostics["divergence_status"] == "not_exposed_by_kernel"
     assert result.diagnostics["divergence_count"] is None
     assert result.diagnostics["divergence_source"] is None
+    assert result.diagnostics["hmc_health_diagnostics"]["diagnostic_role"] == (
+        "hmc_health_diagnostics_not_native_divergence"
+    )
+    assert np.isfinite(
+        float(result.diagnostics["hmc_health_diagnostics"]["acceptance_rate"].numpy())
+    )
+    assert result.diagnostics["hmc_health_diagnostics"]["log_accept_ratio"]["available"] is True
+    assert result.diagnostics["hmc_health_diagnostics"]["target_log_prob"]["available"] is True
     assert set(result.trace) == {"is_accepted", "log_accept_ratio", "target_log_prob"}
     assert result.metadata["runtime"] == "tfp.mcmc.sample_chain"
     assert result.metadata["jit_compile"] is True
@@ -217,7 +226,15 @@ def test_phase4_tiny_full_chain_hmc_jit_returns_finite_samples_and_metadata() ->
     assert result.metadata["first_call_s"] >= 0.0
     assert result.metadata["sample_chain_call_s"] >= 0.0
     assert result.metadata["sample_chain_invocation_count"] == 1
+    assert result.metadata["runner_build_s"] >= 0.0
+    assert result.metadata["first_sample_chain_compile_execute_s"] == result.metadata["first_call_s"]
     assert result.metadata["warm_call_s"] is None
+    assert result.metadata["warm_sample_chain_execute_s"] is None
+    assert result.metadata["trace_capture_s"] >= 0.0
+    assert result.metadata["trace_capture_timing_scope"] == (
+        "post_sample_chain_public_safe_trace_diagnostics_capture"
+    )
+    assert result.metadata["timing_buckets"]["runner_build_s"].startswith("explanatory_only")
     assert result.metadata["warm_sample_shape"] is None
     assert result.metadata["warm_trace_keys"] == ()
     assert "no sampler convergence claim" in result.metadata["nonclaims"]
@@ -416,10 +433,21 @@ def test_phase4_reusable_full_chain_runner_reuses_compiled_shape_and_seed_argume
     assert second.metadata["reusable_runner"] is True
     assert first.metadata["sample_chain_invocation_count"] == 1
     assert second.metadata["sample_chain_invocation_count"] == 2
+    assert second.metadata["use_xla"] is False
+    assert second.metadata["chain_execution_mode"] == "tf_function"
+    assert second.metadata["sample_chain_timing_scope"] == (
+        "reusable_tf_function_first_call_trace_compile_plus_execute_then_warm_execute"
+    )
+    assert second.metadata["runner_build_s"] == first.metadata["runner_build_s"]
+    assert second.metadata["runner_build_s"] >= 0.0
     assert first.metadata["first_call_s"] >= 0.0
     assert first.metadata["warm_call_s"] is None
     assert second.metadata["first_call_s"] == first.metadata["first_call_s"]
+    assert second.metadata["first_sample_chain_compile_execute_s"] == first.metadata["first_call_s"]
     assert second.metadata["warm_call_s"] >= 0.0
+    assert second.metadata["warm_sample_chain_execute_s"] == second.metadata["warm_call_s"]
+    assert second.metadata["trace_capture_s"] >= 0.0
+    assert second.metadata["timing_buckets"]["warm_call_s"].startswith("explanatory_only")
     assert second.metadata["dynamic_inputs"] == ("current_state", "seed", "step_size")
     assert second.metadata["seed_source"] == "runtime_tensor_argument"
     assert second.metadata["current_state_source"] == "runtime_tensor_argument"
@@ -660,9 +688,16 @@ def test_phase4_reduced_trace_reports_unavailable_diagnostics_not_zero() -> None
 
     assert set(result.trace) == {"trace_collected"}
     assert result.diagnostics["acceptance_rate"] is None
+    assert result.diagnostics["native_divergence_status"] == "unavailable"
     assert result.diagnostics["divergence_status"] == "unavailable"
     assert result.diagnostics["divergence_count"] is None
     assert result.diagnostics["divergence_source"] is None
+    assert result.diagnostics["hmc_health_diagnostics"]["diagnostic_role"] == (
+        "hmc_health_diagnostics_not_native_divergence"
+    )
+    assert result.diagnostics["hmc_health_diagnostics"]["acceptance_rate"] is None
+    assert result.diagnostics["hmc_health_diagnostics"]["log_accept_ratio"]["available"] is False
+    assert result.diagnostics["hmc_health_diagnostics"]["target_log_prob"]["available"] is False
     assert result.metadata["trace_unavailability"] == {
         "is_accepted": "reduced trace policy",
         "log_accept_ratio": "reduced trace policy",
@@ -718,6 +753,53 @@ def test_phase4_reviewed_dual_averaging_policy_records_diagnostic_telemetry() ->
     assert bool(result.diagnostics["final_step_size_finite"].numpy()) is True
     assert "step_size" in result.trace
     assert "no sampler convergence claim" in result.metadata["nonclaims"]
+
+
+def test_phase4_reviewed_dual_averaging_policy_compiles_with_xla() -> None:
+    policy = HMCTuningPolicy.fixed_mass_dual_averaging(
+        num_adaptation_steps=2,
+        target_accept_prob=0.75,
+        source="tests/test_nonlinear_ssm_phase4_full_chain_hmc.py",
+    )
+    config = FullChainHMCConfig(
+        num_results=4,
+        num_burnin_steps=2,
+        step_size=0.05,
+        num_leapfrog_steps=2,
+        seed=(20260620, 1),
+        use_xla=True,
+        trace_policy="standard",
+        tuning_policy=policy,
+        target_scope="phase4_reviewed_gaussian",
+    )
+    result = run_full_chain_tfp_hmc(
+        ReviewedGaussianAdapter(),
+        tf.constant([0.1, -0.2], dtype=tf.float64),
+        config,
+    )
+
+    assert result.samples.shape == (4, 2)
+    assert int(result.diagnostics["nonfinite_sample_count"].numpy()) == 0
+    assert result.metadata["jit_compile"] is True
+    assert result.metadata["adaptation_policy"] == "dual_averaging_step_size"
+    assert result.metadata["tuning_policy"]["label"] == "fixed_mass_dual_averaging"
+    assert result.metadata["value_score_authority"] == "graph_native"
+    assert result.metadata["target_scope"] == "phase4_reviewed_gaussian"
+    assert result.metadata["requested_target_scope"] == "phase4_reviewed_gaussian"
+    assert result.diagnostics["num_adaptation_steps"].numpy() == 2
+    assert result.diagnostics["target_accept_prob"].numpy() == pytest.approx(0.75)
+    assert np.all(np.isfinite(result.diagnostics["final_step_size"].numpy()))
+    assert bool(result.diagnostics["final_step_size_finite"].numpy()) is True
+    assert {
+        "is_accepted",
+        "log_accept_ratio",
+        "target_log_prob",
+        "step_size",
+        "target_accept_prob",
+        "num_adaptation_steps",
+    }.issubset(result.trace)
+    assert "no sampler convergence claim" in result.metadata["nonclaims"]
+    assert "no posterior validity claim" in result.metadata["nonclaims"]
 
 
 def test_phase4_gaussian_dual_averaging_diagnostic_records_nonclaims() -> None:

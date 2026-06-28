@@ -1,0 +1,780 @@
+{
+  "algorithm_family": "low_rank_ledh_pfpf_ot_lgssm_exact_kalman_gate",
+  "candidate": {
+    "alpha": 1e-08,
+    "assignment_epsilon": 0.25,
+    "candidate_id": "r16_eps0p25_alpha1em08_it120",
+    "convergence_threshold": 1e-06,
+    "denominator_floor": 1e-30,
+    "max_projection_iterations": 120,
+    "rank": 16,
+    "route": "low_rank_ledh_pfpf_ot"
+  },
+  "evidence_class": "trusted_gpu_candidate_only_if_launcher_records_trusted_context",
+  "hard_vetoes": [],
+  "nonclaims": [
+    "LGSSM exact-Kalman gate artifact only",
+    "no model-suite promotion claim",
+    "no statistical superiority claim",
+    "no nonlinear posterior correctness claim",
+    "no dense Sinkhorn equivalence claim",
+    "no HMC readiness claim",
+    "no package/public default readiness claim"
+  ],
+  "phase": "LOW_RANK_LEDH_MODEL_SUITE_P01_LGSSM_KALMAN",
+  "pinned_cases": {
+    "lgssm_small_exact_ref": {
+      "loglik_abs_delta_max": 12.0,
+      "mean_rmse_max": 0.25,
+      "num_particles": 1024,
+      "obs_dim": 3,
+      "role": "smoke/exact-reference sanity",
+      "seeds": [
+        91001,
+        91002,
+        91003
+      ],
+      "state_dim": 4,
+      "time_steps": 12,
+      "variance_rmse_max": 0.35
+    }
+  },
+  "rows": [
+    {
+      "active_resampling_batch_entries": 12,
+      "active_resampling_mask_count": 12,
+      "case_id": "lgssm_small_exact_ref",
+      "case_role": "smoke/exact-reference sanity",
+      "ess_by_time": [
+        [
+          649.6104125976562
+        ],
+        [
+          1019.4453735351562
+        ],
+        [
+          1023.9993896484375
+        ],
+        [
+          1023.9993896484375
+        ],
+        [
+          1023.9996337890625
+        ],
+        [
+          1023.854736328125
+        ],
+        [
+          1023.298828125
+        ],
+        [
+          1023.583251953125
+        ],
+        [
+          1022.2485961914062
+        ],
+        [
+          1023.92529296875
+        ],
+        [
+          1023.9320068359375
+        ],
+        [
+          1023.995361328125
+        ]
+      ],
+      "ess_fraction_min": 0.6343851685523987,
+      "ess_min": 649.6104125976562,
+      "filtered_means": [
+        [
+          [
+            -0.19139567017555237,
+            -0.1838662326335907,
+            -0.32247164845466614,
+            -0.10325322300195694
+          ]
+        ],
+        [
+          [
+            0.08356387913227081,
+            -0.23562783002853394,
+            -0.2582505941390991,
+            -0.05788164585828781
+          ]
+        ],
+        [
+          [
+            -0.03400611877441406,
+            -0.36202025413513184,
+            -0.27494174242019653,
+            -0.05986054614186287
+          ]
+        ],
+        [
+          [
+            -0.07274266332387924,
+            -0.40403372049331665,
+            -0.2920016646385193,
+            -0.06049986928701401
+          ]
+        ],
+        [
+          [
+            -0.19148313999176025,
+            -0.41867804527282715,
+            -0.013768834061920643,
+            -0.00882236659526825
+          ]
+        ],
+        [
+          [
+            -0.11427007615566254,
+            -0.27833691239356995,
+            -0.040891677141189575,
+            -0.013395518064498901
+          ]
+        ],
+        [
+          [
+            -0.1110617071390152,
+            -0.289960116147995,
+            -0.1827986091375351,
+            -0.04089616984128952
+          ]
+        ],
+        [
+          [
+            -0.07078997790813446,
+            -0.13295039534568787,
+            -0.11663318425416946,
+            -0.029520951211452484
+          ]
+        ],
+        [
+          [
+            0.042534299194812775,
+            0.11450501531362534,
+            0.03658150136470795,
+            0.0015397972892969847
+          ]
+        ],
+        [
+          [
+            0.08485147356987,
+            0.21083638072013855,
+            -0.2110409438610077,
+            -0.05030558258295059
+          ]
+        ],
+        [
+          [
+            0.06230896711349487,
+            0.23459818959236145,
+            0.018310945481061935,
+            -0.004097348544746637
+          ]
+        ],
+        [
+          [
+            0.15025600790977478,
+            0.22335532307624817,
+            -0.022395748645067215,
+            -0.004044082015752792
+          ]
+        ]
+      ],
+      "filtered_means_preview": [
+        -0.19139567017555237,
+        -0.1838662326335907,
+        -0.32247164845466614,
+        -0.10325322300195694,
+        0.08356387913227081,
+        -0.23562783002853394,
+        -0.2582505941390991,
+        -0.05788164585828781
+      ],
+      "filtered_variances": [
+        [
+          [
+            0.10825436562299728,
+            0.12258851528167725,
+            0.1388576775789261,
+            0.283306360244751
+          ]
+        ],
+        [
+          [
+            0.0005740106571465731,
+            0.0009069027146324515,
+            0.0014775581657886505,
+            0.011572388932108879
+          ]
+        ],
+        [
+          [
+            1.6414170431744424e-06,
+            4.818678007723065e-07,
+            6.0443599068094045e-06,
+            0.0004676433454733342
+          ]
+        ],
+        [
+          [
+            4.8660140805623087e-08,
+            1.7489122683400637e-07,
+            1.1489829176980493e-07,
+            1.935646650963463e-05
+          ]
+        ],
+        [
+          [
+            5.1720516758280155e-09,
+            5.288145530357724e-07,
+            1.9168987819284666e-07,
+            9.654640962253325e-07
+          ]
+        ],
+        [
+          [
+            0.00014792490401305258,
+            0.000784902716986835,
+            2.958813638542779e-07,
+            4.4414869648790045e-07
+          ]
+        ],
+        [
+          [
+            7.457114406861365e-05,
+            0.00047073233872652054,
+            5.763735089203692e-07,
+            5.861176077814889e-07
+          ]
+        ],
+        [
+          [
+            5.798639904242009e-05,
+            0.00042482028948143125,
+            3.3359654480591416e-05,
+            3.169908268318977e-06
+          ]
+        ],
+        [
+          [
+            2.255210347357206e-05,
+            0.00019018782768398523,
+            9.811205927690025e-06,
+            1.420678472641157e-06
+          ]
+        ],
+        [
+          [
+            1.257351686945185e-05,
+            0.00011836854537250474,
+            4.628167062037392e-06,
+            6.871699724797509e-07
+          ]
+        ],
+        [
+          [
+            3.555343710104353e-06,
+            4.0342361899092793e-05,
+            2.2456429178419057e-06,
+            4.3520049075596035e-07
+          ]
+        ],
+        [
+          [
+            8.978487926469825e-07,
+            1.1451392310846131e-05,
+            5.297236498336133e-07,
+            2.1463253574438568e-07
+          ]
+        ]
+      ],
+      "filtered_variances_preview": [
+        0.10825436562299728,
+        0.12258851528167725,
+        0.1388576775789261,
+        0.283306360244751,
+        0.0005740106571465731,
+        0.0009069027146324515,
+        0.0014775581657886505,
+        0.011572388932108879
+      ],
+      "final_logsumexp_residual": 0.0,
+      "final_particle_mean": [
+        [
+          0.15027368068695068,
+          0.22328399121761322,
+          -0.022387146949768066,
+          -0.004041639156639576
+        ]
+      ],
+      "final_particle_mean_preview": [
+        0.15027368068695068,
+        0.22328399121761322,
+        -0.022387146949768066,
+        -0.004041639156639576
+      ],
+      "finite_factors": true,
+      "finite_output": true,
+      "finite_particles": true,
+      "first_call_seconds": 69.74254143005237,
+      "fixture": {
+        "case_id": "lgssm_small_exact_ref",
+        "obs_dim": 3,
+        "role": "smoke/exact-reference sanity",
+        "seed": 91002,
+        "state_dim": 4,
+        "time_steps": 12
+      },
+      "hard_vetoes": [],
+      "kalman_log_likelihood": -23.79827117919922,
+      "kalman_reference_finite": true,
+      "log_likelihood": [
+        -23.013107299804688
+      ],
+      "log_likelihood_value": -23.013107299804688,
+      "loglik_abs_delta": 0.7851638793945312,
+      "max_factor_marginal_residual": 0.0,
+      "max_induced_column_residual": 0.0,
+      "max_induced_row_residual": 0.8646580576896667,
+      "mean_rmse": 0.07618801517128287,
+      "nonnegative_factors": true,
+      "output_devices": [
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0"
+      ],
+      "positive_g": true,
+      "projection_iterations_used_max": 0,
+      "route": "streaming",
+      "route_invocations": 12,
+      "seed": 91002,
+      "shape": {
+        "num_particles": 1024,
+        "obs_dim": 3,
+        "state_dim": 4,
+        "time_steps": 12
+      },
+      "status": "PASS",
+      "thresholds": {
+        "ess_fraction_min": 0.005,
+        "factor_residual_max": 0.005,
+        "log_weight_normalization_max": 1e-05,
+        "loglik_abs_delta_max": 12.0,
+        "mean_rmse_max": 0.25,
+        "variance_rmse_max": 0.35
+      },
+      "transport_matrix_materialized": false,
+      "transport_matrix_shapes": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "transport_object_kind": "streaming_transport",
+      "variance_rmse": 0.24296367584811704,
+      "warm_call_timing_summary_seconds": {
+        "max": 0.6517988150008023,
+        "mean": 0.6517988150008023,
+        "median": 0.6517988150008023,
+        "min": 0.6517988150008023
+      },
+      "warm_call_timings_seconds": [
+        0.6517988150008023
+      ]
+    },
+    {
+      "active_resampling_batch_entries": 12,
+      "active_resampling_mask_count": 12,
+      "case_id": "lgssm_small_exact_ref",
+      "case_role": "smoke/exact-reference sanity",
+      "ess_by_time": [
+        [
+          649.6104125976562
+        ],
+        [
+          1010.8485717773438
+        ],
+        [
+          1023.9859619140625
+        ],
+        [
+          1024.0001220703125
+        ],
+        [
+          1024.0001220703125
+        ],
+        [
+          1023.9998779296875
+        ],
+        [
+          1024.000244140625
+        ],
+        [
+          1023.999755859375
+        ],
+        [
+          1023.9998779296875
+        ],
+        [
+          1023.99951171875
+        ],
+        [
+          1023.99951171875
+        ],
+        [
+          1024.0003662109375
+        ]
+      ],
+      "ess_fraction_min": 0.6343851685523987,
+      "ess_min": 649.6104125976562,
+      "filtered_means": [
+        [
+          [
+            -0.19139567017555237,
+            -0.1838662326335907,
+            -0.32247164845466614,
+            -0.10325322300195694
+          ]
+        ],
+        [
+          [
+            0.08558762073516846,
+            -0.23927998542785645,
+            -0.2575414180755615,
+            -0.05512549728155136
+          ]
+        ],
+        [
+          [
+            -0.0327068492770195,
+            -0.3644922375679016,
+            -0.27437520027160645,
+            -0.057430848479270935
+          ]
+        ],
+        [
+          [
+            -0.07190468907356262,
+            -0.40572401881217957,
+            -0.2915647029876709,
+            -0.05850391834974289
+          ]
+        ],
+        [
+          [
+            -0.19094246625900269,
+            -0.419819712638855,
+            -0.013445017859339714,
+            -0.007176692131906748
+          ]
+        ],
+        [
+          [
+            -0.11408267170190811,
+            -0.27947938442230225,
+            -0.04064636304974556,
+            -0.012045313604176044
+          ]
+        ],
+        [
+          [
+            -0.11066552996635437,
+            -0.2900714576244354,
+            -0.18260438740253448,
+            -0.03975620120763779
+          ]
+        ],
+        [
+          [
+            -0.07064296305179596,
+            -0.13343675434589386,
+            -0.1165805384516716,
+            -0.02860049158334732
+          ]
+        ],
+        [
+          [
+            0.04246614873409271,
+            0.11362513899803162,
+            0.036490194499492645,
+            0.002270929981023073
+          ]
+        ],
+        [
+          [
+            0.08479157835245132,
+            0.21013815701007843,
+            -0.21109765768051147,
+            -0.0496981143951416
+          ]
+        ],
+        [
+          [
+            0.06223693862557411,
+            0.23408079147338867,
+            0.018236801028251648,
+            -0.003609829116612673
+          ]
+        ],
+        [
+          [
+            0.15018543601036072,
+            0.22294799983501434,
+            -0.02243458852171898,
+            -0.003634250955656171
+          ]
+        ]
+      ],
+      "filtered_means_preview": [
+        -0.19139567017555237,
+        -0.1838662326335907,
+        -0.32247164845466614,
+        -0.10325322300195694,
+        0.08558762073516846,
+        -0.23927998542785645,
+        -0.2575414180755615,
+        -0.05512549728155136
+      ],
+      "filtered_variances": [
+        [
+          [
+            0.10825436562299728,
+            0.12258851528167725,
+            0.1388576775789261,
+            0.283306360244751
+          ]
+        ],
+        [
+          [
+            0.0012351697077974677,
+            0.0029430012218654156,
+            0.0016209820751100779,
+            0.030108138918876648
+          ]
+        ],
+        [
+          [
+            1.1153268133057281e-05,
+            3.0314477044157684e-06,
+            3.772884883801453e-05,
+            0.002688310807570815
+          ]
+        ],
+        [
+          [
+            4.0900857811720925e-07,
+            2.7734252228128753e-08,
+            1.638767230360827e-06,
+            0.00015032343799248338
+          ]
+        ],
+        [
+          [
+            1.0661213245555246e-08,
+            3.1441487191585793e-09,
+            4.965277966562098e-08,
+            4.5443239287124015e-06
+          ]
+        ],
+        [
+          [
+            4.516791107800344e-11,
+            3.930855640987829e-11,
+            6.575336941594401e-10,
+            6.664377849574521e-08
+          ]
+        ],
+        [
+          [
+            1.1893454970879347e-11,
+            6.474009696388894e-14,
+            4.741378188503897e-13,
+            5.645640066553881e-10
+          ]
+        ],
+        [
+          [
+            2.2450304115739783e-10,
+            6.691698844346616e-12,
+            1.864150167563139e-09,
+            5.245058293940064e-12
+          ]
+        ],
+        [
+          [
+            2.7588678361284294e-16,
+            1.0248633539045038e-12,
+            4.661132591010642e-10,
+            1.129067976265996e-12
+          ]
+        ],
+        [
+          [
+            1.038163912475687e-12,
+            4.6401715803057186e-10,
+            2.5820352800298707e-11,
+            3.085200958640247e-14
+          ]
+        ],
+        [
+          [
+            4.180403852943604e-12,
+            1.86645765509752e-09,
+            5.9841237867730435e-12,
+            3.1432742151303594e-14
+          ]
+        ],
+        [
+          [
+            7.782621769258924e-11,
+            1.8139749702328345e-09,
+            6.10929275918215e-12,
+            1.4380703117038152e-13
+          ]
+        ]
+      ],
+      "filtered_variances_preview": [
+        0.10825436562299728,
+        0.12258851528167725,
+        0.1388576775789261,
+        0.283306360244751,
+        0.0012351697077974677,
+        0.0029430012218654156,
+        0.0016209820751100779,
+        0.030108138918876648
+      ],
+      "final_logsumexp_residual": 0.0,
+      "final_particle_mean": [
+        [
+          0.1501184105873108,
+          0.22285869717597961,
+          -0.022426234558224678,
+          -0.003632820211350918
+        ]
+      ],
+      "final_particle_mean_preview": [
+        0.1501184105873108,
+        0.22285869717597961,
+        -0.022426234558224678,
+        -0.003632820211350918
+      ],
+      "finite_factors": true,
+      "finite_output": true,
+      "finite_particles": true,
+      "first_call_seconds": 31.364722687983885,
+      "fixture": {
+        "case_id": "lgssm_small_exact_ref",
+        "obs_dim": 3,
+        "role": "smoke/exact-reference sanity",
+        "seed": 91002,
+        "state_dim": 4,
+        "time_steps": 12
+      },
+      "hard_vetoes": [],
+      "kalman_log_likelihood": -23.79827117919922,
+      "kalman_reference_finite": true,
+      "log_likelihood": [
+        -23.006494522094727
+      ],
+      "log_likelihood_value": -23.006494522094727,
+      "loglik_abs_delta": 0.7917766571044922,
+      "max_factor_marginal_residual": 1.4901161193847656e-08,
+      "max_induced_column_residual": 1.9073486328125e-06,
+      "max_induced_row_residual": 9.775161743164062e-06,
+      "mean_rmse": 0.07568809588464864,
+      "nonnegative_factors": true,
+      "output_devices": [
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0"
+      ],
+      "positive_g": true,
+      "projection_iterations_used_max": 19,
+      "route": "low_rank",
+      "route_invocations": 12,
+      "seed": 91002,
+      "shape": {
+        "num_particles": 1024,
+        "obs_dim": 3,
+        "state_dim": 4,
+        "time_steps": 12
+      },
+      "status": "PASS",
+      "thresholds": {
+        "ess_fraction_min": 0.005,
+        "factor_residual_max": 0.005,
+        "log_weight_normalization_max": 1e-05,
+        "loglik_abs_delta_max": 12.0,
+        "mean_rmse_max": 0.25,
+        "variance_rmse_max": 0.35
+      },
+      "transport_matrix_materialized": false,
+      "transport_matrix_shapes": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "transport_object_kind": "low_rank_coupling_factors",
+      "variance_rmse": 0.2422572738230752,
+      "warm_call_timing_summary_seconds": {
+        "max": 0.21445398102514446,
+        "mean": 0.21445398102514446,
+        "median": 0.21445398102514446,
+        "min": 0.21445398102514446
+      },
+      "warm_call_timings_seconds": [
+        0.21445398102514446
+      ]
+    }
+  ],
+  "run_manifest": {
+    "case_ids": [
+      "lgssm_small_exact_ref"
+    ],
+    "command": "docs/benchmarks/benchmark_low_rank_ledh_lgssm_kalman_gate.py --case-ids lgssm_small_exact_ref --seeds 91002 --route both --device-scope visible --cuda-visible-devices 1 --device /GPU:0 --expect-device-kind gpu --tf32-mode enabled --dtype float32 --warmups 0 --repeats 1 --output docs/benchmarks/low-rank-ledh-model-suite-p01-lgssm-kalman-2026-06-24-unit-lgssm_small_exact_ref-seed91002-both.json --markdown-output docs/benchmarks/low-rank-ledh-model-suite-p01-lgssm-kalman-2026-06-24-unit-lgssm_small_exact_ref-seed91002-both.md --quiet",
+    "cuda_visible_devices": "1",
+    "device": "/GPU:0",
+    "device_scope": "visible",
+    "dtype": "float32",
+    "ended_at": "2026-06-24T08:27:06.038284+00:00",
+    "expect_device_kind": "gpu",
+    "git_commit": "01213338c7037c468f38b01d013e4ce13526c9e4",
+    "git_status_short": "M bayesfilter/__init__.py\n M bayesfilter/inference/__init__.py\n M bayesfilter/inference/hmc.py\n M bayesfilter/inference/hmc_tuning.py\n M bayesfilter/linear/__init__.py\n M bayesfilter/linear/kalman_qr_tf.py\n M experiments/dpf_implementation/tf_tfp/resampling/low_rank_coupling_solver_tf.py\n M experiments/dpf_implementation/tf_tfp/resampling/nystrom_transport_tf.py\n M memory.md\n M tests/test_experimental_batched_benchmark_harness.py\n M tests/test_hmc_fixed_mass_step_tuning.py\n M tests/test_linear_qr_compact_loglik_tf.py\n M tests/test_low_rank_coupling_solver_tf.py\n M tests/test_nonlinear_ssm_phase4_full_chain_hmc.py\n M tests/test_nystrom_transport_tf.py\n M tests/test_v1_public_api.py\n?? bayesfilter/inference/hmc_kernel_tuning.py\n?? docs/benchmarks/actual-sir-low-rank-compiled-rerun-p01-smoke-2026-06-23.json\n?? docs/benchmarks/actual-sir-low-rank-compiled-rerun-p01-smoke-2026-06-23.md\n?? docs/benchmarks/actual-sir-low-rank-compiled-rerun-p02-grid-2026-06-23-b1-t20-n256-r128-eps0p0625-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-compiled-rerun-p02-grid-2026-06-23-b1-t20-n256-r128-eps0p0625-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-compiled-rerun-p02-grid-2026-06-23-b1-t20-n256-r128-eps0p125-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-compiled-rerun-p02-grid-2026-06-23-b1-t20-n256-r128-eps0p125-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-compiled-rerun-p02-grid-2026-06-23-b1-t20-n256-r128-eps0p25-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-compiled-rerun-p02-grid-2026-06-23-b1-t20-n256-r128-eps0p25-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-compiled-rerun-p02-grid-2026-06-23-b1-t20-n256-r16-eps0p0625-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-compiled-rerun-p02-grid-2026-06-23-b1-t20-n256-r16-eps0p0625-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-compiled-rerun-p02-grid-2026-06-23-b1-t20-n256-r16-eps0p125-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-compiled-rerun-p02-grid-2026-06-23-b1-t20-n256-r16-eps0p125-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-compiled-rerun-p02-grid-2026-06-23-b1-t20-n256-r16-eps0p25-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-compiled-rerun-p02-grid-2026-06-23-b1-t20-n256-r16-eps0p25-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-compiled-rerun-p02-grid-2026-06-23-b1-t20-n256-r32-eps0p0625-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-compiled-rerun-p02-grid-2026-06-23-b1-t20-n256-r32-eps0p0625-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-compiled-rerun-p02-grid-2026-06-23-b1-t20-n256-r32-eps0p125-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-compiled-rerun-p02-grid-2026-06-23-b1-t20-n256-r32-eps0p125-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-compiled-rerun-p02-grid-2026-06-23-b1-t20-n256-r32-eps0p25-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-compiled-rerun-p02-grid-2026-06-23-b1-t20-n256-r32-eps0p25-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-compiled-rerun-p02-grid-2026-06-23-b1-t20-n256-r64-eps0p0625-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-compiled-rerun-p02-grid-2026-06-23-b1-t20-n256-r64-eps0p0625-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-compiled-rerun-p02-grid-2026-06-23-b1-t20-n256-r64-eps0p125-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-compiled-rerun-p02-grid-2026-06-23-b1-t20-n256-r64-eps0p125-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-compiled-rerun-p02-grid-2026-06-23-b1-t20-n256-r64-eps0p25-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-compiled-rerun-p02-grid-2026-06-23-b1-t20-n256-r64-eps0p25-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-compiled-rerun-p02-grid-2026-06-23.json\n?? docs/benchmarks/actual-sir-low-rank-compiled-rerun-p02-grid-2026-06-23.md\n?? docs/benchmarks/actual-sir-low-rank-default-certification-p03-end-to-end-2026-06-24-b2-t20-n3072-r16-eps0p25-a1em08-it120-seed81141_81142-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-flo-ha348a917ca140e44.json\n?? docs/benchmarks/actual-sir-low-rank-default-certification-p03-end-to-end-2026-06-24-b2-t20-n3072-r16-eps0p25-a1em08-it120-seed81141_81142-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-flo-ha348a917ca140e44.md\n?? docs/benchmarks/actual-sir-low-rank-default-certification-p03-end-to-end-2026-06-24.json\n?? docs/benchmarks/actual-sir-low-rank-default-certification-p03-end-to-end-2026-06-24.md\n?? docs/benchmarks/actual-sir-low-rank-default-certification-p04-n4096-resource-boundary-2026-06-24-b2-t20-n4096-r16-eps0p25-a1em08-it120-seed81143_81144-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-c-he8463828a2b2eeb2.json\n?? docs/benchmarks/actual-sir-low-rank-default-certification-p04-n4096-resource-boundary-2026-06-24-b2-t20-n4096-r16-eps0p25-a1em08-it120-seed81143_81144-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-c-he8463828a2b2eeb2.md\n?? docs/benchmarks/actual-sir-low-rank-default-certification-p04-n4096-resource-boundary-2026-06-24.json\n?? docs/benchmarks/actual-sir-low-rank-default-certification-p04-n4096-resource-boundary-2026-06-24.md\n?? docs/benchmarks/actual-sir-low-rank-heldout-replication-2026-06-23-b3-t20-n256-r128-eps0p25-a1em08-it120-seed81121_81122_81123-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-heldout-replication-2026-06-23-b3-t20-n256-r128-eps0p25-a1em08-it120-seed81121_81122_81123-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-heldout-replication-2026-06-23-b3-t20-n256-r16-eps0p125-a1em08-it120-seed81121_81122_81123-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-heldout-replication-2026-06-23-b3-t20-n256-r16-eps0p125-a1em08-it120-seed81121_81122_81123-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-heldout-replication-2026-06-23-b3-t20-n256-r16-eps0p25-a1em08-it120-seed81121_81122_81123-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-heldout-replication-2026-06-23-b3-t20-n256-r16-eps0p25-a1em08-it120-seed81121_81122_81123-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-heldout-replication-2026-06-23-b3-t20-n256-r32-eps0p25-a1em08-it120-seed81121_81122_81123-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-heldout-replication-2026-06-23-b3-t20-n256-r32-eps0p25-a1em08-it120-seed81121_81122_81123-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-heldout-replication-2026-06-23-b3-t20-n256-r64-eps0p125-a1em08-it120-seed81121_81122_81123-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-heldout-replication-2026-06-23-b3-t20-n256-r64-eps0p125-a1em08-it120-seed81121_81122_81123-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-heldout-replication-2026-06-23-b3-t20-n256-r64-eps0p25-a1em08-it120-seed81121_81122_81123-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-heldout-replication-2026-06-23-b3-t20-n256-r64-eps0p25-a1em08-it120-seed81121_81122_81123-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-heldout-replication-2026-06-23.json\n?? docs/benchmarks/actual-sir-low-rank-heldout-replication-2026-06-23.md\n?? docs/benchmarks/actual-sir-low-rank-larger-particle-replication-2026-06-23-b2-t20-n512-r128-eps0p25-a1em08-it120-seed81124_81125-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-larger-particle-replication-2026-06-23-b2-t20-n512-r128-eps0p25-a1em08-it120-seed81124_81125-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-larger-particle-replication-2026-06-23-b2-t20-n512-r16-eps0p125-a1em08-it120-seed81124_81125-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-larger-particle-replication-2026-06-23-b2-t20-n512-r16-eps0p125-a1em08-it120-seed81124_81125-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-larger-particle-replication-2026-06-23-b2-t20-n512-r16-eps0p25-a1em08-it120-seed81124_81125-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-larger-particle-replication-2026-06-23-b2-t20-n512-r16-eps0p25-a1em08-it120-seed81124_81125-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-larger-particle-replication-2026-06-23-b2-t20-n512-r32-eps0p25-a1em08-it120-seed81124_81125-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-larger-particle-replication-2026-06-23-b2-t20-n512-r32-eps0p25-a1em08-it120-seed81124_81125-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-larger-particle-replication-2026-06-23-b2-t20-n512-r64-eps0p25-a1em08-it120-seed81124_81125-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-larger-particle-replication-2026-06-23-b2-t20-n512-r64-eps0p25-a1em08-it120-seed81124_81125-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-larger-particle-replication-2026-06-23.json\n?? docs/benchmarks/actual-sir-low-rank-larger-particle-replication-2026-06-23.md\n?? docs/benchmarks/actual-sir-low-rank-n1024-paired-validation-2026-06-23-b2-t20-n1024-r128-eps0p25-a1em08-it120-seed81129_81130-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-n1024-paired-validation-2026-06-23-b2-t20-n1024-r128-eps0p25-a1em08-it120-seed81129_81130-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-n1024-paired-validation-2026-06-23-b2-t20-n1024-r16-eps0p125-a1em08-it120-seed81129_81130-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-n1024-paired-validation-2026-06-23-b2-t20-n1024-r16-eps0p125-a1em08-it120-seed81129_81130-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-n1024-paired-validation-2026-06-23-b2-t20-n1024-r16-eps0p25-a1em08-it120-seed81129_81130-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-n1024-paired-validation-2026-06-23-b2-t20-n1024-r16-eps0p25-a1em08-it120-seed81129_81130-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-n1024-paired-validation-2026-06-23-b2-t20-n1024-r32-eps0p25-a1em08-it120-seed81129_81130-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-n1024-paired-validation-2026-06-23-b2-t20-n1024-r32-eps0p25-a1em08-it120-seed81129_81130-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-n1024-paired-validation-2026-06-23-b2-t20-n1024-r64-eps0p25-a1em08-it120-seed81129_81130-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-n1024-paired-validation-2026-06-23-b2-t20-n1024-r64-eps0p25-a1em08-it120-seed81129_81130-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-n1024-paired-validation-2026-06-23.json\n?? docs/benchmarks/actual-sir-low-rank-n1024-paired-validation-2026-06-23.md\n?? docs/benchmarks/actual-sir-low-rank-n1024-seed-replication-2026-06-23-b2-t20-n1024-r128-eps0p25-a1em08-it120-seed81131_81132-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-n1024-seed-replication-2026-06-23-b2-t20-n1024-r128-eps0p25-a1em08-it120-seed81131_81132-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-n1024-seed-replication-2026-06-23-b2-t20-n1024-r16-eps0p125-a1em08-it120-seed81131_81132-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-n1024-seed-replication-2026-06-23-b2-t20-n1024-r16-eps0p125-a1em08-it120-seed81131_81132-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-n1024-seed-replication-2026-06-23-b2-t20-n1024-r16-eps0p25-a1em08-it120-seed81131_81132-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-n1024-seed-replication-2026-06-23-b2-t20-n1024-r16-eps0p25-a1em08-it120-seed81131_81132-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-n1024-seed-replication-2026-06-23-b2-t20-n1024-r32-eps0p25-a1em08-it120-seed81131_81132-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-n1024-seed-replication-2026-06-23-b2-t20-n1024-r32-eps0p25-a1em08-it120-seed81131_81132-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-n1024-seed-replication-2026-06-23-b2-t20-n1024-r64-eps0p25-a1em08-it120-seed81131_81132-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-n1024-seed-replication-2026-06-23-b2-t20-n1024-r64-eps0p25-a1em08-it120-seed81131_81132-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-n1024-seed-replication-2026-06-23.json\n?? docs/benchmarks/actual-sir-low-rank-n1024-seed-replication-2026-06-23.md\n?? docs/benchmarks/actual-sir-low-rank-n2048-minimal-rank-validation-2026-06-23-b2-t20-n2048-r16-eps0p125-a1em08-it120-seed81133_81134-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-e-h3d58e7f95fdfad75.json\n?? docs/benchmarks/actual-sir-low-rank-n2048-minimal-rank-validation-2026-06-23-b2-t20-n2048-r16-eps0p125-a1em08-it120-seed81133_81134-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-e-h3d58e7f95fdfad75.md\n?? docs/benchmarks/actual-sir-low-rank-n2048-minimal-rank-validation-2026-06-23-b2-t20-n2048-r16-eps0p25-a1em08-it120-seed81133_81134-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-en-h8c7ae49655e617e7.json\n?? docs/benchmarks/actual-sir-low-rank-n2048-minimal-rank-validation-2026-06-23-b2-t20-n2048-r16-eps0p25-a1em08-it120-seed81133_81134-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-en-h8c7ae49655e617e7.md\n?? docs/benchmarks/actual-sir-low-rank-n2048-minimal-rank-validation-2026-06-23.json\n?? docs/benchmarks/actual-sir-low-rank-n2048-minimal-rank-validation-2026-06-23.md\n?? docs/benchmarks/actual-sir-low-rank-n2048-seed-replication-2026-06-23-b2-t20-n2048-r16-eps0p125-a1em08-it120-seed81135_81136-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-n2048-seed-replication-2026-06-23-b2-t20-n2048-r16-eps0p125-a1em08-it120-seed81135_81136-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-n2048-seed-replication-2026-06-23-b2-t20-n2048-r16-eps0p25-a1em08-it120-seed81135_81136-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-n2048-seed-replication-2026-06-23-b2-t20-n2048-r16-eps0p25-a1em08-it120-seed81135_81136-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-n2048-seed-replication-2026-06-23.json\n?? docs/benchmarks/actual-sir-low-rank-n2048-seed-replication-2026-06-23.md\n?? docs/benchmarks/actual-sir-low-rank-n3072-representative-resource-smoke-2026-06-23-b2-t20-n3072-r16-eps0p25-a1em08-it120-seed81137_81138-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-floa-h062c4f3957dc21a0.json\n?? docs/benchmarks/actual-sir-low-rank-n3072-representative-resource-smoke-2026-06-23-b2-t20-n3072-r16-eps0p25-a1em08-it120-seed81137_81138-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-floa-h062c4f3957dc21a0.md\n?? docs/benchmarks/actual-sir-low-rank-n3072-representative-resource-smoke-2026-06-23.json\n?? docs/benchmarks/actual-sir-low-rank-n3072-representative-resource-smoke-2026-06-23.md\n?? docs/benchmarks/actual-sir-low-rank-n3072-second-candidate-validation-2026-06-23-b2-t20-n3072-r16-eps0p125-a1em08-it120-seed81137_81138-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float-h63fd5ec16a683262.json\n?? docs/benchmarks/actual-sir-low-rank-n3072-second-candidate-validation-2026-06-23-b2-t20-n3072-r16-eps0p125-a1em08-it120-seed81137_81138-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float-h63fd5ec16a683262.md\n?? docs/benchmarks/actual-sir-low-rank-n3072-second-candidate-validation-2026-06-23.json\n?? docs/benchmarks/actual-sir-low-rank-n3072-second-candidate-validation-2026-06-23.md\n?? docs/benchmarks/actual-sir-low-rank-n512-seed-replication-2026-06-23-b3-t20-n512-r128-eps0p25-a1em08-it120-seed81126_81127_81128-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-n512-seed-replication-2026-06-23-b3-t20-n512-r128-eps0p25-a1em08-it120-seed81126_81127_81128-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-n512-seed-replication-2026-06-23-b3-t20-n512-r16-eps0p125-a1em08-it120-seed81126_81127_81128-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-n512-seed-replication-2026-06-23-b3-t20-n512-r16-eps0p125-a1em08-it120-seed81126_81127_81128-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-n512-seed-replication-2026-06-23-b3-t20-n512-r16-eps0p25-a1em08-it120-seed81126_81127_81128-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-n512-seed-replication-2026-06-23-b3-t20-n512-r16-eps0p25-a1em08-it120-seed81126_81127_81128-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-n512-seed-replication-2026-06-23-b3-t20-n512-r32-eps0p25-a1em08-it120-seed81126_81127_81128-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-n512-seed-replication-2026-06-23-b3-t20-n512-r32-eps0p25-a1em08-it120-seed81126_81127_81128-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-n512-seed-replication-2026-06-23-b3-t20-n512-r64-eps0p25-a1em08-it120-seed81126_81127_81128-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-n512-seed-replication-2026-06-23-b3-t20-n512-r64-eps0p25-a1em08-it120-seed81126_81127_81128-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-n512-seed-replication-2026-06-23.json\n?? docs/benchmarks/actual-sir-low-rank-n512-seed-replication-2026-06-23.md\n?? docs/benchmarks/actual-sir-low-rank-repair-classification-p01-artifact-summary-2026-06-22.json\n?? docs/benchmarks/actual-sir-low-rank-route-validation-p01-compiled-core-check-2026-06-21.json\n?? docs/benchmarks/actual-sir-low-rank-route-validation-p01-compiled-core-check-2026-06-21.md\n?? docs/benchmarks/actual-sir-low-rank-route-validation-p01-harness-smoke-2026-06-21.json\n?? docs/benchmarks/actual-sir-low-rank-route-validation-p01-harness-smoke-2026-06-21.md\n?? docs/benchmarks/actual-sir-low-rank-route-validation-p03-gpu1-pilot-b1-t3-n128.json\n?? docs/benchmarks/actual-sir-low-rank-route-validation-p03-gpu1-pilot-b1-t3-n128.md\n?? docs/benchmarks/actual-sir-low-rank-route-validation-paired-gpu-2026-06-21-row-b5-t20-n1024.json\n?? docs/benchmarks/actual-sir-low-rank-route-validation-paired-gpu-2026-06-21-row-b5-t20-n1024.md\n?? docs/benchmarks/actual-sir-low-rank-route-validation-paired-gpu-2026-06-21.json\n?? docs/benchmarks/actual-sir-low-rank-route-validation-paired-gpu-2026-06-21.md\n?? docs/benchmarks/actual-sir-low-rank-route-validation-smoke-2026-06-21-row-b1-t20-n256.json\n?? docs/benchmarks/actual-sir-low-rank-route-validation-smoke-2026-06-21-row-b1-t20-n256.md\n?? docs/benchmarks/actual-sir-low-rank-route-validation-smoke-2026-06-21-row-b1-t3-n128.json\n?? docs/benchmarks/actual-sir-low-rank-route-validation-smoke-2026-06-21-row-b1-t3-n128.md\n?? docs/benchmarks/actual-sir-low-rank-route-validation-smoke-2026-06-21.json\n?? docs/benchmarks/actual-sir-low-rank-route-validation-smoke-2026-06-21.md\n?? docs/benchmarks/actual-sir-low-rank-tuning-p01-dry-run-grid-2026-06-22.json\n?? docs/benchmarks/actual-sir-low-rank-tuning-p01-dry-run-grid-2026-06-22.md\n?? docs/benchmarks/actual-sir-low-rank-tuning-p02-tiny-smoke-2026-06-22-b1-t3-n128-r16-eps0p125-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-tuning-p02-tiny-smoke-2026-06-22-b1-t3-n128-r16-eps0p125-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-tuning-p02-tiny-smoke-2026-06-22-b1-t3-n128-r16-eps0p25-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-tuning-p02-tiny-smoke-2026-06-22-b1-t3-n128-r16-eps0p25-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-tuning-p02-tiny-smoke-2026-06-22-b1-t3-n128-r32-eps0p125-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-tuning-p02-tiny-smoke-2026-06-22-b1-t3-n128-r32-eps0p125-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-tuning-p02-tiny-smoke-2026-06-22-b1-t3-n128-r32-eps0p25-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-tuning-p02-tiny-smoke-2026-06-22-b1-t3-n128-r32-eps0p25-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-tuning-p02-tiny-smoke-2026-06-22.json\n?? docs/benchmarks/actual-sir-low-rank-tuning-p02-tiny-smoke-2026-06-22.md\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r128-eps0p015625-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r128-eps0p015625-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r128-eps0p03125-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r128-eps0p03125-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r128-eps0p0625-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r128-eps0p0625-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r128-eps0p125-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r128-eps0p125-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r128-eps0p25-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r128-eps0p25-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r16-eps0p015625-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r16-eps0p015625-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r16-eps0p03125-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r16-eps0p03125-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r16-eps0p0625-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r16-eps0p0625-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r16-eps0p125-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r16-eps0p125-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r16-eps0p25-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r16-eps0p25-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r32-eps0p015625-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r32-eps0p015625-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r32-eps0p03125-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r32-eps0p03125-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r32-eps0p0625-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r32-eps0p0625-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r32-eps0p125-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r32-eps0p125-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r32-eps0p25-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r32-eps0p25-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r64-eps0p015625-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r64-eps0p015625-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r64-eps0p03125-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r64-eps0p03125-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r64-eps0p0625-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r64-eps0p0625-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r64-eps0p125-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r64-eps0p125-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r64-eps0p25-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22-b1-t20-n256-r64-eps0p25-a1em08-it120-seed81120-routeboth-tpactive-all-stscompiled_core-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22.json\n?? docs/benchmarks/actual-sir-low-rank-tuning-p03-screen-stage-a-2026-06-22.md\n?? docs/benchmarks/actual-sir-lr-n3072-seedrep-20260623-b2-t20-n3072-r16-eps0p125-a1em08-it120-seed81139_81140-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-lr-n3072-seedrep-20260623-b2-t20-n3072-r16-eps0p125-a1em08-it120-seed81139_81140-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-lr-n3072-seedrep-20260623-b2-t20-n3072-r16-eps0p25-a1em08-it120-seed81139_81140-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.json\n?? docs/benchmarks/actual-sir-lr-n3072-seedrep-20260623-b2-t20-n3072-r16-eps0p25-a1em08-it120-seed81139_81140-routeboth-tpactive-all-stscompiled_core-ltscompiled_core-xla1-si10-seps1p0-as0p9-act0p001-rc128-cc128-pc64-float32-enabled-visible-cuda1.md\n?? docs/benchmarks/actual-sir-lr-n3072-seedrep-20260623.json\n?? docs/benchmarks/actual-sir-lr-n3072-seedrep-20260623.md\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p02-gpu-smoke-2026-06-22.json\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p02-gpu-smoke-2026-06-22.md\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p03-moderate-b1-t20-n1024-2026-06-22.json\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p03-moderate-b1-t20-n1024-2026-06-22.md\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p03b-while-loop-repair-b1-t20-n1024-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p03b-while-loop-repair-b1-t20-n1024-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p04-serious-b5-t20-n1024-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p04-serious-b5-t20-n1024-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p05-repl-b5-t20-n1024-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p05-repl-b5-t20-n1024-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p07-larger-n-b5-t20-n2048-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p07-larger-n-b5-t20-n2048-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p07-n4096-diagnostic-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p07-n4096-diagnostic-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p07-n8192-diagnostic-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p07-n8192-diagnostic-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p08-nystrom-only-n16384-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p08-nystrom-only-n16384-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p08-nystrom-only-n32768-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p08-nystrom-only-n32768-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p08-nystrom-only-n65536-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p08-nystrom-only-n65536-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09-default-neighborhood-r32-eps0p25-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09-default-neighborhood-r32-eps0p25-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09-sensitivity-r16-eps0p25-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09-sensitivity-r16-eps0p25-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09-sensitivity-r16-eps0p5-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09-sensitivity-r16-eps0p5-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09-sensitivity-r16-eps1p0-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09-sensitivity-r16-eps1p0-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09b-eps0p3-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09b-eps0p3-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09b-eps0p375-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09b-eps0p375-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09b-floor1e-12-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09b-floor1e-12-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09b-floor1e-18-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09b-floor1e-18-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09b-floor1e-24-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09b-floor1e-24-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09b-jitter1e-5-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09b-jitter1e-5-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09b-jitter1e-6-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09b-jitter1e-6-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09b-jitter1e-7-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09b-jitter1e-7-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09b-rank128-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09b-rank128-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09b-rank64-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09b-rank64-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09b-reproduce-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09b-reproduce-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09b-rescue-summary-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09b-smalln256-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09b-smalln256-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09b-smalln512-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09b-smalln512-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09c-policy-r32-eps0p3-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09c-policy-r32-eps0p3-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09c-policy-r32-eps0p5-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09c-policy-r32-eps0p5-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09c-policy-r64-eps0p3-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09c-policy-r64-eps0p3-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09d-svd-r32-eps0p25-rcond1e-6-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09d-svd-r32-eps0p25-rcond1e-6-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09d-svd-r64-eps0p3-rcond1e-6-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-compiled-redo-p09d-svd-r64-eps0p3-rcond1e-6-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-default-promotion-p02-gpu-pilot-2026-06-22.json\n?? docs/benchmarks/actual-sir-nystrom-default-promotion-p02-gpu-pilot-2026-06-22.md\n?? docs/benchmarks/actual-sir-nystrom-default-promotion-p03-serious-b5-t20-n1024-2026-06-22.json\n?? docs/benchmarks/actual-sir-nystrom-default-promotion-p03-serious-b5-t20-n1024-2026-06-22.md\n?? docs/benchmarks/actual-sir-nystrom-default-promotion-p05a-seed-repl-b5-t20-n1024-2026-06-22.json\n?? docs/benchmarks/actual-sir-nystrom-default-promotion-p05a-seed-repl-b5-t20-n1024-2026-06-22.md\n?? docs/benchmarks/actual-sir-nystrom-default-promotion-p05b-ladder-b5-t20-n2048-2026-06-22.json\n?? docs/benchmarks/actual-sir-nystrom-default-promotion-p05b-ladder-b5-t20-n2048-2026-06-22.md\n?? docs/benchmarks/actual-sir-nystrom-fixed-policy-p01-r32-eps0p5-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-fixed-policy-p01-r32-eps0p5-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-fixed-policy-promotion-stress-p01-n2048-r32-eps0p5-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-fixed-policy-promotion-stress-p01-n2048-r32-eps0p5-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-fixed-policy-promotion-stress-p01-n4096-r32-eps0p5-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-fixed-policy-promotion-stress-p01-n4096-r32-eps0p5-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-fixed-policy-promotion-stress-p01-n8192-r32-eps0p5-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-fixed-policy-promotion-stress-p01-n8192-r32-eps0p5-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-fixed-policy-stress-p01a-r32-eps0p5-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-fixed-policy-stress-p01a-r32-eps0p5-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-fixed-policy-stress-p01b-r32-eps0p5-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-fixed-policy-stress-p01b-r32-eps0p5-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-fixed-policy-stress-p02-n2048-r32-eps0p5-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-fixed-policy-stress-p02-n2048-r32-eps0p5-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-fixed-policy-stress-p02-n4096-r32-eps0p5-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-fixed-policy-stress-p02-n4096-r32-eps0p5-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-fixed-policy-stress-p02-n8192-r32-eps0p5-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-fixed-policy-stress-p02-n8192-r32-eps0p5-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-g1-n8192-broader-replication-seed82924-r32-eps0p5-2026-06-24.json\n?? docs/benchmarks/actual-sir-nystrom-g1-n8192-broader-replication-seed82924-r32-eps0p5-2026-06-24.md\n?? docs/benchmarks/actual-sir-nystrom-g1-n8192-broader-replication-seed82925-r32-eps0p5-2026-06-24.json\n?? docs/benchmarks/actual-sir-nystrom-g1-n8192-broader-replication-seed82925-r32-eps0p5-2026-06-24.md\n?? docs/benchmarks/actual-sir-nystrom-g1-n8192-broader-replication-seed82926-r32-eps0p5-2026-06-24.json\n?? docs/benchmarks/actual-sir-nystrom-g1-n8192-broader-replication-seed82926-r32-eps0p5-2026-06-24.md\n?? docs/benchmarks/actual-sir-nystrom-g1-n8192-broader-replication-seed82927-r32-eps0p5-2026-06-24.json\n?? docs/benchmarks/actual-sir-nystrom-g1-n8192-broader-replication-seed82927-r32-eps0p5-2026-06-24.md\n?? docs/benchmarks/actual-sir-nystrom-g1-n8192-broader-replication-seed82928-r32-eps0p5-2026-06-24.json\n?? docs/benchmarks/actual-sir-nystrom-g1-n8192-broader-replication-seed82928-r32-eps0p5-2026-06-24.md\n?? docs/benchmarks/actual-sir-nystrom-g1-n8192-broader-replication-seed82929-r32-eps0p5-2026-06-24.json\n?? docs/benchmarks/actual-sir-nystrom-g1-n8192-broader-replication-seed82929-r32-eps0p5-2026-06-24.md\n?? docs/benchmarks/actual-sir-nystrom-g1-n8192-broader-replication-seed82930-r32-eps0p5-2026-06-24.json\n?? docs/benchmarks/actual-sir-nystrom-g1-n8192-broader-replication-seed82930-r32-eps0p5-2026-06-24.md\n?? docs/benchmarks/actual-sir-nystrom-g1-n8192-broader-replication-seed82931-r32-eps0p5-2026-06-24.json\n?? docs/benchmarks/actual-sir-nystrom-g1-n8192-broader-replication-seed82931-r32-eps0p5-2026-06-24.md\n?? docs/benchmarks/actual-sir-nystrom-g1-n8192-broader-replication-summary-2026-06-24.json\n?? docs/benchmarks/actual-sir-nystrom-g3-history-full-n1024-r32-eps0p5-2026-06-24.json\n?? docs/benchmarks/actual-sir-nystrom-g3-history-full-n1024-r32-eps0p5-2026-06-24.md\n?? docs/benchmarks/actual-sir-nystrom-g3-history-full-n2048-r32-eps0p5-2026-06-24.json\n?? docs/benchmarks/actual-sir-nystrom-g3-history-full-n2048-r32-eps0p5-2026-06-24.md\n?? docs/benchmarks/actual-sir-nystrom-g3-history-memory-summary-2026-06-24.json\n?? docs/benchmarks/actual-sir-nystrom-g4-gradient-mechanics-cpu-2026-06-24.json\n?? docs/benchmarks/actual-sir-nystrom-g4-gradient-mechanics-cpu-2026-06-24.md\n?? docs/benchmarks/actual-sir-nystrom-less-intrusive-stability-p04-r32-eps0p25-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-less-intrusive-stability-p04-r32-eps0p25-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-n8192-drift-p01-replay-seed82921-r32-eps0p5-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-n8192-drift-p01-replay-seed82921-r32-eps0p5-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-n8192-drift-p01-seed82922-r32-eps0p5-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-n8192-drift-p01-seed82922-r32-eps0p5-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-n8192-drift-p01-seed82923-r32-eps0p5-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-n8192-drift-p01-seed82923-r32-eps0p5-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-stability-repair-p02-r32-eps0p25-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-stability-repair-p02-r32-eps0p25-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-stability-repair-p02-r32-eps0p5-control-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-stability-repair-p02-r32-eps0p5-control-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-stability-repair-p02-r64-eps0p3-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-stability-repair-p02-r64-eps0p3-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-stability-repair-p03-r32-eps0p25-t1-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-stability-repair-p03-r32-eps0p25-t1-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-stability-repair-p03-r32-eps0p25-t2-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-stability-repair-p03-r32-eps0p25-t2-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-stability-repair-p03-r32-eps0p25-t4-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-stability-repair-p03-r32-eps0p25-t4-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-stability-repair-p03-r32-eps0p5-control-t20-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-stability-repair-p03-r32-eps0p5-control-t20-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-stability-repair-p03-r32-eps0p5-control-t4-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-stability-repair-p03-r32-eps0p5-control-t4-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-stability-repair-p03-r64-eps0p3-t1-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-stability-repair-p03-r64-eps0p3-t1-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-stability-repair-p03-r64-eps0p3-t2-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-stability-repair-p03-r64-eps0p3-t2-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-stability-repair-p03-r64-eps0p3-t4-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-stability-repair-p03-r64-eps0p3-t4-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-stability-repair-p06-positive-projected-r32-eps0p25-2026-06-23.json\n?? docs/benchmarks/actual-sir-nystrom-stability-repair-p06-positive-projected-r32-eps0p25-2026-06-23.md\n?? docs/benchmarks/actual-sir-nystrom-threshold-calibration-p01-artifact-scale-2026-06-24.json\n?? docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-extension-seed82946-r32-eps0p5-2026-06-24.json\n?? docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-extension-seed82946-r32-eps0p5-2026-06-24.md\n?? docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-extension-seed82947-r32-eps0p5-2026-06-24.json\n?? docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-extension-seed82947-r32-eps0p5-2026-06-24.md\n?? docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-extension-seed82948-r32-eps0p5-2026-06-24.json\n?? docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-extension-seed82948-r32-eps0p5-2026-06-24.md\n?? docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82932-r32-eps0p5-2026-06-24.json\n?? docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82932-r32-eps0p5-2026-06-24.md\n?? docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82933-r32-eps0p5-2026-06-24.json\n?? docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82933-r32-eps0p5-2026-06-24.md\n?? docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82934-r32-eps0p5-2026-06-24.json\n?? docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82934-r32-eps0p5-2026-06-24.md\n?? docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82935-r32-eps0p5-2026-06-24.json\n?? docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82935-r32-eps0p5-2026-06-24.md\n?? docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82936-r32-eps0p5-2026-06-24.json\n?? docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82936-r32-eps0p5-2026-06-24.md\n?? docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82937-r32-eps0p5-2026-06-24.json\n?? docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82937-r32-eps0p5-2026-06-24.md\n?? docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82938-r32-eps0p5-2026-06-24.json\n?? docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82938-r32-eps0p5-2026-06-24.md\n?? docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82939-r32-eps0p5-2026-06-24.json\n?? docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82939-r32-eps0p5-2026-06-24.md\n?? docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82940-r32-eps0p5-2026-06-24.json\n?? docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82940-r32-eps0p5-2026-06-24.md\n?? docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82941-r32-eps0p5-2026-06-24.json\n?? docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82941-r32-eps0p5-2026-06-24.md\n?? docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82942-r32-eps0p5-2026-06-24.json\n?? docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82942-r32-eps0p5-2026-06-24.md\n?? docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82943-r32-eps0p5-2026-06-24.json\n?? docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82943-r32-eps0p5-2026-06-24.md\n?? docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82944-r32-eps0p5-2026-06-24.json\n?? docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82944-r32-eps0p5-2026-06-24.md\n?? docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82945-r32-eps0p5-2026-06-24.json\n?? docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-seed82945-r32-eps0p5-2026-06-24.md\n?? docs/benchmarks/actual-sir-nystrom-threshold-calibration-p03-validation-summary-2026-06-24.json\n?? docs/benchmarks/actual-sir-streaming-compiled-sanity-b5-t20-n2048-gpu1-2026-06-22.json\n?? docs/benchmarks/actual-sir-streaming-compiled-sanity-b5-t20-n2048-gpu1-2026-06-22.md\n?? docs/benchmarks/benchmark_actual_sir_low_rank_route_validation.py\n?? docs/benchmarks/benchmark_actual_sir_nystrom_compiled_redo.py\n?? docs/benchmarks/benchmark_actual_sir_nystrom_default_promotion.py\n?? docs/benchmarks/benchmark_low_rank_ledh_lgssm_kalman_gate.py\n?? docs/benchmarks/compare_experimental_batched_ledh_pfpf_ot_streaming_quality.py\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-impact-p01-correctness-cpu-2026-06-20.json\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-impact-p01-correctness-cpu-2026-06-20.md\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-impact-p02-precision-gpu-2026-06-20.json\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-impact-p02-precision-gpu-2026-06-20.md\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-impact-p02-precision-gpu-children-2026-06-20/\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-impact-p03-target-gpu-2026-06-20.json\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-impact-p03-target-gpu-2026-06-20.md\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-impact-p05-hmc-mechanics-cpu-2026-06-20.json\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-impact-p05-hmc-mechanics-cpu-2026-06-20.md\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-2026-06-20.json\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-2026-06-20.md\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-children-2026-06-20/\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-large-particle-efficiency-p03-streaming-large-n-gpu-children-2026-06-21/\n?? docs/benchmarks/low-rank-ledh-model-suite-p01-lgssm-kalman-2026-06-24-row-lgssm_small_exact_ref-seed91001-low_rank.json\n?? docs/benchmarks/low-rank-ledh-model-suite-p01-lgssm-kalman-2026-06-24-row-lgssm_small_exact_ref-seed91001-low_rank.md\n?? docs/benchmarks/low-rank-ledh-model-suite-p01-lgssm-kalman-2026-06-24-row-lgssm_small_exact_ref-seed91001-streaming.json\n?? docs/benchmarks/low-rank-ledh-model-suite-p01-lgssm-kalman-2026-06-24-row-lgssm_small_exact_ref-seed91001-streaming.md\n?? docs/benchmarks/run_actual_sir_low_rank_tuning_grid.py\n?? docs/benchmarks/run_actual_sir_nystrom_gradient_mechanics_smoke.py\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-large-n-2026-06-21-row-low_rank-n100000.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-large-n-2026-06-21-row-low_rank-n100000.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-large-n-2026-06-21-row-low_rank-n50000.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-large-n-2026-06-21-row-low_rank-n50000.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-large-n-2026-06-21.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-large-n-2026-06-21.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n100000.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n100000.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n1024.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n1024.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n16384.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n16384.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n2048.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n2048.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n32768.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n32768.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n4096.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n4096.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n50000.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n50000.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n8192.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n8192.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n1024.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n1024.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n16384.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n16384.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n2048.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n2048.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n32768.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n32768.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n4096.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n4096.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n8192.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n8192.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-pilot-2026-06-21.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-pilot-2026-06-21.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-small-2026-06-21.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-small-2026-06-21.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-integration-gpu-scale-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-integration-gpu-scale-2026-06-20.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-integration-medium-cpu-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-integration-medium-cpu-2026-06-20.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-integration-small-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-integration-small-2026-06-20.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-integration-tuning-cpu-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-integration-tuning-cpu-2026-06-20.md\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-focused-tuning-cpu-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-focused-tuning-cpu-2026-06-20.md\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-gpu-scale-tuned-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-gpu-scale-tuned-2026-06-20.md\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-medium-cpu-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-medium-cpu-2026-06-20.md\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-medium-cpu-tuned-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-medium-cpu-tuned-2026-06-20.md\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-small-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-small-2026-06-20.md\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-tuning-cpu-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-tuning-cpu-2026-06-20.md\n?? docs/benchmarks/scalable-ot-nystrom-ledh-pfpf-algorithm-complete-p02-small-reference-2026-06-21.json\n?? docs/benchmarks/scalable-ot-nystrom-ledh-pfpf-algorithm-complete-p02-small-reference-2026-06-21.md\n?? docs/benchmarks/scalable-ot-nystrom-ledh-pfpf-algorithm-complete-p03-downstream-smoke-2026-06-21.json\n?? docs/benchmarks/scalable-ot-nystrom-ledh-pfpf-algorithm-complete-p03-downstream-smoke-2026-06-21.md\n?? docs/benchmarks/scalable-ot-nystrom-ledh-pfpf-algorithm-complete-p04-gpu-scale-2026-06-21.json\n?? docs/benchmarks/scalable-ot-nystrom-ledh-pfpf-algorithm-complete-p04-gpu-scale-2026-06-21.md\n?? docs/benchmarks/scalable-ot-nystrom-ledh-pfpf-effectiveness-leaderboard-p02-pilot-2026-06-22.json\n?? docs/benchmarks/scalable-ot-nystrom-ledh-pfpf-effectiveness-leaderboard-p02-pilot-2026-06-22.md\n?? docs/benchmarks/scalable_ot_low_rank_ledh_pfpf_efficiency.py\n?? docs/benchmarks/scalable_ot_low_rank_ledh_pfpf_integration_smoke.py\n?? docs/benchmarks/scalable_ot_low_rank_tf32_scale_smoke.py\n?? docs/benchmarks/scalable_ot_nystrom_ledh_pfpf_algorithm_complete.py\n?? docs/benchmarks/scalable_ot_nystrom_ledh_pfpf_effectiveness_leaderboard.py\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-compiled-rerun-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-compiled-rerun-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-default-certification-claude-review-ledger-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-default-certification-master-program-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-default-certification-p00-governance-result-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-default-certification-p00-governance-subplan-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-default-certification-p01-evidence-surface-audit-result-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-default-certification-p01-evidence-surface-audit-subplan-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-default-certification-p02-implementation-audit-result-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-default-certification-p02-implementation-audit-subplan-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-default-certification-p03-end-to-end-benchmark-result-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-default-certification-p03-end-to-end-benchmark-subplan-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-default-certification-p04-n4096-resource-boundary-result-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-default-certification-p04-n4096-resource-boundary-subplan-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-default-certification-p05-default-implementation-result-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-default-certification-p05-default-implementation-subplan-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-default-certification-p06-hmc-autodiff-result-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-default-certification-p06-hmc-autodiff-subplan-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-default-certification-p07-closeout-subplan-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-default-certification-result-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-default-certification-visible-execution-ledger-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-default-certification-visible-gated-execution-runbook-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-default-certification-visible-stop-handoff-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-heldout-replication-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-heldout-replication-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-larger-particle-replication-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-larger-particle-replication-review-ledger-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-larger-particle-replication-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-minimal-rank-consolidation-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-minimal-rank-consolidation-review-ledger-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-minimal-rank-consolidation-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-n1024-paired-validation-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-n1024-paired-validation-review-ledger-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-n1024-paired-validation-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-n1024-seed-replication-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-n1024-seed-replication-review-ledger-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-n1024-seed-replication-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-n2048-consolidation-resource-decision-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-n2048-consolidation-resource-decision-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-n2048-minimal-rank-validation-blocker-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-n2048-minimal-rank-validation-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-n2048-minimal-rank-validation-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-n2048-seed-replication-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-n2048-seed-replication-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-n3072-replicated-evidence-resource-boundary-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-n3072-replicated-evidence-resource-boundary-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-n3072-representative-resource-smoke-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-n3072-representative-resource-smoke-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-n3072-resource-boundary-closeout-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-n3072-resource-boundary-closeout-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-n3072-resource-boundary-review-ledger-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-n3072-second-candidate-validation-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-n3072-second-candidate-validation-review-ledger-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-n3072-second-candidate-validation-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-n3072-seed-replication-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-n3072-seed-replication-review-ledger-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-n3072-seed-replication-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-n3072-two-row-consolidation-resource-boundary-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-n3072-two-row-consolidation-resource-boundary-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-n512-seed-replication-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-n512-seed-replication-review-ledger-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-n512-seed-replication-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-repair-classification-claude-review-ledger-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-repair-classification-master-program-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-repair-classification-p00-governance-result-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-repair-classification-p00-governance-subplan-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-repair-classification-p01-artifact-classifier-result-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-repair-classification-p01-artifact-classifier-subplan-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-repair-classification-p02-code-path-classifier-result-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-repair-classification-p02-code-path-classifier-subplan-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-repair-classification-p03-conditional-microprobe-result-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-repair-classification-p03-conditional-microprobe-subplan-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-repair-classification-p04-closeout-subplan-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-repair-classification-result-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-repair-classification-visible-execution-ledger-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-repair-classification-visible-gated-execution-runbook-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-repair-classification-visible-stop-handoff-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-route-performance-repair-result-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-route-performance-repair-subplan-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-row-artifact-naming-repair-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-tuning-claude-review-ledger-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-tuning-master-program-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-tuning-p00-governance-result-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-tuning-p00-governance-subplan-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-tuning-p00-review-nonconvergence-blocker-result-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-tuning-p01-harness-grid-result-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-tuning-p01-harness-grid-subplan-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-tuning-p02-tiny-smoke-result-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-tuning-p02-tiny-smoke-subplan-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-tuning-p03-review-nonconvergence-blocker-result-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-tuning-p03-stop-handoff-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-tuning-p03-tuning-screen-result-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-tuning-p03-tuning-screen-subplan-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-tuning-p04-candidate-freeze-subplan-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-tuning-p05-heldout-support-subplan-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-tuning-p06-large-n-envelope-subplan-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-tuning-p07-closeout-subplan-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-tuning-restart-reset-memo-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-tuning-visible-execution-ledger-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-tuning-visible-gated-execution-runbook-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-tuning-visible-stop-handoff-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-claude-review-ledger-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-master-program-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-p00-governance-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-p00-governance-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-p01-harness-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-p01-harness-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-p02-smoke-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-p02-smoke-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-p03-paired-ladder-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-p03-paired-ladder-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-p04-large-n-envelope-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-p04-large-n-envelope-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-p05-closeout-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-visible-execution-ledger-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-visible-gated-execution-runbook-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-visible-stop-handoff-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-compiled-redo-p03-moderate-gate-plan-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-compiled-redo-p03-moderate-gate-result-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-compiled-redo-p03b-while-loop-compile-repair-plan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-compiled-redo-p03b-while-loop-compile-repair-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-compiled-redo-p04-serious-b5-gate-plan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-compiled-redo-p04-serious-b5-gate-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-compiled-redo-p05-repl-b5-t20-n1024-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-compiled-redo-p06-same-shape-replication-summary-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-compiled-redo-p07-larger-n-n2048-plan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-compiled-redo-p07-larger-n-n2048-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-compiled-redo-p07-n4096-diagnostic-plan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-compiled-redo-p07-n4096-diagnostic-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-compiled-redo-p07-n8192-diagnostic-plan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-compiled-redo-p07-n8192-diagnostic-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-compiled-redo-p08-high-n-nystrom-only-envelope-plan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-compiled-redo-p08-high-n-nystrom-only-envelope-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-compiled-redo-p09-default-neighborhood-repair-plan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-compiled-redo-p09-default-neighborhood-repair-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-compiled-redo-p09-rank-epsilon-sensitivity-partial-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-compiled-redo-p09-rank-epsilon-sensitivity-plan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-compiled-redo-p09b-rescue-tuning-plan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-compiled-redo-p09b-rescue-tuning-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-compiled-redo-p09c-policy-confirmation-plan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-compiled-redo-p09c-policy-confirmation-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-compiled-redo-p09d-eigh-core-repair-plan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-compiled-redo-p09d-spectral-core-repair-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-compiled-redo-promotion-or-rejection-runbook-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-compiled-redo-result-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-default-promotion-p00-governance-result-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-default-promotion-p01-harness-result-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-default-promotion-p03-serious-row-result-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-default-promotion-p05-replicated-ladder-result-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-default-promotion-p05-replicated-ladder-subplan-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-default-promotion-p05a-seed-replication-result-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-default-promotion-p05b-ladder-result-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-default-promotion-p05c-high-n-one-seed-addendum-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-default-promotion-plan-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-default-promotion-result-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-default-promotion-runtime-protocol-diagnostic-result-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-default-promotion-visible-execution-ledger-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-default-promotion-visible-gated-execution-runbook-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-default-promotion-visible-stop-handoff-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-evidence-governance-and-gap-plan-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-fixed-policy-promotion-stress-claude-review-ledger-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-fixed-policy-promotion-stress-master-program-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-fixed-policy-promotion-stress-p00-governance-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-fixed-policy-promotion-stress-p00-governance-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-fixed-policy-promotion-stress-p01-replicated-high-n-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-fixed-policy-promotion-stress-p01-replicated-high-n-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-fixed-policy-promotion-stress-p02-history-memory-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-fixed-policy-promotion-stress-p03-hmc-gradient-mechanics-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-fixed-policy-promotion-stress-p04-closeout-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-fixed-policy-promotion-stress-p04-closeout-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-fixed-policy-promotion-stress-visible-execution-ledger-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-fixed-policy-promotion-stress-visible-gated-execution-runbook-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-fixed-policy-promotion-stress-visible-stop-handoff-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-fixed-policy-stress-closeout-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-fixed-policy-stress-p01-seed-replication-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-fixed-policy-stress-p02-high-n-ladder-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-fixed-policy-stress-runbook-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-fixed-policy-validation-plan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-fixed-policy-validation-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-g1-n8192-broader-replication-result-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-g1-n8192-broader-replication-subplan-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-g2-scope-fallback-decision-result-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-g2-scope-fallback-decision-subplan-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-g3-history-memory-result-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-g3-history-memory-subplan-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-g4-gradient-mechanics-result-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-g4-gradient-mechanics-subplan-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-g5-evidence-package-review-plan-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-g5-evidence-package-review-result-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-g5-final-agreement-claude-review-ledger-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-governed-gap-execution-master-program-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-less-intrusive-stability-claude-review-ledger-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-less-intrusive-stability-master-program-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-less-intrusive-stability-p00-program-review-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-less-intrusive-stability-p00-program-review-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-less-intrusive-stability-p01-diagnostic-adequacy-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-less-intrusive-stability-p01-diagnostic-adequacy-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-less-intrusive-stability-p02-repair-selection-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-less-intrusive-stability-p02-repair-selection-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-less-intrusive-stability-p03-focused-implementation-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-less-intrusive-stability-p03-focused-implementation-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-less-intrusive-stability-p04-brittle-row-repair-gate-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-less-intrusive-stability-p04-brittle-row-repair-gate-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-less-intrusive-stability-p05-neighborhood-control-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-less-intrusive-stability-p06-promotion-readiness-decision-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-less-intrusive-stability-p06-promotion-readiness-decision-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-less-intrusive-stability-p07-closeout-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-less-intrusive-stability-p07-closeout-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-less-intrusive-stability-visible-execution-ledger-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-less-intrusive-stability-visible-gated-execution-runbook-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-less-intrusive-stability-visible-stop-handoff-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-n8192-error-size-sanity-note-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-n8192-paired-drift-diagnostic-claude-review-ledger-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-n8192-paired-drift-diagnostic-master-program-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-n8192-paired-drift-diagnostic-p00-governance-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-n8192-paired-drift-diagnostic-p00-governance-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-n8192-paired-drift-diagnostic-p01-fixed-policy-replay-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-n8192-paired-drift-diagnostic-p01-fixed-policy-replay-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-n8192-paired-drift-diagnostic-p02-repair-selection-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-n8192-paired-drift-diagnostic-p03-focused-repair-test-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-n8192-paired-drift-diagnostic-p04-closeout-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-n8192-paired-drift-diagnostic-p04-closeout-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-n8192-paired-drift-diagnostic-visible-execution-ledger-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-n8192-paired-drift-diagnostic-visible-gated-execution-runbook-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-n8192-paired-drift-diagnostic-visible-stop-handoff-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-stability-repair-claude-review-ledger-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-stability-repair-master-program-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-stability-repair-p00-program-review-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-stability-repair-p00-program-review-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-stability-repair-p01-instrumentation-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-stability-repair-p01-instrumentation-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-stability-repair-p02-failure-localization-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-stability-repair-p02-failure-localization-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-stability-repair-p03-minimal-ablations-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-stability-repair-p03-minimal-ablations-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-stability-repair-p04-repair-selection-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-stability-repair-p04-repair-selection-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-stability-repair-p05-focused-repair-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-stability-repair-p05-focused-repair-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-stability-repair-p06-p09-regate-decision-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-stability-repair-p06-p09-regate-decision-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-stability-repair-p07-closeout-result-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-stability-repair-p07-closeout-subplan-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-stability-repair-visible-execution-ledger-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-stability-repair-visible-gated-execution-runbook-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-stability-repair-visible-stop-handoff-2026-06-23.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-statistical-testing-amendment-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-threshold-calibration-claude-review-ledger-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-threshold-calibration-master-program-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-threshold-calibration-p00-governance-result-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-threshold-calibration-p00-governance-subplan-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-threshold-calibration-p01-artifact-scale-result-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-threshold-calibration-p01-artifact-scale-subplan-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-threshold-calibration-p02-threshold-freeze-result-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-threshold-calibration-p02-threshold-freeze-subplan-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-threshold-calibration-p03-extension-subplan-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-threshold-calibration-p03-statistical-validation-result-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-threshold-calibration-p03-statistical-validation-subplan-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-threshold-calibration-plan-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-threshold-calibration-visible-execution-ledger-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-threshold-calibration-visible-gated-execution-runbook-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-threshold-calibration-visible-stop-handoff-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-visible-execution-ledger-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-visible-gated-execution-runbook-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-nystrom-visible-stop-handoff-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-claude-review-ledger-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-master-program-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p00-governance-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p00-governance-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p01-correctness-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p01-correctness-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p02-precision-gpu-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p02-precision-gpu-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p03-target-gpu-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p03-target-gpu-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p04-performance-memory-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p04-performance-memory-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p05-hmc-mechanics-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p05-hmc-mechanics-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p06-closeout-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-visible-execution-ledger-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-visible-gated-execution-runbook-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-visible-stop-handoff-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-claude-review-ledger-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-master-program-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-next-target-shape-repeated-stability-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-p00-governance-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-p00-governance-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-p01-harness-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-p01-harness-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-p02-medium-gpu-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-p02-medium-gpu-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-p03-closeout-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-visible-execution-ledger-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-visible-gated-execution-runbook-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-visible-stop-handoff-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-claude-review-ledger-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-master-program-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-p00-governance-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-p00-governance-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-p01-harness-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-p01-harness-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-p02-paired-gpu-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-p02-paired-gpu-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-p03-large-n-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-p03-large-n-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-p04-closeout-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-visible-execution-ledger-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-visible-gated-execution-plan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-visible-stop-handoff-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-claude-review-ledger-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-master-program-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p00-governance-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p00-governance-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p01-harness-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p01-harness-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p02-tuning-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p02-tuning-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p03-medium-cpu-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p03-medium-cpu-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p04-trusted-gpu-scale-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p04-trusted-gpu-scale-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p05-closeout-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-visible-execution-ledger-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-visible-gated-execution-plan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-visible-stop-handoff-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-model-suite-promotion-claude-review-ledger-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-model-suite-promotion-master-program-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-model-suite-promotion-p00-governance-result-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-model-suite-promotion-p00-governance-subplan-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-model-suite-promotion-p01-lgssm-kalman-implementation-result-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-model-suite-promotion-p01-lgssm-kalman-subplan-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-model-suite-promotion-p02-actual-sir-stress-subplan-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-model-suite-promotion-p03-nonlinear-gaussian-subplan-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-model-suite-promotion-p04-sv-heavy-tail-subplan-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-model-suite-promotion-p05-stiff-nonlinear-subplan-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-model-suite-promotion-p06-resource-envelope-subplan-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-model-suite-promotion-p07-hmc-autodiff-subplan-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-model-suite-promotion-p08-closeout-subplan-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-model-suite-promotion-visible-execution-ledger-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-model-suite-promotion-visible-gated-execution-runbook-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-model-suite-promotion-visible-stop-handoff-2026-06-24.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-claude-review-ledger-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-master-program-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-p00-governance-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-p00-governance-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-p01-implementation-harness-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-p01-implementation-harness-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-p02-small-reference-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-p02-small-reference-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-p03-downstream-smoke-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-p03-downstream-smoke-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-p04-gpu-scale-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-p04-gpu-scale-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-p05-closeout-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-reset-memo-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-visible-execution-ledger-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-visible-gated-execution-runbook-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-visible-stop-handoff-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-effectiveness-leaderboard-plan-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-effectiveness-leaderboard-result-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-claude-review-ledger-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-master-program-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p00-governance-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p00-governance-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p01-harness-invariants-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p01-harness-invariants-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p02-medium-cpu-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p02-medium-cpu-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p02a-tuning-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p02a-tuning-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p02b-focused-tuning-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p02b-focused-tuning-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p02c-medium-cpu-tuned-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p02c-medium-cpu-tuned-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p03-trusted-gpu-scale-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p03-trusted-gpu-scale-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p04-closeout-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-visible-execution-ledger-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-visible-gated-execution-plan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-visible-stop-handoff-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-two-lane-gpu-coordination-record-2026-06-21.md\n?? docs/plans/bayesfilter_hmc_fixed_mass_dual_averaging_xla_probe_result_2026_06_20.md\n?? docs/plans/bayesfilter_hmc_fixed_mass_dual_averaging_xla_probe_review_ledger_2026_06_20.md\n?? docs/plans/bayesfilter_hmc_fixed_mass_dual_averaging_xla_probe_subplan_2026_06_20.md\n?? docs/plans/bayesfilter_hmc_kernel_tuning_xla_parameter_repair_plan_2026_06_22.md\n?? docs/plans/bayesfilter_hmc_kernel_tuning_xla_parameter_repair_result_2026_06_22.md\n?? tests/test_actual_sir_low_rank_route_validation.py\n?? tests/test_actual_sir_low_rank_tuning_grid.py\n?? tests/test_actual_sir_nystrom_compiled_redo.py\n?? tests/test_actual_sir_nystrom_default_promotion.py\n?? tests/test_hmc_fixed_size_chunk_runner.py\n?? tests/test_hmc_internal_segment_runner.py\n?? tests/test_hmc_kernel_tuning_bootstrap.py\n?? tests/test_hmc_kernel_tuning_fixed_mass_step.py\n?? tests/test_hmc_kernel_tuning_frozen_step_trajectory.py\n?? tests/test_hmc_kernel_tuning_geometry.py\n?? tests/test_hmc_kernel_tuning_outer_loop.py\n?? tests/test_hmc_kernel_tuning_public_api.py\n?? tests/test_hmc_kernel_tuning_windowed_mass.py\n?? tests/test_hmc_streaming_sample_sink.py\n?? tests/test_low_rank_ledh_lgssm_kalman_gate.py\n?? tests/test_low_rank_ledh_pfpf_efficiency.py\n?? tests/test_low_rank_ledh_pfpf_integration_smoke.py\n?? tests/test_low_rank_tf32_scale_smoke.py\n?? tests/test_nystrom_effectiveness_leaderboard.py\n?? tests/test_nystrom_ledh_pfpf_algorithm_complete.py",
+    "jit_compile": true,
+    "logical_gpus": [
+      "LogicalDevice(name='/device:GPU:0', device_type='GPU')"
+    ],
+    "p01a_result_path": "docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-model-suite-promotion-p01-lgssm-kalman-implementation-result-2026-06-24.md",
+    "physical_gpus": [
+      "PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')"
+    ],
+    "plan_path": "docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-model-suite-promotion-master-program-2026-06-24.md",
+    "platform": "Linux-6.8.0-111-generic-x86_64-with-glibc2.35",
+    "python_executable": "/home/ubuntu/anaconda3/envs/tfgpu/bin/python",
+    "python_version": "3.13.13 | packaged by Anaconda, Inc. | (main, Apr 14 2026, 06:19:41) [GCC 14.3.0]",
+    "repeats": 1,
+    "seeds_override": [
+      91002
+    ],
+    "started_at": "2026-06-24T08:25:22.565286+00:00",
+    "subplan_path": "docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-model-suite-promotion-p01-lgssm-kalman-subplan-2026-06-24.md",
+    "tensorflow_probability_version": "0.25.0",
+    "tensorflow_version": "2.20.0",
+    "tf32_execution_recorded": true,
+    "tf32_requested": "enabled",
+    "tf_dtype": "float32",
+    "wall_time_seconds": 103.47302418597974,
+    "warmups": 0,
+    "working_directory": "/home/ubuntu/python/BayesFilter"
+  },
+  "schema_version": "low_rank_ledh_lgssm_kalman_gate.v1",
+  "status": "PASS"
+}

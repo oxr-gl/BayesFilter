@@ -13,6 +13,7 @@ from typing import Callable, Literal, Mapping
 
 import tensorflow as tf
 
+from bayesfilter.ops import symmetric_principal_sqrt, symmetric_sylvester_solve
 from bayesfilter.nonlinear.cut_tf import tf_cut4g_sigma_point_rule
 from bayesfilter.nonlinear.sigma_points_tf import (
     TFSigmaPointRule,
@@ -21,12 +22,28 @@ from bayesfilter.nonlinear.sigma_points_tf import (
 
 TFBatchedTransitionFn = Callable[[tf.Tensor, tf.Tensor], tf.Tensor]
 TFBatchedObservationFn = Callable[[tf.Tensor], tf.Tensor]
+TFBatchedLaggedObservationFn = Callable[
+    [tf.Tensor, tf.Tensor, tf.Tensor],
+    tf.Tensor,
+]
 TFBatchedResidualFn = Callable[[tf.Tensor, tf.Tensor, tf.Tensor], tf.Tensor]
 TFBatchedTransitionStateJacobianFn = Callable[[tf.Tensor, tf.Tensor], tf.Tensor]
 TFBatchedTransitionInnovationJacobianFn = Callable[[tf.Tensor, tf.Tensor], tf.Tensor]
 TFBatchedTransitionParameterDerivativeFn = Callable[[tf.Tensor, tf.Tensor], tf.Tensor]
 TFBatchedObservationStateJacobianFn = Callable[[tf.Tensor], tf.Tensor]
 TFBatchedObservationParameterDerivativeFn = Callable[[tf.Tensor], tf.Tensor]
+TFBatchedLaggedObservationStateJacobianFn = Callable[
+    [tf.Tensor, tf.Tensor, tf.Tensor],
+    tf.Tensor,
+]
+TFBatchedLaggedObservationInnovationJacobianFn = Callable[
+    [tf.Tensor, tf.Tensor, tf.Tensor],
+    tf.Tensor,
+]
+TFBatchedLaggedObservationParameterDerivativeFn = Callable[
+    [tf.Tensor, tf.Tensor, tf.Tensor],
+    tf.Tensor,
+]
 TFBatchedSVDBackend = Literal[
     "tf_svd_cubature",
     "tf_svd_ukf",
@@ -47,6 +64,7 @@ class TFBatchedStructuralStateSpace:
     observation_fn: TFBatchedObservationFn
     deterministic_residual_fn: TFBatchedResidualFn | None = None
     name: str = "tf_batched_structural_state_space"
+    lagged_observation_fn: TFBatchedLaggedObservationFn | None = None
 
     def __post_init__(self) -> None:
         for name, rank in (
@@ -97,6 +115,23 @@ class TFBatchedStructuralStateSpace:
     def observe(self, state_points: tf.Tensor) -> tf.Tensor:
         return self.observation_fn(state_points)
 
+    def has_lagged_observation_contract(self) -> bool:
+        return self.lagged_observation_fn is not None
+
+    def observe_structural(
+        self,
+        previous_points: tf.Tensor,
+        innovation_points: tf.Tensor,
+        next_points: tf.Tensor,
+    ) -> tf.Tensor:
+        if self.lagged_observation_fn is None:
+            return self.observe(next_points)
+        return self.lagged_observation_fn(
+            previous_points,
+            innovation_points,
+            next_points,
+        )
+
     def deterministic_residual(
         self,
         previous_points: tf.Tensor,
@@ -129,6 +164,18 @@ class TFBatchedStructuralFirstDerivatives:
     observation_state_jacobian_fn: TFBatchedObservationStateJacobianFn
     d_observation_fn: TFBatchedObservationParameterDerivativeFn
     name: str = "tf_batched_structural_first_derivatives"
+    lagged_observation_previous_jacobian_fn: (
+        TFBatchedLaggedObservationStateJacobianFn | None
+    ) = None
+    lagged_observation_innovation_jacobian_fn: (
+        TFBatchedLaggedObservationInnovationJacobianFn | None
+    ) = None
+    lagged_observation_next_jacobian_fn: (
+        TFBatchedLaggedObservationStateJacobianFn | None
+    ) = None
+    d_lagged_observation_fn: (
+        TFBatchedLaggedObservationParameterDerivativeFn | None
+    ) = None
 
     def __post_init__(self) -> None:
         for name in (
@@ -577,17 +624,8 @@ def _checked_batched_principal_sqrt_factor_first_derivatives(
         floored = tf.identity(floored)
         eigenvectors = tf.identity(eigenvectors)
 
-    sqrt_eigenvalues = tf.sqrt(floored)
-    factor = (
-        eigenvectors
-        @ tf.linalg.diag(sqrt_eigenvalues)
-        @ tf.linalg.matrix_transpose(eigenvectors)
-    )
-    d_factor = _principal_sqrt_frechet_derivative_from_eigh(
-        eigenvectors,
-        sqrt_eigenvalues,
-        d_covariance,
-    )
+    factor = _symmetrize(symmetric_principal_sqrt(covariance))
+    d_factor = _symmetrize(symmetric_sylvester_solve(factor, d_covariance))
     implemented_covariance = _symmetrize(factor @ tf.linalg.matrix_transpose(factor))
     psd_projection_residual = tf.linalg.norm(
         implemented_covariance - covariance,
@@ -719,6 +757,22 @@ def tf_batched_svd_sigma_point_value_and_score_with_rule(
     aug_dim = state_dim + innovation_dim
     if sigma_rule.dim != aug_dim:
         raise ValueError("sigma_rule dimension must equal state_dim + innovation_dim")
+    lagged_observation_contract = model.has_lagged_observation_contract()
+    observation_contract = (
+        "lagged_previous_innovation_predicted"
+        if lagged_observation_contract
+        else "current_predicted_state"
+    )
+    if lagged_observation_contract and (
+        derivatives.lagged_observation_previous_jacobian_fn is None
+        or derivatives.lagged_observation_innovation_jacobian_fn is None
+        or derivatives.lagged_observation_next_jacobian_fn is None
+        or derivatives.d_lagged_observation_fn is None
+    ):
+        raise ValueError(
+            "lagged observation contract requires previous, innovation, next, "
+            "and parameter derivative hooks"
+        )
 
     mean = tf.convert_to_tensor(model.initial_mean, dtype=tf.float64)
     covariance = _symmetrize(model.initial_covariance)
@@ -934,25 +988,87 @@ def tf_batched_svd_sigma_point_value_and_score_with_rule(
             sigma_rule.covariance_weights,
         )
 
-        observation_points = model.observe(predicted_points)
-        observation_state_jacobian = derivatives.observation_state_jacobian_fn(
-            predicted_points,
-        )
-        d_observation_param = derivatives.d_observation_fn(predicted_points)
-        _validate_static_shape(
-            observation_state_jacobian,
-            (batch_dim, sigma_rule.point_count, observation_dim, state_dim),
-            "observation_state_jacobian",
-        )
-        _validate_static_shape(
-            d_observation_param,
-            (batch_dim, parameter_dim, sigma_rule.point_count, observation_dim),
-            "d_observation",
-        )
-        d_observation_points = (
-            _matvec_points(observation_state_jacobian, d_predicted_points)
-            + d_observation_param
-        )
+        if lagged_observation_contract:
+            observation_points = model.observe_structural(
+                previous_points,
+                innovation_points,
+                predicted_points,
+            )
+            observation_previous_jacobian = (
+                derivatives.lagged_observation_previous_jacobian_fn(
+                    previous_points,
+                    innovation_points,
+                    predicted_points,
+                )
+            )
+            observation_innovation_jacobian = (
+                derivatives.lagged_observation_innovation_jacobian_fn(
+                    previous_points,
+                    innovation_points,
+                    predicted_points,
+                )
+            )
+            observation_next_jacobian = (
+                derivatives.lagged_observation_next_jacobian_fn(
+                    previous_points,
+                    innovation_points,
+                    predicted_points,
+                )
+            )
+            d_observation_param = derivatives.d_lagged_observation_fn(
+                previous_points,
+                innovation_points,
+                predicted_points,
+            )
+            _validate_static_shape(
+                observation_previous_jacobian,
+                (batch_dim, sigma_rule.point_count, observation_dim, state_dim),
+                "lagged_observation_previous_jacobian",
+            )
+            _validate_static_shape(
+                observation_innovation_jacobian,
+                (batch_dim, sigma_rule.point_count, observation_dim, innovation_dim),
+                "lagged_observation_innovation_jacobian",
+            )
+            _validate_static_shape(
+                observation_next_jacobian,
+                (batch_dim, sigma_rule.point_count, observation_dim, state_dim),
+                "lagged_observation_next_jacobian",
+            )
+            _validate_static_shape(
+                d_observation_param,
+                (batch_dim, parameter_dim, sigma_rule.point_count, observation_dim),
+                "d_lagged_observation",
+            )
+            d_observation_points = (
+                _matvec_points(observation_previous_jacobian, d_previous_points)
+                + _matvec_points(
+                    observation_innovation_jacobian,
+                    d_innovation_points,
+                )
+                + _matvec_points(observation_next_jacobian, d_predicted_points)
+                + d_observation_param
+            )
+        else:
+            observation_points = model.observe(predicted_points)
+            observation_state_jacobian = derivatives.observation_state_jacobian_fn(
+                predicted_points,
+            )
+            d_observation_param = derivatives.d_observation_fn(predicted_points)
+            _validate_static_shape(
+                observation_state_jacobian,
+                (batch_dim, sigma_rule.point_count, observation_dim, state_dim),
+                "observation_state_jacobian",
+            )
+            _validate_static_shape(
+                d_observation_param,
+                (batch_dim, parameter_dim, sigma_rule.point_count, observation_dim),
+                "d_observation",
+            )
+            d_observation_points = (
+                _matvec_points(observation_state_jacobian, d_predicted_points)
+                + d_observation_param
+            )
         observation_mean = tf.einsum(
             "r,brm->bm",
             sigma_rule.mean_weights,
@@ -1251,6 +1367,8 @@ def tf_batched_svd_sigma_point_value_and_score_with_rule(
     diagnostics = {
         "backend": tf.constant(backend_name),
         "rule": tf.constant(sigma_rule.name),
+        "observation_contract": tf.constant(observation_contract),
+        "observation_contract_runtime_selected": tf.constant(True),
         "augmented_dim": tf.constant(aug_dim, dtype=tf.int32),
         "point_count": tf.constant(sigma_rule.point_count, dtype=tf.int32),
         "polynomial_degree": tf.constant(sigma_rule.polynomial_degree, dtype=tf.int32),

@@ -667,6 +667,144 @@ def tf_qr_sqrt_kalman_log_likelihood_batched_static_while_loop(
 
 
 @tf.function
+def tf_qr_sqrt_masked_kalman_log_likelihood_batched_static(
+    observations: tf.Tensor,
+    transition_offset: tf.Tensor,
+    transition_matrix: tf.Tensor,
+    transition_covariance: tf.Tensor,
+    observation_offset: tf.Tensor,
+    observation_matrix: tf.Tensor,
+    observation_covariance: tf.Tensor,
+    initial_state_mean: tf.Tensor,
+    initial_state_covariance: tf.Tensor,
+    observation_mask: tf.Tensor,
+    jitter: tf.Tensor | float = 0.0,
+) -> tf.Tensor:
+    """Batched-static masked QR/square-root prediction-error log likelihood.
+
+    The leading dimension of every state-space tensor is a batch/chain
+    dimension.  Observations and the boolean mask are shared across the batch
+    with shape ``[T, M]``.  The masking convention matches the scalar compact
+    QR helper: missing rows are dummy finite observations with unit innovation
+    variance and their dummy normalizing constants are subtracted.
+    """
+
+    y = _as_batched_static_observation_matrix(observations)
+    n_timesteps = _static_num_timesteps(y)
+    observation_mask = tf.convert_to_tensor(observation_mask, dtype=tf.bool)
+    _validate_mask_shape(y, observation_mask)
+    transition_offset = _to_tensor(transition_offset)
+    transition_matrix = _to_tensor(transition_matrix)
+    transition_covariance = _to_tensor(transition_covariance)
+    observation_offset = _to_tensor(observation_offset)
+    observation_matrix = _to_tensor(observation_matrix)
+    observation_covariance = _to_tensor(observation_covariance)
+    mean = _to_tensor(initial_state_mean)
+    initial_state_covariance = _to_tensor(initial_state_covariance)
+    _validate_batched_static_shapes(
+        transition_offset=transition_offset,
+        transition_matrix=transition_matrix,
+        transition_covariance=transition_covariance,
+        observation_offset=observation_offset,
+        observation_matrix=observation_matrix,
+        observation_covariance=observation_covariance,
+        initial_state_mean=mean,
+        initial_state_covariance=initial_state_covariance,
+    )
+    jitter_tensor = tf.cast(jitter, tf.float64)
+
+    batch_size = tf.shape(mean)[0]
+    state_dim = tf.shape(mean)[1]
+    obs_dim = tf.shape(observation_offset)[1]
+    state_identity = tf.eye(state_dim, batch_shape=[batch_size], dtype=tf.float64)
+    obs_identity = tf.eye(obs_dim, batch_shape=[batch_size], dtype=tf.float64)
+    covariance_factor = _batched_cholesky_factor(initial_state_covariance, 0.0)
+    transition_covariance_factor = _batched_cholesky_factor(transition_covariance, 0.0)
+    log_likelihood = tf.zeros((batch_size,), dtype=tf.float64)
+    two_pi = tf.constant(2.0 * math.pi, dtype=tf.float64)
+    dummy_log_norm = tf.constant(math.log(2.0 * math.pi), dtype=tf.float64)
+
+    for t in range(n_timesteps):
+        predicted_mean = transition_offset + _matvec(transition_matrix, mean)
+        prediction_stack = tf.concat(
+            (
+                transition_matrix @ covariance_factor,
+                transition_covariance_factor,
+            ),
+            axis=2,
+        )
+        predicted_factor = _batched_lower_factor_from_horizontal_stack(prediction_stack)
+        predicted_covariance = predicted_factor @ _matrix_transpose(predicted_factor)
+
+        base_observation_covariance = observation_covariance + jitter_tensor * obs_identity
+        row_weight = tf.cast(observation_mask[t], tf.float64)
+        missing_weight = 1.0 - row_weight
+        row_outer = row_weight[:, tf.newaxis] * row_weight[tf.newaxis, :]
+        masked_observation_matrix = observation_matrix * row_weight[tf.newaxis, :, tf.newaxis]
+        masked_observation_covariance = (
+            base_observation_covariance * row_outer[tf.newaxis, :, :]
+            + tf.linalg.diag(missing_weight)[tf.newaxis, :, :]
+        )
+        observation_covariance_factor = _batched_cholesky_factor(
+            masked_observation_covariance,
+            0.0,
+        )
+
+        innovation = (
+            y[t][tf.newaxis, :]
+            - (observation_offset + _matvec(observation_matrix, predicted_mean))
+        ) * row_weight[tf.newaxis, :]
+        innovation_stack = tf.concat(
+            (
+                masked_observation_matrix @ predicted_factor,
+                observation_covariance_factor,
+            ),
+            axis=2,
+        )
+        innovation_factor = _batched_lower_factor_from_horizontal_stack(innovation_stack)
+        innovation_precision = _batched_factor_solve(innovation_factor, obs_identity)
+        kalman_gain = (
+            predicted_covariance
+            @ _matrix_transpose(masked_observation_matrix)
+            @ innovation_precision
+        )
+
+        filtered_mean = predicted_mean + _matvec(kalman_gain, innovation)
+        joseph_left = state_identity - kalman_gain @ masked_observation_matrix
+        update_stack = tf.concat(
+            (
+                joseph_left @ predicted_factor,
+                kalman_gain @ observation_covariance_factor,
+            ),
+            axis=2,
+        )
+        filtered_factor = _batched_lower_factor_from_horizontal_stack(update_stack)
+
+        solve_innovation = tf.linalg.triangular_solve(
+            innovation_factor,
+            innovation[..., tf.newaxis],
+            lower=True,
+        )
+        mahalanobis = tf.reduce_sum(tf.square(solve_innovation), axis=[-2, -1])
+        log_det = 2.0 * tf.reduce_sum(
+            tf.math.log(tf.linalg.diag_part(innovation_factor)),
+            axis=-1,
+        )
+        missing_count = tf.reduce_sum(missing_weight)
+        contribution = -0.5 * (
+            tf.cast(obs_dim, tf.float64) * tf.math.log(two_pi)
+            + log_det
+            + mahalanobis
+            - missing_count * dummy_log_norm
+        )
+        mean = filtered_mean
+        covariance_factor = filtered_factor
+        log_likelihood = log_likelihood + contribution
+
+    return log_likelihood
+
+
+@tf.function
 def tf_qr_sqrt_masked_kalman_log_likelihood_compact(
     observations: tf.Tensor,
     transition_offset: tf.Tensor,

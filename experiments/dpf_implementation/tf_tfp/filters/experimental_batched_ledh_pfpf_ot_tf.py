@@ -625,12 +625,18 @@ def batched_ledh_flow_core_tf(
         obs_precision,
         h_jac,
     )
-    post_covariance = tf.linalg.inv(
-        _stabilize_batch_covariance(
-            post_precision,
-            jitter,
-            "post_precision",
-        )
+    stabilized_post_precision = _stabilize_batch_covariance(
+        post_precision,
+        jitter,
+        "post_precision",
+    )
+    post_precision_chol = tf.linalg.cholesky(stabilized_post_precision)
+    post_covariance = tf.linalg.cholesky_solve(
+        post_precision_chol,
+        tf.broadcast_to(
+            tf.eye(state_dim, dtype=DTYPE),
+            tf.shape(stabilized_post_precision),
+        ),
     )
     post_covariance = _stabilize_batch_covariance(
         post_covariance,
