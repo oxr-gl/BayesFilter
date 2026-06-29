@@ -180,11 +180,115 @@ def _repeated_positive_model_and_derivatives() -> tuple[
     return observations, model, derivatives
 
 
-def _scalar_rows(
-    tensors: dict[str, tf.Tensor],
-    *,
-    backend: str,
-) -> tuple[tf.Tensor, tf.Tensor]:
+def _repeated_positive_innovation_model_and_derivatives() -> tuple[
+    tf.Tensor,
+    TFBatchedStructuralStateSpace,
+    TFBatchedStructuralFirstDerivatives,
+]:
+    batch_size = 2
+    parameter_dim = 1
+    state_dim = 2
+    innovation_dim = 2
+    observation_dim = 2
+    observations = tf.constant([[0.0, 0.0]], dtype=tf.float64)
+    inverse_sqrt_two = tf.constant(1.0 / np.sqrt(2.0), dtype=tf.float64)
+
+    def transition(previous: tf.Tensor, innovation: tf.Tensor) -> tf.Tensor:
+        del innovation
+        return tf.stack(
+            [
+                previous[:, :, 0],
+                inverse_sqrt_two * previous[:, :, 1],
+            ],
+            axis=2,
+        )
+
+    def observe(states: tf.Tensor) -> tf.Tensor:
+        return states
+
+    def transition_state_jacobian(
+        previous: tf.Tensor,
+        innovation: tf.Tensor,
+    ) -> tf.Tensor:
+        del innovation
+        jacobian = tf.constant(
+            [
+                [1.0, 0.0],
+                [0.0, 1.0 / np.sqrt(2.0)],
+            ],
+            dtype=tf.float64,
+        )
+        return tf.broadcast_to(
+            jacobian[tf.newaxis, tf.newaxis, :, :],
+            [tf.shape(previous)[0], tf.shape(previous)[1], state_dim, state_dim],
+        )
+
+    def transition_innovation_jacobian(
+        previous: tf.Tensor,
+        innovation: tf.Tensor,
+    ) -> tf.Tensor:
+        del innovation
+        return tf.zeros(
+            [tf.shape(previous)[0], tf.shape(previous)[1], state_dim, innovation_dim],
+            dtype=tf.float64,
+        )
+
+    def d_transition(previous: tf.Tensor, innovation: tf.Tensor) -> tf.Tensor:
+        del innovation
+        return tf.zeros(
+            [tf.shape(previous)[0], parameter_dim, tf.shape(previous)[1], state_dim],
+            dtype=tf.float64,
+        )
+
+    def observation_state_jacobian(states: tf.Tensor) -> tf.Tensor:
+        return tf.broadcast_to(
+            tf.eye(observation_dim, dtype=tf.float64)[tf.newaxis, tf.newaxis, :, :],
+            [batch_size, tf.shape(states)[1], observation_dim, state_dim],
+        )
+
+    def d_observation(states: tf.Tensor) -> tf.Tensor:
+        return tf.zeros(
+            [batch_size, parameter_dim, tf.shape(states)[1], observation_dim],
+            dtype=tf.float64,
+        )
+
+    model = TFBatchedStructuralStateSpace(
+        initial_mean=tf.zeros([batch_size, state_dim], dtype=tf.float64),
+        initial_covariance=tf.broadcast_to(
+            tf.linalg.diag(tf.constant([1.0, 2.0], dtype=tf.float64)),
+            [batch_size, state_dim, state_dim],
+        ),
+        innovation_covariance=tf.broadcast_to(
+            tf.linalg.diag(tf.constant([3.0, 4.0], dtype=tf.float64)),
+            [batch_size, innovation_dim, innovation_dim],
+        ),
+        observation_covariance=tf.zeros([batch_size, observation_dim, observation_dim], dtype=tf.float64),
+        transition_fn=transition,
+        observation_fn=observe,
+    )
+    derivatives = TFBatchedStructuralFirstDerivatives(
+        d_initial_mean=tf.zeros([batch_size, parameter_dim, state_dim], dtype=tf.float64),
+        d_initial_covariance=tf.zeros(
+            [batch_size, parameter_dim, state_dim, state_dim],
+            dtype=tf.float64,
+        ),
+        d_innovation_covariance=tf.zeros(
+            [batch_size, parameter_dim, innovation_dim, innovation_dim],
+            dtype=tf.float64,
+        ),
+        d_observation_covariance=tf.zeros(
+            [batch_size, parameter_dim, observation_dim, observation_dim],
+            dtype=tf.float64,
+        ),
+        transition_state_jacobian_fn=transition_state_jacobian,
+        transition_innovation_jacobian_fn=transition_innovation_jacobian,
+        d_transition_fn=d_transition,
+        observation_state_jacobian_fn=observation_state_jacobian,
+        d_observation_fn=d_observation,
+    )
+    return observations, model, derivatives
+
+
     values = []
     scores = []
     batch_size = int(tensors["initial_mean"].shape[0])
@@ -403,7 +507,42 @@ def test_principal_sqrt_dispatcher_passes_repeated_positive_while_svd_fails() ->
     )
 
 
-def test_principal_sqrt_ukf_nondegenerate_parity_with_svd_ukf() -> None:
+def test_principal_sqrt_innovation_dispatcher_passes_repeated_positive_while_svd_fails() -> None:
+    observations, model, derivatives = _repeated_positive_innovation_model_and_derivatives()
+
+    with pytest.raises(tf.errors.InvalidArgumentError, match="blocked_weak_spectral_gap"):
+        tf_batched_svd_sigma_point_value_and_score(
+            observations,
+            model,
+            derivatives,
+            backend="tf_svd_ukf",
+            spectral_gap_tolerance=tf.constant(1.0e-10, dtype=tf.float64),
+        )
+
+    value, score, diagnostics = tf_batched_svd_sigma_point_value_and_score(
+        observations,
+        model,
+        derivatives,
+        backend="tf_principal_sqrt_ukf",
+        spectral_gap_tolerance=tf.constant(1.0e-10, dtype=tf.float64),
+    )
+
+    assert np.isfinite(value.numpy()).all()
+    assert np.isfinite(score.numpy()).all()
+    assert diagnostics["backend"].numpy() == b"tf_principal_sqrt_ukf"
+    assert diagnostics["derivative_branch"].numpy() == b"strict_spd_principal_sqrt"
+    np.testing.assert_allclose(
+        diagnostics["factor_derivative_reconstruction_residual"].numpy(),
+        np.zeros([2]),
+        atol=1.0e-10,
+    )
+    np.testing.assert_allclose(
+        diagnostics["innovation_sylvester_residual"].numpy(),
+        np.zeros([2]),
+        atol=1.0e-10,
+    )
+
+
     tensors = _fixture(batch_size=2, time_steps=3)
     svd_value, svd_score, _diagnostics = _value_score_diagnostics(tensors, backend="tf_svd_ukf")
     sqrt_value, sqrt_score, diagnostics = _value_score_diagnostics(

@@ -84,6 +84,31 @@ def _dense_predictive(
     return tf.reduce_logsumexp(previous_terms[tf.newaxis, :] + transition_log, axis=1)
 
 
+def _dense_parameterized_transition(
+    model: highdim.ParameterizedZhaoCuiSIRSSM,
+    theta: tf.Tensor,
+    current: tf.Tensor,
+    previous: tf.Tensor,
+) -> tf.Tensor:
+    current_count = int(current.shape[0])
+    previous_count = int(previous.shape[0])
+    next_points = tf.repeat(current, repeats=previous_count, axis=0)
+    previous_points = tf.tile(previous, [current_count, 1])
+    values = model.transition_log_density(theta, previous_points, next_points, t=1)
+    return tf.reshape(values, [current_count, previous_count])
+
+
+def _dense_parameterized_predictive(
+    model: highdim.ParameterizedZhaoCuiSIRSSM,
+    theta: tf.Tensor,
+    current: tf.Tensor,
+    previous: tf.Tensor,
+    previous_terms: tf.Tensor,
+) -> tf.Tensor:
+    transition_log = _dense_parameterized_transition(model, theta, current, previous)
+    return tf.reduce_logsumexp(previous_terms[tf.newaxis, :] + transition_log, axis=1)
+
+
 def _one_step_log_increment(
     model: highdim.SpatialSIRSSM,
     current: tf.Tensor,
@@ -169,6 +194,81 @@ def test_p53_m4c_current_gradients_match_dense_reference() -> None:
         assert bool(tf.reduce_all(tf.math.is_finite(dense_gradient)).numpy())
         assert bool(tf.reduce_all(tf.math.is_finite(local_gradient)).numpy())
         tf.debugging.assert_near(local_gradient, dense_gradient, atol=GRADIENT_ATOL)
+
+
+def test_p81_phase10_parameterized_local_route_matches_dense_value_and_predictive() -> None:
+    base_model = highdim.p30_spatial_sir_fixture_model(2)
+    model = highdim.ParameterizedZhaoCuiSIRSSM(base_model)
+    theta = tf.constant([0.12, -0.08, 0.03], dtype=DTYPE)
+    current = _spatial_sir_points(base_model, count=3, offset_scale=0.025)
+    previous = _spatial_sir_points(base_model, count=4, offset_scale=-0.015)
+    previous_terms = _previous_log_terms(base_model, previous)
+
+    dense_transition = _dense_parameterized_transition(model, theta, current, previous)
+    dense_predictive = _dense_parameterized_predictive(
+        model,
+        theta,
+        current,
+        previous,
+        previous_terms,
+    )
+    local = highdim.spatial_sir_local_predictive_log_density(
+        model=model,
+        theta=theta,
+        current_physical_points=current,
+        previous_physical_points=previous,
+        previous_log_terms=previous_terms,
+        time_index=1,
+        config=_config(),
+    )
+
+    tf.debugging.assert_near(local.transition_log_density, dense_transition, atol=VALUE_ATOL)
+    tf.debugging.assert_near(local.predictive_log_density, dense_predictive, atol=VALUE_ATOL)
+    assert local.metadata.route_class == "scaling_route"
+    assert local.tieout_adapter_scope == "lower_rung_diagnostic_not_production_contraction"
+
+
+def test_p81_phase10_parameterized_theta_gradients_match_dense_reference() -> None:
+    base_model = highdim.p30_spatial_sir_fixture_model(2)
+    model = highdim.ParameterizedZhaoCuiSIRSSM(base_model)
+    theta = tf.Variable([0.12, -0.08, 0.03], dtype=DTYPE)
+    current = _spatial_sir_points(base_model, count=3, offset_scale=0.025)
+    previous = _spatial_sir_points(base_model, count=4, offset_scale=-0.015)
+    previous_terms = _previous_log_terms(base_model, previous)
+
+    with tf.GradientTape() as dense_tape:
+        dense_objective = tf.reduce_sum(
+            _dense_parameterized_predictive(
+                model,
+                theta,
+                current,
+                previous,
+                previous_terms,
+            )
+        )
+    dense_gradient = dense_tape.gradient(dense_objective, theta)
+
+    with tf.GradientTape() as local_tape:
+        local_objective = tf.reduce_sum(
+            highdim.spatial_sir_local_predictive_log_density(
+                model=model,
+                theta=theta,
+                current_physical_points=current,
+                previous_physical_points=previous,
+                previous_log_terms=previous_terms,
+                time_index=1,
+                config=_config(),
+            ).predictive_log_density
+        )
+    local_gradient = local_tape.gradient(local_objective, theta)
+
+    assert dense_gradient is not None
+    assert local_gradient is not None
+    assert bool(tf.reduce_all(tf.math.is_finite(dense_gradient)).numpy())
+    assert bool(tf.reduce_all(tf.math.is_finite(local_gradient)).numpy())
+    assert abs(float(dense_gradient[0].numpy())) > 1e-12
+    assert abs(float(dense_gradient[1].numpy())) > 1e-12
+    tf.debugging.assert_near(local_gradient, dense_gradient, atol=GRADIENT_ATOL)
 
 
 def test_p53_m4c_tieout_adapter_source_has_no_global_repeat_or_tile() -> None:

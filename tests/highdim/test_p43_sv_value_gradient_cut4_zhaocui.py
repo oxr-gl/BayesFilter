@@ -132,6 +132,40 @@ def _ksc_fixed_sgqf_value(
     ).log_likelihood
 
 
+def _ksc_time0_fixed_sgqf_wrapper_value(
+    theta: tf.Tensor,
+    observations: tf.Tensor,
+    sigma: tf.Tensor,
+    *,
+    sparse_level: int = 2,
+) -> tf.Tensor:
+    gamma, beta = _physical_from_theta(theta)
+    return highdim.independent_panel_sv_mixture_fixed_sgqf_filter(
+        observations[:1],
+        gamma=gamma,
+        beta=beta,
+        sigma=sigma,
+        sparse_level=sparse_level,
+    ).log_likelihood
+
+
+def _ksc_two_observation_fixed_sgqf_wrapper_value(
+    theta: tf.Tensor,
+    observations: tf.Tensor,
+    sigma: tf.Tensor,
+    *,
+    sparse_level: int = 2,
+) -> tf.Tensor:
+    gamma, beta = _physical_from_theta(theta)
+    return highdim.independent_panel_sv_mixture_fixed_sgqf_filter(
+        observations[:2],
+        gamma=gamma,
+        beta=beta,
+        sigma=sigma,
+        sparse_level=sparse_level,
+    ).log_likelihood
+
+
 def _ksc_single_component_time0_ukf_value(
     theta: tf.Tensor,
     observations: tf.Tensor,
@@ -178,6 +212,51 @@ def _ksc_two_observation_ukf_wrapper_value(theta: tf.Tensor, observations: tf.Te
     gamma, beta = _physical_from_theta(theta)
     return highdim.independent_panel_sv_mixture_ukf_filter(
         observations[:2],
+        gamma=gamma,
+        beta=beta,
+        sigma=sigma,
+    ).log_likelihood
+
+
+def _lane_a_fixed_sgqf_value(theta: tf.Tensor, observations: tf.Tensor, sigma: tf.Tensor, *, sparse_level: int = 2) -> tf.Tensor:
+    gamma, beta = _physical_from_theta(theta)
+    return highdim.exact_transformed_sv_independent_panel_fixed_sgqf_filter(
+        observations,
+        gamma=gamma,
+        beta=beta,
+        sigma=sigma,
+        sparse_level=sparse_level,
+    ).log_likelihood
+
+
+
+def _lane_b_dense_value(theta: tf.Tensor, observations: tf.Tensor, sigma: tf.Tensor) -> tf.Tensor:
+    gamma, beta = _physical_from_theta(theta)
+    return highdim.actual_transformed_sv_independent_panel_augmented_noise_dense_gaussian_closure_reference(
+        observations,
+        gamma=gamma,
+        beta=beta,
+        sigma=sigma,
+    ).log_likelihood
+
+
+
+def _lane_b_sgqf_value(theta: tf.Tensor, observations: tf.Tensor, sigma: tf.Tensor, *, sparse_level: int = 2) -> tf.Tensor:
+    gamma, beta = _physical_from_theta(theta)
+    return highdim.actual_transformed_sv_independent_panel_augmented_noise_fixed_sgqf_filter(
+        observations,
+        gamma=gamma,
+        beta=beta,
+        sigma=sigma,
+        sparse_level=sparse_level,
+    ).log_likelihood
+
+
+
+def _lane_b_ukf_value(theta: tf.Tensor, observations: tf.Tensor, sigma: tf.Tensor) -> tf.Tensor:
+    gamma, beta = _physical_from_theta(theta)
+    return highdim.actual_transformed_sv_independent_panel_augmented_noise_ukf_filter(
+        observations,
         gamma=gamma,
         beta=beta,
         sigma=sigma,
@@ -395,6 +474,58 @@ def test_p43_ksc_ukf_two_observation_wrapper_score_matches_centered_finite_diffe
     tf.debugging.assert_near(analytic.score, finite_difference, atol=2e-6, rtol=2e-6)
 
 
+def test_p43_ksc_fixed_sgqf_time0_wrapper_score_matches_centered_finite_difference() -> None:
+    observations = _observations(1)
+    gamma, beta, sigma = _physical_parameters(1)
+    theta = _theta_from_physical(gamma, beta)
+
+    analytic = highdim.independent_panel_sv_mixture_fixed_sgqf_score(
+        observations[:1],
+        gamma=gamma,
+        beta=beta,
+        sigma=sigma,
+        sparse_level=4,
+    )
+    finite_difference = _centered_finite_difference_score(
+        lambda current_theta: _ksc_time0_fixed_sgqf_wrapper_value(
+            current_theta,
+            observations,
+            sigma,
+            sparse_level=4,
+        ),
+        theta,
+    )
+
+    tf.debugging.assert_near(analytic.score, finite_difference, atol=2e-6, rtol=2e-6)
+    assert analytic.diagnostics["wrapper_score_contract"] == "analytic_component_score_logsumexp_aggregation"
+
+
+def test_p43_ksc_fixed_sgqf_two_observation_wrapper_score_matches_centered_finite_difference() -> None:
+    observations = _observations(1)
+    gamma, beta, sigma = _physical_parameters(1)
+    theta = _theta_from_physical(gamma, beta)
+
+    analytic = highdim.independent_panel_sv_mixture_fixed_sgqf_score(
+        observations[:2],
+        gamma=gamma,
+        beta=beta,
+        sigma=sigma,
+        sparse_level=4,
+    )
+    finite_difference = _centered_finite_difference_score(
+        lambda current_theta: _ksc_two_observation_fixed_sgqf_wrapper_value(
+            current_theta,
+            observations,
+            sigma,
+            sparse_level=4,
+        ),
+        theta,
+    )
+
+    tf.debugging.assert_near(analytic.score, finite_difference, atol=2e-6, rtol=2e-6)
+    assert analytic.diagnostics["wrapper_score_contract"] == "analytic_component_score_logsumexp_aggregation"
+
+
 @pytest.mark.parametrize("dim", [1, 2, 3])
 def test_p43_ksc_fixed_sgqf_matches_kalman_value_only(dim: int) -> None:
     observations = _observations(dim)
@@ -460,7 +591,34 @@ def test_p43_ksc_mixture_gradient_gap_to_exact_transformed_is_approximation_only
 
 
 @pytest.mark.parametrize("dim", [1, 2, 3])
-def test_p43_ksc_fixed_sgqf_is_value_only_same_target_surrogate_evidence(dim: int) -> None:
+def test_p43_ksc_fixed_sgqf_wrapper_score_matches_centered_finite_difference(dim: int) -> None:
+    observations = _observations(dim)
+    gamma, beta, sigma = _physical_parameters(dim)
+    theta = _theta_from_physical(gamma, beta)
+
+    analytic = highdim.independent_panel_sv_mixture_fixed_sgqf_score(
+        observations,
+        gamma=gamma,
+        beta=beta,
+        sigma=sigma,
+        sparse_level=4,
+    )
+    finite_difference = _centered_finite_difference_score(
+        lambda current_theta: _ksc_fixed_sgqf_value(
+            current_theta,
+            observations,
+            sigma,
+            sparse_level=4,
+        ),
+        theta,
+    )
+
+    tf.debugging.assert_near(analytic.score, finite_difference, atol=2e-6, rtol=2e-6)
+    assert analytic.diagnostics["wrapper_score_contract"] == "analytic_component_score_logsumexp_aggregation"
+
+
+@pytest.mark.parametrize("dim", [1, 2, 3])
+def test_p43_ksc_fixed_sgqf_is_value_and_analytical_score_same_target_surrogate_evidence(dim: int) -> None:
     observations = _observations(dim)
     gamma, beta, sigma = _physical_parameters(dim)
     theta = _theta_from_physical(gamma, beta)
@@ -472,6 +630,142 @@ def test_p43_ksc_fixed_sgqf_is_value_only_same_target_surrogate_evidence(dim: in
     assert bool(tf.math.is_finite(sgqf_value).numpy())
     tf.debugging.assert_near(sgqf_value, cut4_value, atol=2e-5, rtol=2e-5)
     assert abs(float((sgqf_value - exact_value).numpy())) > 0.0
+
+
+@pytest.mark.parametrize("dim", [1, 2, 3])
+def test_p43_lane_a_fixed_sgqf_wrapper_score_matches_centered_finite_difference(dim: int) -> None:
+    observations = _observations(dim)
+    gamma, beta, sigma = _physical_parameters(dim)
+    theta = _theta_from_physical(gamma, beta)
+
+    analytic = highdim.exact_transformed_sv_independent_panel_fixed_sgqf_score(
+        observations,
+        gamma=gamma,
+        beta=beta,
+        sigma=sigma,
+        sparse_level=4,
+    )
+    finite_difference = _centered_finite_difference_score(
+        lambda current_theta: _lane_a_fixed_sgqf_value(
+            current_theta,
+            observations,
+            sigma,
+            sparse_level=4,
+        ),
+        theta,
+    )
+
+    tf.debugging.assert_near(analytic.score, finite_difference, atol=2e-6, rtol=2e-6)
+    assert analytic.diagnostics["wrapper_score_contract"] == "gradient_tape_direct_likelihood_reweighting"
+    assert analytic.diagnostics["lane_id"] == "lane_a_direct_likelihood_quadrature"
+
+
+@pytest.mark.parametrize("dim", [1, 2, 3])
+def test_p43_lane_b_fixed_sgqf_wrapper_score_matches_centered_finite_difference(dim: int) -> None:
+    observations = _observations(dim)
+    gamma, beta, sigma = _physical_parameters(dim)
+    theta = _theta_from_physical(gamma, beta)
+
+    analytic = highdim.actual_transformed_sv_independent_panel_augmented_noise_fixed_sgqf_score(
+        observations,
+        gamma=gamma,
+        beta=beta,
+        sigma=sigma,
+        sparse_level=4,
+    )
+    finite_difference = _centered_finite_difference_score(
+        lambda current_theta: _lane_b_sgqf_value(
+            current_theta,
+            observations,
+            sigma,
+            sparse_level=4,
+        ),
+        theta,
+    )
+
+    tf.debugging.assert_near(analytic.score, finite_difference, atol=3e-5, rtol=3e-5)
+    assert analytic.diagnostics["wrapper_score_contract"] == "gradient_tape_lane_b_sgqf_gaussian_closure"
+    assert analytic.diagnostics["lane_id"] == "lane_b_augmented_noise_gaussian_closure"
+
+
+@pytest.mark.parametrize("dim", [1, 2, 3])
+def test_p43_lane_b_principal_sqrt_ukf_wrapper_score_matches_centered_finite_difference(dim: int) -> None:
+    observations = _observations(dim)
+    gamma, beta, sigma = _physical_parameters(dim)
+    theta = _theta_from_physical(gamma, beta)
+
+    analytic = highdim.actual_transformed_sv_independent_panel_augmented_noise_ukf_score(
+        observations,
+        gamma=gamma,
+        beta=beta,
+        sigma=sigma,
+    )
+    finite_difference = _centered_finite_difference_score(
+        lambda current_theta: _lane_b_ukf_value(current_theta, observations, sigma),
+        theta,
+    )
+
+    tf.debugging.assert_near(analytic.score, finite_difference, atol=3e-5, rtol=3e-5)
+    assert analytic.diagnostics["wrapper_score_contract"] == "gradient_tape_lane_b_ukf_gaussian_closure"
+    assert analytic.diagnostics["backend_role"] == "historical_diagnostic_only"
+
+
+@pytest.mark.parametrize("dim", [1, 2, 3])
+def test_p43_lane_b_value_gap_to_lane_a_is_approximation_only(dim: int) -> None:
+    observations = _observations(dim)
+    gamma, beta, sigma = _physical_parameters(dim)
+    theta = _theta_from_physical(gamma, beta)
+
+    lane_a_value, lane_a_score = _value_and_score(
+        lambda current_theta: _exact_dense_value(current_theta, observations, sigma),
+        theta,
+    )
+    lane_b_value, lane_b_score = _value_and_score(
+        lambda current_theta: _lane_b_dense_value(current_theta, observations, sigma),
+        theta,
+    )
+    value_gap = lane_b_value - lane_a_value
+    score_gap = lane_b_score - lane_a_score
+
+    assert bool(tf.math.is_finite(value_gap).numpy())
+    assert bool(tf.reduce_all(tf.math.is_finite(score_gap)).numpy())
+    assert abs(float(value_gap.numpy())) > 0.0
+    assert float(tf.linalg.norm(score_gap).numpy()) > 0.0
+
+
+
+
+@pytest.mark.parametrize("dim", [1, 2, 3])
+def test_p43_lane_b_sgqf_gradient_stays_closer_than_ukf_to_dense_reference(dim: int) -> None:
+    observations = _observations(dim)
+    gamma, beta, sigma = _physical_parameters(dim)
+    theta = _theta_from_physical(gamma, beta)
+
+    _dense_value, dense_score = _value_and_score(
+        lambda current_theta: _lane_b_dense_value(current_theta, observations, sigma),
+        theta,
+    )
+    sgqf = highdim.actual_transformed_sv_independent_panel_augmented_noise_fixed_sgqf_score(
+        observations,
+        gamma=gamma,
+        beta=beta,
+        sigma=sigma,
+        sparse_level=4,
+    )
+    ukf = highdim.actual_transformed_sv_independent_panel_augmented_noise_ukf_score(
+        observations,
+        gamma=gamma,
+        beta=beta,
+        sigma=sigma,
+    )
+
+    sgqf_rel = _relative_error(sgqf.score, dense_score)
+    ukf_rel = _relative_error(ukf.score, dense_score)
+    sgqf_abs = tf.linalg.norm(sgqf.score - dense_score)
+    ukf_abs = tf.linalg.norm(ukf.score - dense_score)
+
+    tf.debugging.assert_less(tf.constant(sgqf_rel, dtype=tf.float64), tf.constant(ukf_rel, dtype=tf.float64))
+    tf.debugging.assert_less(sgqf_abs, ukf_abs)
 
 
 def _generalized_sv_diagnostic_model(

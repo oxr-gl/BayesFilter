@@ -51,6 +51,7 @@ __all__ = [
     "tf_unit_sigma_point_rule",
     "tf_svd_sigma_point_score_with_rule",
     "tf_svd_ukf_score",
+    "tf_principal_sqrt_ukf_score",
     "tf_standard_normal_ghq_level_rule",
     "tensorflow_nonlinear_value_path_contract",
 ]
@@ -116,6 +117,7 @@ _EXPORT_MODULES = {
         "bayesfilter.nonlinear.svd_sigma_point_derivatives_tf"
     ),
     "tf_svd_ukf_score": "bayesfilter.nonlinear.svd_sigma_point_derivatives_tf",
+    "tf_principal_sqrt_ukf_score": "bayesfilter.nonlinear.svd_sigma_point_derivatives_tf",
     "tf_standard_normal_ghq_level_rule": "bayesfilter.nonlinear.fixed_sgqf_tf",
     "tensorflow_nonlinear_value_path_contract": (
         "bayesfilter.nonlinear.compiled_value_paths"

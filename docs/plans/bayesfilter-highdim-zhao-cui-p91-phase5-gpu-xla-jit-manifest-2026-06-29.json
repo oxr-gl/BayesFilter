@@ -1,0 +1,187 @@
+{
+  "artifact_paths": {
+    "manifest": "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase5-gpu-xla-jit-manifest-2026-06-29.json",
+    "phase6_subplan": "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase6-performance-benchmark-subplan-2026-06-29.md",
+    "plan": "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase5-gpu-xla-jit-subplan-2026-06-29.md",
+    "result": "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase5-gpu-xla-jit-result-2026-06-29.md"
+  },
+  "blocker_statuses_preserved": {
+    "fixed_ttsirt_transport_derivative": "BLOCK_FIXED_TTSIRT_PROPOSAL_TRANSPORT_DERIVATIVE_NOT_IMPLEMENTED",
+    "full_observed_data_filtering_score_identity": "NOT_CLAIMED",
+    "full_source_route_fd": "BLOCK_FULL_SOURCE_ROUTE_FD_NOT_CLAIMED",
+    "previous_marginal_derivative": "BLOCK_FIXED_TTSIRT_PREVIOUS_MARGINAL_DERIVATIVE_NOT_IMPLEMENTED"
+  },
+  "checks": [
+    {
+      "all_finite": true,
+      "first_call_seconds": 1.7764208940789104,
+      "gpu_output_devices": true,
+      "input_dtypes": [
+        "float64",
+        "float64",
+        "float64"
+      ],
+      "input_shapes": [
+        [
+          3
+        ],
+        [
+          5,
+          18
+        ],
+        [
+          5,
+          9
+        ]
+      ],
+      "name": "single_local_complete_data",
+      "output_devices": [
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0"
+      ],
+      "passed": true,
+      "repeated_call_seconds": 0.0008198420982807875,
+      "retracing_pass": true,
+      "scores": [
+        15.804320716438662,
+        0.6904322032950851,
+        -44.9925
+      ],
+      "second_call_seconds": 0.0016152809839695692,
+      "steady_call_seconds": [
+        0.0011326430831104517,
+        0.0009772420162335038
+      ],
+      "trace_count_after_repeated": 1,
+      "trace_count_after_warmup": 1,
+      "trace_count_before": 0,
+      "values": [
+        -227.76731057912758
+      ]
+    },
+    {
+      "all_finite": true,
+      "first_call_seconds": 5.72529041999951,
+      "gpu_output_devices": true,
+      "input_dtypes": [
+        "float64",
+        "float64",
+        "float64"
+      ],
+      "input_shapes": [
+        [
+          3
+        ],
+        [
+          4,
+          5,
+          18
+        ],
+        [
+          4,
+          5,
+          9
+        ]
+      ],
+      "name": "batched_local_complete_data",
+      "output_devices": [
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0"
+      ],
+      "passed": true,
+      "repeated_call_seconds": 0.004121023928746581,
+      "retracing_pass": true,
+      "scores": [
+        15.804320716438662,
+        0.6904322032950851,
+        -44.9925,
+        16.94228163148396,
+        0.34489563546646873,
+        -44.99282707720588,
+        18.071130816171596,
+        0.0013823570143357555,
+        -44.99314654411764,
+        19.190868390359068,
+        -0.34010765005064403,
+        -44.9934584007353
+      ],
+      "second_call_seconds": 0.0008710119873285294,
+      "steady_call_seconds": [
+        0.0005056880181655288,
+        0.0005373760359361768
+      ],
+      "trace_count_after_repeated": 1,
+      "trace_count_after_warmup": 1,
+      "trace_count_before": 0,
+      "values": [
+        -227.7673105791276,
+        -227.77357993782164,
+        -227.7833583105829,
+        -227.79664568445125
+      ]
+    }
+  ],
+  "command": "python scripts/p91_gpu_xla_jit_check.py --manifest docs/plans/bayesfilter-highdim-zhao-cui-p91-phase5-gpu-xla-jit-manifest-2026-06-29.json",
+  "conda_environment": "tf-gpu",
+  "devices": {
+    "gpu_names": [
+      "NVIDIA GeForce RTX 4080 SUPER"
+    ],
+    "logical_gpus": [
+      "/device:GPU:0"
+    ],
+    "physical_gpus": [
+      "/physical_device:GPU:0"
+    ]
+  },
+  "errors": [],
+  "execution_target": "trusted GPU/XLA local complete-data value/score capability",
+  "git_commit": "c815edc52162779e969b2982723b2f52770fd849",
+  "input_contract": {
+    "batched_observations_shape": [
+      4,
+      5,
+      9
+    ],
+    "batched_states_shape": [
+      4,
+      5,
+      18
+    ],
+    "dtype": "float64",
+    "random_seeds": "N/A; deterministic fixture",
+    "single_observations_shape": [
+      5,
+      9
+    ],
+    "single_states_shape": [
+      5,
+      18
+    ],
+    "theta_shape": [
+      3
+    ]
+  },
+  "nonclaims": [
+    "no full observed-data/filtering score identity",
+    "no previous-marginal derivative readiness",
+    "no fixed TTSIRT proposal/transport derivative readiness",
+    "no GPU speed superiority",
+    "no benchmark pass",
+    "no HMC posterior validity",
+    "no packaging/default readiness",
+    "no production readiness"
+  ],
+  "primary_criterion": "single and batched local complete-data value/score functions JIT compile and execute on /GPU:0 with finite outputs, GPU output devices, stable post-warmup tracing counts, and no OOM",
+  "python_executable": "/home/chakwong/anaconda3/envs/tf-gpu/bin/python",
+  "schema_version": "p91.phase5.gpu_xla_jit.v1",
+  "status": "PASS_P91_PHASE5_GPU_XLA_JIT_LOCAL_COMPLETE_DATA",
+  "tensorflow": {
+    "cuda_version": "12.4",
+    "cudnn_version": "",
+    "is_cuda_build": true,
+    "tensorflow_version": "2.19.1"
+  },
+  "trusted_escalated_gpu_run": true,
+  "worktree_status": "dirty research worktree"
+}

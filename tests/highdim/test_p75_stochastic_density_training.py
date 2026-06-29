@@ -170,6 +170,55 @@ def test_one_adam_step_changes_a_core_finitely():
     assert bool(tf.reduce_any(tf.stack(deltas) > 0.0).numpy())
 
 
+def test_l1_regularization_is_validated_reported_and_added_to_objective():
+    base_config = _config()
+    l1_weight = tf.constant(0.25, dtype=tf.float64)
+    l2_weight = tf.constant(0.125, dtype=tf.float64)
+    config = p75.P75TrainableTTConfig(
+        product_basis=base_config.product_basis,
+        ranks=base_config.ranks,
+        tau=base_config.tau,
+        normalizer_floor=base_config.normalizer_floor,
+        denominator_floor=base_config.denominator_floor,
+        l1_weight=l1_weight,
+        l2_weight=l2_weight,
+        learning_rate=base_config.learning_rate,
+        gradient_clip_norm=base_config.gradient_clip_norm,
+        seed=base_config.seed,
+    )
+    trainer = p75.TrainableFunctionalTT(config, initial_cores=_initial_cores())
+    batch = _batch()
+
+    terms = trainer.objective(batch)
+    payload = p75.config_payload(config)
+    l1 = tf.add_n([tf.reduce_sum(tf.abs(core)) for core in trainer.variables])
+    l2 = tf.add_n([tf.reduce_sum(tf.square(core)) for core in trainer.variables])
+    expected_regularization = l1_weight * l1 + l2_weight * l2
+
+    assert payload["l1_weight"] == pytest.approx(0.25)
+    assert payload["l2_weight"] == pytest.approx(0.125)
+    assert float(terms.regularization.numpy()) == pytest.approx(
+        float(expected_regularization.numpy())
+    )
+
+
+@pytest.mark.parametrize(
+    "bad_weight",
+    [
+        tf.constant(-1.0, dtype=tf.float64),
+        tf.constant(float("nan"), dtype=tf.float64),
+        tf.constant([0.0], dtype=tf.float64),
+    ],
+)
+def test_l1_regularization_weight_rejects_invalid_scalars(bad_weight):
+    with pytest.raises(ValueError):
+        p75.P75TrainableTTConfig(
+            product_basis=_basis(),
+            ranks=(1, 2, 1),
+            l1_weight=bad_weight,
+        )
+
+
 def test_square_root_prefit_step_reduces_synthetic_training_loss():
     config = _config()
     trainer = p75.TrainableFunctionalTT(config, initial_cores=_initial_cores())

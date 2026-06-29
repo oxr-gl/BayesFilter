@@ -220,3 +220,41 @@ def test_filter_bench_deterministic_coverage_excludes_stale_blockers_and_old_dpf
     assert "ledh_pfpf_ot" not in text.lower()
     assert "adaptive MATLAB TT-cross/SIRT reproduction" in text
     assert "No Zhao-Cui row is an exact oracle." in text
+
+
+def test_filter_bench_deterministic_coverage_encodes_two_lane_comparison_boundary() -> None:
+    coverage = _load(COVERAGE_PATH)
+    contract = coverage["two_lane_comparison_contract"]
+    algorithms = {algorithm["algorithm_id"]: algorithm for algorithm in coverage["algorithms"]}
+    fixed_sgqf = _expanded_cells(algorithms["fixed_sgqf"])
+    cut4 = _expanded_cells(algorithms["cut4"])
+
+    assert contract["comparison_program_master"].endswith(
+        "bayesfilter-two-lane-filter-comparison-master-program-2026-06-24.md"
+    )
+    assert contract["lowdim_same_target"]["comparison_algorithm_ids"] == [
+        "fixed_sgqf",
+        "ukf",
+        "cut4",
+        "zhao_cui_scalar_or_multistate",
+    ]
+    assert contract["highdim_source_scope"]["comparison_algorithm_ids"] == [
+        "fixed_sgqf",
+        "ukf",
+        "zhao_cui_scalar_or_multistate",
+    ]
+    assert contract["highdim_source_scope"]["excluded_algorithm_ids"] == ["cut4"]
+    assert contract["highdim_source_scope"]["actual_and_surrogate_sv_must_remain_separate"] is True
+    assert "tiny_same_target_surrogate_fixture_only" in contract["lowdim_same_target"][
+        "sgqf_scope_qualifier"
+    ]
+
+    assert fixed_sgqf["sv_ksc_gaussian_mixture_surrogate_dim_1_2_3"]["cell_status"] == (
+        "READY_SURROGATE_VALUE_GRADIENT"
+    )
+    for row_id in contract["highdim_source_scope"]["blocked_fixed_sgqf_lowdim_replacement_rows"]:
+        assert fixed_sgqf[row_id]["cell_status"] == "ADAPTER_REQUIRED_WITH_REASON"
+
+    assert cut4["sv_ksc_gaussian_mixture_surrogate_dim_1_2_3"]["cell_status"] == (
+        "READY_SURROGATE_VALUE_GRADIENT"
+    )

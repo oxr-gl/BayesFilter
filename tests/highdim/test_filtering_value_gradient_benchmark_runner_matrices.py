@@ -204,3 +204,27 @@ def test_filter_bench_p8_runner_manifest_and_red_team_note_are_present() -> None
     assert "weakest_part_of_evidence" in red_team
     assert "not a filter ranking" in nonclaims
     assert "does not contain full numeric benchmark errors" in nonclaims
+
+
+def test_filter_bench_p8_runner_matrices_carry_two_lane_comparison_contract() -> None:
+    p8 = _load(P8_PATH)
+    scope = p8["benchmark_scope"]
+    contract = p8["two_lane_comparison_contract"]
+
+    assert scope["coverage_roster_is_broader_than_two_lane_comparison"] is True
+    assert contract["comparison_program_master"].endswith(
+        "bayesfilter-two-lane-filter-comparison-master-program-2026-06-24.md"
+    )
+    assert contract["coverage_roster_is_not_comparison_roster"] is True
+    assert contract["lowdim_same_target"]["comparison_algorithm_ids"] == [
+        "fixed_sgqf",
+        "ukf",
+        "cut4",
+        "zhao_cui_scalar_or_multistate",
+    ]
+    assert contract["highdim_source_scope"]["comparison_algorithm_ids"] == [
+        "fixed_sgqf",
+        "ukf",
+        "zhao_cui_scalar_or_multistate",
+    ]
+    assert contract["highdim_source_scope"]["excluded_algorithm_ids"] == ["cut4"]

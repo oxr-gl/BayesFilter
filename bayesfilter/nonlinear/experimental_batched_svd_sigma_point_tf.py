@@ -13,6 +13,11 @@ from typing import Callable, Literal, Mapping
 
 import tensorflow as tf
 
+from bayesfilter.linear.svd_factor_tf import (
+    PrincipalSqrtFirstDerivativeDiagnostics,
+    principal_sqrt_frechet_derivative_from_eigh,
+    strict_spd_principal_sqrt_first_derivatives,
+)
 from bayesfilter.nonlinear.cut_tf import tf_cut4g_sigma_point_rule
 from bayesfilter.nonlinear.sigma_points_tf import (
     TFSigmaPointRule,
@@ -206,6 +211,7 @@ class TFBatchedSmoothEighFactorFirstDerivatives:
     min_eigen_gap: tf.Tensor
     psd_projection_residual: tf.Tensor
     derivative_reconstruction_residual: tf.Tensor
+    sylvester_residual: tf.Tensor
     structural_null_count: tf.Tensor
     structural_null_covariance_residual: tf.Tensor
     fixed_null_derivative_residual: tf.Tensor
@@ -512,6 +518,7 @@ def _checked_batched_smooth_eigh_factor_first_derivatives(
         min_eigen_gap=min_gap,
         psd_projection_residual=psd_projection_residual,
         derivative_reconstruction_residual=reconstruction_residual,
+        sylvester_residual=tf.zeros(tf.shape(eigenvalues)[0], dtype=tf.float64),
         structural_null_count=structural_null_count,
         structural_null_covariance_residual=structural_null_covariance_residual,
         fixed_null_derivative_residual=fixed_null_residual,
@@ -527,104 +534,51 @@ def _checked_batched_principal_sqrt_factor_first_derivatives(
     label: str,
     lyapunov_tolerance: tf.Tensor | float = 1.0e-10,
 ) -> TFBatchedSmoothEighFactorFirstDerivatives:
+    del fixed_null_tolerance
     covariance = _symmetrize(covariance)
     d_covariance = _symmetrize(d_covariance)
-    (
-        eigenvalues,
-        floored,
-        eigenvectors,
-        _implemented_covariance,
-        psd_projection_residual,
-    ) = _batched_psd_eigh(covariance, singular_floor)
-    active_floors = _batched_floor_count(eigenvalues, singular_floor)
-    structural_null_count = tf.zeros(tf.shape(eigenvalues)[0], dtype=tf.int32)
-    structural_null_covariance_residual = tf.zeros(
-        tf.shape(eigenvalues)[0],
-        dtype=tf.float64,
-    )
-    fixed_null_residual = tf.zeros(tf.shape(eigenvalues)[0], dtype=tf.float64)
-    min_gap = _batched_min_eigen_gap(eigenvalues)
-
-    batch_zeros = tf.zeros(tf.shape(eigenvalues)[0], dtype=tf.int32)
-    assertions = [
-        tf.debugging.assert_equal(
-            active_floors,
-            batch_zeros,
-            message=f"blocked_active_floor: {label} floor is active",
-        ),
-        tf.debugging.assert_greater(
-            tf.reduce_min(eigenvalues),
-            singular_floor,
-            message=f"blocked_non_spd_principal_sqrt: {label} is not strict SPD",
-        ),
-        tf.debugging.assert_all_finite(
-            eigenvalues,
-            f"blocked_nonfinite_factor: {label} eigenvalues are nonfinite",
-        ),
-        tf.debugging.assert_less_equal(
-            structural_null_covariance_residual,
-            fixed_null_tolerance,
-            message=f"blocked_structural_null_covariance: {label} null support has positive variance",
-        ),
-        tf.debugging.assert_less_equal(
-            fixed_null_residual,
-            fixed_null_tolerance,
-            message=f"blocked_moving_structural_null: {label} null support is parameter-dependent",
-        ),
-    ]
-    with tf.control_dependencies(assertions):
-        eigenvalues = tf.identity(eigenvalues)
-        floored = tf.identity(floored)
-        eigenvectors = tf.identity(eigenvectors)
-
-    sqrt_eigenvalues = tf.sqrt(floored)
-    factor = (
-        eigenvectors
-        @ tf.linalg.diag(sqrt_eigenvalues)
-        @ tf.linalg.matrix_transpose(eigenvectors)
-    )
-    d_factor = _principal_sqrt_frechet_derivative_from_eigh(
-        eigenvectors,
-        sqrt_eigenvalues,
-        d_covariance,
-    )
+    batch_dim = tf.shape(covariance)[0]
+    factor_values = []
+    d_factor_values = []
+    eigenvalue_values = []
+    floored_eigenvalue_values = []
+    eigenvector_values = []
+    floor_count_values = []
+    min_gap_values = []
+    psd_projection_residual_values = []
+    derivative_reconstruction_residual_values = []
+    sylvester_residual_values = []
+    min_eigenvalue_values = []
+    for batch_index in range(int(covariance.shape[0])):
+        diagnostics = strict_spd_principal_sqrt_first_derivatives(
+            covariance[batch_index],
+            d_covariance[batch_index],
+            singular_floor=singular_floor,
+            label=f"{label}[{batch_index}]",
+            lyapunov_tolerance=lyapunov_tolerance,
+        )
+        factor_values.append(diagnostics.factor)
+        d_factor_values.append(diagnostics.d_factor)
+        eigenvalue_values.append(diagnostics.eigenvalues)
+        floored_eigenvalue_values.append(diagnostics.floored_eigenvalues)
+        eigenvector_values.append(diagnostics.eigenvectors)
+        floor_count_values.append(diagnostics.floor_count)
+        eigenvalues = diagnostics.eigenvalues
+        min_gap_values.append(
+            tf.constant(float("inf"), dtype=tf.float64)
+            if int(eigenvalues.shape[0]) <= 1
+            else tf.reduce_min(tf.abs(eigenvalues[1:] - eigenvalues[:-1]))
+        )
+        psd_projection_residual_values.append(diagnostics.psd_projection_residual)
+        derivative_reconstruction_residual_values.append(diagnostics.reconstruction_residual)
+        sylvester_residual_values.append(diagnostics.sylvester_residual)
+        min_eigenvalue_values.append(diagnostics.min_eigenvalue)
+    factor = tf.stack(factor_values, axis=0)
+    d_factor = tf.stack(d_factor_values, axis=0)
+    eigenvalues = tf.stack(eigenvalue_values, axis=0)
+    floored = tf.stack(floored_eigenvalue_values, axis=0)
+    eigenvectors = tf.stack(eigenvector_values, axis=0)
     implemented_covariance = _symmetrize(factor @ tf.linalg.matrix_transpose(factor))
-    psd_projection_residual = tf.linalg.norm(
-        implemented_covariance - covariance,
-        axis=[-2, -1],
-    )
-    lyapunov_residual = tf.linalg.norm(
-        factor[:, tf.newaxis, :, :] @ d_factor
-        + d_factor @ factor[:, tf.newaxis, :, :]
-        - d_covariance,
-        axis=[-2, -1],
-    )
-    reconstructed = tf.matmul(
-        d_factor,
-        factor[:, tf.newaxis, :, :],
-        transpose_b=True,
-    ) + tf.matmul(
-        factor[:, tf.newaxis, :, :],
-        d_factor,
-        transpose_b=True,
-    )
-    reconstruction_residual = tf.linalg.norm(
-        reconstructed - d_covariance,
-        axis=[-2, -1],
-    )
-    max_residual = tf.maximum(lyapunov_residual, reconstruction_residual)
-    lyapunov_tolerance = tf.convert_to_tensor(lyapunov_tolerance, dtype=tf.float64)
-    with tf.control_dependencies(
-        [
-            tf.debugging.assert_less_equal(
-                tf.reduce_max(max_residual),
-                lyapunov_tolerance,
-                message=f"blocked_principal_sqrt_reconstruction: {label} derivative reconstruction failed",
-            )
-        ]
-    ):
-        d_factor = tf.identity(d_factor)
-
     return TFBatchedSmoothEighFactorFirstDerivatives(
         eigenvalues=eigenvalues,
         floored_eigenvalues=floored,
@@ -632,13 +586,17 @@ def _checked_batched_principal_sqrt_factor_first_derivatives(
         factor=factor,
         d_factor=d_factor,
         implemented_covariance=implemented_covariance,
-        floor_count=active_floors,
-        min_eigen_gap=min_gap,
-        psd_projection_residual=psd_projection_residual,
-        derivative_reconstruction_residual=tf.reduce_max(max_residual, axis=-1),
-        structural_null_count=structural_null_count,
-        structural_null_covariance_residual=structural_null_covariance_residual,
-        fixed_null_derivative_residual=fixed_null_residual,
+        floor_count=tf.stack(floor_count_values, axis=0),
+        min_eigen_gap=tf.stack(min_gap_values, axis=0),
+        psd_projection_residual=tf.stack(psd_projection_residual_values, axis=0),
+        derivative_reconstruction_residual=tf.stack(
+            derivative_reconstruction_residual_values,
+            axis=0,
+        ),
+        sylvester_residual=tf.stack(sylvester_residual_values, axis=0),
+        structural_null_count=tf.zeros(batch_dim, dtype=tf.int32),
+        structural_null_covariance_residual=tf.zeros(batch_dim, dtype=tf.float64),
+        fixed_null_derivative_residual=tf.zeros(batch_dim, dtype=tf.float64),
     )
 
 
@@ -748,6 +706,7 @@ def tf_batched_svd_sigma_point_value_and_score_with_rule(
     max_support_residual = tf.zeros([batch_dim], dtype=tf.float64)
     max_deterministic_residual = tf.zeros([batch_dim], dtype=tf.float64)
     max_factor_derivative_residual = tf.zeros([batch_dim], dtype=tf.float64)
+    max_innovation_sylvester_residual = tf.zeros([batch_dim], dtype=tf.float64)
     max_fixed_null_derivative_residual = tf.zeros([batch_dim], dtype=tf.float64)
     max_structural_null_covariance_residual = tf.zeros([batch_dim], dtype=tf.float64)
     max_integration_rank = tf.zeros([batch_dim], dtype=tf.int32)
@@ -776,6 +735,7 @@ def tf_batched_svd_sigma_point_value_and_score_with_rule(
         max_support_residual: tf.Tensor,
         max_deterministic_residual: tf.Tensor,
         max_factor_derivative_residual: tf.Tensor,
+        max_innovation_sylvester_residual: tf.Tensor,
         max_fixed_null_derivative_residual: tf.Tensor,
         max_structural_null_covariance_residual: tf.Tensor,
         max_integration_rank: tf.Tensor,
@@ -978,16 +938,25 @@ def tf_batched_svd_sigma_point_value_and_score_with_rule(
             )
             + d_observation_covariance
         )
-        innovation_factor = _checked_batched_smooth_eigh_factor_first_derivatives(
-            raw_innovation_covariance,
-            d_raw_innovation_covariance,
-            singular_floor=innovation_floor,
-            rank_tolerance=rank_tolerance,
-            spectral_gap_tolerance=spectral_gap_tolerance,
-            fixed_null_tolerance=fixed_null_tolerance,
-            label="SVD sigma-point innovation",
-            allow_fixed_null_support=False,
-        )
+        if backend_name == "tf_principal_sqrt_ukf":
+            innovation_factor = _checked_batched_principal_sqrt_factor_first_derivatives(
+                raw_innovation_covariance,
+                d_raw_innovation_covariance,
+                singular_floor=innovation_floor,
+                fixed_null_tolerance=fixed_null_tolerance,
+                label="principal-sqrt sigma-point innovation",
+            )
+        else:
+            innovation_factor = _checked_batched_smooth_eigh_factor_first_derivatives(
+                raw_innovation_covariance,
+                d_raw_innovation_covariance,
+                singular_floor=innovation_floor,
+                rank_tolerance=rank_tolerance,
+                spectral_gap_tolerance=spectral_gap_tolerance,
+                fixed_null_tolerance=fixed_null_tolerance,
+                label="SVD sigma-point innovation",
+                allow_fixed_null_support=False,
+            )
         cross_covariance = tf.einsum(
             "brn,r,brm->bnm",
             centered_x,
@@ -1140,6 +1109,10 @@ def tf_batched_svd_sigma_point_value_and_score_with_rule(
                 innovation_factor.derivative_reconstruction_residual,
             ),
         )
+        max_innovation_sylvester_residual = tf.maximum(
+            max_innovation_sylvester_residual,
+            innovation_factor.sylvester_residual,
+        )
         max_fixed_null_derivative_residual = tf.maximum(
             max_fixed_null_derivative_residual,
             placement.fixed_null_derivative_residual,
@@ -1180,6 +1153,7 @@ def tf_batched_svd_sigma_point_value_and_score_with_rule(
             max_support_residual,
             max_deterministic_residual,
             max_factor_derivative_residual,
+            max_innovation_sylvester_residual,
             max_fixed_null_derivative_residual,
             max_structural_null_covariance_residual,
             max_integration_rank,
@@ -1204,6 +1178,7 @@ def tf_batched_svd_sigma_point_value_and_score_with_rule(
         max_support_residual,
         max_deterministic_residual,
         max_factor_derivative_residual,
+        max_innovation_sylvester_residual,
         max_fixed_null_derivative_residual,
         max_structural_null_covariance_residual,
         max_integration_rank,
@@ -1229,6 +1204,7 @@ def tf_batched_svd_sigma_point_value_and_score_with_rule(
             max_support_residual,
             max_deterministic_residual,
             max_factor_derivative_residual,
+            max_innovation_sylvester_residual,
             max_fixed_null_derivative_residual,
             max_structural_null_covariance_residual,
             max_integration_rank,
@@ -1261,6 +1237,7 @@ def tf_batched_svd_sigma_point_value_and_score_with_rule(
         "min_placement_eigen_gap": min_placement_eigen_gap,
         "min_innovation_eigen_gap": min_innovation_eigen_gap,
         "factor_derivative_reconstruction_residual": max_factor_derivative_residual,
+        "innovation_sylvester_residual": max_innovation_sylvester_residual,
         "fixed_null_derivative_residual": max_fixed_null_derivative_residual,
         "structural_null_covariance_residual": max_structural_null_covariance_residual,
         "placement_psd_projection_residual": max_placement_residual,

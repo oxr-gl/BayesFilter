@@ -49,6 +49,7 @@ V1_PUBLIC_SYMBOLS = {
     "tf_svd_sigma_point_placement",
     "tf_svd_sigma_point_score_with_rule",
     "tf_svd_cubature_score",
+    "tf_principal_sqrt_ukf_score",
     "tf_svd_ukf_score",
     "tf_unit_sigma_point_rule",
     "tf_cut4g_sigma_point_rule",

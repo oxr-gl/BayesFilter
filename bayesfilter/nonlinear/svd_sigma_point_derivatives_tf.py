@@ -9,11 +9,13 @@ from typing import Callable
 import tensorflow as tf
 
 from bayesfilter.diagnostics import TFFilterDiagnostics, TFRegularizationDiagnostics
+from bayesfilter.linear.qr_factor_tf import factor_solve
 from bayesfilter.linear.svd_factor_tf import (
     eigh_logdet,
     eigh_solve,
     floor_count,
     psd_eigh,
+    strict_spd_principal_sqrt_first_derivatives,
     symmetrize,
 )
 from bayesfilter.nonlinear.cut_tf import tf_cut4g_sigma_point_rule
@@ -116,6 +118,7 @@ class TFSmoothEighFactorFirstDerivatives:
     min_eigen_gap: tf.Tensor
     psd_projection_residual: tf.Tensor
     derivative_reconstruction_residual: tf.Tensor
+    sylvester_residual: tf.Tensor
     structural_null_count: tf.Tensor
     structural_null_covariance_residual: tf.Tensor
     fixed_null_derivative_residual: tf.Tensor
@@ -340,9 +343,47 @@ def _checked_smooth_eigh_factor_first_derivatives(
         min_eigen_gap=min_gap,
         psd_projection_residual=psd_projection_residual,
         derivative_reconstruction_residual=reconstruction_residual,
+        sylvester_residual=tf.constant(0.0, dtype=tf.float64),
         structural_null_count=structural_null_count,
         structural_null_covariance_residual=structural_null_covariance_residual,
         fixed_null_derivative_residual=fixed_null_residual,
+    )
+
+
+def _checked_principal_sqrt_factor_first_derivatives(
+    covariance: tf.Tensor,
+    d_covariance: tf.Tensor,
+    *,
+    singular_floor: tf.Tensor,
+    fixed_null_tolerance: tf.Tensor,
+    label: str,
+    lyapunov_tolerance: tf.Tensor | float = 1.0e-10,
+) -> TFSmoothEighFactorFirstDerivatives:
+    del fixed_null_tolerance
+    diagnostics = strict_spd_principal_sqrt_first_derivatives(
+        covariance,
+        d_covariance,
+        singular_floor=singular_floor,
+        label=label,
+        lyapunov_tolerance=lyapunov_tolerance,
+    )
+    eigenvalues = diagnostics.eigenvalues
+    min_gap = _min_eigen_gap(eigenvalues)
+    return TFSmoothEighFactorFirstDerivatives(
+        eigenvalues=eigenvalues,
+        floored_eigenvalues=diagnostics.floored_eigenvalues,
+        eigenvectors=diagnostics.eigenvectors,
+        factor=diagnostics.factor,
+        d_factor=diagnostics.d_factor,
+        implemented_covariance=diagnostics.implemented_covariance,
+        floor_count=diagnostics.floor_count,
+        min_eigen_gap=min_gap,
+        psd_projection_residual=diagnostics.psd_projection_residual,
+        derivative_reconstruction_residual=diagnostics.reconstruction_residual,
+        sylvester_residual=diagnostics.sylvester_residual,
+        structural_null_count=tf.constant(0, dtype=tf.int32),
+        structural_null_covariance_residual=tf.constant(0.0, dtype=tf.float64),
+        fixed_null_derivative_residual=tf.constant(0.0, dtype=tf.float64),
     )
 
 
@@ -839,6 +880,435 @@ def _smooth_sigma_point_score_with_rule(
     )
 
 
+def _principal_sqrt_sigma_point_score_with_rule(
+    observations: tf.Tensor,
+    model: TFStructuralStateSpace,
+    derivatives: TFStructuralFirstDerivatives,
+    *,
+    sigma_rule: TFSigmaPointRule,
+    backend_name: str,
+    placement_floor: tf.Tensor | float,
+    innovation_floor: tf.Tensor | float,
+    rank_tolerance: tf.Tensor | float,
+    spectral_gap_tolerance: tf.Tensor | float,
+    fixed_null_tolerance: tf.Tensor | float,
+    jitter: tf.Tensor | float,
+) -> TFFilterDerivativeResult:
+    y = _as_observation_matrix(observations)
+    n_timesteps = _static_num_timesteps(y)
+    p, state_dim, innovation_dim, observation_dim = _validate_model_derivative_shapes(
+        model,
+        derivatives,
+    )
+    aug_dim = state_dim + innovation_dim
+    if sigma_rule.dim != aug_dim:
+        raise ValueError("sigma_rule dimension must equal state_dim + innovation_dim")
+
+    mean = tf.convert_to_tensor(model.initial_mean, dtype=tf.float64)
+    covariance = symmetrize(model.initial_covariance)
+    d_mean = tf.convert_to_tensor(derivatives.d_initial_mean, dtype=tf.float64)
+    d_covariance = symmetrize(derivatives.d_initial_covariance)
+    innovation_covariance = symmetrize(model.innovation_covariance)
+    d_innovation_covariance = symmetrize(derivatives.d_innovation_covariance)
+    observation_covariance = symmetrize(model.observation_covariance)
+    d_observation_covariance = symmetrize(derivatives.d_observation_covariance)
+    placement_floor = tf.convert_to_tensor(placement_floor, dtype=tf.float64)
+    innovation_floor = tf.convert_to_tensor(innovation_floor, dtype=tf.float64)
+    rank_tolerance = tf.convert_to_tensor(rank_tolerance, dtype=tf.float64)
+    spectral_gap_tolerance = tf.convert_to_tensor(spectral_gap_tolerance, dtype=tf.float64)
+    fixed_null_tolerance = tf.convert_to_tensor(fixed_null_tolerance, dtype=tf.float64)
+    jitter = tf.convert_to_tensor(jitter, dtype=tf.float64)
+
+    del rank_tolerance, spectral_gap_tolerance
+
+    obs_identity = tf.eye(observation_dim, dtype=tf.float64)
+    two_pi = tf.constant(2.0 * math.pi, dtype=tf.float64)
+    log_likelihood = tf.constant(0.0, dtype=tf.float64)
+    score = tf.zeros([p], dtype=tf.float64)
+    max_placement_floor_count = tf.constant(0, dtype=tf.int32)
+    max_innovation_floor_count = tf.constant(0, dtype=tf.int32)
+    max_placement_residual = tf.constant(0.0, dtype=tf.float64)
+    max_innovation_residual = tf.constant(0.0, dtype=tf.float64)
+    max_support_residual = tf.constant(0.0, dtype=tf.float64)
+    max_deterministic_residual = tf.constant(0.0, dtype=tf.float64)
+    max_factor_derivative_residual = tf.constant(0.0, dtype=tf.float64)
+    max_innovation_sylvester_residual = tf.constant(0.0, dtype=tf.float64)
+    min_placement_eigen_gap = tf.constant(float("inf"), dtype=tf.float64)
+    min_innovation_eigen_gap = tf.constant(float("inf"), dtype=tf.float64)
+    last_implemented_innovation_covariance = tf.zeros(
+        [observation_dim, observation_dim],
+        dtype=tf.float64,
+    )
+
+    for t in range(n_timesteps):
+        aug_mean = tf.concat(
+            [mean, tf.zeros([innovation_dim], dtype=tf.float64)],
+            axis=0,
+        )
+        d_aug_mean = tf.concat(
+            [d_mean, tf.zeros([p, innovation_dim], dtype=tf.float64)],
+            axis=1,
+        )
+        upper = tf.concat(
+            [covariance, tf.zeros([state_dim, innovation_dim], dtype=tf.float64)],
+            axis=1,
+        )
+        lower = tf.concat(
+            [
+                tf.zeros([innovation_dim, state_dim], dtype=tf.float64),
+                innovation_covariance,
+            ],
+            axis=1,
+        )
+        aug_covariance = tf.concat([upper, lower], axis=0)
+        d_aug_covariance = tf.concat(
+            [
+                tf.concat(
+                    [
+                        d_covariance,
+                        tf.zeros([p, state_dim, innovation_dim], dtype=tf.float64),
+                    ],
+                    axis=2,
+                ),
+                tf.concat(
+                    [
+                        tf.zeros([p, innovation_dim, state_dim], dtype=tf.float64),
+                        d_innovation_covariance,
+                    ],
+                    axis=2,
+                ),
+            ],
+            axis=1,
+        )
+        placement = _checked_principal_sqrt_factor_first_derivatives(
+            aug_covariance,
+            d_aug_covariance,
+            singular_floor=placement_floor,
+            fixed_null_tolerance=fixed_null_tolerance,
+            label="principal-sqrt sigma-point placement",
+        )
+        point_offsets = sigma_rule.offsets @ tf.transpose(placement.factor)
+        aug_points = aug_mean[tf.newaxis, :] + point_offsets
+        d_point_offsets = tf.einsum("rd,pad->pra", sigma_rule.offsets, placement.d_factor)
+        d_aug_points = d_aug_mean[:, tf.newaxis, :] + d_point_offsets
+        previous_points = aug_points[:, :state_dim]
+        innovation_points = aug_points[:, state_dim:]
+        d_previous_points = d_aug_points[:, :, :state_dim]
+        d_innovation_points = d_aug_points[:, :, state_dim:]
+
+        predicted_points = model.transition(previous_points, innovation_points)
+        transition_state_jacobian = derivatives.transition_state_jacobian_fn(
+            previous_points,
+            innovation_points,
+        )
+        transition_innovation_jacobian = derivatives.transition_innovation_jacobian_fn(
+            previous_points,
+            innovation_points,
+        )
+        d_transition_param = derivatives.d_transition_fn(
+            previous_points,
+            innovation_points,
+        )
+        _validate_shape(
+            transition_state_jacobian,
+            (sigma_rule.point_count, state_dim, state_dim),
+            "transition_state_jacobian",
+        )
+        _validate_shape(
+            transition_innovation_jacobian,
+            (sigma_rule.point_count, state_dim, innovation_dim),
+            "transition_innovation_jacobian",
+        )
+        _validate_shape(
+            d_transition_param,
+            (p, sigma_rule.point_count, state_dim),
+            "d_transition",
+        )
+        d_predicted_points = (
+            _matvec_points(transition_state_jacobian, d_previous_points)
+            + _matvec_points(transition_innovation_jacobian, d_innovation_points)
+            + d_transition_param
+        )
+        residuals = model.deterministic_residual(
+            previous_points,
+            innovation_points,
+            predicted_points,
+        )
+        deterministic_residual = (
+            tf.constant(0.0, dtype=tf.float64)
+            if residuals.shape[-1] == 0
+            else tf.reduce_max(tf.abs(residuals))
+        )
+
+        predicted_mean = tf.linalg.matvec(
+            tf.transpose(predicted_points),
+            sigma_rule.mean_weights,
+        )
+        d_predicted_mean = tf.einsum(
+            "r,prn->pn",
+            sigma_rule.mean_weights,
+            d_predicted_points,
+        )
+        centered_x = predicted_points - predicted_mean[tf.newaxis, :]
+        d_centered_x = d_predicted_points - d_predicted_mean[:, tf.newaxis, :]
+        predicted_covariance = _weighted_covariance(
+            centered_x,
+            sigma_rule.covariance_weights,
+        )
+        d_predicted_covariance = _weighted_covariance_first_derivatives(
+            centered_x,
+            d_centered_x,
+            sigma_rule.covariance_weights,
+        )
+
+        observation_points = model.observe(predicted_points)
+        observation_state_jacobian = derivatives.observation_state_jacobian_fn(
+            predicted_points,
+        )
+        d_observation_param = derivatives.d_observation_fn(predicted_points)
+        _validate_shape(
+            observation_state_jacobian,
+            (sigma_rule.point_count, observation_dim, state_dim),
+            "observation_state_jacobian",
+        )
+        _validate_shape(
+            d_observation_param,
+            (p, sigma_rule.point_count, observation_dim),
+            "d_observation",
+        )
+        d_observation_points = (
+            _matvec_points(observation_state_jacobian, d_predicted_points)
+            + d_observation_param
+        )
+        observation_mean = tf.linalg.matvec(
+            tf.transpose(observation_points),
+            sigma_rule.mean_weights,
+        )
+        d_observation_mean = tf.einsum(
+            "r,prm->pm",
+            sigma_rule.mean_weights,
+            d_observation_points,
+        )
+        centered_y = observation_points - observation_mean[tf.newaxis, :]
+        d_centered_y = d_observation_points - d_observation_mean[:, tf.newaxis, :]
+        raw_innovation_covariance = symmetrize(
+            _weighted_covariance(centered_y, sigma_rule.covariance_weights)
+            + observation_covariance
+            + jitter * obs_identity
+        )
+        d_raw_innovation_covariance = symmetrize(
+            _weighted_covariance_first_derivatives(
+                centered_y,
+                d_centered_y,
+                sigma_rule.covariance_weights,
+            )
+            + d_observation_covariance
+        )
+        innovation_factor = _checked_principal_sqrt_factor_first_derivatives(
+            raw_innovation_covariance,
+            d_raw_innovation_covariance,
+            singular_floor=innovation_floor,
+            fixed_null_tolerance=fixed_null_tolerance,
+            label="principal-sqrt sigma-point innovation",
+        )
+        cross_covariance = tf.transpose(centered_x) @ (
+            centered_y * sigma_rule.covariance_weights[:, tf.newaxis]
+        )
+        d_cross_covariance = (
+            tf.einsum("r,prn,rm->pnm", sigma_rule.covariance_weights, d_centered_x, centered_y)
+            + tf.einsum("r,rn,prm->pnm", sigma_rule.covariance_weights, centered_x, d_centered_y)
+        )
+        innovation = y[t] - observation_mean
+        d_innovation = -d_observation_mean
+        innovation_factor_matrix = innovation_factor.factor
+        solve_innovation = factor_solve(innovation_factor_matrix, innovation)
+        innovation_precision = factor_solve(innovation_factor_matrix, obs_identity)
+        log_det = 2.0 * tf.reduce_sum(tf.math.log(tf.linalg.diag_part(innovation_factor_matrix)))
+        mahalanobis = tf.reduce_sum(innovation * solve_innovation)
+        contribution = -0.5 * (
+            tf.cast(observation_dim, tf.float64) * tf.math.log(two_pi)
+            + log_det
+            + mahalanobis
+        )
+        trace_terms = tf.einsum(
+            "ab,pba->p",
+            innovation_precision,
+            d_raw_innovation_covariance,
+        )
+        innovation_derivative_terms = tf.einsum("pm,m->p", d_innovation, solve_innovation)
+        covariance_quadratic_terms = tf.einsum(
+            "m,pmn,n->p",
+            solve_innovation,
+            d_raw_innovation_covariance,
+            solve_innovation,
+        )
+        score = score - 0.5 * (
+            trace_terms
+            + 2.0 * innovation_derivative_terms
+            - covariance_quadratic_terms
+        )
+
+        kalman_gain = cross_covariance @ innovation_precision
+        d_kalman_gain = []
+        kalman_gain_transpose = tf.transpose(kalman_gain)
+        for i in range(p):
+            rhs = (
+                tf.transpose(d_cross_covariance[i])
+                - d_raw_innovation_covariance[i] @ kalman_gain_transpose
+            )
+            solved = factor_solve(innovation_factor_matrix, rhs)
+            d_kalman_gain.append(tf.transpose(solved))
+        d_kalman_gain = tf.stack(d_kalman_gain, axis=0)
+
+        mean = predicted_mean + tf.linalg.matvec(kalman_gain, innovation)
+        d_mean = (
+            d_predicted_mean
+            + tf.einsum("pnm,m->pn", d_kalman_gain, innovation)
+            + tf.einsum("nm,pm->pn", kalman_gain, d_innovation)
+        )
+        covariance = symmetrize(
+            predicted_covariance
+            - kalman_gain
+            @ innovation_factor.implemented_covariance
+            @ tf.transpose(kalman_gain)
+        )
+        d_covariance = symmetrize(
+            d_predicted_covariance
+            - tf.einsum(
+                "pnm,ml,kl->pnk",
+                d_kalman_gain,
+                innovation_factor.implemented_covariance,
+                kalman_gain,
+            )
+            - tf.einsum(
+                "nm,pml,kl->pnk",
+                kalman_gain,
+                d_raw_innovation_covariance,
+                kalman_gain,
+            )
+            - tf.einsum(
+                "nm,ml,pkl->pnk",
+                kalman_gain,
+                innovation_factor.implemented_covariance,
+                d_kalman_gain,
+            )
+        )
+        log_likelihood = log_likelihood + contribution
+
+        max_placement_floor_count = tf.maximum(
+            max_placement_floor_count,
+            placement.floor_count,
+        )
+        max_innovation_floor_count = tf.maximum(
+            max_innovation_floor_count,
+            innovation_factor.floor_count,
+        )
+        max_placement_residual = tf.maximum(
+            max_placement_residual,
+            placement.psd_projection_residual,
+        )
+        max_innovation_residual = tf.maximum(
+            max_innovation_residual,
+            innovation_factor.psd_projection_residual,
+        )
+        max_support_residual = tf.maximum(max_support_residual, tf.constant(0.0, dtype=tf.float64))
+        max_deterministic_residual = tf.maximum(
+            max_deterministic_residual,
+            deterministic_residual,
+        )
+        max_factor_derivative_residual = tf.maximum(
+            max_factor_derivative_residual,
+            tf.maximum(
+                placement.derivative_reconstruction_residual,
+                innovation_factor.derivative_reconstruction_residual,
+            ),
+        )
+        max_innovation_sylvester_residual = tf.maximum(
+            max_innovation_sylvester_residual,
+            innovation_factor.sylvester_residual,
+        )
+        min_placement_eigen_gap = tf.minimum(
+            min_placement_eigen_gap,
+            placement.min_eigen_gap,
+        )
+        min_innovation_eigen_gap = tf.minimum(
+            min_innovation_eigen_gap,
+            innovation_factor.min_eigen_gap,
+        )
+        last_implemented_innovation_covariance = innovation_factor.implemented_covariance
+
+    checked_value = tf.debugging.check_numerics(
+        log_likelihood,
+        "blocked_nonfinite_value: principal-square-root sigma-point score value is nonfinite",
+    )
+    checked_score = tf.debugging.check_numerics(
+        score,
+        "blocked_nonfinite_score: principal-square-root sigma-point score is nonfinite",
+    )
+    block_metadata = dict(structural_block_metadata(model))
+    extra = {
+        **block_metadata,
+        "rule": sigma_rule.name,
+        "augmented_dim": tf.constant(aug_dim, dtype=tf.int32),
+        "point_count": tf.constant(sigma_rule.point_count, dtype=tf.int32),
+        "polynomial_degree": tf.constant(sigma_rule.polynomial_degree, dtype=tf.int32),
+        "max_integration_rank": tf.constant(aug_dim, dtype=tf.int32),
+        "structural_null_count": tf.constant(0, dtype=tf.int32),
+        "support_residual": max_support_residual,
+        "deterministic_residual": max_deterministic_residual,
+        "min_placement_eigen_gap": min_placement_eigen_gap,
+        "min_innovation_eigen_gap": min_innovation_eigen_gap,
+        "factor_derivative_reconstruction_residual": max_factor_derivative_residual,
+        "innovation_sylvester_residual": max_innovation_sylvester_residual,
+        "fixed_null_derivative_residual": tf.constant(0.0, dtype=tf.float64),
+        "structural_null_covariance_residual": tf.constant(0.0, dtype=tf.float64),
+        "placement_psd_projection_residual": max_placement_residual,
+        "innovation_psd_projection_residual": max_innovation_residual,
+        "placement_floor_count": max_placement_floor_count,
+        "innovation_floor_count": max_innovation_floor_count,
+        "factorization": "principal_square_root",
+        "sigma_point_variable": "pre_transition_structural",
+        "derivative_branch": "strict_spd_principal_sqrt",
+        "derivative_method": "analytic_first_order_principal_sqrt_sylvester",
+        "derivative_provider": derivatives.name,
+        "hessian_status": "deferred",
+    }
+    diagnostics = TFFilterDiagnostics(
+        backend=backend_name,
+        mask_convention="none",
+        regularization=TFRegularizationDiagnostics(
+            jitter=jitter,
+            singular_floor=innovation_floor,
+            floor_count=max_innovation_floor_count,
+            psd_projection_residual=max_innovation_residual,
+            implemented_covariance=last_implemented_innovation_covariance,
+            branch_label="principal_square_root_sigma_point_analytic_score",
+            derivative_target="implemented_regularized_law",
+        ),
+        extra=extra,
+    )
+    return TFFilterDerivativeResult(
+        log_likelihood=checked_value,
+        score=checked_score,
+        hessian=None,
+        metadata=structural_filter_metadata(
+            model,
+            filter_name=backend_name,
+            differentiability_status="analytic_score_principal_sqrt_branch_hessian_deferred",
+            compiled_status="eager_tf",
+        ),
+        diagnostics=diagnostics,
+        trace=(
+            {
+                "filtered_mean": mean,
+                "filtered_covariance": covariance,
+                "d_filtered_mean": d_mean,
+                "d_filtered_covariance": d_covariance,
+            },
+        ),
+    )
+
+
 def tf_svd_sigma_point_score_with_rule(
     observations: tf.Tensor,
     model: TFStructuralStateSpace,
@@ -855,6 +1325,25 @@ def tf_svd_sigma_point_score_with_rule(
     allow_fixed_null_support: bool = False,
 ) -> TFFilterDerivativeResult:
     """Return an analytic score for a fixed SVD/eigen sigma-point rule."""
+
+    if backend_name == "tf_principal_sqrt_ukf_score":
+        if allow_fixed_null_support:
+            raise ValueError(
+                "tf_principal_sqrt_ukf_score is strict-SPD-only and does not support structural null branches"
+            )
+        return _principal_sqrt_sigma_point_score_with_rule(
+            observations,
+            model,
+            derivatives,
+            sigma_rule=sigma_rule,
+            backend_name=backend_name,
+            placement_floor=placement_floor,
+            innovation_floor=innovation_floor,
+            rank_tolerance=rank_tolerance,
+            spectral_gap_tolerance=spectral_gap_tolerance,
+            fixed_null_tolerance=fixed_null_tolerance,
+            jitter=jitter,
+        )
 
     return _smooth_sigma_point_score_with_rule(
         observations,
@@ -923,7 +1412,11 @@ def tf_svd_ukf_score(
     jitter: tf.Tensor | float = 0.0,
     allow_fixed_null_support: bool = False,
 ) -> TFFilterDerivativeResult:
-    """Return the analytic smooth-branch SVD-UKF score."""
+    """Return the historical eigenderivative SVD-UKF score.
+
+    This path is retained for diagnostic comparison and bounded regression use.
+    The promoted HMC-facing strict-SPD route is `tf_principal_sqrt_ukf_score`.
+    """
 
     rule = tf_unit_sigma_point_rule(
         model.partition.state_dim + model.partition.innovation_dim,
@@ -947,6 +1440,46 @@ def tf_svd_ukf_score(
         allow_fixed_null_support=allow_fixed_null_support,
     )
 
+
+def tf_principal_sqrt_ukf_score(
+    observations: tf.Tensor,
+    model: TFStructuralStateSpace,
+    derivatives: TFStructuralFirstDerivatives,
+    *,
+    alpha: float = 1.0,
+    beta: float = 2.0,
+    kappa: float = 0.0,
+    placement_floor: tf.Tensor | float = 0.0,
+    innovation_floor: tf.Tensor | float = 1e-12,
+    rank_tolerance: tf.Tensor | float = 1e-12,
+    spectral_gap_tolerance: tf.Tensor | float = 1e-8,
+    fixed_null_tolerance: tf.Tensor | float = 1e-10,
+    jitter: tf.Tensor | float = 0.0,
+    allow_fixed_null_support: bool = False,
+) -> TFFilterDerivativeResult:
+    """Return the analytic strict-SPD principal-square-root UKF score."""
+
+    rule = tf_unit_sigma_point_rule(
+        model.partition.state_dim + model.partition.innovation_dim,
+        rule="unscented",
+        alpha=alpha,
+        beta=beta,
+        kappa=kappa,
+    )
+    return tf_svd_sigma_point_score_with_rule(
+        observations,
+        model,
+        derivatives,
+        sigma_rule=rule,
+        backend_name="tf_principal_sqrt_ukf_score",
+        placement_floor=placement_floor,
+        innovation_floor=innovation_floor,
+        rank_tolerance=rank_tolerance,
+        spectral_gap_tolerance=spectral_gap_tolerance,
+        fixed_null_tolerance=fixed_null_tolerance,
+        jitter=jitter,
+        allow_fixed_null_support=allow_fixed_null_support,
+    )
 
 def tf_svd_cut4_score(
     observations: tf.Tensor,

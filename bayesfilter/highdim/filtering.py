@@ -29,7 +29,7 @@ from bayesfilter.highdim.derivatives import (
     tt_evaluation_derivative,
 )
 from bayesfilter.highdim.fixed_branch import BranchIdentity, BranchManifest
-from bayesfilter.highdim.bases import ProductBasis
+from bayesfilter.highdim.bases import BoundedInterval, LegendreBasis1D, ProductBasis
 from bayesfilter.highdim.fitting import FixedTTFitConfig, FixedTTFitSampleBatch, FixedTTFitter
 from bayesfilter.highdim.models import LinearGaussianSSM, TFHighDimStateSpaceModel
 from bayesfilter.highdim.squared_tt import SquaredTTDensity, TensorProductReferenceDensity
@@ -335,6 +335,33 @@ class MultistateAdjacentTargetBuildResult:
             raise TypeError("branch_identity must be a BranchIdentity")
         if not isinstance(self.status, HighDimStatus):
             raise TypeError("status must be a HighDimStatus")
+        object.__setattr__(self, "diagnostics", freeze_mapping(self.diagnostics))
+
+
+@dataclass(frozen=True)
+class MultistateAdjacentTargetDerivativeBuildResult:
+    """Multistate adjacent-target batch plus same-branch target derivatives."""
+
+    target_result: MultistateAdjacentTargetBuildResult
+    dot_log_reference_target: tf.Tensor
+    dot_sqrt_target: tf.Tensor
+    diagnostics: Mapping[str, object] | None = None
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.target_result, MultistateAdjacentTargetBuildResult):
+            raise TypeError("target_result must be a MultistateAdjacentTargetBuildResult")
+        dot_log = tf.convert_to_tensor(self.dot_log_reference_target, dtype=tf.float64)
+        dot_sqrt = tf.convert_to_tensor(self.dot_sqrt_target, dtype=tf.float64)
+        n_rows = int(self.target_result.target_batch.reference_points.shape[0])
+        if dot_log.shape != (n_rows,) or dot_sqrt.shape != (n_rows,):
+            raise ValueError(f"MultistateAdjacentTargetDerivativeBuildResult: {HighDimStatus.INVALID_SHAPE.value}")
+        if not bool(
+            tf.reduce_all(tf.math.is_finite(dot_log)).numpy()
+            and tf.reduce_all(tf.math.is_finite(dot_sqrt)).numpy()
+        ):
+            raise ValueError(f"MultistateAdjacentTargetDerivativeBuildResult: {HighDimStatus.NONFINITE_VALUE.value}")
+        object.__setattr__(self, "dot_log_reference_target", dot_log)
+        object.__setattr__(self, "dot_sqrt_target", dot_sqrt)
         object.__setattr__(self, "diagnostics", freeze_mapping(self.diagnostics))
 
 
@@ -1100,7 +1127,7 @@ def scalar_nonlinear_fixed_design_tt_score_path(
                 "score_path": "scalar_nonlinear_fixed_design_tt_score_path",
                 "parameter_indices": parameter_indices,
                 "fixed_branch_only": True,
-                "target_derivative_backend": "tensorflow_gradient_tape_for_model_log_density",
+                "target_derivative_backend": "model_parameter_score_or_reverse_mode_gradient_tape",
                 "retained_storage_kind": partial_results[0].diagnostics["retained_storage_kind"],
                 "replay_tape_version": partial_results[0].diagnostics["replay_tape_version"],
             },
@@ -1339,9 +1366,344 @@ def scalar_nonlinear_fixed_design_tt_score_path(
             "score_path": "scalar_nonlinear_fixed_design_tt_score_path",
             "parameter_index": parameter_index,
             "fixed_branch_only": True,
-            "target_derivative_backend": "tensorflow_gradient_tape_for_model_log_density",
+            "target_derivative_backend": "model_parameter_score_or_reverse_mode_gradient_tape",
             "retained_storage_kind": retained.storage_kind,
             "replay_tape_version": replay_tape.version,
+        },
+    )
+
+
+def multistate_nonlinear_fixed_design_tt_score_path(
+    model: TFHighDimStateSpaceModel,
+    theta: tf.Tensor,
+    observations: tf.Tensor,
+    config: FixedBranchFilterConfig,
+    derivative_config: FixedBranchDerivativeConfig,
+    *,
+    fixture_id: str = "p81.multistate-nonlinear-fixed-design-tt-score-path.v1",
+    initial_target_id: str = "p81.multistate.initial.t0.score.v1",
+    transition_target_id: str = "p81.multistate.transition.score.v1",
+    branch_seed_prefix: str = "p81-multistate-nonlinear-tt-score",
+    retained_moment_order: int | None = None,
+    retained_propagation_order: int | None = None,
+) -> FixedBranchScoreResult:
+    """Run a same-branch fixed-branch score path for multistate TT filters."""
+
+    if not isinstance(config, FixedBranchFilterConfig):
+        raise TypeError("config must be a FixedBranchFilterConfig")
+    if not isinstance(derivative_config, FixedBranchDerivativeConfig):
+        raise TypeError("derivative_config must be a FixedBranchDerivativeConfig")
+    policy = derivative_config.unsupported_status()
+    if policy.status is not HighDimStatus.OK:
+        raise ValueError(policy.status.value)
+    if config.fit_config is None or config.product_basis is None:
+        raise TypeError("multistate nonlinear fixed-design TT score path requires fit_config and product_basis")
+    state_dim = int(model.state_dim())
+    if state_dim <= 1:
+        raise TypeError("multistate nonlinear fixed-design TT score path requires state_dim > 1")
+    observation_matrix = _as_observation_matrix(observations, int(model.observation_dim()))
+    observation_count = int(observation_matrix.shape[0])
+    if observation_count < 1:
+        raise ValueError("observations must contain at least one row")
+    theta_vector = _as_theta_vector(theta, int(model.parameter_dim()))
+    parameter_indices = tuple(int(index) for index in derivative_config.parameter_indices)
+    if not parameter_indices:
+        raise ValueError("multistate fixed-design TT score path requires at least one parameter index")
+    if len(parameter_indices) > 1:
+        partial_results = []
+        for local_index in parameter_indices:
+            local_config = FixedBranchDerivativeConfig(
+                parameter_indices=(local_index,),
+                finite_difference_h=derivative_config.finite_difference_h,
+                derivative_ridge_floor=derivative_config.derivative_ridge_floor,
+                solve_condition_number_veto=derivative_config.solve_condition_number_veto,
+                allow_parameter_dependent_coordinate_map=derivative_config.allow_parameter_dependent_coordinate_map,
+                allow_moving_basis=derivative_config.allow_moving_basis,
+                dtype=derivative_config.dtype,
+            )
+            partial_results.append(
+                multistate_nonlinear_fixed_design_tt_score_path(
+                    model,
+                    theta_vector,
+                    observation_matrix,
+                    config,
+                    local_config,
+                    fixture_id=f"{fixture_id}.param{local_index}",
+                    initial_target_id=initial_target_id,
+                    transition_target_id=transition_target_id,
+                    branch_seed_prefix=branch_seed_prefix,
+                    retained_moment_order=retained_moment_order,
+                    retained_propagation_order=retained_propagation_order,
+                )
+            )
+        manifest = BranchManifest(
+            "fixed_branch_multistate_score_fixture.v1",
+            {
+                "name": fixture_id,
+                "log_likelihood": partial_results[0].log_likelihood,
+                "score": tf.concat([result.score for result in partial_results], axis=0),
+                "fixed_branch_only": True,
+                "observation_count": observation_count,
+                "last_time_index": observation_count - 1,
+            },
+        )
+        identity = BranchIdentity(manifest=manifest, hash=manifest.sha256())
+        return FixedBranchScoreResult(
+            log_likelihood=partial_results[0].log_likelihood,
+            score=tf.concat([result.score for result in partial_results], axis=0),
+            branch_identity=identity,
+            replay_tape_hash=partial_results[0].replay_tape_hash,
+            finite_difference_table=FiniteDifferenceTable(tuple(row for result in partial_results for row in result.finite_difference_table.rows)),
+            status=HighDimStatus.OK,
+            diagnostics={
+                "value_path": partial_results[0].diagnostics["value_path"],
+                "score_path": "multistate_nonlinear_fixed_design_tt_score_path",
+                "parameter_indices": parameter_indices,
+                "fixed_branch_only": True,
+                "horizon": observation_count - 1,
+                "observation_count": observation_count,
+                "last_time_index": observation_count - 1,
+                "target_derivative_backend": "model_parameter_score_or_reverse_mode_gradient_tape",
+                "retained_storage_kind": partial_results[0].diagnostics["retained_storage_kind"],
+                "replay_tape_version": partial_results[0].diagnostics["replay_tape_version"],
+                "state_dim": state_dim,
+            },
+        )
+
+    product_basis = config.product_basis
+    fit_config = config.fit_config
+    if int(product_basis.dimension) != state_dim:
+        raise ValueError(f"product_basis: {HighDimStatus.INVALID_SHAPE.value}")
+    coordinate_map = _coordinate_map_for_config(config, state_dim)
+    initial_cores = config.initial_cores or _default_initial_cores(product_basis, fit_config)
+    parameter_index = parameter_indices[0]
+    value_branch_seed_prefix = branch_seed_prefix.replace("score", "value")
+    moment_order = int(retained_moment_order or config.fit_quadrature_order)
+    propagation_order = int(retained_propagation_order or config.fit_quadrature_order)
+    if moment_order < 2 or propagation_order < 2:
+        raise ValueError("retained quadrature orders must be at least 2")
+    value_result = multistate_nonlinear_fixed_design_tt_value_path(
+        model=model,
+        theta=theta_vector,
+        observations=observation_matrix,
+        config=config,
+        fixture_id=fixture_id.replace("score", "value"),
+        initial_target_id=initial_target_id,
+        transition_target_id=transition_target_id,
+        branch_seed_prefix=value_branch_seed_prefix,
+        retained_moment_order=moment_order,
+        retained_propagation_order=propagation_order,
+    )
+    if len(value_result.steps) != observation_count:
+        raise ValueError(HighDimStatus.INVALID_BRANCH_MISMATCH.value)
+
+    score_terms = []
+    replay_entries = []
+    retained: RetainedFilter | None = None
+    dot_retained_values: tf.Tensor | None = None
+
+    for time_index in range(observation_count):
+        if time_index == 0:
+            target_derivative = multistate_nonlinear_initial_adjacent_target_derivative_batch(
+                model=model,
+                theta=theta_vector,
+                observation=observation_matrix[time_index],
+                product_basis=product_basis,
+                coordinate_map=coordinate_map,
+                quadrature_order=config.fit_quadrature_order,
+                measure_convention=config.measure_convention,
+                fixture_id=fixture_id,
+                target_id=initial_target_id,
+                branch_seed=f"{branch_seed_prefix}:t0:target",
+                parameter_index=parameter_index,
+                time_index=0,
+            )
+        else:
+            if retained is None or dot_retained_values is None:
+                raise RuntimeError("missing retained derivative state")
+            target_derivative = multistate_nonlinear_transition_adjacent_target_derivative_batch(
+                model=model,
+                theta=theta_vector,
+                observation=observation_matrix[time_index],
+                retained_filter=retained,
+                dot_retained_filter_values=dot_retained_values,
+                product_basis=product_basis,
+                coordinate_map=coordinate_map,
+                quadrature_order=config.fit_quadrature_order,
+                measure_convention=config.measure_convention,
+                fixture_id=fixture_id,
+                target_id=transition_target_id,
+                branch_seed=f"{branch_seed_prefix}:t{time_index}:target",
+                parameter_index=parameter_index,
+                time_index=time_index,
+            )
+        target_result = target_derivative.target_result
+        fit_result = FixedTTFitter().fit(
+            product_basis=product_basis,
+            samples=FixedTTFitSampleBatch(
+                points=target_result.target_batch.reference_points,
+                target_values=target_result.target_batch.sqrt_target,
+                weights=target_result.target_batch.weights,
+            ),
+            config=fit_config,
+            initial_cores=initial_cores,
+            branch_seed=f"{value_branch_seed_prefix}:t{time_index}:fit",
+            measure_convention=config.measure_convention,
+        )
+        if fit_result.status is not HighDimStatus.OK:
+            raise ValueError(fit_result.status.value)
+        value_step = value_result.steps[time_index]
+        if not _tt_cores_allclose(fit_result.fitted_tt.cores, value_step.fit_result.fitted_tt.cores):
+            raise ValueError(HighDimStatus.INVALID_BRANCH_MISMATCH.value)
+        dot_cores = []
+        for axis, core in enumerate(fit_result.fitted_tt.cores):
+            base_cores = list(fit_result.fitted_tt.cores)
+            base_cores[axis] = initial_cores[axis]
+            design = FixedTTFitter().build_core_update_system(
+                product_basis,
+                target_result.target_batch.reference_points,
+                target_result.target_batch.sqrt_target,
+                target_result.target_batch.weights,
+                base_cores,
+                core_index=axis,
+                config=fit_config,
+            ).design_matrix
+            derivative_result = fixed_design_lsq_derivative(
+                design_matrix=design,
+                target_values=target_result.target_batch.sqrt_target,
+                weights=target_result.target_batch.weights,
+                coefficients=tf.reshape(core.values, [-1]),
+                dot_target_values=target_derivative.dot_sqrt_target,
+                ridge=fit_config.ridge,
+                condition_number_veto=derivative_config.solve_condition_number_veto,
+            )
+            if derivative_result.status is not HighDimStatus.OK:
+                raise ValueError(derivative_result.status.value)
+            dot_cores.append(TTCore(tf.reshape(derivative_result.dot_coefficients, core.values.shape)))
+        dot_cores = tuple(dot_cores)
+        density = _squared_density_from_fit_result(fit_result, product_basis, config)
+        dot_log_scale_shift = tf.convert_to_tensor(
+            target_derivative.diagnostics.get("dot_log_scale_shift", 0.0),
+            dtype=tf.float64,
+        )
+        dot_log_normalizer = squared_tt_log_normalizer_derivative(density, dot_cores)
+        score_terms.append(dot_log_normalizer + dot_log_scale_shift)
+        dot_retained_values = _normalized_retained_log_density_derivatives_chunked(
+            density,
+            dot_cores,
+            tf.convert_to_tensor(value_step.retained_filter.diagnostics["reference_points"], dtype=tf.float64),
+        )
+        replay_entries.append(
+            {
+                "time_index": int(time_index),
+                "target_hash": target_result.branch_identity.hash.value,
+                "fit_hash": fit_result.branch_identity.hash.value,
+                "retained_hash": value_step.retained_filter.branch_identity.hash.value,
+                "parameter_index": parameter_index,
+                "dot_log_normalizer": dot_log_normalizer,
+                "dot_log_scale_shift": dot_log_scale_shift,
+                "fixed_branch_only": True,
+                "observation_count": observation_count,
+                "last_time_index": observation_count - 1,
+            }
+        )
+        retained = value_step.retained_filter
+
+    total_score = tf.reduce_sum(tf.stack(score_terms))
+    fd_rows = []
+    for h in derivative_config.finite_difference_h:
+        step = tf.cast(h, tf.float64)
+        plus_theta = tf.tensor_scatter_nd_add(theta_vector, [[parameter_index]], [step])
+        minus_theta = tf.tensor_scatter_nd_add(theta_vector, [[parameter_index]], [-step])
+        plus_result = multistate_nonlinear_fixed_design_tt_value_path(
+            model=model,
+            theta=plus_theta,
+            observations=observation_matrix,
+            config=config,
+            fixture_id=fixture_id.replace("score", "fd-plus"),
+            initial_target_id=initial_target_id,
+            transition_target_id=transition_target_id,
+            branch_seed_prefix=value_branch_seed_prefix,
+            retained_moment_order=moment_order,
+            retained_propagation_order=propagation_order,
+        )
+        minus_result = multistate_nonlinear_fixed_design_tt_value_path(
+            model=model,
+            theta=minus_theta,
+            observations=observation_matrix,
+            config=config,
+            fixture_id=fixture_id.replace("score", "fd-minus"),
+            initial_target_id=initial_target_id,
+            transition_target_id=transition_target_id,
+            branch_seed_prefix=value_branch_seed_prefix,
+            retained_moment_order=moment_order,
+            retained_propagation_order=propagation_order,
+        )
+        base_hash = _fixed_design_multistate_compatibility_hash(
+            value_result=value_result,
+            config=config,
+            product_basis=product_basis,
+            fit_config=fit_config,
+            observations=observation_matrix,
+            branch_seed_prefix=value_branch_seed_prefix,
+            initial_target_id=initial_target_id,
+            transition_target_id=transition_target_id,
+        )
+        plus_hash = _fixed_design_multistate_compatibility_hash(
+            value_result=plus_result,
+            config=config,
+            product_basis=product_basis,
+            fit_config=fit_config,
+            observations=observation_matrix,
+            branch_seed_prefix=value_branch_seed_prefix,
+            initial_target_id=initial_target_id,
+            transition_target_id=transition_target_id,
+        )
+        minus_hash = _fixed_design_multistate_compatibility_hash(
+            value_result=minus_result,
+            config=config,
+            product_basis=product_basis,
+            fit_config=fit_config,
+            observations=observation_matrix,
+            branch_seed_prefix=value_branch_seed_prefix,
+            initial_target_id=initial_target_id,
+            transition_target_id=transition_target_id,
+        )
+        fd_rows.append(
+            make_finite_difference_row(
+                parameter_index=parameter_index,
+                h=float(h),
+                value_plus=plus_result.log_likelihood,
+                value_minus=minus_result.log_likelihood,
+                branch_hash_plus=plus_hash,
+                branch_hash_minus=minus_hash,
+                branch_hash_base=base_hash,
+                analytic_gradient=total_score,
+            )
+        )
+    replay_tape = replay_tape_from_filter_result(
+        value_result.branch_identity,
+        tuple(replay_entries),
+    )
+    return FixedBranchScoreResult(
+        log_likelihood=value_result.log_likelihood,
+        score=tf.reshape(total_score, [1]),
+        branch_identity=value_result.branch_identity,
+        replay_tape_hash=replay_tape.sha256().value,
+        finite_difference_table=FiniteDifferenceTable(tuple(fd_rows)),
+        status=HighDimStatus.OK,
+        diagnostics={
+            "value_path": value_result.diagnostics["value_path"],
+            "score_path": "multistate_nonlinear_fixed_design_tt_score_path",
+            "parameter_index": parameter_index,
+            "fixed_branch_only": True,
+            "horizon": observation_count - 1,
+            "observation_count": observation_count,
+            "last_time_index": observation_count - 1,
+            "target_derivative_backend": "model_parameter_score_or_reverse_mode_gradient_tape",
+            "retained_storage_kind": value_result.retained_filter.storage_kind,
+            "replay_tape_version": replay_tape.version,
+            "state_dim": state_dim,
         },
     )
 
@@ -2039,11 +2401,18 @@ def scalar_nonlinear_initial_adjacent_target_derivative_batch(
     physical_points = target_result.target_batch.physical_points
     observation_vector = tf.reshape(tf.convert_to_tensor(observation, dtype=tf.float64), [int(model.observation_dim())])
     theta_vector = _as_theta_vector(theta, int(model.parameter_dim()))
-    dot_log_physical = _scalar_target_log_derivative_by_tape(
-        lambda current_theta: model.initial_log_density(current_theta, physical_points)
-        + model.observation_log_density(current_theta, physical_points, observation_vector, t=int(time_index)),
+    dot_log_physical = _initial_log_density_parameter_score_column(
+        model,
         theta_vector,
-        parameter_index,
+        physical_points,
+        int(parameter_index),
+    ) + _observation_log_density_parameter_score_column(
+        model,
+        theta_vector,
+        physical_points,
+        observation_vector,
+        int(time_index),
+        int(parameter_index),
     )
     dot_log_reference = dot_log_physical
     if log_scale_shift is None:
@@ -2060,7 +2429,7 @@ def scalar_nonlinear_initial_adjacent_target_derivative_batch(
             "target_kind": "initial",
             "parameter_index": int(parameter_index),
             "dot_log_scale_shift": dot_log_scale_shift,
-            "derivative_backend": "tensorflow_gradient_tape_for_model_log_density",
+            "derivative_backend": "model_parameter_score_or_reverse_mode_gradient_tape",
         },
     )
 
@@ -2118,15 +2487,13 @@ def scalar_nonlinear_transition_adjacent_target_derivative_batch(
         - _log_uniform_reference_weight_density(product_basis)
     )
     tf.debugging.assert_near(log_predictive, expected_log_predictive, atol=1e-10, rtol=1e-10)
-    dot_observation = _scalar_target_log_derivative_by_tape(
-        lambda current_theta: model.observation_log_density(
-            current_theta,
-            physical_points,
-            observation_vector,
-            t=int(time_index),
-        ),
+    dot_observation = _observation_log_density_parameter_score_column(
+        model,
         theta_vector,
-        parameter_index,
+        physical_points,
+        observation_vector,
+        int(time_index),
+        int(parameter_index),
     )
     dot_log_reference = dot_log_predictive + dot_observation
     if log_scale_shift is None:
@@ -2143,7 +2510,161 @@ def scalar_nonlinear_transition_adjacent_target_derivative_batch(
             "target_kind": "transition",
             "parameter_index": int(parameter_index),
             "dot_log_scale_shift": dot_log_scale_shift,
-            "derivative_backend": "tensorflow_gradient_tape_for_model_log_density",
+            "derivative_backend": "model_parameter_score_or_reverse_mode_gradient_tape",
+        },
+    )
+
+
+def multistate_nonlinear_initial_adjacent_target_derivative_batch(
+    model: TFHighDimStateSpaceModel,
+    theta: tf.Tensor,
+    observation: tf.Tensor,
+    product_basis: ProductBasis,
+    coordinate_map: HighDimCoordinateMap,
+    quadrature_order: int,
+    measure_convention: MeasureConvention,
+    fixture_id: str,
+    target_id: str,
+    branch_seed: int | str,
+    parameter_index: int,
+    log_scale_shift: tf.Tensor | None = None,
+    time_index: int = 0,
+) -> MultistateAdjacentTargetDerivativeBuildResult:
+    """Build a multistate initial target and same-branch target derivatives."""
+
+    target_result = multistate_nonlinear_initial_adjacent_target_batch(
+        model=model,
+        theta=theta,
+        observation=observation,
+        product_basis=product_basis,
+        coordinate_map=coordinate_map,
+        quadrature_order=quadrature_order,
+        measure_convention=measure_convention,
+        fixture_id=fixture_id,
+        target_id=target_id,
+        branch_seed=branch_seed,
+        log_scale_shift=log_scale_shift,
+        time_index=time_index,
+    )
+    physical_points = target_result.target_batch.physical_points
+    observation_vector = tf.reshape(
+        tf.convert_to_tensor(observation, dtype=tf.float64),
+        [int(model.observation_dim())],
+    )
+    theta_vector = _as_theta_vector(theta, int(model.parameter_dim()))
+    dot_log_physical = _initial_log_density_parameter_score_column(
+        model,
+        theta_vector,
+        physical_points,
+        int(parameter_index),
+    ) + _observation_log_density_parameter_score_column(
+        model,
+        theta_vector,
+        physical_points,
+        observation_vector,
+        int(time_index),
+        int(parameter_index),
+    )
+    dot_log_reference = dot_log_physical
+    if log_scale_shift is None:
+        shift_index = int(tf.argmax(target_result.target_batch.log_target).numpy())
+        dot_log_scale_shift = dot_log_reference[shift_index]
+    else:
+        dot_log_scale_shift = tf.constant(0.0, dtype=tf.float64)
+    dot_sqrt = 0.5 * target_result.target_batch.sqrt_target * (dot_log_reference - dot_log_scale_shift)
+    return MultistateAdjacentTargetDerivativeBuildResult(
+        target_result=target_result,
+        dot_log_reference_target=dot_log_reference,
+        dot_sqrt_target=dot_sqrt,
+        diagnostics={
+            "target_kind": "initial",
+            "parameter_index": int(parameter_index),
+            "dot_log_scale_shift": dot_log_scale_shift,
+            "derivative_backend": "model_parameter_score_or_reverse_mode_gradient_tape",
+        },
+    )
+
+
+def multistate_nonlinear_transition_adjacent_target_derivative_batch(
+    model: TFHighDimStateSpaceModel,
+    theta: tf.Tensor,
+    observation: tf.Tensor,
+    retained_filter: RetainedFilter,
+    dot_retained_filter_values: tf.Tensor,
+    product_basis: ProductBasis,
+    coordinate_map: HighDimCoordinateMap,
+    quadrature_order: int,
+    measure_convention: MeasureConvention,
+    fixture_id: str,
+    target_id: str,
+    branch_seed: int | str,
+    parameter_index: int,
+    log_scale_shift: tf.Tensor | None = None,
+    time_index: int = 1,
+) -> MultistateAdjacentTargetDerivativeBuildResult:
+    """Build a multistate transition target and same-branch target derivatives."""
+
+    target_result = multistate_nonlinear_transition_adjacent_target_batch(
+        model=model,
+        theta=theta,
+        observation=observation,
+        retained_filter=retained_filter,
+        product_basis=product_basis,
+        coordinate_map=coordinate_map,
+        quadrature_order=quadrature_order,
+        measure_convention=measure_convention,
+        fixture_id=fixture_id,
+        target_id=target_id,
+        branch_seed=branch_seed,
+        log_scale_shift=log_scale_shift,
+        time_index=time_index,
+    )
+    theta_vector = _as_theta_vector(theta, int(model.parameter_dim()))
+    physical_points = target_result.target_batch.physical_points
+    observation_vector = tf.reshape(
+        tf.convert_to_tensor(observation, dtype=tf.float64),
+        [int(model.observation_dim())],
+    )
+    log_predictive, dot_log_predictive = _multistate_tt_predictive_log_density_and_derivative_from_retained(
+        model=model,
+        theta=theta_vector,
+        current_physical_points=physical_points,
+        retained_filter=retained_filter,
+        coordinate_map=coordinate_map,
+        time_index=int(time_index),
+        dot_retained_filter_values=dot_retained_filter_values,
+        parameter_index=int(parameter_index),
+    )
+    expected_log_predictive = target_result.target_batch.log_target - (
+        model.observation_log_density(theta_vector, physical_points, observation_vector, t=int(time_index))
+        + _coordinate_map_forward_log_abs_det(coordinate_map, target_result.target_batch.reference_points)
+        - _log_uniform_reference_weight_density(product_basis)
+    )
+    tf.debugging.assert_near(log_predictive, expected_log_predictive, atol=1e-10, rtol=1e-10)
+    dot_observation = _observation_log_density_parameter_score_column(
+        model,
+        theta_vector,
+        physical_points,
+        observation_vector,
+        int(time_index),
+        int(parameter_index),
+    )
+    dot_log_reference = dot_log_predictive + dot_observation
+    if log_scale_shift is None:
+        shift_index = int(tf.argmax(target_result.target_batch.log_target).numpy())
+        dot_log_scale_shift = dot_log_reference[shift_index]
+    else:
+        dot_log_scale_shift = tf.constant(0.0, dtype=tf.float64)
+    dot_sqrt = 0.5 * target_result.target_batch.sqrt_target * (dot_log_reference - dot_log_scale_shift)
+    return MultistateAdjacentTargetDerivativeBuildResult(
+        target_result=target_result,
+        dot_log_reference_target=dot_log_reference,
+        dot_sqrt_target=dot_sqrt,
+        diagnostics={
+            "target_kind": "transition",
+            "parameter_index": int(parameter_index),
+            "dot_log_scale_shift": dot_log_scale_shift,
+            "derivative_backend": "model_parameter_score_or_reverse_mode_gradient_tape",
         },
     )
 
@@ -2802,6 +3323,35 @@ def _multistate_tt_predictive_log_density_from_retained(
     )
 
 
+def _multistate_tt_predictive_log_density_and_derivative_from_retained(
+    model: TFHighDimStateSpaceModel,
+    theta: tf.Tensor,
+    current_physical_points: tf.Tensor,
+    retained_filter: RetainedFilter,
+    coordinate_map: HighDimCoordinateMap,
+    time_index: int,
+    dot_retained_filter_values: tf.Tensor,
+    parameter_index: int,
+) -> tuple[tf.Tensor, tf.Tensor]:
+    if retained_filter.storage_kind != "multistate_tt_grid":
+        raise ValueError("TT predictive propagation requires multistate_tt_grid retained filter")
+    if not isinstance(retained_filter.density, SquaredTTDensity):
+        raise ValueError("multistate_tt_grid retained filter requires SquaredTTDensity")
+    density_hash = retained_filter.diagnostics.get("density_hash")
+    if density_hash != retained_filter.density.branch_identity.hash.value:
+        raise ValueError(HighDimStatus.INVALID_BRANCH_MISMATCH.value)
+    return _multistate_grid_predictive_log_density_and_derivative_from_retained(
+        model=model,
+        theta=theta,
+        current_physical_points=current_physical_points,
+        retained_filter=retained_filter,
+        coordinate_map=coordinate_map,
+        time_index=int(time_index),
+        dot_retained_filter_values=dot_retained_filter_values,
+        parameter_index=int(parameter_index),
+    )
+
+
 def _scalar_grid_predictive_log_density_from_retained(
     model: TFHighDimStateSpaceModel,
     theta: tf.Tensor,
@@ -2929,24 +3479,252 @@ def _multistate_grid_predictive_log_density_from_retained(
         tf.reduce_all(tf.abs(previous_physical_from_map - previous_physical) <= 1e-10).numpy()
     ):
         raise ValueError(f"retained coordinate map: {HighDimStatus.INVALID_BRANCH_MISMATCH.value}")
-    transition_log = _multistate_pairwise_transition_between_grids_log_density(
-        model=model,
-        theta=theta,
-        current_physical_points=current_physical_points,
-        previous_physical_points=previous_physical,
-        time_index=int(time_index),
-    )
     if not isinstance(retained_filter.density, SquaredTTDensity):
         raise ValueError("multistate_tt_grid retained filter requires SquaredTTDensity")
     log_reference_weight = _log_uniform_reference_weight_density(retained_filter.density.sqrt_tt.product_basis)
-    terms = (
-        tf.math.log(previous_weights)[tf.newaxis, :]
-        + previous_log_abs_det[tf.newaxis, :]
+    base_log_terms = (
+        tf.math.log(previous_weights)
+        + previous_log_abs_det
         - log_reference_weight
-        + previous_log_density[tf.newaxis, :]
+        + previous_log_density
+    )
+    try:
+        transition_log = _multistate_pairwise_transition_between_grids_log_density(
+            model=model,
+            theta=theta,
+            current_physical_points=current_physical_points,
+            previous_physical_points=previous_physical,
+            time_index=int(time_index),
+        )
+    except ValueError as exc:
+        if HighDimStatus.COMPLEXITY_GATE.value not in str(exc):
+            raise
+        return _multistate_grid_predictive_log_density_from_retained_streaming(
+            model=model,
+            theta=theta,
+            current_physical_points=current_physical_points,
+            previous_physical_points=previous_physical,
+            base_previous_log_terms=base_log_terms,
+            time_index=int(time_index),
+        )
+    terms = (
+        base_log_terms[tf.newaxis, :]
         + transition_log
     )
     return tf.reduce_logsumexp(terms, axis=1)
+
+
+def _multistate_grid_predictive_log_density_and_derivative_from_retained(
+    model: TFHighDimStateSpaceModel,
+    theta: tf.Tensor,
+    current_physical_points: tf.Tensor,
+    retained_filter: RetainedFilter,
+    coordinate_map: HighDimCoordinateMap,
+    time_index: int,
+    dot_retained_filter_values: tf.Tensor,
+    parameter_index: int,
+) -> tuple[tf.Tensor, tf.Tensor]:
+    state_dim = int(model.state_dim())
+    if retained_filter.storage_kind != "multistate_tt_grid":
+        raise ValueError("retained filter requires multistate_tt_grid")
+    diagnostics = retained_filter.diagnostics
+    previous_physical = _as_matrix(diagnostics["physical_points"], state_dim, "retained.physical_points")
+    previous_reference = _as_matrix(diagnostics["reference_points"], state_dim, "retained.reference_points")
+    previous_weights = tf.convert_to_tensor(diagnostics["weights"], dtype=tf.float64)
+    previous_log_density = tf.convert_to_tensor(
+        diagnostics["log_density_physical"],
+        dtype=tf.float64,
+    )
+    dot_previous_density = tf.convert_to_tensor(dot_retained_filter_values, dtype=tf.float64)
+    if previous_weights.shape != (int(previous_physical.shape[0]),):
+        raise ValueError(f"retained weights: {HighDimStatus.INVALID_SHAPE.value}")
+    if dot_previous_density.shape != previous_log_density.shape:
+        raise ValueError(f"dot_retained_filter_values: {HighDimStatus.INVALID_SHAPE.value}")
+    previous_physical_from_map, previous_log_abs_det = coordinate_map.forward(previous_reference)
+    if not bool(
+        tf.reduce_all(tf.abs(previous_physical_from_map - previous_physical) <= 1e-10).numpy()
+    ):
+        raise ValueError(f"retained coordinate map: {HighDimStatus.INVALID_BRANCH_MISMATCH.value}")
+    if not isinstance(retained_filter.density, SquaredTTDensity):
+        raise ValueError("multistate_tt_grid retained filter requires SquaredTTDensity")
+    log_reference_weight = _log_uniform_reference_weight_density(retained_filter.density.sqrt_tt.product_basis)
+    base_log_terms = (
+        tf.math.log(previous_weights)
+        + previous_log_abs_det
+        - log_reference_weight
+        + previous_log_density
+    )
+    try:
+        transition_log = _multistate_pairwise_transition_between_grids_log_density(
+            model=model,
+            theta=theta,
+            current_physical_points=current_physical_points,
+            previous_physical_points=previous_physical,
+            time_index=int(time_index),
+        )
+        dot_transition_log = _multistate_transition_log_density_derivative_between_grids(
+            model=model,
+            theta=theta,
+            current_physical_points=current_physical_points,
+            previous_physical_points=previous_physical,
+            time_index=int(time_index),
+            parameter_index=int(parameter_index),
+        )
+    except ValueError as exc:
+        if HighDimStatus.COMPLEXITY_GATE.value not in str(exc):
+            raise
+        return _multistate_grid_predictive_log_density_and_derivative_from_retained_streaming(
+            model=model,
+            theta=theta,
+            current_physical_points=current_physical_points,
+            previous_physical_points=previous_physical,
+            base_previous_log_terms=base_log_terms,
+            dot_previous_density=dot_previous_density,
+            time_index=int(time_index),
+            parameter_index=int(parameter_index),
+        )
+    log_terms = (
+        base_log_terms[tf.newaxis, :]
+        + transition_log
+    )
+    dot_log_terms = dot_previous_density[tf.newaxis, :] + dot_transition_log
+    predictive = tf.reduce_logsumexp(log_terms, axis=1)
+    centered_weights = tf.nn.softmax(log_terms, axis=1)
+    dot_predictive = tf.reduce_sum(centered_weights * dot_log_terms, axis=1)
+    return predictive, dot_predictive
+
+
+def _multistate_grid_predictive_log_density_from_retained_streaming(
+    *,
+    model: TFHighDimStateSpaceModel,
+    theta: tf.Tensor,
+    current_physical_points: tf.Tensor,
+    previous_physical_points: tf.Tensor,
+    base_previous_log_terms: tf.Tensor,
+    time_index: int,
+    current_chunk_size: int = 512,
+    previous_chunk_size: int = 64,
+    chunk_byte_budget: int = 256_000_000,
+    max_chunk_products: int = 8192,
+) -> tf.Tensor:
+    current = _as_matrix(current_physical_points, int(model.state_dim()), "current_physical_points")
+    previous = _as_matrix(previous_physical_points, int(model.state_dim()), "previous_physical_points")
+    base_terms = tf.convert_to_tensor(base_previous_log_terms, dtype=tf.float64)
+    _validate_streaming_transition_inputs(
+        current=current,
+        previous=previous,
+        base_previous_log_terms=base_terms,
+        current_chunk_size=current_chunk_size,
+        previous_chunk_size=previous_chunk_size,
+        chunk_byte_budget=chunk_byte_budget,
+        max_chunk_products=max_chunk_products,
+    )
+    current_parts = []
+    for current_start in range(0, int(current.shape[0]), int(current_chunk_size)):
+        current_block = current[current_start : current_start + int(current_chunk_size)]
+        block_logsumexp = None
+        for previous_start in range(0, int(previous.shape[0]), int(previous_chunk_size)):
+            previous_block = previous[previous_start : previous_start + int(previous_chunk_size)]
+            base_block = base_terms[previous_start : previous_start + int(previous_chunk_size)]
+            transition_log = _multistate_pairwise_transition_between_grid_blocks_log_density(
+                model=model,
+                theta=theta,
+                current_physical_points=current_block,
+                previous_physical_points=previous_block,
+                time_index=int(time_index),
+                chunk_byte_budget=int(chunk_byte_budget),
+            )
+            block_terms = transition_log + base_block[tf.newaxis, :]
+            candidate = tf.reduce_logsumexp(block_terms, axis=1)
+            block_logsumexp = candidate if block_logsumexp is None else tf.reduce_logsumexp(
+                tf.stack([block_logsumexp, candidate], axis=1),
+                axis=1,
+            )
+        if block_logsumexp is None:
+            raise ValueError(f"streaming transition: {HighDimStatus.INVALID_SHAPE.value}")
+        current_parts.append(block_logsumexp)
+    return tf.concat(current_parts, axis=0)
+
+
+def _multistate_grid_predictive_log_density_and_derivative_from_retained_streaming(
+    *,
+    model: TFHighDimStateSpaceModel,
+    theta: tf.Tensor,
+    current_physical_points: tf.Tensor,
+    previous_physical_points: tf.Tensor,
+    base_previous_log_terms: tf.Tensor,
+    dot_previous_density: tf.Tensor,
+    time_index: int,
+    parameter_index: int,
+    current_chunk_size: int = 512,
+    previous_chunk_size: int = 64,
+    chunk_byte_budget: int = 256_000_000,
+    max_chunk_products: int = 8192,
+) -> tuple[tf.Tensor, tf.Tensor]:
+    current = _as_matrix(current_physical_points, int(model.state_dim()), "current_physical_points")
+    previous = _as_matrix(previous_physical_points, int(model.state_dim()), "previous_physical_points")
+    base_terms = tf.convert_to_tensor(base_previous_log_terms, dtype=tf.float64)
+    dot_previous = tf.convert_to_tensor(dot_previous_density, dtype=tf.float64)
+    _validate_streaming_transition_inputs(
+        current=current,
+        previous=previous,
+        base_previous_log_terms=base_terms,
+        current_chunk_size=current_chunk_size,
+        previous_chunk_size=previous_chunk_size,
+        chunk_byte_budget=chunk_byte_budget,
+        max_chunk_products=max_chunk_products,
+    )
+    if dot_previous.shape != base_terms.shape:
+        raise ValueError(f"dot_previous_density: {HighDimStatus.INVALID_SHAPE.value}")
+    current_predictive_parts = []
+    current_dot_parts = []
+    for current_start in range(0, int(current.shape[0]), int(current_chunk_size)):
+        current_block = current[current_start : current_start + int(current_chunk_size)]
+        block_logsumexp = None
+        block_weighted_dot = None
+        for previous_start in range(0, int(previous.shape[0]), int(previous_chunk_size)):
+            previous_block = previous[previous_start : previous_start + int(previous_chunk_size)]
+            base_block = base_terms[previous_start : previous_start + int(previous_chunk_size)]
+            dot_previous_block = dot_previous[previous_start : previous_start + int(previous_chunk_size)]
+            transition_log = _multistate_pairwise_transition_between_grid_blocks_log_density(
+                model=model,
+                theta=theta,
+                current_physical_points=current_block,
+                previous_physical_points=previous_block,
+                time_index=int(time_index),
+                chunk_byte_budget=int(chunk_byte_budget),
+            )
+            dot_transition_log = _multistate_transition_log_density_derivative_between_grid_blocks(
+                model=model,
+                theta=theta,
+                current_physical_points=current_block,
+                previous_physical_points=previous_block,
+                time_index=int(time_index),
+                parameter_index=int(parameter_index),
+                chunk_byte_budget=int(chunk_byte_budget),
+            )
+            log_terms = transition_log + base_block[tf.newaxis, :]
+            dot_terms = dot_previous_block[tf.newaxis, :] + dot_transition_log
+            candidate_logsumexp = tf.reduce_logsumexp(log_terms, axis=1)
+            candidate_weights = tf.nn.softmax(log_terms, axis=1)
+            candidate_weighted_dot = tf.reduce_sum(candidate_weights * dot_terms, axis=1)
+            if block_logsumexp is None:
+                block_logsumexp = candidate_logsumexp
+                block_weighted_dot = candidate_weighted_dot
+            else:
+                merged_logsumexp = tf.reduce_logsumexp(
+                    tf.stack([block_logsumexp, candidate_logsumexp], axis=1),
+                    axis=1,
+                )
+                previous_weight = tf.exp(block_logsumexp - merged_logsumexp)
+                candidate_weight = tf.exp(candidate_logsumexp - merged_logsumexp)
+                block_weighted_dot = previous_weight * block_weighted_dot + candidate_weight * candidate_weighted_dot
+                block_logsumexp = merged_logsumexp
+        if block_logsumexp is None or block_weighted_dot is None:
+            raise ValueError(f"streaming transition: {HighDimStatus.INVALID_SHAPE.value}")
+        current_predictive_parts.append(block_logsumexp)
+        current_dot_parts.append(block_weighted_dot)
+    return tf.concat(current_predictive_parts, axis=0), tf.concat(current_dot_parts, axis=0)
 
 
 def scalar_tt_grid_retained_filter(
@@ -3309,6 +4087,7 @@ def _scalar_pairwise_transition_between_grids_log_density(
     previous = _as_matrix(previous_physical_points, 1, "previous_physical_points")
     current_count = int(current.shape[0])
     previous_count = int(previous.shape[0])
+    _check_pairwise_transition_tensor_budget(current_count, previous_count, 1)
     next_points = tf.repeat(current, repeats=previous_count, axis=0)
     previous_points = tf.tile(previous, [current_count, 1])
     values = model.transition_log_density(
@@ -3332,21 +4111,82 @@ def _scalar_transition_log_density_derivative_between_grids(
     previous = _as_matrix(previous_physical_points, 1, "previous_physical_points")
     current_count = int(current.shape[0])
     previous_count = int(previous.shape[0])
+    _check_pairwise_transition_tensor_budget(current_count, previous_count, 1)
     next_points = tf.repeat(current, repeats=previous_count, axis=0)
     previous_points = tf.tile(previous, [current_count, 1])
     theta_vector = _as_theta_vector(theta, int(model.parameter_dim()))
-    with tf.GradientTape() as tape:
-        tape.watch(theta_vector)
-        values = model.transition_log_density(
-            theta_vector,
-            previous_points,
-            next_points,
-            t=int(time_index),
-        )
-    jacobian = tape.jacobian(values, theta_vector)
-    if jacobian is None:
-        raise ValueError("transition log-density derivative is None")
-    return tf.reshape(tf.convert_to_tensor(jacobian[:, int(parameter_index)], dtype=tf.float64), [current_count, previous_count])
+    dot_values = _transition_log_density_parameter_score_column(
+        model,
+        theta_vector,
+        previous_points,
+        next_points,
+        int(time_index),
+        int(parameter_index),
+    )
+    return tf.reshape(dot_values, [current_count, previous_count])
+
+
+def _multistate_transition_log_density_derivative_between_grids(
+    model: TFHighDimStateSpaceModel,
+    theta: tf.Tensor,
+    current_physical_points: tf.Tensor,
+    previous_physical_points: tf.Tensor,
+    time_index: int,
+    parameter_index: int,
+) -> tf.Tensor:
+    state_dim = int(model.state_dim())
+    current = _as_matrix(current_physical_points, state_dim, "current_physical_points")
+    previous = _as_matrix(previous_physical_points, state_dim, "previous_physical_points")
+    current_count = int(current.shape[0])
+    previous_count = int(previous.shape[0])
+    _check_pairwise_transition_tensor_budget(current_count, previous_count, state_dim)
+    next_points = tf.repeat(current, repeats=previous_count, axis=0)
+    previous_points = tf.tile(previous, [current_count, 1])
+    theta_vector = _as_theta_vector(theta, int(model.parameter_dim()))
+    dot_values = _transition_log_density_parameter_score_column(
+        model,
+        theta_vector,
+        previous_points,
+        next_points,
+        int(time_index),
+        int(parameter_index),
+    )
+    return tf.reshape(dot_values, [current_count, previous_count])
+
+
+def _multistate_transition_log_density_derivative_between_grid_blocks(
+    model: TFHighDimStateSpaceModel,
+    theta: tf.Tensor,
+    current_physical_points: tf.Tensor,
+    previous_physical_points: tf.Tensor,
+    time_index: int,
+    parameter_index: int,
+    chunk_byte_budget: int,
+) -> tf.Tensor:
+    state_dim = int(model.state_dim())
+    current = _as_matrix(current_physical_points, state_dim, "current_physical_points")
+    previous = _as_matrix(previous_physical_points, state_dim, "previous_physical_points")
+    current_count = int(current.shape[0])
+    previous_count = int(previous.shape[0])
+    _check_pairwise_transition_tensor_budget_conservative(
+        current_count,
+        previous_count,
+        state_dim,
+        byte_budget=int(chunk_byte_budget),
+        include_derivative=True,
+    )
+    next_points = tf.repeat(current, repeats=previous_count, axis=0)
+    previous_points = tf.tile(previous, [current_count, 1])
+    theta_vector = _as_theta_vector(theta, int(model.parameter_dim()))
+    dot_values = _transition_log_density_parameter_score_column(
+        model,
+        theta_vector,
+        previous_points,
+        next_points,
+        int(time_index),
+        int(parameter_index),
+    )
+    return tf.reshape(dot_values, [current_count, previous_count])
 
 
 def _multistate_pairwise_transition_between_grids_log_density(
@@ -3361,6 +4201,7 @@ def _multistate_pairwise_transition_between_grids_log_density(
     previous = _as_matrix(previous_physical_points, state_dim, "previous_physical_points")
     current_count = int(current.shape[0])
     previous_count = int(previous.shape[0])
+    _check_pairwise_transition_tensor_budget(current_count, previous_count, state_dim)
     next_points = tf.repeat(current, repeats=previous_count, axis=0)
     previous_points = tf.tile(previous, [current_count, 1])
     values = model.transition_log_density(
@@ -3370,6 +4211,98 @@ def _multistate_pairwise_transition_between_grids_log_density(
         t=int(time_index),
     )
     return tf.reshape(values, [current_count, previous_count])
+
+
+def _multistate_pairwise_transition_between_grid_blocks_log_density(
+    model: TFHighDimStateSpaceModel,
+    theta: tf.Tensor,
+    current_physical_points: tf.Tensor,
+    previous_physical_points: tf.Tensor,
+    time_index: int,
+    chunk_byte_budget: int,
+) -> tf.Tensor:
+    state_dim = int(model.state_dim())
+    current = _as_matrix(current_physical_points, state_dim, "current_physical_points")
+    previous = _as_matrix(previous_physical_points, state_dim, "previous_physical_points")
+    current_count = int(current.shape[0])
+    previous_count = int(previous.shape[0])
+    _check_pairwise_transition_tensor_budget_conservative(
+        current_count,
+        previous_count,
+        state_dim,
+        byte_budget=int(chunk_byte_budget),
+        include_derivative=False,
+    )
+    next_points = tf.repeat(current, repeats=previous_count, axis=0)
+    previous_points = tf.tile(previous, [current_count, 1])
+    values = model.transition_log_density(
+        theta,
+        previous_points,
+        next_points,
+        t=int(time_index),
+    )
+    return tf.reshape(values, [current_count, previous_count])
+
+
+def _check_pairwise_transition_tensor_budget(
+    current_count: int,
+    previous_count: int,
+    state_dim: int,
+    byte_budget: int = 256_000_000,
+) -> None:
+    estimated_bytes = int(current_count) * int(previous_count) * int(state_dim) * tf.float64.size
+    if estimated_bytes > int(byte_budget):
+        raise ValueError(HighDimStatus.COMPLEXITY_GATE.value)
+
+
+def _check_pairwise_transition_tensor_budget_conservative(
+    current_count: int,
+    previous_count: int,
+    state_dim: int,
+    *,
+    byte_budget: int,
+    include_derivative: bool,
+) -> None:
+    pair_count = int(current_count) * int(previous_count)
+    point_bytes = 2 * pair_count * int(state_dim) * tf.float64.size
+    value_arrays = 8 if include_derivative else 4
+    work_array_bytes = value_arrays * pair_count * tf.float64.size
+    estimated_bytes = 2 * (point_bytes + work_array_bytes)
+    if estimated_bytes > int(byte_budget):
+        raise ValueError(HighDimStatus.COMPLEXITY_GATE.value)
+
+
+def _validate_streaming_transition_inputs(
+    *,
+    current: tf.Tensor,
+    previous: tf.Tensor,
+    base_previous_log_terms: tf.Tensor,
+    current_chunk_size: int,
+    previous_chunk_size: int,
+    chunk_byte_budget: int,
+    max_chunk_products: int,
+) -> None:
+    if int(current.shape[0]) <= 0 or int(previous.shape[0]) <= 0:
+        raise ValueError(f"streaming transition: {HighDimStatus.INVALID_SHAPE.value}")
+    if base_previous_log_terms.shape != (int(previous.shape[0]),):
+        raise ValueError(f"base_previous_log_terms: {HighDimStatus.INVALID_SHAPE.value}")
+    if int(current_chunk_size) <= 0 or int(previous_chunk_size) <= 0:
+        raise ValueError(f"streaming chunk size: {HighDimStatus.INVALID_SHAPE.value}")
+    if int(chunk_byte_budget) <= 0:
+        raise ValueError(f"streaming chunk budget: {HighDimStatus.INVALID_SHAPE.value}")
+    if int(max_chunk_products) <= 0:
+        raise ValueError(f"streaming chunk products: {HighDimStatus.INVALID_SHAPE.value}")
+    current_chunks = (int(current.shape[0]) + int(current_chunk_size) - 1) // int(current_chunk_size)
+    previous_chunks = (int(previous.shape[0]) + int(previous_chunk_size) - 1) // int(previous_chunk_size)
+    if current_chunks * previous_chunks > int(max_chunk_products):
+        raise ValueError(HighDimStatus.COMPLEXITY_GATE.value)
+    _check_pairwise_transition_tensor_budget_conservative(
+        min(int(current.shape[0]), int(current_chunk_size)),
+        min(int(previous.shape[0]), int(previous_chunk_size)),
+        int(current.shape[1]),
+        byte_budget=int(chunk_byte_budget),
+        include_derivative=True,
+    )
 
 
 def _logsumexp_weighted(log_values: tf.Tensor, weights: tf.Tensor) -> tf.Tensor:
@@ -3383,10 +4316,132 @@ def _logsumexp_weighted(log_values: tf.Tensor, weights: tf.Tensor) -> tf.Tensor:
     return tf.math.log(tf.reduce_sum(weights_tensor * tf.exp(values - max_value))) + max_value
 
 
-def _scalar_target_log_derivative_by_tape(
+def _initial_log_density_parameter_score_column(
+    model: TFHighDimStateSpaceModel,
+    theta: tf.Tensor,
+    x0: tf.Tensor,
+    parameter_index: int,
+) -> tf.Tensor:
+    values = tf.convert_to_tensor(x0, dtype=tf.float64)
+    score_fn = getattr(model, "initial_log_density_parameter_score", None)
+    if callable(score_fn):
+        scores = score_fn(theta, values)
+        return _validated_parameter_score_column(
+            scores,
+            row_count=int(values.shape[0]),
+            parameter_dim=int(model.parameter_dim()),
+            parameter_index=int(parameter_index),
+            name="initial_log_density_parameter_score",
+        )
+    return _reverse_mode_log_density_parameter_score_column(
+        lambda current_theta: model.initial_log_density(current_theta, values),
+        theta,
+        int(parameter_index),
+        row_count=int(values.shape[0]),
+        name="initial_log_density",
+    )
+
+
+def _transition_log_density_parameter_score_column(
+    model: TFHighDimStateSpaceModel,
+    theta: tf.Tensor,
+    x_prev: tf.Tensor,
+    x_next: tf.Tensor,
+    time_index: int,
+    parameter_index: int,
+) -> tf.Tensor:
+    previous = tf.convert_to_tensor(x_prev, dtype=tf.float64)
+    next_values = tf.convert_to_tensor(x_next, dtype=tf.float64)
+    score_fn = getattr(model, "transition_log_density_parameter_score", None)
+    if callable(score_fn):
+        scores = score_fn(theta, previous, next_values, t=int(time_index))
+        return _validated_parameter_score_column(
+            scores,
+            row_count=int(previous.shape[0]),
+            parameter_dim=int(model.parameter_dim()),
+            parameter_index=int(parameter_index),
+            name="transition_log_density_parameter_score",
+        )
+    return _reverse_mode_log_density_parameter_score_column(
+        lambda current_theta: model.transition_log_density(
+            current_theta,
+            previous,
+            next_values,
+            t=int(time_index),
+        ),
+        theta,
+        int(parameter_index),
+        row_count=int(previous.shape[0]),
+        name="transition_log_density",
+    )
+
+
+def _observation_log_density_parameter_score_column(
+    model: TFHighDimStateSpaceModel,
+    theta: tf.Tensor,
+    x_t: tf.Tensor,
+    y_t: tf.Tensor,
+    time_index: int,
+    parameter_index: int,
+) -> tf.Tensor:
+    values = tf.convert_to_tensor(x_t, dtype=tf.float64)
+    observation = tf.reshape(
+        tf.convert_to_tensor(y_t, dtype=tf.float64),
+        [int(model.observation_dim())],
+    )
+    score_fn = getattr(model, "observation_log_density_parameter_score", None)
+    if callable(score_fn):
+        scores = score_fn(theta, values, observation, t=int(time_index))
+        return _validated_parameter_score_column(
+            scores,
+            row_count=int(values.shape[0]),
+            parameter_dim=int(model.parameter_dim()),
+            parameter_index=int(parameter_index),
+            name="observation_log_density_parameter_score",
+        )
+    return _reverse_mode_log_density_parameter_score_column(
+        lambda current_theta: model.observation_log_density(
+            current_theta,
+            values,
+            observation,
+            t=int(time_index),
+        ),
+        theta,
+        int(parameter_index),
+        row_count=int(values.shape[0]),
+        name="observation_log_density",
+    )
+
+
+def _validated_parameter_score_column(
+    scores: tf.Tensor,
+    *,
+    row_count: int,
+    parameter_dim: int,
+    parameter_index: int,
+    name: str,
+) -> tf.Tensor:
+    score_matrix = tf.convert_to_tensor(scores, dtype=tf.float64)
+    if score_matrix.shape.rank != 2 or score_matrix.shape != (
+        int(row_count),
+        int(parameter_dim),
+    ):
+        raise ValueError(f"{name}: {HighDimStatus.INVALID_SHAPE.value}")
+    if int(parameter_index) < 0 or int(parameter_index) >= int(parameter_dim):
+        raise ValueError(f"{name}: {HighDimStatus.INVALID_SHAPE.value}")
+    column = score_matrix[:, int(parameter_index)]
+    if not bool(tf.reduce_all(tf.math.is_finite(column)).numpy()):
+        raise ValueError(f"{name}: {HighDimStatus.NONFINITE_VALUE.value}")
+    return column
+
+
+def _reverse_mode_log_density_parameter_score_column(
     value_fn,
     theta: tf.Tensor,
     parameter_index: int,
+    *,
+    row_count: int,
+    name: str,
 ) -> tf.Tensor:
     theta_vector = _as_theta_vector(theta, int(theta.shape[0]))
     with tf.GradientTape() as tape:
@@ -3394,8 +4449,14 @@ def _scalar_target_log_derivative_by_tape(
         values = tf.convert_to_tensor(value_fn(theta_vector), dtype=tf.float64)
     jacobian = tape.jacobian(values, theta_vector)
     if jacobian is None:
-        raise ValueError("target log derivative is None")
-    return tf.convert_to_tensor(jacobian[:, int(parameter_index)], dtype=tf.float64)
+        raise ValueError(f"{name} parameter score is None")
+    return _validated_parameter_score_column(
+        jacobian,
+        row_count=int(row_count),
+        parameter_dim=int(theta_vector.shape[0]),
+        parameter_index=int(parameter_index),
+        name=f"{name}_reverse_mode_parameter_score",
+    )
 
 
 def _coordinate_map_forward_log_abs_det(
@@ -3492,6 +4553,107 @@ def _core_values_hash(cores: Sequence[TTCore] | None) -> str | None:
     return manifest.sha256().value
 
 
+def _tt_cores_allclose(
+    left: Sequence[TTCore],
+    right: Sequence[TTCore],
+    atol: float = 0.0,
+    rtol: float = 0.0,
+) -> bool:
+    left_cores = tuple(left)
+    right_cores = tuple(right)
+    if len(left_cores) != len(right_cores):
+        return False
+    for left_core, right_core in zip(left_cores, right_cores):
+        if left_core.values.shape != right_core.values.shape:
+            return False
+        if not bool(
+            tf.reduce_all(
+                tf.abs(left_core.values - right_core.values)
+                <= (tf.cast(atol, tf.float64) + tf.cast(rtol, tf.float64) * tf.abs(right_core.values))
+            ).numpy()
+        ):
+            return False
+    return True
+
+
+def _fixed_design_horizon0_compatibility_hash(
+    *,
+    value_result: FixedBranchFilterResult,
+    config: FixedBranchFilterConfig,
+    product_basis: ProductBasis,
+    fit_config: FixedTTFitConfig,
+    observations: tf.Tensor,
+    branch_seed_prefix: str,
+    initial_target_id: str,
+) -> str:
+    """Hash fixed-design horizon-0 structure while excluding theta values."""
+
+    return fixed_branch_compatibility_hash(
+        {
+            "value_path": value_result.diagnostics.get("value_path"),
+            "promoted_horizon": 0,
+            "state_dim": value_result.diagnostics.get("state_dim"),
+            "observation_shape": tuple(int(dim) for dim in tf.convert_to_tensor(observations).shape),
+            "product_basis": _product_basis_payload(product_basis),
+            "fit_ranks": fit_config.ranks,
+            "fit_sweep_order": fit_config.sweep_order,
+            "fit_ridge": fit_config.ridge,
+            "fit_max_sweeps": fit_config.max_sweeps,
+            "fit_quadrature_order": config.fit_quadrature_order,
+            "coordinate_maps": tuple(coord.manifest_payload() for coord in config.coordinate_maps),
+            "measure_convention": _measure_convention_payload(config.measure_convention),
+            "initial_cores_hash": _core_values_hash(config.initial_cores),
+            "branch_seed_prefix": branch_seed_prefix,
+            "initial_target_id": initial_target_id,
+            "step_count": len(value_result.steps),
+            "step_value_paths": tuple(step.diagnostics.get("value_path") for step in value_result.steps),
+            "step_target_ids": tuple(step.diagnostics.get("target_id") for step in value_result.steps),
+        }
+    )
+
+
+def _fixed_design_multistate_compatibility_hash(
+    *,
+    value_result: FixedBranchFilterResult,
+    config: FixedBranchFilterConfig,
+    product_basis: ProductBasis,
+    fit_config: FixedTTFitConfig,
+    observations: tf.Tensor,
+    branch_seed_prefix: str,
+    initial_target_id: str,
+    transition_target_id: str,
+) -> str:
+    """Hash fixed-design multistate structure while excluding theta values."""
+
+    observation_matrix = tf.convert_to_tensor(observations, dtype=tf.float64)
+    observation_count = int(observation_matrix.shape[0])
+    return fixed_branch_compatibility_hash(
+        {
+            "value_path": value_result.diagnostics.get("value_path"),
+            "promoted_horizon": value_result.diagnostics.get("promoted_horizon"),
+            "observation_count": observation_count,
+            "last_time_index": observation_count - 1,
+            "state_dim": value_result.diagnostics.get("state_dim"),
+            "observation_shape": tuple(int(dim) for dim in observation_matrix.shape),
+            "product_basis": _product_basis_payload(product_basis),
+            "fit_ranks": fit_config.ranks,
+            "fit_sweep_order": fit_config.sweep_order,
+            "fit_ridge": fit_config.ridge,
+            "fit_max_sweeps": fit_config.max_sweeps,
+            "fit_quadrature_order": config.fit_quadrature_order,
+            "coordinate_maps": tuple(coord.manifest_payload() for coord in config.coordinate_maps),
+            "measure_convention": _measure_convention_payload(config.measure_convention),
+            "initial_cores_hash": _core_values_hash(config.initial_cores),
+            "branch_seed_prefix": branch_seed_prefix,
+            "initial_target_id": initial_target_id,
+            "transition_target_id": transition_target_id,
+            "step_count": len(value_result.steps),
+            "step_value_paths": tuple(step.diagnostics.get("value_path") for step in value_result.steps),
+            "step_target_ids": tuple(step.diagnostics.get("target_id") for step in value_result.steps),
+        }
+    )
+
+
 def _product_basis_payload(product_basis: ProductBasis | None) -> Mapping[str, object] | None:
     if product_basis is None:
         return None
@@ -3500,16 +4662,28 @@ def _product_basis_payload(product_basis: ProductBasis | None) -> Mapping[str, o
         "dimension": int(product_basis.dimension),
         "basis_dim_tuple": product_basis.basis_dim_tuple(),
         "convention": _measure_convention_payload(product_basis.convention),
-        "bases": tuple(
-            {
-                "family": "LegendreBasis1D",
-                "left": basis.domain.left,
-                "right": basis.domain.right,
-                "max_degree": int(basis.max_degree),
-                "normalized": bool(basis.normalized),
-            }
-            for basis in product_basis.bases
-        ),
+        "bases": tuple(_basis_payload(basis) for basis in product_basis.bases),
+    }
+
+
+def _basis_payload(basis) -> Mapping[str, object]:
+    if hasattr(basis, "manifest_payload"):
+        payload = dict(basis.manifest_payload())
+        if isinstance(basis, LegendreBasis1D) and isinstance(basis.domain, BoundedInterval):
+            payload.update(
+                {
+                    "family": "LegendreBasis1D",
+                    "left": basis.domain.left,
+                    "right": basis.domain.right,
+                    "max_degree": int(basis.max_degree),
+                    "normalized": bool(basis.normalized),
+                }
+            )
+        return payload
+    return {
+        "family": type(basis).__name__,
+        "dtype": basis.dtype.name,
+        "basis_dim": int(basis.basis_dim),
     }
 
 

@@ -1,0 +1,81 @@
+{
+  "adaptive_rank5_comparator": {
+    "P_theta": 28380,
+    "artifact": "docs/plans/bayesfilter-highdim-zhao-cui-p86-phase6s-rank5-adaptive-comparator-fit-2026-06-25.json",
+    "completed_train_steps": 272,
+    "fit_rank": 5,
+    "fit_residual": 9.625018868846658,
+    "holdout_residual": 9.553783177487691,
+    "normalizer": 4.038658791921966e-08,
+    "peak_memory_mib": 3082.3125,
+    "raw_status": "BLOCK_P86_PHASE6S_ADAPTIVE_RANK5_COMPARATOR_TRAINING_BASE",
+    "repaired_classification": "P86_PHASE6S_ADAPTIVE_RANK5_COMPARATOR_TRAINING_BASE_ADMISSIBLE_AFTER_CLASSIFIER_REPAIR",
+    "requested_train_steps": 1024,
+    "runtime_seconds": 250.7143890260195,
+    "sqrt_square_normalizer": 3.038658791921966e-08,
+    "stop_reason": "early_stop_after_plateau_lr_drop_limit",
+    "trained_core_serialization_status": "serialized_with_values",
+    "training_convergence": {
+      "adaptive_training": true,
+      "completed_steps": 272,
+      "convergence_claim_allowed": true,
+      "final_logged_loss_delta": -0.25158370439411826,
+      "loss_still_improving_at_stop": true,
+      "requested_steps": 1024,
+      "status": "scheduler_stopped_after_plateau",
+      "stop_reason": "early_stop_after_plateau_lr_drop_limit"
+    },
+    "training_sample_count": 567600,
+    "validation_trace_len": 17
+  },
+  "decision": "adaptive_rank5_mechanically_admissible_after_classifier_repair_but_rank_convergence_fails",
+  "deltas_rank5_minus_rank4": {
+    "fit_residual_delta": 9.404789789937468,
+    "fit_residual_ratio": 43.704577599470646,
+    "holdout_residual_delta": 9.332873273469197,
+    "holdout_residual_ratio": 43.24741898709909,
+    "normalizer_ratio": 0.023811460979636934,
+    "sqrt_square_normalizer_ratio": 0.01802183228653382
+  },
+  "nonclaims": [
+    "no rank convergence",
+    "no degree convergence",
+    "no posterior correctness",
+    "no KR closure",
+    "no HMC readiness",
+    "no LEDH comparison",
+    "no scale claim",
+    "no GPU performance claim",
+    "no production readiness",
+    "no default-policy change",
+    "no source-faithful TT-cross training claim"
+  ],
+  "rank4_lower_rung": {
+    "P_theta": 18216,
+    "artifact": "docs/plans/bayesfilter-highdim-zhao-cui-p86-phase5-budget-compliant-fit-2026-06-24.json",
+    "fit_rank": 4,
+    "fit_residual": 0.22022907890919044,
+    "holdout_residual": 0.22090990401849483,
+    "normalizer": 1.696098696075702e-06,
+    "peak_memory_mib": 2173.27734375,
+    "runtime_seconds": 56.53906785399886,
+    "sqrt_square_normalizer": 1.686098696075702e-06,
+    "status": "P86_PHASE5_BUDGET_COMPLIANT_TRAINING_BASE_COMPLETED",
+    "training_sample_count": 364320
+  },
+  "schema_version": "p86_phase6s_rank_convergence_ledger.v1",
+  "status": "BLOCK_P86_PHASE6S_RANK_CONVERGENCE_NOT_ESTABLISHED",
+  "veto_diagnostics": {
+    "audit_tuning_status": "not_used_for_tuning",
+    "backend_status": "ok",
+    "degree_convergence_status": "blocked_pending_reviewed_configurable_basis_path",
+    "fallback_status": "not_used",
+    "finite_diagnostics_status": "ok",
+    "mechanical_admissibility_after_classifier_repair": "ok",
+    "memory_status": "within_approved_envelope",
+    "rank_convergence_blocker": "adaptive rank5 holdout residual is much worse than rank4",
+    "rank_convergence_status": "block",
+    "route_identity_status": "ok",
+    "runtime_status": "within_approved_envelope"
+  }
+}
