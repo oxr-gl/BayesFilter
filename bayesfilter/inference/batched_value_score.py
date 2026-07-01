@@ -528,16 +528,44 @@ class FixedTransportValueScoreAdapter:
         z_tensor = self._validate_latent_tensor(z)
         if z_tensor.shape.rank == 2 and not self.batch_native:
             raise ValueError("batch-native transport is required for rank 2 z")
-        with tf.GradientTape() as tape:
+        with tf.GradientTape(persistent=True) as tape:
             tape.watch(z_tensor)
             u = self._forward(z_tensor)
-            logdet = self._log_abs_det_jacobian(z_tensor)
-            value = _reviewed_base_value(self.base_adapter, u, dtype=z_tensor.dtype)
-            value = value + tf.cast(tf.convert_to_tensor(logdet), z_tensor.dtype)
-            objective = tf.reduce_sum(value)
-        score = tape.gradient(objective, z_tensor)
-        if score is None:
+            logdet = tf.cast(
+                tf.convert_to_tensor(self._log_abs_det_jacobian(z_tensor)),
+                z_tensor.dtype,
+            )
+        base_value, base_score = self.base_adapter.log_prob_and_grad(u)
+        base_value_tensor = tf.cast(
+            tf.convert_to_tensor(base_value),
+            z_tensor.dtype,
+        )
+        base_score_tensor = tf.cast(
+            tf.convert_to_tensor(base_score),
+            z_tensor.dtype,
+        )
+        _validate_value_score_shapes(
+            theta=u,
+            value=base_value_tensor,
+            score=base_score_tensor,
+        )
+        transport_score = tape.gradient(
+            u,
+            z_tensor,
+            output_gradients=tf.stop_gradient(base_score_tensor),
+        )
+        logdet_score = tape.gradient(
+            logdet,
+            z_tensor,
+            output_gradients=tf.ones_like(logdet, dtype=z_tensor.dtype),
+        )
+        del tape
+        if transport_score is None:
             raise ValueError("fixed transport score gradient is unavailable")
+        if logdet_score is None:
+            logdet_score = tf.zeros_like(z_tensor, dtype=z_tensor.dtype)
+        score = transport_score + logdet_score
+        value = base_value_tensor + logdet
         _validate_value_score_shapes(
             theta=z_tensor,
             value=tf.convert_to_tensor(value, dtype=z_tensor.dtype),

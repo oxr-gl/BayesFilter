@@ -166,6 +166,42 @@ def test_fixed_grid_scale_selector_fails_closed_when_all_pilots_too_high():
         "all_pilot_acceptance_rates_above_fallback_max_or_invalid",)
 
 
+def test_fixed_grid_scale_selector_reports_finite_domain_ceiling():
+    selection = select_hmc_fixed_grid_scale(
+        base_step_size_candidates=(0.05, 0.075, 0.1, 0.15, 0.2, 0.3, 0.5),
+        num_leapfrog_step_candidates=(1, 2, 3, 4, 8, 16, 25),
+        scale_candidates=(1.0, 2.0, 4.0, 8.0, 16.0),
+        pilot_acceptance_rates=(0.8984375, None, None, None, None),
+        acceptance_band=(0.65, 0.75),
+        fallback_acceptance_max=0.85,
+        pilot_base_step_size=0.5,
+        pilot_num_leapfrog_steps=8,
+    )
+
+    assert selection.passed is False
+    assert selection.selected_scale is None
+    assert selection.scaled_step_size_candidates == ()
+    assert selection.status == "scale_search_failed_finite_domain_ceiling"
+    assert selection.vetoes == (
+        "pilot_scale_expansion_hit_finite_domain_ceiling",)
+    assert selection.payload()["probes"][0]["acceptance_class"] == "too_high"
+    assert selection.payload()["probes"][1]["acceptance_class"] == "invalid"
+
+
+def test_fixed_grid_scale_selector_does_not_overclassify_unordered_invalids():
+    selection = select_hmc_fixed_grid_scale(
+        base_step_size_candidates=(0.05, 0.5),
+        num_leapfrog_step_candidates=(8,),
+        scale_candidates=(1.0, 2.0, 4.0),
+        pilot_acceptance_rates=(None, 0.96, 0.95),
+    )
+
+    assert selection.passed is False
+    assert selection.status == "scale_search_failed_high_acceptance"
+    assert selection.vetoes == (
+        "all_pilot_acceptance_rates_above_fallback_max_or_invalid",)
+
+
 def test_fixed_grid_scale_selector_is_public_and_classifies_boundaries():
     assert bayesfilter.select_hmc_fixed_grid_scale is select_hmc_fixed_grid_scale
     assert bayesfilter.classify_hmc_fixed_grid_acceptance is (

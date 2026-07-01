@@ -10,6 +10,7 @@ classification.
 
 from __future__ import annotations
 
+import time
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Any
@@ -48,6 +49,7 @@ BUDGET_LADDER_NONCLAIMS: tuple[str, ...] = (
 RunFullChainFn = Callable[[Any, Any, FullChainHMCConfig], FullChainHMCRunResult]
 InitialStateFactory = Callable[[tuple[int, int], str, int, int, float], Any]
 ScreenCallback = Callable[[Mapping[str, Any], Any, Mapping[str, Any]], Any]
+ProgressCallback = Callable[[str, Mapping[str, Any]], None]
 
 
 @dataclass(frozen=True)
@@ -411,20 +413,34 @@ class FixedMassHMCTuningBudgetLadderResult:
         return None
 
     @property
+    def last_repair_compatible_round(self) -> FixedMassHMCTuningBudgetRound | None:
+        for round_result in reversed(self.rounds):
+            if round_result.repair_compatible and round_result.tuned_step_size is not None:
+                return round_result
+        return None
+
+    @property
     def repair_config_payload(self) -> Mapping[str, Any] | None:
         if self.passed:
             return None
-        repair_round = self.last_finite_tuned_round
+        repair_round = self.last_repair_compatible_round
         if repair_round is None or repair_round.tuned_step_size is None:
             return None
+        repair_step = _next_initial_step_after_screen_repair(
+            self.config,
+            tuned_step=repair_round.tuned_step_size,
+            screen_diagnostics=repair_round.screen_diagnostics,
+            classification=repair_round.classification,
+        )
         return {
             "runtime": "bayesfilter.inference.run_fixed_mass_hmc_tuning_budget_ladder",
             "handoff_role": "private_repair_step_only",
-            "step_size": repair_round.tuned_step_size,
+            "step_size": repair_step,
             "num_leapfrog_steps": self.config.num_leapfrog_steps,
             "repair_round_index": repair_round.round_index,
             "repair_budget": repair_round.budget,
             "repair_classification": repair_round.classification,
+            "repair_source": "screen_acceptance_directional_repair",
             "target_accept_prob": self.config.target_accept_prob,
             "acceptance_band": self.config.acceptance_band,
             "repair_band": self.config.repair_band,
@@ -507,6 +523,7 @@ def run_fixed_mass_hmc_tuning_budget_ladder(
     initial_state_factory: InitialStateFactory,
     config: FixedMassHMCTuningBudgetLadderConfig,
     screen_callback: ScreenCallback | None = None,
+    progress_callback: ProgressCallback | None = None,
     run_full_chain: RunFullChainFn = run_full_chain_tfp_hmc,
 ) -> FixedMassHMCTuningBudgetLadderResult:
     """Run a finite fixed-mass HMC tuning-budget ladder.
@@ -567,6 +584,19 @@ def run_fixed_mass_hmc_tuning_budget_ladder(
         tune_result = None
         tune_error = None
         try:
+            _emit_budget_ladder_boundary_progress(
+                progress_callback,
+                stage="fixed_mass_ladder_tune_call_start",
+                role="tune",
+                round_index=round_index,
+                budget=budget,
+                config=tune_config,
+                route_category="reusable_runner" if use_reusable_route else "injected_runner",
+                started=True,
+                elapsed_s=0.0,
+                started_perf_counter_s=time.perf_counter(),
+            )
+            tune_start = time.perf_counter()
             tune_result = _run_full_chain_with_optional_reusable_route(
                 run_full_chain=run_full_chain,
                 runner_cache=runner_cache,
@@ -581,9 +611,32 @@ def run_fixed_mass_hmc_tuning_budget_ladder(
                 round_index=round_index,
                 budget=budget,
             )
+            _emit_budget_ladder_boundary_progress(
+                progress_callback,
+                stage="fixed_mass_ladder_tune_call_complete",
+                role="tune",
+                round_index=round_index,
+                budget=budget,
+                config=tune_config,
+                route_category="reusable_runner" if use_reusable_route else "injected_runner",
+                completed=True,
+                elapsed_s=time.perf_counter() - tune_start,
+                runner_event=runner_route_events[-1] if runner_route_events else None,
+            )
             tune_diagnostics = dict(_diagnostics_payload(tune_result))
         except Exception as exc:  # noqa: BLE001 - return a fail-closed artifact.
             tune_error = exc
+            _emit_budget_ladder_boundary_progress(
+                progress_callback,
+                stage="fixed_mass_ladder_tune_call_error",
+                role="tune",
+                round_index=round_index,
+                budget=budget,
+                config=tune_config,
+                route_category="reusable_runner" if use_reusable_route else "injected_runner",
+                completed=True,
+                error_type=type(exc).__name__,
+            )
             tune_diagnostics = dict(_error_diagnostics(exc))
         tuned_step = _positive_finite_or_none(tune_diagnostics.get("final_step_size"))
         tune_diagnostics["step_stability"] = _step_stability_payload(
@@ -635,6 +688,19 @@ def run_fixed_mass_hmc_tuning_budget_ladder(
         screen_result = None
         screen_error = None
         try:
+            _emit_budget_ladder_boundary_progress(
+                progress_callback,
+                stage="fixed_mass_ladder_screen_call_start",
+                role="screen",
+                round_index=round_index,
+                budget=budget,
+                config=screen_config,
+                route_category="reusable_runner" if use_reusable_route else "injected_runner",
+                started=True,
+                elapsed_s=0.0,
+                started_perf_counter_s=time.perf_counter(),
+            )
+            screen_start = time.perf_counter()
             screen_result = _run_full_chain_with_optional_reusable_route(
                 run_full_chain=run_full_chain,
                 runner_cache=runner_cache,
@@ -649,9 +715,32 @@ def run_fixed_mass_hmc_tuning_budget_ladder(
                 round_index=round_index,
                 budget=budget,
             )
+            _emit_budget_ladder_boundary_progress(
+                progress_callback,
+                stage="fixed_mass_ladder_screen_call_complete",
+                role="screen",
+                round_index=round_index,
+                budget=budget,
+                config=screen_config,
+                route_category="reusable_runner" if use_reusable_route else "injected_runner",
+                completed=True,
+                elapsed_s=time.perf_counter() - screen_start,
+                runner_event=runner_route_events[-1] if runner_route_events else None,
+            )
             screen_diagnostics = _diagnostics_payload(screen_result)
         except Exception as exc:  # noqa: BLE001 - return a fail-closed artifact.
             screen_error = exc
+            _emit_budget_ladder_boundary_progress(
+                progress_callback,
+                stage="fixed_mass_ladder_screen_call_error",
+                role="screen",
+                round_index=round_index,
+                budget=budget,
+                config=screen_config,
+                route_category="reusable_runner" if use_reusable_route else "injected_runner",
+                completed=True,
+                error_type=type(exc).__name__,
+            )
             screen_diagnostics = _error_diagnostics(exc)
         round_payload = {
             "round_index": round_index,
@@ -723,7 +812,12 @@ def run_fixed_mass_hmc_tuning_budget_ladder(
         if classification == "continuation_veto":
             final_status = "continuation_veto"
             break
-        current_step = float(tuned_step)
+        current_step = _next_initial_step_after_screen_repair(
+            config,
+            tuned_step=float(tuned_step),
+            screen_diagnostics=screen_diagnostics,
+            classification=classification,
+        )
     else:
         final_status = "budget_exhausted"
 
@@ -1145,6 +1239,62 @@ def _runner_route_summary(
     }
 
 
+def _emit_budget_ladder_boundary_progress(
+    callback: ProgressCallback | None,
+    *,
+    stage: str,
+    role: str,
+    round_index: int,
+    budget: int,
+    config: FullChainHMCConfig,
+    route_category: str,
+    started: bool = False,
+    completed: bool = False,
+    elapsed_s: float | None = None,
+    started_perf_counter_s: float | None = None,
+    runner_event: Mapping[str, Any] | None = None,
+    error_type: str | None = None,
+) -> None:
+    if callback is None:
+        return
+    payload: dict[str, Any] = {
+        "stage": str(stage),
+        "round_index": int(round_index),
+        "budget": int(budget),
+        "role": str(role),
+        "started": bool(started),
+        "completed": bool(completed),
+        "route_category": str(route_category),
+        "call_config_hash": stable_config_hash(config.signature_payload()),
+        "num_results": int(config.num_results),
+        "num_burnin_steps": int(config.num_burnin_steps),
+        "substage_budget_details_exposed": True,
+        "uses_dual_averaging": bool(config.tuning_policy.uses_dual_averaging),
+        "runner_reused": None
+        if runner_event is None
+        else bool(runner_event.get("runner_reused", False)),
+        "static_contract_hash": None
+        if runner_event is None
+        else runner_event.get("static_contract_hash"),
+        "progress_only": True,
+        "hmc_mechanics_exposed": False,
+        "reports_posterior_convergence": False,
+        "reports_sampler_superiority": False,
+        "reports_default_readiness": False,
+        "reports_external_client_scientific_claim": False,
+        "reports_gpu_or_xla_readiness": False,
+        "nonclaims": BUDGET_LADDER_NONCLAIMS,
+    }
+    if started_perf_counter_s is not None:
+        payload["started_perf_counter_s"] = float(started_perf_counter_s)
+        payload["timing_anchor_role"] = "process_local_monotonic_debug_only"
+    if elapsed_s is not None:
+        payload["elapsed_s"] = float(elapsed_s)
+    if error_type is not None:
+        payload["error_type"] = str(error_type)
+    callback(str(stage), payload)
+
+
 def _telemetry_payload(value: Any) -> Mapping[str, Any] | None:
     if value is None:
         return None
@@ -1283,6 +1433,32 @@ def _classify_screen_round(
         (),
         ("acceptance_outside_pass_band_inside_repair_band",),
     )
+
+
+def _next_initial_step_after_screen_repair(
+    config: FixedMassHMCTuningBudgetLadderConfig,
+    *,
+    tuned_step: float,
+    screen_diagnostics: Mapping[str, Any],
+    classification: str,
+) -> float:
+    base_step = float(tuned_step)
+    if not np.isfinite(base_step) or base_step <= 0.0:
+        raise ValueError("finite positive tuned_step is required for repair handoff")
+    if classification not in {"acceptance_repair", "promotion_veto_repair"}:
+        return base_step
+    acceptance = _scalar_or_none(screen_diagnostics.get("acceptance_rate"))
+    if acceptance is None or not np.isfinite(acceptance):
+        return base_step
+    if acceptance < config.acceptance_band[0]:
+        repaired = 0.5 * base_step
+    elif acceptance > config.acceptance_band[1]:
+        repaired = 2.0 * base_step
+    else:
+        return base_step
+    if not np.isfinite(repaired) or repaired <= 0.0:
+        raise ValueError("finite positive repaired step is required for repair handoff")
+    return float(repaired)
 
 
 def _call_screen_callback(

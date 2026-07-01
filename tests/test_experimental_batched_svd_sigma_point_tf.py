@@ -613,6 +613,287 @@ def test_principal_sqrt_helper_graph_and_cpu_xla_factor_derivative_parity() -> N
     np.testing.assert_allclose(xla_residual.numpy(), eager_residual.numpy(), atol=1.0e-11)
 
 
+def test_principal_sqrt_helper_roundoff_repair_cpu_xla_records_diagnostics() -> None:
+    covariance = tf.constant(
+        [
+            [[1.0, 0.0], [0.0, -1.0e-20]],
+            [[2.0, 0.1], [0.1, 1.5]],
+        ],
+        dtype=tf.float64,
+    )
+    d_covariance = tf.zeros([2, 1, 2, 2], dtype=tf.float64)
+
+    @tf.function(jit_compile=True, reduce_retracing=True)
+    def xla_call() -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
+        placement = _checked_batched_principal_sqrt_factor_first_derivatives(
+            covariance,
+            d_covariance,
+            singular_floor=tf.constant(0.0, dtype=tf.float64),
+            fixed_null_tolerance=tf.constant(1.0e-10, dtype=tf.float64),
+            label="test roundoff repair placement",
+        )
+        return (
+            placement.factor,
+            placement.roundoff_repair_count,
+            placement.classified_invalid_count,
+            placement.min_eigenvalue,
+        )
+
+    factor, repair_count, invalid_count, min_eigenvalue = xla_call()
+
+    assert np.isfinite(factor.numpy()).all()
+    np.testing.assert_array_equal(repair_count.numpy(), np.asarray([1, 0], dtype=np.int32))
+    np.testing.assert_array_equal(invalid_count.numpy(), np.asarray([0, 0], dtype=np.int32))
+    assert float(min_eigenvalue.numpy()[0]) < 0.0
+
+
+def test_principal_sqrt_helper_repairs_low_margin_strict_rows_cpu_xla() -> None:
+    covariance = tf.constant(
+        [
+            [[1.0, 0.0], [0.0, 1.0e-16]],
+            [[1.0, 0.0], [0.0, 2.0e-14]],
+        ],
+        dtype=tf.float64,
+    )
+    d_covariance = tf.zeros([2, 1, 2, 2], dtype=tf.float64)
+
+    @tf.function(jit_compile=True, reduce_retracing=True)
+    def xla_call() -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
+        placement = _checked_batched_principal_sqrt_factor_first_derivatives(
+            covariance,
+            d_covariance,
+            singular_floor=tf.constant(0.0, dtype=tf.float64),
+            fixed_null_tolerance=tf.constant(1.0e-10, dtype=tf.float64),
+            label="test low-margin strict row repair",
+        )
+        return (
+            placement.implemented_covariance,
+            placement.roundoff_repair_count,
+            placement.classified_invalid_count,
+            placement.min_eigenvalue,
+        )
+
+    implemented, repair_count, invalid_count, min_eigenvalue = xla_call()
+
+    np.testing.assert_allclose(
+        np.diag(implemented.numpy()[0]),
+        np.asarray([1.0 + 1.0e-14, 2.0e-14], dtype=np.float64),
+        atol=1.0e-18,
+    )
+    np.testing.assert_allclose(
+        np.diag(implemented.numpy()[1]),
+        np.asarray([1.0 + 1.0e-14, 3.0e-14], dtype=np.float64),
+        atol=1.0e-18,
+    )
+    np.testing.assert_array_equal(repair_count.numpy(), np.asarray([1, 0], dtype=np.int32))
+    np.testing.assert_array_equal(invalid_count.numpy(), np.asarray([0, 0], dtype=np.int32))
+    assert 0.0 < float(min_eigenvalue.numpy()[0]) < 1.0e-14
+
+
+@pytest.mark.parametrize(
+    "covariance",
+    (
+        tf.constant([[[1.0, 0.0], [0.0, np.nan]]], dtype=tf.float64),
+        tf.constant([[[1.0, 0.0], [0.0, -1.0e-3]]], dtype=tf.float64),
+    ),
+)
+def test_principal_sqrt_helper_classifies_invalid_covariance_cpu_xla(
+    covariance: tf.Tensor,
+) -> None:
+    d_covariance = tf.zeros([1, 1, 2, 2], dtype=tf.float64)
+
+    @tf.function(jit_compile=True, reduce_retracing=True)
+    def xla_call() -> tuple[tf.Tensor, tf.Tensor]:
+        placement = _checked_batched_principal_sqrt_factor_first_derivatives(
+            covariance,
+            d_covariance,
+            singular_floor=tf.constant(0.0, dtype=tf.float64),
+            fixed_null_tolerance=tf.constant(1.0e-10, dtype=tf.float64),
+            label="test classified invalid placement",
+        )
+        return placement.factor, placement.classified_invalid_count
+
+    factor, invalid_count = xla_call()
+
+    assert np.isfinite(factor.numpy()).all()
+    np.testing.assert_array_equal(invalid_count.numpy(), np.asarray([1], dtype=np.int32))
+
+
+def test_principal_sqrt_helper_classifies_nonfinite_derivative_rhs_cpu_xla() -> None:
+    covariance = tf.constant([[[2.0, 0.1], [0.1, 1.5]]], dtype=tf.float64)
+    d_covariance = tf.constant(
+        [[[[0.0, np.nan], [np.nan, 0.0]]]],
+        dtype=tf.float64,
+    )
+
+    @tf.function(jit_compile=True, reduce_retracing=True)
+    def xla_call() -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
+        placement = _checked_batched_principal_sqrt_factor_first_derivatives(
+            covariance,
+            d_covariance,
+            singular_floor=tf.constant(0.0, dtype=tf.float64),
+            fixed_null_tolerance=tf.constant(1.0e-10, dtype=tf.float64),
+            label="test nonfinite derivative RHS placement",
+        )
+        return (
+            placement.factor,
+            placement.d_factor,
+            placement.classified_invalid_count,
+            placement.derivative_rhs_nonfinite_count,
+        )
+
+    factor, d_factor, invalid_count, rhs_nonfinite_count = xla_call()
+
+    assert np.isfinite(factor.numpy()).all()
+    assert np.isfinite(d_factor.numpy()).all()
+    np.testing.assert_array_equal(invalid_count.numpy(), np.asarray([1], dtype=np.int32))
+    np.testing.assert_array_equal(
+        rhs_nonfinite_count.numpy(),
+        np.asarray([1], dtype=np.int32),
+    )
+
+
+def test_principal_sqrt_value_score_rejects_invalid_innovation_covariance_cpu_xla() -> None:
+    observations, model, derivatives = _repeated_positive_model_and_derivatives()
+    bad_model = TFBatchedStructuralStateSpace(
+        initial_mean=model.initial_mean,
+        initial_covariance=model.initial_covariance,
+        innovation_covariance=tf.fill(
+            tf.shape(model.innovation_covariance),
+            tf.constant(-1.0e-3, dtype=tf.float64),
+        ),
+        observation_covariance=model.observation_covariance,
+        transition_fn=model.transition_fn,
+        observation_fn=model.observation_fn,
+        deterministic_residual_fn=model.deterministic_residual_fn,
+        lagged_observation_fn=model.lagged_observation_fn,
+    )
+
+    @tf.function(jit_compile=True, reduce_retracing=True)
+    def xla_call() -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
+        value, score, diagnostics = tf_batched_svd_sigma_point_value_and_score(
+            observations,
+            bad_model,
+            derivatives,
+            backend="tf_principal_sqrt_ukf",
+            placement_floor=tf.constant(0.0, dtype=tf.float64),
+            innovation_floor=tf.constant(1.0e-12, dtype=tf.float64),
+        )
+        return (
+            value,
+            score,
+            diagnostics["principal_sqrt_target_classified_invalid_count"],
+            diagnostics["principal_sqrt_target_valid_count"],
+            diagnostics["principal_sqrt_target_row_class_code"],
+        )
+
+    value, score, invalid_count, valid_count, row_class_code = xla_call()
+
+    np.testing.assert_allclose(
+        value.numpy(),
+        np.full([2], -1.0e100, dtype=np.float64),
+        rtol=0.0,
+        atol=0.0,
+    )
+    np.testing.assert_allclose(score.numpy(), np.zeros([2, 1]), atol=0.0)
+    np.testing.assert_array_equal(invalid_count.numpy(), np.ones([2], dtype=np.int32))
+    np.testing.assert_array_equal(valid_count.numpy(), np.zeros([2], dtype=np.int32))
+    np.testing.assert_array_equal(row_class_code.numpy(), np.full([2], 2, dtype=np.int32))
+
+
+def test_principal_sqrt_value_score_rejects_nonfinite_derivative_rhs_cpu_xla() -> None:
+    observations, model, derivatives = _repeated_positive_model_and_derivatives()
+    bad_derivatives = TFBatchedStructuralFirstDerivatives(
+        d_initial_mean=derivatives.d_initial_mean,
+        d_initial_covariance=tf.fill(
+            tf.shape(derivatives.d_initial_covariance),
+            tf.constant(np.nan, dtype=tf.float64),
+        ),
+        d_innovation_covariance=derivatives.d_innovation_covariance,
+        d_observation_covariance=derivatives.d_observation_covariance,
+        transition_state_jacobian_fn=derivatives.transition_state_jacobian_fn,
+        transition_innovation_jacobian_fn=derivatives.transition_innovation_jacobian_fn,
+        d_transition_fn=derivatives.d_transition_fn,
+        observation_state_jacobian_fn=derivatives.observation_state_jacobian_fn,
+        d_observation_fn=derivatives.d_observation_fn,
+        lagged_observation_previous_jacobian_fn=(
+            derivatives.lagged_observation_previous_jacobian_fn
+        ),
+        lagged_observation_innovation_jacobian_fn=(
+            derivatives.lagged_observation_innovation_jacobian_fn
+        ),
+        lagged_observation_next_jacobian_fn=(
+            derivatives.lagged_observation_next_jacobian_fn
+        ),
+        d_lagged_observation_fn=derivatives.d_lagged_observation_fn,
+        name=derivatives.name,
+    )
+
+    @tf.function(jit_compile=True, reduce_retracing=True)
+    def xla_call() -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
+        value, score, diagnostics = tf_batched_svd_sigma_point_value_and_score(
+            observations,
+            model,
+            bad_derivatives,
+            backend="tf_principal_sqrt_ukf",
+            placement_floor=tf.constant(0.0, dtype=tf.float64),
+            innovation_floor=tf.constant(1.0e-12, dtype=tf.float64),
+        )
+        return (
+            value,
+            score,
+            diagnostics["principal_sqrt_target_classified_invalid_count"],
+            diagnostics["principal_sqrt_target_derivative_rhs_nonfinite_count"],
+            diagnostics["principal_sqrt_target_row_class_code"],
+        )
+
+    value, score, invalid_count, rhs_nonfinite_count, row_class_code = xla_call()
+
+    np.testing.assert_allclose(
+        value.numpy(),
+        np.full([2], -1.0e100, dtype=np.float64),
+        rtol=0.0,
+        atol=0.0,
+    )
+    np.testing.assert_allclose(score.numpy(), np.zeros([2, 1]), atol=0.0)
+    np.testing.assert_array_equal(invalid_count.numpy(), np.ones([2], dtype=np.int32))
+    np.testing.assert_array_equal(
+        rhs_nonfinite_count.numpy(),
+        np.ones([2], dtype=np.int32),
+    )
+    np.testing.assert_array_equal(row_class_code.numpy(), np.full([2], 2, dtype=np.int32))
+
+
+def test_principal_sqrt_value_score_valid_rows_report_valid_class_cpu_xla() -> None:
+    observations, model, derivatives = _repeated_positive_model_and_derivatives()
+
+    @tf.function(jit_compile=True, reduce_retracing=True)
+    def xla_call() -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
+        value, score, diagnostics = tf_batched_svd_sigma_point_value_and_score(
+            observations,
+            model,
+            derivatives,
+            backend="tf_principal_sqrt_ukf",
+            placement_floor=tf.constant(0.0, dtype=tf.float64),
+            innovation_floor=tf.constant(1.0e-12, dtype=tf.float64),
+        )
+        return (
+            value,
+            score,
+            diagnostics["principal_sqrt_target_classified_invalid_count"],
+            diagnostics["principal_sqrt_target_valid_count"],
+            diagnostics["principal_sqrt_target_row_class_code"],
+        )
+
+    value, score, invalid_count, valid_count, row_class_code = xla_call()
+
+    assert np.isfinite(value.numpy()).all()
+    assert np.isfinite(score.numpy()).all()
+    np.testing.assert_array_equal(invalid_count.numpy(), np.zeros([2], dtype=np.int32))
+    np.testing.assert_array_equal(valid_count.numpy(), np.ones([2], dtype=np.int32))
+    np.testing.assert_array_equal(row_class_code.numpy(), np.zeros([2], dtype=np.int32))
+
+
 def test_principal_sqrt_helper_uses_compiled_factor_and_sylvester_derivative() -> None:
     from bayesfilter.nonlinear import experimental_batched_svd_sigma_point_tf as module
 
@@ -623,6 +904,9 @@ def test_principal_sqrt_helper_uses_compiled_factor_and_sylvester_derivative() -
 
     assert "symmetric_principal_sqrt" in source
     assert "symmetric_sylvester_solve" in source
+    assert "roundoff_repair_count" in source
+    assert "classified_invalid_count" in source
+    assert "assert_equal" not in source
     assert "_principal_sqrt_frechet_derivative_from_eigh" not in source
     assert not any(
         isinstance(node, ast.Attribute)

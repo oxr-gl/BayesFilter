@@ -345,7 +345,9 @@ def test_windowed_mass_stage_private_progress_callback_is_allowlisted() -> None:
         assert payload["elapsed_s"] >= 0.0
     for _stage, payload in events[0::2]:
         assert payload["started"] is True
-        assert "elapsed_s" not in payload
+        assert payload["elapsed_s"] == pytest.approx(0.0)
+        assert payload["started_perf_counter_s"] >= 0.0
+        assert payload["timing_anchor_role"] == "process_local_monotonic_debug_only"
 
 
 def test_windowed_mass_config_use_xla_propagates_to_full_chain_config() -> None:

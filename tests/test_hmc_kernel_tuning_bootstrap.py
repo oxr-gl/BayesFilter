@@ -171,6 +171,22 @@ def test_bootstrap_config_does_not_expose_hmc_mechanics() -> None:
     assert parameters.isdisjoint(forbidden)
 
 
+def test_geometry_initialization_caps_initial_l_at_policy_max() -> None:
+    geometry = _geometry(
+        config=HMCGeometryInitializationConfig(
+            geometry_scaling_c=1.0e-6,
+            stability_guard=0.8,
+            covariance_jitter=0.0,
+            seed=(123, 456),
+        )
+    )
+
+    assert geometry.unclamped_num_leapfrog_steps > 25
+    assert geometry.initial_num_leapfrog_steps == 25
+    assert geometry.formula_report["internal_max_leapfrog"] == 25
+    assert geometry.formula_report["leapfrog_clamped"] is True
+
+
 def test_bootstrap_acceptance_in_acceptance_band_selects_kernel() -> None:
     run, calls = _scripted_runner([0.70])
     result = run_hmc_bootstrap_screen(

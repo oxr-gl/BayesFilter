@@ -5,9 +5,11 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import secrets
 import time
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Callable
 
@@ -972,6 +974,95 @@ class RetainedSampleHMCArchiveConfig:
 
 
 @dataclass(frozen=True)
+class SequentialRHatHMCVerificationConfig:
+    """Sequential fixed-kernel HMC verifier with R-hat stopping.
+
+    The verifier runs a fixed-size TF/TFP HMC chunk repeatedly, computes
+    Gelman-Rubin R-hat on private retained samples after each checkpoint, and
+    stops once all finite parameter R-hats are below the threshold or the hard
+    retained-sample cap is reached.  It is a tuning-verification gate, not a
+    posterior-convergence certificate.
+    """
+
+    check_interval: int
+    max_results: int
+    num_burnin_steps: int
+    step_size: float
+    num_leapfrog_steps: int
+    seed: tuple[int, int]
+    chain_count: int = 4
+    rhat_threshold: float = 1.01
+    use_xla: bool = False
+    target_scope: str | None = None
+    chain_execution_mode: str = "tf_function"
+
+    def __post_init__(self) -> None:
+        check_interval = int(self.check_interval)
+        if check_interval <= 0:
+            raise ValueError("check_interval must be positive")
+        object.__setattr__(self, "check_interval", check_interval)
+        max_results = int(self.max_results)
+        if max_results <= 0:
+            raise ValueError("max_results must be positive")
+        if max_results > 10000:
+            raise ValueError("max_results must not exceed the 10000 retained-sample cap")
+        if max_results < check_interval:
+            raise ValueError("max_results must be at least check_interval")
+        object.__setattr__(self, "max_results", max_results)
+        burnin = int(self.num_burnin_steps)
+        if burnin < 0:
+            raise ValueError("num_burnin_steps must be nonnegative")
+        object.__setattr__(self, "num_burnin_steps", burnin)
+        leapfrog = int(self.num_leapfrog_steps)
+        if leapfrog <= 0:
+            raise ValueError("num_leapfrog_steps must be positive")
+        object.__setattr__(self, "num_leapfrog_steps", leapfrog)
+        step_size = float(self.step_size)
+        if not np.isfinite(step_size) or step_size <= 0.0:
+            raise ValueError("step_size must be positive and finite")
+        object.__setattr__(self, "step_size", step_size)
+        seed = tuple(int(item) for item in self.seed)
+        if len(seed) != 2:
+            raise ValueError("seed must contain exactly two integers")
+        object.__setattr__(self, "seed", seed)
+        chain_count = int(self.chain_count)
+        if chain_count < 2:
+            raise ValueError("sequential R-hat verification requires at least two chains")
+        object.__setattr__(self, "chain_count", chain_count)
+        threshold = float(self.rhat_threshold)
+        if not np.isfinite(threshold) or threshold <= 1.0:
+            raise ValueError("rhat_threshold must be finite and greater than 1")
+        object.__setattr__(self, "rhat_threshold", threshold)
+        object.__setattr__(self, "use_xla", bool(self.use_xla))
+        chain_execution_mode = str(self.chain_execution_mode)
+        if chain_execution_mode not in {"tf_function", "eager"}:
+            raise ValueError("chain_execution_mode must be 'tf_function' or 'eager'")
+        if self.use_xla and chain_execution_mode != "tf_function":
+            raise ValueError(
+                "XLA sequential R-hat HMC verification requires "
+                "chain_execution_mode='tf_function'"
+            )
+        object.__setattr__(self, "chain_execution_mode", chain_execution_mode)
+        if self.target_scope is not None:
+            object.__setattr__(self, "target_scope", str(self.target_scope))
+
+    def signature_payload(self) -> Mapping[str, Any]:
+        return {
+            "check_interval": self.check_interval,
+            "max_results": self.max_results,
+            "num_burnin_steps": self.num_burnin_steps,
+            "step_size": self.step_size,
+            "num_leapfrog_steps": self.num_leapfrog_steps,
+            "seed": self.seed,
+            "chain_count": self.chain_count,
+            "rhat_threshold": self.rhat_threshold,
+            "use_xla": self.use_xla,
+            "chain_execution_mode": self.chain_execution_mode,
+            "target_scope": self.target_scope,
+        }
+
+
+@dataclass(frozen=True)
 class InternalSegmentHMCRunResult:
     """Summary-only internal-segment HMC result.
 
@@ -1005,6 +1096,656 @@ class RetainedSampleHMCArchiveRunResult:
     diagnostics: Mapping[str, Any]
     metadata: Mapping[str, Any]
     archive_summary: Mapping[str, Any]
+
+
+@dataclass(frozen=True)
+class SequentialRHatHMCVerificationResult:
+    """Public-safe result for sequential R-hat tuning verification."""
+
+    passed: bool
+    cap_hit: bool
+    retained_sample_count: int
+    chunk_count: int
+    max_finite_rhat: float | None
+    finite_rhat_count: int
+    nonfinite_rhat_count: int
+    diagnostics: Mapping[str, Any]
+    metadata: Mapping[str, Any]
+
+
+@dataclass(frozen=True)
+class SequentialRHatCheckpointWriterConfig:
+    """Opt-in private checkpoint writer for sequential R-hat verification.
+
+    The writer runs only after a fixed-size HMC chunk has returned to Python.
+    It is not part of the TensorFlow/TFP target, transition kernel, or XLA
+    compiled sampling graph.
+    """
+
+    checkpoint_dir: str | Path
+    checkpoint_label: str = "sequential_rhat"
+    overwrite: bool = False
+
+    def __post_init__(self) -> None:
+        root = Path(self.checkpoint_dir)
+        if root.exists() and not root.is_dir():
+            raise ValueError("checkpoint_dir exists and is not a directory")
+        label = str(self.checkpoint_label).strip()
+        if not label:
+            raise ValueError("checkpoint_label must be non-empty")
+        if "/" in label or "\\" in label:
+            raise ValueError("checkpoint_label must not contain path separators")
+        object.__setattr__(self, "checkpoint_dir", root)
+        object.__setattr__(self, "checkpoint_label", label)
+        object.__setattr__(self, "overwrite", bool(self.overwrite))
+
+
+SEQUENTIAL_RHAT_CHECKPOINT_PUBLIC_REFERENCE_FIELDS: tuple[str, ...] = (
+    "artifact_type",
+    "schema_version",
+    "checkpoint_kind",
+    "checkpoint_id",
+    "checkpoint_sha256",
+    "contract_sha256",
+    "private_paths_publicized",
+    "public_summary_contains_paths",
+    "public_summary_contains_raw_values",
+    "public_summary_contains_tensor_descriptors",
+    "public_summary_contains_kernel_payload",
+    "nonclaims",
+)
+
+SEQUENTIAL_RHAT_CHECKPOINT_PUBLIC_NONCLAIMS: tuple[str, ...] = (
+    "sequential R-hat checkpoint reference only",
+    "private checkpoint contents are not publicized",
+    "no posterior convergence claim",
+    "no sampler superiority claim",
+    "no scientific validity claim",
+    "no resume claim",
+)
+
+SEQUENTIAL_RHAT_CHECKPOINT_KINDS: tuple[str, ...] = (
+    "pre_verification_handoff",
+    "verification_chunk",
+)
+
+_SEQUENTIAL_RHAT_OPAQUE_CHECKPOINT_ID_PATTERN = (
+    r"^srhat-v1-[0-9a-f]{32}$"
+)
+_SHA256_HEX_PATTERN = r"^[0-9a-f]{64}$"
+_SEQUENTIAL_RHAT_FORBIDDEN_CHECKPOINT_ID_TOKENS = (
+    "run",
+    "chunk",
+    "handoff",
+    "sample",
+    "state",
+    "trace",
+    "target",
+    "accept",
+    "step",
+    "leapfrog",
+    "mass",
+    "kernel",
+    "manifest",
+    "path",
+    "private",
+    "result",
+    "verification",
+)
+
+
+def sequential_rhat_verification_checkpoint_contract() -> Mapping[str, Any]:
+    """Return the Phase 7 checkpoint public/private boundary contract.
+
+    This is a schema contract, not a writer.  Public progress artifacts may
+    carry only opaque checkpoint identifiers and hashes.  Private manifests are
+    the only place where path-shaped references, tensor shard descriptors, raw
+    HMC outputs, selected-kernel mechanics, and readback metadata may appear.
+    """
+
+    contract = {
+        "artifact_type": "bayesfilter_sequential_rhat_checkpoint_contract",
+        "schema_version": 1,
+        "public_reference_artifact_type": (
+            "bayesfilter_sequential_rhat_checkpoint_public_reference"
+        ),
+        "private_manifest_artifact_type": (
+            "bayesfilter_private_sequential_rhat_checkpoint_manifest"
+        ),
+        "checkpoint_kinds": SEQUENTIAL_RHAT_CHECKPOINT_KINDS,
+        "opaque_checkpoint_id_pattern": _SEQUENTIAL_RHAT_OPAQUE_CHECKPOINT_ID_PATTERN,
+        "hash_pattern": _SHA256_HEX_PATTERN,
+        "opaque_checkpoint_id_policy": {
+            "format": "srhat-v1-<32 lowercase hex chars>",
+            "semantic_payload_allowed": False,
+            "generation_source": "private manifest or writer nonce/hash material",
+            "forbidden_semantic_tokens": (
+                _SEQUENTIAL_RHAT_FORBIDDEN_CHECKPOINT_ID_TOKENS
+            ),
+        },
+        "public_reference_fields": SEQUENTIAL_RHAT_CHECKPOINT_PUBLIC_REFERENCE_FIELDS,
+        "public_hash_fields": ("checkpoint_sha256", "contract_sha256"),
+        "public_id_fields": ("checkpoint_id",),
+        "forbidden_public_key_tokens": (
+            "manifest_path",
+            "archive_dir",
+            "sample_path",
+            "samples",
+            "valid_mask",
+            "final_state",
+            "trace",
+            "target_log_prob",
+            "log_accept",
+            "step_size",
+            "leapfrog",
+            "mass",
+            "selected_kernel",
+            "private_manifest",
+        ),
+        "forbidden_public_value_patterns": (
+            "absolute_path",
+            "relative_path",
+            "private_directory_name",
+            "serialized_tensor_filename",
+        ),
+        "private_manifest_required_fields": (
+            "artifact_type",
+            "schema_version",
+            "checkpoint_kind",
+            "checkpoint_id",
+            "manifest_path",
+            "manifest_core_sha256",
+            "config_private_signature",
+            "adapter_signature",
+            "created_at_utc",
+            "private_shards",
+            "private_diagnostics",
+            "privacy_contract",
+            "nonclaims",
+        ),
+        "private_manifest_schema": {
+            "artifact_type": "literal private_manifest_artifact_type",
+            "schema_version": "integer 1",
+            "checkpoint_kind": "one of checkpoint_kinds",
+            "checkpoint_id": "matches opaque_checkpoint_id_pattern",
+            "manifest_path": "private absolute or caller-private relative path",
+            "manifest_core_sha256": (
+                "lowercase sha256 hex over manifest core payload excluding this field"
+            ),
+            "config_private_signature": "lowercase sha256 hex over private config payload",
+            "adapter_signature": "stable non-empty adapter signature string",
+            "created_at_utc": "ISO-8601 UTC timestamp",
+            "private_shards": "mapping of shard role to shard_record",
+            "private_diagnostics": "private_diagnostics_record",
+            "privacy_contract": "privacy_contract_record",
+            "nonclaims": "non-empty sequence including no posterior convergence claim",
+        },
+        "private_shard_record_schema": {
+            "role": (
+                "one of samples, valid_mask, final_state, reduced_trace, "
+                "target_log_prob_summary, log_accept_ratio_summary, "
+                "rhat_summary, selected_kernel_private_payload, mass_payload"
+            ),
+            "path": "private shard path; never allowed in public progress",
+            "sha256": "lowercase sha256 hex of shard bytes",
+            "bytes": "non-negative integer byte count",
+            "shape": "tuple/list of non-negative integer dimensions, when tensor-like",
+            "dtype": "string dtype, when tensor-like",
+            "serializer": "string serializer identifier",
+        },
+        "private_shard_roles": (
+            "samples",
+            "valid_mask",
+            "final_state",
+            "reduced_trace",
+            "target_log_prob_summary",
+            "log_accept_ratio_summary",
+            "rhat_summary",
+            "selected_kernel_private_payload",
+            "mass_payload",
+        ),
+        "private_manifest_required_shard_roles_by_kind": {
+            "pre_verification_handoff": (
+                "selected_kernel_private_payload",
+                "final_state",
+                "mass_payload",
+            ),
+            "verification_chunk": (
+                "samples",
+                "valid_mask",
+                "final_state",
+                "reduced_trace",
+                "target_log_prob_summary",
+                "log_accept_ratio_summary",
+                "rhat_summary",
+            ),
+        },
+        "private_diagnostics_record_schema": {
+            "chunk_index": "integer or null for pre-verification handoff",
+            "retained_sample_count": "integer retained count available after this artifact",
+            "valid_sample_count": "integer valid sample count or null",
+            "nonfinite_valid_sample_count": "integer nonfinite valid sample count or null",
+            "rhat_summary": "mapping with threshold, finite counts, max finite R-hat, pass flag",
+            "acceptance_summary": "private aggregate acceptance/log-accept metadata",
+            "target_log_prob_summary": "private finite/count target log-prob metadata",
+            "divergence_summary": "private native divergence status/count metadata",
+        },
+        "rhat_summary_schema": {
+            "rhat_threshold": "positive finite float greater than 1",
+            "max_finite_rhat": "finite float or null",
+            "finite_rhat_count": "non-negative integer",
+            "nonfinite_rhat_count": "non-negative integer",
+            "all_finite_rhat_at_or_below_threshold": "boolean",
+        },
+        "log_accept_ratio_summary_schema": {
+            "finite_count": "non-negative integer",
+            "nonfinite_count": "non-negative integer",
+            "max_abs_finite": "finite float or null",
+        },
+        "target_log_prob_summary_schema": {
+            "finite_count": "non-negative integer",
+            "nonfinite_count": "non-negative integer",
+            "min_finite": "finite float or null",
+            "max_finite": "finite float or null",
+        },
+        "privacy_contract_record_schema": {
+            "manifest_contains_private_paths": True,
+            "manifest_contains_private_raw_tensors": False,
+            "manifest_points_to_private_raw_tensors": True,
+            "public_reference_contains_paths": False,
+            "public_reference_contains_tensor_descriptors": False,
+            "public_reference_contains_hmc_mechanics": False,
+        },
+        "private_handoff_fields": (
+            "selected_kernel_private_payload",
+            "selected_kernel_hash",
+            "final_state_shard",
+            "mass_payload_shard",
+            "step_size",
+            "num_leapfrog_steps",
+        ),
+        "private_verification_chunk_fields": (
+            "chunk_index",
+            "retained_sample_count",
+            "samples_shard",
+            "valid_mask_shard",
+            "final_state_shard",
+            "reduced_trace_diagnostics",
+            "target_log_prob_summary",
+            "log_accept_ratio_summary",
+            "rhat_summary",
+        ),
+        "privacy_contract": {
+            "public_progress_contains_private_paths": False,
+            "public_progress_contains_raw_tensors": False,
+            "public_progress_contains_tensor_descriptors": False,
+            "public_progress_contains_hmc_mechanics": False,
+            "private_manifest_contains_readback_authority": True,
+        },
+        "nonclaims": SEQUENTIAL_RHAT_CHECKPOINT_PUBLIC_NONCLAIMS,
+    }
+    payload = dict(contract)
+    payload["contract_sha256"] = program_signature(contract)
+    return _json_safe_metadata(payload)
+
+
+def build_sequential_rhat_checkpoint_public_reference(
+    *,
+    checkpoint_kind: str,
+    checkpoint_id: str,
+    checkpoint_sha256: str,
+) -> Mapping[str, Any]:
+    """Build the only checkpoint reference shape allowed in public progress."""
+
+    payload = {
+        "artifact_type": "bayesfilter_sequential_rhat_checkpoint_public_reference",
+        "schema_version": 1,
+        "checkpoint_kind": str(checkpoint_kind),
+        "checkpoint_id": str(checkpoint_id),
+        "checkpoint_sha256": str(checkpoint_sha256),
+        "contract_sha256": sequential_rhat_verification_checkpoint_contract()[
+            "contract_sha256"
+        ],
+        "private_paths_publicized": False,
+        "public_summary_contains_paths": False,
+        "public_summary_contains_raw_values": False,
+        "public_summary_contains_tensor_descriptors": False,
+        "public_summary_contains_kernel_payload": False,
+        "nonclaims": SEQUENTIAL_RHAT_CHECKPOINT_PUBLIC_NONCLAIMS,
+    }
+    assert_sequential_rhat_checkpoint_public_reference_safe(payload)
+    return _json_safe_metadata(payload)
+
+
+def assert_sequential_rhat_checkpoint_public_reference_safe(
+    payload: Mapping[str, Any],
+) -> None:
+    """Reject public checkpoint references that leak paths or HMC mechanics."""
+
+    fields = set(payload)
+    expected = set(SEQUENTIAL_RHAT_CHECKPOINT_PUBLIC_REFERENCE_FIELDS)
+    if fields != expected:
+        extra = sorted(fields - expected)
+        missing = sorted(expected - fields)
+        raise ValueError(
+            "sequential R-hat public checkpoint reference fields mismatch: "
+            f"extra={extra} missing={missing}"
+        )
+    if payload["artifact_type"] != (
+        "bayesfilter_sequential_rhat_checkpoint_public_reference"
+    ):
+        raise ValueError("unexpected sequential R-hat checkpoint artifact_type")
+    if int(payload["schema_version"]) != 1:
+        raise ValueError("unexpected sequential R-hat checkpoint schema_version")
+    if str(payload["checkpoint_kind"]) not in SEQUENTIAL_RHAT_CHECKPOINT_KINDS:
+        raise ValueError("checkpoint_kind is not recognized")
+    checkpoint_id = str(payload["checkpoint_id"])
+    if re.fullmatch(_SEQUENTIAL_RHAT_OPAQUE_CHECKPOINT_ID_PATTERN, checkpoint_id) is None:
+        raise ValueError("checkpoint_id must be an opaque srhat-v1 hex handle")
+    checkpoint_id_body = checkpoint_id.removeprefix("srhat-v1-")
+    if any(token in checkpoint_id_body for token in _SEQUENTIAL_RHAT_FORBIDDEN_CHECKPOINT_ID_TOKENS):
+        raise ValueError("checkpoint_id must not encode semantic checkpoint metadata")
+    for key in ("checkpoint_sha256", "contract_sha256"):
+        if re.fullmatch(_SHA256_HEX_PATTERN, str(payload[key])) is None:
+            raise ValueError(f"{key} must be a lowercase SHA-256 hex digest")
+    for key in (
+        "private_paths_publicized",
+        "public_summary_contains_paths",
+        "public_summary_contains_raw_values",
+        "public_summary_contains_tensor_descriptors",
+        "public_summary_contains_kernel_payload",
+    ):
+        if bool(payload[key]):
+            raise ValueError(f"{key} must be false for public checkpoint references")
+    if tuple(payload["nonclaims"]) != SEQUENTIAL_RHAT_CHECKPOINT_PUBLIC_NONCLAIMS:
+        raise ValueError("public checkpoint reference nonclaims mismatch")
+
+    forbidden_key_tokens = tuple(
+        sequential_rhat_verification_checkpoint_contract()[
+            "forbidden_public_key_tokens"
+        ]
+    )
+
+    def walk(value: Any, path: tuple[str, ...]) -> None:
+        if isinstance(value, Mapping):
+            for key, item in value.items():
+                key_text = str(key)
+                lowered = key_text.lower()
+                if key_text not in SEQUENTIAL_RHAT_CHECKPOINT_PUBLIC_REFERENCE_FIELDS:
+                    if any(token in lowered for token in forbidden_key_tokens):
+                        raise ValueError(
+                            "public checkpoint reference contains forbidden key: "
+                            + ".".join(path + (key_text,))
+                        )
+                walk(item, path + (key_text,))
+        elif isinstance(value, (tuple, list)):
+            for index, item in enumerate(value):
+                walk(item, path + (str(index),))
+        elif isinstance(value, str):
+            if "/" in value or "\\" in value:
+                raise ValueError(
+                    "public checkpoint reference contains path-shaped value: "
+                    + ".".join(path)
+                )
+            if value.startswith(".") or value.startswith("~"):
+                raise ValueError(
+                    "public checkpoint reference contains relative path value: "
+                    + ".".join(path)
+                )
+
+    walk(payload, tuple())
+
+
+def _write_sequential_rhat_private_checkpoint(
+    *,
+    writer_config: SequentialRHatCheckpointWriterConfig,
+    checkpoint_kind: str,
+    adapter: Any,
+    config: SequentialRHatHMCVerificationConfig,
+    chunk_index: int,
+    retained_count: int,
+    chunk_result: FixedSizeHMCChunkRunResult,
+    chunk_summary: Mapping[str, Any],
+    rhat_summary: Mapping[str, Any],
+) -> Mapping[str, Any]:
+    """Write one private verification checkpoint and return a public reference."""
+
+    import tensorflow as tf
+
+    if str(checkpoint_kind) != "verification_chunk":
+        raise ValueError("Phase 2 writer supports verification_chunk checkpoints only")
+    root = Path(writer_config.checkpoint_dir)
+    root.mkdir(parents=True, exist_ok=True)
+    label = str(writer_config.checkpoint_label)
+    checkpoint_id = "srhat-v1-" + secrets.token_hex(16)
+    artifact_prefix = f"{label}_{checkpoint_id}"
+
+    sample_tensor = tf.convert_to_tensor(chunk_result.samples)
+    valid_mask_tensor = tf.convert_to_tensor(chunk_result.valid_mask, dtype=tf.bool)
+    final_state_tensor = tf.convert_to_tensor(chunk_result.final_state)
+    reduced_trace = {
+        "diagnostics": _json_safe_metadata(
+            {
+                key: _tensor_or_plain_to_metadata(value)
+                for key, value in chunk_result.diagnostics.items()
+            }
+        ),
+        "metadata": _json_safe_metadata(
+            {
+                key: _tensor_or_plain_to_metadata(value)
+                for key, value in chunk_result.metadata.items()
+            }
+        ),
+    }
+    target_log_prob_summary = _sequential_rhat_target_log_prob_summary(
+        chunk_result.diagnostics
+    )
+    log_accept_ratio_summary = _sequential_rhat_log_accept_ratio_summary(
+        chunk_result.diagnostics
+    )
+    rhat_payload = _sequential_rhat_checkpoint_rhat_summary(config, rhat_summary)
+
+    shard_sources = {
+        "samples": (sample_tensor, "tensorflow.serialize_tensor"),
+        "valid_mask": (valid_mask_tensor, "tensorflow.serialize_tensor"),
+        "final_state": (final_state_tensor, "tensorflow.serialize_tensor"),
+        "reduced_trace": (reduced_trace, "json"),
+        "target_log_prob_summary": (target_log_prob_summary, "json"),
+        "log_accept_ratio_summary": (log_accept_ratio_summary, "json"),
+        "rhat_summary": (rhat_payload, "json"),
+    }
+    shards: dict[str, Mapping[str, Any]] = {}
+    for role, (payload, serializer) in shard_sources.items():
+        shard_path = root / f"{artifact_prefix}_{role}.{_sequential_rhat_shard_suffix(serializer)}"
+        if shard_path.exists() and not writer_config.overwrite:
+            raise FileExistsError(f"sequential R-hat checkpoint shard exists: {shard_path}")
+        if serializer == "json":
+            sha256, byte_count = _write_json_shard(shard_path, payload)
+            shape: tuple[int, ...] = ()
+            dtype = "json"
+        else:
+            tensor = tf.convert_to_tensor(payload)
+            sha256, byte_count = _write_sequential_rhat_serialized_tensor_shard(
+                shard_path,
+                tensor,
+            )
+            shape = tuple(int(dim) for dim in tensor.shape)
+            dtype = tensor.dtype.name
+        shards[role] = {
+            "role": role,
+            "path": str(shard_path),
+            "sha256": sha256,
+            "bytes": int(byte_count),
+            "shape": shape,
+            "dtype": dtype,
+            "serializer": serializer,
+        }
+
+    required_roles = tuple(
+        sequential_rhat_verification_checkpoint_contract()[
+            "private_manifest_required_shard_roles_by_kind"
+        ][str(checkpoint_kind)]
+    )
+    missing_roles = [role for role in required_roles if role not in shards]
+    if missing_roles:
+        raise ValueError(f"missing sequential R-hat checkpoint shards: {missing_roles}")
+    manifest_core = {
+        "artifact_type": "bayesfilter_private_sequential_rhat_checkpoint_manifest",
+        "schema_version": 1,
+        "checkpoint_kind": str(checkpoint_kind),
+        "checkpoint_id": checkpoint_id,
+        "manifest_path": str(root / f"{artifact_prefix}_manifest.json"),
+        "config_private_signature": program_signature(config.signature_payload()),
+        "adapter_signature": stable_adapter_signature(adapter),
+        "created_at_utc": datetime.now(UTC).replace(microsecond=0).isoformat(),
+        "private_shards": shards,
+        "private_diagnostics": {
+            "chunk_index": int(chunk_index),
+            "retained_sample_count": int(retained_count),
+            "valid_sample_count": chunk_summary.get("valid_sample_count"),
+            "nonfinite_valid_sample_count": chunk_summary.get(
+                "nonfinite_valid_sample_count"
+            ),
+            "rhat_summary": rhat_payload,
+            "acceptance_summary": _sequential_rhat_acceptance_summary(chunk_summary),
+            "target_log_prob_summary": target_log_prob_summary,
+            "divergence_summary": _sequential_rhat_divergence_summary(chunk_summary),
+        },
+        "privacy_contract": {
+            "manifest_contains_private_paths": True,
+            "manifest_contains_private_raw_tensors": False,
+            "manifest_points_to_private_raw_tensors": True,
+            "public_reference_contains_paths": False,
+            "public_reference_contains_tensor_descriptors": False,
+            "public_reference_contains_hmc_mechanics": False,
+        },
+        "nonclaims": SEQUENTIAL_RHAT_CHECKPOINT_PUBLIC_NONCLAIMS,
+    }
+    manifest_core_text = json.dumps(
+        _json_safe_metadata(manifest_core),
+        indent=2,
+        sort_keys=True,
+    ) + "\n"
+    manifest_payload = dict(manifest_core)
+    manifest_payload["manifest_core_sha256"] = hashlib.sha256(
+        manifest_core_text.encode("utf-8")
+    ).hexdigest()
+    manifest_path = Path(str(manifest_core["manifest_path"]))
+    if manifest_path.exists() and not writer_config.overwrite:
+        raise FileExistsError(f"sequential R-hat checkpoint manifest exists: {manifest_path}")
+    _atomic_write_json(manifest_path, manifest_payload)
+    return build_sequential_rhat_checkpoint_public_reference(
+        checkpoint_kind=str(checkpoint_kind),
+        checkpoint_id=checkpoint_id,
+        checkpoint_sha256=manifest_payload["manifest_core_sha256"],
+    )
+
+
+def _sequential_rhat_shard_suffix(serializer: str) -> str:
+    if serializer == "json":
+        return "json"
+    return "tftensor"
+
+
+def _write_json_shard(path: Path, payload: Any) -> tuple[str, int]:
+    text = json.dumps(_json_safe_metadata(payload), indent=2, sort_keys=True) + "\n"
+    tmp_path = path.with_name(f".{path.name}.tmp")
+    tmp_path.write_text(text, encoding="utf-8")
+    tmp_path.replace(path)
+    return hashlib.sha256(text.encode("utf-8")).hexdigest(), len(text.encode("utf-8"))
+
+
+def _write_sequential_rhat_serialized_tensor_shard(
+    path: Path,
+    tensor: Any,
+) -> tuple[str, int]:
+    """Atomically write one private sequential R-hat tensor shard."""
+
+    import tensorflow as tf
+
+    serialized = tf.io.serialize_tensor(tf.convert_to_tensor(tensor))
+    data = bytes(serialized.numpy())
+    tmp_path = path.with_name(f".{path.name}.tmp")
+    tmp_path.write_bytes(data)
+    tmp_path.replace(path)
+    return hashlib.sha256(data).hexdigest(), len(data)
+
+
+def _atomic_write_json(path: Path, payload: Mapping[str, Any]) -> None:
+    text = json.dumps(_json_safe_metadata(payload), indent=2, sort_keys=True) + "\n"
+    tmp_path = path.with_name(f".{path.name}.tmp")
+    tmp_path.write_text(text, encoding="utf-8")
+    tmp_path.replace(path)
+
+
+def _sequential_rhat_checkpoint_rhat_summary(
+    config: SequentialRHatHMCVerificationConfig,
+    rhat_summary: Mapping[str, Any],
+) -> Mapping[str, Any]:
+    return {
+        "rhat_threshold": float(config.rhat_threshold),
+        "max_finite_rhat": rhat_summary.get("max_finite_rhat"),
+        "finite_rhat_count": int(rhat_summary.get("finite_rhat_count", 0)),
+        "nonfinite_rhat_count": int(rhat_summary.get("nonfinite_rhat_count", 0)),
+        "all_finite_rhat_at_or_below_threshold": bool(rhat_summary.get("passed", False)),
+    }
+
+
+def _sequential_rhat_acceptance_summary(chunk_summary: Mapping[str, Any]) -> Mapping[str, Any]:
+    return {
+        "acceptance_rate": chunk_summary.get("acceptance_rate"),
+        "acceptance_decision_count": chunk_summary.get("acceptance_decision_count"),
+    }
+
+
+def _sequential_rhat_target_log_prob_summary(
+    diagnostics: Mapping[str, Any],
+) -> Mapping[str, Any]:
+    finite_count = _int_or_none_metadata(diagnostics.get("target_log_prob_finite_count"))
+    min_finite = _float_or_none_metadata(diagnostics.get("target_log_prob_min_finite"))
+    max_finite = _float_or_none_metadata(diagnostics.get("target_log_prob_max_finite"))
+    if finite_count is None or finite_count <= 0:
+        min_finite = None
+        max_finite = None
+    if min_finite is not None and not np.isfinite(min_finite):
+        min_finite = None
+    if max_finite is not None and not np.isfinite(max_finite):
+        max_finite = None
+    return {
+        "finite_count": finite_count,
+        "nonfinite_count": _int_or_none_metadata(
+            diagnostics.get("target_log_prob_nonfinite_count")
+        ),
+        "min_finite": min_finite,
+        "max_finite": max_finite,
+    }
+
+
+def _sequential_rhat_log_accept_ratio_summary(
+    diagnostics: Mapping[str, Any],
+) -> Mapping[str, Any]:
+    finite_count = _int_or_none_metadata(diagnostics.get("log_accept_ratio_finite_count"))
+    max_abs_finite = _float_or_none_metadata(
+        diagnostics.get("log_accept_ratio_max_abs_finite")
+    )
+    if finite_count is None or finite_count <= 0:
+        max_abs_finite = None
+    if max_abs_finite is not None and not np.isfinite(max_abs_finite):
+        max_abs_finite = None
+    return {
+        "finite_count": finite_count,
+        "nonfinite_count": _int_or_none_metadata(
+            diagnostics.get("log_accept_ratio_nonfinite_count")
+        ),
+        "max_abs_finite": max_abs_finite,
+    }
+
+
+def _sequential_rhat_divergence_summary(chunk_summary: Mapping[str, Any]) -> Mapping[str, Any]:
+    return {
+        "divergence_status": chunk_summary.get("divergence_status"),
+        "divergence_count": chunk_summary.get("divergence_count"),
+    }
 
 
 class ReusableFullChainHMCRunner:
@@ -1443,6 +2184,29 @@ class FixedSizeHMCChunkRunner:
                 num_leapfrog_steps=config.num_leapfrog_steps,
             )
             kernel_results = kernel.bootstrap_results(current_state)
+            initial_accepted = tf.convert_to_tensor(kernel_results.is_accepted)
+            acceptance_count_by_chain = tf.zeros(
+                tf.shape(initial_accepted),
+                dtype=tf.int32,
+            )
+            acceptance_total_by_chain = tf.zeros(
+                tf.shape(initial_accepted),
+                dtype=tf.int32,
+            )
+            native_divergence_template = _extract_native_divergence_tensor(
+                kernel_results
+            )
+            native_divergence_available = native_divergence_template is not None
+            if native_divergence_available:
+                divergence_count_by_chain = tf.zeros(
+                    tf.shape(tf.convert_to_tensor(native_divergence_template)),
+                    dtype=tf.int32,
+                )
+            else:
+                divergence_count_by_chain = tf.zeros(
+                    tf.shape(initial_accepted),
+                    dtype=tf.int32,
+                )
 
             def burnin_condition(index: Any, _state: Any, _results: Any) -> Any:
                 return index < tf.constant(config.num_burnin_steps, dtype=tf.int32)
@@ -1470,6 +2234,16 @@ class FixedSizeHMCChunkRunner:
                 _state: Any,
                 _results: Any,
                 _samples: Any,
+                _acceptance_count_by_chain: Any,
+                _acceptance_total_by_chain: Any,
+                _log_accept_finite_count: Any,
+                _log_accept_nonfinite_count: Any,
+                _log_accept_max_abs_finite: Any,
+                _target_log_prob_finite_count: Any,
+                _target_log_prob_nonfinite_count: Any,
+                _target_log_prob_min_finite: Any,
+                _target_log_prob_max_finite: Any,
+                _divergence_count_by_chain: Any,
             ) -> Any:
                 return index < active_results
 
@@ -1478,7 +2252,17 @@ class FixedSizeHMCChunkRunner:
                 state: Any,
                 results: Any,
                 sample_buffer: Any,
-            ) -> tuple[Any, Any, Any, Any]:
+                accepted_count_by_chain: Any,
+                total_count_by_chain: Any,
+                log_accept_finite_count: Any,
+                log_accept_nonfinite_count: Any,
+                log_accept_max_abs_finite: Any,
+                target_log_prob_finite_count: Any,
+                target_log_prob_nonfinite_count: Any,
+                target_log_prob_min_finite: Any,
+                target_log_prob_max_finite: Any,
+                divergence_by_chain: Any,
+            ) -> tuple[Any, Any, Any, Any, Any, Any, Any, Any, Any, Any, Any, Any, Any, Any]:
                 step_seed = tf.random.experimental.stateless_fold_in(
                     seed,
                     tf.constant(config.num_burnin_steps, dtype=tf.int32) + index,
@@ -1493,16 +2277,182 @@ class FixedSizeHMCChunkRunner:
                     tf.reshape(index, [1, 1]),
                     tf.expand_dims(next_state, axis=0),
                 )
-                return index + 1, next_state, next_results, updated
+                accepted = tf.cast(next_results.is_accepted, tf.int32)
+                accepted_count_by_chain = accepted_count_by_chain + accepted
+                total_count_by_chain = total_count_by_chain + tf.ones_like(
+                    accepted,
+                    dtype=tf.int32,
+                )
+                log_accept = tf.convert_to_tensor(
+                    next_results.log_accept_ratio,
+                    dtype=tf.float64,
+                )
+                log_accept_finite = tf.math.is_finite(log_accept)
+                log_accept_finite_count = log_accept_finite_count + tf.reduce_sum(
+                    tf.cast(log_accept_finite, tf.int32)
+                )
+                log_accept_nonfinite_count = (
+                    log_accept_nonfinite_count
+                    + tf.reduce_sum(
+                        tf.cast(tf.logical_not(log_accept_finite), tf.int32)
+                    )
+                )
+                log_accept_max_abs_finite = tf.maximum(
+                    log_accept_max_abs_finite,
+                    tf.reduce_max(
+                        tf.where(
+                            log_accept_finite,
+                            tf.abs(log_accept),
+                            tf.zeros_like(log_accept, dtype=tf.float64),
+                        )
+                    ),
+                )
+                target_log_prob = tf.convert_to_tensor(
+                    next_results.accepted_results.target_log_prob,
+                    dtype=tf.float64,
+                )
+                target_log_prob_finite = tf.math.is_finite(target_log_prob)
+                target_log_prob_finite_count = (
+                    target_log_prob_finite_count
+                    + tf.reduce_sum(tf.cast(target_log_prob_finite, tf.int32))
+                )
+                target_log_prob_nonfinite_count = (
+                    target_log_prob_nonfinite_count
+                    + tf.reduce_sum(
+                        tf.cast(tf.logical_not(target_log_prob_finite), tf.int32)
+                    )
+                )
+                target_log_prob_min_finite = tf.minimum(
+                    target_log_prob_min_finite,
+                    tf.reduce_min(
+                        tf.where(
+                            target_log_prob_finite,
+                            target_log_prob,
+                            tf.fill(
+                                tf.shape(target_log_prob),
+                                tf.constant(float("inf"), dtype=tf.float64),
+                            ),
+                        )
+                    ),
+                )
+                target_log_prob_max_finite = tf.maximum(
+                    target_log_prob_max_finite,
+                    tf.reduce_max(
+                        tf.where(
+                            target_log_prob_finite,
+                            target_log_prob,
+                            tf.fill(
+                                tf.shape(target_log_prob),
+                                tf.constant(float("-inf"), dtype=tf.float64),
+                            ),
+                        )
+                    ),
+                )
+                if native_divergence_available:
+                    divergence = tf.cast(
+                        _extract_native_divergence_tensor(next_results),
+                        tf.int32,
+                    )
+                    divergence_by_chain = divergence_by_chain + divergence
+                return (
+                    index + 1,
+                    next_state,
+                    next_results,
+                    updated,
+                    accepted_count_by_chain,
+                    total_count_by_chain,
+                    log_accept_finite_count,
+                    log_accept_nonfinite_count,
+                    log_accept_max_abs_finite,
+                    target_log_prob_finite_count,
+                    target_log_prob_nonfinite_count,
+                    target_log_prob_min_finite,
+                    target_log_prob_max_finite,
+                    divergence_by_chain,
+                )
 
-            _sample_index, final_state, _final_results, samples = tf.while_loop(
+            (
+                _sample_index,
+                final_state,
+                _final_results,
+                samples,
+                acceptance_count_by_chain,
+                acceptance_total_by_chain,
+                log_accept_finite_count,
+                log_accept_nonfinite_count,
+                log_accept_max_abs_finite,
+                target_log_prob_finite_count,
+                target_log_prob_nonfinite_count,
+                target_log_prob_min_finite,
+                target_log_prob_max_finite,
+                divergence_count_by_chain,
+            ) = tf.while_loop(
                 sample_condition,
                 sample_body,
-                (tf.constant(0, dtype=tf.int32), burnin_state, burnin_results, samples),
+                (
+                    tf.constant(0, dtype=tf.int32),
+                    burnin_state,
+                    burnin_results,
+                    samples,
+                    acceptance_count_by_chain,
+                    acceptance_total_by_chain,
+                    tf.constant(0, dtype=tf.int32),
+                    tf.constant(0, dtype=tf.int32),
+                    tf.constant(0.0, dtype=tf.float64),
+                    tf.constant(0, dtype=tf.int32),
+                    tf.constant(0, dtype=tf.int32),
+                    tf.constant(float("inf"), dtype=tf.float64),
+                    tf.constant(float("-inf"), dtype=tf.float64),
+                    divergence_count_by_chain,
+                ),
                 parallel_iterations=1,
             )
             valid_mask = tf.range(config.max_results, dtype=tf.int32) < active_results
-            trace = {"trace_collected": tf.constant(True)}
+            trace = {
+                "trace_collected": tf.constant(True),
+                "accepted_count_by_chain": acceptance_count_by_chain,
+                "acceptance_total_by_chain": acceptance_total_by_chain,
+                "accepted_decision_count": tf.reduce_sum(acceptance_count_by_chain),
+                "acceptance_decision_count": tf.reduce_sum(acceptance_total_by_chain),
+                "acceptance_rate": tf.reduce_sum(
+                    tf.cast(acceptance_count_by_chain, tf.float64)
+                )
+                / tf.maximum(
+                    tf.reduce_sum(tf.cast(acceptance_total_by_chain, tf.float64)),
+                    tf.constant(1.0, dtype=tf.float64),
+                ),
+                "acceptance_rate_by_chain": tf.cast(
+                    acceptance_count_by_chain,
+                    tf.float64,
+                )
+                / tf.maximum(
+                    tf.cast(acceptance_total_by_chain, tf.float64),
+                    tf.ones_like(
+                        tf.cast(acceptance_total_by_chain, tf.float64),
+                        dtype=tf.float64,
+                    ),
+                ),
+                "log_accept_ratio_finite_count": log_accept_finite_count,
+                "log_accept_ratio_nonfinite_count": log_accept_nonfinite_count,
+                "log_accept_ratio_max_abs_finite": log_accept_max_abs_finite,
+                "target_log_prob_finite_count": target_log_prob_finite_count,
+                "target_log_prob_nonfinite_count": target_log_prob_nonfinite_count,
+                "target_log_prob_min_finite": tf.cond(
+                    target_log_prob_finite_count > 0,
+                    lambda: target_log_prob_min_finite,
+                    lambda: tf.constant(float("nan"), dtype=tf.float64),
+                ),
+                "target_log_prob_max_finite": tf.cond(
+                    target_log_prob_finite_count > 0,
+                    lambda: target_log_prob_max_finite,
+                    lambda: tf.constant(float("nan"), dtype=tf.float64),
+                ),
+                "native_divergence_available": tf.constant(
+                    native_divergence_available
+                ),
+                "divergence_count_by_chain": divergence_count_by_chain,
+                "divergence_count": tf.reduce_sum(divergence_count_by_chain),
+            }
             return samples, valid_mask, final_state, trace
 
         if config.chain_execution_mode == "eager":
@@ -2804,6 +3754,276 @@ def build_retained_sample_hmc_archive_runner(
     return RetainedSampleHMCArchiveRunner(adapter, initial_state_template, config)
 
 
+class SequentialRHatHMCVerifier:
+    """Sequential fixed-kernel verifier that stops by multi-chain R-hat."""
+
+    def __init__(
+        self,
+        adapter: Any,
+        initial_state_template: Any,
+        config: SequentialRHatHMCVerificationConfig,
+    ) -> None:
+        self.adapter = adapter
+        self.config = config
+
+        import tensorflow as tf
+
+        base = tf.cast(tf.convert_to_tensor(initial_state_template), tf.float64)
+        if base.shape.rank != 1:
+            raise ValueError(
+                "sequential R-hat verification initial_state_template must be a "
+                "one-dimensional latent vector"
+            )
+        if any(dim is None for dim in base.shape):
+            raise ValueError(
+                "sequential R-hat verification requires a fully static state shape"
+            )
+        initial_state = _sequential_rhat_initial_chain_state(base, config.chain_count)
+        initial_chunk_config = FixedSizeHMCChunkConfig(
+            max_results=config.check_interval,
+            num_burnin_steps=config.num_burnin_steps,
+            step_size=config.step_size,
+            num_leapfrog_steps=config.num_leapfrog_steps,
+            seed=config.seed,
+            use_xla=config.use_xla,
+            trace_policy="reduced",
+            target_status_trace_policy="none",
+            target_scope=config.target_scope,
+            chain_execution_mode=config.chain_execution_mode,
+        )
+        continuation_chunk_config = FixedSizeHMCChunkConfig(
+            max_results=config.check_interval,
+            num_burnin_steps=0,
+            step_size=config.step_size,
+            num_leapfrog_steps=config.num_leapfrog_steps,
+            seed=config.seed,
+            use_xla=config.use_xla,
+            trace_policy="reduced",
+            target_status_trace_policy="none",
+            target_scope=config.target_scope,
+            chain_execution_mode=config.chain_execution_mode,
+        )
+        self._initial_chunk_config = initial_chunk_config
+        self._continuation_chunk_config = continuation_chunk_config
+        self._initial_runner = FixedSizeHMCChunkRunner(
+            adapter,
+            initial_state,
+            initial_chunk_config,
+        )
+        self._continuation_runner = (
+            self._initial_runner
+            if config.num_burnin_steps == 0
+            else FixedSizeHMCChunkRunner(
+                adapter,
+                initial_state,
+                continuation_chunk_config,
+            )
+        )
+        self._initial_state = initial_state
+
+    def run(
+        self,
+        *,
+        checkpoint_writer_config: SequentialRHatCheckpointWriterConfig | None = None,
+    ) -> SequentialRHatHMCVerificationResult:
+        """Run sequential verification and return public-safe diagnostics."""
+
+        import tensorflow as tf
+
+        config = self.config
+        start = time.perf_counter()
+        current_state = self._initial_state
+        retained_chunks: list[Any] = []
+        chunk_summaries: list[Mapping[str, Any]] = []
+        retained_count = 0
+        chunk_index = 0
+        passed = False
+        cap_hit = False
+        final_rhat: Mapping[str, Any] = _empty_rhat_summary()
+        hard_vetoes: list[str] = []
+        checkpoint_references: list[Mapping[str, Any]] = []
+
+        while retained_count < config.max_results:
+            active = min(config.check_interval, config.max_results - retained_count)
+            seed = (
+                int(config.seed[0]),
+                int(config.seed[1]) + 1009 * (chunk_index + 1),
+            )
+            runner = self._initial_runner if chunk_index == 0 else self._continuation_runner
+            result = runner.run(
+                active_results=active,
+                current_state=current_state,
+                seed=seed,
+                step_size=config.step_size,
+            )
+            current_state = result.final_state
+            valid_samples = tf.boolean_mask(
+                tf.convert_to_tensor(result.samples),
+                tf.convert_to_tensor(result.valid_mask, dtype=tf.bool),
+            )
+            retained_chunks.append(valid_samples)
+            retained_count += int(active)
+            chunk_summary = _sequential_rhat_chunk_summary(
+                result,
+                chunk_index=chunk_index,
+                retained_count=retained_count,
+            )
+            chunk_summaries.append(chunk_summary)
+            hard_vetoes.extend(chunk_summary.get("hard_vetoes", ()))
+            if hard_vetoes:
+                if checkpoint_writer_config is not None:
+                    checkpoint_reference = _write_sequential_rhat_private_checkpoint(
+                        writer_config=checkpoint_writer_config,
+                        checkpoint_kind="verification_chunk",
+                        adapter=self.adapter,
+                        config=config,
+                        chunk_index=chunk_index,
+                        retained_count=retained_count,
+                        chunk_result=result,
+                        chunk_summary=chunk_summary,
+                        rhat_summary=final_rhat,
+                    )
+                    checkpoint_references.append(checkpoint_reference)
+                break
+            retained = tf.concat(retained_chunks, axis=0)
+            final_rhat = _rhat_summary_from_retained_samples(
+                retained,
+                threshold=config.rhat_threshold,
+            )
+            if checkpoint_writer_config is not None:
+                checkpoint_reference = _write_sequential_rhat_private_checkpoint(
+                    writer_config=checkpoint_writer_config,
+                    checkpoint_kind="verification_chunk",
+                    adapter=self.adapter,
+                    config=config,
+                    chunk_index=chunk_index,
+                    retained_count=retained_count,
+                    chunk_result=result,
+                    chunk_summary=chunk_summary,
+                    rhat_summary=final_rhat,
+                )
+                checkpoint_references.append(checkpoint_reference)
+            if bool(final_rhat["passed"]):
+                passed = True
+                break
+            chunk_index += 1
+
+        if not passed and retained_count >= config.max_results:
+            cap_hit = True
+        runtime_s = time.perf_counter() - start
+        diagnostics = {
+            "sequential_rhat_verification": True,
+            "passed": bool(passed),
+            "cap_hit": bool(cap_hit),
+            "retained_sample_count": int(retained_count),
+            "check_interval": int(config.check_interval),
+            "max_results": int(config.max_results),
+            "chunk_count": len(chunk_summaries),
+            "rhat_threshold": float(config.rhat_threshold),
+            "max_finite_rhat": final_rhat["max_finite_rhat"],
+            "finite_rhat_count": int(final_rhat["finite_rhat_count"]),
+            "nonfinite_rhat_count": int(final_rhat["nonfinite_rhat_count"]),
+            "all_finite_rhat_at_or_below_threshold": bool(final_rhat["passed"]),
+            "samples_all_finite": not any(
+                "nonfinite_retained_samples" in item.get("hard_vetoes", ())
+                for item in chunk_summaries
+            ),
+            "target_value_health_passed": not any(
+                "nonfinite_private_target_value" in item.get("hard_vetoes", ())
+                for item in chunk_summaries
+            ),
+            "acceptance_log_health_passed": not any(
+                "nonfinite_private_acceptance_log_value" in item.get("hard_vetoes", ())
+                for item in chunk_summaries
+            ),
+            "runtime_s": float(runtime_s),
+            "runtime_finite": bool(np.isfinite(runtime_s)),
+            "acceptance_rate": _aggregate_acceptance_rate(chunk_summaries),
+            "divergence_status": _aggregate_divergence_status(chunk_summaries),
+            "divergence_count": _aggregate_divergence_count(chunk_summaries),
+            "hard_vetoes": tuple(dict.fromkeys(hard_vetoes)),
+            "chunk_summaries": tuple(chunk_summaries),
+            "checkpointing_enabled": checkpoint_writer_config is not None,
+            "checkpoint_count": len(checkpoint_references),
+            "checkpoint_references": tuple(checkpoint_references),
+            "privacy_contract": {
+                "public_summary_contains_raw_values": False,
+                "public_summary_contains_chain_states": False,
+                "public_summary_contains_step_size": False,
+                "public_summary_contains_leapfrog_count": False,
+                "public_summary_contains_mass_matrix": False,
+                "public_summary_contains_checkpoint_paths": False,
+                "public_summary_contains_checkpoint_tensor_descriptors": False,
+                "public_summary_contains_checkpoint_hmc_mechanics": False,
+            },
+            "nonclaims": (
+                "sequential R-hat fixed-kernel tuning verification only",
+                "no posterior convergence claim",
+                "no scientific validity claim",
+                "no sampler superiority claim",
+                "no default-readiness claim",
+            ),
+        }
+        metadata = {
+            "runtime": "sequential_fixed_size_hmc_chunk_rhat_verification",
+            "uses_sample_chain": False,
+            "fixed_size_chunk_runner": True,
+            "sequential_rhat_verification": True,
+            "jit_compile": config.use_xla,
+            "use_xla": config.use_xla,
+            "chain_execution_mode": config.chain_execution_mode,
+            "check_interval": int(config.check_interval),
+            "max_results": int(config.max_results),
+            "initial_burnin_steps": int(config.num_burnin_steps),
+            "continuation_burnin_steps": 0,
+            "retained_sample_count": int(retained_count),
+            "chunk_count": len(chunk_summaries),
+            "chain_count": int(config.chain_count),
+            "rhat_threshold": float(config.rhat_threshold),
+            "checkpointing_enabled": checkpoint_writer_config is not None,
+            "checkpoint_count": len(checkpoint_references),
+            "checkpoint_references": tuple(checkpoint_references),
+            "compile_trace_count": _max_compile_trace_count(chunk_summaries),
+            "first_call_s": _first_non_none(
+                item.get("first_call_s") for item in chunk_summaries
+            ),
+            "warm_call_s": _last_non_none(
+                item.get("warm_call_s") for item in chunk_summaries
+            ),
+            "runtime_s": float(runtime_s),
+            "initial_state_policy": "private_deterministic_dispersed_latent_chain_starts",
+            "kernel_parameters_publicized": False,
+            "sample_values_publicized": False,
+            "chain_handoff_publicized": False,
+            "nonclaims": diagnostics["nonclaims"],
+        }
+        _assert_sequential_rhat_public_safe(diagnostics)
+        _assert_sequential_rhat_public_safe(metadata)
+        return SequentialRHatHMCVerificationResult(
+            passed=bool(passed),
+            cap_hit=bool(cap_hit),
+            retained_sample_count=int(retained_count),
+            chunk_count=len(chunk_summaries),
+            max_finite_rhat=final_rhat["max_finite_rhat"],
+            finite_rhat_count=int(final_rhat["finite_rhat_count"]),
+            nonfinite_rhat_count=int(final_rhat["nonfinite_rhat_count"]),
+            diagnostics=_json_safe_metadata(diagnostics),
+            metadata=_json_safe_metadata(metadata),
+        )
+
+    __call__ = run
+
+
+def build_sequential_rhat_hmc_verifier(
+    adapter: Any,
+    initial_state_template: Any,
+    config: SequentialRHatHMCVerificationConfig,
+) -> SequentialRHatHMCVerifier:
+    """Build a sequential R-hat fixed-kernel HMC verifier."""
+
+    return SequentialRHatHMCVerifier(adapter, initial_state_template, config)
+
+
 def _make_hmc_target_log_prob_fn(
     adapter: Any,
     *,
@@ -3048,6 +4268,247 @@ def _tensor_or_plain_to_metadata(value: Any) -> Any:
     if hasattr(value, "numpy"):
         value = value.numpy()
     return _json_safe_metadata(value)
+
+
+def _sequential_rhat_initial_chain_state(base: Any, chain_count: int) -> Any:
+    """Build private deterministic dispersed latent starts for R-hat checks."""
+
+    import tensorflow as tf
+
+    base_tensor = tf.convert_to_tensor(base, dtype=tf.float64)
+    dim = int(base_tensor.shape[-1])
+    offsets = tf.linspace(
+        tf.constant(-0.15, dtype=tf.float64),
+        tf.constant(0.15, dtype=tf.float64),
+        int(chain_count),
+    )
+    parity = tf.cast(
+        tf.math.floormod(tf.range(dim, dtype=tf.int32), 2),
+        dtype=tf.float64,
+    )
+    pattern = tf.constant(1.0, dtype=tf.float64) - tf.constant(2.0, dtype=tf.float64) * parity
+    return tf.expand_dims(base_tensor, axis=0) + tf.expand_dims(offsets, axis=-1) * pattern
+
+
+def _empty_rhat_summary() -> Mapping[str, Any]:
+    return {
+        "passed": False,
+        "max_finite_rhat": None,
+        "finite_rhat_count": 0,
+        "nonfinite_rhat_count": 0,
+    }
+
+
+def _rhat_summary_from_retained_samples(
+    samples: Any,
+    *,
+    threshold: float,
+) -> Mapping[str, Any]:
+    """Compute split-free multi-chain R-hat summary for private samples."""
+
+    array = _private_tensor_to_numpy(samples)
+    if array.ndim < 3:
+        raise ValueError("R-hat samples must have shape (draw, chain, parameter...)")
+    draw_count = int(array.shape[0])
+    chain_count = int(array.shape[1])
+    if draw_count < 2:
+        return _empty_rhat_summary()
+    if chain_count < 2:
+        raise ValueError("R-hat requires at least two chains")
+    flat = np.reshape(array, (draw_count, chain_count, -1))
+    chain_means = np.mean(flat, axis=0)
+    chain_vars = np.var(flat, axis=0, ddof=1)
+    within = np.mean(chain_vars, axis=0)
+    between = draw_count * np.var(chain_means, axis=0, ddof=1)
+    marginal = ((draw_count - 1.0) / draw_count) * within + between / draw_count
+    with np.errstate(divide="ignore", invalid="ignore"):
+        rhat = np.sqrt(marginal / within)
+    finite = np.isfinite(rhat)
+    finite_count = int(np.sum(finite))
+    nonfinite_count = int(rhat.size - finite_count)
+    max_finite = None if finite_count == 0 else float(np.max(rhat[finite]))
+    passed = bool(finite_count > 0 and nonfinite_count == 0 and max_finite <= threshold)
+    return {
+        "passed": passed,
+        "max_finite_rhat": max_finite,
+        "finite_rhat_count": finite_count,
+        "nonfinite_rhat_count": nonfinite_count,
+    }
+
+
+def _sequential_rhat_chunk_summary(
+    result: FixedSizeHMCChunkRunResult,
+    *,
+    chunk_index: int,
+    retained_count: int,
+) -> Mapping[str, Any]:
+    diagnostics = result.diagnostics
+    metadata = result.metadata
+    hard_vetoes: list[str] = []
+    nonfinite = _int_or_none_metadata(diagnostics.get("nonfinite_valid_sample_count"))
+    if nonfinite is None or nonfinite != 0:
+        hard_vetoes.append("nonfinite_retained_samples")
+    final_state_finite = bool(
+        np.all(np.isfinite(_private_tensor_to_numpy(result.final_state)))
+    )
+    if not final_state_finite:
+        hard_vetoes.append("nonfinite_final_state")
+    log_accept_nonfinite = _int_or_none_metadata(
+        diagnostics.get("log_accept_ratio_nonfinite_count")
+    )
+    if log_accept_nonfinite is None or log_accept_nonfinite != 0:
+        hard_vetoes.append("nonfinite_private_acceptance_log_value")
+    target_nonfinite = _int_or_none_metadata(
+        diagnostics.get("target_log_prob_nonfinite_count")
+    )
+    if target_nonfinite is None or target_nonfinite != 0:
+        hard_vetoes.append("nonfinite_private_target_value")
+    return {
+        "chunk_index": int(chunk_index),
+        "retained_sample_count": int(retained_count),
+        "burnin_role": "initial" if int(chunk_index) == 0 else "continuation",
+        "valid_sample_count": _int_or_none_metadata(
+            diagnostics.get("valid_sample_count")
+        ),
+        "nonfinite_valid_sample_count": nonfinite,
+        "acceptance_rate": _float_or_none_metadata(diagnostics.get("acceptance_rate")),
+        "acceptance_decision_count": _int_or_none_metadata(
+            diagnostics.get("acceptance_decision_count")
+        ),
+        "acceptance_log_health_passed": log_accept_nonfinite == 0,
+        "target_value_health_passed": target_nonfinite == 0,
+        "divergence_status": diagnostics.get("divergence_status"),
+        "divergence_count": _int_or_none_metadata(diagnostics.get("divergence_count")),
+        "compile_trace_count": metadata.get("compile_trace_count"),
+        "first_call_s": metadata.get("first_call_s"),
+        "warm_call_s": metadata.get("warm_call_s"),
+        "chunk_call_s": metadata.get("chunk_call_s"),
+        "hard_vetoes": tuple(hard_vetoes),
+    }
+
+
+def _aggregate_acceptance_rate(chunks: Sequence[Mapping[str, Any]]) -> float | None:
+    accepted = 0.0
+    total = 0
+    for chunk in chunks:
+        rate = chunk.get("acceptance_rate")
+        count = chunk.get("acceptance_decision_count")
+        if rate is None or count is None:
+            continue
+        accepted += float(rate) * int(count)
+        total += int(count)
+    return None if total <= 0 else float(accepted / total)
+
+
+def _aggregate_divergence_status(chunks: Sequence[Mapping[str, Any]]) -> str:
+    statuses = {str(chunk.get("divergence_status")) for chunk in chunks}
+    if "available" in statuses:
+        return "available"
+    if "not_exposed_by_kernel" in statuses:
+        return "not_exposed_by_kernel"
+    return "not_collected"
+
+
+def _aggregate_divergence_count(chunks: Sequence[Mapping[str, Any]]) -> int | None:
+    values = [
+        int(chunk["divergence_count"])
+        for chunk in chunks
+        if chunk.get("divergence_count") is not None
+    ]
+    return None if not values else int(sum(values))
+
+
+def _max_compile_trace_count(chunks: Sequence[Mapping[str, Any]]) -> int | None:
+    values = [
+        int(chunk["compile_trace_count"])
+        for chunk in chunks
+        if chunk.get("compile_trace_count") is not None
+    ]
+    return None if not values else int(max(values))
+
+
+def _first_non_none(values: Any) -> Any:
+    for value in values:
+        if value is not None:
+            return value
+    return None
+
+
+def _last_non_none(values: Any) -> Any:
+    seen = None
+    for value in values:
+        if value is not None:
+            seen = value
+    return seen
+
+
+def _float_or_none_metadata(value: Any) -> float | None:
+    if value is None:
+        return None
+    converted = _tensor_or_plain_to_metadata(value)
+    if converted is None:
+        return None
+    return float(converted)
+
+
+def _int_or_none_metadata(value: Any) -> int | None:
+    if value is None:
+        return None
+    converted = _tensor_or_plain_to_metadata(value)
+    if converted is None:
+        return None
+    return int(converted)
+
+
+def _private_tensor_to_numpy(value: Any) -> np.ndarray:
+    """Convert a private diagnostic tensor to NumPy without JSON list expansion."""
+
+    if hasattr(value, "numpy"):
+        value = value.numpy()
+    return np.asarray(value, dtype=float)
+
+
+def _assert_sequential_rhat_public_safe(payload: Mapping[str, Any]) -> None:
+    """Fail closed if sequential verifier metadata leaks raw HMC mechanics."""
+
+    forbidden_tokens = (
+        "raw_sample",
+        "raw_state",
+        "sample_path",
+        "state_path",
+        "mass_matrix",
+        "selected_kernel",
+        "target_log_prob",
+        "log_accept",
+        "step_size",
+        "leapfrog",
+        "final_state",
+    )
+    allowed_keys = {
+        "public_summary_contains_step_size",
+        "public_summary_contains_leapfrog_count",
+        "public_summary_contains_mass_matrix",
+    }
+
+    def walk(value: Any, path: tuple[str, ...]) -> None:
+        if isinstance(value, Mapping):
+            for key, item in value.items():
+                key_text = str(key)
+                lowered = key_text.lower()
+                if (
+                    any(token in lowered for token in forbidden_tokens)
+                    and key_text not in allowed_keys
+                ):
+                    raise ValueError(
+                        "sequential R-hat public payload contains forbidden key: "
+                        + ".".join(path + (key_text,))
+                    )
+                walk(item, path + (key_text,))
+        elif isinstance(value, (tuple, list)):
+            for index, item in enumerate(value):
+                walk(item, path + (str(index),))
+
+    walk(payload, tuple())
 
 
 def _assert_hmc_archive_manifest_public_safe(payload: Mapping[str, Any]) -> None:
@@ -3826,6 +5287,53 @@ def _fixed_size_hmc_chunk_diagnostics(
             "native divergence unavailability is not zero divergences",
         ),
     }
+    if "acceptance_rate" in trace:
+        diagnostics["acceptance_rate"] = tf.convert_to_tensor(
+            trace["acceptance_rate"],
+            dtype=tf.float64,
+        )
+        diagnostics["acceptance_rate_by_chain"] = tf.convert_to_tensor(
+            trace["acceptance_rate_by_chain"],
+            dtype=tf.float64,
+        )
+        diagnostics["accepted_decision_count"] = tf.convert_to_tensor(
+            trace["accepted_decision_count"],
+            dtype=tf.int32,
+        )
+        diagnostics["acceptance_decision_count"] = tf.convert_to_tensor(
+            trace["acceptance_decision_count"],
+            dtype=tf.int32,
+        )
+    if "log_accept_ratio_finite_count" in trace:
+        diagnostics["log_accept_ratio_finite_count"] = tf.convert_to_tensor(
+            trace["log_accept_ratio_finite_count"],
+            dtype=tf.int32,
+        )
+        diagnostics["log_accept_ratio_nonfinite_count"] = tf.convert_to_tensor(
+            trace["log_accept_ratio_nonfinite_count"],
+            dtype=tf.int32,
+        )
+        diagnostics["log_accept_ratio_max_abs_finite"] = tf.convert_to_tensor(
+            trace["log_accept_ratio_max_abs_finite"],
+            dtype=tf.float64,
+        )
+    if "target_log_prob_finite_count" in trace:
+        diagnostics["target_log_prob_finite_count"] = tf.convert_to_tensor(
+            trace["target_log_prob_finite_count"],
+            dtype=tf.int32,
+        )
+        diagnostics["target_log_prob_nonfinite_count"] = tf.convert_to_tensor(
+            trace["target_log_prob_nonfinite_count"],
+            dtype=tf.int32,
+        )
+        diagnostics["target_log_prob_min_finite"] = tf.convert_to_tensor(
+            trace["target_log_prob_min_finite"],
+            dtype=tf.float64,
+        )
+        diagnostics["target_log_prob_max_finite"] = tf.convert_to_tensor(
+            trace["target_log_prob_max_finite"],
+            dtype=tf.float64,
+        )
     if "divergence" in trace:
         divergence = tf.boolean_mask(
             tf.convert_to_tensor(trace["divergence"], dtype=tf.bool),
@@ -3837,6 +5345,24 @@ def _fixed_size_hmc_chunk_diagnostics(
             tf.cast(divergence, tf.int32)
         )
         diagnostics["divergence_source"] = "native_boolean_tfp_kernel_result"
+    elif bool(_tensor_or_plain_to_metadata(trace.get("native_divergence_available", False))):
+        diagnostics["native_divergence_status"] = "available"
+        diagnostics["divergence_status"] = "available"
+        diagnostics["divergence_count"] = tf.convert_to_tensor(
+            trace["divergence_count"],
+            dtype=tf.int32,
+        )
+        diagnostics["divergence_count_by_chain"] = tf.convert_to_tensor(
+            trace["divergence_count_by_chain"],
+            dtype=tf.int32,
+        )
+        diagnostics["divergence_source"] = "native_boolean_tfp_kernel_result"
+    elif "native_divergence_available" in trace:
+        diagnostics["native_divergence_status"] = "not_exposed_by_kernel"
+        diagnostics["divergence_status"] = "not_exposed_by_kernel"
+        diagnostics["divergence_count"] = None
+        diagnostics["divergence_count_by_chain"] = None
+        diagnostics["divergence_source"] = None
     return diagnostics
 
 

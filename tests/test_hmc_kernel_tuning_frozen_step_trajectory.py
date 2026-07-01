@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import inspect
+import json
 import os
 from collections.abc import Mapping
 from dataclasses import replace
@@ -22,6 +23,7 @@ from bayesfilter.inference import (
     run_hmc_frozen_step_trajectory_stage,
 )
 from bayesfilter.inference.hmc_kernel_tuning import (
+    _HMCPhaseAttemptState,
     _frozen_step_trajectory_candidate_generation,
 )
 from bayesfilter.runtime import stable_config_hash
@@ -222,7 +224,8 @@ def test_frozen_step_trajectory_stage_passes_with_internal_candidates_and_real_h
     assert result.candidate_generation["candidate_l_values"] == expected_candidates
     assert result.candidate_generation["neighborhood_offsets"] == (-2, -1, 0, 1, 2)
     assert result.candidate_generation["internal_min_leapfrog"] == 3
-    assert result.candidate_generation["internal_max_leapfrog"] == 128
+    assert result.candidate_generation["internal_max_leapfrog"] == 25
+    assert result.candidate_generation["local_max_leapfrog"] == min(25, center + 10)
     assert result.selected_num_leapfrog_steps == center
     assert result.frozen_step_size == pytest.approx(step_stage.selected_step_size)
     assert result.fixed_bootstrap_num_leapfrog_steps == bootstrap.selected_round.num_leapfrog_steps
@@ -406,6 +409,166 @@ def test_frozen_step_trajectory_stage_returns_repair_without_selected_l_when_no_
     assert result.selected_trajectory_payload is None
     assert result.selected_trajectory_hash is None
     assert "acceptance_outside_pass_band" in result.repair_triggers
+
+
+def test_frozen_step_trajectory_stage_public_counts_all_above_without_mechanics() -> None:
+    windowed = _windowed_stage()
+    step_stage = _fixed_mass_step_stage(windowed_stage=windowed)
+    run, calls = _scripted_trajectory_runner({})
+
+    result = run_hmc_frozen_step_trajectory_stage(
+        adapter=_ToyGaussianAdapter(),
+        geometry=_geometry(),
+        bootstrap=_bootstrap(),
+        windowed_stage=windowed,
+        fixed_mass_step_stage=step_stage,
+        config=_trajectory_config(),
+        run_full_chain=run,
+    )
+    public_summary = hmc_kernel_tuning._frozen_step_trajectory_public_summary(result)
+
+    assert calls
+    assert result.final_status == "repair_or_retry"
+    assert result.selected_trajectory_payload is None
+    assert public_summary["candidate_acceptance_relation_counts"] == {
+        "below_acceptance_band": 0,
+        "inside_acceptance_band": 0,
+        "above_acceptance_band": len(calls),
+        "unavailable": 0,
+    }
+    assert public_summary["candidate_grid_exposed"] is False
+    assert public_summary["hmc_mechanics_exposed"] is False
+    text = json.dumps(public_summary, sort_keys=True)
+    for forbidden in (
+        "candidate_l_values",
+        "candidate_results",
+        "num_leapfrog_steps",
+        "step_size",
+        "mass_artifact_payload",
+        "samples",
+        "trace",
+        "target_log_prob",
+        "final_state",
+    ):
+        assert forbidden not in text
+
+
+def test_frozen_step_trajectory_soft_deadline_writes_partial_closeout(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    windowed = _windowed_stage()
+    step_stage = _fixed_mass_step_stage(windowed_stage=windowed)
+    run, calls = _scripted_trajectory_runner({})
+    ticks = iter([0.0, 0.0, 0.0, 100.0, 100.0, 740.0, 740.0, 740.0, 740.0])
+    events: list[tuple[str, Mapping[str, Any]]] = []
+
+    def fake_perf_counter() -> float:
+        try:
+            return next(ticks)
+        except StopIteration:
+            return 740.0
+
+    monkeypatch.setattr(hmc_kernel_tuning.time, "perf_counter", fake_perf_counter)
+
+    result = run_hmc_frozen_step_trajectory_stage(
+        adapter=_ToyGaussianAdapter(),
+        geometry=_geometry(),
+        bootstrap=_bootstrap(),
+        windowed_stage=windowed,
+        fixed_mass_step_stage=step_stage,
+        config=_trajectory_config(public_timeout_budget_s=810.0),
+        run_full_chain=run,
+        _progress_callback=lambda stage, payload: events.append((stage, payload)),
+    )
+
+    assert len(calls) == 1
+    assert result.final_status == "hard_veto"
+    assert "phase6_public_timeout_soft_deadline" in result.hard_vetoes
+    assert (
+        "phase6_public_timeout_soft_deadline_before_next_candidate"
+        in result.repair_triggers
+    )
+    assert result.diagnostics["expected_candidate_count"] == 6
+    assert result.diagnostics["completed_candidate_count"] == 1
+    assert result.diagnostics["skipped_candidate_count"] == 5
+    closeout = result.diagnostics["public_timeout_closeout"]
+    assert closeout["completed_candidate_count"] == 1
+    assert closeout["candidate_count"] == 6
+    assert closeout["closeout_required_before_next_candidate"] is True
+    assert closeout["hmc_mechanics_exposed"] is False
+    assert events[-1][0] == "trajectory_candidate_soft_deadline_closeout"
+    event_extra = events[-1][1]["extra"]
+    assert event_extra["completed_candidate_count"] == 1
+    assert event_extra["soft_deadline"]["public_closeout_artifact_expected"] is True
+    text = json.dumps(event_extra, sort_keys=True)
+    for forbidden in (
+        "candidate_l_values",
+        "num_leapfrog_steps",
+        "step_size",
+        "mass_artifact_payload",
+        "samples",
+        "trace",
+        "target_log_prob",
+        "final_state",
+    ):
+        assert forbidden not in text
+
+
+def test_frozen_step_trajectory_global_soft_deadline_vetoes_before_first_candidate(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    windowed = _windowed_stage()
+    step_stage = _fixed_mass_step_stage(windowed_stage=windowed)
+    run, calls = _scripted_trajectory_runner({})
+    events: list[tuple[str, Mapping[str, Any]]] = []
+
+    monkeypatch.setattr(hmc_kernel_tuning.time, "perf_counter", lambda: 800.0)
+
+    result = run_hmc_frozen_step_trajectory_stage(
+        adapter=_ToyGaussianAdapter(),
+        geometry=_geometry(),
+        bootstrap=_bootstrap(),
+        windowed_stage=windowed,
+        fixed_mass_step_stage=step_stage,
+        config=_trajectory_config(
+            public_timeout_budget_s=810.0,
+            public_timeout_started_perf_counter_s=0.0,
+        ),
+        run_full_chain=run,
+        _progress_callback=lambda stage, payload: events.append((stage, payload)),
+    )
+
+    assert calls == []
+    assert result.final_status == "hard_veto"
+    assert "phase6_public_timeout_soft_deadline" in result.hard_vetoes
+    assert result.diagnostics["expected_candidate_count"] == 6
+    assert result.diagnostics["completed_candidate_count"] == 0
+    assert result.diagnostics["skipped_candidate_count"] == 6
+    closeout = result.diagnostics["public_timeout_closeout"]
+    assert closeout["deadline_clock_scope"] == "public_one_call_global"
+    assert closeout["elapsed_s"] == pytest.approx(800.0)
+    assert closeout["remaining_s"] == pytest.approx(10.0)
+    assert closeout["stage_elapsed_s"] == pytest.approx(0.0)
+    assert closeout["stage_remaining_s"] == pytest.approx(810.0)
+    assert closeout["candidate_index"] == 0
+    assert closeout["completed_candidate_count"] == 0
+    assert closeout["closeout_required_before_next_candidate"] is True
+    assert events[-1][0] == "trajectory_candidate_soft_deadline_closeout"
+    event_extra = events[-1][1]["extra"]
+    assert event_extra["soft_deadline"]["deadline_clock_scope"] == "public_one_call_global"
+    assert event_extra["soft_deadline"]["stage_elapsed_s"] == pytest.approx(0.0)
+    text = json.dumps(event_extra, sort_keys=True)
+    for forbidden in (
+        "candidate_l_values",
+        "num_leapfrog_steps",
+        "step_size",
+        "mass_artifact_payload",
+        "samples",
+        "trace",
+        "target_log_prob",
+        "final_state",
+    ):
+        assert forbidden not in text
 
 
 def test_frozen_step_trajectory_stage_rejects_stale_phase5_lineage() -> None:
@@ -717,9 +880,10 @@ def test_frozen_step_trajectory_candidate_generation_clamps_to_internal_bounds()
     )
 
     assert low["candidate_l_values"] == (3,)
-    assert high["candidate_l_values"] == (3, 128)
+    assert high["candidate_l_values"] == (3, 25)
     assert low["internal_min_leapfrog"] == 3
-    assert high["internal_max_leapfrog"] == 128
+    assert high["internal_max_leapfrog"] == 25
+    assert high["local_max_leapfrog"] == 25
 
 
 def test_frozen_step_trajectory_candidate_generation_preserves_distinct_clamped_edges() -> None:
@@ -731,7 +895,7 @@ def test_frozen_step_trajectory_candidate_generation_preserves_distinct_clamped_
     high = _frozen_step_trajectory_candidate_generation(
         geometry=replace(_geometry(), target_trajectory_length=100.0),
         selected_step_size=0.2,
-        fixed_bootstrap_l=64,
+        fixed_bootstrap_l=24,
     )
     mixed = _frozen_step_trajectory_candidate_generation(
         geometry=replace(_geometry(), target_trajectory_length=25.6),
@@ -741,10 +905,78 @@ def test_frozen_step_trajectory_candidate_generation_preserves_distinct_clamped_
 
     assert low["raw_candidate_l_values"] == (-1, 0, 1, 2, 3, 5)
     assert low["candidate_l_values"] == (3, 5)
-    assert high["raw_candidate_l_values"] == (498, 499, 500, 501, 502, 64)
-    assert high["candidate_l_values"] == (64, 128)
+    assert high["raw_candidate_l_values"] == (498, 499, 500, 501, 502, 24)
+    assert high["candidate_l_values"] == (24, 25)
     assert mixed["raw_candidate_l_values"] == (126, 127, 128, 129, 130, 3)
-    assert mixed["candidate_l_values"] == (3, 126, 127, 128)
+    assert mixed["candidate_l_values"] == (3, 25)
+
+
+def test_frozen_step_trajectory_candidate_generation_caps_bootstrap_l_at_center_plus_ten() -> None:
+    generated = _frozen_step_trajectory_candidate_generation(
+        geometry=replace(_geometry(), target_trajectory_length=2.0),
+        selected_step_size=0.2,
+        fixed_bootstrap_l=128,
+    )
+
+    assert generated["center_candidate_l"] == 10
+    assert generated["local_max_leapfrog"] == 20
+    assert generated["candidate_l_values"] == (8, 9, 10, 11, 12, 20)
+
+
+def test_frozen_step_trajectory_candidate_generation_expands_after_verification_repair() -> None:
+    repaired_state = _HMCPhaseAttemptState(
+        selected_step_size=0.2,
+        selected_step_hash="previous-step-hash",
+        selected_num_leapfrog_steps=11,
+        selected_trajectory_hash="previous-trajectory-hash",
+        verification_acceptance_rate=0.89,
+        verification_acceptance_relation="above_acceptance_band",
+        verification_repair_trigger="verification_acceptance_outside_pass_band",
+        verification_repair_source="phase7_final_verification_acceptance",
+        verification_repair_step_size=0.4,
+        verification_repair_step_hash="repair-step-hash",
+        verification_repair_applied=True,
+        handoff_stage="phase6",
+    )
+    unrepaired_state = _HMCPhaseAttemptState(
+        selected_step_size=0.2,
+        selected_step_hash="previous-step-hash",
+        selected_num_leapfrog_steps=11,
+        selected_trajectory_hash="previous-trajectory-hash",
+        handoff_stage="phase6",
+    )
+
+    repaired = _frozen_step_trajectory_candidate_generation(
+        geometry=replace(_geometry(), target_trajectory_length=1.0),
+        selected_step_size=0.2,
+        fixed_bootstrap_l=23,
+        attempt_state=repaired_state,
+    )
+    unrepaired = _frozen_step_trajectory_candidate_generation(
+        geometry=replace(_geometry(), target_trajectory_length=1.0),
+        selected_step_size=0.2,
+        fixed_bootstrap_l=23,
+        attempt_state=unrepaired_state,
+    )
+
+    assert unrepaired["verification_repair_neighborhood_applied"] is False
+    assert unrepaired["candidate_l_values"] == (3, 4, 5, 6, 7, 11, 15)
+    assert repaired["verification_repair_neighborhood_applied"] is True
+    assert repaired["candidate_l_values"] == (
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+    )
 
 
 def test_frozen_step_trajectory_stage_hard_veto_on_nonfinite_candidate_diagnostic() -> None:

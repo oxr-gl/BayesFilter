@@ -898,6 +898,15 @@ def select_hmc_fixed_grid_scale(
                 break
 
     if selected_probe is None:
+        if _has_ordered_finite_domain_ceiling(probes):
+            return GenericHMCFixedGridScaleSelection(
+                config=config,
+                probes=tuple(probes),
+                selected_scale=None,
+                scaled_step_size_candidates=(),
+                status="scale_search_failed_finite_domain_ceiling",
+                vetoes=("pilot_scale_expansion_hit_finite_domain_ceiling",),
+            )
         return GenericHMCFixedGridScaleSelection(
             config=config,
             probes=tuple(probes),
@@ -921,6 +930,22 @@ def select_hmc_fixed_grid_scale(
         status=status_by_class[str(selected_probe.acceptance_class)],
         vetoes=(),
     )
+
+
+def _has_ordered_finite_domain_ceiling(
+    probes: Sequence[GenericHMCFixedGridScaleProbe],
+) -> bool:
+    """Detect high-acceptance finite probes followed by larger invalid probes."""
+
+    for index, probe in enumerate(probes):
+        if probe.acceptance_class != "too_high" or probe.acceptance_rate is None:
+            continue
+        if any(
+            later.scale > probe.scale and later.acceptance_class == "invalid"
+            for later in probes[index + 1 :]
+        ):
+            return True
+    return False
 
 
 @dataclass(frozen=True)

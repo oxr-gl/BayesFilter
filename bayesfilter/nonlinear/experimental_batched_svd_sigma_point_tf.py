@@ -51,6 +51,11 @@ TFBatchedSVDBackend = Literal[
     "tf_principal_sqrt_ukf",
 ]
 
+_PRINCIPAL_SQRT_ROUNDOFF_TOLERANCE = 1.0e-14
+_PRINCIPAL_SQRT_MAX_ABS_ENTRY_FOR_REPAIR = 1.0e8
+_PRINCIPAL_SQRT_CLASSIFIED_INVALID_LOG_PROB = -1.0e100
+_PRINCIPAL_SQRT_DIAGNOSTIC_LARGE = 1.0e100
+
 
 @dataclass(frozen=True)
 class TFBatchedStructuralStateSpace:
@@ -256,6 +261,12 @@ class TFBatchedSmoothEighFactorFirstDerivatives:
     structural_null_count: tf.Tensor
     structural_null_covariance_residual: tf.Tensor
     fixed_null_derivative_residual: tf.Tensor
+    roundoff_repair_count: tf.Tensor
+    classified_invalid_count: tf.Tensor
+    derivative_rhs_nonfinite_count: tf.Tensor
+    min_eigenvalue: tf.Tensor
+    max_abs_covariance_entry: tf.Tensor
+    max_abs_derivative_covariance_entry: tf.Tensor
 
 
 def _to_rank(value: object, rank: int, name: str) -> tf.Tensor:
@@ -362,6 +373,108 @@ def _batched_psd_eigh(
     return eigenvalues, floored, eigenvectors, implemented, residual
 
 
+def _principal_sqrt_covariance_classification(
+    covariance: tf.Tensor,
+    eigenvalues: tf.Tensor,
+    singular_floor: tf.Tensor,
+) -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
+    """Classify strict principal-sqrt covariance rows before the custom op.
+
+    The principal-sqrt backend is strict-SPD by design.  HMC proposals can still
+    push a row to tiny negative eigenvalues from accumulated floating-point
+    roundoff.  This helper repairs only finite near-SPD rows and fails closed
+    for nonfinite or materially indefinite rows before they reach the custom op,
+    which keeps XLA diagnostics classified instead of surfacing raw op errors.
+    """
+
+    finite_covariance = tf.reduce_all(tf.math.is_finite(covariance), axis=[-2, -1])
+    finite_eigenvalues = tf.reduce_all(tf.math.is_finite(eigenvalues), axis=-1)
+    finite_row = tf.logical_and(finite_covariance, finite_eigenvalues)
+    min_eigenvalue = tf.reduce_min(
+        tf.where(
+            tf.math.is_finite(eigenvalues),
+            eigenvalues,
+            tf.fill(
+                tf.shape(eigenvalues),
+                tf.constant(-_PRINCIPAL_SQRT_DIAGNOSTIC_LARGE, tf.float64),
+            ),
+        ),
+        axis=-1,
+    )
+    abs_covariance = tf.abs(covariance)
+    max_abs_covariance_entry = tf.reduce_max(
+        tf.where(
+            tf.math.is_finite(abs_covariance),
+            abs_covariance,
+            tf.fill(
+                tf.shape(abs_covariance),
+                tf.constant(_PRINCIPAL_SQRT_DIAGNOSTIC_LARGE, tf.float64),
+            ),
+        ),
+        axis=[-2, -1],
+    )
+    repair_floor = tf.maximum(
+        singular_floor,
+        tf.constant(_PRINCIPAL_SQRT_ROUNDOFF_TOLERANCE, dtype=tf.float64),
+    )
+    strict_spd = tf.logical_and(finite_row, min_eigenvalue >= repair_floor)
+    near_spd = tf.logical_and(
+        finite_row,
+        tf.logical_and(
+            min_eigenvalue
+            >= tf.constant(-_PRINCIPAL_SQRT_ROUNDOFF_TOLERANCE, dtype=tf.float64),
+            max_abs_covariance_entry <= _PRINCIPAL_SQRT_MAX_ABS_ENTRY_FOR_REPAIR,
+        ),
+    )
+    roundoff_repaired = tf.logical_and(
+        near_spd,
+        min_eigenvalue < repair_floor,
+    )
+    classified_invalid = tf.logical_not(tf.logical_or(strict_spd, roundoff_repaired))
+    safe_eigenvalues = tf.where(
+        tf.math.is_finite(eigenvalues),
+        tf.maximum(eigenvalues, repair_floor),
+        tf.fill(tf.shape(eigenvalues), repair_floor),
+    )
+    repaired_covariance = _symmetrize(
+        covariance
+        + tf.eye(int(covariance.shape[-1]), dtype=tf.float64)[tf.newaxis, :, :]
+        * tf.maximum(repair_floor - min_eigenvalue, 0.0)[:, tf.newaxis, tf.newaxis]
+    )
+    valid_or_repaired_covariance = tf.where(
+        roundoff_repaired[:, tf.newaxis, tf.newaxis],
+        repaired_covariance,
+        covariance,
+    )
+    # The strict compiled op uses Eigen's self-adjoint eigensolver, which can
+    # disagree with TensorFlow's ``eigh`` by a few ulps near the SPD boundary.
+    # Give every finite row accepted by this classifier the same tiny fixed
+    # guard margin used for roundoff repair so raw Eigen failures become
+    # classified target behavior instead of process-level op crashes.
+    raw_op_margin = (
+        tf.eye(int(covariance.shape[-1]), dtype=tf.float64)[tf.newaxis, :, :]
+        * repair_floor
+    )
+    valid_or_repaired_covariance = valid_or_repaired_covariance + raw_op_margin
+    replacement_scale = tf.maximum(repair_floor, tf.constant(1.0, dtype=tf.float64))
+    replacement_covariance = (
+        tf.eye(int(covariance.shape[-1]), dtype=tf.float64)[tf.newaxis, :, :]
+        * replacement_scale
+    )
+    safe_covariance = tf.where(
+        classified_invalid[:, tf.newaxis, tf.newaxis],
+        replacement_covariance,
+        valid_or_repaired_covariance,
+    )
+    return (
+        safe_covariance,
+        safe_eigenvalues,
+        roundoff_repaired,
+        classified_invalid,
+        max_abs_covariance_entry,
+    )
+
+
 def _batched_eigh_solve(
     eigenvectors: tf.Tensor,
     eigenvalues: tf.Tensor,
@@ -385,6 +498,29 @@ def _batched_eigh_solve(
 
 def _batched_eigh_logdet(eigenvalues: tf.Tensor) -> tf.Tensor:
     return tf.reduce_sum(tf.math.log(eigenvalues), axis=-1)
+
+
+def _batched_cholesky_solve(cholesky_factor: tf.Tensor, rhs: tf.Tensor) -> tf.Tensor:
+    rhs = tf.convert_to_tensor(rhs, dtype=tf.float64)
+    if rhs.shape.rank == 2:
+        solved = tf.linalg.cholesky_solve(cholesky_factor, rhs[:, :, tf.newaxis])
+        return solved[:, :, 0]
+    if rhs.shape.rank == 3:
+        return tf.linalg.cholesky_solve(cholesky_factor, rhs)
+    if rhs.shape.rank == 4:
+        batch_size = tf.shape(rhs)[0]
+        parameter_dim = tf.shape(rhs)[1]
+        matrix_dim = tf.shape(rhs)[2]
+        column_dim = tf.shape(rhs)[3]
+        tiled_cholesky = tf.repeat(cholesky_factor, parameter_dim, axis=0)
+        flat_rhs = tf.reshape(rhs, [batch_size * parameter_dim, matrix_dim, column_dim])
+        solved = tf.linalg.cholesky_solve(tiled_cholesky, flat_rhs)
+        return tf.reshape(solved, [batch_size, parameter_dim, matrix_dim, column_dim])
+    raise ValueError("rhs must have rank 2, 3, or 4")
+
+
+def _batched_cholesky_logdet(cholesky_factor: tf.Tensor) -> tf.Tensor:
+    return 2.0 * tf.reduce_sum(tf.math.log(tf.linalg.diag_part(cholesky_factor)), axis=-1)
 
 
 def _batched_min_eigen_gap(eigenvalues: tf.Tensor) -> tf.Tensor:
@@ -562,6 +698,18 @@ def _checked_batched_smooth_eigh_factor_first_derivatives(
         structural_null_count=structural_null_count,
         structural_null_covariance_residual=structural_null_covariance_residual,
         fixed_null_derivative_residual=fixed_null_residual,
+        roundoff_repair_count=tf.zeros(tf.shape(eigenvalues)[0], dtype=tf.int32),
+        classified_invalid_count=tf.zeros(tf.shape(eigenvalues)[0], dtype=tf.int32),
+        derivative_rhs_nonfinite_count=tf.zeros(
+            tf.shape(eigenvalues)[0],
+            dtype=tf.int32,
+        ),
+        min_eigenvalue=tf.reduce_min(eigenvalues, axis=-1),
+        max_abs_covariance_entry=tf.reduce_max(tf.abs(covariance), axis=[-2, -1]),
+        max_abs_derivative_covariance_entry=tf.reduce_max(
+            tf.abs(d_covariance),
+            axis=[-3, -2, -1],
+        ),
     )
 
 
@@ -583,7 +731,62 @@ def _checked_batched_principal_sqrt_factor_first_derivatives(
         _implemented_covariance,
         psd_projection_residual,
     ) = _batched_psd_eigh(covariance, singular_floor)
-    active_floors = _batched_floor_count(eigenvalues, singular_floor)
+    min_eigenvalue = tf.reduce_min(
+        tf.where(
+            tf.math.is_finite(eigenvalues),
+            eigenvalues,
+            tf.fill(
+                tf.shape(eigenvalues),
+                tf.constant(-_PRINCIPAL_SQRT_DIAGNOSTIC_LARGE, tf.float64),
+            ),
+        ),
+        axis=-1,
+    )
+    (
+        safe_covariance,
+        safe_eigenvalues,
+        roundoff_repaired,
+        classified_invalid,
+        max_abs_covariance_entry,
+    ) = _principal_sqrt_covariance_classification(
+        covariance,
+        eigenvalues,
+        singular_floor,
+    )
+    identity_eigenvectors = tf.eye(
+        int(covariance.shape[-1]),
+        dtype=tf.float64,
+    )[tf.newaxis, :, :]
+    eigenvectors = tf.where(
+        classified_invalid[:, tf.newaxis, tf.newaxis],
+        identity_eigenvectors,
+        eigenvectors,
+    )
+    active_floors = tf.zeros(tf.shape(eigenvalues)[0], dtype=tf.int32)
+    roundoff_repair_count = tf.cast(roundoff_repaired, tf.int32)
+    finite_d_covariance = tf.reduce_all(
+        tf.math.is_finite(d_covariance),
+        axis=[-3, -2, -1],
+    )
+    derivative_rhs_nonfinite = tf.logical_not(finite_d_covariance)
+    combined_classified_invalid = tf.logical_or(
+        classified_invalid,
+        derivative_rhs_nonfinite,
+    )
+    classified_invalid_count = tf.cast(combined_classified_invalid, tf.int32)
+    derivative_rhs_nonfinite_count = tf.cast(derivative_rhs_nonfinite, tf.int32)
+    abs_d_covariance = tf.abs(d_covariance)
+    max_abs_derivative_covariance_entry = tf.reduce_max(
+        tf.where(
+            tf.math.is_finite(abs_d_covariance),
+            abs_d_covariance,
+            tf.fill(
+                tf.shape(abs_d_covariance),
+                tf.constant(_PRINCIPAL_SQRT_DIAGNOSTIC_LARGE, tf.float64),
+            ),
+        ),
+        axis=[-3, -2, -1],
+    )
     structural_null_count = tf.zeros(tf.shape(eigenvalues)[0], dtype=tf.int32)
     structural_null_covariance_residual = tf.zeros(
         tf.shape(eigenvalues)[0],
@@ -591,21 +794,15 @@ def _checked_batched_principal_sqrt_factor_first_derivatives(
     )
     fixed_null_residual = tf.zeros(tf.shape(eigenvalues)[0], dtype=tf.float64)
     min_gap = _batched_min_eigen_gap(eigenvalues)
+    min_gap = tf.where(
+        classified_invalid,
+        tf.zeros_like(min_gap),
+        min_gap,
+    )
 
-    batch_zeros = tf.zeros(tf.shape(eigenvalues)[0], dtype=tf.int32)
     assertions = [
-        tf.debugging.assert_equal(
-            active_floors,
-            batch_zeros,
-            message=f"blocked_active_floor: {label} floor is active",
-        ),
-        tf.debugging.assert_greater(
-            tf.reduce_min(eigenvalues),
-            singular_floor,
-            message=f"blocked_non_spd_principal_sqrt: {label} is not strict SPD",
-        ),
         tf.debugging.assert_all_finite(
-            eigenvalues,
+            safe_eigenvalues,
             f"blocked_nonfinite_factor: {label} eigenvalues are nonfinite",
         ),
         tf.debugging.assert_less_equal(
@@ -620,22 +817,44 @@ def _checked_batched_principal_sqrt_factor_first_derivatives(
         ),
     ]
     with tf.control_dependencies(assertions):
-        eigenvalues = tf.identity(eigenvalues)
-        floored = tf.identity(floored)
+        eigenvalues = tf.identity(safe_eigenvalues)
+        floored = tf.identity(tf.maximum(safe_eigenvalues, singular_floor))
         eigenvectors = tf.identity(eigenvectors)
+        safe_covariance = tf.identity(safe_covariance)
 
-    factor = _symmetrize(symmetric_principal_sqrt(covariance))
-    d_factor = _symmetrize(symmetric_sylvester_solve(factor, d_covariance))
+    covariance_valid_or_repaired_mask = tf.logical_not(classified_invalid)
+    valid_derivative_mask = tf.logical_not(combined_classified_invalid)
+    valid_derivative_parameter_mask = valid_derivative_mask[:, tf.newaxis]
+    factor = _symmetrize(symmetric_principal_sqrt(safe_covariance))
+    safe_d_covariance = tf.where(
+        combined_classified_invalid[:, tf.newaxis, tf.newaxis, tf.newaxis],
+        tf.zeros_like(d_covariance),
+        tf.where(tf.math.is_finite(d_covariance), d_covariance, tf.zeros_like(d_covariance)),
+    )
+    d_factor = _symmetrize(symmetric_sylvester_solve(factor, safe_d_covariance))
     implemented_covariance = _symmetrize(factor @ tf.linalg.matrix_transpose(factor))
     psd_projection_residual = tf.linalg.norm(
         implemented_covariance - covariance,
         axis=[-2, -1],
     )
+    psd_projection_residual = tf.where(
+        covariance_valid_or_repaired_mask,
+        psd_projection_residual,
+        tf.fill(
+            tf.shape(psd_projection_residual),
+            tf.constant(_PRINCIPAL_SQRT_DIAGNOSTIC_LARGE, tf.float64),
+        ),
+    )
     lyapunov_residual = tf.linalg.norm(
         factor[:, tf.newaxis, :, :] @ d_factor
         + d_factor @ factor[:, tf.newaxis, :, :]
-        - d_covariance,
+        - safe_d_covariance,
         axis=[-2, -1],
+    )
+    lyapunov_residual = tf.where(
+        valid_derivative_parameter_mask,
+        lyapunov_residual,
+        tf.zeros_like(lyapunov_residual),
     )
     reconstructed = tf.matmul(
         d_factor,
@@ -647,8 +866,13 @@ def _checked_batched_principal_sqrt_factor_first_derivatives(
         transpose_b=True,
     )
     reconstruction_residual = tf.linalg.norm(
-        reconstructed - d_covariance,
+        reconstructed - safe_d_covariance,
         axis=[-2, -1],
+    )
+    reconstruction_residual = tf.where(
+        valid_derivative_parameter_mask,
+        reconstruction_residual,
+        tf.zeros_like(reconstruction_residual),
     )
     max_residual = tf.maximum(lyapunov_residual, reconstruction_residual)
     lyapunov_tolerance = tf.convert_to_tensor(lyapunov_tolerance, dtype=tf.float64)
@@ -677,6 +901,12 @@ def _checked_batched_principal_sqrt_factor_first_derivatives(
         structural_null_count=structural_null_count,
         structural_null_covariance_residual=structural_null_covariance_residual,
         fixed_null_derivative_residual=fixed_null_residual,
+        roundoff_repair_count=roundoff_repair_count,
+        classified_invalid_count=classified_invalid_count,
+        derivative_rhs_nonfinite_count=derivative_rhs_nonfinite_count,
+        min_eigenvalue=min_eigenvalue,
+        max_abs_covariance_entry=max_abs_covariance_entry,
+        max_abs_derivative_covariance_entry=max_abs_derivative_covariance_entry,
     )
 
 
@@ -797,6 +1027,18 @@ def tf_batched_svd_sigma_point_value_and_score_with_rule(
 
     max_placement_floor_count = tf.zeros([batch_dim], dtype=tf.int32)
     max_innovation_floor_count = tf.zeros([batch_dim], dtype=tf.int32)
+    max_placement_roundoff_repair_count = tf.zeros([batch_dim], dtype=tf.int32)
+    max_innovation_roundoff_repair_count = tf.zeros([batch_dim], dtype=tf.int32)
+    max_placement_classified_invalid_count = tf.zeros([batch_dim], dtype=tf.int32)
+    max_innovation_classified_invalid_count = tf.zeros([batch_dim], dtype=tf.int32)
+    max_placement_derivative_rhs_nonfinite_count = tf.zeros(
+        [batch_dim],
+        dtype=tf.int32,
+    )
+    max_innovation_derivative_rhs_nonfinite_count = tf.zeros(
+        [batch_dim],
+        dtype=tf.int32,
+    )
     max_placement_residual = tf.zeros([batch_dim], dtype=tf.float64)
     max_innovation_residual = tf.zeros([batch_dim], dtype=tf.float64)
     max_support_residual = tf.zeros([batch_dim], dtype=tf.float64)
@@ -808,6 +1050,18 @@ def tf_batched_svd_sigma_point_value_and_score_with_rule(
     max_structural_null_count = tf.zeros([batch_dim], dtype=tf.int32)
     min_placement_eigen_gap = tf.fill([batch_dim], tf.constant(float("inf"), dtype=tf.float64))
     min_innovation_eigen_gap = tf.fill([batch_dim], tf.constant(float("inf"), dtype=tf.float64))
+    min_placement_eigenvalue = tf.fill([batch_dim], tf.constant(float("inf"), dtype=tf.float64))
+    min_innovation_eigenvalue = tf.fill([batch_dim], tf.constant(float("inf"), dtype=tf.float64))
+    max_placement_covariance_abs_entry = tf.zeros([batch_dim], dtype=tf.float64)
+    max_innovation_covariance_abs_entry = tf.zeros([batch_dim], dtype=tf.float64)
+    max_placement_derivative_covariance_abs_entry = tf.zeros(
+        [batch_dim],
+        dtype=tf.float64,
+    )
+    max_innovation_derivative_covariance_abs_entry = tf.zeros(
+        [batch_dim],
+        dtype=tf.float64,
+    )
     last_implemented_innovation_covariance = tf.zeros(
         [batch_dim, observation_dim, observation_dim],
         dtype=tf.float64,
@@ -825,6 +1079,12 @@ def tf_batched_svd_sigma_point_value_and_score_with_rule(
         score: tf.Tensor,
         max_placement_floor_count: tf.Tensor,
         max_innovation_floor_count: tf.Tensor,
+        max_placement_roundoff_repair_count: tf.Tensor,
+        max_innovation_roundoff_repair_count: tf.Tensor,
+        max_placement_classified_invalid_count: tf.Tensor,
+        max_innovation_classified_invalid_count: tf.Tensor,
+        max_placement_derivative_rhs_nonfinite_count: tf.Tensor,
+        max_innovation_derivative_rhs_nonfinite_count: tf.Tensor,
         max_placement_residual: tf.Tensor,
         max_innovation_residual: tf.Tensor,
         max_support_residual: tf.Tensor,
@@ -836,6 +1096,12 @@ def tf_batched_svd_sigma_point_value_and_score_with_rule(
         max_structural_null_count: tf.Tensor,
         min_placement_eigen_gap: tf.Tensor,
         min_innovation_eigen_gap: tf.Tensor,
+        min_placement_eigenvalue: tf.Tensor,
+        min_innovation_eigenvalue: tf.Tensor,
+        max_placement_covariance_abs_entry: tf.Tensor,
+        max_innovation_covariance_abs_entry: tf.Tensor,
+        max_placement_derivative_covariance_abs_entry: tf.Tensor,
+        max_innovation_derivative_covariance_abs_entry: tf.Tensor,
         last_implemented_innovation_covariance: tf.Tensor,
     ) -> tuple[tf.Tensor, ...]:
         aug_mean = tf.concat(
@@ -1094,16 +1360,25 @@ def tf_batched_svd_sigma_point_value_and_score_with_rule(
             )
             + d_observation_covariance
         )
-        innovation_factor = _checked_batched_smooth_eigh_factor_first_derivatives(
-            raw_innovation_covariance,
-            d_raw_innovation_covariance,
-            singular_floor=innovation_floor,
-            rank_tolerance=rank_tolerance,
-            spectral_gap_tolerance=spectral_gap_tolerance,
-            fixed_null_tolerance=fixed_null_tolerance,
-            label="SVD sigma-point innovation",
-            allow_fixed_null_support=False,
-        )
+        if backend_name == "tf_principal_sqrt_ukf":
+            innovation_factor = _checked_batched_principal_sqrt_factor_first_derivatives(
+                raw_innovation_covariance,
+                d_raw_innovation_covariance,
+                singular_floor=innovation_floor,
+                fixed_null_tolerance=fixed_null_tolerance,
+                label="principal-sqrt sigma-point innovation",
+            )
+        else:
+            innovation_factor = _checked_batched_smooth_eigh_factor_first_derivatives(
+                raw_innovation_covariance,
+                d_raw_innovation_covariance,
+                singular_floor=innovation_floor,
+                rank_tolerance=rank_tolerance,
+                spectral_gap_tolerance=spectral_gap_tolerance,
+                fixed_null_tolerance=fixed_null_tolerance,
+                label="SVD sigma-point innovation",
+                allow_fixed_null_support=False,
+            )
         cross_covariance = tf.einsum(
             "brn,r,brm->bnm",
             centered_x,
@@ -1126,17 +1401,31 @@ def tf_batched_svd_sigma_point_value_and_score_with_rule(
         )
         innovation = y[t][tf.newaxis, :] - observation_mean
         d_innovation = -d_observation_mean
-        solve_innovation = _batched_eigh_solve(
-            innovation_factor.eigenvectors,
-            innovation_factor.floored_eigenvalues,
-            innovation,
-        )
-        innovation_precision = _batched_eigh_solve(
-            innovation_factor.eigenvectors,
-            innovation_factor.floored_eigenvalues,
-            tf.tile(obs_identity, [batch_dim, 1, 1]),
-        )
-        log_det = _batched_eigh_logdet(innovation_factor.floored_eigenvalues)
+        if backend_name == "tf_principal_sqrt_ukf":
+            innovation_cholesky = tf.linalg.cholesky(
+                innovation_factor.implemented_covariance
+            )
+            solve_innovation = _batched_cholesky_solve(
+                innovation_cholesky,
+                innovation,
+            )
+            innovation_precision = _batched_cholesky_solve(
+                innovation_cholesky,
+                tf.tile(obs_identity, [batch_dim, 1, 1]),
+            )
+            log_det = _batched_cholesky_logdet(innovation_cholesky)
+        else:
+            solve_innovation = _batched_eigh_solve(
+                innovation_factor.eigenvectors,
+                innovation_factor.floored_eigenvalues,
+                innovation,
+            )
+            innovation_precision = _batched_eigh_solve(
+                innovation_factor.eigenvectors,
+                innovation_factor.floored_eigenvalues,
+                tf.tile(obs_identity, [batch_dim, 1, 1]),
+            )
+            log_det = _batched_eigh_logdet(innovation_factor.floored_eigenvalues)
         mahalanobis = tf.reduce_sum(innovation * solve_innovation, axis=-1)
         contribution = -0.5 * (
             tf.cast(observation_dim, tf.float64) * tf.math.log(two_pi)
@@ -1173,13 +1462,18 @@ def tf_batched_svd_sigma_point_value_and_score_with_rule(
                 tf.linalg.matrix_transpose(kalman_gain)[:, tf.newaxis, :, :],
             )
         )
-        d_kalman_gain = tf.linalg.matrix_transpose(
-            _batched_eigh_solve(
-                innovation_factor.eigenvectors,
-                innovation_factor.floored_eigenvalues,
-                rhs,
+        if backend_name == "tf_principal_sqrt_ukf":
+            d_kalman_gain = tf.linalg.matrix_transpose(
+                _batched_cholesky_solve(innovation_cholesky, rhs)
             )
-        )
+        else:
+            d_kalman_gain = tf.linalg.matrix_transpose(
+                _batched_eigh_solve(
+                    innovation_factor.eigenvectors,
+                    innovation_factor.floored_eigenvalues,
+                    rhs,
+                )
+            )
 
         mean = predicted_mean + tf.einsum("bnm,bm->bn", kalman_gain, innovation)
         d_mean = (
@@ -1236,6 +1530,30 @@ def tf_batched_svd_sigma_point_value_and_score_with_rule(
             max_innovation_floor_count,
             innovation_factor.floor_count,
         )
+        max_placement_roundoff_repair_count = tf.maximum(
+            max_placement_roundoff_repair_count,
+            placement.roundoff_repair_count,
+        )
+        max_innovation_roundoff_repair_count = tf.maximum(
+            max_innovation_roundoff_repair_count,
+            innovation_factor.roundoff_repair_count,
+        )
+        max_placement_classified_invalid_count = tf.maximum(
+            max_placement_classified_invalid_count,
+            placement.classified_invalid_count,
+        )
+        max_innovation_classified_invalid_count = tf.maximum(
+            max_innovation_classified_invalid_count,
+            innovation_factor.classified_invalid_count,
+        )
+        max_placement_derivative_rhs_nonfinite_count = tf.maximum(
+            max_placement_derivative_rhs_nonfinite_count,
+            placement.derivative_rhs_nonfinite_count,
+        )
+        max_innovation_derivative_rhs_nonfinite_count = tf.maximum(
+            max_innovation_derivative_rhs_nonfinite_count,
+            innovation_factor.derivative_rhs_nonfinite_count,
+        )
         max_placement_residual = tf.maximum(
             max_placement_residual,
             placement.psd_projection_residual,
@@ -1277,6 +1595,30 @@ def tf_batched_svd_sigma_point_value_and_score_with_rule(
             min_innovation_eigen_gap,
             innovation_factor.min_eigen_gap,
         )
+        min_placement_eigenvalue = tf.minimum(
+            min_placement_eigenvalue,
+            placement.min_eigenvalue,
+        )
+        min_innovation_eigenvalue = tf.minimum(
+            min_innovation_eigenvalue,
+            innovation_factor.min_eigenvalue,
+        )
+        max_placement_covariance_abs_entry = tf.maximum(
+            max_placement_covariance_abs_entry,
+            placement.max_abs_covariance_entry,
+        )
+        max_innovation_covariance_abs_entry = tf.maximum(
+            max_innovation_covariance_abs_entry,
+            innovation_factor.max_abs_covariance_entry,
+        )
+        max_placement_derivative_covariance_abs_entry = tf.maximum(
+            max_placement_derivative_covariance_abs_entry,
+            placement.max_abs_derivative_covariance_entry,
+        )
+        max_innovation_derivative_covariance_abs_entry = tf.maximum(
+            max_innovation_derivative_covariance_abs_entry,
+            innovation_factor.max_abs_derivative_covariance_entry,
+        )
         last_implemented_innovation_covariance = (
             innovation_factor.implemented_covariance
         )
@@ -1291,6 +1633,12 @@ def tf_batched_svd_sigma_point_value_and_score_with_rule(
             score,
             max_placement_floor_count,
             max_innovation_floor_count,
+            max_placement_roundoff_repair_count,
+            max_innovation_roundoff_repair_count,
+            max_placement_classified_invalid_count,
+            max_innovation_classified_invalid_count,
+            max_placement_derivative_rhs_nonfinite_count,
+            max_innovation_derivative_rhs_nonfinite_count,
             max_placement_residual,
             max_innovation_residual,
             max_support_residual,
@@ -1302,6 +1650,12 @@ def tf_batched_svd_sigma_point_value_and_score_with_rule(
             max_structural_null_count,
             min_placement_eigen_gap,
             min_innovation_eigen_gap,
+            min_placement_eigenvalue,
+            min_innovation_eigenvalue,
+            max_placement_covariance_abs_entry,
+            max_innovation_covariance_abs_entry,
+            max_placement_derivative_covariance_abs_entry,
+            max_innovation_derivative_covariance_abs_entry,
             last_implemented_innovation_covariance,
         )
 
@@ -1315,6 +1669,12 @@ def tf_batched_svd_sigma_point_value_and_score_with_rule(
         score,
         max_placement_floor_count,
         max_innovation_floor_count,
+        max_placement_roundoff_repair_count,
+        max_innovation_roundoff_repair_count,
+        max_placement_classified_invalid_count,
+        max_innovation_classified_invalid_count,
+        max_placement_derivative_rhs_nonfinite_count,
+        max_innovation_derivative_rhs_nonfinite_count,
         max_placement_residual,
         max_innovation_residual,
         max_support_residual,
@@ -1326,6 +1686,12 @@ def tf_batched_svd_sigma_point_value_and_score_with_rule(
         max_structural_null_count,
         min_placement_eigen_gap,
         min_innovation_eigen_gap,
+        min_placement_eigenvalue,
+        min_innovation_eigenvalue,
+        max_placement_covariance_abs_entry,
+        max_innovation_covariance_abs_entry,
+        max_placement_derivative_covariance_abs_entry,
+        max_innovation_derivative_covariance_abs_entry,
         last_implemented_innovation_covariance,
     ) = tf.while_loop(
         lambda t, *_unused: t < n_timesteps_tensor,
@@ -1340,6 +1706,12 @@ def tf_batched_svd_sigma_point_value_and_score_with_rule(
             score,
             max_placement_floor_count,
             max_innovation_floor_count,
+            max_placement_roundoff_repair_count,
+            max_innovation_roundoff_repair_count,
+            max_placement_classified_invalid_count,
+            max_innovation_classified_invalid_count,
+            max_placement_derivative_rhs_nonfinite_count,
+            max_innovation_derivative_rhs_nonfinite_count,
             max_placement_residual,
             max_innovation_residual,
             max_support_residual,
@@ -1351,18 +1723,101 @@ def tf_batched_svd_sigma_point_value_and_score_with_rule(
             max_structural_null_count,
             min_placement_eigen_gap,
             min_innovation_eigen_gap,
+            min_placement_eigenvalue,
+            min_innovation_eigenvalue,
+            max_placement_covariance_abs_entry,
+            max_innovation_covariance_abs_entry,
+            max_placement_derivative_covariance_abs_entry,
+            max_innovation_derivative_covariance_abs_entry,
             last_implemented_innovation_covariance,
         ),
         parallel_iterations=1,
     )
 
-    checked_value = tf.debugging.check_numerics(
+    total_classified_invalid_count = (
+        max_placement_classified_invalid_count
+        + max_innovation_classified_invalid_count
+    )
+    total_derivative_rhs_nonfinite_count = (
+        max_placement_derivative_rhs_nonfinite_count
+        + max_innovation_derivative_rhs_nonfinite_count
+    )
+    classified_invalid_mask = total_classified_invalid_count > 0
+    checked_value = tf.where(
+        classified_invalid_mask,
+        tf.fill(
+            tf.shape(log_likelihood),
+            tf.constant(_PRINCIPAL_SQRT_CLASSIFIED_INVALID_LOG_PROB, tf.float64),
+        ),
         log_likelihood,
+    )
+    checked_score = tf.where(
+        classified_invalid_mask[:, tf.newaxis],
+        tf.zeros_like(score),
+        score,
+    )
+    checked_value = tf.where(
+        tf.math.is_finite(checked_value),
+        checked_value,
+        tf.fill(
+            tf.shape(checked_value),
+            tf.constant(_PRINCIPAL_SQRT_CLASSIFIED_INVALID_LOG_PROB, tf.float64),
+        ),
+    )
+    checked_score = tf.where(
+        tf.math.is_finite(checked_score),
+        checked_score,
+        tf.zeros_like(checked_score),
+    )
+    nonfinite_value_gradient_mask = tf.logical_or(
+        tf.logical_not(tf.math.is_finite(log_likelihood)),
+        tf.reduce_any(tf.logical_not(tf.math.is_finite(score)), axis=-1),
+    )
+    checked_value = tf.where(
+        nonfinite_value_gradient_mask,
+        tf.fill(
+            tf.shape(checked_value),
+            tf.constant(_PRINCIPAL_SQRT_CLASSIFIED_INVALID_LOG_PROB, tf.float64),
+        ),
+        checked_value,
+    )
+    checked_score = tf.where(
+        nonfinite_value_gradient_mask[:, tf.newaxis],
+        tf.zeros_like(checked_score),
+        checked_score,
+    )
+    checked_value = tf.debugging.check_numerics(
+        checked_value,
         "blocked_nonfinite_value: batched SVD sigma-point value is nonfinite",
     )
     checked_score = tf.debugging.check_numerics(
-        score,
+        checked_score,
         "blocked_nonfinite_score: batched SVD sigma-point score is nonfinite",
+    )
+    classified_invalid_count = total_classified_invalid_count + tf.cast(
+        tf.logical_and(
+            nonfinite_value_gradient_mask,
+            tf.logical_not(classified_invalid_mask),
+        ),
+        tf.int32,
+    )
+    valid_count = tf.cast(
+        tf.logical_not(
+            tf.logical_or(classified_invalid_mask, nonfinite_value_gradient_mask)
+        ),
+        tf.int32,
+    )
+    roundoff_repair_count = (
+        max_placement_roundoff_repair_count + max_innovation_roundoff_repair_count
+    )
+    target_row_class_code = tf.where(
+        classified_invalid_count > 0,
+        tf.fill(tf.shape(classified_invalid_count), tf.constant(2, dtype=tf.int32)),
+        tf.where(
+            roundoff_repair_count > 0,
+            tf.fill(tf.shape(roundoff_repair_count), tf.constant(1, dtype=tf.int32)),
+            tf.fill(tf.shape(roundoff_repair_count), tf.constant(0, dtype=tf.int32)),
+        ),
     )
     diagnostics = {
         "backend": tf.constant(backend_name),
@@ -1378,6 +1833,16 @@ def tf_batched_svd_sigma_point_value_and_score_with_rule(
         "deterministic_residual": max_deterministic_residual,
         "min_placement_eigen_gap": min_placement_eigen_gap,
         "min_innovation_eigen_gap": min_innovation_eigen_gap,
+        "min_placement_eigenvalue": min_placement_eigenvalue,
+        "min_innovation_eigenvalue": min_innovation_eigenvalue,
+        "max_placement_covariance_abs_entry": max_placement_covariance_abs_entry,
+        "max_innovation_covariance_abs_entry": max_innovation_covariance_abs_entry,
+        "max_placement_derivative_covariance_abs_entry": (
+            max_placement_derivative_covariance_abs_entry
+        ),
+        "max_innovation_derivative_covariance_abs_entry": (
+            max_innovation_derivative_covariance_abs_entry
+        ),
         "factor_derivative_reconstruction_residual": max_factor_derivative_residual,
         "fixed_null_derivative_residual": max_fixed_null_derivative_residual,
         "structural_null_covariance_residual": max_structural_null_covariance_residual,
@@ -1385,6 +1850,41 @@ def tf_batched_svd_sigma_point_value_and_score_with_rule(
         "innovation_psd_projection_residual": max_innovation_residual,
         "placement_floor_count": max_placement_floor_count,
         "innovation_floor_count": max_innovation_floor_count,
+        "placement_roundoff_repair_count": max_placement_roundoff_repair_count,
+        "innovation_roundoff_repair_count": max_innovation_roundoff_repair_count,
+        "placement_classified_invalid_count": max_placement_classified_invalid_count,
+        "innovation_classified_invalid_count": max_innovation_classified_invalid_count,
+        "placement_derivative_rhs_nonfinite_count": (
+            max_placement_derivative_rhs_nonfinite_count
+        ),
+        "innovation_derivative_rhs_nonfinite_count": (
+            max_innovation_derivative_rhs_nonfinite_count
+        ),
+        "principal_sqrt_target_valid_count": valid_count,
+        "principal_sqrt_target_roundoff_repair_count": roundoff_repair_count,
+        "principal_sqrt_target_classified_invalid_count": classified_invalid_count,
+        "principal_sqrt_target_derivative_rhs_nonfinite_count": (
+            total_derivative_rhs_nonfinite_count
+        ),
+        "principal_sqrt_target_row_class_code": target_row_class_code,
+        "principal_sqrt_target_row_class_legend": tf.constant(
+            "0=valid,1=roundoff_repaired,2=classified_invalid"
+        ),
+        "principal_sqrt_classified_invalid_log_prob": tf.constant(
+            _PRINCIPAL_SQRT_CLASSIFIED_INVALID_LOG_PROB,
+            dtype=tf.float64,
+        ),
+        "principal_sqrt_covariance_failure_policy": tf.constant(
+            "strict_spd_with_roundoff_repair_and_classified_invalid_finite_reject"
+        ),
+        "principal_sqrt_roundoff_repair_threshold": tf.constant(
+            _PRINCIPAL_SQRT_ROUNDOFF_TOLERANCE,
+            dtype=tf.float64,
+        ),
+        "principal_sqrt_roundoff_repair_max_abs_entry": tf.constant(
+            _PRINCIPAL_SQRT_MAX_ABS_ENTRY_FOR_REPAIR,
+            dtype=tf.float64,
+        ),
         "implemented_innovation_covariance": last_implemented_innovation_covariance,
         "derivative_branch": tf.constant(
             "strict_spd_principal_sqrt"

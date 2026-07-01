@@ -13,6 +13,8 @@ import pytest
 import bayesfilter
 from bayesfilter.inference import (
     FixedMassHMCTuningBudgetCallbackResult,
+    HMCFrozenStepTrajectoryStageConfig,
+    HMCFrozenStepTrajectoryStageResult,
     HMCKernelTuningConfig,
     HMCKernelTuningResult,
     HMCTuneVerifyRepairAttempt,
@@ -131,6 +133,231 @@ def _loop_result(*, passed: bool = True) -> HMCTuneVerifyRepairLoopResult:
     )
 
 
+def _loop_result_with_rhat_cap_public_summary() -> HMCTuneVerifyRepairLoopResult:
+    base = _loop_result(passed=False)
+    attempt = base.attempts[0]
+    attempt = HMCTuneVerifyRepairAttempt(
+        attempt_index=attempt.attempt_index,
+        budget_policy_payload={
+            "target_dimension": 2,
+            "attempt_index": 0,
+            "budget": 8,
+            "verification_num_results": 64,
+            "verification_num_burnin_steps": 16,
+            "phase5_tune_budgets": (2, 4, 8),
+            "internal_policy_only": True,
+            "public_budget_class": "bounded_public_diagnostic_plus",
+            "public_budget_cap": 256,
+            "public_max_attempts": 3,
+            "public_diagnostic_preset": "diagnostic_plus",
+        },
+        incoming_state_payload=None,
+        windowed_stage=None,
+        fixed_mass_step_stage=None,
+        frozen_step_trajectory_stage=None,
+        verification_config_payload={
+            "verification_policy": "sequential_rhat",
+            "acceptance_band": (0.65, 0.75),
+            "max_results": 64,
+            "num_burnin_steps": 16,
+            "chain_count": 4,
+            "step_size": 0.2,
+            "num_leapfrog_steps": 8,
+        },
+        verification_diagnostics={
+            "sequential_rhat_verification": True,
+            "rhat_threshold": 1.01,
+            "check_interval": 64,
+            "max_results": 64,
+            "all_finite_rhat_at_or_below_threshold": False,
+            "cap_hit": True,
+            "acceptance_rate": 0.82,
+            "runtime_finite": True,
+            "log_accept_ratio_finite": True,
+            "samples_all_finite": True,
+            "target_log_prob_finite": True,
+            "runner_route_summary": {
+                "active_route": "phase7_sequential_rhat_fixed_size_chunk_verifier",
+                "single_use_build_count": 0,
+                "fallback_status": "none",
+                "semantic_source": "_run_phase7_sequential_rhat_final_verification",
+                "step_size": 0.2,
+            },
+            "samples": [[0.0, 0.1]],
+            "trace": {"target_log_prob": [-1.0]},
+            "target_status_telemetry": {"target_status_trace": [True]},
+            "reports_posterior_convergence": False,
+        },
+        verification_callback_result=attempt.verification_callback_result,
+        final_status="repair_or_retry",
+        diagnostic_role="verification_rhat_repair_trigger",
+        hard_vetoes=(),
+        repair_triggers=(
+            "verification_rhat_above_threshold_or_cap_hit",
+            "verification_rhat_cap_hit",
+        ),
+        handoff_state_payload=attempt.handoff_state_payload,
+    )
+    return HMCTuneVerifyRepairLoopResult(
+        config=base.config,
+        geometry_artifact_hash=base.geometry_artifact_hash,
+        bootstrap_artifact_hash=base.bootstrap_artifact_hash,
+        adapter_signature=base.adapter_signature,
+        target_dimension=base.target_dimension,
+        attempts=(attempt,),
+        final_status="budget_exhausted",
+        diagnostic_role="budget_exhausted_non_promoting",
+        hard_vetoes=(),
+        repair_triggers=(
+            "verification_rhat_above_threshold_or_cap_hit",
+            "verification_rhat_cap_hit",
+        ),
+        final_kernel_payload=None,
+        final_kernel_hash=None,
+        seed_report=base.seed_report,
+        diagnostic_roles=base.diagnostic_roles,
+    )
+
+
+def _phase6_public_summary_stage() -> HMCFrozenStepTrajectoryStageResult:
+    geometry = _geometry()
+    return HMCFrozenStepTrajectoryStageResult(
+        config=HMCFrozenStepTrajectoryStageConfig(
+            target_accept_prob=0.70,
+            acceptance_band=(0.65, 0.75),
+            seed=(20260630, 41),
+            target_scope="kernel_fixed_mass_step_toy_gaussian",
+        ),
+        geometry_artifact_hash=geometry.artifact_hash,
+        bootstrap_artifact_hash="bootstrap-hash",
+        windowed_stage_artifact_hash="windowed-hash",
+        fixed_mass_step_stage_artifact_hash="fixed-step-hash",
+        selected_bootstrap_kernel_hash="bootstrap-kernel-hash",
+        selected_step_hash="step-hash",
+        adapter_signature=geometry.adapter_signature,
+        phase4_hmc_adapter_signature="phase4-hmc-signature",
+        phase5_ladder_hmc_adapter_signature="phase5-hmc-signature",
+        trajectory_hmc_adapter_signature="phase6-hmc-signature",
+        adapted_mass_artifact_payload=geometry.mass_artifact.to_payload(
+            include_arrays=True
+        ),
+        adapted_mass_artifact_signature=geometry.mass_artifact_signature,
+        frozen_step_size=0.2,
+        fixed_bootstrap_num_leapfrog_steps=8,
+        target_dimension=geometry.target_dimension,
+        candidate_generation={
+            "candidate_l_values": (3, 4, 5),
+            "verification_repair_neighborhood_applied": True,
+        },
+        candidate_results=(
+            {
+                "candidate_index": 0,
+                "classification": "repair_or_retry",
+                "diagnostics": {"acceptance_rate": 0.80},
+            },
+            {
+                "candidate_index": 1,
+                "classification": "repair_or_retry",
+                "diagnostics": {},
+            },
+        ),
+        selected_candidate_index=None,
+        selected_trajectory_payload=None,
+        selected_trajectory_hash=None,
+        final_status="repair_or_retry",
+        diagnostic_role="repair_trigger",
+        hard_vetoes=(),
+        repair_triggers=("acceptance_outside_pass_band",),
+        diagnostics={
+            "expected_candidate_count": 3,
+            "completed_candidate_count": 2,
+            "skipped_candidate_count": 1,
+            "passed_candidate_count": 0,
+            "public_timeout_closeout": {
+                "enabled": True,
+                "timeout_budget_s": 10.0,
+                "reserve_s": 5.0,
+                "elapsed_s": 9.2,
+                "remaining_s": 0.8,
+                "within_closeout_window": True,
+                "deadline_clock_scope": "public_one_call_global",
+                "stage_elapsed_s": 1.2,
+                "stage_remaining_s": 8.8,
+                "estimated_next_candidate_s": 1.25,
+                "completed_candidate_elapsed_count": 2,
+                "closeout_required_before_next_candidate": True,
+                "diagnostic_role": "public_timeout_closeout_hard_veto",
+                "candidate_index": 2,
+                "candidate_count": 3,
+                "completed_candidate_count": 2,
+                "progress_only": True,
+                "public_closeout_artifact_expected": True,
+                "reason": "phase6_public_timeout_soft_deadline_before_next_candidate",
+                "hmc_mechanics_exposed": False,
+                "reports_posterior_convergence": False,
+                "reports_sampler_superiority": False,
+                "reports_default_readiness": False,
+                "reports_gpu_or_xla_readiness": False,
+                "step_size": 0.2,
+                "num_leapfrog_steps": 5,
+            },
+            "runner_route_summary": {
+                "active_route": "single_use_or_injected_runner",
+                "reusable_runner_build_count": 0,
+                "distinct_static_runner_contract_count": 0,
+                "single_use_build_count": 1,
+                "injected_runner_call_count": 0,
+                "fallback_status": "inactive_reusable_route",
+                "round_route_events": ({"num_leapfrog_steps": 3},),
+            },
+        },
+        frozen_mass_invariant={"passed": True},
+        frozen_step_invariant={"passed": True},
+        seed_report={"seed_owner": "BayesFilter"},
+        diagnostic_roles={"trajectory": "handoff_screen_only"},
+    )
+
+
+def _loop_result_with_phase6_public_summary() -> HMCTuneVerifyRepairLoopResult:
+    base = _loop_result(passed=False)
+    attempt = base.attempts[0]
+    attempt = HMCTuneVerifyRepairAttempt(
+        attempt_index=attempt.attempt_index,
+        budget_policy_payload=attempt.budget_policy_payload,
+        incoming_state_payload=attempt.incoming_state_payload,
+        windowed_stage=attempt.windowed_stage,
+        fixed_mass_step_stage=attempt.fixed_mass_step_stage,
+        frozen_step_trajectory_stage=_phase6_public_summary_stage(),
+        verification_config_payload=None,
+        verification_diagnostics={
+            "not_run": "phase6_repair_or_retry",
+            "reports_posterior_convergence": False,
+        },
+        verification_callback_result=attempt.verification_callback_result,
+        final_status="repair_or_retry",
+        diagnostic_role="repair_trigger",
+        hard_vetoes=(),
+        repair_triggers=("phase6_trajectory_status:repair_or_retry",),
+        handoff_state_payload=attempt.handoff_state_payload,
+    )
+    return HMCTuneVerifyRepairLoopResult(
+        config=base.config,
+        geometry_artifact_hash=base.geometry_artifact_hash,
+        bootstrap_artifact_hash=base.bootstrap_artifact_hash,
+        adapter_signature=base.adapter_signature,
+        target_dimension=base.target_dimension,
+        attempts=(attempt,),
+        final_status="budget_exhausted",
+        diagnostic_role="budget_exhausted_non_promoting",
+        hard_vetoes=(),
+        repair_triggers=("phase6_trajectory_status:repair_or_retry",),
+        final_kernel_payload=None,
+        final_kernel_hash=None,
+        seed_report=base.seed_report,
+        diagnostic_roles=base.diagnostic_roles,
+    )
+
+
 def test_public_config_hides_raw_hmc_mechanics() -> None:
     parameters = set(inspect.signature(HMCKernelTuningConfig).parameters)
     forbidden = {
@@ -174,32 +401,44 @@ def test_public_xla_runtime_parameter_propagates_to_internal_stage_configs() -> 
     config = HMCKernelTuningConfig.standard(
         target_scope="kernel_fixed_mass_step_toy_gaussian",
         use_xla=True,
+        public_timeout_budget_s=810.0,
     )
     bootstrap = hmc_kernel_tuning_module._public_bootstrap_config(config)
     loop = hmc_kernel_tuning_module._public_loop_config(config)
 
     assert config.payload()["use_xla"] is True
+    assert config.payload()["public_timeout_budget_s"] == pytest.approx(810.0)
     assert bootstrap.use_xla is True
     assert bootstrap.payload()["use_xla"] is True
     assert loop.use_xla is True
     assert loop.payload()["use_xla"] is True
+    assert loop.public_timeout_budget_s == pytest.approx(810.0)
+    assert loop.public_timeout_started_perf_counter_s is None
+
+    loop_with_anchor = hmc_kernel_tuning_module._public_loop_config(
+        config,
+        public_timeout_started_perf_counter_s=12.5,
+    )
+    assert loop_with_anchor.public_timeout_started_perf_counter_s == pytest.approx(12.5)
 
     windowed = hmc_kernel_tuning_module._phase7_windowed_stage_config(
-        loop,
+        loop_with_anchor,
         attempt_index=0,
     )
     fixed_step = hmc_kernel_tuning_module._phase7_fixed_step_stage_config(
-        loop,
+        loop_with_anchor,
         attempt_index=0,
     )
     trajectory = hmc_kernel_tuning_module._phase7_trajectory_stage_config(
-        loop,
+        loop_with_anchor,
         attempt_index=0,
     )
 
     assert windowed.use_xla is True
     assert fixed_step.use_xla is True
     assert trajectory.use_xla is True
+    assert trajectory.public_timeout_budget_s == pytest.approx(810.0)
+    assert trajectory.public_timeout_started_perf_counter_s == pytest.approx(12.5)
 
 
 def test_public_xla_runtime_parameter_rejects_eager_mode() -> None:
@@ -477,6 +716,139 @@ def test_passed_public_artifact_separates_active_and_historical_repair_triggers(
     ]
     assert payload["final_kernel_payload"]["verification_acceptance_rate"] == 0.70
     assert payload["final_kernel_payload"]["fresh_fixed_kernel_verification_passed"] is True
+
+
+def test_public_artifact_exposes_phase6_summary_without_candidate_grid_or_mechanics(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    geometry = _geometry()
+    bootstrap = _bootstrap_passed()
+    loop = _loop_result_with_phase6_public_summary()
+    module = __import__("bayesfilter.inference.hmc_kernel_tuning", fromlist=[""])
+    monkeypatch.setattr(module, "initialize_hmc_kernel_geometry", lambda **_kwargs: geometry)
+    monkeypatch.setattr(module, "run_hmc_bootstrap_screen", lambda **_kwargs: bootstrap)
+    monkeypatch.setattr(module, "run_hmc_tune_verify_repair_loop", lambda **_kwargs: loop)
+
+    result = tune_hmc_kernel(
+        adapter=_ToyGaussianAdapter(),
+        initial_position=[0.0, 0.0],
+        config=HMCKernelTuningConfig.smoke(
+            target_scope="kernel_fixed_mass_step_toy_gaussian"
+        ),
+        output_dir=tmp_path,
+    )
+
+    payload = json.loads(
+        (tmp_path / "hmc_kernel_tuning_result.json").read_text(encoding="utf-8")
+    )
+    phase7 = payload["phase7_public_summary"]
+    phase6 = phase7["latest_phase6_public_summary"]
+    assert result.final_kernel_hash is None
+    assert payload["artifact_policy"]["candidate_grid_exposed"] is False
+    assert payload["artifact_policy"]["phase7_public_summary_exposed"] is True
+    assert phase7["final_status"] == "budget_exhausted"
+    assert phase6["schema"] == "bayesfilter.hmc_frozen_step_trajectory_public_summary.v1"
+    assert phase6["candidate_count"] == 3
+    assert phase6["completed_candidate_count"] == 2
+    assert phase6["skipped_candidate_count"] == 1
+    assert phase6["passed_candidate_count"] == 0
+    assert phase6["candidate_acceptance_relation_counts"] == {
+        "above_acceptance_band": 1,
+        "below_acceptance_band": 0,
+        "inside_acceptance_band": 0,
+        "unavailable": 1,
+    }
+    assert phase6["public_timeout_closeout"]["enabled"] is True
+    assert phase6["public_timeout_closeout"]["completed_candidate_count"] == 2
+    assert phase6["public_timeout_closeout"]["public_closeout_artifact_expected"] is True
+    assert (
+        phase6["public_timeout_closeout"]["deadline_clock_scope"]
+        == "public_one_call_global"
+    )
+    assert phase6["public_timeout_closeout"]["stage_elapsed_s"] == pytest.approx(1.2)
+    assert phase6["public_timeout_closeout"]["hmc_mechanics_exposed"] is False
+    assert phase6["candidate_grid_exposed"] is False
+    assert phase6["hmc_mechanics_exposed"] is False
+    text = json.dumps(phase7, sort_keys=True)
+    for forbidden in (
+        "candidate_l_values",
+        "candidate_results",
+        "num_leapfrog_steps",
+        "step_size",
+        "mass_artifact_payload",
+        "samples",
+        "trace",
+        "target_log_prob",
+        "final_state",
+        "round_route_events",
+    ):
+        assert forbidden not in text
+
+
+def test_public_artifact_exposes_attempt_and_verification_summary_without_mechanics(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    geometry = _geometry()
+    bootstrap = _bootstrap_passed()
+    loop = _loop_result_with_rhat_cap_public_summary()
+    module = __import__("bayesfilter.inference.hmc_kernel_tuning", fromlist=[""])
+    monkeypatch.setattr(module, "initialize_hmc_kernel_geometry", lambda **_kwargs: geometry)
+    monkeypatch.setattr(module, "run_hmc_bootstrap_screen", lambda **_kwargs: bootstrap)
+    monkeypatch.setattr(module, "run_hmc_tune_verify_repair_loop", lambda **_kwargs: loop)
+
+    result = tune_hmc_kernel(
+        adapter=_ToyGaussianAdapter(),
+        initial_position=[0.0, 0.0],
+        config=HMCKernelTuningConfig.smoke(
+            target_scope="kernel_fixed_mass_step_toy_gaussian"
+        ),
+        output_dir=tmp_path,
+    )
+
+    payload = json.loads(
+        (tmp_path / "hmc_kernel_tuning_result.json").read_text(encoding="utf-8")
+    )
+    phase7 = payload["phase7_public_summary"]
+    attempt = phase7["attempt_summaries"][0]
+    verification = attempt["stage_statuses"]["verification"]
+    assert result.final_kernel_hash is None
+    assert phase7["attempt_count"] == 1
+    assert attempt["attempt_index"] == 0
+    assert attempt["budget_public_summary"]["public_budget_class"] == (
+        "bounded_public_diagnostic_plus"
+    )
+    assert attempt["budget_public_summary"]["substage_budget_details_exposed"] is False
+    assert verification["verification_policy"] == "sequential_rhat"
+    assert verification["sequential_rhat_verification"] is True
+    assert verification["cap_hit"] is True
+    assert verification["all_finite_rhat_at_or_below_threshold"] is False
+    assert verification["acceptance_relation"] == "above_acceptance_band"
+    assert verification["acceptance_band_from_payload"] is True
+    assert verification["acceptance_band_fallback_used"] is False
+    assert verification["max_results"] == 64
+    assert verification["runner_route_public_summary"]["active_route"] == (
+        "phase7_sequential_rhat_fixed_size_chunk_verifier"
+    )
+    assert verification["hmc_mechanics_exposed"] is False
+    assert attempt["private_handoff_payload_exposed"] is False
+
+    text = json.dumps(phase7, sort_keys=True)
+    for forbidden in (
+        "step_size",
+        "num_leapfrog_steps",
+        "phase5_tune_budgets",
+        "samples",
+        "trace",
+        "target_log_prob",
+        "target_status_trace",
+        "target_status_telemetry",
+        "mass_artifact_payload",
+        "final_state",
+        "selected_kernel_payload",
+    ):
+        assert forbidden not in text
 
 
 def test_public_smoke_budget_is_capped_contract_policy() -> None:

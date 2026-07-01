@@ -300,6 +300,105 @@ def test_budget_ladder_finite_acceptance_outside_repair_band_repairs() -> None:
     ]
 
 
+def test_budget_ladder_high_acceptance_repair_increases_next_initial_step() -> None:
+    screen_acceptances = [0.90, 0.70]
+    tune_initial_steps: list[float] = []
+
+    def run(_adapter: Any, _initial_state: Any, config: Any) -> _FakeRunResult:
+        uses_tuning = bool(config.tuning_policy.uses_dual_averaging)
+        if uses_tuning:
+            tune_initial_steps.append(float(config.step_size))
+            return _fake_result(
+                acceptance=0.70,
+                step_size=0.2,
+                num_adaptation_steps=config.tuning_policy.num_adaptation_steps,
+            )
+        return _fake_result(acceptance=screen_acceptances.pop(0), step_size=None)
+
+    result = run_fixed_mass_hmc_tuning_budget_ladder(
+        adapter=_ToyGaussianAdapter(),
+        mass_artifact=_mass_artifact(),
+        initial_state_factory=_initial_state_factory,
+        config=_config(budget_schedule=(4, 8)),
+        run_full_chain=run,
+    )
+
+    assert result.passed is True
+    assert [round_result.classification for round_result in result.rounds] == [
+        "acceptance_repair",
+        "passed",
+    ]
+    assert result.rounds[0].repair_triggers == ("screen_acceptance_above_repair_band",)
+    assert tune_initial_steps == pytest.approx([0.1, 0.4])
+
+
+def test_budget_ladder_low_acceptance_repair_decreases_next_initial_step() -> None:
+    screen_acceptances = [0.40, 0.70]
+    tune_initial_steps: list[float] = []
+
+    def run(_adapter: Any, _initial_state: Any, config: Any) -> _FakeRunResult:
+        uses_tuning = bool(config.tuning_policy.uses_dual_averaging)
+        if uses_tuning:
+            tune_initial_steps.append(float(config.step_size))
+            return _fake_result(
+                acceptance=0.70,
+                step_size=0.3,
+                num_adaptation_steps=config.tuning_policy.num_adaptation_steps,
+            )
+        return _fake_result(acceptance=screen_acceptances.pop(0), step_size=None)
+
+    result = run_fixed_mass_hmc_tuning_budget_ladder(
+        adapter=_ToyGaussianAdapter(),
+        mass_artifact=_mass_artifact(),
+        initial_state_factory=_initial_state_factory,
+        config=_config(budget_schedule=(4, 8)),
+        run_full_chain=run,
+    )
+
+    assert result.passed is True
+    assert [round_result.classification for round_result in result.rounds] == [
+        "acceptance_repair",
+        "passed",
+    ]
+    assert result.rounds[0].repair_triggers == ("screen_acceptance_below_repair_band",)
+    assert tune_initial_steps == pytest.approx([0.1, 0.15])
+
+
+def test_budget_ladder_exhaustion_repair_payload_uses_directional_step() -> None:
+    screen_acceptances = [0.90]
+
+    def run(_adapter: Any, _initial_state: Any, config: Any) -> _FakeRunResult:
+        uses_tuning = bool(config.tuning_policy.uses_dual_averaging)
+        if uses_tuning:
+            return _fake_result(
+                acceptance=0.70,
+                step_size=0.2,
+                num_adaptation_steps=config.tuning_policy.num_adaptation_steps,
+            )
+        return _fake_result(acceptance=screen_acceptances.pop(0), step_size=None)
+
+    result = run_fixed_mass_hmc_tuning_budget_ladder(
+        adapter=_ToyGaussianAdapter(),
+        mass_artifact=_mass_artifact(),
+        initial_state_factory=_initial_state_factory,
+        config=_config(budget_schedule=(4,)),
+        run_full_chain=run,
+    )
+
+    assert result.passed is False
+    assert result.final_status == "budget_exhausted"
+    assert result.repair_config_payload is not None
+    assert result.repair_config_payload["step_size"] == pytest.approx(0.4)
+    assert result.repair_config_payload["repair_source"] == (
+        "screen_acceptance_directional_repair"
+    )
+    assert result.repair_config_hash
+    payload = result.payload()
+    assert payload["repair_config_available"] is True
+    assert payload["repair_config_payload_exposed"] is False
+    assert "repair_config_payload" not in payload
+
+
 def test_budget_ladder_nonfinite_screen_diagnostics_still_hard_veto() -> None:
     calls: list[str] = []
 
