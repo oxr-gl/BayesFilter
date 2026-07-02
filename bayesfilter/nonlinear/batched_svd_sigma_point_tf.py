@@ -31,6 +31,7 @@ def tf_batched_svd_sigma_point_value_and_score_custom_gradient(
     rank_tolerance: tf.Tensor | float = 1.0e-12,
     spectral_gap_tolerance: tf.Tensor | float = 1.0e-8,
     fixed_null_tolerance: tf.Tensor | float = 1.0e-10,
+    principal_sqrt_reconstruction_tolerance: tf.Tensor | float = 1.0e-10,
     jitter: tf.Tensor | float = 0.0,
 ) -> tuple[tf.Tensor, tf.Tensor, Mapping[str, tf.Tensor]]:
     """Return batched value, analytic score, and diagnostics.
@@ -59,6 +60,8 @@ def tf_batched_svd_sigma_point_value_and_score_custom_gradient(
         rank_tolerance=rank_tolerance,
         spectral_gap_tolerance=spectral_gap_tolerance,
         fixed_null_tolerance=fixed_null_tolerance,
+        principal_sqrt_reconstruction_tolerance=(
+            principal_sqrt_reconstruction_tolerance),
         jitter=jitter,
         allow_fixed_null_support=False,
     )

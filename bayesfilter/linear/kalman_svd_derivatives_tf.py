@@ -309,17 +309,17 @@ def _tf_svd_solve_logdet_kalman_score(
     """
 
     y = _as_observation_matrix(observations)
-    n_timesteps = _static_dim(y, 0, "observation length")
+    n_timesteps = tf.shape(y)[0]
     transition_offset = _to_tensor(transition_offset)
     transition_matrix = _to_tensor(transition_matrix)
     transition_covariance = _to_tensor(transition_covariance)
     observation_offset = _to_tensor(observation_offset)
     observation_matrix = _to_tensor(observation_matrix)
     observation_covariance = _to_tensor(observation_covariance)
-    mean = _to_tensor(initial_state_mean)
-    covariance = symmetrize(_to_tensor(initial_state_covariance))
-    dmean = _to_tensor(d_initial_state_mean)
-    dcovariance = symmetrize(_to_tensor(d_initial_state_covariance))
+    mean0 = _to_tensor(initial_state_mean)
+    covariance0 = symmetrize(_to_tensor(initial_state_covariance))
+    dmean0 = _to_tensor(d_initial_state_mean)
+    dcovariance0 = symmetrize(_to_tensor(d_initial_state_covariance))
     d_transition_offset = _to_tensor(d_transition_offset)
     d_transition_matrix = _to_tensor(d_transition_matrix)
     d_transition_covariance = symmetrize(_to_tensor(d_transition_covariance))
@@ -329,8 +329,8 @@ def _tf_svd_solve_logdet_kalman_score(
     jitter_tensor = tf.cast(jitter, tf.float64)
     singular_floor_tensor = tf.cast(singular_floor, tf.float64)
 
-    parameter_dim = _static_dim(dmean, 0, "parameter dimension")
-    state_dim = _static_dim(mean, 0, "state dimension")
+    parameter_dim = _static_dim(dmean0, 0, "parameter dimension")
+    state_dim = _static_dim(mean0, 0, "state dimension")
     obs_dim = _static_dim(
         _matrix_at_time(observation_matrix, 0),
         0,
@@ -340,17 +340,36 @@ def _tf_svd_solve_logdet_kalman_score(
     identity_obs = tf.eye(obs_dim, dtype=tf.float64)
     two_pi = tf.constant(2.0 * math.pi, dtype=tf.float64)
 
-    log_likelihood = tf.constant(0.0, dtype=tf.float64)
-    score = tf.zeros((parameter_dim,), dtype=tf.float64)
-    max_floor_count = tf.constant(0, dtype=tf.int32)
-    max_projection_residual = tf.constant(0.0, dtype=tf.float64)
-    min_innovation_eigenvalue = tf.constant(float("inf"), dtype=tf.float64)
-    max_innovation_condition = tf.constant(0.0, dtype=tf.float64)
-    min_gap = tf.constant(float("inf"), dtype=tf.float64)
-    last_implemented_covariance = tf.zeros((obs_dim, obs_dim), dtype=tf.float64)
-    invalid_eigensolver_input = tf.constant(False, dtype=tf.bool)
+    log_likelihood0 = tf.constant(0.0, dtype=tf.float64)
+    score0 = tf.zeros((parameter_dim,), dtype=tf.float64)
+    max_floor_count0 = tf.constant(0, dtype=tf.int32)
+    max_projection_residual0 = tf.constant(0.0, dtype=tf.float64)
+    min_innovation_eigenvalue0 = tf.constant(float("inf"), dtype=tf.float64)
+    max_innovation_condition0 = tf.constant(0.0, dtype=tf.float64)
+    min_gap0 = tf.constant(float("inf"), dtype=tf.float64)
+    last_implemented_covariance0 = tf.zeros((obs_dim, obs_dim), dtype=tf.float64)
+    invalid_eigensolver_input0 = tf.constant(False, dtype=tf.bool)
+    t0 = tf.constant(0, dtype=tf.int32)
 
-    for t in range(n_timesteps):
+    def cond(t, *_state):
+        return t < n_timesteps
+
+    def body(
+        t,
+        mean,
+        covariance,
+        dmean,
+        dcovariance,
+        log_likelihood,
+        score,
+        max_floor_count,
+        max_projection_residual,
+        min_innovation_eigenvalue,
+        max_innovation_condition,
+        min_gap,
+        last_implemented_covariance,
+        invalid_eigensolver_input,
+    ):
         c = _vector_at_time(transition_offset, t)
         T = _matrix_at_time(transition_matrix, t)
         Q = _matrix_at_time(transition_covariance, t)
@@ -481,7 +500,59 @@ def _tf_svd_solve_logdet_kalman_score(
         max_innovation_condition = tf.maximum(max_innovation_condition, condition)
         min_gap = tf.minimum(min_gap, _min_eigen_gap(eigenvalues))
         last_implemented_covariance = implemented_covariance
+        return (
+            t + 1,
+            mean,
+            covariance,
+            dmean,
+            dcovariance,
+            log_likelihood,
+            score,
+            max_floor_count,
+            max_projection_residual,
+            min_innovation_eigenvalue,
+            max_innovation_condition,
+            min_gap,
+            last_implemented_covariance,
+            invalid_eigensolver_input,
+        )
 
+    (
+        _,
+        _mean,
+        _covariance,
+        _dmean,
+        _dcovariance,
+        log_likelihood,
+        score,
+        max_floor_count,
+        max_projection_residual,
+        min_innovation_eigenvalue,
+        max_innovation_condition,
+        min_gap,
+        last_implemented_covariance,
+        invalid_eigensolver_input,
+    ) = tf.while_loop(
+        cond,
+        body,
+        (
+            t0,
+            mean0,
+            covariance0,
+            dmean0,
+            dcovariance0,
+            log_likelihood0,
+            score0,
+            max_floor_count0,
+            max_projection_residual0,
+            min_innovation_eigenvalue0,
+            max_innovation_condition0,
+            min_gap0,
+            last_implemented_covariance0,
+            invalid_eigensolver_input0,
+        ),
+        parallel_iterations=1,
+    )
     return (
         log_likelihood,
         score,

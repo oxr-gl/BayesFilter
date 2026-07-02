@@ -232,7 +232,8 @@ def test_fixed_transport_hmc_tuner_records_no_viable_candidate() -> None:
     assert result.final_kernel_payload is None
     assert result.selected_candidate_index is None
     assert any(
-        "screen_acceptance_outside_repair_band" in candidate.hard_vetoes
+        "screen_acceptance_above_repair_band" in candidate.repair_triggers
+        or "screen_acceptance_outside_repair_band" in candidate.hard_vetoes
         or "verification_acceptance_outside_repair_band" in candidate.hard_vetoes
         for candidate in result.candidates
     )

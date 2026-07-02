@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import inspect
+import json
 import os
 from collections.abc import Mapping
 from dataclasses import dataclass, replace
@@ -13,6 +14,7 @@ import pytest
 import tensorflow as tf
 
 import bayesfilter
+import bayesfilter.inference.hmc_kernel_tuning as hmc_kernel_tuning
 from bayesfilter.inference import (
     FixedMassHMCTuningBudgetCallbackResult,
     HMCBootstrapScreenResult,
@@ -384,7 +386,11 @@ def test_fixed_mass_step_stage_repairs_without_selected_step_when_budget_exhaust
     assert result.selected_step_size is None
     assert result.repair_step_payload is not None
     assert result.repair_step_hash
+    assert result.budget_ladder_result.repair_config_payload is not None
     assert result.repair_step_size == pytest.approx(
+        result.budget_ladder_result.repair_config_payload["step_size"]
+    )
+    assert result.repair_step_size > (
         result.budget_ladder_result.last_finite_tuned_round.tuned_step_size
     )
     assert result.budget_ladder_result.final_status == "budget_exhausted"
@@ -402,6 +408,82 @@ def test_fixed_mass_step_stage_repairs_without_selected_step_when_budget_exhaust
             fixed_mass_step_stage=result,
             run_full_chain=_scripted_step_runner([0.70])[0],
         )
+
+
+def test_fixed_mass_step_stage_private_repair_handoff_preserves_bracket_state_without_public_leak() -> None:
+    screen_acceptances = [0.9375, 0.125, 0.78125]
+    geometry = _geometry()
+    bootstrap = _bootstrap()
+    windowed = _windowed_stage()
+
+    def run(_adapter: Any, _initial_state: Any, config: Any) -> _FakeRunResult:
+        uses_tuning = bool(config.tuning_policy.uses_dual_averaging)
+        if uses_tuning:
+            return _fake_result(
+                num_results=int(config.num_results),
+                acceptance=0.70,
+                step_size=0.2,
+                num_adaptation_steps=config.tuning_policy.num_adaptation_steps,
+                samples=np.zeros((int(config.num_results), 2)),
+            )
+        return _fake_result(
+            num_results=int(config.num_results),
+            acceptance=screen_acceptances.pop(0),
+            samples=np.zeros((int(config.num_results), 2)),
+        )
+
+    result = run_hmc_fixed_mass_step_stage(
+        adapter=_ToyGaussianAdapter(),
+        geometry=geometry,
+        bootstrap=bootstrap,
+        windowed_stage=windowed,
+        config=_stage_config(),
+        run_full_chain=run,
+    )
+
+    assert result.final_status == "repair_or_retry"
+    assert result.repair_step_payload is not None
+    bracket_state = result.repair_step_payload["fixed_mass_bracket_state"]
+    assert bracket_state["bracketed"] is True
+    assert bracket_state["next_step_size"] == pytest.approx(result.repair_step_size)
+    assert bracket_state["private_handoff_only"] is True
+
+    attempt_state = hmc_kernel_tuning._phase7_attempt_state_from_stages(
+        config=hmc_kernel_tuning.HMCTuneVerifyRepairLoopConfig(
+            target_accept_prob=0.70,
+            acceptance_band=(0.65, 0.75),
+            repair_band=(0.55, 0.85),
+            max_attempts=2,
+            seed=(20260621, 70),
+            chain_execution_mode="eager",
+            target_scope="kernel_fixed_mass_step_toy_gaussian",
+        ),
+        windowed_stage=windowed,
+        fixed_mass_step_stage=result,
+        frozen_step_trajectory_stage=None,
+    )
+
+    assert attempt_state.handoff_stage == "phase5_repair"
+    assert attempt_state.fixed_mass_bracket_state == bracket_state
+    attempt_payload = attempt_state.payload()
+    assert attempt_payload["fixed_mass_bracket_state_available"] is True
+    assert attempt_payload["fixed_mass_bracket_state"] == bracket_state
+
+    public_summary = hmc_kernel_tuning._stage_status_public_summary(result)
+    public_text = json.dumps(public_summary, sort_keys=True)
+    for forbidden in (
+        "fixed_mass_bracket_state",
+        "high_acceptance_step_lower_bound",
+        "low_acceptance_step_upper_bound",
+        "step_size",
+        "num_leapfrog_steps",
+        "mass_artifact_payload",
+        "samples",
+        "trace",
+        "target_log_prob",
+        "final_state",
+    ):
+        assert forbidden not in public_text
 
 
 def test_fixed_mass_step_stage_requires_passed_phase4() -> None:

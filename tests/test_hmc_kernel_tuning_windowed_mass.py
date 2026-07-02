@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import inspect
+import json
 import os
 from collections.abc import Mapping
 from dataclasses import dataclass, replace
@@ -348,6 +349,215 @@ def test_windowed_mass_stage_private_progress_callback_is_allowlisted() -> None:
         assert payload["elapsed_s"] == pytest.approx(0.0)
         assert payload["started_perf_counter_s"] >= 0.0
         assert payload["timing_anchor_role"] == "process_local_monotonic_debug_only"
+
+
+def test_windowed_mass_public_timeout_uses_segmented_chunk_runner(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    events: list[tuple[str, Mapping[str, Any]]] = []
+    built_configs: list[Any] = []
+    calls: list[dict[str, Any]] = []
+
+    class _ScriptedChunkRunner:
+        def __init__(self, _adapter: Any, _initial_state: Any, config: Any) -> None:
+            self.config = config
+            self.call_count = 0
+
+        def run(
+            self,
+            *,
+            active_results: Any,
+            current_state: Any = None,
+            seed: Any = None,
+            step_size: Any = None,
+        ) -> Any:
+            self.call_count += 1
+            active = int(active_results)
+            calls.append(
+                {
+                    "active_results": active,
+                    "current_state": np.asarray(current_state, dtype=float).copy(),
+                    "seed": tuple(int(item) for item in seed),
+                    "step_size": float(step_size),
+                    "burnin": int(self.config.num_burnin_steps),
+                }
+            )
+            offset = 0.1 * self.call_count
+            samples = _warmup_draws(active) + offset
+            trace = {
+                "is_accepted": tf.constant(
+                    [True, False, True, True, False, True, True, False, True, True, False, True][
+                        :active
+                    ],
+                    dtype=tf.bool,
+                ),
+                "log_accept_ratio": tf.constant(np.linspace(-0.2, 0.1, active), dtype=tf.float64),
+                "target_log_prob": tf.constant(
+                    -0.5 * np.sum(np.square(samples), axis=-1),
+                    dtype=tf.float64,
+                ),
+            }
+            return hmc_kernel_tuning.FixedSizeHMCChunkRunResult(
+                samples=tf.constant(samples, dtype=tf.float64),
+                valid_mask=tf.ones((active,), dtype=tf.bool),
+                final_state=tf.constant(samples[-1], dtype=tf.float64),
+                trace=trace,
+                diagnostics={
+                    "valid_sample_count": tf.constant(active, dtype=tf.int32),
+                    "nonfinite_valid_sample_count": tf.constant(0, dtype=tf.int32),
+                },
+                metadata={
+                    "step_size": 999.0,
+                    "num_leapfrog_steps": 999,
+                    "runtime": "private fake chunk metadata",
+                },
+            )
+
+    def fake_builder(adapter: Any, initial_state: Any, config: Any) -> _ScriptedChunkRunner:
+        built_configs.append(config)
+        return _ScriptedChunkRunner(adapter, initial_state, config)
+
+    monkeypatch.setattr(
+        hmc_kernel_tuning,
+        "_WINDOWED_MASS_SEGMENT_SIZE",
+        5,
+    )
+    monkeypatch.setattr(
+        hmc_kernel_tuning,
+        "build_fixed_size_hmc_chunk_runner",
+        fake_builder,
+    )
+
+    result = run_hmc_windowed_mass_stage(
+        adapter=_ToyGaussianAdapter(),
+        geometry=_geometry(),
+        bootstrap=_bootstrap(),
+        config=_stage_config(public_timeout_budget_s=1000.0),
+        _progress_callback=lambda stage, payload: events.append((stage, payload)),
+        _attempt_index=2,
+    )
+
+    assert result.passed is True
+    assert [config.trace_policy for config in built_configs] == ["standard", "standard"]
+    assert [config.num_burnin_steps for config in built_configs] == [1, 0]
+    assert [call["active_results"] for call in calls] == [5, 5, 2]
+    np.testing.assert_allclose(calls[1]["current_state"], _warmup_draws(5)[-1] + 0.1)
+    assert result.diagnostics["runtime_metadata"]["windowed_stage_segmented_chunk_runner"] is True
+    assert result.diagnostics["runtime_metadata"]["completed_segment_count"] == 3
+    assert result.diagnostics["samples_shape"] == (12, 2)
+    assert result.acceptance_telemetry_provenance["finite_and_aligned"] is True
+    segment_events = [
+        (stage, payload)
+        for stage, payload in events
+        if stage.startswith("windowed_mass_segment_")
+    ]
+    assert [stage for stage, _payload in segment_events] == [
+        "windowed_mass_segment_start",
+        "windowed_mass_segment_complete",
+        "windowed_mass_segment_start",
+        "windowed_mass_segment_complete",
+        "windowed_mass_segment_start",
+        "windowed_mass_segment_complete",
+    ]
+    public_text = json.dumps([payload for _stage, payload in segment_events], sort_keys=True)
+    for forbidden in (
+        '"step_size"',
+        '"num_leapfrog_steps"',
+        '"samples"',
+        '"trace"',
+        '"target_log_prob"',
+        '"final_state"',
+        '"mass_artifact"',
+    ):
+        assert forbidden not in public_text
+    for _stage, payload in segment_events:
+        assert payload["hmc_mechanics_exposed"] is False
+        assert payload["route_category"] == "segmented_windowed_mass_runner"
+        assert payload["segment_count"] == 3
+
+
+def test_windowed_mass_segmented_timeout_between_chunks_returns_closeout(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    clock = {"now": 0.0}
+    events: list[tuple[str, Mapping[str, Any]]] = []
+    calls = {"count": 0}
+
+    class _SlowChunkRunner:
+        def __init__(self, _adapter: Any, _initial_state: Any, _config: Any) -> None:
+            pass
+
+        def run(
+            self,
+            *,
+            active_results: Any,
+            current_state: Any = None,
+            seed: Any = None,
+            step_size: Any = None,
+        ) -> Any:
+            calls["count"] += 1
+            clock["now"] = 80.0
+            active = int(active_results)
+            samples = _warmup_draws(active)
+            return hmc_kernel_tuning.FixedSizeHMCChunkRunResult(
+                samples=tf.constant(samples, dtype=tf.float64),
+                valid_mask=tf.ones((active,), dtype=tf.bool),
+                final_state=tf.constant(samples[-1], dtype=tf.float64),
+                trace={
+                    "is_accepted": tf.constant([True, False, True, True, False][:active]),
+                    "log_accept_ratio": tf.constant(np.linspace(-0.1, 0.1, active), dtype=tf.float64),
+                    "target_log_prob": tf.constant(
+                        -0.5 * np.sum(np.square(samples), axis=-1),
+                        dtype=tf.float64,
+                    ),
+                },
+                diagnostics={},
+                metadata={},
+            )
+
+    monkeypatch.setattr(hmc_kernel_tuning.time, "perf_counter", lambda: clock["now"])
+    monkeypatch.setattr(hmc_kernel_tuning, "_WINDOWED_MASS_SEGMENT_SIZE", 5)
+    monkeypatch.setattr(
+        hmc_kernel_tuning,
+        "build_fixed_size_hmc_chunk_runner",
+        lambda adapter, initial_state, config: _SlowChunkRunner(adapter, initial_state, config),
+    )
+
+    result = run_hmc_windowed_mass_stage(
+        adapter=_ToyGaussianAdapter(),
+        geometry=_geometry(),
+        bootstrap=_bootstrap(),
+        config=_stage_config(
+            public_timeout_budget_s=100.0,
+            public_timeout_started_perf_counter_s=0.0,
+        ),
+        _progress_callback=lambda stage, payload: events.append((stage, payload)),
+        _attempt_index=4,
+    )
+
+    assert calls["count"] == 1
+    assert result.passed is False
+    assert result.final_status == "hard_veto"
+    assert result.hard_vetoes == ("windowed_mass_public_timeout_soft_deadline",)
+    closeout = result.diagnostics["public_timeout_closeout"]
+    assert closeout["completed_segment_count"] == 1
+    assert closeout["planned_segment_count"] == 3
+    assert closeout["hmc_mechanics_exposed"] is False
+    assert [stage for stage, _payload in events if "segment" in stage] == [
+        "windowed_mass_segment_start",
+        "windowed_mass_segment_complete",
+    ]
+    assert events[-1][0] == "windowed_mass_public_timeout_closeout"
+    assert events[-1][1]["public_timeout_closeout"]["completed_segment_count"] == 1
+    public_text = json.dumps(events[-1][1], sort_keys=True)
+    for forbidden in (
+        '"step_size"',
+        '"num_leapfrog_steps"',
+        '"samples"',
+        '"trace"',
+        '"final_state"',
+    ):
+        assert forbidden not in public_text
 
 
 def test_windowed_mass_config_use_xla_propagates_to_full_chain_config() -> None:

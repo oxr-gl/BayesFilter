@@ -227,6 +227,7 @@ __all__ = [
     "first_to_full_linear_gaussian_derivatives",
     "find_forbidden_compiled_value_tokens",
     "initialize_hmc_kernel_geometry",
+    "inspect_sequential_rhat_private_checkpoint",
     "latent_to_position",
     "latent_value_and_score",
     "make_affine_structural_tf",
@@ -329,6 +330,8 @@ __all__ = [
     "write_partial_result_snapshot",
     "write_evidence_manifest",
     "write_hmc_sample_archive",
+    "write_sequential_rhat_boundary_handoff_checkpoint",
+    "write_sequential_rhat_pre_verification_handoff_checkpoint",
     "write_worker_manifest",
 ]
 
@@ -609,6 +612,7 @@ _EXPORT_MODULES = {
     "select_preferred_gpu": "bayesfilter.runtime",
     "screen_hmc_diagnostics": "bayesfilter.inference",
     "sequential_rhat_verification_checkpoint_contract": "bayesfilter.inference",
+    "inspect_sequential_rhat_private_checkpoint": "bayesfilter.inference",
     "solve_kalman_score_hessian": "bayesfilter.linear.kalman_derivatives_numpy",
     "stable_adapter_signature": "bayesfilter.inference",
     "stationary_lgssm_first_derivative_coverage": (
@@ -706,6 +710,8 @@ _EXPORT_MODULES = {
     "write_partial_result_snapshot": "bayesfilter.runtime",
     "write_evidence_manifest": "bayesfilter.runtime",
     "write_hmc_sample_archive": "bayesfilter.inference",
+    "write_sequential_rhat_boundary_handoff_checkpoint": "bayesfilter.inference",
+    "write_sequential_rhat_pre_verification_handoff_checkpoint": "bayesfilter.inference",
     "write_worker_manifest": "bayesfilter.runtime",
 }
 

@@ -55,6 +55,7 @@ _PRINCIPAL_SQRT_ROUNDOFF_TOLERANCE = 1.0e-14
 _PRINCIPAL_SQRT_MAX_ABS_ENTRY_FOR_REPAIR = 1.0e8
 _PRINCIPAL_SQRT_CLASSIFIED_INVALID_LOG_PROB = -1.0e100
 _PRINCIPAL_SQRT_DIAGNOSTIC_LARGE = 1.0e100
+_PRINCIPAL_SQRT_RECONSTRUCTION_RELATIVE_TOLERANCE = 1.0e-10
 
 
 @dataclass(frozen=True)
@@ -876,11 +877,25 @@ def _checked_batched_principal_sqrt_factor_first_derivatives(
     )
     max_residual = tf.maximum(lyapunov_residual, reconstruction_residual)
     lyapunov_tolerance = tf.convert_to_tensor(lyapunov_tolerance, dtype=tf.float64)
+    derivative_scale = tf.linalg.norm(safe_d_covariance, axis=[-2, -1])
+    derivative_scale = tf.where(
+        valid_derivative_parameter_mask,
+        derivative_scale,
+        tf.zeros_like(derivative_scale),
+    )
+    scaled_tolerance = (
+        lyapunov_tolerance
+        + tf.constant(
+            _PRINCIPAL_SQRT_RECONSTRUCTION_RELATIVE_TOLERANCE,
+            dtype=tf.float64,
+        )
+        * derivative_scale
+    )
     with tf.control_dependencies(
         [
             tf.debugging.assert_less_equal(
-                tf.reduce_max(max_residual),
-                lyapunov_tolerance,
+                tf.reduce_max(max_residual - scaled_tolerance),
+                tf.constant(0.0, dtype=tf.float64),
                 message=f"blocked_principal_sqrt_reconstruction: {label} derivative reconstruction failed",
             )
         ]
@@ -974,6 +989,7 @@ def tf_batched_svd_sigma_point_value_and_score_with_rule(
     rank_tolerance: tf.Tensor | float = 1.0e-12,
     spectral_gap_tolerance: tf.Tensor | float = 1.0e-8,
     fixed_null_tolerance: tf.Tensor | float = 1.0e-10,
+    principal_sqrt_reconstruction_tolerance: tf.Tensor | float = 1.0e-10,
     jitter: tf.Tensor | float = 0.0,
     allow_fixed_null_support: bool = False,
 ) -> tuple[tf.Tensor, tf.Tensor, Mapping[str, tf.Tensor]]:
@@ -1018,6 +1034,10 @@ def tf_batched_svd_sigma_point_value_and_score_with_rule(
     rank_tolerance = tf.convert_to_tensor(rank_tolerance, dtype=tf.float64)
     spectral_gap_tolerance = tf.convert_to_tensor(spectral_gap_tolerance, dtype=tf.float64)
     fixed_null_tolerance = tf.convert_to_tensor(fixed_null_tolerance, dtype=tf.float64)
+    principal_sqrt_reconstruction_tolerance = tf.convert_to_tensor(
+        principal_sqrt_reconstruction_tolerance,
+        dtype=tf.float64,
+    )
     jitter = tf.convert_to_tensor(jitter, dtype=tf.float64)
 
     obs_identity = tf.eye(observation_dim, dtype=tf.float64)[tf.newaxis, :, :]
@@ -1166,6 +1186,7 @@ def tf_batched_svd_sigma_point_value_and_score_with_rule(
                 d_aug_covariance,
                 singular_floor=placement_floor,
                 fixed_null_tolerance=fixed_null_tolerance,
+                lyapunov_tolerance=principal_sqrt_reconstruction_tolerance,
                 label="principal-sqrt sigma-point placement",
             )
         else:
@@ -1366,6 +1387,7 @@ def tf_batched_svd_sigma_point_value_and_score_with_rule(
                 d_raw_innovation_covariance,
                 singular_floor=innovation_floor,
                 fixed_null_tolerance=fixed_null_tolerance,
+                lyapunov_tolerance=principal_sqrt_reconstruction_tolerance,
                 label="principal-sqrt sigma-point innovation",
             )
         else:
@@ -1920,6 +1942,7 @@ def tf_batched_svd_sigma_point_value_and_score(
     rank_tolerance: tf.Tensor | float = 1.0e-12,
     spectral_gap_tolerance: tf.Tensor | float = 1.0e-8,
     fixed_null_tolerance: tf.Tensor | float = 1.0e-10,
+    principal_sqrt_reconstruction_tolerance: tf.Tensor | float = 1.0e-10,
     jitter: tf.Tensor | float = 0.0,
     allow_fixed_null_support: bool = False,
 ) -> tuple[tf.Tensor, tf.Tensor, Mapping[str, tf.Tensor]]:
@@ -1940,6 +1963,8 @@ def tf_batched_svd_sigma_point_value_and_score(
         rank_tolerance=rank_tolerance,
         spectral_gap_tolerance=spectral_gap_tolerance,
         fixed_null_tolerance=fixed_null_tolerance,
+        principal_sqrt_reconstruction_tolerance=(
+            principal_sqrt_reconstruction_tolerance),
         jitter=jitter,
         allow_fixed_null_support=allow_fixed_null_support,
     )

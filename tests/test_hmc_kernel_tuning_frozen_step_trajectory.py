@@ -37,6 +37,7 @@ from tests.test_hmc_kernel_tuning_fixed_mass_step import (
     _geometry,
     _runtime_metadata,
     _stage_config,
+    _windowed_config,
     _windowed_stage,
     run_hmc_fixed_mass_step_stage,
 )
@@ -94,6 +95,62 @@ def _windowed_and_step_stage(*, selected_acceptance: float = 0.70):
         windowed_stage=windowed,
     )
     return windowed, step_stage
+
+
+def _consistent_chain_for_geometry(geometry: Any):
+    def bootstrap_run(_adapter: Any, _initial_state: Any, config: Any) -> _FakeRunResult:
+        return _fake_result(
+            num_results=int(config.num_results),
+            acceptance=0.70,
+            samples=np.zeros((int(config.num_results), 2)),
+        )
+
+    bootstrap = hmc_kernel_tuning.run_hmc_bootstrap_screen(
+        adapter=_ToyGaussianAdapter(),
+        geometry=geometry,
+        run_full_chain=bootstrap_run,
+    )
+
+    def windowed_run(_adapter: Any, _initial_state: Any, config: Any) -> _FakeRunResult:
+        return _fake_result(
+            num_results=int(config.num_results),
+            acceptance=0.70,
+            samples=np.zeros((int(config.num_results), 2)),
+        )
+
+    windowed = hmc_kernel_tuning.run_hmc_windowed_mass_stage(
+        adapter=_ToyGaussianAdapter(),
+        geometry=geometry,
+        bootstrap=bootstrap,
+        config=_windowed_config(),
+        run_full_chain=windowed_run,
+    )
+
+    def fixed_step_run(_adapter: Any, _initial_state: Any, config: Any) -> _FakeRunResult:
+        uses_tuning = bool(config.tuning_policy.uses_dual_averaging)
+        if uses_tuning:
+            return _fake_result(
+                num_results=int(config.num_results),
+                acceptance=0.70,
+                step_size=0.2,
+                num_adaptation_steps=config.tuning_policy.num_adaptation_steps,
+                samples=np.zeros((int(config.num_results), 2)),
+            )
+        return _fake_result(
+            num_results=int(config.num_results),
+            acceptance=0.70,
+            samples=np.zeros((int(config.num_results), 2)),
+        )
+
+    step_stage = run_hmc_fixed_mass_step_stage(
+        adapter=_ToyGaussianAdapter(),
+        geometry=geometry,
+        bootstrap=bootstrap,
+        windowed_stage=windowed,
+        config=_stage_config(),
+        run_full_chain=fixed_step_run,
+    )
+    return bootstrap, windowed, step_stage
 
 
 def _expect_frozen_step_validation_error(
@@ -182,7 +239,6 @@ def test_frozen_step_trajectory_config_does_not_expose_hmc_mechanics() -> None:
         "candidate_l_values",
         "num_leapfrog_steps",
         "min_leapfrog",
-        "max_leapfrog",
         "leapfrog_bounds",
         "trajectory_grid",
         "target_trajectory_length",
@@ -195,6 +251,7 @@ def test_frozen_step_trajectory_config_does_not_expose_hmc_mechanics() -> None:
     }
 
     assert parameters.isdisjoint(forbidden)
+    assert "max_leapfrog_steps" in parameters
 
 
 def test_frozen_step_trajectory_stage_passes_with_internal_candidates_and_real_hook() -> None:
@@ -411,6 +468,196 @@ def test_frozen_step_trajectory_stage_returns_repair_without_selected_l_when_no_
     assert "acceptance_outside_pass_band" in result.repair_triggers
 
 
+def test_frozen_step_trajectory_high_acceptance_underreach_cannot_pass() -> None:
+    geometry = replace(_geometry(), target_trajectory_length=100.0)
+    bootstrap, windowed, step_stage = _consistent_chain_for_geometry(geometry)
+    run, _calls = _scripted_trajectory_runner({})
+
+    result = run_hmc_frozen_step_trajectory_stage(
+        adapter=_ToyGaussianAdapter(),
+        geometry=geometry,
+        bootstrap=bootstrap,
+        windowed_stage=windowed,
+        fixed_mass_step_stage=step_stage,
+        config=_trajectory_config(max_leapfrog_steps=25),
+        run_full_chain=run,
+    )
+
+    assert result.passed is False
+    assert result.final_status == "repair_or_retry"
+    assert all(
+        candidate["trajectory_window_relation"] == "below_trajectory_window"
+        for candidate in result.candidate_results
+    )
+    assert "high_acceptance_trajectory_underreach" in result.repair_triggers
+    assert "trajectory_length_below_window" in result.repair_triggers
+
+
+def test_frozen_step_trajectory_acceptance_pass_underreach_cannot_pass() -> None:
+    geometry = replace(_geometry(), target_trajectory_length=100.0)
+    bootstrap, windowed, step_stage = _consistent_chain_for_geometry(geometry)
+    run, _calls = _scripted_trajectory_runner({25: 0.70})
+
+    result = run_hmc_frozen_step_trajectory_stage(
+        adapter=_ToyGaussianAdapter(),
+        geometry=geometry,
+        bootstrap=bootstrap,
+        windowed_stage=windowed,
+        fixed_mass_step_stage=step_stage,
+        config=_trajectory_config(max_leapfrog_steps=25),
+        run_full_chain=run,
+    )
+
+    assert result.passed is False
+    assert result.final_status == "repair_or_retry"
+    assert "acceptance_pass_but_trajectory_underreach" in result.repair_triggers
+    assert result.candidate_results[-1]["num_leapfrog_steps"] == 25
+    assert result.candidate_results[-1]["diagnostics"]["acceptance_rate"] == pytest.approx(0.70)
+
+
+def test_phase6_underreach_repair_preserves_in_band_acceptance_relation() -> None:
+    geometry = replace(_geometry(), target_trajectory_length=100.0)
+    bootstrap, windowed, step_stage = _consistent_chain_for_geometry(geometry)
+    candidates = _frozen_step_trajectory_candidate_generation(
+        geometry=geometry,
+        selected_step_size=step_stage.selected_step_size,
+        fixed_bootstrap_l=step_stage.fixed_num_leapfrog_steps,
+        max_leapfrog_steps=25,
+    )["candidate_l_values"]
+    run, _calls = _scripted_trajectory_runner({int(l): 0.70 for l in candidates})
+
+    result = run_hmc_frozen_step_trajectory_stage(
+        adapter=_ToyGaussianAdapter(),
+        geometry=geometry,
+        bootstrap=bootstrap,
+        windowed_stage=windowed,
+        fixed_mass_step_stage=step_stage,
+        config=_trajectory_config(max_leapfrog_steps=25),
+        run_full_chain=run,
+    )
+    handoff = hmc_kernel_tuning._phase6_trajectory_repair_handoff_payload(
+        config=hmc_kernel_tuning.HMCTuneVerifyRepairLoopConfig(
+            max_leapfrog_steps=25,
+            target_scope="kernel_fixed_mass_step_toy_gaussian",
+        ),
+        selected_step_size=step_stage.selected_step_size,
+        selected_step_hash=step_stage.selected_step_hash,
+        frozen_step_trajectory_stage=result,
+    )
+    state = _HMCPhaseAttemptState(
+        selected_step_size=step_stage.selected_step_size,
+        selected_step_hash=step_stage.selected_step_hash,
+        selected_num_leapfrog_steps=25,
+        selected_trajectory_hash="previous-trajectory-hash",
+        handoff_stage="phase6",
+        **handoff,
+    )
+
+    assert handoff["verification_repair_applied"] is True
+    assert handoff["verification_repair_source"] == "phase6_frozen_step_trajectory_underreach"
+    assert handoff["verification_acceptance_relation"] == "inside_acceptance_band"
+    assert state.verification_repair_applied is True
+    assert state.verification_acceptance_relation == "inside_acceptance_band"
+
+
+def test_frozen_step_trajectory_boundary_acceptance_and_tau_pass() -> None:
+    geometry = replace(_geometry(), target_trajectory_length=5.0)
+    bootstrap, windowed, step_stage = _consistent_chain_for_geometry(geometry)
+    # selected step is 0.2 in the fixture, so L=20 gives tau=4.0=tau_min.
+    run, calls = _scripted_trajectory_runner({20: 0.65, 25: 0.75})
+
+    result = run_hmc_frozen_step_trajectory_stage(
+        adapter=_ToyGaussianAdapter(),
+        geometry=geometry,
+        bootstrap=bootstrap,
+        windowed_stage=windowed,
+        fixed_mass_step_stage=step_stage,
+        config=_trajectory_config(max_leapfrog_steps=25),
+        run_full_chain=run,
+    )
+
+    assert result.passed is True
+    assert result.selected_num_leapfrog_steps == 20
+    assert result.selected_candidate["trajectory_window_relation"] == "inside_trajectory_window"
+    assert result.selected_candidate["trajectory_length"] == pytest.approx(4.0)
+    assert 20 in [call["num_leapfrog_steps"] for call in calls]
+
+
+def test_frozen_step_trajectory_configured_cap_changes_candidates_and_floor() -> None:
+    geometry = replace(_geometry(), target_trajectory_length=100.0)
+    default = _frozen_step_trajectory_candidate_generation(
+        geometry=geometry,
+        selected_step_size=0.2,
+        fixed_bootstrap_l=3,
+        max_leapfrog_steps=25,
+    )
+    raised = _frozen_step_trajectory_candidate_generation(
+        geometry=geometry,
+        selected_step_size=0.2,
+        fixed_bootstrap_l=3,
+        max_leapfrog_steps=80,
+    )
+
+    assert default["internal_max_leapfrog"] == 25
+    assert raised["internal_max_leapfrog"] == 80
+    assert max(default["candidate_l_values"]) == 25
+    assert max(raised["candidate_l_values"]) == 80
+    assert default["minimum_step_size_for_tau_floor"] == pytest.approx(80.0 / 25.0)
+    assert raised["minimum_step_size_for_tau_floor"] == pytest.approx(80.0 / 80.0)
+
+
+def test_phase6_underreach_repair_handoff_floors_step_and_candidate_generation_realizes_floor() -> None:
+    geometry = replace(_geometry(), target_trajectory_length=100.0)
+    bootstrap, windowed, step_stage = _consistent_chain_for_geometry(geometry)
+    run, _calls = _scripted_trajectory_runner({})
+
+    result = run_hmc_frozen_step_trajectory_stage(
+        adapter=_ToyGaussianAdapter(),
+        geometry=geometry,
+        bootstrap=bootstrap,
+        windowed_stage=windowed,
+        fixed_mass_step_stage=step_stage,
+        config=_trajectory_config(max_leapfrog_steps=25),
+        run_full_chain=run,
+    )
+    handoff = hmc_kernel_tuning._phase6_trajectory_repair_handoff_payload(
+        config=hmc_kernel_tuning.HMCTuneVerifyRepairLoopConfig(
+            max_leapfrog_steps=25,
+            target_scope="kernel_fixed_mass_step_toy_gaussian",
+        ),
+        selected_step_size=step_stage.selected_step_size,
+        selected_step_hash=step_stage.selected_step_hash,
+        frozen_step_trajectory_stage=result,
+    )
+
+    assert handoff["verification_repair_applied"] is True
+    assert handoff["verification_repair_source"] == "phase6_frozen_step_trajectory_underreach"
+    assert handoff["verification_repair_step_size"] >= 80.0 / 25.0
+
+    repaired = _frozen_step_trajectory_candidate_generation(
+        geometry=geometry,
+        selected_step_size=handoff["verification_repair_step_size"],
+        fixed_bootstrap_l=3,
+        max_leapfrog_steps=25,
+        attempt_state=_HMCPhaseAttemptState(
+            selected_step_size=step_stage.selected_step_size,
+            selected_step_hash=step_stage.selected_step_hash,
+            selected_num_leapfrog_steps=25,
+            selected_trajectory_hash="previous-trajectory-hash",
+            verification_acceptance_relation="above_acceptance_band",
+            verification_repair_trigger="phase6_trajectory_acceptance_outside_pass_band",
+            verification_repair_source="phase6_frozen_step_trajectory_underreach",
+            verification_repair_step_size=handoff["verification_repair_step_size"],
+            verification_repair_step_hash=handoff["verification_repair_step_hash"],
+            verification_repair_applied=True,
+            handoff_stage="phase6",
+        ),
+    )
+
+    assert 25 in repaired["candidate_l_values"]
+    assert repaired["tau_floor_feasible_at_selected_step"] is True
+
+
 def test_frozen_step_trajectory_stage_public_counts_all_above_without_mechanics() -> None:
     windowed = _windowed_stage()
     step_stage = _fixed_mass_step_stage(windowed_stage=windowed)
@@ -451,6 +698,52 @@ def test_frozen_step_trajectory_stage_public_counts_all_above_without_mechanics(
         "final_state",
     ):
         assert forbidden not in text
+
+
+def test_phase6_mixed_window_all_high_acceptance_handoff_increases_step() -> None:
+    geometry = replace(_geometry(), target_trajectory_length=1.0)
+    bootstrap, windowed, step_stage = _consistent_chain_for_geometry(geometry)
+    candidates = _frozen_step_trajectory_candidate_generation(
+        geometry=geometry,
+        selected_step_size=step_stage.selected_step_size,
+        fixed_bootstrap_l=step_stage.fixed_num_leapfrog_steps,
+        max_leapfrog_steps=25,
+    )["candidate_l_values"]
+    run, _calls = _scripted_trajectory_runner({int(l): 0.90 for l in candidates})
+
+    result = run_hmc_frozen_step_trajectory_stage(
+        adapter=_ToyGaussianAdapter(),
+        geometry=geometry,
+        bootstrap=bootstrap,
+        windowed_stage=windowed,
+        fixed_mass_step_stage=step_stage,
+        config=_trajectory_config(max_leapfrog_steps=25),
+        run_full_chain=run,
+    )
+    relations = {
+        candidate["trajectory_window_relation"] for candidate in result.candidate_results
+    }
+    handoff = hmc_kernel_tuning._phase6_trajectory_repair_handoff_payload(
+        config=hmc_kernel_tuning.HMCTuneVerifyRepairLoopConfig(
+            max_leapfrog_steps=25,
+            target_scope="kernel_fixed_mass_step_toy_gaussian",
+        ),
+        selected_step_size=step_stage.selected_step_size,
+        selected_step_hash=step_stage.selected_step_hash,
+        frozen_step_trajectory_stage=result,
+    )
+
+    assert result.final_status == "repair_or_retry"
+    assert "below_trajectory_window" in relations
+    assert "above_trajectory_window" in relations
+    assert handoff["verification_acceptance_relation"] == "above_acceptance_band"
+    assert handoff["verification_repair_source"] == (
+        "phase6_frozen_step_trajectory_acceptance"
+    )
+    assert handoff["verification_repair_step_size"] == pytest.approx(
+        2.0 * step_stage.selected_step_size
+    )
+    assert handoff["verification_repair_applied"] is True
 
 
 def test_frozen_step_trajectory_soft_deadline_writes_partial_closeout(
@@ -903,11 +1196,11 @@ def test_frozen_step_trajectory_candidate_generation_preserves_distinct_clamped_
         fixed_bootstrap_l=3,
     )
 
-    assert low["raw_candidate_l_values"] == (-1, 0, 1, 2, 3, 5)
+    assert low["raw_candidate_l_values"] == (-1, 0, 1, 2, 3, 5, 1)
     assert low["candidate_l_values"] == (3, 5)
-    assert high["raw_candidate_l_values"] == (498, 499, 500, 501, 502, 24)
+    assert high["raw_candidate_l_values"] == (498, 499, 500, 501, 502, 24, 400)
     assert high["candidate_l_values"] == (24, 25)
-    assert mixed["raw_candidate_l_values"] == (126, 127, 128, 129, 130, 3)
+    assert mixed["raw_candidate_l_values"] == (126, 127, 128, 129, 130, 3, 103)
     assert mixed["candidate_l_values"] == (3, 25)
 
 

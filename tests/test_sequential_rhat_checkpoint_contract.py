@@ -7,10 +7,15 @@ import pytest
 
 import bayesfilter
 from bayesfilter.inference import (
+    PrecomputedMassArtifact,
     SEQUENTIAL_RHAT_CHECKPOINT_PUBLIC_REFERENCE_FIELDS,
+    SequentialRHatCheckpointWriterConfig,
     assert_sequential_rhat_checkpoint_public_reference_safe,
     build_sequential_rhat_checkpoint_public_reference,
+    inspect_sequential_rhat_private_checkpoint,
     sequential_rhat_verification_checkpoint_contract,
+    write_sequential_rhat_boundary_handoff_checkpoint,
+    write_sequential_rhat_pre_verification_handoff_checkpoint,
 )
 
 
@@ -29,6 +34,7 @@ def test_sequential_rhat_checkpoint_contract_separates_public_and_private_fields
         "bayesfilter_private_sequential_rhat_checkpoint_manifest"
     )
     assert set(contract["checkpoint_kinds"]) == {
+        "phase7_boundary_handoff",
         "pre_verification_handoff",
         "verification_chunk",
     }
@@ -73,6 +79,8 @@ def test_sequential_rhat_checkpoint_contract_separates_public_and_private_fields
     assert "private_diagnostics" in private_fields
     assert "samples_shard" in contract["private_verification_chunk_fields"]
     assert "selected_kernel_private_payload" in contract["private_handoff_fields"]
+    assert "boundary_private_payload" in contract["private_boundary_handoff_fields"]
+    assert "private_raw_state_allowed" in contract["private_boundary_handoff_fields"]
     assert contract["private_manifest_schema"] == {
         "artifact_type": "literal private_manifest_artifact_type",
         "schema_version": "integer 1",
@@ -102,6 +110,9 @@ def test_sequential_rhat_checkpoint_contract_separates_public_and_private_fields
     }
     assert "never allowed in public progress" in shard_schema["path"]
     assert contract["private_shard_roles"] == [
+        "boundary_private_payload",
+        "config_private_payload",
+        "state_summary_private_payload",
         "samples",
         "valid_mask",
         "final_state",
@@ -113,6 +124,11 @@ def test_sequential_rhat_checkpoint_contract_separates_public_and_private_fields
         "mass_payload",
     ]
     assert contract["private_manifest_required_shard_roles_by_kind"] == {
+        "phase7_boundary_handoff": [
+            "boundary_private_payload",
+            "config_private_payload",
+            "state_summary_private_payload",
+        ],
         "pre_verification_handoff": [
             "selected_kernel_private_payload",
             "final_state",
@@ -281,6 +297,189 @@ def test_public_checkpoint_reference_rejects_extra_private_mechanics_keys() -> N
         assert_sequential_rhat_checkpoint_public_reference_safe(reference)
 
 
+def test_pre_verification_handoff_writer_private_manifest_public_reference_boundary(
+    tmp_path,
+) -> None:
+    mass = PrecomputedMassArtifact(
+        position=[0.0, 0.0],
+        covariance=[[1.0, 0.0], [0.0, 1.0]],
+        factor=[[1.0, 0.0], [0.0, 1.0]],
+        adapter_signature="sequential-rhat-contract-test-adapter-v1",
+        position_role="initial_position",
+        covariance_source="unit_test",
+    )
+    reference = write_sequential_rhat_pre_verification_handoff_checkpoint(
+        writer_config=SequentialRHatCheckpointWriterConfig(
+            checkpoint_dir=tmp_path,
+            checkpoint_label="handoff",
+        ),
+        adapter=type(
+            "_Adapter",
+            (),
+            {
+                "adapter_signature": lambda self: (
+                    "sequential-rhat-contract-test-adapter-v1"
+                )
+            },
+        )(),
+        config_private_payload={
+            "check_interval": 4,
+            "max_results": 8,
+            "rhat_threshold": 1.01,
+        },
+        selected_kernel_private_payload={
+            "step_size": 0.125,
+            "num_leapfrog_steps": 7,
+            "private_handoff_only": True,
+        },
+        mass_payload=mass.to_payload(include_arrays=True),
+        final_state=[0.0, 0.0],
+    )
+
+    assert reference["checkpoint_kind"] == "pre_verification_handoff"
+    assert_sequential_rhat_checkpoint_public_reference_safe(reference)
+    public_text = json.dumps(reference, sort_keys=True)
+    for forbidden in (
+        "/",
+        "\\",
+        "step_size",
+        "num_leapfrog_steps",
+        "mass",
+        "selected_kernel",
+        "final_state",
+        ".tftensor",
+    ):
+        assert forbidden not in public_text
+
+    manifest_paths = sorted(tmp_path.glob("handoff_*_manifest.json"))
+    assert len(manifest_paths) == 1
+    manifest = json.loads(manifest_paths[0].read_text(encoding="utf-8"))
+    assert manifest["checkpoint_id"] == reference["checkpoint_id"]
+    assert manifest["manifest_core_sha256"] == reference["checkpoint_sha256"]
+    assert manifest["checkpoint_kind"] == "pre_verification_handoff"
+    assert manifest["private_diagnostics"]["chunk_index"] is None
+    assert set(manifest["private_shards"]) == {
+        "selected_kernel_private_payload",
+        "final_state",
+        "mass_payload",
+    }
+    selected_shard = manifest["private_shards"]["selected_kernel_private_payload"]
+    selected_payload = json.loads(
+        (tmp_path / selected_shard["path"].split("/")[-1]).read_text(
+            encoding="utf-8"
+        )
+    )
+    assert selected_payload["step_size"] == 0.125
+    assert selected_payload["num_leapfrog_steps"] == 7
+    assert manifest["privacy_contract"]["public_reference_contains_paths"] is False
+
+
+def test_phase7_boundary_handoff_writer_inspects_without_public_mechanics(
+    tmp_path,
+) -> None:
+    reference = write_sequential_rhat_boundary_handoff_checkpoint(
+        writer_config=SequentialRHatCheckpointWriterConfig(
+            checkpoint_dir=tmp_path,
+            checkpoint_label="boundary",
+        ),
+        adapter=type(
+            "_Adapter",
+            (),
+            {
+                "adapter_signature": lambda self: (
+                    "sequential-rhat-boundary-test-adapter-v1"
+                )
+            },
+        )(),
+        config_private_payload={
+            "stage": "windowed_mass_runner_execute_start",
+            "target_scope": "ccma_macro_mixed_frequency_phase2_augmented_masked_qr_target",
+            "target_dimension": 314,
+            "chain_execution_mode": "eager",
+        },
+        boundary_private_payload={
+            "stage": "windowed_mass_runner_execute_start",
+            "target_scope": "ccma_macro_mixed_frequency_phase2_augmented_masked_qr_target",
+            "target_dimension": 314,
+            "attempt_index": 0,
+            "route_category": "injected_runner",
+            "milestone": "target_forced_stop_observability_checkpoint",
+        },
+        state_summary_private_payload={
+            "state_rank": 1,
+            "state_size": 314,
+        },
+    )
+
+    assert reference["checkpoint_kind"] == "phase7_boundary_handoff"
+    assert_sequential_rhat_checkpoint_public_reference_safe(reference)
+    public_text = json.dumps(reference, sort_keys=True)
+    for forbidden in (
+        "/",
+        "\\",
+        "step_size",
+        "num_leapfrog_steps",
+        "mass",
+        "selected_kernel",
+        "final_state",
+        "state_size",
+        ".tftensor",
+    ):
+        assert forbidden not in public_text
+
+    manifest_paths = sorted(tmp_path.glob("boundary_*_manifest.json"))
+    assert len(manifest_paths) == 1
+    manifest = json.loads(manifest_paths[0].read_text(encoding="utf-8"))
+    assert manifest["checkpoint_id"] == reference["checkpoint_id"]
+    assert manifest["manifest_core_sha256"] == reference["checkpoint_sha256"]
+    assert manifest["checkpoint_kind"] == "phase7_boundary_handoff"
+    assert manifest["private_diagnostics"]["chunk_index"] is None
+    assert manifest["private_diagnostics"]["retained_sample_count"] == 0
+    assert set(manifest["private_shards"]) == {
+        "boundary_private_payload",
+        "config_private_payload",
+        "state_summary_private_payload",
+    }
+    assert all(
+        shard["serializer"] == "json" and shard["dtype"] == "json"
+        for shard in manifest["private_shards"].values()
+    )
+    assert manifest["privacy_contract"]["manifest_points_to_private_raw_tensors"] is False
+
+    inspection = inspect_sequential_rhat_private_checkpoint(
+        manifest_path=manifest_paths[0],
+        public_reference=reference,
+    )
+    assert inspection["checkpoint_kind"] == "phase7_boundary_handoff"
+    assert inspection["manifest_core_hash_verified"] is True
+    assert inspection["private_payload_hashes_verified"] is True
+    assert inspection["required_private_payloads_present"] is True
+    assert inspection["finite_checks"]["retained_values_finite"] is None
+    assert (
+        inspection["finite_checks"]["retained_values_status"]
+        == "not_applicable_boundary_handoff"
+    )
+    assert inspection["finite_checks"]["private_acceptance_log_health_passed"] is None
+    assert (
+        inspection["finite_checks"]["private_acceptance_log_status"]
+        == "not_applicable_boundary_handoff"
+    )
+    inspection_text = json.dumps(inspection, sort_keys=True)
+    for forbidden in (
+        str(tmp_path),
+        "/",
+        "\\",
+        "step_size",
+        "num_leapfrog_steps",
+        "mass",
+        "selected_kernel",
+        "final_state",
+        "state_size",
+        ".tftensor",
+    ):
+        assert forbidden not in inspection_text
+
+
 def test_sequential_rhat_checkpoint_contract_public_exports() -> None:
     assert (
         bayesfilter.sequential_rhat_verification_checkpoint_contract
@@ -294,9 +493,33 @@ def test_sequential_rhat_checkpoint_contract_public_exports() -> None:
         bayesfilter.assert_sequential_rhat_checkpoint_public_reference_safe
         is assert_sequential_rhat_checkpoint_public_reference_safe
     )
+    assert (
+        bayesfilter.write_sequential_rhat_pre_verification_handoff_checkpoint
+        is write_sequential_rhat_pre_verification_handoff_checkpoint
+    )
+    assert (
+        bayesfilter.write_sequential_rhat_boundary_handoff_checkpoint
+        is write_sequential_rhat_boundary_handoff_checkpoint
+    )
     assert "sequential_rhat_verification_checkpoint_contract" in bayesfilter.__all__
     assert "build_sequential_rhat_checkpoint_public_reference" in bayesfilter.__all__
     assert (
+        "inspect_sequential_rhat_private_checkpoint"
+        in bayesfilter.__all__
+    )
+    assert (
         "assert_sequential_rhat_checkpoint_public_reference_safe"
         in bayesfilter.__all__
+    )
+    assert (
+        "write_sequential_rhat_pre_verification_handoff_checkpoint"
+        in bayesfilter.__all__
+    )
+    assert (
+        "write_sequential_rhat_boundary_handoff_checkpoint"
+        in bayesfilter.__all__
+    )
+    assert (
+        bayesfilter.inspect_sequential_rhat_private_checkpoint
+        is inspect_sequential_rhat_private_checkpoint
     )

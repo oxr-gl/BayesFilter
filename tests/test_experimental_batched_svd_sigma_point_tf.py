@@ -12,6 +12,7 @@ import numpy as np
 import pytest
 import tensorflow as tf
 
+import bayesfilter.nonlinear.experimental_batched_svd_sigma_point_tf as svd_tf
 from bayesfilter.nonlinear.experimental_batched_svd_sigma_point_tf import (
     TFBatchedStructuralFirstDerivatives,
     TFBatchedStructuralStateSpace,
@@ -611,6 +612,84 @@ def test_principal_sqrt_helper_graph_and_cpu_xla_factor_derivative_parity() -> N
     np.testing.assert_allclose(xla_factor.numpy(), eager_factor.numpy(), atol=1.0e-11)
     np.testing.assert_allclose(xla_d_factor.numpy(), eager_d_factor.numpy(), atol=1.0e-11)
     np.testing.assert_allclose(xla_residual.numpy(), eager_residual.numpy(), atol=1.0e-11)
+
+
+def test_principal_sqrt_helper_scaled_reconstruction_guard_allows_large_rhs() -> None:
+    covariance = tf.constant(
+        [
+            [[4.0, 0.0, 0.0], [0.0, 9.0, 0.0], [0.0, 0.0, 16.0]],
+        ],
+        dtype=tf.float64,
+    )
+    d_covariance = tf.constant(
+        [
+            [
+                [
+                    [1.0e4, 2.0e3, -1.0e3],
+                    [2.0e3, -3.0e4, 4.0e3],
+                    [-1.0e3, 4.0e3, 7.0e4],
+                ],
+            ],
+        ],
+        dtype=tf.float64,
+    )
+
+    placement = _checked_batched_principal_sqrt_factor_first_derivatives(
+        covariance,
+        d_covariance,
+        singular_floor=tf.constant(0.0, dtype=tf.float64),
+        fixed_null_tolerance=tf.constant(1.0e-10, dtype=tf.float64),
+        lyapunov_tolerance=tf.constant(1.0e-12, dtype=tf.float64),
+        label="test scaled principal-sqrt reconstruction",
+    )
+
+    assert np.isfinite(placement.d_factor.numpy()).all()
+    assert float(tf.reduce_max(
+        placement.derivative_reconstruction_residual).numpy()) <= 1.0e-5
+
+
+
+def test_principal_sqrt_helper_scaled_reconstruction_guard_rejects_bad_solve(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    covariance = tf.constant(
+        [
+            [[4.0, 0.0], [0.0, 9.0]],
+        ],
+        dtype=tf.float64,
+    )
+    d_covariance = tf.constant(
+        [
+            [
+                [[1.0, 0.2], [0.2, -0.3]],
+            ],
+        ],
+        dtype=tf.float64,
+    )
+
+    def wrong_sylvester_solve(factor: tf.Tensor, rhs: tf.Tensor) -> tf.Tensor:
+        del factor
+        return tf.zeros_like(rhs)
+
+    monkeypatch.setattr(
+        svd_tf,
+        "symmetric_sylvester_solve",
+        wrong_sylvester_solve,
+    )
+
+    with pytest.raises(
+        tf.errors.InvalidArgumentError,
+        match="blocked_principal_sqrt_reconstruction",
+    ):
+        placement = _checked_batched_principal_sqrt_factor_first_derivatives(
+            covariance,
+            d_covariance,
+            singular_floor=tf.constant(0.0, dtype=tf.float64),
+            fixed_null_tolerance=tf.constant(1.0e-10, dtype=tf.float64),
+            lyapunov_tolerance=tf.constant(1.0e-12, dtype=tf.float64),
+            label="test bad principal-sqrt reconstruction",
+        )
+        _ = placement.d_factor.numpy()
 
 
 def test_principal_sqrt_helper_roundoff_repair_cpu_xla_records_diagnostics() -> None:

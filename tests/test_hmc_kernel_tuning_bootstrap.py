@@ -160,7 +160,6 @@ def test_bootstrap_config_does_not_expose_hmc_mechanics() -> None:
         "initial_step_size",
         "num_leapfrog_steps",
         "min_leapfrog",
-        "max_leapfrog",
         "step_size_candidates",
         "num_leapfrog_step_candidates",
         "trajectory_grid",
@@ -169,6 +168,7 @@ def test_bootstrap_config_does_not_expose_hmc_mechanics() -> None:
     }
 
     assert parameters.isdisjoint(forbidden)
+    assert "max_leapfrog_steps" in parameters
 
 
 def test_geometry_initialization_caps_initial_l_at_policy_max() -> None:
@@ -185,6 +185,21 @@ def test_geometry_initialization_caps_initial_l_at_policy_max() -> None:
     assert geometry.initial_num_leapfrog_steps == 25
     assert geometry.formula_report["internal_max_leapfrog"] == 25
     assert geometry.formula_report["leapfrog_clamped"] is True
+
+
+def test_geometry_initialization_uses_configured_max_leapfrog_steps() -> None:
+    geometry = _geometry(
+        config=HMCGeometryInitializationConfig(
+            geometry_scaling_c=1.0e-6,
+            max_leapfrog_steps=40,
+            covariance_jitter=0.0,
+            seed=(123, 456),
+        )
+    )
+
+    assert geometry.unclamped_num_leapfrog_steps > 40
+    assert geometry.initial_num_leapfrog_steps == 40
+    assert geometry.formula_report["internal_max_leapfrog"] == 40
 
 
 def test_bootstrap_acceptance_in_acceptance_band_selects_kernel() -> None:
@@ -634,8 +649,8 @@ def test_repair_loop_stops_after_max_repairs() -> None:
     assert len(result.rounds) == 3
 
 
-def test_repeated_leapfrog_cap_saturation_blocks_without_trajectory_repair() -> None:
-    run, calls = _scripted_runner([0.20, 0.20])
+def test_repeated_leapfrog_cap_saturation_no_longer_blocks_step_progress() -> None:
+    run, calls = _scripted_runner([0.20, 0.20, 0.20, 0.20, 0.20, 0.20])
     geometry = _geometry(
         config=HMCGeometryInitializationConfig(
             geometry_scaling_c=1000.0,
@@ -653,14 +668,50 @@ def test_repeated_leapfrog_cap_saturation_blocks_without_trajectory_repair() -> 
     )
 
     assert result.passed is False
-    assert result.final_status == "blocked_repeated_leapfrog_cap_saturation"
-    assert len(result.rounds) == 2
+    assert result.final_status == "repair_budget_exhausted"
+    assert len(result.rounds) == 6
     assert [round_result.clamp_direction for round_result in result.rounds] == [
+        "min",
+        "min",
+        "min",
+        "min",
         "min",
         "min",
     ]
     assert calls[1][0] == pytest.approx(calls[0][0] * 0.5)
     assert all(call[1] == 3 for call in calls)
+
+
+def test_repeated_max_cap_saturation_continues_when_high_acceptance_repair_can_escape_cap() -> None:
+    run, calls = _scripted_runner([0.95, 0.95, 0.70])
+    geometry = _geometry(
+        config=HMCGeometryInitializationConfig(
+            geometry_scaling_c=0.02,
+            stability_guard=0.8,
+            covariance_jitter=0.0,
+            seed=(123, 456),
+        )
+    )
+
+    result = run_hmc_bootstrap_screen(
+        adapter=_ToyGaussianAdapter(),
+        geometry=geometry,
+        config=_config(max_repairs=3),
+        run_full_chain=run,
+    )
+
+    assert result.passed is True
+    assert result.final_status == "passed"
+    assert [round_result.clamp_direction for round_result in result.rounds[:2]] == [
+        "max",
+        "max",
+    ]
+    assert result.rounds[2].classification == "passed"
+    assert calls[1][0] == pytest.approx(calls[0][0] * 2.0)
+    assert calls[2][0] == pytest.approx(calls[1][0] * 2.0)
+    assert calls[0][1] == geometry.config.max_leapfrog_steps
+    assert calls[1][1] == geometry.config.max_leapfrog_steps
+    assert calls[2][1] < geometry.config.max_leapfrog_steps
 
 
 def test_seed_report_and_artifact_hash_are_deterministic() -> None:

@@ -64,6 +64,8 @@ class FixedTransportHMCKernelTuningConfig:
     target_accept_prob: float = 0.70
     acceptance_band: tuple[float, float] = (0.60, 0.90)
     repair_band: tuple[float, float] = (0.45, 0.98)
+    step_repair_factor: float = 2.0
+    step_repair_min_directional_factor: float = 1.25
     budget_schedule: tuple[int, ...] = (8, 16, 32)
     tune_num_results: int = 8
     screen_num_results: int = 16
@@ -108,6 +110,22 @@ class FixedTransportHMCKernelTuningConfig:
             raise ValueError("repair_band must contain acceptance_band")
         object.__setattr__(self, "acceptance_band", acceptance_band)
         object.__setattr__(self, "repair_band", repair_band)
+        object.__setattr__(
+            self,
+            "step_repair_factor",
+            _validate_step_repair_multiplier(
+                self.step_repair_factor,
+                name="step_repair_factor",
+            ),
+        )
+        object.__setattr__(
+            self,
+            "step_repair_min_directional_factor",
+            _validate_step_repair_multiplier(
+                self.step_repair_min_directional_factor,
+                name="step_repair_min_directional_factor",
+            ),
+        )
         budgets = tuple(int(item) for item in self.budget_schedule)
         if not budgets or any(item <= 0 for item in budgets):
             raise ValueError("budget_schedule must contain positive integers")
@@ -210,6 +228,10 @@ class FixedTransportHMCKernelTuningConfig:
             "target_accept_prob": self.target_accept_prob,
             "acceptance_band": self.acceptance_band,
             "repair_band": self.repair_band,
+            "step_repair_factor": self.step_repair_factor,
+            "step_repair_min_directional_factor": (
+                self.step_repair_min_directional_factor
+            ),
             "budget_schedule": self.budget_schedule,
             "tune_num_results": self.tune_num_results,
             "screen_num_results": self.screen_num_results,
@@ -744,6 +766,8 @@ def _run_fixed_transport_candidate_grid(
             target_accept_prob=config.target_accept_prob,
             acceptance_band=config.acceptance_band,
             repair_band=config.repair_band,
+            step_repair_factor=config.step_repair_factor,
+            step_repair_min_directional_factor=config.step_repair_min_directional_factor,
             tune_num_results=config.tune_num_results,
             screen_num_results=config.screen_num_results,
             screen_num_burnin_steps=config.screen_num_burnin_steps,
@@ -1175,6 +1199,13 @@ def _validate_band(values: Sequence[float], *, name: str) -> tuple[float, float]
     if not 0.0 < lower <= upper < 1.0:
         raise ValueError(f"{name} must satisfy 0 < lower <= upper < 1")
     return lower, upper
+
+
+def _validate_step_repair_multiplier(value: Any, *, name: str) -> float:
+    multiplier = float(value)
+    if not np.isfinite(multiplier) or multiplier <= 1.0:
+        raise ValueError(f"{name} must be finite and greater than 1")
+    return multiplier
 
 
 def _string_tuple(values: Sequence[str] | str) -> tuple[str, ...]:

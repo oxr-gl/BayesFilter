@@ -19,6 +19,7 @@ from bayesfilter.inference import (
     FixedMassHMCTuningBudgetCallbackResult,
     HMCTuneVerifyRepairLoopConfig,
     HMCTuneVerifyRepairLoopResult,
+    SequentialRHatCheckpointWriterConfig,
     TUNE_VERIFY_REPAIR_LOOP_NONCLAIMS,
     build_retained_frozen_kernel_hmc_adapter_from_tuning_payload,
     run_hmc_tune_verify_repair_loop,
@@ -213,6 +214,12 @@ def test_tune_verify_repair_config_does_not_expose_hmc_mechanics_or_budgets() ->
     }
 
     assert parameters.isdisjoint(forbidden)
+    payload = HMCTuneVerifyRepairLoopConfig(
+        step_repair_factor=2.5,
+        step_repair_high_acceptance_directional_factor=3.0,
+    ).payload()
+    assert payload["step_repair_factor"] == pytest.approx(2.5)
+    assert payload["step_repair_high_acceptance_directional_factor"] == pytest.approx(3.0)
     with pytest.raises(ValueError, match="hard-capped"):
         HMCTuneVerifyRepairLoopConfig(max_attempts=6)
 
@@ -612,7 +619,38 @@ def test_outer_loop_default_tf_function_verification_uses_sequential_rhat_route(
         def __init__(self, config: Any) -> None:
             self.config = config
 
-        def run(self):
+        def run(
+            self,
+            *,
+            checkpoint_writer_config: Any = None,
+            checkpoint_reference_callback: Any = None,
+        ):
+            if checkpoint_writer_config is not None:
+                reference = {
+                    "artifact_type": "bayesfilter_sequential_rhat_checkpoint_public_reference",
+                    "schema_version": 1,
+                    "checkpoint_kind": "verification_chunk",
+                    "checkpoint_id": "srhat-v1-11111111111111111111111111111111",
+                    "checkpoint_sha256": "2" * 64,
+                    "contract_sha256": (
+                        bayesfilter.sequential_rhat_verification_checkpoint_contract()[
+                            "contract_sha256"
+                        ]
+                    ),
+                    "private_paths_publicized": False,
+                    "public_summary_contains_paths": False,
+                    "public_summary_contains_raw_values": False,
+                    "public_summary_contains_tensor_descriptors": False,
+                    "public_summary_contains_kernel_payload": False,
+                    "nonclaims": bayesfilter.SEQUENTIAL_RHAT_CHECKPOINT_PUBLIC_NONCLAIMS,
+                }
+                if checkpoint_reference_callback is not None:
+                    checkpoint_reference_callback(reference)
+                checkpoint_count = 1
+                checkpoint_references = (reference,)
+            else:
+                checkpoint_count = 0
+                checkpoint_references = ()
             return type(
                 "_SequentialResult",
                 (),
@@ -639,6 +677,9 @@ def test_outer_loop_default_tf_function_verification_uses_sequential_rhat_route(
                         "divergence_status": "not_exposed_by_kernel",
                         "divergence_count": None,
                         "hard_vetoes": (),
+                        "checkpointing_enabled": checkpoint_writer_config is not None,
+                        "checkpoint_count": checkpoint_count,
+                        "checkpoint_references": checkpoint_references,
                         "privacy_contract": {
                             "public_summary_contains_raw_values": False,
                             "public_summary_contains_chain_states": False,
@@ -745,6 +786,298 @@ def test_outer_loop_default_tf_function_verification_uses_sequential_rhat_route(
     )
 
 
+def test_phase7_checkpoint_writer_emits_pre_verification_handoff_before_verification_start(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    writer_config = SequentialRHatCheckpointWriterConfig(
+        checkpoint_dir=tmp_path,
+        checkpoint_label="phase3",
+    )
+    events: list[tuple[str, Mapping[str, Any]]] = []
+    references: list[Mapping[str, Any]] = []
+    contract_sha = bayesfilter.sequential_rhat_verification_checkpoint_contract()[
+        "contract_sha256"
+    ]
+
+    def make_reference(kind: str, digit: str) -> Mapping[str, Any]:
+        reference = {
+            "artifact_type": "bayesfilter_sequential_rhat_checkpoint_public_reference",
+            "schema_version": 1,
+            "checkpoint_kind": kind,
+            "checkpoint_id": f"srhat-v1-{digit * 32}",
+            "checkpoint_sha256": digit * 64,
+            "contract_sha256": contract_sha,
+            "private_paths_publicized": False,
+            "public_summary_contains_paths": False,
+            "public_summary_contains_raw_values": False,
+            "public_summary_contains_tensor_descriptors": False,
+            "public_summary_contains_kernel_payload": False,
+            "nonclaims": bayesfilter.SEQUENTIAL_RHAT_CHECKPOINT_PUBLIC_NONCLAIMS,
+        }
+        bayesfilter.assert_sequential_rhat_checkpoint_public_reference_safe(reference)
+        return reference
+
+    def fake_handoff_writer(**kwargs: Any) -> Mapping[str, Any]:
+        assert kwargs["writer_config"] is writer_config
+        assert kwargs["selected_kernel_private_payload"]["step_size"] > 0.0
+        assert kwargs["selected_kernel_private_payload"]["num_leapfrog_steps"] > 0
+        assert kwargs["selected_kernel_private_payload"]["private_handoff_only"] is True
+        assert kwargs["mass_payload"]["dimension"] == 2
+        reference = make_reference("pre_verification_handoff", "1")
+        references.append(reference)
+        return reference
+
+    class _FakeSequentialVerifier:
+        def run(
+            self,
+            *,
+            checkpoint_writer_config: Any = None,
+            checkpoint_reference_callback: Any = None,
+        ):
+            assert checkpoint_writer_config is writer_config
+            reference = make_reference("verification_chunk", "2")
+            references.append(reference)
+            assert checkpoint_reference_callback is not None
+            checkpoint_reference_callback(reference)
+            return type(
+                "_SequentialResult",
+                (),
+                {
+                    "diagnostics": {
+                        "sequential_rhat_verification": True,
+                        "passed": True,
+                        "cap_hit": False,
+                        "retained_sample_count": 4,
+                        "check_interval": 4,
+                        "max_results": 4,
+                        "chunk_count": 1,
+                        "rhat_threshold": 1.01,
+                        "max_finite_rhat": 1.0,
+                        "finite_rhat_count": 2,
+                        "nonfinite_rhat_count": 0,
+                        "all_finite_rhat_at_or_below_threshold": True,
+                        "samples_all_finite": True,
+                        "target_log_prob_finite": True,
+                        "log_accept_ratio_finite": True,
+                        "runtime_s": 0.01,
+                        "runtime_finite": True,
+                        "acceptance_rate": 0.70,
+                        "divergence_status": "not_exposed_by_kernel",
+                        "divergence_count": None,
+                        "hard_vetoes": (),
+                        "checkpointing_enabled": True,
+                        "checkpoint_count": 1,
+                        "checkpoint_references": (reference,),
+                    },
+                },
+            )()
+
+    class _FakeReusableRunner:
+        def __init__(self, config: Any) -> None:
+            self.config = config
+
+        def run(self, *, current_state: Any, seed: Any, step_size: Any):
+            if self.config.tuning_policy.uses_dual_averaging:
+                return _fake_result(
+                    num_results=int(self.config.num_results),
+                    acceptance=0.70,
+                    step_size=0.20,
+                    num_adaptation_steps=self.config.tuning_policy.num_adaptation_steps,
+                )
+            return _fake_result(
+                num_results=int(self.config.num_results),
+                acceptance=0.70,
+            )
+
+    def fake_reusable_builder(
+        _adapter: Any,
+        _initial_state_template: Any,
+        config: Any,
+    ) -> _FakeReusableRunner:
+        return _FakeReusableRunner(config)
+
+    monkeypatch.setattr(
+        hmc_kernel_tuning,
+        "build_reusable_full_chain_tfp_hmc_runner",
+        fake_reusable_builder,
+    )
+    monkeypatch.setattr(
+        hmc_budget_ladder,
+        "build_reusable_full_chain_tfp_hmc_runner",
+        fake_reusable_builder,
+    )
+    monkeypatch.setattr(
+        hmc_kernel_tuning,
+        "write_sequential_rhat_pre_verification_handoff_checkpoint",
+        fake_handoff_writer,
+    )
+    monkeypatch.setattr(
+        hmc_kernel_tuning,
+        "build_sequential_rhat_hmc_verifier",
+        lambda *_args, **_kwargs: _FakeSequentialVerifier(),
+    )
+
+    result = run_hmc_tune_verify_repair_loop(
+        adapter=_ToyGaussianAdapter(),
+        geometry=_geometry(),
+        bootstrap=_bootstrap(),
+        config=_loop_config(max_attempts=1, chain_execution_mode="tf_function"),
+        verification_checkpoint_writer_config=writer_config,
+        _budget_policy_factory=_tiny_budget_factory,
+        _progress_callback=lambda stage, payload: events.append((stage, payload)),
+    )
+
+    stage_names = [stage for stage, _payload in events]
+    assert result.passed is True
+    assert references[0]["checkpoint_kind"] == "pre_verification_handoff"
+    assert references[1]["checkpoint_kind"] == "verification_chunk"
+    assert stage_names.index("trajectory_complete") < stage_names.index(
+        "verification_checkpoint_written"
+    )
+    assert stage_names.index("verification_checkpoint_written") < stage_names.index(
+        "verification_start"
+    )
+    assert stage_names.index("verification_start") < stage_names.index(
+        "verification_complete"
+    )
+    checkpoint_events = [
+        payload["extra"]
+        for stage, payload in events
+        if stage == "verification_checkpoint_written"
+    ]
+    assert len(checkpoint_events) == 2
+    for extra in checkpoint_events:
+        reference = extra["checkpoint_reference"]
+        bayesfilter.assert_sequential_rhat_checkpoint_public_reference_safe(reference)
+        public_text = json.dumps(extra, sort_keys=True)
+        for forbidden in (
+            str(tmp_path),
+            "/",
+            "\\",
+            "step_size",
+            "num_leapfrog_steps",
+            "mass_payload",
+            "selected_kernel",
+            "final_state",
+            "samples",
+            ".tftensor",
+        ):
+            assert forbidden not in public_text
+        assert extra["private_paths_publicized"] is False
+        assert extra["hmc_mechanics_exposed"] is False
+    verification = result.attempts[0].verification_diagnostics
+    assert verification["phase7_checkpointing_enabled"] is True
+    assert verification["phase7_checkpoint_count"] == 2
+    assert [item["checkpoint_kind"] for item in verification["phase7_checkpoint_references"]] == [
+        "pre_verification_handoff",
+        "verification_chunk",
+    ]
+    summary = hmc_kernel_tuning._phase7_verification_public_summary(
+        result.attempts[0]
+    )
+    assert summary["checkpointing_enabled"] is True
+    assert summary["checkpoint_count"] == 2
+    assert summary["checkpoint_references_public_safe"] is True
+    summary_text = json.dumps(summary, sort_keys=True)
+    assert "log_accept" not in summary_text
+    assert "target_log_prob" not in summary_text
+    assert summary["private_acceptance_log_health_passed"] is True
+    assert summary["private_target_value_health_passed"] is True
+
+
+def test_phase7_checkpoint_writer_emits_boundary_before_windowed_execute_error(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    writer_config = SequentialRHatCheckpointWriterConfig(
+        checkpoint_dir=tmp_path,
+        checkpoint_label="boundary",
+    )
+    events: list[tuple[str, Mapping[str, Any]]] = []
+    writer_calls: list[Mapping[str, Any]] = []
+    contract_sha = bayesfilter.sequential_rhat_verification_checkpoint_contract()[
+        "contract_sha256"
+    ]
+    boundary_reference = {
+        "artifact_type": "bayesfilter_sequential_rhat_checkpoint_public_reference",
+        "schema_version": 1,
+        "checkpoint_kind": "phase7_boundary_handoff",
+        "checkpoint_id": "srhat-v1-" + "3" * 32,
+        "checkpoint_sha256": "4" * 64,
+        "contract_sha256": contract_sha,
+        "private_paths_publicized": False,
+        "public_summary_contains_paths": False,
+        "public_summary_contains_raw_values": False,
+        "public_summary_contains_tensor_descriptors": False,
+        "public_summary_contains_kernel_payload": False,
+        "nonclaims": bayesfilter.SEQUENTIAL_RHAT_CHECKPOINT_PUBLIC_NONCLAIMS,
+    }
+    bayesfilter.assert_sequential_rhat_checkpoint_public_reference_safe(
+        boundary_reference
+    )
+
+    def fake_boundary_writer(**kwargs: Any) -> Mapping[str, Any]:
+        assert kwargs["writer_config"] is writer_config
+        assert kwargs["boundary_private_payload"]["stage"] == (
+            "windowed_mass_runner_execute_start"
+        )
+        assert kwargs["boundary_private_payload"]["private_raw_state_allowed"] is False
+        assert kwargs["state_summary_private_payload"]["raw_state_included"] is False
+        writer_calls.append(kwargs)
+        return boundary_reference
+
+    class _FailingReusableRunner:
+        def run(self, **_kwargs: Any) -> Any:
+            raise RuntimeError("windowed execute blocked after boundary checkpoint")
+
+    monkeypatch.setattr(
+        hmc_kernel_tuning,
+        "build_reusable_full_chain_tfp_hmc_runner",
+        lambda *_args, **_kwargs: _FailingReusableRunner(),
+    )
+    monkeypatch.setattr(
+        hmc_kernel_tuning,
+        "write_sequential_rhat_boundary_handoff_checkpoint",
+        fake_boundary_writer,
+    )
+
+    result = run_hmc_tune_verify_repair_loop(
+        adapter=_ToyGaussianAdapter(),
+        geometry=_geometry(),
+        bootstrap=_bootstrap(),
+        config=_loop_config(max_attempts=1, chain_execution_mode="tf_function"),
+        verification_checkpoint_writer_config=writer_config,
+        _budget_policy_factory=_tiny_budget_factory,
+        _progress_callback=lambda stage, payload: events.append((stage, payload)),
+    )
+
+    stage_names = [stage for stage, _payload in events]
+    assert result.passed is False
+    assert writer_calls
+    assert "windowed_mass_runner_execute_start" in stage_names
+    assert "windowed_mass_runner_execute_complete" not in stage_names
+    execute_payload = dict(
+        events[stage_names.index("windowed_mass_runner_execute_start")][1]["extra"]
+    )
+    assert execute_payload["checkpoint_reference"] == boundary_reference
+    assert execute_payload["checkpoint_reference_public_safe"] is True
+    public_text = json.dumps(execute_payload, sort_keys=True)
+    for forbidden in (
+        str(tmp_path),
+        "/",
+        "\\",
+        "step_size",
+        "num_leapfrog_steps",
+        "mass_artifact_payload",
+        "mass_matrix",
+        "inverse_mass",
+        "selected_kernel",
+        "final_state",
+    ):
+        assert forbidden not in public_text
+
+
 def test_sequential_rhat_final_verification_requires_acceptance_in_band() -> None:
     diagnostics = {
         "sequential_rhat_verification": True,
@@ -770,15 +1103,46 @@ def test_sequential_rhat_final_verification_requires_acceptance_in_band() -> Non
     assert repair_triggers == ("verification_acceptance_outside_pass_band",)
 
 
+@pytest.mark.parametrize("acceptance", [0.82, 0.60])
+def test_sequential_rhat_failure_preserves_out_of_band_acceptance_repair_trigger(
+    acceptance: float,
+) -> None:
+    diagnostics = {
+        "sequential_rhat_verification": True,
+        "all_finite_rhat_at_or_below_threshold": False,
+        "cap_hit": True,
+        "acceptance_rate": acceptance,
+        "runtime_finite": True,
+        "acceptance_log_health_passed": True,
+        "samples_all_finite": True,
+        "target_value_health_passed": True,
+    }
+    status, role, hard_vetoes, repair_triggers = (
+        hmc_kernel_tuning._classify_phase7_final_verification(
+            _loop_config(acceptance_band=(0.65, 0.75), repair_band=(0.55, 0.85)),
+            diagnostics=diagnostics,
+            screen_error=None,
+            callback_result=FixedMassHMCTuningBudgetCallbackResult(),
+        )
+    )
+
+    assert status == "repair_or_retry"
+    assert role == "verification_rhat_repair_trigger"
+    assert hard_vetoes == ()
+    assert "verification_rhat_above_threshold_or_cap_hit" in repair_triggers
+    assert "verification_rhat_cap_hit" in repair_triggers
+    assert "verification_acceptance_outside_pass_band" in repair_triggers
+
+
 def test_sequential_rhat_final_verification_passes_when_acceptance_in_band() -> None:
     diagnostics = {
         "sequential_rhat_verification": True,
         "all_finite_rhat_at_or_below_threshold": True,
         "acceptance_rate": 0.70,
         "runtime_finite": True,
-        "log_accept_ratio_finite": True,
+        "acceptance_log_health_passed": True,
         "samples_all_finite": True,
-        "target_log_prob_finite": True,
+        "target_value_health_passed": True,
     }
     status, role, hard_vetoes, repair_triggers = (
         hmc_kernel_tuning._classify_phase7_final_verification(
@@ -829,6 +1193,35 @@ def test_verification_high_acceptance_handoff_supplies_private_repair_step() -> 
     assert state.verification_repair_applied is True
     assert state.payload()["verification_repair_applied"] is True
     assert _fixed_mass_step_initial_step(_windowed_stage(), attempt_state=state) == pytest.approx(0.25)
+
+
+def test_verification_mixed_rhat_acceptance_handoff_supplies_private_repair_step() -> None:
+    repair = _phase7_verification_repair_handoff_payload(
+        config=_loop_config(acceptance_band=(0.65, 0.75), repair_band=(0.55, 0.85)),
+        selected_step_size=0.125,
+        selected_step_hash="selected-step-hash",
+        verification_config_payload={"verification_policy": "sequential_rhat"},
+        verification_diagnostics={
+            "acceptance_rate": 0.82,
+            "sequential_rhat_verification": True,
+            "all_finite_rhat_at_or_below_threshold": False,
+            "cap_hit": True,
+        },
+        verification_final_status="repair_or_retry",
+        verification_diagnostic_role="verification_rhat_repair_trigger",
+        verification_repair_triggers=(
+            "verification_rhat_above_threshold_or_cap_hit",
+            "verification_rhat_cap_hit",
+            "verification_acceptance_outside_pass_band",
+        ),
+    )
+
+    assert repair["verification_acceptance_relation"] == "above_acceptance_band"
+    assert repair["verification_repair_trigger"] == "verification_acceptance_outside_pass_band"
+    assert repair["verification_repair_source"] == "phase7_final_verification_acceptance"
+    assert repair["verification_repair_step_size"] == pytest.approx(0.25)
+    assert repair["verification_repair_step_hash"] is not None
+    assert repair["verification_repair_applied"] is True
 
 
 def test_verification_in_band_handoff_does_not_create_repair_step() -> None:
@@ -1162,6 +1555,100 @@ def test_outer_loop_classifies_verification_acceptance_retry_when_public_budget_
         assert forbidden not in text
 
 
+def test_phase7_fixed_mass_stage_config_threads_public_timeout_fields() -> None:
+    config = _loop_config(
+        chain_execution_mode="tf_function",
+        use_xla=True,
+        public_timeout_budget_s=810.0,
+        public_timeout_started_perf_counter_s=12.5,
+    )
+
+    fixed_config = hmc_kernel_tuning._phase7_fixed_step_stage_config(
+        config,
+        attempt_index=2,
+    )
+    ladder_config = hmc_kernel_tuning._fixed_mass_step_stage_ladder_config(
+        fixed_config,
+        initial_step=0.1,
+        num_leapfrog_steps=5,
+        target_scope="kernel_fixed_mass_step_toy_gaussian",
+        attempt_budget_policy=_tiny_budget_factory(2, 2),
+    )
+
+    assert fixed_config.public_timeout_budget_s == pytest.approx(810.0)
+    assert fixed_config.public_timeout_started_perf_counter_s == pytest.approx(12.5)
+    assert ladder_config.public_timeout_budget_s == pytest.approx(810.0)
+    assert ladder_config.public_timeout_started_perf_counter_s == pytest.approx(12.5)
+    assert ladder_config.chain_execution_mode == "tf_function"
+    assert ladder_config.use_xla is True
+
+
+
+def test_windowed_mass_public_timeout_closeout_before_runner_skips_hmc_call(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(hmc_kernel_tuning.time, "perf_counter", lambda: 9.0)
+    calls: list[str] = []
+    events: list[tuple[str, Mapping[str, Any]]] = []
+
+    def run(_adapter: Any, _initial_state: Any, _config: Any):
+        calls.append("unexpected")
+        raise AssertionError("windowed mass HMC runner must not run after closeout")
+
+    result = hmc_kernel_tuning.run_hmc_windowed_mass_stage(
+        adapter=_ToyGaussianAdapter(),
+        geometry=_geometry(),
+        bootstrap=_bootstrap(),
+        config=hmc_kernel_tuning.HMCWindowedMassStageConfig(
+            target_accept_prob=0.70,
+            chain_execution_mode="eager",
+            target_scope="kernel_fixed_mass_step_toy_gaussian",
+            public_timeout_budget_s=10.0,
+            public_timeout_started_perf_counter_s=0.0,
+        ),
+        run_full_chain=run,
+        _attempt_budget_policy=_tiny_budget_factory(2, 0),
+        _progress_callback=lambda stage, payload: events.append((stage, payload)),
+        _attempt_index=0,
+    )
+
+    assert calls == []
+    assert result.passed is False
+    assert result.final_status == "hard_veto"
+    assert result.diagnostic_role == "hard_veto"
+    assert result.hard_vetoes == ("windowed_mass_public_timeout_soft_deadline",)
+    closeout = result.diagnostics["public_timeout_closeout"]
+    assert closeout["remaining_s"] == pytest.approx(1.0)
+    assert closeout["closeout_required_before_hmc_call"] is True
+    assert closeout["deadline_clock_scope"] == "public_one_call_global"
+    assert closeout["hmc_mechanics_exposed"] is False
+    assert [stage for stage, _payload in events] == [
+        "windowed_mass_public_timeout_closeout"
+    ]
+    event_payload = events[0][1]
+    assert event_payload["public_timeout_closeout"]["hard_veto"] == (
+        "windowed_mass_public_timeout_soft_deadline"
+    )
+    assert event_payload["hmc_mechanics_exposed"] is False
+    forbidden_fields = {
+        "step_size",
+        "num_leapfrog_steps",
+        "mass_artifact_payload",
+        "samples",
+        "trace",
+        "target_log_prob",
+        "final_state",
+    }
+    assert forbidden_fields.isdisjoint(event_payload)
+    assert forbidden_fields.isdisjoint(event_payload["public_timeout_closeout"])
+    public_text = json.dumps(event_payload, sort_keys=True)
+    for forbidden in (
+        "mass_artifact_payload",
+        "target_log_prob",
+        "final_state",
+    ):
+        assert forbidden not in public_text
+
 def test_outer_loop_blocks_verification_acceptance_retry_before_stage_overhead(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -1345,7 +1832,7 @@ def test_outer_loop_blocks_phase6_repair_retry_before_stage_overhead(
 
 
 def test_outer_loop_phase5_acceptance_repair_uses_private_step_handoff() -> None:
-    run, _calls = _scripted_full_chain_runner(
+    run, calls = _scripted_full_chain_runner(
         phase5_screen_acceptances=[0.90, 0.91, 0.92, 0.70],
         verification_acceptances=[0.70],
     )
@@ -1363,16 +1850,44 @@ def test_outer_loop_phase5_acceptance_repair_uses_private_step_handoff() -> None
     assert len(result.attempts) == 2
     first = result.attempts[0]
     assert first.final_status == "repair_or_retry"
-    assert "screen_acceptance_above_repair_band" in first.repair_triggers
-    assert first.fixed_mass_step_stage.selected_step_payload is None
-    assert first.fixed_mass_step_stage.repair_step_payload is not None
-    assert first.frozen_step_trajectory_stage is None
+    assert first.fixed_mass_step_stage.selected_step_payload is not None
+    assert "screen_acceptance_above_repair_band" in (
+        first.fixed_mass_step_stage.repair_triggers
+    )
+    assert "trajectory_length_above_window" in first.repair_triggers
+    assert first.fixed_mass_step_stage.repair_step_payload is None
+    assert first.frozen_step_trajectory_stage is not None
     assert first.verification_config_payload is None
-    assert first.handoff_state_payload["handoff_stage"] == "phase5_repair"
+    assert first.handoff_state_payload["handoff_stage"] == "phase5_selected"
     assert first.handoff_state_payload["stage_repair_handoff_complete"] is True
     assert first.handoff_state_payload["final_kernel_handoff_complete"] is False
-    assert result.attempts[1].incoming_state_payload["handoff_stage"] == "phase5_repair"
+    assert (
+        first.handoff_state_payload["verification_repair_source"]
+        == "phase6_frozen_step_trajectory_overreach"
+    )
+    assert first.handoff_state_payload["verification_repair_applied"] is True
+    assert first.handoff_state_payload["verification_repair_max_step_size"] is not None
+    assert result.attempts[1].incoming_state_payload["handoff_stage"] == "phase5_selected"
     assert result.attempts[1].budget_policy_payload["budget"] == 16
+    repair_step = first.handoff_state_payload["verification_repair_step_size"]
+    max_step = first.handoff_state_payload["verification_repair_max_step_size"]
+    assert result.attempts[1].fixed_mass_step_stage.initial_step_size == pytest.approx(
+        repair_step
+    )
+    retry_ladder = result.attempts[1].fixed_mass_step_stage.budget_ladder_result
+    repair_round = retry_ladder.last_repair_compatible_round
+    assert repair_round is not None
+    directional = repair_round.screen_diagnostics["directional_step_repair"]
+    assert directional["step_ceiling_applied"] is True
+    assert directional["next_step_size"] == pytest.approx(max_step)
+    assert result.attempts[1].fixed_mass_step_stage.selected_step_size == pytest.approx(
+        max_step
+    )
+    assert result.attempts[1].frozen_step_trajectory_stage.passed is True
+    dual_averaging_calls = [call for call in calls if call["uses_dual_averaging"]]
+    assert dual_averaging_calls[1]["step_size"] == pytest.approx(
+        repair_step
+    )
 
 
 def test_phase6_high_acceptance_handoff_supplies_private_repair_step() -> None:
@@ -1380,19 +1895,25 @@ def test_phase6_high_acceptance_handoff_supplies_private_repair_step() -> None:
         verification_acceptances=[0.70],
         trajectory_acceptance=0.90,
     )
+    config = _loop_config(
+        acceptance_band=(0.65, 0.75),
+        repair_band=(0.55, 0.85),
+        trajectory_window_lower_multiplier=0.01,
+        trajectory_window_upper_multiplier=100.0,
+    )
 
     result = run_hmc_tune_verify_repair_loop(
         adapter=_ToyGaussianAdapter(),
         geometry=_geometry(),
         bootstrap=_bootstrap(),
-        config=_loop_config(max_attempts=1),
+        config=replace(config, max_attempts=1),
         run_full_chain=run,
         _budget_policy_factory=_tiny_budget_factory,
     )
 
     attempt = result.attempts[0]
     repair = _phase6_trajectory_repair_handoff_payload(
-        config=_loop_config(acceptance_band=(0.65, 0.75), repair_band=(0.55, 0.85)),
+        config=config,
         selected_step_size=attempt.fixed_mass_step_stage.selected_step_size,
         selected_step_hash=attempt.fixed_mass_step_stage.selected_step_hash,
         frozen_step_trajectory_stage=attempt.frozen_step_trajectory_stage,
@@ -1407,6 +1928,10 @@ def test_phase6_high_acceptance_handoff_supplies_private_repair_step() -> None:
     )
 
     assert attempt.final_status == "repair_or_retry"
+    assert {
+        candidate["trajectory_window_relation"]
+        for candidate in attempt.frozen_step_trajectory_stage.candidate_results
+    } == {"inside_trajectory_window"}
     assert repair["verification_acceptance_relation"] == "above_acceptance_band"
     assert (
         repair["verification_repair_trigger"]
@@ -1431,25 +1956,35 @@ def test_phase6_low_acceptance_handoff_supplies_private_repair_step() -> None:
         verification_acceptances=[0.70],
         trajectory_acceptance=0.50,
     )
+    config = _loop_config(
+        acceptance_band=(0.65, 0.75),
+        repair_band=(0.55, 0.85),
+        trajectory_window_lower_multiplier=0.01,
+        trajectory_window_upper_multiplier=100.0,
+    )
 
     result = run_hmc_tune_verify_repair_loop(
         adapter=_ToyGaussianAdapter(),
         geometry=_geometry(),
         bootstrap=_bootstrap(),
-        config=_loop_config(max_attempts=1),
+        config=replace(config, max_attempts=1),
         run_full_chain=run,
         _budget_policy_factory=_tiny_budget_factory,
     )
 
     attempt = result.attempts[0]
     repair = _phase6_trajectory_repair_handoff_payload(
-        config=_loop_config(acceptance_band=(0.65, 0.75), repair_band=(0.55, 0.85)),
+        config=config,
         selected_step_size=attempt.fixed_mass_step_stage.selected_step_size,
         selected_step_hash=attempt.fixed_mass_step_stage.selected_step_hash,
         frozen_step_trajectory_stage=attempt.frozen_step_trajectory_stage,
     )
 
     assert attempt.final_status == "repair_or_retry"
+    assert {
+        candidate["trajectory_window_relation"]
+        for candidate in attempt.frozen_step_trajectory_stage.candidate_results
+    } == {"inside_trajectory_window"}
     assert repair["verification_acceptance_relation"] == "below_acceptance_band"
     assert (
         repair["verification_repair_trigger"]
@@ -1466,12 +2001,17 @@ def test_outer_loop_phase6_repair_uses_directional_private_step_handoff() -> Non
         verification_acceptances=[0.70],
         trajectory_acceptance=0.90,
     )
+    config = _loop_config(
+        max_attempts=2,
+        trajectory_window_lower_multiplier=0.01,
+        trajectory_window_upper_multiplier=100.0,
+    )
 
     result = run_hmc_tune_verify_repair_loop(
         adapter=_ToyGaussianAdapter(),
         geometry=_geometry(),
         bootstrap=_bootstrap(),
-        config=_loop_config(max_attempts=2),
+        config=config,
         run_full_chain=run,
         _budget_policy_factory=_tiny_budget_factory,
     )
@@ -1484,6 +2024,10 @@ def test_outer_loop_phase6_repair_uses_directional_private_step_handoff() -> Non
     assert first.fixed_mass_step_stage.passed is True
     assert first.frozen_step_trajectory_stage.passed is False
     assert first.frozen_step_trajectory_stage.selected_trajectory_hash is None
+    assert {
+        candidate["trajectory_window_relation"]
+        for candidate in first.frozen_step_trajectory_stage.candidate_results
+    } == {"inside_trajectory_window"}
     assert "phase6_trajectory_status:repair_or_retry" in first.repair_triggers
     assert first.handoff_state_payload["handoff_stage"] == "phase5_selected"
     assert first.handoff_state_payload["step_handoff_complete"] is True
@@ -1533,6 +2077,459 @@ def test_outer_loop_budget_exhausted_emits_no_final_kernel() -> None:
     assert result.final_kernel_hash is None
     assert result.payload()["budget_exhausted_is_non_promoting"] is True
     assert "phase7_budget_exhausted" in result.repair_triggers
+
+
+def test_outer_loop_rhat_cap_retries_verification_without_retuning_stages() -> None:
+    windowed = _windowed_stage()
+    fixed = hmc_kernel_tuning.run_hmc_fixed_mass_step_stage(
+        adapter=_ToyGaussianAdapter(),
+        geometry=_geometry(),
+        bootstrap=_bootstrap(),
+        windowed_stage=windowed,
+        config=hmc_kernel_tuning.HMCFixedMassStepStageConfig(
+            target_accept_prob=0.70,
+            seed=(20260621, 50),
+            chain_execution_mode="eager",
+            target_scope="kernel_fixed_mass_step_toy_gaussian",
+        ),
+        run_full_chain=_scripted_full_chain_runner(verification_acceptances=[0.70])[0],
+    )
+    def trajectory_run(_adapter: Any, _initial_state: Any, config: Any):
+        return _fake_result(
+            num_results=int(config.num_results),
+            acceptance=0.70,
+            samples=np.zeros((int(config.num_results), 2)),
+        )
+
+    trajectory = hmc_kernel_tuning.run_hmc_frozen_step_trajectory_stage(
+        adapter=_ToyGaussianAdapter(),
+        geometry=_geometry(),
+        bootstrap=_bootstrap(),
+        windowed_stage=windowed,
+        fixed_mass_step_stage=fixed,
+        config=hmc_kernel_tuning.HMCFrozenStepTrajectoryStageConfig(
+            target_accept_prob=0.70,
+            seed=(20260621, 60),
+            chain_execution_mode="eager",
+            target_scope="kernel_fixed_mass_step_toy_gaussian",
+        ),
+        run_full_chain=trajectory_run,
+    )
+    verification_calls: list[int] = []
+    stage_calls: list[str] = []
+
+    def windowed_runner(**_kwargs: Any):
+        stage_calls.append("windowed")
+        return windowed
+
+    def fixed_runner(**_kwargs: Any):
+        stage_calls.append("fixed")
+        return fixed
+
+    def trajectory_runner(**_kwargs: Any):
+        stage_calls.append("trajectory")
+        return trajectory
+
+    def verification_runner(
+        *,
+        budget_policy: Any,
+        attempt_index: int,
+        verification_start_callback: Any,
+        **_kwargs: Any,
+    ):
+        verification_calls.append(int(attempt_index))
+        if verification_start_callback is not None:
+            verification_start_callback()
+        passed = len(verification_calls) == 2
+        diagnostics = {
+            "sequential_rhat_verification": True,
+            "all_finite_rhat_at_or_below_threshold": passed,
+            "cap_hit": not passed,
+            "rhat_threshold": 1.01,
+            "check_interval": int(budget_policy.verification_num_results),
+            "max_results": int(budget_policy.verification_num_results),
+            "runtime_finite": True,
+            "samples_all_finite": True,
+            "target_log_prob_finite": True,
+            "log_accept_ratio_finite": True,
+            "acceptance_rate": 0.70,
+        }
+        return hmc_kernel_tuning._classify_phase7_final_verification(
+            _loop_config(max_attempts=2),
+            diagnostics=diagnostics,
+            screen_error=None,
+            callback_result=FixedMassHMCTuningBudgetCallbackResult(),
+        )
+
+    def verification_wrapper(**kwargs: Any):
+        (
+            status,
+            role,
+            hard_vetoes,
+            repair_triggers,
+        ) = verification_runner(**kwargs)
+        budget_policy = kwargs["budget_policy"]
+        diagnostics = {
+            "sequential_rhat_verification": True,
+            "all_finite_rhat_at_or_below_threshold": status == "passed",
+            "cap_hit": status != "passed",
+            "rhat_threshold": 1.01,
+            "check_interval": int(budget_policy.verification_num_results),
+            "max_results": int(budget_policy.verification_num_results),
+            "runtime_finite": True,
+            "samples_all_finite": True,
+            "target_log_prob_finite": True,
+            "log_accept_ratio_finite": True,
+            "acceptance_rate": 0.70,
+        }
+        return (
+            {
+                "verification_policy": "sequential_rhat",
+                "max_results": int(budget_policy.verification_num_results),
+                "acceptance_band": (0.65, 0.75),
+            },
+            diagnostics,
+            FixedMassHMCTuningBudgetCallbackResult(),
+            status,
+            role,
+            hard_vetoes,
+            repair_triggers,
+        )
+
+    result = run_hmc_tune_verify_repair_loop(
+        adapter=_ToyGaussianAdapter(),
+        geometry=_geometry(),
+        bootstrap=_bootstrap(),
+        config=_loop_config(max_attempts=2),
+        _budget_policy_factory=_tiny_budget_factory,
+        _windowed_stage_runner=windowed_runner,
+        _fixed_mass_step_stage_runner=fixed_runner,
+        _frozen_step_trajectory_stage_runner=trajectory_runner,
+        _phase7_final_verification_runner=verification_wrapper,
+    )
+
+    assert result.final_status == "passed"
+    assert verification_calls == [0, 1]
+    assert stage_calls == ["windowed", "fixed", "trajectory"]
+    assert result.attempts[1].windowed_stage is windowed
+    assert result.attempts[1].fixed_mass_step_stage is fixed
+    assert result.attempts[1].frozen_step_trajectory_stage is trajectory
+    assert result.attempts[0].handoff_state_payload["verification_budget_results"] == 4
+    assert (
+        result.attempts[1].verification_diagnostics["phase7_retry_class"]
+        == "verification_only_after_rhat_cap"
+    )
+    public_summary = hmc_kernel_tuning._phase7_public_summary(result)
+    second_verification = public_summary["attempt_summaries"][1]["stage_statuses"][
+        "verification"
+    ]
+    assert second_verification["verification_only_retry"] is True
+    assert second_verification["reused_frozen_kernel_handoff"] is True
+    assert second_verification["hmc_mechanics_exposed"] is False
+
+
+def test_outer_loop_saturated_verify_only_retry_closes_out_before_final_slot() -> None:
+    windowed = _windowed_stage()
+    fixed = hmc_kernel_tuning.run_hmc_fixed_mass_step_stage(
+        adapter=_ToyGaussianAdapter(),
+        geometry=_geometry(),
+        bootstrap=_bootstrap(),
+        windowed_stage=windowed,
+        config=hmc_kernel_tuning.HMCFixedMassStepStageConfig(
+            target_accept_prob=0.70,
+            seed=(20260621, 50),
+            chain_execution_mode="eager",
+            target_scope="kernel_fixed_mass_step_toy_gaussian",
+        ),
+        run_full_chain=_scripted_full_chain_runner(verification_acceptances=[0.70])[0],
+    )
+
+    def trajectory_run(_adapter: Any, _initial_state: Any, config: Any):
+        return _fake_result(
+            num_results=int(config.num_results),
+            acceptance=0.70,
+            samples=np.zeros((int(config.num_results), 2)),
+        )
+
+    trajectory = hmc_kernel_tuning.run_hmc_frozen_step_trajectory_stage(
+        adapter=_ToyGaussianAdapter(),
+        geometry=_geometry(),
+        bootstrap=_bootstrap(),
+        windowed_stage=windowed,
+        fixed_mass_step_stage=fixed,
+        config=hmc_kernel_tuning.HMCFrozenStepTrajectoryStageConfig(
+            target_accept_prob=0.70,
+            seed=(20260621, 60),
+            chain_execution_mode="eager",
+            target_scope="kernel_fixed_mass_step_toy_gaussian",
+        ),
+        run_full_chain=trajectory_run,
+    )
+    verification_calls: list[int] = []
+    stage_calls: list[str] = []
+
+    def capped_budget_factory(_dimension: int, attempt_index: int) -> _HMCAttemptBudgetPolicy:
+        base = _tiny_budget_factory(_dimension, attempt_index)
+        return replace(
+            base,
+            budget=16,
+            verification_num_results=8,
+            verification_num_burnin_steps=2,
+            public_budget_cap=16,
+            public_max_attempts=3,
+            public_diagnostic_preset="diagnostic_plus",
+        )
+
+    def windowed_runner(**_kwargs: Any):
+        stage_calls.append("windowed")
+        return windowed
+
+    def fixed_runner(**_kwargs: Any):
+        stage_calls.append("fixed")
+        return fixed
+
+    def trajectory_runner(**_kwargs: Any):
+        stage_calls.append("trajectory")
+        return trajectory
+
+    def verification_wrapper(
+        *,
+        budget_policy: Any,
+        attempt_index: int,
+        verification_start_callback: Any,
+        **_kwargs: Any,
+    ):
+        verification_calls.append(int(attempt_index))
+        if verification_start_callback is not None:
+            verification_start_callback()
+        diagnostics = {
+            "sequential_rhat_verification": True,
+            "all_finite_rhat_at_or_below_threshold": False,
+            "cap_hit": True,
+            "rhat_threshold": 1.01,
+            "check_interval": int(budget_policy.verification_num_results),
+            "max_results": int(budget_policy.verification_num_results),
+            "runtime_finite": True,
+            "samples_all_finite": True,
+            "target_log_prob_finite": True,
+            "log_accept_ratio_finite": True,
+            "acceptance_rate": 0.70,
+        }
+        status, role, hard_vetoes, repair_triggers = (
+            hmc_kernel_tuning._classify_phase7_final_verification(
+                _loop_config(max_attempts=3),
+                diagnostics=diagnostics,
+                screen_error=None,
+                callback_result=FixedMassHMCTuningBudgetCallbackResult(),
+            )
+        )
+        return (
+            {
+                "verification_policy": "sequential_rhat",
+                "max_results": int(budget_policy.verification_num_results),
+                "acceptance_band": (0.65, 0.75),
+            },
+            diagnostics,
+            FixedMassHMCTuningBudgetCallbackResult(),
+            status,
+            role,
+            hard_vetoes,
+            repair_triggers,
+        )
+
+    result = run_hmc_tune_verify_repair_loop(
+        adapter=_ToyGaussianAdapter(),
+        geometry=_geometry(),
+        bootstrap=_bootstrap(),
+        config=_loop_config(max_attempts=3),
+        _budget_policy_factory=capped_budget_factory,
+        _windowed_stage_runner=windowed_runner,
+        _fixed_mass_step_stage_runner=fixed_runner,
+        _frozen_step_trajectory_stage_runner=trajectory_runner,
+        _phase7_final_verification_runner=verification_wrapper,
+    )
+
+    assert result.final_status == "budget_exhausted"
+    assert result.diagnostic_role == "verification_only_rhat_cap_budget_saturated_no_repair_slot"
+    assert result.repair_triggers == (
+        "verification_rhat_above_threshold_or_cap_hit",
+        "verification_rhat_cap_hit",
+        "verification_only_rhat_cap_budget_saturated_no_repair_slot",
+    )
+    assert verification_calls == [0, 1]
+    assert stage_calls == ["windowed", "fixed", "trajectory"]
+    guard = result.terminal_budget_guard_payload
+    assert guard["previous_verification_budget_results"] == 8
+    assert guard["next_attempt_verification_budget_results"] == 8
+    assert guard["remaining_attempts_after_next"] == 0
+    public_summary = hmc_kernel_tuning._phase7_public_summary(result)
+    assert public_summary["terminal_budget_guard"]["classification"] == (
+        "verification_only_rhat_cap_budget_saturated_no_repair_slot"
+    )
+
+
+def test_outer_loop_out_of_band_verification_acceptance_still_reenters_stage_repair() -> None:
+    run, calls = _scripted_full_chain_runner(verification_acceptances=[0.82, 0.70])
+
+    result = run_hmc_tune_verify_repair_loop(
+        adapter=_ToyGaussianAdapter(),
+        geometry=_geometry(),
+        bootstrap=_bootstrap(),
+        config=_loop_config(max_attempts=2),
+        run_full_chain=run,
+        _budget_policy_factory=_tiny_budget_factory,
+    )
+
+    assert result.final_status == "passed"
+    dual_averaging_calls = [call for call in calls if call["uses_dual_averaging"]]
+    assert len(dual_averaging_calls) == 2
+    assert (
+        result.attempts[0].handoff_state_payload["verification_repair_trigger"]
+        == "verification_acceptance_outside_pass_band"
+    )
+
+
+def test_outer_loop_verify_only_retry_disarms_when_acceptance_leaves_band() -> None:
+    windowed = _windowed_stage()
+    fixed = hmc_kernel_tuning.run_hmc_fixed_mass_step_stage(
+        adapter=_ToyGaussianAdapter(),
+        geometry=_geometry(),
+        bootstrap=_bootstrap(),
+        windowed_stage=windowed,
+        config=hmc_kernel_tuning.HMCFixedMassStepStageConfig(
+            target_accept_prob=0.70,
+            seed=(20260621, 50),
+            chain_execution_mode="eager",
+            target_scope="kernel_fixed_mass_step_toy_gaussian",
+        ),
+        run_full_chain=_scripted_full_chain_runner(verification_acceptances=[0.70])[0],
+    )
+
+    def trajectory_run(_adapter: Any, _initial_state: Any, config: Any):
+        return _fake_result(
+            num_results=int(config.num_results),
+            acceptance=0.70,
+            samples=np.zeros((int(config.num_results), 2)),
+        )
+
+    trajectory = hmc_kernel_tuning.run_hmc_frozen_step_trajectory_stage(
+        adapter=_ToyGaussianAdapter(),
+        geometry=_geometry(),
+        bootstrap=_bootstrap(),
+        windowed_stage=windowed,
+        fixed_mass_step_stage=fixed,
+        config=hmc_kernel_tuning.HMCFrozenStepTrajectoryStageConfig(
+            target_accept_prob=0.70,
+            seed=(20260621, 60),
+            chain_execution_mode="eager",
+            target_scope="kernel_fixed_mass_step_toy_gaussian",
+        ),
+        run_full_chain=trajectory_run,
+    )
+    verification_acceptances = [0.70, 0.82, 0.70]
+    verification_calls: list[int] = []
+    stage_calls: list[str] = []
+
+    def windowed_runner(**_kwargs: Any):
+        stage_calls.append("windowed")
+        return windowed
+
+    def fixed_runner(**_kwargs: Any):
+        stage_calls.append("fixed")
+        return fixed
+
+    def trajectory_runner(**_kwargs: Any):
+        stage_calls.append("trajectory")
+        return trajectory
+
+    def verification_wrapper(
+        *,
+        budget_policy: Any,
+        attempt_index: int,
+        verification_start_callback: Any,
+        **_kwargs: Any,
+    ):
+        verification_calls.append(int(attempt_index))
+        if verification_start_callback is not None:
+            verification_start_callback()
+        acceptance = verification_acceptances[len(verification_calls) - 1]
+        passed = len(verification_calls) == 3
+        diagnostics = {
+            "sequential_rhat_verification": True,
+            "all_finite_rhat_at_or_below_threshold": passed,
+            "cap_hit": not passed,
+            "rhat_threshold": 1.01,
+            "check_interval": int(budget_policy.verification_num_results),
+            "max_results": int(budget_policy.verification_num_results),
+            "runtime_finite": True,
+            "samples_all_finite": True,
+            "target_log_prob_finite": True,
+            "log_accept_ratio_finite": True,
+            "acceptance_rate": acceptance,
+        }
+        status, role, hard_vetoes, repair_triggers = (
+            hmc_kernel_tuning._classify_phase7_final_verification(
+                _loop_config(max_attempts=3),
+                diagnostics=diagnostics,
+                screen_error=None,
+                callback_result=FixedMassHMCTuningBudgetCallbackResult(),
+            )
+        )
+        return (
+            {
+                "verification_policy": "sequential_rhat",
+                "max_results": int(budget_policy.verification_num_results),
+                "acceptance_band": (0.65, 0.75),
+            },
+            diagnostics,
+            FixedMassHMCTuningBudgetCallbackResult(),
+            status,
+            role,
+            hard_vetoes,
+            repair_triggers,
+        )
+
+    result = run_hmc_tune_verify_repair_loop(
+        adapter=_ToyGaussianAdapter(),
+        geometry=_geometry(),
+        bootstrap=_bootstrap(),
+        config=_loop_config(max_attempts=3),
+        _budget_policy_factory=_tiny_budget_factory,
+        _windowed_stage_runner=windowed_runner,
+        _fixed_mass_step_stage_runner=fixed_runner,
+        _frozen_step_trajectory_stage_runner=trajectory_runner,
+        _phase7_final_verification_runner=verification_wrapper,
+    )
+
+    assert result.final_status == "passed"
+    assert verification_calls == [0, 1, 2]
+    assert stage_calls == [
+        "windowed",
+        "fixed",
+        "trajectory",
+        "windowed",
+        "fixed",
+        "trajectory",
+    ]
+    second_attempt = result.attempts[1]
+    assert (
+        second_attempt.verification_diagnostics["phase7_retry_class"]
+        == "verification_only_disarmed_acceptance_repair"
+    )
+    assert second_attempt.verification_diagnostics["phase7_verification_only_retry"] is False
+    assert (
+        second_attempt.handoff_state_payload["verification_repair_trigger"]
+        == "verification_acceptance_outside_pass_band"
+    )
+    assert second_attempt.handoff_state_payload["verification_repair_applied"] is True
+    public_summary = hmc_kernel_tuning._phase7_public_summary(result)
+    second_verification = public_summary["attempt_summaries"][1]["stage_statuses"][
+        "verification"
+    ]
+    assert second_verification["acceptance_relation"] == "above_acceptance_band"
+    assert second_verification["verification_only_retry"] is False
+    assert second_verification["reused_frozen_kernel_handoff"] is True
+
 
 
 def test_outer_loop_callback_roles_are_classified_for_verification() -> None:

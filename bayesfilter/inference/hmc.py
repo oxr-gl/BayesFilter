@@ -677,8 +677,8 @@ class FixedSizeHMCChunkConfig:
             raise ValueError("XLA fixed-size HMC chunk requires chain_execution_mode='tf_function'")
         object.__setattr__(self, "chain_execution_mode", chain_execution_mode)
         trace_policy = str(self.trace_policy)
-        if trace_policy != "reduced":
-            raise ValueError("fixed-size HMC chunk runner currently supports only reduced trace")
+        if trace_policy not in {"reduced", "standard"}:
+            raise ValueError("trace_policy must be 'reduced' or 'standard'")
         object.__setattr__(self, "trace_policy", trace_policy)
         target_status_policy = str(self.target_status_trace_policy)
         if target_status_policy != "none":
@@ -1164,7 +1164,42 @@ SEQUENTIAL_RHAT_CHECKPOINT_PUBLIC_NONCLAIMS: tuple[str, ...] = (
     "no resume claim",
 )
 
+SEQUENTIAL_RHAT_CHECKPOINT_INSPECTION_PUBLIC_FIELDS: tuple[str, ...] = (
+    "artifact_type",
+    "schema_version",
+    "checkpoint_kind",
+    "checkpoint_id",
+    "checkpoint_sha256",
+    "contract_sha256",
+    "manifest_core_hash_verified",
+    "private_payload_hashes_verified",
+    "private_payload_count",
+    "required_private_payloads_present",
+    "retained_sample_count",
+    "latest_chunk_index",
+    "valid_sample_count",
+    "nonfinite_valid_sample_count",
+    "rhat_summary",
+    "acceptance_summary",
+    "finite_checks",
+    "divergence_summary",
+    "provenance",
+    "resume",
+    "privacy_contract",
+    "nonclaims",
+)
+
+SEQUENTIAL_RHAT_CHECKPOINT_INSPECTION_NONCLAIMS: tuple[str, ...] = (
+    "sequential R-hat private checkpoint inspection only",
+    "private checkpoint contents are not publicized",
+    "no posterior convergence claim",
+    "no sampler superiority claim",
+    "no scientific validity claim",
+    "no resume claim",
+)
+
 SEQUENTIAL_RHAT_CHECKPOINT_KINDS: tuple[str, ...] = (
+    "phase7_boundary_handoff",
     "pre_verification_handoff",
     "verification_chunk",
 )
@@ -1284,7 +1319,9 @@ def sequential_rhat_verification_checkpoint_contract() -> Mapping[str, Any]:
             "role": (
                 "one of samples, valid_mask, final_state, reduced_trace, "
                 "target_log_prob_summary, log_accept_ratio_summary, "
-                "rhat_summary, selected_kernel_private_payload, mass_payload"
+                "rhat_summary, selected_kernel_private_payload, mass_payload, "
+                "boundary_private_payload, config_private_payload, "
+                "state_summary_private_payload"
             ),
             "path": "private shard path; never allowed in public progress",
             "sha256": "lowercase sha256 hex of shard bytes",
@@ -1294,6 +1331,9 @@ def sequential_rhat_verification_checkpoint_contract() -> Mapping[str, Any]:
             "serializer": "string serializer identifier",
         },
         "private_shard_roles": (
+            "boundary_private_payload",
+            "config_private_payload",
+            "state_summary_private_payload",
             "samples",
             "valid_mask",
             "final_state",
@@ -1305,6 +1345,11 @@ def sequential_rhat_verification_checkpoint_contract() -> Mapping[str, Any]:
             "mass_payload",
         ),
         "private_manifest_required_shard_roles_by_kind": {
+            "phase7_boundary_handoff": (
+                "boundary_private_payload",
+                "config_private_payload",
+                "state_summary_private_payload",
+            ),
             "pre_verification_handoff": (
                 "selected_kernel_private_payload",
                 "final_state",
@@ -1321,7 +1366,7 @@ def sequential_rhat_verification_checkpoint_contract() -> Mapping[str, Any]:
             ),
         },
         "private_diagnostics_record_schema": {
-            "chunk_index": "integer or null for pre-verification handoff",
+            "chunk_index": "integer or null for boundary/pre-verification handoff",
             "retained_sample_count": "integer retained count available after this artifact",
             "valid_sample_count": "integer valid sample count or null",
             "nonfinite_valid_sample_count": "integer nonfinite valid sample count or null",
@@ -1364,6 +1409,17 @@ def sequential_rhat_verification_checkpoint_contract() -> Mapping[str, Any]:
             "step_size",
             "num_leapfrog_steps",
         ),
+        "private_boundary_handoff_fields": (
+            "boundary_private_payload",
+            "config_private_payload",
+            "state_summary_private_payload",
+            "stage",
+            "target_scope",
+            "target_dimension",
+            "attempt_index",
+            "public_budget_class",
+            "private_raw_state_allowed",
+        ),
         "private_verification_chunk_fields": (
             "chunk_index",
             "retained_sample_count",
@@ -1381,6 +1437,19 @@ def sequential_rhat_verification_checkpoint_contract() -> Mapping[str, Any]:
             "public_progress_contains_tensor_descriptors": False,
             "public_progress_contains_hmc_mechanics": False,
             "private_manifest_contains_readback_authority": True,
+        },
+        "inspect_summary_artifact_type": (
+            "bayesfilter_sequential_rhat_checkpoint_inspection_summary"
+        ),
+        "inspect_summary_public_fields": (
+            SEQUENTIAL_RHAT_CHECKPOINT_INSPECTION_PUBLIC_FIELDS
+        ),
+        "inspect_resume_policy": {
+            "resume_supported_by_current_schema": False,
+            "resume_status": "deferred_until_continuation_contract_is_tested",
+            "inspection_does_not_publicize_private_paths": True,
+            "inspection_does_not_publicize_raw_tensors": True,
+            "inspection_does_not_publicize_hmc_mechanics": True,
         },
         "nonclaims": SEQUENTIAL_RHAT_CHECKPOINT_PUBLIC_NONCLAIMS,
     }
@@ -1494,6 +1563,284 @@ def assert_sequential_rhat_checkpoint_public_reference_safe(
                 )
 
     walk(payload, tuple())
+
+
+def write_sequential_rhat_pre_verification_handoff_checkpoint(
+    *,
+    writer_config: SequentialRHatCheckpointWriterConfig,
+    adapter: Any,
+    config_private_payload: Mapping[str, Any],
+    selected_kernel_private_payload: Mapping[str, Any],
+    mass_payload: Mapping[str, Any],
+    final_state: Any,
+    retained_count: int = 0,
+) -> Mapping[str, Any]:
+    """Write the private selected-kernel handoff before verification starts."""
+
+    import tensorflow as tf
+
+    root = Path(writer_config.checkpoint_dir)
+    root.mkdir(parents=True, exist_ok=True)
+    label = str(writer_config.checkpoint_label)
+    checkpoint_id = "srhat-v1-" + secrets.token_hex(16)
+    artifact_prefix = f"{label}_{checkpoint_id}"
+    checkpoint_kind = "pre_verification_handoff"
+
+    final_state_tensor = tf.convert_to_tensor(final_state)
+    selected_payload = _json_safe_metadata(selected_kernel_private_payload)
+    mass_private_payload = _json_safe_metadata(mass_payload)
+    shard_sources = {
+        "selected_kernel_private_payload": (selected_payload, "json"),
+        "final_state": (final_state_tensor, "tensorflow.serialize_tensor"),
+        "mass_payload": (mass_private_payload, "json"),
+    }
+    shards: dict[str, Mapping[str, Any]] = {}
+    for role, (payload, serializer) in shard_sources.items():
+        shard_path = root / f"{artifact_prefix}_{role}.{_sequential_rhat_shard_suffix(serializer)}"
+        if shard_path.exists() and not writer_config.overwrite:
+            raise FileExistsError(f"sequential R-hat checkpoint shard exists: {shard_path}")
+        if serializer == "json":
+            sha256, byte_count = _write_json_shard(shard_path, payload)
+            shape: tuple[int, ...] = ()
+            dtype = "json"
+        else:
+            tensor = tf.convert_to_tensor(payload)
+            sha256, byte_count = _write_sequential_rhat_serialized_tensor_shard(
+                shard_path,
+                tensor,
+            )
+            shape = tuple(int(dim) for dim in tensor.shape)
+            dtype = tensor.dtype.name
+        shards[role] = {
+            "role": role,
+            "path": str(shard_path),
+            "sha256": sha256,
+            "bytes": int(byte_count),
+            "shape": shape,
+            "dtype": dtype,
+            "serializer": serializer,
+        }
+
+    required_roles = tuple(
+        sequential_rhat_verification_checkpoint_contract()[
+            "private_manifest_required_shard_roles_by_kind"
+        ][checkpoint_kind]
+    )
+    missing_roles = [role for role in required_roles if role not in shards]
+    if missing_roles:
+        raise ValueError(f"missing sequential R-hat checkpoint shards: {missing_roles}")
+    manifest_core = {
+        "artifact_type": "bayesfilter_private_sequential_rhat_checkpoint_manifest",
+        "schema_version": 1,
+        "checkpoint_kind": checkpoint_kind,
+        "checkpoint_id": checkpoint_id,
+        "manifest_path": str(root / f"{artifact_prefix}_manifest.json"),
+        "config_private_signature": program_signature(config_private_payload),
+        "adapter_signature": stable_adapter_signature(adapter),
+        "created_at_utc": datetime.now(UTC).replace(microsecond=0).isoformat(),
+        "private_shards": shards,
+        "private_diagnostics": {
+            "chunk_index": None,
+            "retained_sample_count": int(retained_count),
+            "valid_sample_count": None,
+            "nonfinite_valid_sample_count": None,
+            "rhat_summary": {
+                "rhat_threshold": _tensor_or_plain_to_metadata(
+                    config_private_payload.get("rhat_threshold")
+                ),
+                "max_finite_rhat": None,
+                "finite_rhat_count": 0,
+                "nonfinite_rhat_count": 0,
+                "all_finite_rhat_at_or_below_threshold": False,
+            },
+            "acceptance_summary": {
+                "acceptance_rate": None,
+                "acceptance_decision_count": None,
+            },
+            "target_log_prob_summary": {
+                "finite_count": 0,
+                "nonfinite_count": 0,
+                "min_finite": None,
+                "max_finite": None,
+            },
+            "divergence_summary": {
+                "status": "not_collected",
+                "count": None,
+            },
+        },
+        "privacy_contract": {
+            "manifest_contains_private_paths": True,
+            "manifest_contains_private_raw_tensors": False,
+            "manifest_points_to_private_raw_tensors": True,
+            "public_reference_contains_paths": False,
+            "public_reference_contains_tensor_descriptors": False,
+            "public_reference_contains_hmc_mechanics": False,
+        },
+        "nonclaims": SEQUENTIAL_RHAT_CHECKPOINT_PUBLIC_NONCLAIMS,
+    }
+    manifest_core_text = json.dumps(
+        _json_safe_metadata(manifest_core),
+        indent=2,
+        sort_keys=True,
+    ) + "\n"
+    manifest_payload = dict(manifest_core)
+    manifest_payload["manifest_core_sha256"] = hashlib.sha256(
+        manifest_core_text.encode("utf-8")
+    ).hexdigest()
+    manifest_path = Path(str(manifest_core["manifest_path"]))
+    if manifest_path.exists() and not writer_config.overwrite:
+        raise FileExistsError(f"sequential R-hat checkpoint manifest exists: {manifest_path}")
+    _atomic_write_json(manifest_path, manifest_payload)
+    return build_sequential_rhat_checkpoint_public_reference(
+        checkpoint_kind=checkpoint_kind,
+        checkpoint_id=checkpoint_id,
+        checkpoint_sha256=manifest_payload["manifest_core_sha256"],
+    )
+
+
+def write_sequential_rhat_boundary_handoff_checkpoint(
+    *,
+    writer_config: SequentialRHatCheckpointWriterConfig,
+    adapter: Any,
+    config_private_payload: Mapping[str, Any],
+    boundary_private_payload: Mapping[str, Any],
+    state_summary_private_payload: Mapping[str, Any] | None = None,
+) -> Mapping[str, Any]:
+    """Write a private Phase 7 boundary handoff before a long HMC subcall.
+
+    Boundary checkpoints are forced-stop observability artifacts only.  They are
+    written outside the TensorFlow/TFP transition graph and deliberately contain
+    JSON summary/provenance shards only: no raw samples, final/current states,
+    traces, mass payloads, selected-kernel payloads, step sizes, or leapfrog
+    counts.
+    """
+
+    root = Path(writer_config.checkpoint_dir)
+    root.mkdir(parents=True, exist_ok=True)
+    label = str(writer_config.checkpoint_label)
+    checkpoint_id = "srhat-v1-" + secrets.token_hex(16)
+    artifact_prefix = f"{label}_{checkpoint_id}"
+    checkpoint_kind = "phase7_boundary_handoff"
+
+    boundary_payload = _json_safe_metadata(
+        {
+            **dict(boundary_private_payload),
+            "checkpoint_kind": checkpoint_kind,
+            "private_raw_state_allowed": False,
+            "private_raw_samples_allowed": False,
+            "private_hmc_mechanics_allowed": False,
+            "diagnostic_role": "forced_stop_observability_only",
+            "reports_verifier_entry_durability": False,
+            "reports_posterior_convergence": False,
+            "reports_sampler_superiority": False,
+            "reports_scientific_validity": False,
+            "reports_resume_readiness": False,
+        }
+    )
+    config_payload = _json_safe_metadata(config_private_payload)
+    state_summary_payload = _json_safe_metadata(
+        {
+            **({} if state_summary_private_payload is None else dict(state_summary_private_payload)),
+            "summary_only": True,
+            "raw_state_included": False,
+            "raw_samples_included": False,
+            "tensor_payload_included": False,
+        }
+    )
+    shard_sources = {
+        "boundary_private_payload": (boundary_payload, "json"),
+        "config_private_payload": (config_payload, "json"),
+        "state_summary_private_payload": (state_summary_payload, "json"),
+    }
+    shards: dict[str, Mapping[str, Any]] = {}
+    for role, (payload, serializer) in shard_sources.items():
+        shard_path = root / f"{artifact_prefix}_{role}.{_sequential_rhat_shard_suffix(serializer)}"
+        if shard_path.exists() and not writer_config.overwrite:
+            raise FileExistsError(f"sequential R-hat checkpoint shard exists: {shard_path}")
+        sha256, byte_count = _write_json_shard(shard_path, payload)
+        shards[role] = {
+            "role": role,
+            "path": str(shard_path),
+            "sha256": sha256,
+            "bytes": int(byte_count),
+            "shape": (),
+            "dtype": "json",
+            "serializer": serializer,
+        }
+
+    required_roles = tuple(
+        sequential_rhat_verification_checkpoint_contract()[
+            "private_manifest_required_shard_roles_by_kind"
+        ][checkpoint_kind]
+    )
+    missing_roles = [role for role in required_roles if role not in shards]
+    if missing_roles:
+        raise ValueError(f"missing sequential R-hat checkpoint shards: {missing_roles}")
+    manifest_core = {
+        "artifact_type": "bayesfilter_private_sequential_rhat_checkpoint_manifest",
+        "schema_version": 1,
+        "checkpoint_kind": checkpoint_kind,
+        "checkpoint_id": checkpoint_id,
+        "manifest_path": str(root / f"{artifact_prefix}_manifest.json"),
+        "config_private_signature": program_signature(config_private_payload),
+        "adapter_signature": stable_adapter_signature(adapter),
+        "created_at_utc": datetime.now(UTC).replace(microsecond=0).isoformat(),
+        "private_shards": shards,
+        "private_diagnostics": {
+            "chunk_index": None,
+            "retained_sample_count": 0,
+            "valid_sample_count": None,
+            "nonfinite_valid_sample_count": None,
+            "rhat_summary": {
+                "rhat_threshold": None,
+                "max_finite_rhat": None,
+                "finite_rhat_count": 0,
+                "nonfinite_rhat_count": 0,
+                "all_finite_rhat_at_or_below_threshold": False,
+            },
+            "acceptance_summary": {
+                "acceptance_rate": None,
+                "acceptance_decision_count": None,
+            },
+            "target_log_prob_summary": {
+                "finite_count": 0,
+                "nonfinite_count": 0,
+                "min_finite": None,
+                "max_finite": None,
+            },
+            "divergence_summary": {
+                "status": "not_collected",
+                "count": None,
+            },
+        },
+        "privacy_contract": {
+            "manifest_contains_private_paths": True,
+            "manifest_contains_private_raw_tensors": False,
+            "manifest_points_to_private_raw_tensors": False,
+            "public_reference_contains_paths": False,
+            "public_reference_contains_tensor_descriptors": False,
+            "public_reference_contains_hmc_mechanics": False,
+        },
+        "nonclaims": SEQUENTIAL_RHAT_CHECKPOINT_PUBLIC_NONCLAIMS,
+    }
+    manifest_core_text = json.dumps(
+        _json_safe_metadata(manifest_core),
+        indent=2,
+        sort_keys=True,
+    ) + "\n"
+    manifest_payload = dict(manifest_core)
+    manifest_payload["manifest_core_sha256"] = hashlib.sha256(
+        manifest_core_text.encode("utf-8")
+    ).hexdigest()
+    manifest_path = Path(str(manifest_core["manifest_path"]))
+    if manifest_path.exists() and not writer_config.overwrite:
+        raise FileExistsError(f"sequential R-hat checkpoint manifest exists: {manifest_path}")
+    _atomic_write_json(manifest_path, manifest_payload)
+    return build_sequential_rhat_checkpoint_public_reference(
+        checkpoint_kind=checkpoint_kind,
+        checkpoint_id=checkpoint_id,
+        checkpoint_sha256=manifest_payload["manifest_core_sha256"],
+    )
 
 
 def _write_sequential_rhat_private_checkpoint(
@@ -1639,6 +1986,450 @@ def _write_sequential_rhat_private_checkpoint(
         checkpoint_id=checkpoint_id,
         checkpoint_sha256=manifest_payload["manifest_core_sha256"],
     )
+
+
+def inspect_sequential_rhat_private_checkpoint(
+    *,
+    manifest_path: str | Path,
+    public_reference: Mapping[str, Any] | None = None,
+) -> Mapping[str, Any]:
+    """Verify a private sequential R-hat checkpoint and summarize it safely.
+
+    The public checkpoint reference is intentionally path-free, so callers must
+    supply the private manifest path from their private artifact catalog.  This
+    helper verifies the manifest core hash and every private payload hash before
+    returning aggregate diagnostics.  It does not deserialize raw retained
+    draws, continuation positions, selected-kernel payloads, or mass payloads;
+    resume remains explicitly deferred until a separate continuation contract is
+    specified and tested.
+    """
+
+    path = Path(manifest_path)
+    manifest = _load_sequential_rhat_private_checkpoint_manifest(path)
+    contract = sequential_rhat_verification_checkpoint_contract()
+    checkpoint_kind = str(manifest["checkpoint_kind"])
+    checkpoint_id = str(manifest["checkpoint_id"])
+    checkpoint_sha256 = str(manifest["manifest_core_sha256"])
+
+    if public_reference is not None:
+        assert_sequential_rhat_checkpoint_public_reference_safe(public_reference)
+        mismatched_fields = [
+            field
+            for field in ("checkpoint_kind", "checkpoint_id", "checkpoint_sha256")
+            if str(public_reference[field]) != str(
+                checkpoint_sha256 if field == "checkpoint_sha256" else manifest[field]
+            )
+        ]
+        if mismatched_fields:
+            raise ValueError(
+                "public checkpoint reference does not match private manifest: "
+                f"{mismatched_fields}"
+            )
+
+    required_roles = tuple(
+        contract["private_manifest_required_shard_roles_by_kind"][checkpoint_kind]
+    )
+    private_shards = manifest["private_shards"]
+    missing_roles = [role for role in required_roles if role not in private_shards]
+    if missing_roles:
+        raise ValueError(f"missing sequential R-hat checkpoint shards: {missing_roles}")
+    _verify_sequential_rhat_private_checkpoint_shards(path, private_shards)
+    private_json_summaries = _load_sequential_rhat_private_checkpoint_json_summaries(
+        path,
+        private_shards,
+        roles=(
+            "target_log_prob_summary",
+            "log_accept_ratio_summary",
+            "rhat_summary",
+        ),
+    )
+
+    diagnostics = manifest["private_diagnostics"]
+    rhat_summary = _public_sequential_rhat_inspection_rhat_summary(
+        private_json_summaries.get("rhat_summary", diagnostics.get("rhat_summary"))
+    )
+    target_value_health = _public_sequential_rhat_inspection_target_health(
+        private_json_summaries.get(
+            "target_log_prob_summary",
+            diagnostics.get("target_log_prob_summary"),
+        )
+    )
+    acceptance_log_health = _public_sequential_rhat_inspection_acceptance_log_health(
+        private_json_summaries.get("log_accept_ratio_summary")
+    )
+    if checkpoint_kind == "phase7_boundary_handoff":
+        finite_checks = {
+            "retained_values_finite": None,
+            "retained_values_status": "not_applicable_boundary_handoff",
+            "private_target_value_health_passed": (
+                target_value_health["nonfinite_count"] == 0
+            ),
+            "private_acceptance_log_health_passed": None,
+            "private_acceptance_log_status": "not_applicable_boundary_handoff",
+            "rhat_all_finite": int(rhat_summary["nonfinite_rhat_count"]) == 0,
+        }
+    else:
+        finite_checks = {
+            "retained_values_finite": (
+                _int_or_none_metadata(diagnostics.get("nonfinite_valid_sample_count"))
+                == 0
+            ),
+            "private_target_value_health_passed": (
+                target_value_health["nonfinite_count"] == 0
+            ),
+            "private_acceptance_log_health_passed": (
+                acceptance_log_health["nonfinite_count"] == 0
+            ),
+            "rhat_all_finite": int(rhat_summary["nonfinite_rhat_count"]) == 0,
+        }
+    summary = {
+        "artifact_type": "bayesfilter_sequential_rhat_checkpoint_inspection_summary",
+        "schema_version": 1,
+        "checkpoint_kind": checkpoint_kind,
+        "checkpoint_id": checkpoint_id,
+        "checkpoint_sha256": checkpoint_sha256,
+        "contract_sha256": contract["contract_sha256"],
+        "manifest_core_hash_verified": True,
+        "private_payload_hashes_verified": True,
+        "private_payload_count": int(len(private_shards)),
+        "required_private_payloads_present": True,
+        "retained_sample_count": _int_or_none_metadata(
+            diagnostics.get("retained_sample_count")
+        ),
+        "latest_chunk_index": _int_or_none_metadata(diagnostics.get("chunk_index")),
+        "valid_sample_count": _int_or_none_metadata(
+            diagnostics.get("valid_sample_count")
+        ),
+        "nonfinite_valid_sample_count": _int_or_none_metadata(
+            diagnostics.get("nonfinite_valid_sample_count")
+        ),
+        "rhat_summary": rhat_summary,
+        "acceptance_summary": _public_sequential_rhat_inspection_acceptance_summary(
+            diagnostics.get("acceptance_summary")
+        ),
+        "finite_checks": finite_checks,
+        "divergence_summary": _public_sequential_rhat_inspection_divergence_summary(
+            diagnostics.get("divergence_summary")
+        ),
+        "provenance": {
+            "config_private_signature": str(manifest["config_private_signature"]),
+            "adapter_signature_sha256": hashlib.sha256(
+                str(manifest["adapter_signature"]).encode("utf-8")
+            ).hexdigest(),
+            "created_at_utc": str(manifest["created_at_utc"]),
+        },
+        "resume": {
+            "supported": False,
+            "status": "deferred",
+            "reason_code": "incomplete_continuation_contract",
+            "required_future_contract": (
+                "validated continuation-position schema",
+                "validated random-seed continuation schedule",
+                "retained-draw reconstruction policy",
+                "checkpoint-to-verifier config replay contract",
+            ),
+        },
+        "privacy_contract": {
+            "private_paths_publicized": False,
+            "public_summary_contains_paths": False,
+            "public_summary_contains_raw_values": False,
+            "public_summary_contains_tensor_descriptors": False,
+            "public_summary_contains_kernel_payload": False,
+            "public_summary_contains_hmc_mechanics": False,
+        },
+        "nonclaims": SEQUENTIAL_RHAT_CHECKPOINT_INSPECTION_NONCLAIMS,
+    }
+    _assert_sequential_rhat_checkpoint_inspection_public_safe(summary)
+    return _json_safe_metadata(summary)
+
+
+def _load_sequential_rhat_private_checkpoint_manifest(
+    path: Path,
+) -> Mapping[str, Any]:
+    if not path.exists():
+        raise FileNotFoundError(f"sequential R-hat checkpoint manifest not found: {path}")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, Mapping):
+        raise ValueError("sequential R-hat checkpoint manifest must be a JSON object")
+    contract = sequential_rhat_verification_checkpoint_contract()
+    missing_fields = [
+        field for field in contract["private_manifest_required_fields"] if field not in payload
+    ]
+    if missing_fields:
+        raise ValueError(
+            "sequential R-hat checkpoint manifest missing fields: "
+            f"{missing_fields}"
+        )
+    if payload["artifact_type"] != contract["private_manifest_artifact_type"]:
+        raise ValueError("unexpected sequential R-hat checkpoint manifest artifact_type")
+    if int(payload["schema_version"]) != 1:
+        raise ValueError("unexpected sequential R-hat checkpoint manifest schema_version")
+    checkpoint_kind = str(payload["checkpoint_kind"])
+    if checkpoint_kind not in SEQUENTIAL_RHAT_CHECKPOINT_KINDS:
+        raise ValueError("checkpoint_kind is not recognized")
+    checkpoint_id = str(payload["checkpoint_id"])
+    if re.fullmatch(_SEQUENTIAL_RHAT_OPAQUE_CHECKPOINT_ID_PATTERN, checkpoint_id) is None:
+        raise ValueError("checkpoint_id must be an opaque srhat-v1 hex handle")
+    manifest_hash = str(payload["manifest_core_sha256"])
+    if re.fullmatch(_SHA256_HEX_PATTERN, manifest_hash) is None:
+        raise ValueError("manifest_core_sha256 must be a lowercase SHA-256 hex digest")
+    core = dict(payload)
+    observed_hash = str(core.pop("manifest_core_sha256"))
+    core_text = json.dumps(
+        _json_safe_metadata(core),
+        indent=2,
+        sort_keys=True,
+    ) + "\n"
+    expected_hash = hashlib.sha256(core_text.encode("utf-8")).hexdigest()
+    if observed_hash != expected_hash:
+        raise ValueError("sequential R-hat checkpoint manifest_core_sha256 mismatch")
+    if tuple(payload["nonclaims"]) != SEQUENTIAL_RHAT_CHECKPOINT_PUBLIC_NONCLAIMS:
+        raise ValueError("sequential R-hat checkpoint manifest nonclaims mismatch")
+    private_shards = payload["private_shards"]
+    if not isinstance(private_shards, Mapping):
+        raise ValueError("sequential R-hat checkpoint private_shards must be a mapping")
+    diagnostics = payload["private_diagnostics"]
+    if not isinstance(diagnostics, Mapping):
+        raise ValueError(
+            "sequential R-hat checkpoint private_diagnostics must be a mapping"
+        )
+    return payload
+
+
+def _verify_sequential_rhat_private_checkpoint_shards(
+    manifest_path: Path,
+    private_shards: Mapping[str, Any],
+) -> None:
+    valid_roles = set(
+        sequential_rhat_verification_checkpoint_contract()["private_shard_roles"]
+    )
+    for role, shard in private_shards.items():
+        role_text = str(role)
+        if role_text not in valid_roles:
+            raise ValueError(f"unrecognized sequential R-hat checkpoint shard: {role_text}")
+        if not isinstance(shard, Mapping):
+            raise ValueError("sequential R-hat checkpoint shard record must be a mapping")
+        if str(shard.get("role")) != role_text:
+            raise ValueError(
+                "sequential R-hat checkpoint shard role mismatch: "
+                f"{role_text}"
+            )
+        shard_hash = str(shard.get("sha256"))
+        if re.fullmatch(_SHA256_HEX_PATTERN, shard_hash) is None:
+            raise ValueError("checkpoint shard sha256 must be a lowercase SHA-256 digest")
+        serializer = str(shard.get("serializer"))
+        if serializer not in {"json", "tensorflow.serialize_tensor"}:
+            raise ValueError(
+                "sequential R-hat checkpoint shard serializer is not recognized"
+            )
+        shard_path = _resolve_sequential_rhat_private_checkpoint_path(
+            str(shard.get("path")),
+            manifest_path.parent,
+        )
+        if not shard_path.exists():
+            raise FileNotFoundError(
+                "sequential R-hat checkpoint shard not found: "
+                f"{role_text}"
+            )
+        data = shard_path.read_bytes()
+        expected_bytes = int(shard.get("bytes"))
+        if len(data) != expected_bytes:
+            raise ValueError(
+                "sequential R-hat checkpoint shard byte count mismatch: "
+                f"{role_text}"
+            )
+        observed_hash = hashlib.sha256(data).hexdigest()
+        if observed_hash != shard_hash:
+            raise ValueError(
+                "sequential R-hat checkpoint shard hash mismatch: "
+                f"{role_text}"
+            )
+
+
+def _load_sequential_rhat_private_checkpoint_json_summaries(
+    manifest_path: Path,
+    private_shards: Mapping[str, Any],
+    *,
+    roles: Sequence[str],
+) -> Mapping[str, Any]:
+    summaries: dict[str, Any] = {}
+    for role in roles:
+        shard = private_shards.get(role)
+        if shard is None:
+            continue
+        if str(shard.get("serializer")) != "json":
+            continue
+        shard_path = _resolve_sequential_rhat_private_checkpoint_path(
+            str(shard.get("path")),
+            manifest_path.parent,
+        )
+        summaries[role] = json.loads(shard_path.read_text(encoding="utf-8"))
+    return summaries
+
+
+def _resolve_sequential_rhat_private_checkpoint_path(
+    path_text: str,
+    manifest_dir: Path,
+) -> Path:
+    path = Path(path_text)
+    if path.is_absolute():
+        return path
+    candidates = (
+        path,
+        manifest_dir / path,
+        manifest_dir / path.name,
+    )
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return path
+
+
+def _public_sequential_rhat_inspection_rhat_summary(value: Any) -> Mapping[str, Any]:
+    rhat_summary = value if isinstance(value, Mapping) else {}
+    return {
+        "rhat_threshold": _float_or_none_metadata(rhat_summary.get("rhat_threshold")),
+        "max_finite_rhat": _float_or_none_metadata(
+            rhat_summary.get("max_finite_rhat")
+        ),
+        "finite_rhat_count": _int_or_none_metadata(
+            rhat_summary.get("finite_rhat_count")
+        ) or 0,
+        "nonfinite_rhat_count": _int_or_none_metadata(
+            rhat_summary.get("nonfinite_rhat_count")
+        ) or 0,
+        "all_finite_rhat_at_or_below_threshold": bool(
+            rhat_summary.get("all_finite_rhat_at_or_below_threshold", False)
+        ),
+    }
+
+
+def _public_sequential_rhat_inspection_acceptance_summary(
+    value: Any,
+) -> Mapping[str, Any]:
+    acceptance_summary = value if isinstance(value, Mapping) else {}
+    return {
+        "acceptance_rate": _float_or_none_metadata(
+            acceptance_summary.get("acceptance_rate")
+        ),
+        "acceptance_decision_count": _int_or_none_metadata(
+            acceptance_summary.get("acceptance_decision_count")
+        ),
+    }
+
+
+def _public_sequential_rhat_inspection_target_health(value: Any) -> Mapping[str, Any]:
+    target_summary = value if isinstance(value, Mapping) else {}
+    min_finite = _float_or_none_metadata(target_summary.get("min_finite"))
+    max_finite = _float_or_none_metadata(target_summary.get("max_finite"))
+    return {
+        "finite_count": _int_or_none_metadata(target_summary.get("finite_count")),
+        "nonfinite_count": _int_or_none_metadata(
+            target_summary.get("nonfinite_count")
+        ),
+        "finite_extrema_recorded": min_finite is not None and max_finite is not None,
+    }
+
+
+def _public_sequential_rhat_inspection_acceptance_log_health(
+    value: Any,
+) -> Mapping[str, Any]:
+    acceptance_summary = value if isinstance(value, Mapping) else {}
+    max_abs_finite = _float_or_none_metadata(acceptance_summary.get("max_abs_finite"))
+    return {
+        "finite_count": _int_or_none_metadata(acceptance_summary.get("finite_count")),
+        "nonfinite_count": _int_or_none_metadata(
+            acceptance_summary.get("nonfinite_count")
+        ),
+        "finite_extreme_recorded": max_abs_finite is not None,
+    }
+
+
+def _public_sequential_rhat_inspection_divergence_summary(
+    value: Any,
+) -> Mapping[str, Any]:
+    divergence_summary = value if isinstance(value, Mapping) else {}
+    return {
+        "divergence_status": divergence_summary.get(
+            "divergence_status",
+            divergence_summary.get("status"),
+        ),
+        "divergence_count": _int_or_none_metadata(
+            divergence_summary.get("divergence_count", divergence_summary.get("count"))
+        ),
+    }
+
+
+def _assert_sequential_rhat_checkpoint_inspection_public_safe(
+    payload: Mapping[str, Any],
+) -> None:
+    fields = set(payload)
+    expected = set(SEQUENTIAL_RHAT_CHECKPOINT_INSPECTION_PUBLIC_FIELDS)
+    if fields != expected:
+        extra = sorted(fields - expected)
+        missing = sorted(expected - fields)
+        raise ValueError(
+            "sequential R-hat checkpoint inspection fields mismatch: "
+            f"extra={extra} missing={missing}"
+        )
+    forbidden_key_tokens = (
+        "manifest_path",
+        "sample_path",
+        "state_path",
+        "samples",
+        "valid_mask",
+        "final_state",
+        "trace",
+        "target_log_prob",
+        "log_accept",
+        "step_size",
+        "leapfrog",
+        "mass",
+        "selected_kernel",
+        "shape",
+        "dtype",
+        "serializer",
+    )
+    forbidden_value_tokens = (
+        "/",
+        "\\",
+        ".tftensor",
+        "target_log_prob",
+        "log_accept",
+        "step_size",
+        "num_leapfrog_steps",
+        "selected_kernel",
+        "final_state",
+        "valid_mask",
+    )
+
+    def walk(value: Any, path: tuple[str, ...]) -> None:
+        if isinstance(value, Mapping):
+            for key, item in value.items():
+                key_text = str(key)
+                lowered = key_text.lower()
+                if any(token in lowered for token in forbidden_key_tokens):
+                    raise ValueError(
+                        "checkpoint inspection summary contains forbidden key: "
+                        + ".".join(path + (key_text,))
+                    )
+                walk(item, path + (key_text,))
+        elif isinstance(value, (tuple, list)):
+            for index, item in enumerate(value):
+                walk(item, path + (str(index),))
+        elif isinstance(value, str):
+            if any(token in value for token in forbidden_value_tokens):
+                raise ValueError(
+                    "checkpoint inspection summary contains forbidden value: "
+                    + ".".join(path)
+                )
+            if value.startswith(".") or value.startswith("~"):
+                raise ValueError(
+                    "checkpoint inspection summary contains relative path value: "
+                    + ".".join(path)
+                )
+
+    walk(payload, tuple())
 
 
 def _sequential_rhat_shard_suffix(serializer: str) -> str:
@@ -2207,6 +2998,7 @@ class FixedSizeHMCChunkRunner:
                     tf.shape(initial_accepted),
                     dtype=tf.int32,
                 )
+            collect_standard_trace = config.trace_policy == "standard"
 
             def burnin_condition(index: Any, _state: Any, _results: Any) -> Any:
                 return index < tf.constant(config.num_burnin_steps, dtype=tf.int32)
@@ -2244,6 +3036,9 @@ class FixedSizeHMCChunkRunner:
                 _target_log_prob_min_finite: Any,
                 _target_log_prob_max_finite: Any,
                 _divergence_count_by_chain: Any,
+                _is_accepted_buffer: Any,
+                _log_accept_buffer: Any,
+                _target_log_prob_buffer: Any,
             ) -> Any:
                 return index < active_results
 
@@ -2262,7 +3057,28 @@ class FixedSizeHMCChunkRunner:
                 target_log_prob_min_finite: Any,
                 target_log_prob_max_finite: Any,
                 divergence_by_chain: Any,
-            ) -> tuple[Any, Any, Any, Any, Any, Any, Any, Any, Any, Any, Any, Any, Any, Any]:
+                is_accepted_buffer: Any,
+                log_accept_buffer: Any,
+                target_log_prob_buffer: Any,
+            ) -> tuple[
+                Any,
+                Any,
+                Any,
+                Any,
+                Any,
+                Any,
+                Any,
+                Any,
+                Any,
+                Any,
+                Any,
+                Any,
+                Any,
+                Any,
+                Any,
+                Any,
+                Any,
+            ]:
                 step_seed = tf.random.experimental.stateless_fold_in(
                     seed,
                     tf.constant(config.num_burnin_steps, dtype=tf.int32) + index,
@@ -2354,6 +3170,28 @@ class FixedSizeHMCChunkRunner:
                         tf.int32,
                     )
                     divergence_by_chain = divergence_by_chain + divergence
+                if collect_standard_trace:
+                    is_accepted_buffer = tf.tensor_scatter_nd_update(
+                        is_accepted_buffer,
+                        tf.reshape(index, [1, 1]),
+                        tf.expand_dims(
+                            tf.cast(next_results.is_accepted, tf.bool),
+                            axis=0,
+                        ),
+                    )
+                    log_accept_buffer = tf.tensor_scatter_nd_update(
+                        log_accept_buffer,
+                        tf.reshape(index, [1, 1]),
+                        tf.expand_dims(tf.cast(log_accept, tf.float64), axis=0),
+                    )
+                    target_log_prob_buffer = tf.tensor_scatter_nd_update(
+                        target_log_prob_buffer,
+                        tf.reshape(index, [1, 1]),
+                        tf.expand_dims(
+                            tf.cast(target_log_prob, tf.float64),
+                            axis=0,
+                        ),
+                    )
                 return (
                     index + 1,
                     next_state,
@@ -2369,8 +3207,23 @@ class FixedSizeHMCChunkRunner:
                     target_log_prob_min_finite,
                     target_log_prob_max_finite,
                     divergence_by_chain,
+                    is_accepted_buffer,
+                    log_accept_buffer,
+                    target_log_prob_buffer,
                 )
 
+            trace_shape = (config.max_results,) + tuple(
+                int(dim) for dim in initial_accepted.shape
+            )
+            trace_acceptance = tf.zeros(trace_shape, dtype=tf.bool)
+            trace_log_accept = tf.fill(
+                trace_shape,
+                tf.constant(float("nan"), dtype=tf.float64),
+            )
+            trace_target_log_prob = tf.fill(
+                trace_shape,
+                tf.constant(float("nan"), dtype=tf.float64),
+            )
             (
                 _sample_index,
                 final_state,
@@ -2386,6 +3239,9 @@ class FixedSizeHMCChunkRunner:
                 target_log_prob_min_finite,
                 target_log_prob_max_finite,
                 divergence_count_by_chain,
+                trace_acceptance,
+                trace_log_accept,
+                trace_target_log_prob,
             ) = tf.while_loop(
                 sample_condition,
                 sample_body,
@@ -2404,6 +3260,9 @@ class FixedSizeHMCChunkRunner:
                     tf.constant(float("inf"), dtype=tf.float64),
                     tf.constant(float("-inf"), dtype=tf.float64),
                     divergence_count_by_chain,
+                    trace_acceptance,
+                    trace_log_accept,
+                    trace_target_log_prob,
                 ),
                 parallel_iterations=1,
             )
@@ -2453,6 +3312,14 @@ class FixedSizeHMCChunkRunner:
                 "divergence_count_by_chain": divergence_count_by_chain,
                 "divergence_count": tf.reduce_sum(divergence_count_by_chain),
             }
+            if collect_standard_trace:
+                trace.update(
+                    {
+                        "is_accepted": trace_acceptance,
+                        "log_accept_ratio": trace_log_accept,
+                        "target_log_prob": trace_target_log_prob,
+                    }
+                )
             return samples, valid_mask, final_state, trace
 
         if config.chain_execution_mode == "eager":
@@ -3825,6 +4692,7 @@ class SequentialRHatHMCVerifier:
         self,
         *,
         checkpoint_writer_config: SequentialRHatCheckpointWriterConfig | None = None,
+        checkpoint_reference_callback: Callable[[Mapping[str, Any]], None] | None = None,
     ) -> SequentialRHatHMCVerificationResult:
         """Run sequential verification and return public-safe diagnostics."""
 
@@ -3884,6 +4752,8 @@ class SequentialRHatHMCVerifier:
                         rhat_summary=final_rhat,
                     )
                     checkpoint_references.append(checkpoint_reference)
+                    if checkpoint_reference_callback is not None:
+                        checkpoint_reference_callback(checkpoint_reference)
                 break
             retained = tf.concat(retained_chunks, axis=0)
             final_rhat = _rhat_summary_from_retained_samples(
@@ -3903,6 +4773,8 @@ class SequentialRHatHMCVerifier:
                     rhat_summary=final_rhat,
                 )
                 checkpoint_references.append(checkpoint_reference)
+                if checkpoint_reference_callback is not None:
+                    checkpoint_reference_callback(checkpoint_reference)
             if bool(final_rhat["passed"]):
                 passed = True
                 break

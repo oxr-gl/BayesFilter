@@ -33,6 +33,7 @@ from bayesfilter.inference.hmc import (
     build_reusable_full_chain_tfp_hmc_runner,
     build_sequential_rhat_checkpoint_public_reference,
     build_sequential_rhat_hmc_verifier,
+    inspect_sequential_rhat_private_checkpoint,
     latent_to_position,
     latent_value_and_score,
     program_signature,
@@ -41,6 +42,8 @@ from bayesfilter.inference.hmc import (
     stable_adapter_signature,
     static_unroll_chain_value_and_score,
     validate_precomputed_map,
+    write_sequential_rhat_boundary_handoff_checkpoint,
+    write_sequential_rhat_pre_verification_handoff_checkpoint,
     write_hmc_sample_archive,
 )
 from bayesfilter.inference.backend_parity import (
@@ -357,6 +360,7 @@ __all__ = [
     "classify_hmc_tuning_diagnostic",
     "covariance_from_negative_hessian",
     "covariance_from_precision",
+    "inspect_sequential_rhat_private_checkpoint",
     "latent_to_position",
     "latent_value_and_score",
     "evaluate_target_with_failure_policy",
@@ -377,6 +381,8 @@ __all__ = [
     "run_windowed_mass_adaptation_diagnostic",
     "run_full_chain_tfp_hmc",
     "write_hmc_sample_archive",
+    "write_sequential_rhat_boundary_handoff_checkpoint",
+    "write_sequential_rhat_pre_verification_handoff_checkpoint",
     "run_hmc_bootstrap_screen",
     "run_hmc_fixed_mass_step_stage",
     "run_hmc_frozen_step_trajectory_stage",

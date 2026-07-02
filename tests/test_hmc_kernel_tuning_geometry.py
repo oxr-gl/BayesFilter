@@ -150,7 +150,6 @@ def test_geometry_config_does_not_expose_hmc_tuning_mechanics() -> None:
         "step_size",
         "num_leapfrog_steps",
         "min_leapfrog",
-        "max_leapfrog",
         "step_size_candidates",
         "num_leapfrog_step_candidates",
         "trajectory_grid",
@@ -159,6 +158,7 @@ def test_geometry_config_does_not_expose_hmc_tuning_mechanics() -> None:
     }
 
     assert parameters.isdisjoint(forbidden)
+    assert "max_leapfrog_steps" in parameters
 
 
 def test_seed_and_payload_are_deterministic() -> None:

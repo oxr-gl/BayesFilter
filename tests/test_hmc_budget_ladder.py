@@ -197,6 +197,169 @@ def test_budget_ladder_config_validation_rejects_unbounded_or_missing_diagnostic
         _config(tuning_trace_policy="reduced")
     with pytest.raises(ValueError, match="repair_band"):
         _config(acceptance_band=(0.65, 0.75), repair_band=(0.66, 0.74))
+    with pytest.raises(ValueError, match="step_repair_factor"):
+        _config(step_repair_factor=1.0)
+    with pytest.raises(ValueError, match="step_repair_min_directional_factor"):
+        _config(step_repair_min_directional_factor=1.0)
+    with pytest.raises(ValueError, match="step_repair_high_acceptance_directional_factor"):
+        _config(step_repair_high_acceptance_directional_factor=1.0)
+    with pytest.raises(ValueError, match="step_repair_high_acceptance_ladder_max_factor"):
+        _config(
+            step_repair_high_acceptance_directional_factor=3.0,
+            step_repair_high_acceptance_ladder_max_factor=2.0,
+        )
+    payload = _config(
+        step_repair_factor=3.0,
+        step_repair_min_directional_factor=1.5,
+        step_repair_high_acceptance_directional_factor=2.5,
+        step_repair_high_acceptance_ladder_max_factor=4.0,
+    ).payload()
+    assert payload["step_repair_factor"] == pytest.approx(3.0)
+    assert payload["step_repair_min_directional_factor"] == pytest.approx(1.5)
+    assert payload["step_repair_high_acceptance_directional_factor"] == pytest.approx(2.5)
+    assert payload["step_repair_high_acceptance_ladder_max_factor"] == pytest.approx(4.0)
+    with pytest.raises(ValueError, match="public_timeout_budget_s"):
+        _config(public_timeout_budget_s=0.0)
+    with pytest.raises(ValueError, match="public_timeout_started_perf_counter_s"):
+        _config(public_timeout_started_perf_counter_s=-1.0)
+    with pytest.raises(ValueError, match="public_timeout_closeout_reserve_s"):
+        _config(public_timeout_closeout_reserve_s=-1.0)
+    timeout_payload = _config(
+        public_timeout_budget_s=10.0,
+        public_timeout_started_perf_counter_s=2.0,
+        public_timeout_closeout_reserve_s=3.0,
+    ).payload()
+    assert timeout_payload["public_timeout_budget_s"] == pytest.approx(10.0)
+    assert timeout_payload["public_timeout_started_perf_counter_s"] == pytest.approx(2.0)
+    assert timeout_payload["public_timeout_closeout_reserve_s"] == pytest.approx(3.0)
+
+
+def test_budget_ladder_public_timeout_closeout_before_tune_skips_hmc_call(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(hmc_budget_ladder.time, "perf_counter", lambda: 9.0)
+    calls: list[str] = []
+    progress: list[tuple[str, Mapping[str, Any]]] = []
+
+    def run(_adapter: Any, _initial_state: Any, _config: Any) -> _FakeRunResult:
+        calls.append("unexpected")
+        raise AssertionError("HMC runner must not be called after timeout closeout")
+
+    result = run_fixed_mass_hmc_tuning_budget_ladder(
+        adapter=_ToyGaussianAdapter(),
+        mass_artifact=_mass_artifact(),
+        initial_state_factory=_initial_state_factory,
+        config=_config(
+            budget_schedule=(4,),
+            public_timeout_budget_s=10.0,
+            public_timeout_started_perf_counter_s=0.0,
+            public_timeout_closeout_reserve_s=2.0,
+        ),
+        progress_callback=lambda stage, payload: progress.append((stage, payload)),
+        run_full_chain=run,
+    )
+
+    assert calls == []
+    assert result.passed is False
+    assert result.final_status == "public_timeout_closeout"
+    assert len(result.rounds) == 1
+    round0 = result.rounds[0]
+    assert round0.classification == "hard_veto"
+    assert round0.diagnostic_role == "public_timeout_closeout_hard_veto"
+    assert round0.tuned_step_size is None
+    assert round0.screen_config_payload is None
+    assert round0.hard_vetoes == ("fixed_mass_public_timeout_soft_deadline",)
+    assert round0.repair_triggers == (
+        "fixed_mass_public_timeout_closeout_before_hmc_call",
+    )
+    closeout = round0.tune_diagnostics["public_timeout_closeout"]
+    assert closeout["remaining_s"] == pytest.approx(1.0)
+    assert closeout["closeout_required_before_hmc_call"] is True
+    assert closeout["hmc_mechanics_exposed"] is False
+    assert result.runner_route_summary["round_route_events"] == ()
+    assert [stage for stage, _payload in progress] == [
+        "fixed_mass_ladder_public_timeout_closeout"
+    ]
+    progress_payload = progress[0][1]
+    assert progress_payload["role"] == "tune"
+    assert progress_payload["public_timeout_closeout"]["role"] == "tune"
+    forbidden = {
+        "step_size",
+        "num_leapfrog_steps",
+        "mass_artifact_payload",
+        "samples",
+        "trace",
+        "target_log_prob",
+        "final_state",
+    }
+    assert set(progress_payload).isdisjoint(forbidden)
+
+
+def test_budget_ladder_public_timeout_closeout_before_screen_skips_screen_hmc_call(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    clock = {"now": 0.0}
+    calls: list[str] = []
+    progress: list[tuple[str, Mapping[str, Any]]] = []
+
+    def fake_perf_counter() -> float:
+        return float(clock["now"])
+
+    def run(_adapter: Any, _initial_state: Any, config: Any) -> _FakeRunResult:
+        uses_tuning = bool(config.tuning_policy.uses_dual_averaging)
+        calls.append("tune" if uses_tuning else "screen")
+        assert uses_tuning is True
+        clock["now"] = 9.0
+        return _fake_result(
+            acceptance=0.70,
+            step_size=0.2,
+            num_adaptation_steps=config.tuning_policy.num_adaptation_steps,
+        )
+
+    monkeypatch.setattr(hmc_budget_ladder.time, "perf_counter", fake_perf_counter)
+
+    result = run_fixed_mass_hmc_tuning_budget_ladder(
+        adapter=_ToyGaussianAdapter(),
+        mass_artifact=_mass_artifact(),
+        initial_state_factory=_initial_state_factory,
+        config=_config(
+            budget_schedule=(4,),
+            public_timeout_budget_s=10.0,
+            public_timeout_started_perf_counter_s=0.0,
+            public_timeout_closeout_reserve_s=2.0,
+        ),
+        progress_callback=lambda stage, payload: progress.append((stage, payload)),
+        run_full_chain=run,
+    )
+
+    assert calls == ["tune"]
+    assert result.passed is False
+    assert result.final_status == "public_timeout_closeout"
+    assert len(result.rounds) == 1
+    round0 = result.rounds[0]
+    assert round0.tuned_step_size == pytest.approx(0.2)
+    assert round0.screen_config_payload is not None
+    assert round0.screen_diagnostics["public_timeout_closeout"]["role"] == "screen"
+    assert round0.hard_vetoes == ("fixed_mass_public_timeout_soft_deadline",)
+    assert [stage for stage, _payload in progress] == [
+        "fixed_mass_ladder_tune_call_start",
+        "fixed_mass_ladder_tune_call_complete",
+        "fixed_mass_ladder_public_timeout_closeout",
+    ]
+    assert progress[-1][1]["role"] == "screen"
+    assert result.runner_route_summary["injected_runner_call_count"] == 1
+
+
+def test_budget_ladder_nonrepair_keeps_tuned_step() -> None:
+    result = hmc_budget_ladder._next_initial_step_after_screen_repair(
+        _config(),
+        tuned_step=0.2,
+        previous_initial_step=0.1,
+        screen_diagnostics={"acceptance_rate": 0.90},
+        classification="passed",
+    )
+
+    assert result == pytest.approx(0.2)
 
 
 def test_budget_ladder_acceptance_repair_advances_and_then_selects_stable_hash() -> None:
@@ -219,7 +382,6 @@ def test_budget_ladder_acceptance_repair_advances_and_then_selects_stable_hash()
     assert [(role, burnin) for role, burnin, _signature in calls] == [
         ("tune", 4),
         ("screen", 2),
-        ("tune", 8),
         ("screen", 2),
     ]
     assert all(
@@ -295,19 +457,23 @@ def test_budget_ladder_finite_acceptance_outside_repair_band_repairs() -> None:
     assert [(role, burnin) for role, burnin, _signature in calls] == [
         ("tune", 4),
         ("screen", 2),
-        ("tune", 8),
         ("screen", 2),
     ]
 
 
-def test_budget_ladder_high_acceptance_repair_increases_next_initial_step() -> None:
+def test_budget_ladder_high_acceptance_repair_screens_directional_step_before_tune() -> None:
     screen_acceptances = [0.90, 0.70]
-    tune_initial_steps: list[float] = []
+    calls: list[tuple[str, float]] = []
 
     def run(_adapter: Any, _initial_state: Any, config: Any) -> _FakeRunResult:
         uses_tuning = bool(config.tuning_policy.uses_dual_averaging)
+        calls.append(
+            (
+                "tune" if uses_tuning else "screen",
+                float(config.step_size),
+            )
+        )
         if uses_tuning:
-            tune_initial_steps.append(float(config.step_size))
             return _fake_result(
                 acceptance=0.70,
                 step_size=0.2,
@@ -329,17 +495,203 @@ def test_budget_ladder_high_acceptance_repair_increases_next_initial_step() -> N
         "passed",
     ]
     assert result.rounds[0].repair_triggers == ("screen_acceptance_above_repair_band",)
-    assert tune_initial_steps == pytest.approx([0.1, 0.4])
+    assert [role for role, _step in calls] == ["tune", "screen", "screen"]
+    assert [step for _role, step in calls] == pytest.approx([0.1, 0.2, 0.4])
+    assert result.rounds[1].tune_config_payload is None
+    assert result.rounds[1].tune_diagnostics[
+        "adaptation_skipped_for_directional_repair_screen"
+    ] is True
+    assert result.selected_config_payload is not None
+    assert result.selected_config_payload["step_size"] == pytest.approx(0.4)
 
 
-def test_budget_ladder_low_acceptance_repair_decreases_next_initial_step() -> None:
-    screen_acceptances = [0.40, 0.70]
-    tune_initial_steps: list[float] = []
+def test_budget_ladder_high_acceptance_repair_floors_against_previous_initial_step() -> None:
+    screen_acceptances = [0.90, 0.70]
+    screen_steps: list[float] = []
 
     def run(_adapter: Any, _initial_state: Any, config: Any) -> _FakeRunResult:
         uses_tuning = bool(config.tuning_policy.uses_dual_averaging)
         if uses_tuning:
-            tune_initial_steps.append(float(config.step_size))
+            return _fake_result(
+                acceptance=0.70,
+                step_size=0.2,
+                num_adaptation_steps=config.tuning_policy.num_adaptation_steps,
+            )
+        screen_steps.append(float(config.step_size))
+        return _fake_result(acceptance=screen_acceptances.pop(0), step_size=None)
+
+    result = run_fixed_mass_hmc_tuning_budget_ladder(
+        adapter=_ToyGaussianAdapter(),
+        mass_artifact=_mass_artifact(),
+        initial_state_factory=_initial_state_factory,
+        config=_config(budget_schedule=(4, 8), initial_step_size=1.0),
+        run_full_chain=run,
+    )
+
+    assert result.passed is True
+    assert result.rounds[0].repair_triggers == ("screen_acceptance_above_repair_band",)
+    assert screen_steps == pytest.approx([0.2, 2.0])
+
+
+def test_budget_ladder_high_acceptance_repair_uses_configured_directional_floor() -> None:
+    screen_acceptances = [0.90, 0.70]
+    screen_steps: list[float] = []
+
+    def run(_adapter: Any, _initial_state: Any, config: Any) -> _FakeRunResult:
+        uses_tuning = bool(config.tuning_policy.uses_dual_averaging)
+        if uses_tuning:
+            return _fake_result(
+                acceptance=0.70,
+                step_size=0.2,
+                num_adaptation_steps=config.tuning_policy.num_adaptation_steps,
+            )
+        screen_steps.append(float(config.step_size))
+        return _fake_result(acceptance=screen_acceptances.pop(0), step_size=None)
+
+    result = run_fixed_mass_hmc_tuning_budget_ladder(
+        adapter=_ToyGaussianAdapter(),
+        mass_artifact=_mass_artifact(),
+        initial_state_factory=_initial_state_factory,
+        config=_config(
+            budget_schedule=(4, 8),
+            initial_step_size=1.0,
+            step_repair_high_acceptance_directional_factor=3.0,
+        ),
+        run_full_chain=run,
+    )
+
+    assert result.passed is True
+    assert result.rounds[0].repair_triggers == ("screen_acceptance_above_repair_band",)
+    assert screen_steps == pytest.approx([0.2, 3.0])
+
+
+def test_budget_ladder_repeated_high_acceptance_repairs_keep_increasing_screen_step() -> None:
+    screen_acceptances = [0.90, 0.91, 0.92]
+    screen_steps: list[float] = []
+
+    def run(_adapter: Any, _initial_state: Any, config: Any) -> _FakeRunResult:
+        uses_tuning = bool(config.tuning_policy.uses_dual_averaging)
+        if uses_tuning:
+            return _fake_result(
+                acceptance=0.70,
+                step_size=0.2,
+                num_adaptation_steps=config.tuning_policy.num_adaptation_steps,
+            )
+        screen_steps.append(float(config.step_size))
+        return _fake_result(acceptance=screen_acceptances.pop(0), step_size=None)
+
+    result = run_fixed_mass_hmc_tuning_budget_ladder(
+        adapter=_ToyGaussianAdapter(),
+        mass_artifact=_mass_artifact(),
+        initial_state_factory=_initial_state_factory,
+        config=_config(budget_schedule=(4, 8, 16), initial_step_size=1.0),
+        run_full_chain=run,
+    )
+
+    assert result.passed is False
+    assert result.final_status == "budget_exhausted"
+    assert [round_result.classification for round_result in result.rounds] == [
+        "acceptance_repair",
+        "acceptance_repair",
+        "acceptance_repair",
+    ]
+    assert screen_steps == pytest.approx([0.2, 2.0, 4.0])
+    assert result.repair_config_payload is not None
+    assert result.repair_config_payload["step_size"] == pytest.approx(8.0)
+    assert result.repair_config_payload["repair_source"] == (
+        "screen_acceptance_directional_fixed_screen_repair"
+    )
+
+
+def test_budget_ladder_mixed_high_low_repairs_use_log_midpoint_screen() -> None:
+    screen_acceptances = [0.90, 0.40, 0.70]
+    screen_steps: list[float] = []
+
+    def run(_adapter: Any, _initial_state: Any, config: Any) -> _FakeRunResult:
+        uses_tuning = bool(config.tuning_policy.uses_dual_averaging)
+        if uses_tuning:
+            return _fake_result(
+                acceptance=0.70,
+                step_size=0.2,
+                num_adaptation_steps=config.tuning_policy.num_adaptation_steps,
+            )
+        screen_steps.append(float(config.step_size))
+        return _fake_result(acceptance=screen_acceptances.pop(0), step_size=None)
+
+    result = run_fixed_mass_hmc_tuning_budget_ladder(
+        adapter=_ToyGaussianAdapter(),
+        mass_artifact=_mass_artifact(),
+        initial_state_factory=_initial_state_factory,
+        config=_config(budget_schedule=(4, 8, 16), initial_step_size=1.0),
+        run_full_chain=run,
+    )
+
+    assert result.passed is True
+    midpoint = float(np.sqrt(2.0 * 0.2))
+    assert screen_steps == pytest.approx([0.2, 2.0, midpoint])
+    assert result.rounds[1].screen_diagnostics["directional_step_repair"][
+        "repair_action"
+    ] == "bracketed_log_step_midpoint_fixed_screen"
+    assert result.selected_config_payload is not None
+    assert result.selected_config_payload["step_size"] == pytest.approx(midpoint)
+
+
+def test_budget_ladder_mixed_high_low_noisy_bracket_can_promote_on_fourth_screen() -> None:
+    screen_acceptances = [0.9375, 0.125, 0.78125, 0.70]
+    screen_steps: list[float] = []
+
+    def run(_adapter: Any, _initial_state: Any, config: Any) -> _FakeRunResult:
+        uses_tuning = bool(config.tuning_policy.uses_dual_averaging)
+        if uses_tuning:
+            return _fake_result(
+                acceptance=0.70,
+                step_size=0.2,
+                num_adaptation_steps=config.tuning_policy.num_adaptation_steps,
+            )
+        screen_steps.append(float(config.step_size))
+        return _fake_result(acceptance=screen_acceptances.pop(0), step_size=None)
+
+    result = run_fixed_mass_hmc_tuning_budget_ladder(
+        adapter=_ToyGaussianAdapter(),
+        mass_artifact=_mass_artifact(),
+        initial_state_factory=_initial_state_factory,
+        config=_config(budget_schedule=(32, 64, 128, 256), initial_step_size=1.0),
+        run_full_chain=run,
+    )
+
+    assert result.passed is True
+    assert [round_result.classification for round_result in result.rounds] == [
+        "acceptance_repair",
+        "acceptance_repair",
+        "acceptance_repair",
+        "passed",
+    ]
+    assert screen_steps == pytest.approx(
+        [
+            0.2,
+            2.0,
+            float(np.sqrt(0.2 * 2.0)),
+            float(np.sqrt(np.sqrt(0.2 * 2.0) * 2.0)),
+        ]
+    )
+    assert result.rounds[1].screen_diagnostics["directional_step_repair"][
+        "bracketed"
+    ] is True
+    assert result.rounds[2].screen_diagnostics["directional_step_repair"][
+        "bracketed"
+    ] is True
+    assert result.selected_config_payload is not None
+    assert result.selected_config_payload["selected_budget"] == 256
+
+
+def test_budget_ladder_low_acceptance_repair_decreases_next_initial_step() -> None:
+    screen_acceptances = [0.40, 0.70]
+    calls: list[tuple[str, float]] = []
+
+    def run(_adapter: Any, _initial_state: Any, config: Any) -> _FakeRunResult:
+        uses_tuning = bool(config.tuning_policy.uses_dual_averaging)
+        calls.append(("tune" if uses_tuning else "screen", float(config.step_size)))
+        if uses_tuning:
             return _fake_result(
                 acceptance=0.70,
                 step_size=0.3,
@@ -361,7 +713,37 @@ def test_budget_ladder_low_acceptance_repair_decreases_next_initial_step() -> No
         "passed",
     ]
     assert result.rounds[0].repair_triggers == ("screen_acceptance_below_repair_band",)
-    assert tune_initial_steps == pytest.approx([0.1, 0.15])
+    assert [role for role, _step in calls] == ["tune", "screen", "screen"]
+    assert [step for _role, step in calls] == pytest.approx([0.1, 0.3, 0.08])
+
+
+def test_budget_ladder_low_acceptance_repair_caps_against_previous_initial_step() -> None:
+    screen_acceptances = [0.40, 0.70]
+    calls: list[tuple[str, float]] = []
+
+    def run(_adapter: Any, _initial_state: Any, config: Any) -> _FakeRunResult:
+        uses_tuning = bool(config.tuning_policy.uses_dual_averaging)
+        calls.append(("tune" if uses_tuning else "screen", float(config.step_size)))
+        if uses_tuning:
+            return _fake_result(
+                acceptance=0.70,
+                step_size=1.0,
+                num_adaptation_steps=config.tuning_policy.num_adaptation_steps,
+            )
+        return _fake_result(acceptance=screen_acceptances.pop(0), step_size=None)
+
+    result = run_fixed_mass_hmc_tuning_budget_ladder(
+        adapter=_ToyGaussianAdapter(),
+        mass_artifact=_mass_artifact(),
+        initial_state_factory=_initial_state_factory,
+        config=_config(budget_schedule=(4, 8), initial_step_size=0.1),
+        run_full_chain=run,
+    )
+
+    assert result.passed is True
+    assert result.rounds[0].repair_triggers == ("screen_acceptance_below_repair_band",)
+    assert [role for role, _step in calls] == ["tune", "screen", "screen"]
+    assert [step for _role, step in calls] == pytest.approx([0.1, 1.0, 0.08])
 
 
 def test_budget_ladder_exhaustion_repair_payload_uses_directional_step() -> None:
@@ -381,16 +763,16 @@ def test_budget_ladder_exhaustion_repair_payload_uses_directional_step() -> None
         adapter=_ToyGaussianAdapter(),
         mass_artifact=_mass_artifact(),
         initial_state_factory=_initial_state_factory,
-        config=_config(budget_schedule=(4,)),
+        config=_config(budget_schedule=(4,), initial_step_size=1.0),
         run_full_chain=run,
     )
 
     assert result.passed is False
     assert result.final_status == "budget_exhausted"
     assert result.repair_config_payload is not None
-    assert result.repair_config_payload["step_size"] == pytest.approx(0.4)
+    assert result.repair_config_payload["step_size"] == pytest.approx(2.0)
     assert result.repair_config_payload["repair_source"] == (
-        "screen_acceptance_directional_repair"
+        "screen_acceptance_directional_fixed_screen_repair"
     )
     assert result.repair_config_hash
     payload = result.payload()
@@ -701,10 +1083,12 @@ def test_budget_ladder_default_reusable_route_reuses_repeated_screen_contract(
         "passed",
     ]
     route = result.runner_route_summary
-    assert route["reusable_runner_build_count"] == 3
-    assert route["distinct_static_runner_contract_count"] == 3
+    assert route["reusable_runner_build_count"] == 2
+    assert route["distinct_static_runner_contract_count"] == 2
     screen_events = [
-        event for event in route["round_route_events"] if event["role"] == "screen"
+        event
+        for event in route["round_route_events"]
+        if event["role"] in {"screen", "repair_screen"}
     ]
     assert [event["runner_reused"] for event in screen_events] == [False, True]
     assert sum(not build["uses_dual_averaging"] for build in runner_builds) == 1
@@ -755,6 +1139,156 @@ def test_budget_ladder_budget_exhaustion_is_distinct_from_hard_veto() -> None:
     assert payload["repair_config_available"] is True
     assert payload["repair_config_payload_exposed"] is False
     assert "repair_config_payload" not in payload
+
+
+def test_budget_ladder_budget_exhaustion_private_repair_payload_carries_bracket_state() -> None:
+    screen_acceptances = [0.9375, 0.125, 0.78125]
+
+    def run(_adapter: Any, _initial_state: Any, config: Any) -> _FakeRunResult:
+        uses_tuning = bool(config.tuning_policy.uses_dual_averaging)
+        if uses_tuning:
+            return _fake_result(
+                acceptance=0.70,
+                step_size=0.2,
+                num_adaptation_steps=config.tuning_policy.num_adaptation_steps,
+            )
+        return _fake_result(acceptance=screen_acceptances.pop(0), step_size=None)
+
+    result = run_fixed_mass_hmc_tuning_budget_ladder(
+        adapter=_ToyGaussianAdapter(),
+        mass_artifact=_mass_artifact(),
+        initial_state_factory=_initial_state_factory,
+        config=_config(budget_schedule=(32, 64, 128), initial_step_size=1.0),
+        run_full_chain=run,
+    )
+
+    assert result.passed is False
+    assert result.final_status == "budget_exhausted"
+    repair_payload = result.repair_config_payload
+    assert repair_payload is not None
+    assert repair_payload["repair_action"] == "bracketed_log_step_midpoint_fixed_screen"
+    assert repair_payload["fixed_mass_bracket_state"]["bracketed"] is True
+    assert repair_payload["fixed_mass_bracket_state"][
+        "high_acceptance_step_lower_bound"
+    ] == pytest.approx(float(np.sqrt(0.2 * 2.0)))
+    assert repair_payload["fixed_mass_bracket_state"][
+        "low_acceptance_step_upper_bound"
+    ] == pytest.approx(2.0)
+    public_payload = result.payload()
+    assert public_payload["repair_config_payload_exposed"] is False
+    assert "repair_config_payload" not in public_payload
+
+
+def test_budget_ladder_bracketed_repair_screen_gets_bounded_extra_probe() -> None:
+    # Regression for the post-handoff one-country diagnostic: an inherited
+    # bracket can keep returning above-band screens, and the old ladder stopped
+    # immediately after computing the next midpoint instead of screening it.
+    screen_acceptances = [0.90, 0.88, 0.86, 0.70]
+    screen_steps: list[float] = []
+    bracket_state = {
+        "schema": "bayesfilter.fixed_mass_bracket_state.v1",
+        "next_step_size": 0.4,
+        "high_acceptance_step_lower_bound": 0.2,
+        "low_acceptance_step_upper_bound": 1.0,
+        "bracketed": True,
+        "repair_action": "bracketed_log_step_midpoint_fixed_screen",
+        "private_handoff_only": True,
+        "public_progress_exposes_step": False,
+        "reports_posterior_convergence": False,
+    }
+
+    def run(_adapter: Any, _initial_state: Any, config: Any) -> _FakeRunResult:
+        uses_tuning = bool(config.tuning_policy.uses_dual_averaging)
+        assert uses_tuning is False
+        screen_steps.append(float(config.step_size))
+        return _fake_result(acceptance=screen_acceptances.pop(0), step_size=None)
+
+    result = run_fixed_mass_hmc_tuning_budget_ladder(
+        adapter=_ToyGaussianAdapter(),
+        mass_artifact=_mass_artifact(),
+        initial_state_factory=_initial_state_factory,
+        config=_config(
+            budget_schedule=(64, 128, 256),
+            initial_step_size=bracket_state["next_step_size"],
+            initial_fixed_mass_bracket_state=bracket_state,
+        ),
+        run_full_chain=run,
+    )
+
+    assert result.passed is True
+    assert [round_result.classification for round_result in result.rounds] == [
+        "acceptance_repair",
+        "acceptance_repair",
+        "acceptance_repair",
+        "passed",
+    ]
+    assert len(screen_steps) == 4
+    assert result.selected_config_payload is not None
+    public_payload = result.payload()
+    assert public_payload["repair_config_payload_exposed"] is False
+    assert "repair_config_payload" not in public_payload
+
+
+def test_budget_ladder_initial_private_bracket_state_continues_with_repair_screen() -> None:
+    first_screen_acceptances = [0.9375, 0.125, 0.78125]
+
+    def first_run(_adapter: Any, _initial_state: Any, config: Any) -> _FakeRunResult:
+        uses_tuning = bool(config.tuning_policy.uses_dual_averaging)
+        if uses_tuning:
+            return _fake_result(
+                acceptance=0.70,
+                step_size=0.2,
+                num_adaptation_steps=config.tuning_policy.num_adaptation_steps,
+            )
+        return _fake_result(
+            acceptance=first_screen_acceptances.pop(0),
+            step_size=None,
+        )
+
+    first_result = run_fixed_mass_hmc_tuning_budget_ladder(
+        adapter=_ToyGaussianAdapter(),
+        mass_artifact=_mass_artifact(),
+        initial_state_factory=_initial_state_factory,
+        config=_config(budget_schedule=(32, 64, 128), initial_step_size=1.0),
+        run_full_chain=first_run,
+    )
+    assert first_result.passed is False
+    assert first_result.repair_config_payload is not None
+    bracket_state = first_result.repair_config_payload["fixed_mass_bracket_state"]
+
+    second_calls: list[tuple[str, float]] = []
+
+    def second_run(_adapter: Any, _initial_state: Any, config: Any) -> _FakeRunResult:
+        uses_tuning = bool(config.tuning_policy.uses_dual_averaging)
+        second_calls.append(
+            (
+                "tune" if uses_tuning else "screen",
+                float(config.step_size),
+            )
+        )
+        assert uses_tuning is False
+        return _fake_result(acceptance=0.70, step_size=None)
+
+    second_result = run_fixed_mass_hmc_tuning_budget_ladder(
+        adapter=_ToyGaussianAdapter(),
+        mass_artifact=_mass_artifact(),
+        initial_state_factory=_initial_state_factory,
+        config=_config(
+            budget_schedule=(256,),
+            initial_step_size=bracket_state["next_step_size"],
+            initial_fixed_mass_bracket_state=bracket_state,
+        ),
+        run_full_chain=second_run,
+    )
+
+    assert second_result.passed is True
+    assert len(second_calls) == 1
+    assert second_calls[0][0] == "screen"
+    assert second_calls[0][1] == pytest.approx(bracket_state["next_step_size"])
+    assert second_result.rounds[0].tune_config_payload is None
+    assert second_result.rounds[0].tune_diagnostics[
+        "adaptation_skipped_for_directional_repair_screen"
+    ] is True
 
 
 def test_budget_ladder_builds_latent_fixed_mass_adapter_and_position_callback_samples() -> None:
@@ -892,8 +1426,10 @@ def test_budget_ladder_public_exports_are_additive() -> None:
 
 def test_budget_ladder_tiny_gaussian_real_tfp_round_runs() -> None:
     result = run_fixed_mass_hmc_tuning_budget_ladder(
-        adapter=_ToyGaussianAdapter(),
-        mass_artifact=_mass_artifact(),
+        adapter=_ToyGaussianFullChainXLAAdapter(),
+        mass_artifact=_mass_artifact(
+            adapter_signature="budget-ladder-toy-gaussian-v1"
+        ),
         initial_state_factory=_initial_state_factory,
         config=_config(
             budget_schedule=(3,),
@@ -901,6 +1437,8 @@ def test_budget_ladder_tiny_gaussian_real_tfp_round_runs() -> None:
             tune_num_results=3,
             screen_num_results=3,
             screen_num_burnin_steps=1,
+            chain_execution_mode="tf_function",
+            use_xla=True,
         ),
     )
 
