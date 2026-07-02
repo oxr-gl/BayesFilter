@@ -4,7 +4,7 @@ Date: 2026-06-29
 
 ## Status
 
-`DRAFT_PENDING_LOCAL_CHECKS_AND_CLAUDE_REVIEW`
+`BLOCKED_AT_PHASE4_FINAL_CLOSEOUT_WRITTEN`
 
 ## Program Objective
 
@@ -37,15 +37,45 @@ The inherited Generalized-SV record is now:
 When artifacts disagree, use the following authority order for Generalized-SV
 identity and promotion semantics:
 
-1. newest reviewed Generalized-SV reset memo or target/truth/source-scope
-   contract produced by this program;
-2. newest reviewed Generalized-SV phase result produced by this program;
-3. the Generalized-SV testing specification and source-scope contract;
-4. the native generalized-SV dense-reference result;
-5. older P44/P45/P47/P50/P51 generalized-SV artifacts as historical context only;
-6. implementation surfaces, tests, registries, and leaderboard rows.
+1. newest reviewed Generalized-SV target/truth/source-scope contract produced by
+   this program for row identity, target identity, truth/test-point identity,
+   oracle/evaluator separation, and forbidden substitutes;
+2. newest reviewed Generalized-SV reset memo produced by this program, provided
+   it does not redefine the contract's identity semantics;
+3. newest reviewed Generalized-SV phase result produced by this program;
+4. the Generalized-SV source-scope contract for identity semantics when it
+   disagrees with lower-ranked historical or implementation artifacts;
+5. the Generalized-SV testing specification for execution mechanics and inherited
+   source-route details not superseded by a newer reviewed contract produced by
+   this program; it does not outrank the reviewed program contract on row
+   identity, target identity, truth/test-point identity, or oracle/evaluator
+   separation;
+6. the native generalized-SV dense-reference result;
+7. older P44/P45/P47/P50/P51 generalized-SV artifacts as historical context only;
+8. implementation surfaces, tests, registries, and leaderboard rows.
 
 No lower-ranked artifact may silently override a higher-ranked target statement.
+A reset memo may summarize or restate inherited authority, but it may not
+silently redefine the governing row, target family, truth/test-point, or
+oracle-versus-evaluator boundary established by the reviewed contract.
+
+## Canonical Identity Statement
+
+For this governed program, the canonical benchmark row is
+`zhao_cui_generalized_sv_synthetic_from_estimated_values`.
+
+The canonical target family and truth/test-point convention are governed by the
+highest-ranked reviewed contract produced by this program. Until a newer
+reviewed contract supersedes it, that contract inherits its source-route family
+and synthetic prior-mean test-point convention from the reviewed testing
+specification.
+
+The native generalized-SV dense raw-y reference is the promotion oracle for
+short-prefix or low-dimensional same-target checks. It is not itself the
+executed source-row SGQF evaluator.
+
+Any current SGQF route remains precursor, diagnostic, or blocked unless a later
+reviewed phase explicitly admits it at the relevant claim level.
 
 ## Program Evidence Contract
 
@@ -80,6 +110,9 @@ No lower-ranked artifact may silently override a higher-ranked target statement.
 4. **Precursor-is-not-promotion gate**
    - A precursor SGQF route may support engineering unlock work but may not by
      itself promote the source-row SGQF evaluator.
+   - Phase 4 is an oracle-agreement gate for a precursor or candidate route on a
+     reviewed short-prefix scope; it does not by itself admit or execute the
+     benchmark-row source-scope evaluator.
 
 5. **Source-scope-evaluator gate**
    - The native dense reference may serve as the promotion oracle, but it does not
@@ -112,7 +145,7 @@ No lower-ranked artifact may silently override a higher-ranked target statement.
 | 1 | Reset memo and authority-order freeze | `docs/plans/bayesfilter-generalized-sv-phase1-reset-authority-freeze-subplan-2026-06-29.md` | `docs/plans/bayesfilter-generalized-sv-phase1-reset-authority-freeze-result-2026-06-29.md` |
 | 2 | Target/truth/source-scope contract freeze | `docs/plans/bayesfilter-generalized-sv-phase2-target-truth-source-scope-contract-subplan-2026-06-29.md` | `docs/plans/bayesfilter-generalized-sv-phase2-target-truth-source-scope-contract-result-2026-06-29.md` |
 | 3 | Precursor-route design and classification | `docs/plans/bayesfilter-generalized-sv-phase3-precursor-route-classification-subplan-2026-06-29.md` | `docs/plans/bayesfilter-generalized-sv-phase3-precursor-route-classification-result-2026-06-29.md` |
-| 4 | Short-prefix same-target value gate | `docs/plans/bayesfilter-generalized-sv-phase4-short-prefix-same-target-value-gate-subplan-2026-06-29.md` | `docs/plans/bayesfilter-generalized-sv-phase4-short-prefix-same-target-value-gate-result-2026-06-29.md` |
+| 4 | Short-prefix precursor-oracle same-target value gate | `docs/plans/bayesfilter-generalized-sv-phase4-short-prefix-same-target-value-gate-subplan-2026-06-29.md` | `docs/plans/bayesfilter-generalized-sv-phase4-short-prefix-same-target-value-gate-result-2026-06-29.md` |
 | 5 | Source-row evaluator wiring gate | `docs/plans/bayesfilter-generalized-sv-phase5-source-row-evaluator-wiring-subplan-2026-06-29.md` | `docs/plans/bayesfilter-generalized-sv-phase5-source-row-evaluator-wiring-result-2026-06-29.md` |
 | 6 | Analytical-score / derivative admission gate | `docs/plans/bayesfilter-generalized-sv-phase6-score-derivative-admission-subplan-2026-06-29.md` | `docs/plans/bayesfilter-generalized-sv-phase6-score-derivative-admission-result-2026-06-29.md` |
 | 7 | Benchmark / leaderboard integration gate | `docs/plans/bayesfilter-generalized-sv-phase7-benchmark-leaderboard-integration-subplan-2026-06-29.md` | `docs/plans/bayesfilter-generalized-sv-phase7-benchmark-leaderboard-integration-result-2026-06-29.md` |

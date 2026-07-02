@@ -1,0 +1,1006 @@
+{
+  "benchmark": "bayesfilter_two_lane_lowdim_leaderboard_cpu_reference",
+  "manifest": {
+    "artifact_paths": [
+      "docs/plans/bayesfilter-two-lane-lowdim-leaderboard-results-2026-06-24.json",
+      "docs/plans/bayesfilter-two-lane-lowdim-leaderboard-results-2026-06-24.md"
+    ],
+    "command": "/home/chakwong/BayesFilter/docs/benchmarks/benchmark_two_lane_lowdim_leaderboard.py --requested-device cpu --repeats 1 --output /home/chakwong/BayesFilter/docs/plans/bayesfilter-two-lane-lowdim-leaderboard-results-2026-06-24.json --markdown-output /home/chakwong/BayesFilter/docs/plans/bayesfilter-two-lane-lowdim-leaderboard-results-2026-06-24.md",
+    "cpu_gpu_visibility_policy": "cpu_only_hidden_gpu_before_tensorflow_import",
+    "cuda_visible_devices": "-1",
+    "git_commit": "97ad05d40676f3fd15a2a2b4d45034ebb657ed97",
+    "governing_plan_path": "docs/plans/bayesfilter-two-lane-filter-comparison-p5-lowdim-execution-subplan-2026-06-24.md",
+    "requested_device": "cpu",
+    "tensorflow_version": "2.19.1"
+  },
+  "metadata_date": "2026-06-24",
+  "nonclaims": [
+    "CPU-only reference leaderboard; not a production-GPU timing result.",
+    "Status-only rows are visible and not ranked.",
+    "Actual transformed SV is not merged with KSC surrogate SV.",
+    "SGQF timing/accuracy outside KSC surrogate and dedicated local fixture remain blocked or status-only."
+  ],
+  "rows": [
+    {
+      "abs_log_likelihood_error": 0.0,
+      "algorithm_id": "kalman_exact_or_mixture_enumeration",
+      "comparison_status": "reference_only",
+      "lane": "lowdim_same_target",
+      "log_likelihood": -0.9040884763997804,
+      "notes": [
+        "exact LGSSM baseline"
+      ],
+      "reason": null,
+      "reference_log_likelihood": -0.9040884763997804,
+      "reference_type": "exact",
+      "row_id": "lgssm_exact_kalman_dim_1",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": 0.3732660369714722,
+        "mean_steady_seconds": 0.0032839330087881535,
+        "repeats": 1
+      }
+    },
+    {
+      "abs_log_likelihood_error": 1.1102230246251565e-16,
+      "algorithm_id": "ukf",
+      "comparison_status": "executed_rankable",
+      "lane": "lowdim_same_target",
+      "log_likelihood": -0.9040884763997803,
+      "notes": [
+        "same-target lowdim LGSSM"
+      ],
+      "reason": null,
+      "reference_log_likelihood": -0.9040884763997804,
+      "reference_type": "exact",
+      "row_id": "lgssm_exact_kalman_dim_1",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": 0.04633040298358537,
+        "mean_steady_seconds": 0.013376120012253523,
+        "repeats": 1
+      }
+    },
+    {
+      "abs_log_likelihood_error": 1.1102230246251565e-16,
+      "algorithm_id": "cut4",
+      "comparison_status": "executed_rankable",
+      "lane": "lowdim_same_target",
+      "log_likelihood": -0.9040884763997803,
+      "notes": [
+        "same-target lowdim LGSSM"
+      ],
+      "reason": null,
+      "reference_log_likelihood": -0.9040884763997804,
+      "reference_type": "exact",
+      "row_id": "lgssm_exact_kalman_dim_1",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": 0.020571325992932543,
+        "mean_steady_seconds": 0.013650219014380127,
+        "repeats": 1
+      }
+    },
+    {
+      "abs_log_likelihood_error": 0.0,
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "comparison_status": "executed_rankable",
+      "lane": "lowdim_same_target",
+      "log_likelihood": -0.9040884763997804,
+      "notes": [
+        "same-target lowdim LGSSM"
+      ],
+      "reason": null,
+      "reference_log_likelihood": -0.9040884763997804,
+      "reference_type": "exact",
+      "row_id": "lgssm_exact_kalman_dim_1",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": 0.14866310698562302,
+        "mean_steady_seconds": 0.11267725500511006,
+        "repeats": 1
+      }
+    },
+    {
+      "abs_log_likelihood_error": null,
+      "algorithm_id": "fixed_sgqf",
+      "comparison_status": "blocked",
+      "lane": "lowdim_same_target",
+      "log_likelihood": null,
+      "notes": [
+        "blocked in current additive-state SGQF lane"
+      ],
+      "reason": "current fixed SGQF structural adapter only supports the autonomous phase nonlinear growth fixture exactly",
+      "reference_log_likelihood": -0.9040884763997804,
+      "reference_type": "exact",
+      "row_id": "lgssm_exact_kalman_dim_1",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": null,
+        "mean_steady_seconds": null,
+        "repeats": null
+      }
+    },
+    {
+      "abs_log_likelihood_error": 0.0,
+      "algorithm_id": "kalman_exact_or_mixture_enumeration",
+      "comparison_status": "reference_only",
+      "lane": "lowdim_same_target",
+      "log_likelihood": -2.0821666916240007,
+      "notes": [
+        "exact LGSSM baseline"
+      ],
+      "reason": null,
+      "reference_log_likelihood": -2.0821666916240007,
+      "reference_type": "exact",
+      "row_id": "lgssm_exact_kalman_dim_2",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": 0.1254122389946133,
+        "mean_steady_seconds": 0.003639068017946556,
+        "repeats": 1
+      }
+    },
+    {
+      "abs_log_likelihood_error": 4.440892098500626e-16,
+      "algorithm_id": "ukf",
+      "comparison_status": "executed_rankable",
+      "lane": "lowdim_same_target",
+      "log_likelihood": -2.0821666916240003,
+      "notes": [
+        "same-target lowdim LGSSM"
+      ],
+      "reason": null,
+      "reference_log_likelihood": -2.0821666916240007,
+      "reference_type": "exact",
+      "row_id": "lgssm_exact_kalman_dim_2",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": 0.01702530198963359,
+        "mean_steady_seconds": 0.01342647901037708,
+        "repeats": 1
+      }
+    },
+    {
+      "abs_log_likelihood_error": 0.0,
+      "algorithm_id": "cut4",
+      "comparison_status": "executed_rankable",
+      "lane": "lowdim_same_target",
+      "log_likelihood": -2.0821666916240007,
+      "notes": [
+        "same-target lowdim LGSSM"
+      ],
+      "reason": null,
+      "reference_log_likelihood": -2.0821666916240007,
+      "reference_type": "exact",
+      "row_id": "lgssm_exact_kalman_dim_2",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": 0.013975331996334717,
+        "mean_steady_seconds": 0.014112773002125323,
+        "repeats": 1
+      }
+    },
+    {
+      "abs_log_likelihood_error": 0.0,
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "comparison_status": "executed_rankable",
+      "lane": "lowdim_same_target",
+      "log_likelihood": -2.0821666916240007,
+      "notes": [
+        "same-target lowdim LGSSM"
+      ],
+      "reason": null,
+      "reference_log_likelihood": -2.0821666916240007,
+      "reference_type": "exact",
+      "row_id": "lgssm_exact_kalman_dim_2",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": 0.14566395900328644,
+        "mean_steady_seconds": 0.13828916699276306,
+        "repeats": 1
+      }
+    },
+    {
+      "abs_log_likelihood_error": null,
+      "algorithm_id": "fixed_sgqf",
+      "comparison_status": "blocked",
+      "lane": "lowdim_same_target",
+      "log_likelihood": null,
+      "notes": [
+        "blocked in current additive-state SGQF lane"
+      ],
+      "reason": "current fixed SGQF structural adapter only supports the autonomous phase nonlinear growth fixture exactly",
+      "reference_log_likelihood": -2.0821666916240007,
+      "reference_type": "exact",
+      "row_id": "lgssm_exact_kalman_dim_2",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": null,
+        "mean_steady_seconds": null,
+        "repeats": null
+      }
+    },
+    {
+      "abs_log_likelihood_error": 0.0,
+      "algorithm_id": "kalman_exact_or_mixture_enumeration",
+      "comparison_status": "reference_only",
+      "lane": "lowdim_same_target",
+      "log_likelihood": -3.204820064194527,
+      "notes": [
+        "exact LGSSM baseline"
+      ],
+      "reason": null,
+      "reference_log_likelihood": -3.204820064194527,
+      "reference_type": "exact",
+      "row_id": "lgssm_exact_kalman_dim_3",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": 0.0033861789852380753,
+        "mean_steady_seconds": 0.003588427003705874,
+        "repeats": 1
+      }
+    },
+    {
+      "abs_log_likelihood_error": 8.881784197001252e-16,
+      "algorithm_id": "ukf",
+      "comparison_status": "executed_rankable",
+      "lane": "lowdim_same_target",
+      "log_likelihood": -3.204820064194526,
+      "notes": [
+        "same-target lowdim LGSSM"
+      ],
+      "reason": null,
+      "reference_log_likelihood": -3.204820064194527,
+      "reference_type": "exact",
+      "row_id": "lgssm_exact_kalman_dim_3",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": 0.014581805997295305,
+        "mean_steady_seconds": 0.014145742985419929,
+        "repeats": 1
+      }
+    },
+    {
+      "abs_log_likelihood_error": 0.0,
+      "algorithm_id": "cut4",
+      "comparison_status": "executed_rankable",
+      "lane": "lowdim_same_target",
+      "log_likelihood": -3.204820064194527,
+      "notes": [
+        "same-target lowdim LGSSM"
+      ],
+      "reason": null,
+      "reference_log_likelihood": -3.204820064194527,
+      "reference_type": "exact",
+      "row_id": "lgssm_exact_kalman_dim_3",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": 0.014696572005050257,
+        "mean_steady_seconds": 0.013782859983621165,
+        "repeats": 1
+      }
+    },
+    {
+      "abs_log_likelihood_error": 0.0,
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "comparison_status": "executed_rankable",
+      "lane": "lowdim_same_target",
+      "log_likelihood": -3.204820064194527,
+      "notes": [
+        "same-target lowdim LGSSM"
+      ],
+      "reason": null,
+      "reference_log_likelihood": -3.204820064194527,
+      "reference_type": "exact",
+      "row_id": "lgssm_exact_kalman_dim_3",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": 0.17671471898211166,
+        "mean_steady_seconds": 0.1739644409972243,
+        "repeats": 1
+      }
+    },
+    {
+      "abs_log_likelihood_error": null,
+      "algorithm_id": "fixed_sgqf",
+      "comparison_status": "blocked",
+      "lane": "lowdim_same_target",
+      "log_likelihood": null,
+      "notes": [
+        "blocked in current additive-state SGQF lane"
+      ],
+      "reason": "current fixed SGQF structural adapter only supports the autonomous phase nonlinear growth fixture exactly",
+      "reference_log_likelihood": -3.204820064194527,
+      "reference_type": "exact",
+      "row_id": "lgssm_exact_kalman_dim_3",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": null,
+        "mean_steady_seconds": null,
+        "repeats": null
+      }
+    },
+    {
+      "abs_log_likelihood_error": 0.0,
+      "algorithm_id": "kalman_exact_or_mixture_enumeration",
+      "comparison_status": "reference_only",
+      "lane": "lowdim_same_target",
+      "log_likelihood": -4.505481290077734,
+      "notes": [
+        "declared surrogate reference"
+      ],
+      "reason": null,
+      "reference_log_likelihood": -4.505481290077734,
+      "reference_type": "gaussian_mixture_surrogate",
+      "row_id": "sv_ksc_gaussian_mixture_surrogate_dim_1",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": 0.03565532498760149,
+        "mean_steady_seconds": 0.02245043098810129,
+        "repeats": 1
+      }
+    },
+    {
+      "abs_log_likelihood_error": 0.0,
+      "algorithm_id": "ukf",
+      "comparison_status": "executed_rankable",
+      "lane": "lowdim_same_target",
+      "log_likelihood": -4.505481290077734,
+      "notes": [
+        "same-target surrogate lane"
+      ],
+      "reason": null,
+      "reference_log_likelihood": -4.505481290077734,
+      "reference_type": "gaussian_mixture_surrogate",
+      "row_id": "sv_ksc_gaussian_mixture_surrogate_dim_1",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": 0.08136537601239979,
+        "mean_steady_seconds": 0.08203071900061332,
+        "repeats": 1
+      }
+    },
+    {
+      "abs_log_likelihood_error": 0.0,
+      "algorithm_id": "cut4",
+      "comparison_status": "executed_rankable",
+      "lane": "lowdim_same_target",
+      "log_likelihood": -4.505481290077734,
+      "notes": [
+        "same-target surrogate lane"
+      ],
+      "reason": null,
+      "reference_log_likelihood": -4.505481290077734,
+      "reference_type": "gaussian_mixture_surrogate",
+      "row_id": "sv_ksc_gaussian_mixture_surrogate_dim_1",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": 0.08994388801511377,
+        "mean_steady_seconds": 0.08931661199312657,
+        "repeats": 1
+      }
+    },
+    {
+      "abs_log_likelihood_error": 1.7763568394002505e-15,
+      "algorithm_id": "fixed_sgqf",
+      "comparison_status": "executed_rankable",
+      "lane": "lowdim_same_target",
+      "log_likelihood": -4.505481290077736,
+      "notes": [
+        "tiny_same_target_surrogate_fixture_only"
+      ],
+      "reason": null,
+      "reference_log_likelihood": -4.505481290077734,
+      "reference_type": "gaussian_mixture_surrogate",
+      "row_id": "sv_ksc_gaussian_mixture_surrogate_dim_1",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": 0.05831829097587615,
+        "mean_steady_seconds": 0.05918758601183072,
+        "repeats": 1
+      }
+    },
+    {
+      "abs_log_likelihood_error": 0.0005196991195912659,
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "comparison_status": "executed_rankable",
+      "lane": "lowdim_same_target",
+      "log_likelihood": -4.504961590958143,
+      "notes": [
+        "same-target surrogate lane"
+      ],
+      "reason": null,
+      "reference_log_likelihood": -4.505481290077734,
+      "reference_type": "gaussian_mixture_surrogate",
+      "row_id": "sv_ksc_gaussian_mixture_surrogate_dim_1",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": 0.26994312199531123,
+        "mean_steady_seconds": 0.23678050198941492,
+        "repeats": 1
+      }
+    },
+    {
+      "abs_log_likelihood_error": 0.0,
+      "algorithm_id": "kalman_exact_or_mixture_enumeration",
+      "comparison_status": "reference_only",
+      "lane": "lowdim_same_target",
+      "log_likelihood": -8.847218775872449,
+      "notes": [
+        "declared surrogate reference"
+      ],
+      "reason": null,
+      "reference_log_likelihood": -8.847218775872449,
+      "reference_type": "gaussian_mixture_surrogate",
+      "row_id": "sv_ksc_gaussian_mixture_surrogate_dim_2",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": 0.13070631099981256,
+        "mean_steady_seconds": 0.1258404059917666,
+        "repeats": 1
+      }
+    },
+    {
+      "abs_log_likelihood_error": 0.0,
+      "algorithm_id": "ukf",
+      "comparison_status": "executed_rankable",
+      "lane": "lowdim_same_target",
+      "log_likelihood": -8.847218775872449,
+      "notes": [
+        "same-target surrogate lane"
+      ],
+      "reason": null,
+      "reference_log_likelihood": -8.847218775872449,
+      "reference_type": "gaussian_mixture_surrogate",
+      "row_id": "sv_ksc_gaussian_mixture_surrogate_dim_2",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": 0.5856555339996703,
+        "mean_steady_seconds": 0.57729263001238,
+        "repeats": 1
+      }
+    },
+    {
+      "abs_log_likelihood_error": 0.0,
+      "algorithm_id": "cut4",
+      "comparison_status": "executed_rankable",
+      "lane": "lowdim_same_target",
+      "log_likelihood": -8.847218775872449,
+      "notes": [
+        "same-target surrogate lane"
+      ],
+      "reason": null,
+      "reference_log_likelihood": -8.847218775872449,
+      "reference_type": "gaussian_mixture_surrogate",
+      "row_id": "sv_ksc_gaussian_mixture_surrogate_dim_2",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": 0.6328565979783889,
+        "mean_steady_seconds": 1.0026677520072553,
+        "repeats": 1
+      }
+    },
+    {
+      "abs_log_likelihood_error": 1.7763568394002505e-15,
+      "algorithm_id": "fixed_sgqf",
+      "comparison_status": "executed_rankable",
+      "lane": "lowdim_same_target",
+      "log_likelihood": -8.84721877587245,
+      "notes": [
+        "tiny_same_target_surrogate_fixture_only"
+      ],
+      "reason": null,
+      "reference_log_likelihood": -8.847218775872449,
+      "reference_type": "gaussian_mixture_surrogate",
+      "row_id": "sv_ksc_gaussian_mixture_surrogate_dim_2",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": 0.39090778699028306,
+        "mean_steady_seconds": 0.5290259209868964,
+        "repeats": 1
+      }
+    },
+    {
+      "abs_log_likelihood_error": 0.0006235128231129039,
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "comparison_status": "executed_rankable",
+      "lane": "lowdim_same_target",
+      "log_likelihood": -8.846595263049336,
+      "notes": [
+        "same-target surrogate lane"
+      ],
+      "reason": null,
+      "reference_log_likelihood": -8.847218775872449,
+      "reference_type": "gaussian_mixture_surrogate",
+      "row_id": "sv_ksc_gaussian_mixture_surrogate_dim_2",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": 0.48388216499006376,
+        "mean_steady_seconds": 0.46592787801637314,
+        "repeats": 1
+      }
+    },
+    {
+      "abs_log_likelihood_error": 0.0,
+      "algorithm_id": "kalman_exact_or_mixture_enumeration",
+      "comparison_status": "reference_only",
+      "lane": "lowdim_same_target",
+      "log_likelihood": -15.092459806872732,
+      "notes": [
+        "declared surrogate reference"
+      ],
+      "reason": null,
+      "reference_log_likelihood": -15.092459806872732,
+      "reference_type": "gaussian_mixture_surrogate",
+      "row_id": "sv_ksc_gaussian_mixture_surrogate_dim_3",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": 0.8883871480065864,
+        "mean_steady_seconds": 0.8943793200014625,
+        "repeats": 1
+      }
+    },
+    {
+      "abs_log_likelihood_error": 1.7763568394002505e-15,
+      "algorithm_id": "ukf",
+      "comparison_status": "executed_rankable",
+      "lane": "lowdim_same_target",
+      "log_likelihood": -15.092459806872734,
+      "notes": [
+        "same-target surrogate lane"
+      ],
+      "reason": null,
+      "reference_log_likelihood": -15.092459806872732,
+      "reference_type": "gaussian_mixture_surrogate",
+      "row_id": "sv_ksc_gaussian_mixture_surrogate_dim_3",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": 4.195174640015466,
+        "mean_steady_seconds": 4.204695658991113,
+        "repeats": 1
+      }
+    },
+    {
+      "abs_log_likelihood_error": 5.329070518200751e-15,
+      "algorithm_id": "cut4",
+      "comparison_status": "executed_rankable",
+      "lane": "lowdim_same_target",
+      "log_likelihood": -15.092459806872737,
+      "notes": [
+        "same-target surrogate lane"
+      ],
+      "reason": null,
+      "reference_log_likelihood": -15.092459806872732,
+      "reference_type": "gaussian_mixture_surrogate",
+      "row_id": "sv_ksc_gaussian_mixture_surrogate_dim_3",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": 4.469070647988701,
+        "mean_steady_seconds": 4.515094817994395,
+        "repeats": 1
+      }
+    },
+    {
+      "abs_log_likelihood_error": 0.0,
+      "algorithm_id": "fixed_sgqf",
+      "comparison_status": "executed_rankable",
+      "lane": "lowdim_same_target",
+      "log_likelihood": -15.092459806872732,
+      "notes": [
+        "tiny_same_target_surrogate_fixture_only"
+      ],
+      "reason": null,
+      "reference_log_likelihood": -15.092459806872732,
+      "reference_type": "gaussian_mixture_surrogate",
+      "row_id": "sv_ksc_gaussian_mixture_surrogate_dim_3",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": 2.642613250995055,
+        "mean_steady_seconds": 2.8633761429809965,
+        "repeats": 1
+      }
+    },
+    {
+      "abs_log_likelihood_error": 0.0004969389004472191,
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "comparison_status": "executed_rankable",
+      "lane": "lowdim_same_target",
+      "log_likelihood": -15.091962867972285,
+      "notes": [
+        "same-target surrogate lane"
+      ],
+      "reason": null,
+      "reference_log_likelihood": -15.092459806872732,
+      "reference_type": "gaussian_mixture_surrogate",
+      "row_id": "sv_ksc_gaussian_mixture_surrogate_dim_3",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": 0.7154145770182367,
+        "mean_steady_seconds": 0.7092319649818819,
+        "repeats": 1
+      }
+    },
+    {
+      "abs_log_likelihood_error": null,
+      "algorithm_id": "fixed_sgqf",
+      "comparison_status": "executed_status_only",
+      "lane": "lowdim_same_target",
+      "log_likelihood": -5.009903264752191,
+      "notes": [
+        "status-only SGQF timing anchor",
+        "not used for cross-algorithm rankable leaderboard"
+      ],
+      "reason": "SGQF-exact-eligible local fixture; not one of the frozen four-way lowdim rankable rows",
+      "reference_log_likelihood": null,
+      "reference_type": "dense_reference_local_fixture",
+      "row_id": "fixed_sgqf_model_c_autonomous_nonlinear_growth_fixture",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": 0.015295738005079329,
+        "mean_steady_seconds": 0.008964968001237139,
+        "repeats": 1
+      }
+    },
+    {
+      "abs_log_likelihood_error": null,
+      "algorithm_id": "ukf",
+      "comparison_status": "executed_status_only",
+      "lane": "lowdim_same_target",
+      "log_likelihood": -4.999725914414515,
+      "notes": [
+        "auxiliary status-only timing row"
+      ],
+      "reason": "local SGQF-exact-eligible fixture; auxiliary status-only timing row",
+      "reference_log_likelihood": null,
+      "reference_type": "dense_reference_local_fixture",
+      "row_id": "fixed_sgqf_model_c_autonomous_nonlinear_growth_fixture",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": 0.010423636995255947,
+        "mean_steady_seconds": 0.010573689010925591,
+        "repeats": 1
+      }
+    },
+    {
+      "abs_log_likelihood_error": null,
+      "algorithm_id": "cut4",
+      "comparison_status": "executed_status_only",
+      "lane": "lowdim_same_target",
+      "log_likelihood": -4.838183477614487,
+      "notes": [
+        "auxiliary status-only timing row"
+      ],
+      "reason": "local SGQF-exact-eligible fixture; auxiliary status-only timing row",
+      "reference_log_likelihood": null,
+      "reference_type": "dense_reference_local_fixture",
+      "row_id": "fixed_sgqf_model_c_autonomous_nonlinear_growth_fixture",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": 0.011117107991594821,
+        "mean_steady_seconds": 0.010691239993320778,
+        "repeats": 1
+      }
+    },
+    {
+      "abs_log_likelihood_error": null,
+      "algorithm_id": "fixed_sgqf",
+      "comparison_status": "blocked",
+      "lane": "lowdim_same_target",
+      "log_likelihood": null,
+      "notes": [
+        "visible non-rankable row"
+      ],
+      "reason": "fixed SGQF not same-target or adapter not admitted on this diagnostic-only P44 row",
+      "reference_log_likelihood": null,
+      "reference_type": "diagnostic",
+      "row_id": "p44_cubic_additive_gaussian_dim_1_2_3",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": null,
+        "mean_steady_seconds": null,
+        "repeats": null
+      }
+    },
+    {
+      "abs_log_likelihood_error": null,
+      "algorithm_id": "ukf",
+      "comparison_status": "diagnostic_only",
+      "lane": "lowdim_same_target",
+      "log_likelihood": null,
+      "notes": [
+        "visible non-rankable row"
+      ],
+      "reason": "diagnostic-only row; not rankable in lowdim leaderboard",
+      "reference_log_likelihood": null,
+      "reference_type": "diagnostic",
+      "row_id": "p44_cubic_additive_gaussian_dim_1_2_3",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": null,
+        "mean_steady_seconds": null,
+        "repeats": null
+      }
+    },
+    {
+      "abs_log_likelihood_error": null,
+      "algorithm_id": "cut4",
+      "comparison_status": "diagnostic_only",
+      "lane": "lowdim_same_target",
+      "log_likelihood": null,
+      "notes": [
+        "visible non-rankable row"
+      ],
+      "reason": "diagnostic-only row; not rankable in lowdim leaderboard",
+      "reference_log_likelihood": null,
+      "reference_type": "diagnostic",
+      "row_id": "p44_cubic_additive_gaussian_dim_1_2_3",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": null,
+        "mean_steady_seconds": null,
+        "repeats": null
+      }
+    },
+    {
+      "abs_log_likelihood_error": null,
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "comparison_status": "diagnostic_only",
+      "lane": "lowdim_same_target",
+      "log_likelihood": null,
+      "notes": [
+        "visible non-rankable row"
+      ],
+      "reason": "diagnostic-only row; not rankable in lowdim leaderboard",
+      "reference_log_likelihood": null,
+      "reference_type": "diagnostic",
+      "row_id": "p44_cubic_additive_gaussian_dim_1_2_3",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": null,
+        "mean_steady_seconds": null,
+        "repeats": null
+      }
+    },
+    {
+      "abs_log_likelihood_error": null,
+      "algorithm_id": "fixed_sgqf",
+      "comparison_status": "blocked",
+      "lane": "lowdim_same_target",
+      "log_likelihood": null,
+      "notes": [
+        "visible non-rankable row"
+      ],
+      "reason": "fixed SGQF not same-target or adapter not admitted on this diagnostic-only P44 row",
+      "reference_log_likelihood": null,
+      "reference_type": "diagnostic",
+      "row_id": "p44_nonlinear_transition_h2_dim_1_2_3",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": null,
+        "mean_steady_seconds": null,
+        "repeats": null
+      }
+    },
+    {
+      "abs_log_likelihood_error": null,
+      "algorithm_id": "ukf",
+      "comparison_status": "diagnostic_only",
+      "lane": "lowdim_same_target",
+      "log_likelihood": null,
+      "notes": [
+        "visible non-rankable row"
+      ],
+      "reason": "diagnostic-only row; not rankable in lowdim leaderboard",
+      "reference_log_likelihood": null,
+      "reference_type": "diagnostic",
+      "row_id": "p44_nonlinear_transition_h2_dim_1_2_3",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": null,
+        "mean_steady_seconds": null,
+        "repeats": null
+      }
+    },
+    {
+      "abs_log_likelihood_error": null,
+      "algorithm_id": "cut4",
+      "comparison_status": "diagnostic_only",
+      "lane": "lowdim_same_target",
+      "log_likelihood": null,
+      "notes": [
+        "visible non-rankable row"
+      ],
+      "reason": "diagnostic-only row; not rankable in lowdim leaderboard",
+      "reference_log_likelihood": null,
+      "reference_type": "diagnostic",
+      "row_id": "p44_nonlinear_transition_h2_dim_1_2_3",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": null,
+        "mean_steady_seconds": null,
+        "repeats": null
+      }
+    },
+    {
+      "abs_log_likelihood_error": null,
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "comparison_status": "diagnostic_only",
+      "lane": "lowdim_same_target",
+      "log_likelihood": null,
+      "notes": [
+        "visible non-rankable row"
+      ],
+      "reason": "diagnostic-only row; not rankable in lowdim leaderboard",
+      "reference_log_likelihood": null,
+      "reference_type": "diagnostic",
+      "row_id": "p44_nonlinear_transition_h2_dim_1_2_3",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": null,
+        "mean_steady_seconds": null,
+        "repeats": null
+      }
+    },
+    {
+      "abs_log_likelihood_error": null,
+      "algorithm_id": "fixed_sgqf",
+      "comparison_status": "blocked",
+      "lane": "lowdim_same_target",
+      "log_likelihood": null,
+      "notes": [
+        "visible non-rankable row"
+      ],
+      "reason": "fixed SGQF not same-target or adapter not admitted on this diagnostic-only P44 row",
+      "reference_log_likelihood": null,
+      "reference_type": "diagnostic",
+      "row_id": "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": null,
+        "mean_steady_seconds": null,
+        "repeats": null
+      }
+    },
+    {
+      "abs_log_likelihood_error": null,
+      "algorithm_id": "ukf",
+      "comparison_status": "diagnostic_only",
+      "lane": "lowdim_same_target",
+      "log_likelihood": null,
+      "notes": [
+        "visible non-rankable row"
+      ],
+      "reason": "diagnostic-only row; not rankable in lowdim leaderboard",
+      "reference_log_likelihood": null,
+      "reference_type": "diagnostic",
+      "row_id": "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": null,
+        "mean_steady_seconds": null,
+        "repeats": null
+      }
+    },
+    {
+      "abs_log_likelihood_error": null,
+      "algorithm_id": "cut4",
+      "comparison_status": "diagnostic_only",
+      "lane": "lowdim_same_target",
+      "log_likelihood": null,
+      "notes": [
+        "visible non-rankable row"
+      ],
+      "reason": "diagnostic-only row; not rankable in lowdim leaderboard",
+      "reference_log_likelihood": null,
+      "reference_type": "diagnostic",
+      "row_id": "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": null,
+        "mean_steady_seconds": null,
+        "repeats": null
+      }
+    },
+    {
+      "abs_log_likelihood_error": null,
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "comparison_status": "diagnostic_only",
+      "lane": "lowdim_same_target",
+      "log_likelihood": null,
+      "notes": [
+        "visible non-rankable row"
+      ],
+      "reason": "diagnostic-only row; not rankable in lowdim leaderboard",
+      "reference_log_likelihood": null,
+      "reference_type": "diagnostic",
+      "row_id": "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": null,
+        "mean_steady_seconds": null,
+        "repeats": null
+      }
+    },
+    {
+      "abs_log_likelihood_error": null,
+      "algorithm_id": "fixed_sgqf",
+      "comparison_status": "blocked",
+      "lane": "lowdim_same_target",
+      "log_likelihood": null,
+      "notes": [
+        "visible non-rankable row"
+      ],
+      "reason": "fixed SGQF not same-target or adapter not admitted on this diagnostic-only P44 row",
+      "reference_log_likelihood": null,
+      "reference_type": "diagnostic",
+      "row_id": "p44_quadratic_observation_dim_1_2_3",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": null,
+        "mean_steady_seconds": null,
+        "repeats": null
+      }
+    },
+    {
+      "abs_log_likelihood_error": null,
+      "algorithm_id": "ukf",
+      "comparison_status": "diagnostic_only",
+      "lane": "lowdim_same_target",
+      "log_likelihood": null,
+      "notes": [
+        "visible non-rankable row"
+      ],
+      "reason": "diagnostic-only row; not rankable in lowdim leaderboard",
+      "reference_log_likelihood": null,
+      "reference_type": "diagnostic",
+      "row_id": "p44_quadratic_observation_dim_1_2_3",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": null,
+        "mean_steady_seconds": null,
+        "repeats": null
+      }
+    },
+    {
+      "abs_log_likelihood_error": null,
+      "algorithm_id": "cut4",
+      "comparison_status": "diagnostic_only",
+      "lane": "lowdim_same_target",
+      "log_likelihood": null,
+      "notes": [
+        "visible non-rankable row"
+      ],
+      "reason": "diagnostic-only row; not rankable in lowdim leaderboard",
+      "reference_log_likelihood": null,
+      "reference_type": "diagnostic",
+      "row_id": "p44_quadratic_observation_dim_1_2_3",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": null,
+        "mean_steady_seconds": null,
+        "repeats": null
+      }
+    },
+    {
+      "abs_log_likelihood_error": null,
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "comparison_status": "diagnostic_only",
+      "lane": "lowdim_same_target",
+      "log_likelihood": null,
+      "notes": [
+        "visible non-rankable row"
+      ],
+      "reason": "diagnostic-only row; not rankable in lowdim leaderboard",
+      "reference_log_likelihood": null,
+      "reference_type": "diagnostic",
+      "row_id": "p44_quadratic_observation_dim_1_2_3",
+      "runtime": {
+        "compile_warmup_policy": "first_call_then_mean_of_repeats_no_tf_function_compile",
+        "first_call_seconds": null,
+        "mean_steady_seconds": null,
+        "repeats": null
+      }
+    }
+  ]
+}

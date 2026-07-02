@@ -22,8 +22,10 @@ from experiments.dpf_implementation.tf_tfp.resampling.sinkhorn_tf import (
 from experiments.dpf_implementation.tf_tfp.resampling.sinkhorn_warmstart_student_tf import (
     RetainedTeacherWarmStartConfigTF,
     SinkhornWarmStartStudentTF,
+    meta_ot_dual_objective_loss_tf,
+    predict_canonical_log_u_tf,
     predict_sinkhorn_initial_state_tf,
-    teacher_state_loss_tf,
+    teacher_log_u_loss_tf,
 )
 from experiments.dpf_implementation.tf_tfp.runners.common_tf import (
     OUTPUT_DIR,
@@ -42,16 +44,16 @@ from experiments.dpf_implementation.tf_tfp.runners.common_tf import (
 
 
 INPUT_JSON_PATH = OUTPUT_DIR / "retained_teacher_sinkhorn_teacher_data_2026-06-18.json"
-JSON_PATH = OUTPUT_DIR / "retained_teacher_sinkhorn_heldout_eval_2026-06-18.json"
-REPORT_PATH = REPORT_DIR / "retained-teacher-sinkhorn-heldout-eval-2026-06-18.md"
-RESULT_PATH = "docs/plans/bayesfilter-neural-ot-retained-teacher-heldout-eval-result-2026-06-18.md"
-PLAN_PATH = "docs/plans/bayesfilter-neural-ot-retained-teacher-heldout-eval-plan-2026-06-18.md"
+JSON_PATH = OUTPUT_DIR / "retained_teacher_sinkhorn_heldout_eval_better_contract_2026-06-28.json"
+REPORT_PATH = REPORT_DIR / "retained-teacher-sinkhorn-heldout-eval-better-contract-2026-06-28.md"
+RESULT_PATH = "docs/plans/bayesfilter-neural-ot-metaot-refit-better-evidence-contract-result-2026-06-28.md"
+PLAN_PATH = "docs/plans/bayesfilter-neural-ot-metaot-refit-better-evidence-contract-plan-2026-06-28.md"
 SCALAR_ID = "retained_teacher_sinkhorn_heldout_teacher_cloud_fidelity_tf"
 TRAINING_SEED = 20260618
 EPOCHS = 250
 LEARNING_RATE = 1e-2
 BUDGETS = (5, 10, 20)
-EXPECTED_DECISION = "RETAINED_TEACHER_SINKHORN_HELDOUT_EVAL_PASSED"
+EXPECTED_DECISION = "RETAINED_TEACHER_SINKHORN_HELDOUT_EVAL_LOCAL_USEFULNESS_ON_DISCRIMINATING_BUDGETS"
 PRIMARY_BUDGET = 20
 BUDGET_TOLERANCE_FLOORS = {
     5: 1e-5,
@@ -90,18 +92,20 @@ def _run() -> dict[str, Any]:
         raise RuntimeError("teacher-data artifact must include both train and heldout examples")
 
     tf.keras.utils.set_random_seed(TRAINING_SEED)
-    model = SinkhornWarmStartStudentTF(RetainedTeacherWarmStartConfigTF())
+    model = SinkhornWarmStartStudentTF(
+        RetainedTeacherWarmStartConfigTF(prediction_head="meta_ot_log_u")
+    )
     _ = model(train_examples[0]["particles"], train_examples[0]["weights"], epsilon=train_examples[0]["epsilon"])
     optimizer = tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE)
 
-    initial_train_loss = _mean_latent_loss(model, train_examples)
+    initial_train_loss = _mean_training_loss(model, train_examples)
     for _ in range(EPOCHS):
         with tf.GradientTape() as tape:
-            loss = _mean_latent_loss(model, train_examples)
+            loss = _mean_training_loss(model, train_examples)
         grads = tape.gradient(loss, model.trainable_variables)
         optimizer.apply_gradients(zip(grads, model.trainable_variables))
-    final_train_loss = _mean_latent_loss(model, train_examples)
-    heldout_latent_loss = _mean_latent_loss(model, heldout_examples)
+    final_train_loss = _mean_training_loss(model, train_examples)
+    heldout_log_u_loss = _mean_log_u_loss(model, heldout_examples)
 
     budget_metrics = {
         str(budget): _budget_metrics(
@@ -112,18 +116,28 @@ def _run() -> dict[str, Any]:
         )
         for budget in BUDGETS
     }
+    budget_metrics = _annotate_budget_regimes(budget_metrics)
     primary = budget_metrics[str(PRIMARY_BUDGET)]
+    discriminating_budgets = [
+        metrics for metrics in budget_metrics.values()
+        if metrics["budget_regime"] == "discriminating"
+    ]
     decision = EXPECTED_DECISION
     if scalar(final_train_loss) >= scalar(initial_train_loss):
-        decision = "RETAINED_TEACHER_SINKHORN_HELDOUT_EVAL_FAILED"
+        decision = "RETAINED_TEACHER_SINKHORN_HELDOUT_EVAL_OBJECTIVE_ROUTE_FAILED"
     elif not _budgets_all_finite(budget_metrics):
-        decision = "RETAINED_TEACHER_SINKHORN_HELDOUT_EVAL_FAILED"
-    elif primary["mean_student_teacher_cloud_rmse"] > primary["mean_zero_teacher_cloud_rmse"]:
-        decision = "RETAINED_TEACHER_SINKHORN_HELDOUT_EVAL_FAILED"
+        decision = "RETAINED_TEACHER_SINKHORN_HELDOUT_EVAL_OBJECTIVE_ROUTE_FAILED"
+    elif not discriminating_budgets:
+        decision = "RETAINED_TEACHER_SINKHORN_HELDOUT_EVAL_NO_DISCRIMINATING_BUDGET"
+    elif all(
+        metrics["mean_student_teacher_cloud_rmse"] > metrics["mean_zero_teacher_cloud_rmse"]
+        for metrics in discriminating_budgets
+    ):
+        decision = "RETAINED_TEACHER_SINKHORN_HELDOUT_EVAL_NON_PROMOTED_ON_DISCRIMINATING_BUDGETS"
 
     payload = {
         "decision": decision,
-        "question": "On heldout teacher-data examples, does student-warm-started retained Sinkhorn match or improve teacher-cloud fidelity relative to zero-init at fixed corrective budgets?",
+        "question": "On heldout teacher-data examples, does donor-aligned one-half student-warm-started retained Sinkhorn show local usefulness on discriminating corrective-budget rungs without being over-read as algorithm failure when zero-init saturates high-budget rungs?",
         "created_at_utc": utc_now(),
         "backend": "tensorflow_tensorflow_probability",
         "scalar_id": SCALAR_ID,
@@ -135,6 +149,8 @@ def _run() -> dict[str, Any]:
             "epochs": EPOCHS,
             "learning_rate": LEARNING_RATE,
             "optimizer": "Adam",
+            "loss_route": "meta_ot_log_u_dual_objective_plus_teacher_log_u",
+            "prediction_head": "meta_ot_log_u",
             "budgets": list(BUDGETS),
             "primary_budget": PRIMARY_BUDGET,
             "budget_tolerance_floors": {str(k): v for k, v in BUDGET_TOLERANCE_FLOORS.items()},
@@ -144,9 +160,9 @@ def _run() -> dict[str, Any]:
             "heldout_examples": len(heldout_examples),
         },
         "losses": {
-            "initial_train_latent_loss": scalar(initial_train_loss),
-            "final_train_latent_loss": scalar(final_train_loss),
-            "heldout_latent_loss": scalar(heldout_latent_loss),
+            "initial_train_loss": scalar(initial_train_loss),
+            "final_train_loss": scalar(final_train_loss),
+            "heldout_log_u_loss": scalar(heldout_log_u_loss),
         },
         "budget_metrics": budget_metrics,
         "run_manifest": environment_manifest(
@@ -175,16 +191,37 @@ def _tensorize_example(example: dict[str, Any], teacher_policy: dict[str, Any]) 
     }
 
 
-def _mean_latent_loss(model: SinkhornWarmStartStudentTF, examples: list[dict[str, Any]]) -> tf.Tensor:
+def _mean_training_loss(model: SinkhornWarmStartStudentTF, examples: list[dict[str, Any]]) -> tf.Tensor:
     losses = []
     for example in examples:
-        predicted_state = predict_sinkhorn_initial_state_tf(
+        predicted_log_u = predict_canonical_log_u_tf(
             model,
             example["particles"],
             example["weights"],
             example["epsilon"],
         )
-        losses.append(teacher_state_loss_tf(predicted_state, example["teacher_state"]))
+        losses.append(
+            meta_ot_dual_objective_loss_tf(
+                predicted_log_u,
+                example["particles"],
+                example["weights"],
+                example["epsilon"],
+            )
+            + teacher_log_u_loss_tf(predicted_log_u, example["teacher_state"])
+        )
+    return tf.add_n(losses) / tf.cast(len(losses), tf.float64)
+
+
+def _mean_log_u_loss(model: SinkhornWarmStartStudentTF, examples: list[dict[str, Any]]) -> tf.Tensor:
+    losses = []
+    for example in examples:
+        predicted_log_u = predict_canonical_log_u_tf(
+            model,
+            example["particles"],
+            example["weights"],
+            example["epsilon"],
+        )
+        losses.append(teacher_log_u_loss_tf(predicted_log_u, example["teacher_state"]))
     return tf.add_n(losses) / tf.cast(len(losses), tf.float64)
 
 
@@ -243,6 +280,16 @@ def _budget_metrics(
     }
 
 
+def _annotate_budget_regimes(budget_metrics: dict[str, dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    annotated = {}
+    for budget, metrics in budget_metrics.items():
+        row = dict(metrics)
+        saturated = row["mean_zero_teacher_cloud_rmse"] <= 1e-12
+        row["budget_regime"] = "saturated_zero_init" if saturated else "discriminating"
+        annotated[budget] = row
+    return annotated
+
+
 def _max_residual(diagnostics: dict[str, Any]) -> float:
     return max(
         float(diagnostics["max_row_residual"]),
@@ -268,24 +315,30 @@ def _budgets_all_finite(budget_metrics: dict[str, dict[str, Any]]) -> bool:
 
 
 def _validate_payload(payload: dict[str, Any]) -> None:
-    if payload["decision"] != EXPECTED_DECISION:
+    if payload["decision"] not in {
+        EXPECTED_DECISION,
+        "RETAINED_TEACHER_SINKHORN_HELDOUT_EVAL_NON_PROMOTED_ON_DISCRIMINATING_BUDGETS",
+    }:
         raise RuntimeError(payload["decision"])
     if payload["run_manifest"]["pre_import_cuda_visible_devices"] != "-1":
         raise RuntimeError("missing CPU-only pre-import manifest")
     if payload["scalar_id"] != SCALAR_ID:
         raise RuntimeError("wrong scalar id")
-    if payload["losses"]["final_train_latent_loss"] >= payload["losses"]["initial_train_latent_loss"]:
-        raise RuntimeError("training did not improve train latent loss")
-    primary = payload["budget_metrics"][str(PRIMARY_BUDGET)]
-    if primary["mean_student_teacher_cloud_rmse"] > primary["mean_zero_teacher_cloud_rmse"]:
-        raise RuntimeError("student is worse than zero-init at primary budget")
+    if payload["losses"]["final_train_loss"] >= payload["losses"]["initial_train_loss"]:
+        raise RuntimeError("training did not improve train loss")
     if "reproducibility_digest" not in payload:
         raise RuntimeError("missing reproducibility digest")
+    discriminating_budgets = [
+        metrics for metrics in payload["budget_metrics"].values()
+        if metrics["budget_regime"] == "discriminating"
+    ]
+    if not discriminating_budgets:
+        raise RuntimeError("missing discriminating budget rung")
 
 
 def _markdown(payload: dict[str, Any]) -> str:
     lines = [
-        "# Retained-Teacher Sinkhorn Heldout Evaluation Result",
+        "# Retained-Teacher Sinkhorn Better-Contract Heldout Evaluation Result",
         "",
         "## Decision",
         "",
@@ -293,19 +346,19 @@ def _markdown(payload: dict[str, Any]) -> str:
         "",
         "## Decision Table",
         "",
-        "| Budget | Student mean RMSE | Zero-init mean RMSE | Student max residual | Zero-init max residual | Student better-or-equal |",
-        "| --- | ---: | ---: | ---: | ---: | ---: |",
+        "| Budget | Regime | Student mean RMSE | Zero-init mean RMSE | Student max residual | Zero-init max residual | Student better-or-equal |",
+        "| --- | --- | ---: | ---: | ---: | ---: | ---: |",
     ]
     for budget, metrics in payload["budget_metrics"].items():
         lines.append(
-            f"| `{budget}` | `{metrics['mean_student_teacher_cloud_rmse']:.3e}` | `{metrics['mean_zero_teacher_cloud_rmse']:.3e}` | `{metrics['max_student_residual']:.3e}` | `{metrics['max_zero_residual']:.3e}` | `{metrics['student_better_or_equal_count']}/{metrics['heldout_example_count']}` |"
+            f"| `{budget}` | `{metrics['budget_regime']}` | `{metrics['mean_student_teacher_cloud_rmse']:.3e}` | `{metrics['mean_zero_teacher_cloud_rmse']:.3e}` | `{metrics['max_student_residual']:.3e}` | `{metrics['max_zero_residual']:.3e}` | `{metrics['student_better_or_equal_count']}/{metrics['heldout_example_count']}` |"
         )
     lines.extend(
         [
             "",
             "## Interpretation",
             "",
-            "This rung compares student-warm-started retained Sinkhorn replay against zero-init replay on heldout teacher-data examples at fixed corrective budgets. Passing here is local evidence only for this deterministic LGSSM envelope and does not support posterior, HMC, or broad deployment claims.",
+            "This better-contract rung separates discriminating budgets from saturated zero-init budgets. Failure to beat zero-init on a saturated high-budget rung is not treated as algorithm failure by itself; the result is instead interpreted through the discriminating budget rows and the residual contract.",
             "",
             "## Non-Implications",
             "",

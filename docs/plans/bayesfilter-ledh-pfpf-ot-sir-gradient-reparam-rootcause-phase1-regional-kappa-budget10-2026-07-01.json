@@ -1,0 +1,426 @@
+{
+  "batch_seeds": [
+    81120,
+    81121,
+    81122,
+    81123,
+    81124
+  ],
+  "chain_rule_reconstruction": {
+    "abs_sum_minus_scalar": 0.0,
+    "pass": true,
+    "scalar_log_kappa_manual": -205.1933135986328,
+    "sum_minus_scalar": 0.0,
+    "sum_regional_log_kappa_manual": -205.1933135986328,
+    "tolerance": 0.0001
+  },
+  "device": "/GPU:0",
+  "device_scope": "visible",
+  "elapsed_seconds": 210.8576969880378,
+  "expect_device_kind": "gpu",
+  "git_commit": "ef119f8bdb17b206339de92d722344a448eea745",
+  "gpu_memory_info_after": {
+    "current": 81152,
+    "peak": 22931712
+  },
+  "gpu_memory_info_before": {
+    "current": 65024,
+    "peak": 108032
+  },
+  "host": "DESKTOP-RF1Q5IJ",
+  "logical_gpus": [
+    "LogicalDevice(name='/device:GPU:0', device_type='GPU')"
+  ],
+  "manual_score_component_names": [
+    "observation_density_covariance",
+    "ledh_flow_observation_covariance",
+    "transition_mean_from_transition_density",
+    "transition_mean_from_ledh_flow_prior",
+    "transition_mean_from_pre_flow_clamp"
+  ],
+  "nonclaims": [
+    "P8p diagnostic parameterized SIR d18 target only",
+    "not the fixed-parameter P8o leaderboard cell",
+    "not stochastic PF marginal-gradient correctness",
+    "not exact nonlinear likelihood correctness",
+    "not HMC/NUTS readiness",
+    "not posterior convergence",
+    "not production/default readiness",
+    "not Zhao-Cui TT/SIRT or MATLAB parity",
+    "regional kappa diagnostic only",
+    "not a production regional parameterization",
+    "not HMC readiness evidence"
+  ],
+  "objective": -125.47383880615234,
+  "output_devices": [
+    "/job:localhost/replica:0/task:0/device:GPU:0",
+    "/job:localhost/replica:0/task:0/device:GPU:0"
+  ],
+  "per_seed_gradient_contributions": [
+    [
+      -240.64376831054688,
+      92.47761535644531,
+      47.92115020751953
+    ],
+    [
+      -173.16583251953125,
+      79.60479736328125,
+      45.21768569946289
+    ],
+    [
+      -224.01287841796875,
+      88.8964614868164,
+      49.046016693115234
+    ],
+    [
+      -176.0170440673828,
+      77.61416625976562,
+      47.21879196166992
+    ],
+    [
+      -212.1270751953125,
+      84.53849792480469,
+      47.26177978515625
+    ]
+  ],
+  "phase": "SIR regional kappa decomposition budget10 diagnostic",
+  "physical_gpus": [
+    "PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')"
+  ],
+  "precision": {
+    "active_dtype": "float32",
+    "default_algorithm_target": "ledh_pfpf_ot_tf32",
+    "default_dtype": "float32",
+    "default_execution_target": "gpu",
+    "default_route_acceptance": "accepted_default_use_whenever_possible",
+    "default_route_guidance": "use for BayesFilter DPF LEDH-PFPF-OT work whenever GPU execution and the streaming fixed-branch contract are applicable",
+    "default_route_rationale": "streaming GPU TF32 LEDH-PFPF-OT avoids dense transport/history storage for large-particle DPF transport while preserving explicit reference and fallback arms",
+    "default_target_status": "production_default_by_owner_directive",
+    "default_tf32_mode": "enabled",
+    "dtype": "float32",
+    "fp64_reference_requires_explicit_dtype": true,
+    "historical_module_path": "experiments/dpf_implementation",
+    "precision_default_policy": "production_ledh_pfpf_ot_gpu_tf32",
+    "public_api_exposure": "separately_gated",
+    "scope": "production_ledh_pfpf_ot_gpu_tf32_default_lane",
+    "tf32_execution_enabled": true,
+    "tf32_mode": "enabled",
+    "tf_dtype": "float32"
+  },
+  "python_version": "3.11.14",
+  "regional_fd": [
+    {
+      "central_difference": -57.128902435302734,
+      "fd_step": 0.001,
+      "finite": true,
+      "minus_objective": -125.41703033447266,
+      "plus_objective": -125.53128814697266,
+      "region": 0
+    },
+    {
+      "central_difference": -67.39425659179688,
+      "fd_step": 0.001,
+      "finite": true,
+      "minus_objective": -125.4067153930664,
+      "plus_objective": -125.54150390625,
+      "region": 1
+    },
+    {
+      "central_difference": -17.5323486328125,
+      "fd_step": 0.001,
+      "finite": true,
+      "minus_objective": -125.45661926269531,
+      "plus_objective": -125.49168395996094,
+      "region": 2
+    },
+    {
+      "central_difference": -14.621733665466309,
+      "fd_step": 0.001,
+      "finite": true,
+      "minus_objective": -125.4595718383789,
+      "plus_objective": -125.48881530761719,
+      "region": 3
+    },
+    {
+      "central_difference": -14.793395042419434,
+      "fd_step": 0.001,
+      "finite": true,
+      "minus_objective": -125.45914459228516,
+      "plus_objective": -125.48873138427734,
+      "region": 4
+    },
+    {
+      "central_difference": -16.429901123046875,
+      "fd_step": 0.001,
+      "finite": true,
+      "minus_objective": -125.4576187133789,
+      "plus_objective": -125.490478515625,
+      "region": 5
+    },
+    {
+      "central_difference": -24.223325729370117,
+      "fd_step": 0.001,
+      "finite": true,
+      "minus_objective": -125.44984436035156,
+      "plus_objective": -125.498291015625,
+      "region": 6
+    },
+    {
+      "central_difference": -26.935575485229492,
+      "fd_step": 0.001,
+      "finite": true,
+      "minus_objective": -125.44712829589844,
+      "plus_objective": -125.5009994506836,
+      "region": 7
+    },
+    {
+      "central_difference": -24.158475875854492,
+      "fd_step": 0.001,
+      "finite": true,
+      "minus_objective": -125.44987487792969,
+      "plus_objective": -125.4981918334961,
+      "region": 8
+    }
+  ],
+  "regional_fd_sum": -263.2179145812988,
+  "regional_fd_sum_minus_scalar_manual": -58.024600982666016,
+  "regional_fd_sum_minus_sum_regional_manual": -58.024600982666016,
+  "regional_log_kappa_component_sums": [
+    [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    [
+      -228.82135009765625,
+      -244.43553161621094,
+      -18.379308700561523,
+      -74.56231689453125,
+      -62.56250762939453,
+      -67.81352233886719,
+      -90.55815887451172,
+      -129.25535583496094,
+      -112.39924621582031
+    ],
+    [
+      123.0547103881836,
+      121.98670959472656,
+      -24.592479705810547,
+      50.121826171875,
+      18.565139770507812,
+      39.88897705078125,
+      46.79466247558594,
+      81.2872085571289,
+      70.16107177734375
+    ],
+    [
+      -116.82362365722656,
+      -159.56394958496094,
+      -45.48596954345703,
+      -81.1312255859375,
+      11.589920997619629,
+      -34.08135223388672,
+      -31.908937454223633,
+      -30.11316680908203,
+      -36.92877197265625
+    ]
+  ],
+  "regional_log_kappa_manual_mean": [
+    -44.5180549621582,
+    -56.402557373046875,
+    -17.691551208496094,
+    -21.114341735839844,
+    -6.481489658355713,
+    -12.401180267333984,
+    -15.134489059448242,
+    -15.616262435913086,
+    -15.833391189575195
+  ],
+  "regional_log_kappa_mcse": {
+    "available": true,
+    "batch_size": 5,
+    "mean": [
+      -44.5180549621582,
+      -56.402557373046875,
+      -17.691551208496094,
+      -21.114341735839844,
+      -6.481489658355713,
+      -12.401180267333984,
+      -15.134489059448242,
+      -15.616262435913086,
+      -15.833391189575195
+    ],
+    "sample_sd": [
+      23.379575729370117,
+      9.435078620910645,
+      7.587124347686768,
+      9.943668365478516,
+      9.44594955444336,
+      10.001802444458008,
+      7.596805095672607,
+      7.806028366088867,
+      4.706981182098389
+    ],
+    "standard_error_of_batch_mean": [
+      10.45566463470459,
+      4.21949577331543,
+      3.3930654525756836,
+      4.446944236755371,
+      4.224357604980469,
+      4.472942352294922,
+      3.397394895553589,
+      3.490962266921997,
+      2.1050262451171875
+    ]
+  },
+  "regional_log_kappa_per_seed": [
+    [
+      -44.684783935546875,
+      -68.70059967041016,
+      -17.74077796936035,
+      -17.794071197509766,
+      -16.04341697692871,
+      -18.77981185913086,
+      -9.438838958740234,
+      -23.69205093383789,
+      -23.76940155029297
+    ],
+    [
+      -9.179643630981445,
+      -46.27953338623047,
+      -27.97568702697754,
+      -13.323954582214355,
+      -13.340003967285156,
+      -24.65929412841797,
+      -15.875289916992188,
+      -10.279556274414062,
+      -12.252863883972168
+    ],
+    [
+      -73.36359405517578,
+      -55.397674560546875,
+      -8.879932403564453,
+      -38.402183532714844,
+      -10.138716697692871,
+      -3.6952590942382812,
+      -12.603015899658203,
+      -5.677972793579102,
+      -15.854534149169922
+    ],
+    [
+      -41.14231872558594,
+      -62.912235260009766,
+      -21.710296630859375,
+      -16.31643295288086,
+      4.880679130554199,
+      -0.9514689445495605,
+      -9.838133811950684,
+      -15.655417442321777,
+      -12.371427536010742
+    ],
+    [
+      -54.21992874145508,
+      -48.72273635864258,
+      -12.15106201171875,
+      -19.735065460205078,
+      2.234011650085449,
+      -13.92006778717041,
+      -27.91716766357422,
+      -22.776317596435547,
+      -14.91872787475586
+    ]
+  ],
+  "scalar_manual_gradient": {
+    "log_kappa_scale": -205.1933135986328,
+    "log_nu_scale": 84.62630462646484,
+    "log_obs_noise_scale": 47.33308792114258
+  },
+  "schema_version": "filter_bench.p8p_regional_kappa_gradient_decomposition.v1",
+  "shape": {
+    "batch_size": 5,
+    "num_particles": 64,
+    "obs_dim": 9,
+    "region_count": 9,
+    "seed_microbatch_count": 5,
+    "seed_microbatch_size": 1,
+    "state_dim": 18,
+    "time_steps": 3
+  },
+  "sir_semantics": {
+    "actual_sir_callback_usage": "initial_sample, process/observation covariance callbacks, observation metadata, and route metadata",
+    "actual_sir_callbacks_used": true,
+    "adapter_classification": "BayesFilter DPF adapter for fixed-parameter SIR; not Zhao-Cui TT/SIRT source-faithfulness evidence",
+    "experimental_streaming_adapter_route": "batched nonlinear-prior LEDH-PFPF-OT streaming adapter with fixed process covariance, not scalar Li-Coates Algorithm 1 UKF covariance lifecycle parity",
+    "flow_observation_contract": "same_observation_gaussian_sir_infectious_components",
+    "graph_compatible_sir_transition_copy_used": true,
+    "graph_compatible_sir_transition_source": "bayesfilter.highdim.zhao_cui_sir_austria_model RK4 zhao_cui_sir_step equations, copied into TensorFlow graph form because the model validation path uses eager .numpy() checks",
+    "nonlinear_prior_mean_hook_used": true,
+    "observation_dimension": 9,
+    "process_noise_policy": "clip_susceptible_after_noise",
+    "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+    "scalar_algorithm1_ukf_covariance_lifecycle_parity_claim": false,
+    "seed_microbatching": {
+      "combination_rule": "exact seed-weighted batch mean over independent fixed-seed evaluations",
+      "enabled": true,
+      "seed_groups": [
+        [
+          81120
+        ],
+        [
+          81121
+        ],
+        [
+          81122
+        ],
+        [
+          81123
+        ],
+        [
+          81124
+        ]
+      ],
+      "seed_microbatch_size": 1
+    },
+    "state_dimension": 18,
+    "target_density_used_for_correction": true
+  },
+  "status": "pass",
+  "tensorflow_version": "2.19.1",
+  "theta": {
+    "log_kappa_scale": 0.02,
+    "log_nu_scale": -0.01,
+    "log_obs_noise_scale": 0.01
+  },
+  "timestamp_utc": "2026-06-30T21:31:15.870505+00:00",
+  "transport": {
+    "annealed_convergence_threshold": 0.001,
+    "annealed_scaling": 0.9,
+    "col_chunk_size": 64,
+    "gradient_mode": "manual_streaming_finite_sinkhorn_stopped_scale_keys",
+    "particle_chunk_size": 64,
+    "row_chunk_size": 64,
+    "sinkhorn_epsilon": 1.0,
+    "sinkhorn_iterations": 10,
+    "transport_ad_mode": "stabilized",
+    "transport_plan_mode": "streaming",
+    "value_core_mode": "streaming"
+  },
+  "transport_policy": "active-all"
+}

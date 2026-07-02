@@ -348,6 +348,248 @@ observation regime, but it still does not become the same target as the
 transformed exact likelihood in \eqref{eq:bf-hd-actual-sv-normalizer}.  It is a
 surrogate scalar, not a second exact route to the same inference problem.
 
+\subsection{Actual-SV SR-UKF Augmented-Noise Adapter}
+\label{sec:bf-hd-actual-sv-srukf-augmented-adapter}
+
+This subsection gives the model-specific adapter for the factor-propagating
+SR-UKF score contract in
+Section~\ref{sec:bf-srukf-factor-propagating-score-contract}.  It is deliberately
+an adapter for the raw-observation Gaussian-closure surrogate in
+Proposition~\ref{prop:bf-hd-gaussian-closure-surrogate-regime}; it is not an
+admission that the surrogate equals the transformed actual-SV target in
+\eqref{eq:bf-hd-actual-sv-normalizer}.
+
+For one panel coordinate, use the scalar latent recursion
+\begin{equation}
+  H_t=\gamma H_{t-1}+U_t,
+  \qquad
+  U_t\sim\calN(0,\sigma^2),
+  \qquad
+  Y_t=\beta \exp(H_t/2)E_t,
+  \qquad
+  E_t\sim\calN(0,1).
+  \label{eq:bf-hd-actual-sv-srukf-model}
+\end{equation}
+The candidate score contract for this surrogate uses the unconstrained
+parameterization
+\begin{equation}
+  \theta=(\theta_\gamma,\theta_\beta),
+  \qquad
+  \gamma=\Phi(\theta_\gamma),
+  \qquad
+  \beta=\exp(\theta_\beta),
+  \qquad
+  \sigma \text{ fixed}.
+  \label{eq:bf-hd-actual-sv-srukf-parameterization}
+\end{equation}
+Here \(\Phi\) is the standard normal distribution function and
+\(\varphi\) is its density, so
+\begin{equation}
+  \partial_{\theta_\gamma}\gamma=\varphi(\theta_\gamma),
+  \qquad
+  \partial_{\theta_\beta}\beta=\beta,
+  \qquad
+  \partial_{\theta_i}\sigma=0.
+  \label{eq:bf-hd-actual-sv-srukf-parameter-derivatives}
+\end{equation}
+A sigma-point adapter must place points on the pre-observation uncertainty
+variable
+\begin{equation}
+  A_t=(H_{t-1},U_t,E_t)^\top .
+  \label{eq:bf-hd-actual-sv-srukf-augmented-variable}
+\end{equation}
+If the previous filtered approximation is
+\[
+  H_{t-1}\mid y_{1:t-1}\approx
+  \calN(m_{t-1},c_{t-1}c_{t-1}^\top),
+\]
+then the declared augmented law is
+\begin{equation}
+  A_t\mid y_{1:t-1}
+  \approx
+  \calN\!\left(
+    \begin{bmatrix}m_{t-1}\\0\\0\end{bmatrix},
+    C_{a,t}C_{a,t}^\top
+  \right),
+  \qquad
+  C_{a,t}
+  =
+  \begin{bmatrix}
+    c_{t-1} & 0 & 0\\
+    0 & \sigma & 0\\
+    0 & 0 & 1
+  \end{bmatrix}.
+  \label{eq:bf-hd-actual-sv-srukf-augmented-law}
+\end{equation}
+The exact shape of \(c_{t-1}\) follows the scalar factor branch used by the
+generic SR-UKF handoff.  The crucial point is the three-coordinate law:
+lagged latent state, state innovation, and observation shock are all present.
+
+The state and raw-observation maps sent to the generic SR-UKF backend are
+\begin{align}
+  X_\theta(A_t)
+    &=
+    \gamma H_{t-1}+U_t,
+    \label{eq:bf-hd-actual-sv-srukf-transition-map}\\
+  Z_\theta(A_t)
+    &=
+    \beta\exp(X_\theta(A_t)/2)E_t .
+    \label{eq:bf-hd-actual-sv-srukf-observation-map}
+\end{align}
+The symbol \(Z_\theta(A_t)\) in
+\eqref{eq:bf-hd-actual-sv-srukf-observation-map} is the raw predicted
+observation coordinate used by the Gaussian closure; it is not the transformed
+datum \(z_t=\log(y_t^2)\) from
+\eqref{eq:bf-hd-actual-sv-z-definition}.
+
+For a placed point \(a^{(j)}=(h_-^{(j)},u^{(j)},e^{(j)})\), the local map
+derivatives required by
+\eqref{eq:bf-srukf-propagated-point-first} are
+\begin{align}
+  D_a X_\theta(a^{(j)})
+    &=
+    \begin{bmatrix}\gamma&1&0\end{bmatrix},
+    &
+  \partial_{\theta_\gamma}X_\theta(a^{(j)})
+    &=
+    \varphi(\theta_\gamma)h_-^{(j)},
+    &
+  \partial_{\theta_\beta}X_\theta(a^{(j)})
+    &=0,
+    \label{eq:bf-hd-actual-sv-srukf-transition-derivatives}\\
+  D_a Z_\theta(a^{(j)})
+    &=
+    \beta\exp(x^{(j)}/2)
+    \begin{bmatrix}
+      \frac12\gamma e^{(j)}&
+      \frac12 e^{(j)}&
+      1
+    \end{bmatrix},
+    \label{eq:bf-hd-actual-sv-srukf-observation-state-derivative}\\
+  \partial_{\theta_\gamma}Z_\theta(a^{(j)})
+    &=
+    \frac12
+    \beta\exp(x^{(j)}/2)e^{(j)}
+    \varphi(\theta_\gamma)h_-^{(j)},
+    &
+  \partial_{\theta_\beta}Z_\theta(a^{(j)})
+    &=
+    \beta\exp(x^{(j)}/2)e^{(j)},
+    \label{eq:bf-hd-actual-sv-srukf-observation-parameter-derivatives}
+\end{align}
+where \(x^{(j)}=X_\theta(a^{(j)})\).  These are ordinary pointwise derivatives
+of the declared maps.  They do not differentiate a principal matrix square
+root, an eigensystem, an SVD basis, or an autodiff tape.
+
+The initial stationary branch, when used, is
+\begin{equation}
+  H_0\sim\calN\!\left(0,\frac{\sigma^2}{1-\gamma^2}\right),
+  \qquad |\gamma|<1,
+  \label{eq:bf-hd-actual-sv-srukf-initial-law}
+\end{equation}
+with score handoff derivatives
+\begin{equation}
+  \partial_{\theta_\gamma}m_0=0,\qquad
+  \partial_{\theta_\beta}m_0=0,\qquad
+  \partial_{\theta_\gamma}
+  \frac{\sigma^2}{1-\gamma^2}
+  =
+  \frac{2\sigma^2\gamma}{(1-\gamma^2)^2}\varphi(\theta_\gamma),
+  \qquad
+  \partial_{\theta_\beta}
+  \frac{\sigma^2}{1-\gamma^2}=0.
+  \label{eq:bf-hd-actual-sv-srukf-initial-derivatives}
+\end{equation}
+If the factor-propagating backend consumes the scalar stationary factor
+\(c_0=\sigma(1-\gamma^2)^{-1/2}\) rather than the variance, the corresponding
+fixed-\(\sigma\) branch derivative is
+\begin{equation}
+  \partial_{\theta_\gamma}c_0
+  =
+  \sigma\gamma(1-\gamma^2)^{-3/2}\varphi(\theta_\gamma),
+  \qquad
+  \partial_{\theta_\beta}c_0=0.
+  \label{eq:bf-hd-actual-sv-srukf-initial-factor-derivatives}
+\end{equation}
+If a nonstationary initialization is chosen, the initialization law and its
+derivatives must replace \eqref{eq:bf-hd-actual-sv-srukf-initial-law}--
+\eqref{eq:bf-hd-actual-sv-srukf-initial-factor-derivatives} explicitly.
+
+Given the placed points from
+\eqref{eq:bf-hd-actual-sv-srukf-augmented-law}, the generic SR-UKF backend
+computes
+\[
+  \bar x_t,\quad \bar y_t,\quad
+  P_{xx,t,\star},\quad S_{t,\star},\quad P_{xy,t,\star}
+\]
+from the propagated pairs
+\((X_\theta(a_t^{(j)}),Z_\theta(a_t^{(j)}))\).  The declared one-step
+surrogate contribution is
+\begin{equation}
+  \widehat\ell_t^{\rm rawGC}(\theta)
+  =
+  -\frac12
+  \left[
+    \log(2\pi)+\log S_{t,\star}
+    +(y_t-\bar y_t)^2S_{t,\star}^{-1}
+  \right],
+  \label{eq:bf-hd-actual-sv-srukf-surrogate-loglik}
+\end{equation}
+or its vector-panel analogue when several independent coordinates are combined.
+Its analytical score is exactly the specialization of
+\eqref{eq:bf-srukf-score-first} with \(v_t=y_t-\bar y_t\), followed by the
+filtered-state derivative handoff
+\eqref{eq:bf-srukf-filtered-mean-first}--
+\eqref{eq:bf-srukf-filtered-factor-first}:
+\begin{equation}
+  \partial_{\theta_i}
+  \sum_{t=1}^T\widehat\ell_t^{\rm rawGC}(\theta)
+  =
+  \sum_{t=1}^T
+  \partial_{\theta_i}
+  \widehat\ell_t^{\rm rawGC}(\theta),
+  \qquad i\in\{\gamma,\beta\}.
+  \label{eq:bf-hd-actual-sv-srukf-score-handoff}
+\end{equation}
+This is the score of the raw actual-SV Gaussian-closure surrogate scalar.  It
+is not the score of \(\ell_T(\theta)\) in
+\eqref{eq:bf-hd-actual-sv-normalizer}.
+
+A two-coordinate collapsed-process specialization may be used only after this
+three-coordinate adapter has been audited.  The required proof obligation is
+the scalar Gaussian law equivalence
+\begin{equation}
+  (H_t^-,E_t)
+  =
+  (\gamma H_{t-1}+U_t,E_t)
+  \sim
+  \calN\!\left(
+    \begin{bmatrix}\gamma m_{t-1}\\0\end{bmatrix},
+    \begin{bmatrix}
+      \gamma^2 c_{t-1}c_{t-1}^\top+\sigma^2 & 0\\
+      0 & 1
+    \end{bmatrix}
+  \right),
+  \label{eq:bf-hd-actual-sv-srukf-collapsed-law-equivalence}
+\end{equation}
+together with derivative equivalence for the mean and factor handoff.  A
+collapsed route that cannot demonstrate
+\eqref{eq:bf-hd-actual-sv-srukf-collapsed-law-equivalence} and the matching
+derivatives remains a separate approximation and cannot be used as the admitted
+SR-UKF analytical-score route.
+
+\begin{equation}
+  \boxed{
+  \begin{gathered}
+  \text{No exact actual-SV likelihood claim;}\\
+  \text{no same-target transformed-likelihood claim;}\\
+  \text{no GradientTape score admission;}\\
+  \text{no historical SVD/eigenderivative score admission;}\\
+  \text{no strict-SPD principal-root derivative admission.}
+  \end{gathered}}
+  \label{eq:bf-hd-actual-sv-srukf-nonclaims}
+\end{equation}
+
 The practical consequence is strict.  Same-scalar derivative checks, fixed-branch
 audits, or optimizer/HMC experiments are meaningful only after the value path is
 a route to \eqref{eq:bf-hd-actual-sv-normalizer}.  Internal consistency of a

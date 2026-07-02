@@ -75,6 +75,7 @@ from bayesfilter.highdim.fitting import (
 )
 from bayesfilter.highdim.filtering import (
     AdjacentTargetBatch,
+    FIXED_VARIANT_ZHAO_CUI_PRODUCTION_ROUTE,
     AffineCoordinateMap,
     FixedBranchFilterConfig,
     FixedBranchFilterResult,
@@ -82,6 +83,8 @@ from bayesfilter.highdim.filtering import (
     FixedBranchSquaredTTFilter,
     HighDimCoordinateMap,
     IdentityCoordinateMap,
+    MULTISTATE_RETAINED_GRID_LEADERBOARD_ADMISSION,
+    MULTISTATE_RETAINED_GRID_ROUTE_ROLE,
     MultistateAdjacentTargetBuildResult,
     MultistateAdjacentTargetDerivativeBuildResult,
     RetainedFilter,
@@ -109,6 +112,7 @@ from bayesfilter.highdim.filtering import (
     scalar_tt_grid_retained_filter,
 )
 from bayesfilter.highdim.models import (
+    GeneralizedSVPriorMeanSSM,
     LinearGaussianSSM,
     ParameterizedZhaoCuiSIRSSM,
     PredatorPreySSM,
@@ -378,6 +382,10 @@ from bayesfilter.highdim.score_api import (
     evaluate_highdim_score_api,
     score_readiness_branch_hash,
 )
+from bayesfilter.highdim.actual_sv_srukf_tf import (
+    ActualSVSRUKFPanelScoreResult,
+    actual_transformed_sv_independent_panel_augmented_noise_srukf_score,
+)
 from bayesfilter.highdim.sv_mixture_cut4 import (
     ActualTransformedSVPanelScoreResult,
     ActualTransformedSVPanelFilterResult,
@@ -476,6 +484,7 @@ from bayesfilter.highdim.validation import (
 )
 
 __all__ = [
+    "ActualSVSRUKFPanelScoreResult",
     "ActualTransformedSVPanelScoreResult",
     "ActualTransformedSVPanelFilterResult",
     "AlgebraicMap",
@@ -534,6 +543,7 @@ __all__ = [
     "MultistateAdjacentTargetDerivativeBuildResult",
     "NativeGeneralizedSVDenseReferenceResult",
     "NativeGeneralizedSVSSM",
+    "GeneralizedSVPriorMeanSSM",
     "ParameterizedZhaoCuiSIRSSM",
     "P30Cut4ComparatorStatus",
     "P30Cut4StatisticalComparatorManifest",
@@ -758,6 +768,7 @@ __all__ = [
     "actual_transformed_sv_independent_panel_augmented_noise_dense_gaussian_closure_reference",
     "actual_transformed_sv_independent_panel_augmented_noise_fixed_sgqf_filter",
     "actual_transformed_sv_independent_panel_augmented_noise_fixed_sgqf_score",
+    "actual_transformed_sv_independent_panel_augmented_noise_srukf_score",
     "actual_transformed_sv_independent_panel_augmented_noise_ukf_filter",
     "actual_transformed_sv_independent_panel_augmented_noise_ukf_score",
     "build_adjacent_target_batch",
@@ -776,6 +787,7 @@ __all__ = [
     "actual_transformed_sv_independent_panel_augmented_noise_dense_gaussian_closure_reference",
     "actual_transformed_sv_independent_panel_augmented_noise_fixed_sgqf_filter",
     "actual_transformed_sv_independent_panel_augmented_noise_fixed_sgqf_score",
+    "actual_transformed_sv_independent_panel_augmented_noise_srukf_score",
     "actual_transformed_sv_independent_panel_augmented_noise_ukf_filter",
     "actual_transformed_sv_independent_panel_augmented_noise_ukf_score",
     "exact_transformed_sv_independent_panel_dense_reference",
@@ -786,6 +798,7 @@ __all__ = [
     "exact_transformed_sv_jacobian_log_abs_det",
     "exact_transformed_sv_observations",
     "exact_transformed_sv_scalar_dense_reference",
+    "FIXED_VARIANT_ZHAO_CUI_PRODUCTION_ROUTE",
     "fixed_branch_compatibility_hash",
     "fixed_design_lsq_derivative",
     "gauss_hermite_nodes_weights",
@@ -802,6 +815,8 @@ __all__ = [
     "legendre_gauss_nodes_weights",
     "lower_rung_streaming_predictive_log_density",
     "make_finite_difference_row",
+    "MULTISTATE_RETAINED_GRID_LEADERBOARD_ADMISSION",
+    "MULTISTATE_RETAINED_GRID_ROUTE_ROLE",
     "multistate_nonlinear_fixed_design_tt_score_path",
     "multistate_nonlinear_fixed_design_tt_value_path",
     "multistate_nonlinear_initial_adjacent_target_batch",

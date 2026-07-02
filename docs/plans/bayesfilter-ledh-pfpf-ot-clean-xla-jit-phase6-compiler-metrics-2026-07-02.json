@@ -1,0 +1,198 @@
+{
+  "command": "/home/chakwong/anaconda3/envs/tf-gpu/bin/python scripts/collect_ledh_clean_xla_phase6_metrics.py --output docs/plans/bayesfilter-ledh-pfpf-ot-clean-xla-jit-phase6-compiler-metrics-2026-07-02.json --device /GPU:0 --expect-device-kind gpu --batch-seeds 81120 --time-steps 1 --num-particles 16 --theta 0.02,-0.01,0.01 --sinkhorn-iterations 2 --sinkhorn-epsilon 1.0 --annealed-scaling 0.9 --row-chunk-size 16 --col-chunk-size 16 --particle-chunk-size 16 --dtype float32 --tf32-mode enabled",
+  "compiler": {
+    "cold_compile_plus_first_call_seconds": 24.42618320893962,
+    "concrete_function_count": 1,
+    "hlo": {
+      "available": true,
+      "has_while_marker": true,
+      "line_count": 52059,
+      "markers": {
+        "fusion": 0,
+        "while_lower": 199199,
+        "while_region": 0
+      },
+      "text_length": 27766809
+    },
+    "hlo_retrieval_seconds": 4.6931059249909595,
+    "jit_compile": true,
+    "unexpected_retrace": false,
+    "wall_seconds": 29.16017044801265,
+    "warm_call_seconds": 0.04087563301436603
+  },
+  "cpu_gpu_status": {
+    "expect_device_kind": "gpu",
+    "logical_gpus": [
+      "LogicalDevice(name='/device:GPU:0', device_type='GPU')"
+    ],
+    "output_devices": [
+      "/job:localhost/replica:0/task:0/device:GPU:0",
+      "/job:localhost/replica:0/task:0/device:GPU:0",
+      "/job:localhost/replica:0/task:0/device:GPU:0",
+      "/job:localhost/replica:0/task:0/device:GPU:0"
+    ],
+    "physical_gpus": [
+      "PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')"
+    ],
+    "warm_output_devices": [
+      "/job:localhost/replica:0/task:0/device:GPU:0",
+      "/job:localhost/replica:0/task:0/device:GPU:0",
+      "/job:localhost/replica:0/task:0/device:GPU:0",
+      "/job:localhost/replica:0/task:0/device:GPU:0"
+    ]
+  },
+  "decision": "PASS_TINY_FULL_ROUTE_GPU_XLA_COMPILER_METRICS",
+  "environment": {
+    "CUDA_VISIBLE_DEVICES": null,
+    "TF_CPP_MIN_LOG_LEVEL": "1"
+  },
+  "git_commit": "ef119f8bdb17b206339de92d722344a448eea745",
+  "git_dirty_summary": {
+    "available": true,
+    "dirty": true,
+    "line_count": 899
+  },
+  "host": "DESKTOP-RF1Q5IJ",
+  "nonclaims": [
+    "tiny trusted GPU/XLA full-route fixture only",
+    "not FD correctness evidence",
+    "not statistical validity evidence",
+    "not HMC readiness evidence",
+    "not broad production readiness",
+    "stopped-key partial derivatives are not scores"
+  ],
+  "output_path": "docs/plans/bayesfilter-ledh-pfpf-ot-clean-xla-jit-phase6-compiler-metrics-2026-07-02.json",
+  "outputs": {
+    "finite": true,
+    "gradient": [
+      -9.70480728149414,
+      3.55403995513916,
+      4.833810806274414
+    ],
+    "log_likelihood": [
+      -36.30470657348633
+    ],
+    "objective": -36.30470657348633,
+    "per_seed_gradient": [
+      [
+        -9.70480728149414,
+        3.55403995513916,
+        4.833810806274414
+      ]
+    ]
+  },
+  "plan_path": "docs/plans/bayesfilter-ledh-pfpf-ot-clean-xla-jit-phase6-compiler-metrics-gate-subplan-2026-07-02.md",
+  "precision": {
+    "active_dtype": "float32",
+    "default_algorithm_target": "ledh_pfpf_ot_tf32",
+    "default_dtype": "float32",
+    "default_execution_target": "gpu",
+    "default_route_acceptance": "accepted_default_use_whenever_possible",
+    "default_route_guidance": "use for BayesFilter DPF LEDH-PFPF-OT work whenever GPU execution and the streaming fixed-branch contract are applicable",
+    "default_route_rationale": "streaming GPU TF32 LEDH-PFPF-OT avoids dense transport/history storage for large-particle DPF transport while preserving explicit reference and fallback arms",
+    "default_target_status": "production_default_by_owner_directive",
+    "default_tf32_mode": "enabled",
+    "dtype": "float32",
+    "fp64_reference_requires_explicit_dtype": true,
+    "historical_module_path": "experiments/dpf_implementation",
+    "precision_default_policy": "production_ledh_pfpf_ot_gpu_tf32",
+    "public_api_exposure": "separately_gated",
+    "scope": "production_ledh_pfpf_ot_gpu_tf32_default_lane",
+    "tf32_execution_enabled": true,
+    "tf32_mode": "enabled",
+    "tf_dtype": "float32"
+  },
+  "primary_pass": true,
+  "python_executable": "/home/chakwong/anaconda3/envs/tf-gpu/bin/python",
+  "python_version": "3.11.14",
+  "random_seeds": {
+    "batch_seeds": [
+      81120
+    ]
+  },
+  "result_path": "docs/plans/bayesfilter-ledh-pfpf-ot-clean-xla-jit-phase6-compiler-metrics-gate-result-2026-07-02.md",
+  "route_call_path_evidence": {
+    "anchors": [
+      {
+        "line": 717,
+        "needle": "args.transport_ad_mode == \"full\"",
+        "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+        "symbol": "_manual_transport_vjp_tf",
+        "text": "if args.transport_ad_mode == \"full\":"
+      },
+      {
+        "line": 725,
+        "needle": "_filterflow_manual_streaming_finite_transport_total_vjp",
+        "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+        "symbol": "_manual_transport_vjp_tf",
+        "text": "annealed_transport_tf._filterflow_manual_streaming_finite_transport_total_vjp(  # noqa: SLF001"
+      },
+      {
+        "line": 843,
+        "needle": "args.transport_ad_mode == \"full\"",
+        "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+        "symbol": "_manual_forward_transport_tf",
+        "text": "if args.transport_ad_mode == \"full\":"
+      },
+      {
+        "line": 845,
+        "needle": "_filterflow_manual_streaming_finite_transport_total_vjp",
+        "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+        "symbol": "_manual_forward_transport_tf",
+        "text": "annealed_transport_tf._filterflow_manual_streaming_finite_transport_total_vjp(  # noqa: SLF001"
+      },
+      {
+        "line": 1468,
+        "needle": "_filterflow_manual_streaming_finite_transport_total_vjp",
+        "path": "experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_tf.py",
+        "symbol": "batched_annealed_transport_core_tf",
+        "text": "transport_fn = _filterflow_manual_streaming_finite_transport_total_vjp"
+      }
+    ],
+    "full_route_required": true,
+    "negative_control": "stopped-key helpers are present only on non-full/stabilized branches and are not score evidence",
+    "route_kind": "source_anchored_static_call_path_for_compiled_fixture"
+  },
+  "route_config": {
+    "annealed_scaling": 0.9,
+    "col_chunk_size": 16,
+    "particle_chunk_size": 16,
+    "row_chunk_size": 16,
+    "sinkhorn_epsilon": 1.0,
+    "sinkhorn_iterations": 2,
+    "transport_ad_mode": "full",
+    "transport_gradient_mode": "manual_streaming_finite_sinkhorn_stopped_scale_keys",
+    "transport_plan_mode": "streaming"
+  },
+  "schema_version": "ledh_clean_xla_phase6_compiler_metrics.v1",
+  "shape": {
+    "batch_size": 1,
+    "num_particles": 16,
+    "parameter_dim": 3,
+    "state_dim": 18,
+    "time_steps": 1
+  },
+  "sir_semantics": {
+    "actual_sir_callback_usage": "initial_sample, process/observation covariance callbacks, observation metadata, and route metadata",
+    "actual_sir_callbacks_used": true,
+    "adapter_classification": "BayesFilter DPF adapter for fixed-parameter SIR; not Zhao-Cui TT/SIRT source-faithfulness evidence",
+    "experimental_streaming_adapter_route": "batched nonlinear-prior LEDH-PFPF-OT streaming adapter with fixed process covariance, not scalar Li-Coates Algorithm 1 UKF covariance lifecycle parity",
+    "flow_observation_contract": "same_observation_gaussian_sir_infectious_components",
+    "graph_compatible_sir_transition_copy_used": true,
+    "graph_compatible_sir_transition_source": "bayesfilter.highdim.zhao_cui_sir_austria_model RK4 zhao_cui_sir_step equations, copied into TensorFlow graph form because the model validation path uses eager .numpy() checks",
+    "nonlinear_prior_mean_hook_used": true,
+    "observation_dimension": 9,
+    "process_noise_policy": "clip_susceptible_after_noise",
+    "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+    "scalar_algorithm1_ukf_covariance_lifecycle_parity_claim": false,
+    "state_dimension": 18,
+    "target_density_used_for_correction": true
+  },
+  "tensorflow_version": "2.19.1",
+  "theta": {
+    "log_kappa_scale": 0.02,
+    "log_nu_scale": -0.01,
+    "log_obs_noise_scale": 0.01
+  },
+  "timestamp_utc": "2026-07-02T18:58:02.072082+00:00"
+}

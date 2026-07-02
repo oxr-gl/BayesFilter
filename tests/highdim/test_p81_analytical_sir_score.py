@@ -162,6 +162,15 @@ def test_multistate_fixed_design_tt_score_path_runs_on_sir_d18_horizon0_observat
         assert row.branch_hash_plus == row.branch_hash_base
         assert row.branch_hash_minus == row.branch_hash_base
     assert result.diagnostics["score_path"] == "multistate_nonlinear_fixed_design_tt_score_path"
+    assert result.diagnostics["route_role"] == highdim.MULTISTATE_RETAINED_GRID_ROUTE_ROLE
+    assert (
+        result.diagnostics["leaderboard_admission"]
+        == highdim.MULTISTATE_RETAINED_GRID_LEADERBOARD_ADMISSION
+    )
+    assert (
+        result.diagnostics["production_zhao_cui_route"]
+        == highdim.FIXED_VARIANT_ZHAO_CUI_PRODUCTION_ROUTE
+    )
     assert result.diagnostics["state_dim"] == 18
     assert result.diagnostics["horizon"] == 0
 

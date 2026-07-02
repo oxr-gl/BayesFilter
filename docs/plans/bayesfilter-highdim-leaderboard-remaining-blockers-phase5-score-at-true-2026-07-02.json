@@ -1,0 +1,52 @@
+{
+  "schema_version": "bayesfilter.highdim_leaderboard.remaining_blockers.phase5.score_at_true.v1",
+  "date": "2026-07-02",
+  "phase": 5,
+  "status": "DEFERRED_PER_ROW_EXACT_MULTISEED_HARNESSES_MISSING",
+  "closed_row_level_status_enum": [
+    "executed_pass",
+    "executed_fail",
+    "deferred_exact_harness_not_cheap_or_not_reviewed",
+    "deferred_exact_multiseed_harness_missing",
+    "deferred_exact_harness_missing",
+    "skipped_binding_unavailable"
+  ],
+  "row_statuses": [
+    {
+      "row_key": "phase1_zhao_cui_predator_prey_T20",
+      "row_id": "zhao_cui_predator_prey_T20",
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "row_artifact": "docs/plans/bayesfilter-highdim-leaderboard-remaining-blockers-phase1-predator-prey-zhaocui-row-2026-07-02.json",
+      "status": "deferred_exact_multiseed_harness_missing",
+      "truth_binding_status": "single_dataset_truth_binding_present",
+      "truth_binding_evidence": [
+        "docs/benchmarks/benchmark_two_lane_highdim_leaderboard.py::_predator_prey_theta",
+        "docs/benchmarks/benchmark_two_lane_highdim_leaderboard.py::_predator_prey_observations",
+        "tests/highdim/test_filtering_value_gradient_benchmark_p8_datasets.py::test_p8_dataset_manifest_generates_predator_prey_with_domain_diagnostic_visible"
+      ],
+      "single_dataset_score_l2_norm": 154.27055472098652,
+      "reason": "The admitted row is evaluated at the row truth binding for one generated dataset, but Phase 5 found no exact multi-seed score-at-true calibration harness for this Zhao-Cui predator-prey T20 manual TT route."
+    },
+    {
+      "row_key": "phase2_zhao_cui_generalized_sv_synthetic_from_estimated_values",
+      "row_id": "zhao_cui_generalized_sv_synthetic_from_estimated_values",
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "row_artifact": "docs/plans/bayesfilter-highdim-leaderboard-remaining-blockers-phase2-generalized-sv-zhaocui-row-2026-07-02.json",
+      "status": "deferred_exact_multiseed_harness_missing",
+      "truth_binding_status": "single_dataset_truth_binding_present",
+      "truth_binding_evidence": [
+        "docs/benchmarks/benchmark_two_lane_highdim_leaderboard.py::_generalized_sv_theta",
+        "docs/benchmarks/benchmark_two_lane_highdim_leaderboard.py::_generalized_sv_observations",
+        "tests/highdim/test_filtering_value_gradient_benchmark_p8_datasets.py::test_p8_dataset_manifest_generates_generalized_sv_prior_mean_row"
+      ],
+      "single_dataset_score_l2_norm": 2.5941465338897247,
+      "reason": "The admitted row is evaluated at the row truth binding for one generated dataset, but Phase 5 found no exact multi-seed score-at-true calibration harness for this Zhao-Cui generalized-SV prior-mean scalar TT route."
+    }
+  ],
+  "overall_summary": "Both admitted Zhao-Cui rows have single-dataset truth bindings, but neither has an exact reviewed multi-seed score-at-true calibration harness in Phase 5.",
+  "nonclaims": [
+    "single-dataset score norms are not score-at-true calibration evidence",
+    "score-at-true consistency would be a sanity diagnostic, not exact likelihood proof",
+    "no EM, HMC, Hessian, or parameter recovery claim is made"
+  ]
+}

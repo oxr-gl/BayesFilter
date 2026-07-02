@@ -31,7 +31,6 @@ from bayesfilter.nonlinear.svd_cut_tf import tf_svd_cut4_filter
 from bayesfilter.nonlinear.svd_sigma_point_derivatives_tf import (
     TFStructuralFirstDerivatives,
     tf_principal_sqrt_ukf_score,
-    tf_svd_ukf_score,
 )
 from bayesfilter.nonlinear.sigma_points_tf import tf_svd_sigma_point_filter, tf_unit_sigma_point_rule
 from bayesfilter.results_tf import TFFilterDerivativeResult
@@ -184,6 +183,12 @@ class ExactTransformedSVSSM:
             parameterization=self.parameterization,
         ).initial_log_density(theta, x0)
 
+    def initial_log_density_parameter_score(self, theta: tf.Tensor, x0: tf.Tensor) -> tf.Tensor:
+        return StochasticVolatilitySSM(
+            sigma=self.sigma,
+            parameterization=self.parameterization,
+        ).initial_log_density_parameter_score(theta, x0)
+
     def transition_log_density(
         self,
         theta: tf.Tensor,
@@ -195,6 +200,18 @@ class ExactTransformedSVSSM:
             sigma=self.sigma,
             parameterization=self.parameterization,
         ).transition_log_density(theta, x_prev, x_next, t=t)
+
+    def transition_log_density_parameter_score(
+        self,
+        theta: tf.Tensor,
+        x_prev: tf.Tensor,
+        x_next: tf.Tensor,
+        t: int,
+    ) -> tf.Tensor:
+        return StochasticVolatilitySSM(
+            sigma=self.sigma,
+            parameterization=self.parameterization,
+        ).transition_log_density_parameter_score(theta, x_prev, x_next, t=t)
 
     def observation_log_density(
         self,
@@ -209,6 +226,22 @@ class ExactTransformedSVSSM:
         parameters = self.physical_parameters(theta)
         residual = observation[0] - tf.math.log(tf.square(parameters["beta"])) - values[:, 0]
         return exact_log_chi_square_log_density(residual)
+
+    def observation_log_density_parameter_score(
+        self,
+        theta: tf.Tensor,
+        x_t: tf.Tensor,
+        y_t: tf.Tensor,
+        t: int,
+    ) -> tf.Tensor:
+        del t
+        values = _as_row_matrix(x_t, self.state_dim(), "x_t")
+        observation = tf.reshape(tf.convert_to_tensor(y_t, dtype=tf.float64), [self.observation_dim()])
+        parameters = self.physical_parameters(theta)
+        residual = observation[0] - tf.math.log(tf.square(parameters["beta"])) - values[:, 0]
+        beta_score = tf.exp(residual) - 1.0
+        gamma_score = tf.zeros_like(beta_score, dtype=tf.float64)
+        return tf.stack([gamma_score, beta_score], axis=1)
 
     def manifest_payload(self) -> Mapping[str, object]:
         return {
@@ -279,6 +312,12 @@ class KSCMixtureTransformedSVSSM:
             parameterization=self.parameterization,
         ).initial_log_density(theta, x0)
 
+    def initial_log_density_parameter_score(self, theta: tf.Tensor, x0: tf.Tensor) -> tf.Tensor:
+        return StochasticVolatilitySSM(
+            sigma=self.sigma,
+            parameterization=self.parameterization,
+        ).initial_log_density_parameter_score(theta, x0)
+
     def transition_log_density(
         self,
         theta: tf.Tensor,
@@ -290,6 +329,18 @@ class KSCMixtureTransformedSVSSM:
             sigma=self.sigma,
             parameterization=self.parameterization,
         ).transition_log_density(theta, x_prev, x_next, t=t)
+
+    def transition_log_density_parameter_score(
+        self,
+        theta: tf.Tensor,
+        x_prev: tf.Tensor,
+        x_next: tf.Tensor,
+        t: int,
+    ) -> tf.Tensor:
+        return StochasticVolatilitySSM(
+            sigma=self.sigma,
+            parameterization=self.parameterization,
+        ).transition_log_density_parameter_score(theta, x_prev, x_next, t=t)
 
     def observation_log_density(
         self,
@@ -314,6 +365,43 @@ class KSCMixtureTransformedSVSSM:
                 )
             )
         return tf.reduce_logsumexp(tf.stack(component_log_terms, axis=0), axis=0)
+
+    def observation_log_density_parameter_score(
+        self,
+        theta: tf.Tensor,
+        x_t: tf.Tensor,
+        y_t: tf.Tensor,
+        t: int,
+    ) -> tf.Tensor:
+        del t
+        values = _as_row_matrix(x_t, self.state_dim(), "x_t")
+        transformed_observation = tf.reshape(tf.convert_to_tensor(y_t, dtype=tf.float64), [1])
+        parameters = self.physical_parameters(theta)
+        loc_base = tf.math.log(tf.square(parameters["beta"])) + values[:, 0]
+        component_log_terms = []
+        component_residual_terms = []
+        for component in range(self.mixture.component_count):
+            loc = loc_base + self.mixture.means[component]
+            residual = transformed_observation[0] - loc
+            variance = self.mixture.variances[component]
+            component_log_terms.append(
+                tf.math.log(self.mixture.weights[component])
+                + _normal_log_prob(
+                    transformed_observation[0],
+                    loc,
+                    tf.sqrt(variance),
+                )
+            )
+            component_residual_terms.append(residual / variance)
+        component_log_weights = tf.stack(component_log_terms, axis=0)
+        normalized_weights = tf.nn.softmax(component_log_weights, axis=0)
+        weighted_residual_precision = tf.reduce_sum(
+            normalized_weights * tf.stack(component_residual_terms, axis=0),
+            axis=0,
+        )
+        beta_score = 2.0 * weighted_residual_precision
+        gamma_score = tf.zeros_like(beta_score, dtype=tf.float64)
+        return tf.stack([gamma_score, beta_score], axis=1)
 
     def manifest_payload(self) -> Mapping[str, object]:
         return {
@@ -689,62 +777,170 @@ def exact_transformed_sv_independent_panel_fixed_sgqf_score(
     sparse_level: int = 2,
     cloud: TFFixedSGQFCloud | None = None,
 ) -> ActualTransformedSVPanelScoreResult:
-    """GradientTape score for Lane-A exact-transformed direct SGQF actual-SV scalar."""
+    """Manual score for the Lane-A exact-transformed direct SGQF actual-SV value."""
 
     y = tf.convert_to_tensor(observations, dtype=tf.float64)
     if y.shape.rank == 1:
         y = y[:, tf.newaxis]
+    z = exact_transformed_sv_observations(y)
     dim = int(y.shape[1])
     gamma_vector = _as_panel_parameter(gamma, dim, "gamma")
     beta_vector = _as_panel_parameter(beta, dim, "beta")
     sigma_vector = _as_panel_parameter(sigma, dim, "sigma")
     _validate_panel_parameters(gamma_vector, beta_vector, sigma_vector)
+    if not bool(tf.reduce_all(gamma_vector > 0.0).numpy()):
+        raise ValueError("exact transformed SV SGQF score requires gamma entries in (0, 1)")
     cloud = cloud or tf_fixed_sgqf_cloud(dim=1, sparse_level=sparse_level)
     if int(cloud.dim) != 1:
         raise ValueError("exact transformed SV SGQF score path requires a one-dimensional cloud")
 
-    theta0 = tf.reshape(
-        tf.stack([_STD_NORMAL.quantile(gamma_vector), tf.math.log(beta_vector)], axis=1),
-        [-1],
-    )
+    scalar_weights = tf.convert_to_tensor(cloud.weights, dtype=tf.float64)
+    scalar_log_weights = tf.math.log(scalar_weights)
+    scalar_nodes = tf.reshape(tf.convert_to_tensor(cloud.points, dtype=tf.float64), [-1])
+    log_terms = []
+    score_terms = []
+    mean_terms = []
+    variance_terms = []
+    standard_normal_density = _STD_NORMAL.prob(_STD_NORMAL.quantile(gamma_vector))
 
-    def lane_a_value(theta_flat: tf.Tensor) -> ExactTransformedSVPanelFilterResult:
-        theta_matrix = tf.reshape(tf.convert_to_tensor(theta_flat, dtype=tf.float64), [dim, 2])
-        gamma_local = _STD_NORMAL.cdf(theta_matrix[:, 0])
-        beta_local = tf.exp(theta_matrix[:, 1])
-        return exact_transformed_sv_independent_panel_fixed_sgqf_filter(
-            y,
-            gamma=gamma_local,
-            beta=beta_local,
-            sigma=sigma_vector,
-            cloud=cloud,
+    for axis in range(dim):
+        gamma_axis = gamma_vector[axis]
+        beta_axis = beta_vector[axis]
+        sigma_axis = sigma_vector[axis]
+        log_beta_axis = tf.math.log(beta_axis)
+        d_gamma = standard_normal_density[axis]
+
+        current_mean = tf.constant(0.0, dtype=tf.float64)
+        current_variance = tf.square(sigma_axis) / (1.0 - tf.square(gamma_axis))
+        current_d_mean = tf.zeros([2], dtype=tf.float64)
+        current_d_variance = tf.stack(
+            [
+                2.0
+                * tf.square(sigma_axis)
+                * gamma_axis
+                * d_gamma
+                / tf.square(1.0 - tf.square(gamma_axis)),
+                tf.constant(0.0, dtype=tf.float64),
+            ]
         )
 
-    with tf.GradientTape() as tape:
-        tape.watch(theta0)
-        result = lane_a_value(theta0)
-        log_likelihood = result.log_likelihood
-    score = tape.gradient(log_likelihood, theta0)
-    if score is None:
-        raise ValueError("exact_transformed_sv_independent_panel_fixed_sgqf_score_gradient_failed")
+        axis_log_terms = []
+        axis_score_terms = []
+        axis_means = []
+        axis_variances = []
+        for time_index in range(int(z.shape[0])):
+            if time_index > 0:
+                predicted_mean = gamma_axis * current_mean
+                predicted_variance = tf.square(gamma_axis) * current_variance + tf.square(sigma_axis)
+                predicted_d_mean = tf.stack(
+                    [
+                        d_gamma * current_mean + gamma_axis * current_d_mean[0],
+                        gamma_axis * current_d_mean[1],
+                    ]
+                )
+                predicted_d_variance = tf.stack(
+                    [
+                        2.0 * gamma_axis * d_gamma * current_variance
+                        + tf.square(gamma_axis) * current_d_variance[0],
+                        tf.square(gamma_axis) * current_d_variance[1],
+                    ]
+                )
+            else:
+                predicted_mean = current_mean
+                predicted_variance = current_variance
+                predicted_d_mean = current_d_mean
+                predicted_d_variance = current_d_variance
 
-    diagnostics = dict(result.diagnostics)
-    diagnostics.update(
-        {
-            "backend": "fixed_sgqf_independent_panel_exact_transformed_sv_score",
-            "wrapper_score_contract": "gradient_tape_direct_likelihood_reweighting",
-            "parameterization": "theta=[probit_gamma, log_beta] per coordinate",
-            "lane_id": "lane_a_direct_likelihood_quadrature",
-        }
+            predicted_scale = tf.sqrt(predicted_variance)
+            predicted_d_scale = 0.5 * predicted_d_variance / predicted_scale
+            predicted_points = predicted_mean + predicted_scale * scalar_nodes
+            d_predicted_points = predicted_d_mean[:, tf.newaxis] + predicted_d_scale[:, tf.newaxis] * scalar_nodes[
+                tf.newaxis, :
+            ]
+
+            residual = z[time_index, axis] - 2.0 * log_beta_axis - predicted_points
+            observation_log = exact_log_chi_square_log_density(residual)
+            log_normalizer = tf.reduce_logsumexp(scalar_log_weights + observation_log)
+            normalized_weights = tf.exp(scalar_log_weights + observation_log - log_normalizer)
+
+            d_residual = -d_predicted_points + tf.stack(
+                [
+                    tf.zeros_like(scalar_nodes),
+                    -2.0 * tf.ones_like(scalar_nodes),
+                ],
+                axis=0,
+            )
+            d_observation_log = 0.5 * (1.0 - tf.exp(residual))[tf.newaxis, :] * d_residual
+            d_log_normalizer = tf.reduce_sum(normalized_weights[tf.newaxis, :] * d_observation_log, axis=1)
+            centered_d_observation_log = d_observation_log - d_log_normalizer[:, tf.newaxis]
+
+            filtered_mean = tf.reduce_sum(normalized_weights * predicted_points)
+            filtered_second = tf.reduce_sum(normalized_weights * tf.square(predicted_points))
+            filtered_variance = filtered_second - tf.square(filtered_mean)
+            d_filtered_mean = tf.reduce_sum(
+                normalized_weights[tf.newaxis, :]
+                * (d_predicted_points + centered_d_observation_log * predicted_points[tf.newaxis, :]),
+                axis=1,
+            )
+            d_filtered_second = tf.reduce_sum(
+                normalized_weights[tf.newaxis, :]
+                * (
+                    2.0 * predicted_points[tf.newaxis, :] * d_predicted_points
+                    + centered_d_observation_log * tf.square(predicted_points)[tf.newaxis, :]
+                ),
+                axis=1,
+            )
+            d_filtered_variance = d_filtered_second - 2.0 * filtered_mean * d_filtered_mean
+
+            current_mean = filtered_mean
+            current_variance = filtered_variance
+            current_d_mean = d_filtered_mean
+            current_d_variance = d_filtered_variance
+            axis_log_terms.append(log_normalizer)
+            axis_score_terms.append(d_log_normalizer)
+            axis_means.append(filtered_mean)
+            axis_variances.append(filtered_variance)
+
+        log_terms.append(tf.stack(axis_log_terms))
+        score_terms.append(tf.reduce_sum(tf.stack(axis_score_terms), axis=0))
+        mean_terms.append(tf.stack(axis_means))
+        variance_terms.append(tf.stack(axis_variances))
+
+    stacked_log_terms = tf.stack(log_terms, axis=0)
+    score = tf.reshape(tf.stack(score_terms, axis=0), [-1])
+    stacked_means = tf.transpose(tf.stack(mean_terms, axis=0))
+    stacked_variances = tf.transpose(tf.stack(variance_terms, axis=0))
+    covariance_path = tf.stack(
+        [tf.linalg.diag(stacked_variances[time_index]) for time_index in range(int(z.shape[0]))],
+        axis=0,
     )
     return ActualTransformedSVPanelScoreResult(
-        log_likelihood=log_likelihood,
+        log_likelihood=tf.reduce_sum(stacked_log_terms),
         score=score,
-        mean_path=result.mean_path,
-        covariance_path=result.covariance_path,
+        mean_path=stacked_means,
+        covariance_path=covariance_path,
         d_mean_path=None,
         d_covariance_path=None,
-        diagnostics=MappingProxyType(diagnostics),
+        diagnostics=MappingProxyType(
+            {
+                "backend": "fixed_sgqf_independent_panel_exact_transformed_sv_score",
+                "wrapper_score_contract": "manual_forward_sensitivity_direct_likelihood_reweighting",
+                "derivative_method": "manual_forward_sensitivity_closed_form_recurrence",
+                "parameterization": "theta=[probit_gamma, log_beta] per coordinate",
+                "lane_id": "lane_a_direct_likelihood_quadrature",
+                "target": "factorized coordinatewise exact transformed SV",
+                "fixed_sgqf_sparse_level": int(cloud.sparse_level),
+                "fixed_sgqf_cloud_point_count": int(cloud.point_count),
+                "transform_offset": 0.0,
+                "target_scope": "independent_product_exact_transformed_sv_panel_tiny_fixture",
+                "non_claims": (
+                    "not KSC Gaussian mixture approximation",
+                    "not coupled multivariate Zhao-Cui TT",
+                    "no generalized SV/CNS estimator",
+                    "not exact-likelihood oracle; differentiates the fixed-SGQF value approximation",
+                ),
+            }
+        ),
     )
 
 
@@ -977,7 +1173,12 @@ def actual_transformed_sv_independent_panel_augmented_noise_ukf_filter(
     sigma: float | tf.Tensor,
     innovation_floor: float = 1e-12,
 ) -> ActualTransformedSVPanelFilterResult:
-    """Lane-B historical SVD-UKF Gaussian-closure approximate likelihood for actual SV."""
+    """Default nonlinear augmented-noise UKF value baseline for actual SV.
+
+    This is a value-only diagnostic for the raw-observation actual-SV model.  It
+    is intentionally separate from the direct transformed-likelihood target and
+    from any leaderboard analytical-gradient admission.
+    """
 
     y = tf.convert_to_tensor(observations, dtype=tf.float64)
     if y.shape.rank == 1:
@@ -1046,13 +1247,16 @@ def actual_transformed_sv_independent_panel_augmented_noise_ukf_filter(
                 "point_count_trace": tuple(point_counts),
                 "target_scope": "actual_transformed_sv_augmented_noise_gaussian_closure_tiny_fixture",
                 "lane_id": "lane_b_augmented_noise_gaussian_closure",
-                "backend_role": "historical_diagnostic_only",
+                "backend_role": "default_nonlinear_ukf_value_diagnostic",
+                "value_route_contract": "augmented_noise_sigma_point_filter_for_actual_sv_raw_observations",
+                "score_admission_status": "value_only_until_reviewed_analytical_augmented_noise_score_exists",
                 "non_claims": (
                     "not exact transformed same-target admission",
                     "not direct actual-SV likelihood quadrature",
                     "not KSC Gaussian mixture approximation",
                     "not coupled multivariate Zhao-Cui TT",
                     "no generalized SV/CNS estimator",
+                    "not an analytical-gradient leaderboard row",
                 ),
             }
         ),
@@ -1184,6 +1388,10 @@ def exact_transformed_sv_independent_panel_zhaocui_tt_score(
                 "backend": "factorized_scalar_zhaocui_tt_exact_transformed_sv_score",
                 "panel_dim": dim,
                 "wrapper_score_contract": "analytic_fixed_branch_scalar_score_aggregation",
+                "target_derivative_backend": "model_parameter_score_methods_only",
+                "score_derivative_provenance": (
+                    "zhao_cui_scalar_fixed_branch_tt_exact_transformed_sv_manual_parameter_score_methods_only"
+                ),
                 "target": "factorized coordinatewise exact transformed SV",
                 "non_claims": (
                     "not coupled multivariate Zhao-Cui TT",
@@ -1360,6 +1568,10 @@ def independent_panel_sv_mixture_zhaocui_tt_score(
                 "backend": "factorized_scalar_zhaocui_tt_transformed_sv_gaussian_mixture_score",
                 "panel_dim": dim,
                 "wrapper_score_contract": "analytic_fixed_branch_scalar_score_aggregation",
+                "target_derivative_backend": "model_parameter_score_methods_only",
+                "score_derivative_provenance": (
+                    "zhao_cui_scalar_fixed_branch_tt_ksc_mixture_manual_parameter_score_methods_only"
+                ),
                 "target": "factorized coordinatewise transformed SV finite Gaussian mixture",
                 "transform_offset": _manifest_value(transform_offset),
                 "mixture": mixture.manifest_payload(),
@@ -1945,7 +2157,7 @@ def independent_panel_sv_mixture_ukf_score(
     mixture: SVLogChiSquareGaussianMixture | None = None,
     transform_offset: float | tf.Tensor = 1e-8,
 ) -> SVPanelMixtureScoreResult:
-    """Component-enumerated analytical SVD-UKF score for transformed-SV panels."""
+    """Component-enumerated analytical principal-square-root UKF score."""
 
     mixture = mixture or ksc_1998_log_chi_square_mixture()
     z = transformed_sv_panel_observations(observations, offset=transform_offset)
@@ -2021,14 +2233,14 @@ def independent_panel_sv_mixture_ukf_score(
         backend="ukf_independent_panel_transformed_sv_gaussian_mixture_score",
         mask_convention="none",
         regularization=TFRegularizationDiagnostics(
-            branch_label="svd_sigma_point_analytic_score",
+            branch_label="principal_sqrt_sigma_point_analytic_score",
             derivative_target="implemented_regularized_law",
         ),
         extra={
             "panel_dim": dim,
             "component_tuple_count": len(component_tuples),
             "component_tuples": tuple(component_tuples),
-            "wrapper_score_contract": "analytic_component_score_logsumexp_aggregation",
+            "wrapper_score_contract": "principal_sqrt_analytic_component_score_logsumexp_aggregation",
             "transform_offset": _manifest_value(transform_offset),
             "mixture": mixture.manifest_payload(),
             "target_scope": "independent_product_transformed_sv_panel_tiny_fixture",
@@ -2358,7 +2570,7 @@ def actual_transformed_sv_independent_panel_augmented_noise_ukf_score(
     sigma: float | tf.Tensor,
     innovation_floor: float = 1e-12,
 ) -> ActualTransformedSVPanelScoreResult:
-    """Lane-B GradientTape historical SVD-UKF Gaussian-closure score for actual SV."""
+    """GradientTape diagnostic score for the augmented-noise UKF actual-SV value."""
 
     y = tf.convert_to_tensor(observations, dtype=tf.float64)
     if y.shape.rank == 1:
@@ -2401,7 +2613,8 @@ def actual_transformed_sv_independent_panel_augmented_noise_ukf_score(
             "wrapper_score_contract": "gradient_tape_lane_b_ukf_gaussian_closure",
             "parameterization": "theta=[probit_gamma, log_beta] per coordinate",
             "lane_id": "lane_b_augmented_noise_gaussian_closure",
-            "backend_role": "historical_diagnostic_only",
+            "backend_role": "diagnostic_autodiff_score_only",
+            "score_admission_status": "not_admitted_requires_reviewed_analytical_augmented_noise_score",
         }
     )
     return ActualTransformedSVPanelScoreResult(
@@ -2544,8 +2757,18 @@ def _actual_transformed_sv_augmented_noise_ukf_structural_derivatives(
     base_covariance = tf.convert_to_tensor(d_current_covariance, dtype=tf.float64)
     d_initial_covariance = tf.stack(
         [
-            tf.constant([[base_covariance[0, 0, 0], 0.0], [0.0, 0.0]], dtype=tf.float64),
-            tf.constant([[base_covariance[1, 0, 0], 0.0], [0.0, 0.0]], dtype=tf.float64),
+            tf.stack(
+                [
+                    tf.stack([base_covariance[0, 0, 0], tf.constant(0.0, dtype=tf.float64)]),
+                    tf.constant([0.0, 0.0], dtype=tf.float64),
+                ]
+            ),
+            tf.stack(
+                [
+                    tf.stack([base_covariance[1, 0, 0], tf.constant(0.0, dtype=tf.float64)]),
+                    tf.constant([0.0, 0.0], dtype=tf.float64),
+                ]
+            ),
         ],
         axis=0,
     )
@@ -2730,16 +2953,7 @@ def _actual_transformed_sv_augmented_noise_fixed_sgqf_derivatives(
 
 
 
-def _actual_transformed_sv_augmented_noise_fixed_sgqf_model(
-    *,
-    current_mean: tf.Tensor,
-    current_variance: tf.Tensor,
-    gamma: tf.Tensor,
-    beta: tf.Tensor,
-    sigma: tf.Tensor,
-    time_index: int,
-    observation_variance_floor: float,
-) -> TFFixedSGQFNonlinearModel:
+def _embed_axis_mean_derivatives(axis_d_mean: tf.Tensor, panel_dim: int) -> tf.Tensor:
     time_count = int(axis_d_mean.shape[1])
     full = tf.zeros([time_count, 2 * panel_dim, panel_dim], dtype=tf.float64)
     for axis in range(panel_dim):
@@ -2751,7 +2965,6 @@ def _actual_transformed_sv_augmented_noise_fixed_sgqf_model(
                 updates=tf.reshape(local[:, parameter_index], [-1]),
             )
     return full
-
 
 
 def _embed_axis_variance_derivatives(axis_d_variance: tf.Tensor, panel_dim: int) -> tf.Tensor:
@@ -3096,8 +3309,8 @@ def _actual_augmented_noise_initial_covariance_derivatives(
     zero = tf.constant(0.0, dtype=tf.float64)
     return tf.stack(
         [
-            tf.constant([[d_variance_d_theta]], dtype=tf.float64),
-            tf.constant([[zero]], dtype=tf.float64),
+            tf.reshape(d_variance_d_theta, [1, 1]),
+            tf.reshape(zero, [1, 1]),
         ],
         axis=0,
     )
@@ -3276,7 +3489,7 @@ def _ukf_component_score_update(
         beta=beta,
         time_index=time_index,
     )
-    return tf_svd_ukf_score(
+    return tf_principal_sqrt_ukf_score(
         tf.reshape(tf.convert_to_tensor(observation, dtype=tf.float64), [1, -1]),
         structural,
         derivatives,

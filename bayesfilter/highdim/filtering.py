@@ -36,6 +36,13 @@ from bayesfilter.highdim.squared_tt import SquaredTTDensity, TensorProductRefere
 from bayesfilter.highdim.tt import TTCore
 
 
+MULTISTATE_RETAINED_GRID_ROUTE_ROLE = "diagnostic_historical_retained_grid"
+MULTISTATE_RETAINED_GRID_LEADERBOARD_ADMISSION = (
+    "not_admitted_for_production_leaderboard_use_fixed_variant_zhao_cui"
+)
+FIXED_VARIANT_ZHAO_CUI_PRODUCTION_ROUTE = "fixed_variant_zhao_cui_source_route"
+
+
 class HighDimCoordinateMap(Protocol):
     """Coordinate map from reference points to physical points."""
 
@@ -852,7 +859,7 @@ def scalar_nonlinear_fixed_design_tt_value_path(
     retained_moment_order: int = 257,
     retained_propagation_order: int = 321,
 ) -> FixedBranchFilterResult:
-    """Run the M2.6c scalar fixed-design TT value path for two observations."""
+    """Run the scalar fixed-design TT value path for one or more observations."""
 
     if not isinstance(config, FixedBranchFilterConfig):
         raise TypeError("config must be a FixedBranchFilterConfig")
@@ -861,8 +868,9 @@ def scalar_nonlinear_fixed_design_tt_value_path(
     if config.fit_config is None or config.product_basis is None:
         raise TypeError("scalar nonlinear fixed-design TT value path requires fit_config and product_basis")
     observation_matrix = _as_observation_matrix(observations, int(model.observation_dim()))
-    if int(observation_matrix.shape[0]) != 2:
-        raise ValueError("M2.6c scalar TT value path is pinned to exactly two observations")
+    observation_count = int(observation_matrix.shape[0])
+    if observation_count < 1:
+        raise ValueError("observations must contain at least one row")
     theta_vector = _as_theta_vector(theta, int(model.parameter_dim()))
     product_basis = config.product_basis
     fit_config = config.fit_config
@@ -873,7 +881,7 @@ def scalar_nonlinear_fixed_design_tt_value_path(
     previous_step_hash: str | None = None
     log_terms = []
 
-    for time_index in range(2):
+    for time_index in range(observation_count):
         if time_index == 0:
             target_result = scalar_nonlinear_initial_adjacent_target_batch(
                 model=model,
@@ -902,8 +910,8 @@ def scalar_nonlinear_fixed_design_tt_value_path(
                 measure_convention=config.measure_convention,
                 fixture_id=fixture_id,
                 target_id=transition_target_id,
-                branch_seed=f"{branch_seed_prefix}:t1:target",
-                time_index=1,
+                branch_seed=f"{branch_seed_prefix}:t{time_index}:target",
+                time_index=time_index,
             )
 
         fit_result = FixedTTFitter().fit(
@@ -965,7 +973,7 @@ def scalar_nonlinear_fixed_design_tt_value_path(
                 "value_path": "scalar_nonlinear_fixed_design_tt_value_path",
                 "what_is_not_claimed": (
                     "adaptive_tt_cross",
-                    "zhao_cui_t1000_reproduction",
+                    "adaptive_zhao_cui_t1000_reproduction",
                     "integrated_axis_marginalization",
                     "derivative_correctness",
                     "hmc_or_dsge_readiness",
@@ -1026,7 +1034,7 @@ def scalar_nonlinear_fixed_design_tt_value_path(
             "value_path": "scalar_nonlinear_fixed_design_tt_value_path",
             "what_is_not_claimed": (
                 "adaptive_tt_cross",
-                "zhao_cui_t1000_reproduction",
+                "adaptive_zhao_cui_t1000_reproduction",
                 "smc_or_real_data_validation",
                 "derivative_correctness",
                 "hmc_or_dsge_readiness",
@@ -1046,7 +1054,9 @@ def scalar_nonlinear_fixed_design_tt_value_path(
             "value_path": "scalar_nonlinear_fixed_design_tt_value_path",
             "tt_artifacts_present": True,
             "fixture_id": fixture_id,
-            "promoted_horizon": 2,
+            "promoted_horizon": observation_count,
+            "observation_count": observation_count,
+            "last_time_index": observation_count - 1,
             "retained_storage_kind": retained.storage_kind,
             "step_hashes": tuple(step.branch_identity.hash.value for step in steps),
         },
@@ -1077,6 +1087,11 @@ def scalar_nonlinear_fixed_design_tt_score_path(
     parameter_indices = tuple(int(index) for index in derivative_config.parameter_indices)
     if not parameter_indices:
         raise ValueError("scalar fixed-design TT score path requires at least one parameter index")
+    _require_explicit_parameter_score_methods(model)
+    observation_matrix = _as_observation_matrix(observations, int(model.observation_dim()))
+    observation_count = int(observation_matrix.shape[0])
+    if observation_count < 1:
+        raise ValueError("observations must contain at least one row")
     if len(parameter_indices) > 1:
         partial_results = []
         for local_index in parameter_indices:
@@ -1093,7 +1108,7 @@ def scalar_nonlinear_fixed_design_tt_score_path(
                 scalar_nonlinear_fixed_design_tt_score_path(
                     model,
                     theta,
-                    observations,
+                    observation_matrix,
                     config,
                     local_config,
                     fixture_id=f"{fixture_id}.param{local_index}",
@@ -1112,6 +1127,9 @@ def scalar_nonlinear_fixed_design_tt_score_path(
                 "score": tf.concat([result.score for result in partial_results], axis=0),
                 "fixed_branch_only": True,
                 "moving_basis_supported": False,
+                "observation_count": observation_count,
+                "last_time_index": observation_count - 1,
+                "target_derivative_backend": "model_parameter_score_methods_only",
             },
         )
         identity = BranchIdentity(manifest=manifest, hash=manifest.sha256())
@@ -1127,7 +1145,9 @@ def scalar_nonlinear_fixed_design_tt_score_path(
                 "score_path": "scalar_nonlinear_fixed_design_tt_score_path",
                 "parameter_indices": parameter_indices,
                 "fixed_branch_only": True,
-                "target_derivative_backend": "model_parameter_score_or_reverse_mode_gradient_tape",
+                "observation_count": observation_count,
+                "last_time_index": observation_count - 1,
+                "target_derivative_backend": "model_parameter_score_methods_only",
                 "retained_storage_kind": partial_results[0].diagnostics["retained_storage_kind"],
                 "replay_tape_version": partial_results[0].diagnostics["replay_tape_version"],
             },
@@ -1145,7 +1165,6 @@ def scalar_nonlinear_fixed_design_tt_score_path(
         retained_moment_order=retained_moment_order,
         retained_propagation_order=retained_propagation_order,
     )
-    observation_matrix = _as_observation_matrix(observations, int(model.observation_dim()))
     theta_vector = _as_theta_vector(theta, int(model.parameter_dim()))
     product_basis = config.product_basis
     fit_config = config.fit_config
@@ -1161,7 +1180,7 @@ def scalar_nonlinear_fixed_design_tt_score_path(
     retained = None
     dot_retained_values = None
 
-    for time_index in range(2):
+    for time_index in range(observation_count):
         if time_index == 0:
             target_derivative = scalar_nonlinear_initial_adjacent_target_derivative_batch(
                 model=model,
@@ -1192,9 +1211,9 @@ def scalar_nonlinear_fixed_design_tt_score_path(
                 measure_convention=config.measure_convention,
                 fixture_id=fixture_id,
                 target_id=transition_target_id,
-                branch_seed=f"{branch_seed_prefix}:t1:target",
+                branch_seed=f"{branch_seed_prefix}:t{time_index}:target",
                 parameter_index=parameter_index,
-                time_index=1,
+                time_index=time_index,
             )
         target_result = target_derivative.target_result
         fit_result = FixedTTFitter().fit(
@@ -1295,6 +1314,8 @@ def scalar_nonlinear_fixed_design_tt_score_path(
                 "dot_mean": retained_derivatives["dot_mean"],
                 "dot_variance": retained_derivatives["dot_variance"],
                 "fixed_branch_only": True,
+                "observation_count": observation_count,
+                "last_time_index": observation_count - 1,
             }
         )
         current_initial_cores = tuple(fit_result.fitted_tt.cores)
@@ -1366,7 +1387,9 @@ def scalar_nonlinear_fixed_design_tt_score_path(
             "score_path": "scalar_nonlinear_fixed_design_tt_score_path",
             "parameter_index": parameter_index,
             "fixed_branch_only": True,
-            "target_derivative_backend": "model_parameter_score_or_reverse_mode_gradient_tape",
+            "observation_count": observation_count,
+            "last_time_index": observation_count - 1,
+            "target_derivative_backend": "model_parameter_score_methods_only",
             "retained_storage_kind": retained.storage_kind,
             "replay_tape_version": replay_tape.version,
         },
@@ -1458,6 +1481,9 @@ def multistate_nonlinear_fixed_design_tt_score_path(
             diagnostics={
                 "value_path": partial_results[0].diagnostics["value_path"],
                 "score_path": "multistate_nonlinear_fixed_design_tt_score_path",
+                "route_role": MULTISTATE_RETAINED_GRID_ROUTE_ROLE,
+                "leaderboard_admission": MULTISTATE_RETAINED_GRID_LEADERBOARD_ADMISSION,
+                "production_zhao_cui_route": FIXED_VARIANT_ZHAO_CUI_PRODUCTION_ROUTE,
                 "parameter_indices": parameter_indices,
                 "fixed_branch_only": True,
                 "horizon": observation_count - 1,
@@ -1695,6 +1721,9 @@ def multistate_nonlinear_fixed_design_tt_score_path(
         diagnostics={
             "value_path": value_result.diagnostics["value_path"],
             "score_path": "multistate_nonlinear_fixed_design_tt_score_path",
+            "route_role": MULTISTATE_RETAINED_GRID_ROUTE_ROLE,
+            "leaderboard_admission": MULTISTATE_RETAINED_GRID_LEADERBOARD_ADMISSION,
+            "production_zhao_cui_route": FIXED_VARIANT_ZHAO_CUI_PRODUCTION_ROUTE,
             "parameter_index": parameter_index,
             "fixed_branch_only": True,
             "horizon": observation_count - 1,
@@ -1724,9 +1753,11 @@ def multistate_nonlinear_fixed_design_tt_value_path(
     """Run a tiny multistate fixed-design TT nonlinear filtering value path.
 
     This P46 adapter retains all state axes on a deterministic tensor-product
-    grid after each TT fit.  It is intentionally bounded to small reviewed
-    targets; it is not adaptive TT-cross, SIRT, or a paper-scale Zhao--Cui
-    reproduction.
+    grid after each TT fit.  By owner directive it is diagnostic/historical
+    only and must not be used as the production Zhao--Cui leaderboard route;
+    production admission belongs to the fixed-variant Zhao--Cui source route.
+    It is intentionally bounded to small reviewed targets and is not adaptive
+    TT-cross, SIRT, or a paper-scale Zhao--Cui reproduction.
     """
 
     if not isinstance(config, FixedBranchFilterConfig):
@@ -1849,6 +1880,9 @@ def multistate_nonlinear_fixed_design_tt_value_path(
                 "config": config.manifest_payload(),
                 "branch_seed_prefix": branch_seed_prefix,
                 "value_path": "multistate_nonlinear_fixed_design_tt_value_path",
+                "route_role": MULTISTATE_RETAINED_GRID_ROUTE_ROLE,
+                "leaderboard_admission": MULTISTATE_RETAINED_GRID_LEADERBOARD_ADMISSION,
+                "production_zhao_cui_route": FIXED_VARIANT_ZHAO_CUI_PRODUCTION_ROUTE,
                 "what_is_not_claimed": (
                     "adaptive_tt_cross",
                     "zhao_cui_t1000_reproduction",
@@ -1873,6 +1907,9 @@ def multistate_nonlinear_fixed_design_tt_value_path(
                 status=HighDimStatus.OK,
                 diagnostics={
                     "value_path": "multistate_nonlinear_fixed_design_tt_value_path",
+                    "route_role": MULTISTATE_RETAINED_GRID_ROUTE_ROLE,
+                    "leaderboard_admission": MULTISTATE_RETAINED_GRID_LEADERBOARD_ADMISSION,
+                    "production_zhao_cui_route": FIXED_VARIANT_ZHAO_CUI_PRODUCTION_ROUTE,
                     "tt_artifacts_present": True,
                     "target_hash": target_result.branch_identity.hash.value,
                     "target_id": target_result.diagnostics["target_id"],
@@ -1909,6 +1946,9 @@ def multistate_nonlinear_fixed_design_tt_value_path(
             "status": HighDimStatus.OK.value,
             "scope": "p46_multistate_nonlinear_fixed_design_tt_value_path",
             "value_path": "multistate_nonlinear_fixed_design_tt_value_path",
+            "route_role": MULTISTATE_RETAINED_GRID_ROUTE_ROLE,
+            "leaderboard_admission": MULTISTATE_RETAINED_GRID_LEADERBOARD_ADMISSION,
+            "production_zhao_cui_route": FIXED_VARIANT_ZHAO_CUI_PRODUCTION_ROUTE,
             "what_is_not_claimed": (
                 "adaptive_tt_cross",
                 "zhao_cui_t1000_reproduction",
@@ -1929,6 +1969,9 @@ def multistate_nonlinear_fixed_design_tt_value_path(
         status=HighDimStatus.OK,
         diagnostics={
             "value_path": "multistate_nonlinear_fixed_design_tt_value_path",
+            "route_role": MULTISTATE_RETAINED_GRID_ROUTE_ROLE,
+            "leaderboard_admission": MULTISTATE_RETAINED_GRID_LEADERBOARD_ADMISSION,
+            "production_zhao_cui_route": FIXED_VARIANT_ZHAO_CUI_PRODUCTION_ROUTE,
             "tt_artifacts_present": True,
             "fixture_id": fixture_id,
             "promoted_horizon": int(observation_matrix.shape[0]),
@@ -4314,6 +4357,20 @@ def _logsumexp_weighted(log_values: tf.Tensor, weights: tf.Tensor) -> tf.Tensor:
         raise ValueError(f"weights: {HighDimStatus.NONFINITE_VALUE.value}")
     max_value = tf.reduce_max(values)
     return tf.math.log(tf.reduce_sum(weights_tensor * tf.exp(values - max_value))) + max_value
+
+
+def _require_explicit_parameter_score_methods(model: TFHighDimStateSpaceModel) -> None:
+    required = (
+        "initial_log_density_parameter_score",
+        "transition_log_density_parameter_score",
+        "observation_log_density_parameter_score",
+    )
+    missing = tuple(name for name in required if not callable(getattr(model, name, None)))
+    if missing:
+        raise ValueError(
+            "scalar fixed-design TT analytical score path requires explicit model "
+            f"parameter-score methods; missing {missing}"
+        )
 
 
 def _initial_log_density_parameter_score_column(

@@ -4,7 +4,7 @@ Date: 2026-06-29
 
 ## Status
 
-`DRAFT_PENDING_REVIEW`
+`REVIEWED_CONTRACT_FROZEN`
 
 ## Role
 

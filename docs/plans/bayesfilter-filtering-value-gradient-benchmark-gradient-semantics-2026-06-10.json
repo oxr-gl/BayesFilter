@@ -25,67 +25,89 @@
       "gradient_error_may_be_reported": true,
       "requires_reference_gradient": true,
       "matrix_gradient_error_policy": "numeric_error_against_reference",
-      "nonclaims": ["does not by itself imply low error"]
+      "nonclaims": [
+        "does not by itself imply low error"
+      ]
     },
     "valid_autodiff_gradient": {
       "gradient_error_may_be_reported": true,
       "requires_reference_gradient": true,
       "matrix_gradient_error_policy": "numeric_error_against_reference",
-      "nonclaims": ["autodiff finiteness is not correctness"]
+      "nonclaims": [
+        "autodiff finiteness is not correctness"
+      ]
     },
     "valid_analytic_gradient": {
       "gradient_error_may_be_reported": true,
       "requires_reference_gradient": true,
       "matrix_gradient_error_policy": "numeric_error_against_reference",
-      "nonclaims": ["analytic availability is not an error threshold"]
+      "nonclaims": [
+        "analytic availability is not an error threshold"
+      ]
     },
     "fixed_branch_gradient_diagnostic": {
       "gradient_error_may_be_reported": false,
       "requires_reference_gradient": false,
       "matrix_gradient_error_policy": "null_with_status",
-      "nonclaims": ["fixed-branch DPF gradients are diagnostic only in P6"]
+      "nonclaims": [
+        "fixed-branch DPF gradients are diagnostic only in P6"
+      ]
     },
     "resampling_gradient_not_valid": {
       "gradient_error_may_be_reported": false,
       "requires_reference_gradient": false,
       "matrix_gradient_error_policy": "null_with_status",
-      "nonclaims": ["stochastic resampling gradients are not benchmark gradients"]
+      "nonclaims": [
+        "stochastic resampling gradients are not benchmark gradients"
+      ]
     },
     "branch_veto_gradient_not_valid": {
       "gradient_error_may_be_reported": false,
       "requires_reference_gradient": false,
       "matrix_gradient_error_policy": "null_with_status",
-      "nonclaims": ["branch-veto diagnostics can explain but not pass a gradient cell"]
+      "nonclaims": [
+        "branch-veto diagnostics can explain but not pass a gradient cell"
+      ]
     },
     "reference_gradient_unavailable": {
       "gradient_error_may_be_reported": false,
       "requires_reference_gradient": false,
       "matrix_gradient_error_policy": "null_with_status",
-      "nonclaims": ["value-only rows remain value-only"]
+      "nonclaims": [
+        "value-only rows remain value-only"
+      ]
     },
     "algorithm_gradient_not_exposed": {
       "gradient_error_may_be_reported": false,
       "requires_reference_gradient": false,
       "matrix_gradient_error_policy": "null_with_status",
-      "nonclaims": ["missing algorithm gradients are not zero-error gradients"]
+      "nonclaims": [
+        "missing algorithm gradients are not zero-error gradients"
+      ]
     },
     "no_theta_gradient_dim0": {
       "gradient_error_may_be_reported": false,
       "requires_reference_gradient": false,
       "matrix_gradient_error_policy": "null_with_status",
-      "nonclaims": ["valid only for declared theta_dimension zero rows"]
+      "nonclaims": [
+        "valid only for declared theta_dimension zero rows"
+      ]
     },
     "nonfinite_gradient": {
       "gradient_error_may_be_reported": false,
       "requires_reference_gradient": false,
       "matrix_gradient_error_policy": "null_with_status",
-      "nonclaims": ["nonfinite gradients are veto/status findings"]
+      "nonclaims": [
+        "nonfinite gradients are veto/status findings"
+      ]
     },
     "adapter_failed": {
       "gradient_error_may_be_reported": false,
       "requires_reference_gradient": false,
       "matrix_gradient_error_policy": "null_with_status",
-      "nonclaims": ["adapter failure is engineering status, not scientific evidence"]
+      "nonclaims": [
+        "adapter failure is engineering status, not scientific evidence"
+      ]
     },
     "adapter_required": {
       "gradient_error_may_be_reported": false,
@@ -136,68 +158,91 @@
     "reference_gradient_missing_blocks_gradient_benchmark": {
       "row_gradient_error_eligible": false,
       "value_error_may_still_be_reported": false,
-      "allowed_normalized_statuses": ["reference_gradient_unavailable"]
+      "allowed_normalized_statuses": [
+        "reference_gradient_unavailable"
+      ]
     },
     "blocked_value_route": {
       "row_gradient_error_eligible": false,
       "value_error_may_still_be_reported": false,
-      "allowed_normalized_statuses": ["blocked_value_route"]
+      "allowed_normalized_statuses": [
+        "blocked_value_route"
+      ]
     }
   },
   "coverage_cell_status_rules": {
     "deterministic": {
       "READY_VALUE_GRADIENT": {
         "normalized_status": "valid_autodiff_gradient",
-        "allowed_raw_gradient_statuses": ["VALID"],
+        "allowed_raw_gradient_statuses": [
+          "VALID"
+        ],
         "gradient_error_may_be_reported": true,
         "requires_reference_gradient": true,
         "matrix_gradient_error_policy": "numeric_error_against_reference"
       },
       "READY_SURROGATE_VALUE_GRADIENT": {
         "normalized_status": "valid_autodiff_gradient",
-        "allowed_raw_gradient_statuses": ["VALID"],
+        "allowed_raw_gradient_statuses": [
+          "VALID"
+        ],
         "gradient_error_may_be_reported": true,
         "requires_reference_gradient": true,
         "matrix_gradient_error_policy": "numeric_error_against_declared_surrogate_reference"
       },
       "READY_VALUE_ONLY": {
         "normalized_status": "algorithm_gradient_not_exposed",
-        "allowed_raw_gradient_statuses": ["GRADIENT_NOT_EXPOSED", "NO_THETA_GRADIENT_DIM0"],
+        "allowed_raw_gradient_statuses": [
+          "GRADIENT_NOT_EXPOSED",
+          "NO_THETA_GRADIENT_DIM0"
+        ],
         "gradient_error_may_be_reported": false,
         "requires_reference_gradient": false,
         "matrix_gradient_error_policy": "null_with_status"
       },
       "READY_DIAGNOSTIC_ONLY": {
         "normalized_status": "diagnostic_only_not_promotion",
-        "allowed_raw_gradient_statuses": ["VALID", "GRADIENT_NOT_EXPOSED", "NO_THETA_GRADIENT_DIM0"],
+        "allowed_raw_gradient_statuses": [
+          "VALID",
+          "GRADIENT_NOT_EXPOSED",
+          "NO_THETA_GRADIENT_DIM0"
+        ],
         "gradient_error_may_be_reported": false,
         "requires_reference_gradient": false,
         "matrix_gradient_error_policy": "null_with_status"
       },
       "SCOUT_ONLY_NOT_TRUTH": {
         "normalized_status": "scout_only_not_truth",
-        "allowed_raw_gradient_statuses": ["NOT_RUN"],
+        "allowed_raw_gradient_statuses": [
+          "NOT_RUN"
+        ],
         "gradient_error_may_be_reported": false,
         "requires_reference_gradient": false,
         "matrix_gradient_error_policy": "null_with_status"
       },
       "ADAPTER_REQUIRED_WITH_REASON": {
         "normalized_status": "adapter_required",
-        "allowed_raw_gradient_statuses": ["NOT_RUN"],
+        "allowed_raw_gradient_statuses": [
+          "NOT_RUN"
+        ],
         "gradient_error_may_be_reported": false,
         "requires_reference_gradient": false,
         "matrix_gradient_error_policy": "null_with_status"
       },
       "UNSUPPORTED_WITH_REASON": {
         "normalized_status": "unsupported_by_target",
-        "allowed_raw_gradient_statuses": ["UNSUPPORTED_BY_TARGET"],
+        "allowed_raw_gradient_statuses": [
+          "UNSUPPORTED_BY_TARGET"
+        ],
         "gradient_error_may_be_reported": false,
         "requires_reference_gradient": false,
         "matrix_gradient_error_policy": "null_with_status"
       },
       "BLOCKED_VALUE_ROUTE": {
         "normalized_status": "blocked_value_route",
-        "allowed_raw_gradient_statuses": ["BLOCKED_VALUE_ROUTE"],
+        "allowed_raw_gradient_statuses": [
+          "BLOCKED_VALUE_ROUTE"
+        ],
         "gradient_error_may_be_reported": false,
         "requires_reference_gradient": false,
         "matrix_gradient_error_policy": "null_with_status"
@@ -206,44 +251,60 @@
     "dpf": {
       "READY_VALUE_WITH_STOCHASTIC_GRADIENT_STATUS": {
         "normalized_status": "resampling_gradient_not_valid",
-        "allowed_raw_gradient_statuses": ["RESAMPLING_GRADIENT_NOT_VALID"],
-        "required_reason_codes": ["RESAMPLING_GRADIENT_NOT_VALID"],
+        "allowed_raw_gradient_statuses": [
+          "RESAMPLING_GRADIENT_NOT_VALID"
+        ],
+        "required_reason_codes": [
+          "RESAMPLING_GRADIENT_NOT_VALID"
+        ],
         "gradient_error_may_be_reported": false,
         "requires_reference_gradient": false,
         "matrix_gradient_error_policy": "null_with_status"
       },
       "READY_FIXED_BRANCH_DIAGNOSTIC": {
         "normalized_status": "fixed_branch_gradient_diagnostic",
-        "allowed_raw_gradient_statuses": ["FIXED_BRANCH_GRADIENT_DIAGNOSTIC"],
-        "required_reason_codes": ["FIXED_BRANCH_GRADIENT_DIAGNOSTIC"],
+        "allowed_raw_gradient_statuses": [
+          "FIXED_BRANCH_GRADIENT_DIAGNOSTIC"
+        ],
+        "required_reason_codes": [
+          "FIXED_BRANCH_GRADIENT_DIAGNOSTIC"
+        ],
         "gradient_error_may_be_reported": false,
         "requires_reference_gradient": false,
         "matrix_gradient_error_policy": "null_with_status"
       },
       "READY_DIAGNOSTIC_ONLY": {
         "normalized_status": "diagnostic_only_not_promotion",
-        "allowed_raw_gradient_statuses": ["NOT_RUN"],
+        "allowed_raw_gradient_statuses": [
+          "NOT_RUN"
+        ],
         "gradient_error_may_be_reported": false,
         "requires_reference_gradient": false,
         "matrix_gradient_error_policy": "null_with_status"
       },
       "ADAPTER_REQUIRED_WITH_REASON": {
         "normalized_status": "adapter_required",
-        "allowed_raw_gradient_statuses": ["NOT_RUN"],
+        "allowed_raw_gradient_statuses": [
+          "NOT_RUN"
+        ],
         "gradient_error_may_be_reported": false,
         "requires_reference_gradient": false,
         "matrix_gradient_error_policy": "null_with_status"
       },
       "BLOCKED_VALUE_ROUTE": {
         "normalized_status": "blocked_value_route",
-        "allowed_raw_gradient_statuses": ["BLOCKED_VALUE_ROUTE"],
+        "allowed_raw_gradient_statuses": [
+          "BLOCKED_VALUE_ROUTE"
+        ],
         "gradient_error_may_be_reported": false,
         "requires_reference_gradient": false,
         "matrix_gradient_error_policy": "null_with_status"
       },
       "HISTORICAL_ONLY_NOT_EVIDENCE": {
         "normalized_status": "historical_only_not_evidence",
-        "allowed_raw_gradient_statuses": ["HISTORICAL_ONLY_NOT_EVIDENCE"],
+        "allowed_raw_gradient_statuses": [
+          "HISTORICAL_ONLY_NOT_EVIDENCE"
+        ],
         "gradient_error_may_be_reported": false,
         "requires_reference_gradient": false,
         "matrix_gradient_error_policy": "null_with_status"
@@ -266,7 +327,10 @@
       "reason_codes",
       "diagnostics"
     ],
-    "status_only_null_fields": ["gradient_error_abs", "gradient_error_rel"],
+    "status_only_null_fields": [
+      "gradient_error_abs",
+      "gradient_error_rel"
+    ],
     "zero_fill_gradient_error_for_noneligible_cells": false,
     "missing_reference_gradient_may_pass_benchmarkable_value_gradient": false,
     "finite_gradient_check_is_explanatory_only": true,
@@ -285,5 +349,19 @@
     "P6 does not certify DPF gradients",
     "P6 does not run the full benchmark matrix",
     "P6 does not claim HMC, GPU, or Bayesian-estimation readiness"
-  ]
+  ],
+  "two_lane_comparison_policy": {
+    "comparison_program_master": "docs/plans/bayesfilter-two-lane-filter-comparison-master-program-2026-06-24.md",
+    "fixed_sgqf_autodiff_status": "diagnostic_only_not_promoted_score_route",
+    "fixed_sgqf_analytic_scope_qualifier": "tiny_same_target_surrogate_fixture_only for current surrogate analytical-score admission",
+    "highdim_cut4_policy": "excluded_from_highdim_source_scope_comparison_tables",
+    "actual_and_surrogate_sv_must_remain_separate": true,
+    "blocked_fixed_sgqf_highdim_rows_until_reviewed_same_target_route": [
+      "zhao_cui_sv_actual_nongaussian_T1000",
+      "zhao_cui_spatial_sir_austria_j9_T20",
+      "zhao_cui_predator_prey_T20",
+      "zhao_cui_generalized_sv_synthetic_from_estimated_values"
+    ],
+    "preflight_and_runner_artifacts_are_performance_evidence": false
+  }
 }

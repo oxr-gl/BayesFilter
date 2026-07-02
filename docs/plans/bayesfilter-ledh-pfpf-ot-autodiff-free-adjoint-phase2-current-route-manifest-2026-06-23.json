@@ -1,0 +1,108 @@
+{
+  "command_path": "docs/benchmarks/benchmark_p8p_regression_fd_reparameterization.py",
+  "diagnostic_or_test_files": [
+    "tests/highdim/test_p81_analytical_sir_score.py",
+    "tests/test_experimental_batched_ledh_pfpf_ot_tf.py",
+    "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+    "tests/test_ledh_pfpf_ot_p7_manual_score.py"
+  ],
+  "expected_negative_control_failures": [],
+  "forbidden_patterns": [
+    "tf.GradientTape",
+    "GradientTape(",
+    ".gradient(",
+    ".jacobian(",
+    ".batch_jacobian(",
+    "tf.gradients",
+    "tf.autodiff.ForwardAccumulator",
+    "ForwardAccumulator(",
+    "tf.custom_gradient",
+    "@tf.custom_gradient",
+    "gradient_override_map",
+    "RegisterGradient",
+    "custom_gradient",
+    "watch("
+  ],
+  "p1_findings": [
+    {
+      "classification": "closed_by_p7_manual_reverse_route",
+      "id": "P1-L001",
+      "line": 477,
+      "path": "docs/benchmarks/benchmark_p8p_regression_fd_reparameterization.py",
+      "pattern": "tf.GradientTape"
+    },
+    {
+      "classification": "closed_by_p7_manual_reverse_route",
+      "id": "P1-L003",
+      "line": 485,
+      "path": "docs/benchmarks/benchmark_p8p_regression_fd_reparameterization.py",
+      "pattern": "tape.gradient"
+    },
+    {
+      "classification": "closed_by_p6_transport_manual_vjp",
+      "id": "P1-L013",
+      "line": 1988,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "tf.GradientTape"
+    },
+    {
+      "classification": "closed_by_p6_transport_manual_vjp",
+      "id": "P1-L015",
+      "line": 2003,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "tape.gradient"
+    }
+  ],
+  "p1_leak_ids": [
+    "P1-L001",
+    "P1-L002",
+    "P1-L003",
+    "P1-L004",
+    "P1-L005",
+    "P1-L006",
+    "P1-L007",
+    "P1-L008",
+    "P1-L009",
+    "P1-L010",
+    "P1-L011",
+    "P1-L012",
+    "P1-L013",
+    "P1-L014",
+    "P1-L015",
+    "P1-L016",
+    "P1-L017",
+    "P1-L018",
+    "P1-L019",
+    "P1-L020",
+    "P1-L021",
+    "P1-L022",
+    "P1-L023",
+    "P1-L024",
+    "P1-L025",
+    "P1-L026",
+    "P1-L027",
+    "P1-L028",
+    "P1-L029",
+    "P1-L030"
+  ],
+  "production_files": [
+    "docs/benchmarks/benchmark_p8p_regression_fd_reparameterization.py",
+    "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+    "docs/benchmarks/benchmark_p8j_tf32_batched_actual_sir.py",
+    "scripts/filtering_value_gradient_benchmark_run_p8d_numeric.py",
+    "experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_streaming_tf.py",
+    "experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_tf.py",
+    "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py"
+  ],
+  "route_flags": {
+    "ad_evaluation_mode": "manual-reverse",
+    "dtype": "float32",
+    "fd_mode": "ad-only",
+    "tf32_mode": "enabled",
+    "transport_ad_mode": "stabilized",
+    "transport_gradient_mode": "manual_streaming_finite_sinkhorn_stopped_scale_keys",
+    "transport_plan_mode": "streaming"
+  },
+  "route_id": "p7_manual_reverse_route_pre_certification",
+  "schema_version": "ledh_no_autodiff_route_manifest.v1"
+}

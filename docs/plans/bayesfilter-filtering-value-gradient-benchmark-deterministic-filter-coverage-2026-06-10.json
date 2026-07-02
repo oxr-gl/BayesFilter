@@ -47,12 +47,17 @@
     "READY_VALUE_GRADIENT": {
       "value_error_policy": "eligible_when_p8_runs",
       "gradient_error_policy": "eligible_when_p8_runs",
-      "required_reason_codes": ["NONE"]
+      "required_reason_codes": [
+        "NONE"
+      ]
     },
     "READY_VALUE_ONLY": {
       "value_error_policy": "eligible_when_p8_runs",
       "gradient_error_policy": "status_only",
-      "allowed_gradient_status": ["GRADIENT_NOT_EXPOSED", "NO_THETA_GRADIENT_DIM0"]
+      "allowed_gradient_status": [
+        "GRADIENT_NOT_EXPOSED",
+        "NO_THETA_GRADIENT_DIM0"
+      ]
     },
     "READY_DIAGNOSTIC_ONLY": {
       "value_error_policy": "diagnostic_only",
@@ -65,7 +70,9 @@
     "SCOUT_ONLY_NOT_TRUTH": {
       "value_error_policy": "not_a_benchmark_value",
       "gradient_error_policy": "not_a_benchmark_gradient",
-      "required_reason_codes": ["UKF_SCOUT_NOT_TRUTH"]
+      "required_reason_codes": [
+        "UKF_SCOUT_NOT_TRUTH"
+      ]
     },
     "ADAPTER_REQUIRED_WITH_REASON": {
       "value_error_policy": "not_run_until_adapter_exists",
@@ -91,21 +98,29 @@
       ],
       "row_groups": [
         {
-          "row_ids": ["lgssm_exact_kalman_dim_1_2_3"],
+          "row_ids": [
+            "lgssm_exact_kalman_dim_1_2_3"
+          ],
           "cell_status": "READY_VALUE_GRADIENT",
           "value_status_when_run": "VALID",
           "gradient_status_when_run": "VALID",
-          "reason_codes": ["NONE"],
+          "reason_codes": [
+            "NONE"
+          ],
           "evidence_tests": [
             "tests/highdim/test_p44_lgssm_exact_baseline.py::test_p44_m1_cut4_and_zhaocui_artifact_lane_match_kalman_value_and_score_dims_1_2_3"
           ]
         },
         {
-          "row_ids": ["sv_ksc_gaussian_mixture_surrogate_dim_1_2_3"],
+          "row_ids": [
+            "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3"
+          ],
           "cell_status": "READY_SURROGATE_VALUE_GRADIENT",
           "value_status_when_run": "VALID",
           "gradient_status_when_run": "VALID",
-          "reason_codes": ["NONE"],
+          "reason_codes": [
+            "NONE"
+          ],
           "evidence_tests": [
             "tests/highdim/test_p43_sv_value_gradient_cut4_zhaocui.py::test_p43_ksc_cut4_matches_kalman_value_and_diagnostic_score"
           ]
@@ -125,17 +140,23 @@
           "cell_status": "UNSUPPORTED_WITH_REASON",
           "value_status_when_run": "UNSUPPORTED_BY_TARGET",
           "gradient_status_when_run": "UNSUPPORTED_BY_TARGET",
-          "reason_codes": ["KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"],
+          "reason_codes": [
+            "KALMAN_ONLY_FOR_LGSSM_OR_DECLARED_GAUSSIAN_MIXTURE"
+          ],
           "evidence_tests": [
             "tests/highdim/test_filtering_value_gradient_benchmark_reference_oracles.py::test_filter_bench_reference_oracles_keep_sv_actual_and_surrogate_distinct"
           ]
         },
         {
-          "row_ids": ["spatial_sir_scaling_route_admitted_rank_selection_blocked_d18"],
+          "row_ids": [
+            "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18"
+          ],
           "cell_status": "BLOCKED_VALUE_ROUTE",
           "value_status_when_run": "BLOCKED_VALUE_ROUTE",
           "gradient_status_when_run": "BLOCKED_VALUE_ROUTE",
-          "reason_codes": ["BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"],
+          "reason_codes": [
+            "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+          ],
           "evidence_tests": [
             "tests/highdim/test_p53_m5_rank_selection_integration.py::test_p53_m5_result_manifest_preserves_blocker_and_forbids_downstream_tokens"
           ]
@@ -166,7 +187,9 @@
           "cell_status": "READY_VALUE_ONLY",
           "value_status_when_run": "VALID",
           "gradient_status_when_run": "GRADIENT_NOT_EXPOSED",
-          "reason_codes": ["SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"],
+          "reason_codes": [
+            "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+          ],
           "evidence_tests": [
             "tests/test_nonlinear_sigma_point_values_tf.py",
             "tests/highdim/test_p47_spatial_sir_filtering.py::test_p47_m4_cut4_closure_is_same_target_value_diagnostic_not_state_promotion",
@@ -174,31 +197,44 @@
           ]
         },
         {
-          "row_ids": ["p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3"],
+          "row_ids": [
+            "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3"
+          ],
           "cell_status": "READY_DIAGNOSTIC_ONLY",
           "value_status_when_run": "VALID",
           "gradient_status_when_run": "GRADIENT_NOT_EXPOSED",
-          "reason_codes": ["SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"],
+          "reason_codes": [
+            "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+          ],
           "evidence_tests": [
             "tests/highdim/test_p44_nonlinear_transition.py::test_p44_m4_cut4_horizon_4_error_accumulation_is_bounded_dims_1_2_3"
           ]
         },
         {
-          "row_ids": ["spatial_sir_lower_rung_j1_dim_2"],
+          "row_ids": [
+            "spatial_sir_lower_rung_j1_dim_2"
+          ],
           "cell_status": "READY_VALUE_ONLY",
           "value_status_when_run": "VALID",
           "gradient_status_when_run": "NO_THETA_GRADIENT_DIM0",
-          "reason_codes": ["NO_THETA_GRADIENT_DIM0"],
+          "reason_codes": [
+            "NO_THETA_GRADIENT_DIM0"
+          ],
           "evidence_tests": [
             "tests/highdim/test_p47_spatial_sir_filtering.py::test_p47_m4_cut4_closure_is_same_target_value_diagnostic_not_state_promotion"
           ]
         },
         {
-          "row_ids": ["spatial_sir_scaling_route_admitted_rank_selection_blocked_d18"],
+          "row_ids": [
+            "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18"
+          ],
           "cell_status": "SCOUT_ONLY_NOT_TRUTH",
           "value_status_when_run": "NOT_RUN",
           "gradient_status_when_run": "NOT_RUN",
-          "reason_codes": ["UKF_SCOUT_NOT_TRUTH", "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"],
+          "reason_codes": [
+            "UKF_SCOUT_NOT_TRUTH",
+            "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+          ],
           "evidence_tests": [
             "tests/highdim/test_p52_ukf_scout.py::test_p52_ukf_scout_manifest_for_dimensions_and_nonclaims",
             "tests/highdim/test_p53_m5_rank_selection_integration.py::test_p53_m5_result_manifest_preserves_blocker_and_forbids_downstream_tokens"
@@ -213,17 +249,23 @@
           "cell_status": "ADAPTER_REQUIRED_WITH_REASON",
           "value_status_when_run": "NOT_RUN",
           "gradient_status_when_run": "NOT_RUN",
-          "reason_codes": ["ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"],
+          "reason_codes": [
+            "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+          ],
           "evidence_tests": [
             "tests/highdim/test_p51_native_generalized_sv_reference.py::test_p51_m2_native_dense_reference_has_raw_observation_identity_and_moments"
           ]
         },
         {
-          "row_ids": ["predator_prey_production_tuned_h25_dim_2"],
+          "row_ids": [
+            "predator_prey_production_tuned_h25_dim_2"
+          ],
           "cell_status": "ADAPTER_REQUIRED_WITH_REASON",
           "value_status_when_run": "NOT_RUN",
           "gradient_status_when_run": "NOT_RUN",
-          "reason_codes": ["ADAPTER_REQUIRED_PRODUCTION_TARGET"],
+          "reason_codes": [
+            "ADAPTER_REQUIRED_PRODUCTION_TARGET"
+          ],
           "evidence_tests": [
             "tests/highdim/test_p51_predator_prey_production_tuning.py::test_p51_m4_result_emits_token_once_and_promoted_candidate_is_visible"
           ]
@@ -253,7 +295,9 @@
           "cell_status": "READY_VALUE_ONLY",
           "value_status_when_run": "VALID",
           "gradient_status_when_run": "GRADIENT_NOT_EXPOSED",
-          "reason_codes": ["SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"],
+          "reason_codes": [
+            "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+          ],
           "evidence_tests": [
             "tests/test_nonlinear_sigma_point_values_tf.py",
             "tests/test_structural_svd_sigma_point_tf.py",
@@ -262,21 +306,29 @@
           ]
         },
         {
-          "row_ids": ["p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3"],
+          "row_ids": [
+            "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3"
+          ],
           "cell_status": "READY_DIAGNOSTIC_ONLY",
           "value_status_when_run": "VALID",
           "gradient_status_when_run": "GRADIENT_NOT_EXPOSED",
-          "reason_codes": ["SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"],
+          "reason_codes": [
+            "SVD_UKF_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+          ],
           "evidence_tests": [
             "tests/highdim/test_p44_nonlinear_transition.py::test_p44_m4_cut4_horizon_4_error_accumulation_is_bounded_dims_1_2_3"
           ]
         },
         {
-          "row_ids": ["spatial_sir_lower_rung_j1_dim_2"],
+          "row_ids": [
+            "spatial_sir_lower_rung_j1_dim_2"
+          ],
           "cell_status": "READY_VALUE_ONLY",
           "value_status_when_run": "VALID",
           "gradient_status_when_run": "NO_THETA_GRADIENT_DIM0",
-          "reason_codes": ["NO_THETA_GRADIENT_DIM0"],
+          "reason_codes": [
+            "NO_THETA_GRADIENT_DIM0"
+          ],
           "evidence_tests": [
             "tests/highdim/test_p47_spatial_sir_filtering.py::test_p47_m4_cut4_closure_is_same_target_value_diagnostic_not_state_promotion"
           ]
@@ -290,27 +342,37 @@
           "cell_status": "ADAPTER_REQUIRED_WITH_REASON",
           "value_status_when_run": "NOT_RUN",
           "gradient_status_when_run": "NOT_RUN",
-          "reason_codes": ["ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"],
+          "reason_codes": [
+            "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+          ],
           "evidence_tests": [
             "tests/highdim/test_p51_native_generalized_sv_reference.py::test_p51_m2_native_dense_reference_has_raw_observation_identity_and_moments"
           ]
         },
         {
-          "row_ids": ["spatial_sir_scaling_route_admitted_rank_selection_blocked_d18"],
+          "row_ids": [
+            "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18"
+          ],
           "cell_status": "BLOCKED_VALUE_ROUTE",
           "value_status_when_run": "BLOCKED_VALUE_ROUTE",
           "gradient_status_when_run": "BLOCKED_VALUE_ROUTE",
-          "reason_codes": ["BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"],
+          "reason_codes": [
+            "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+          ],
           "evidence_tests": [
             "tests/highdim/test_p53_m5_rank_selection_integration.py::test_p53_m5_result_manifest_preserves_blocker_and_forbids_downstream_tokens"
           ]
         },
         {
-          "row_ids": ["predator_prey_production_tuned_h25_dim_2"],
+          "row_ids": [
+            "predator_prey_production_tuned_h25_dim_2"
+          ],
           "cell_status": "ADAPTER_REQUIRED_WITH_REASON",
           "value_status_when_run": "NOT_RUN",
           "gradient_status_when_run": "NOT_RUN",
-          "reason_codes": ["ADAPTER_REQUIRED_PRODUCTION_TARGET"],
+          "reason_codes": [
+            "ADAPTER_REQUIRED_PRODUCTION_TARGET"
+          ],
           "evidence_tests": [
             "tests/highdim/test_p51_predator_prey_production_tuning.py::test_p51_m4_result_emits_token_once_and_promoted_candidate_is_visible"
           ]
@@ -341,7 +403,9 @@
           "cell_status": "READY_VALUE_ONLY",
           "value_status_when_run": "VALID",
           "gradient_status_when_run": "GRADIENT_NOT_EXPOSED",
-          "reason_codes": ["CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"],
+          "reason_codes": [
+            "CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+          ],
           "evidence_tests": [
             "tests/highdim/test_p44_cubic_additive_gaussian.py::test_p44_m2_cut4_and_zhaocui_match_dense_statistically_for_value_and_score_dims_1_2_3",
             "tests/highdim/test_p44_quadratic_observation.py::test_p44_m3_cut4_records_stress_gap_and_zhaocui_matches_dense_dims_1_2_3",
@@ -351,71 +415,99 @@
           ]
         },
         {
-          "row_ids": ["p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3"],
+          "row_ids": [
+            "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3"
+          ],
           "cell_status": "READY_DIAGNOSTIC_ONLY",
           "value_status_when_run": "VALID",
           "gradient_status_when_run": "GRADIENT_NOT_EXPOSED",
-          "reason_codes": ["CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"],
+          "reason_codes": [
+            "CUT4_VALUE_FILTER_GRADIENT_NOT_CERTIFIED"
+          ],
           "evidence_tests": [
             "tests/highdim/test_p44_nonlinear_transition.py::test_p44_m4_cut4_horizon_4_error_accumulation_is_bounded_dims_1_2_3"
           ]
         },
         {
-          "row_ids": ["spatial_sir_lower_rung_j1_dim_2"],
+          "row_ids": [
+            "spatial_sir_lower_rung_j1_dim_2"
+          ],
           "cell_status": "READY_VALUE_ONLY",
           "value_status_when_run": "VALID",
           "gradient_status_when_run": "NO_THETA_GRADIENT_DIM0",
-          "reason_codes": ["NO_THETA_GRADIENT_DIM0"],
+          "reason_codes": [
+            "NO_THETA_GRADIENT_DIM0"
+          ],
           "evidence_tests": [
             "tests/highdim/test_p47_spatial_sir_filtering.py::test_p47_m4_cut4_closure_is_same_target_value_diagnostic_not_state_promotion"
           ]
         },
         {
-          "row_ids": ["sv_ksc_gaussian_mixture_surrogate_dim_1_2_3"],
+          "row_ids": [
+            "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3"
+          ],
           "cell_status": "READY_SURROGATE_VALUE_GRADIENT",
           "value_status_when_run": "VALID",
           "gradient_status_when_run": "VALID",
-          "reason_codes": ["NONE"],
+          "reason_codes": [
+            "NONE"
+          ],
           "evidence_tests": [
             "tests/highdim/test_p43_sv_value_gradient_cut4_zhaocui.py::test_p43_ksc_cut4_matches_kalman_value_and_diagnostic_score"
           ]
         },
         {
-          "row_ids": ["sv_exact_transformed_actual_nongaussian_dim_1_2_3"],
+          "row_ids": [
+            "sv_exact_transformed_actual_nongaussian_dim_1_2_3"
+          ],
           "cell_status": "UNSUPPORTED_WITH_REASON",
           "value_status_when_run": "UNSUPPORTED_BY_TARGET",
           "gradient_status_when_run": "UNSUPPORTED_BY_TARGET",
-          "reason_codes": ["ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"],
+          "reason_codes": [
+            "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+          ],
           "evidence_tests": [
             "tests/highdim/test_p43_sv_value_gradient_cut4_zhaocui.py::test_p43_ksc_mixture_gradient_gap_to_exact_transformed_is_approximation_only"
           ]
         },
         {
-          "row_ids": ["native_generalized_sv_dense_lower_rung_dim_2"],
+          "row_ids": [
+            "native_generalized_sv_dense_lower_rung_dim_2"
+          ],
           "cell_status": "UNSUPPORTED_WITH_REASON",
           "value_status_when_run": "UNSUPPORTED_BY_TARGET",
           "gradient_status_when_run": "UNSUPPORTED_BY_TARGET",
-          "reason_codes": ["NO_CUT4_SAME_TARGET_NATIVE_GENERALIZED_SV"],
+          "reason_codes": [
+            "NO_CUT4_SAME_TARGET_NATIVE_GENERALIZED_SV"
+          ],
           "evidence_tests": [
             "tests/highdim/test_p51_native_generalized_sv_reference.py::test_p51_m2_result_emits_token_once_and_nonclaims_are_visible"
           ]
         },
         {
-          "row_ids": ["spatial_sir_scaling_route_admitted_rank_selection_blocked_d18"],
+          "row_ids": [
+            "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18"
+          ],
           "cell_status": "BLOCKED_VALUE_ROUTE",
           "value_status_when_run": "BLOCKED_VALUE_ROUTE",
           "gradient_status_when_run": "BLOCKED_VALUE_ROUTE",
-          "reason_codes": ["BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"],
+          "reason_codes": [
+            "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+          ],
           "evidence_tests": [
             "tests/highdim/test_p53_m5_rank_selection_integration.py::test_p53_m5_result_manifest_preserves_blocker_and_forbids_downstream_tokens"
           ]
         },
         {
-          "row_ids": ["predator_prey_production_tuned_h25_dim_2"],
+          "row_ids": [
+            "predator_prey_production_tuned_h25_dim_2"
+          ],
           "cell_status": "ADAPTER_REQUIRED_WITH_REASON",
           "value_status_when_run": "NOT_RUN",
           "gradient_status_when_run": "NOT_RUN",
-          "reason_codes": ["ADAPTER_REQUIRED_PRODUCTION_TARGET"],
+          "reason_codes": [
+            "ADAPTER_REQUIRED_PRODUCTION_TARGET"
+          ],
           "evidence_tests": [
             "tests/highdim/test_p51_predator_prey_production_tuning.py::test_p51_m4_result_emits_token_once_and_promoted_candidate_is_visible"
           ]
@@ -432,17 +524,23 @@
       "route_boundary": "Fixed-SGQF uses the TensorFlow fixed sparse-grid Gaussian filter for additive-Gaussian closures and a dedicated per-component Gaussian-collapse wrapper for the KSC surrogate row.",
       "adapter_paths": [
         "bayesfilter.nonlinear.fixed_sgqf_tf.tf_fixed_sgqf_filter",
-        "bayesfilter.highdim.sv_mixture_cut4.independent_panel_sv_mixture_fixed_sgqf_filter"
+        "bayesfilter.highdim.sv_mixture_cut4.independent_panel_sv_mixture_fixed_sgqf_filter",
+        "bayesfilter.highdim.sv_mixture_cut4.independent_panel_sv_mixture_fixed_sgqf_score"
       ],
       "row_groups": [
         {
-          "row_ids": ["sv_ksc_gaussian_mixture_surrogate_dim_1_2_3"],
-          "cell_status": "READY_VALUE_ONLY",
+          "row_ids": [
+            "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3"
+          ],
+          "cell_status": "READY_SURROGATE_VALUE_GRADIENT",
           "value_status_when_run": "VALID",
-          "gradient_status_when_run": "GRADIENT_NOT_EXPOSED",
-          "reason_codes": ["REFERENCE_GRADIENT_NOT_AVAILABLE"],
+          "gradient_status_when_run": "VALID",
+          "reason_codes": [
+            "NONE"
+          ],
           "evidence_tests": [
-            "tests/highdim/test_p43_sv_value_gradient_cut4_zhaocui.py::test_p43_ksc_fixed_sgqf_is_value_only_same_target_surrogate_evidence",
+            "tests/highdim/test_p43_sv_value_gradient_cut4_zhaocui.py::test_p43_ksc_fixed_sgqf_wrapper_score_matches_centered_finite_difference",
+            "tests/highdim/test_p43_sv_value_gradient_cut4_zhaocui.py::test_p43_ksc_fixed_sgqf_is_value_and_analytical_score_same_target_surrogate_evidence",
             "tests/highdim/test_p47_generalized_sv_equality.py::test_p47_m3_fixed_sgqf_matches_kalman_on_same_ksc_mixture_target_value_only"
           ]
         },
@@ -463,15 +561,18 @@
           "cell_status": "ADAPTER_REQUIRED_WITH_REASON",
           "value_status_when_run": "NOT_RUN",
           "gradient_status_when_run": "NOT_RUN",
-          "reason_codes": ["ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"],
+          "reason_codes": [
+            "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET"
+          ],
           "evidence_tests": [
-            "tests/highdim/test_p43_sv_value_gradient_cut4_zhaocui.py::test_p43_ksc_fixed_sgqf_is_value_only_same_target_surrogate_evidence"
+            "tests/highdim/test_p43_sv_value_gradient_cut4_zhaocui.py::test_p43_ksc_fixed_sgqf_is_value_and_analytical_score_same_target_surrogate_evidence"
           ]
         }
       ],
       "nonclaims": [
         "Fixed-SGQF surrogate-row readiness is only for the declared KSC Gaussian-mixture target.",
-        "No actual transformed non-Gaussian SV claim or analytic-score branch certification is implied."
+        "Analytical-score admission is only for the declared tiny same-target surrogate fixture.",
+        "No actual transformed non-Gaussian SV claim is implied."
       ]
     },
     {
@@ -486,11 +587,15 @@
       ],
       "row_groups": [
         {
-          "row_ids": ["lgssm_exact_kalman_dim_1_2_3"],
+          "row_ids": [
+            "lgssm_exact_kalman_dim_1_2_3"
+          ],
           "cell_status": "READY_DIAGNOSTIC_ONLY",
           "value_status_when_run": "VALID",
           "gradient_status_when_run": "GRADIENT_NOT_EXPOSED",
-          "reason_codes": ["ZHAOCUI_LGSSM_DIAGNOSTIC_NOT_ORACLE"],
+          "reason_codes": [
+            "ZHAOCUI_LGSSM_DIAGNOSTIC_NOT_ORACLE"
+          ],
           "evidence_tests": [
             "tests/highdim/test_p44_lgssm_exact_baseline.py::test_p44_m1_scalar_tt_propagation_gap_is_not_promoted"
           ]
@@ -505,7 +610,9 @@
           "cell_status": "READY_VALUE_GRADIENT",
           "value_status_when_run": "VALID",
           "gradient_status_when_run": "VALID",
-          "reason_codes": ["NONE"],
+          "reason_codes": [
+            "NONE"
+          ],
           "evidence_tests": [
             "tests/highdim/test_p44_cubic_additive_gaussian.py::test_p44_m2_cut4_and_zhaocui_match_dense_statistically_for_value_and_score_dims_1_2_3",
             "tests/highdim/test_p44_quadratic_observation.py::test_p44_m3_cut4_records_stress_gap_and_zhaocui_matches_dense_dims_1_2_3",
@@ -514,51 +621,71 @@
           ]
         },
         {
-          "row_ids": ["p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3"],
+          "row_ids": [
+            "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3"
+          ],
           "cell_status": "UNSUPPORTED_WITH_REASON",
           "value_status_when_run": "UNSUPPORTED_BY_TARGET",
           "gradient_status_when_run": "UNSUPPORTED_BY_TARGET",
-          "reason_codes": ["ZHAOCUI_H4_SCALAR_HELPER_NONCLAIM"],
+          "reason_codes": [
+            "ZHAOCUI_H4_SCALAR_HELPER_NONCLAIM"
+          ],
           "evidence_tests": [
             "tests/highdim/test_p44_nonlinear_transition.py::test_p44_m4_zhaocui_horizon_4_is_explicit_nonclaim_for_current_scalar_helper"
           ]
         },
         {
-          "row_ids": ["sv_ksc_gaussian_mixture_surrogate_dim_1_2_3"],
+          "row_ids": [
+            "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3"
+          ],
           "cell_status": "READY_SURROGATE_VALUE_GRADIENT",
           "value_status_when_run": "VALID",
           "gradient_status_when_run": "VALID",
-          "reason_codes": ["NONE"],
+          "reason_codes": [
+            "NONE"
+          ],
           "evidence_tests": [
             "tests/highdim/test_p47_generalized_sv_equality.py::test_p47_m3_zhaocui_matches_dense_on_same_ksc_mixture_target_value_and_score"
           ]
         },
         {
-          "row_ids": ["native_generalized_sv_dense_lower_rung_dim_2"],
+          "row_ids": [
+            "native_generalized_sv_dense_lower_rung_dim_2"
+          ],
           "cell_status": "UNSUPPORTED_WITH_REASON",
           "value_status_when_run": "UNSUPPORTED_BY_TARGET",
           "gradient_status_when_run": "UNSUPPORTED_BY_TARGET",
-          "reason_codes": ["NO_ZHAOCUI_NATIVE_GENERALIZED_SV_ROUTE"],
+          "reason_codes": [
+            "NO_ZHAOCUI_NATIVE_GENERALIZED_SV_ROUTE"
+          ],
           "evidence_tests": [
             "tests/highdim/test_p51_native_generalized_sv_reference.py::test_p51_m2_result_emits_token_once_and_nonclaims_are_visible"
           ]
         },
         {
-          "row_ids": ["spatial_sir_lower_rung_j1_dim_2"],
+          "row_ids": [
+            "spatial_sir_lower_rung_j1_dim_2"
+          ],
           "cell_status": "READY_VALUE_ONLY",
           "value_status_when_run": "VALID",
           "gradient_status_when_run": "NO_THETA_GRADIENT_DIM0",
-          "reason_codes": ["NO_THETA_GRADIENT_DIM0"],
+          "reason_codes": [
+            "NO_THETA_GRADIENT_DIM0"
+          ],
           "evidence_tests": [
             "tests/highdim/test_p47_spatial_sir_filtering.py::test_p47_m4_zhaocui_matches_dense_reference_value_and_state_moments"
           ]
         },
         {
-          "row_ids": ["spatial_sir_scaling_route_admitted_rank_selection_blocked_d18"],
+          "row_ids": [
+            "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18"
+          ],
           "cell_status": "BLOCKED_VALUE_ROUTE",
           "value_status_when_run": "BLOCKED_VALUE_ROUTE",
           "gradient_status_when_run": "BLOCKED_VALUE_ROUTE",
-          "reason_codes": ["BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"],
+          "reason_codes": [
+            "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION"
+          ],
           "evidence_tests": [
             "tests/highdim/test_p53_m5_rank_selection_integration.py::test_p53_m5_result_manifest_preserves_blocker_and_forbids_downstream_tokens"
           ]
@@ -571,7 +698,9 @@
           "cell_status": "READY_VALUE_ONLY",
           "value_status_when_run": "VALID",
           "gradient_status_when_run": "GRADIENT_NOT_EXPOSED",
-          "reason_codes": ["REFERENCE_GRADIENT_NOT_AVAILABLE"],
+          "reason_codes": [
+            "REFERENCE_GRADIENT_NOT_AVAILABLE"
+          ],
           "evidence_tests": [
             "tests/highdim/test_p47_predator_prey_filtering.py::test_p47_m5_zhaocui_matches_dense_reference_value_and_state_moments",
             "tests/highdim/test_p51_predator_prey_production_tuning.py::test_p51_m4_result_emits_token_once_and_promoted_candidate_is_visible"
@@ -591,5 +720,47 @@
     "Gradient eligibility follows P3 reference policies and P6 gradient semantics.",
     "No DPF result is created in P4.",
     "No HMC, GPU, or Bayesian-estimation readiness is claimed."
-  ]
+  ],
+  "two_lane_comparison_contract": {
+    "comparison_program_master": "docs/plans/bayesfilter-two-lane-filter-comparison-master-program-2026-06-24.md",
+    "lowdim_same_target": {
+      "comparison_algorithm_ids": [
+        "fixed_sgqf",
+        "ukf",
+        "cut4",
+        "zhao_cui_scalar_or_multistate"
+      ],
+      "rankable_row_ids": [
+        "lgssm_exact_kalman_dim_1_2_3",
+        "p44_cubic_additive_gaussian_dim_1_2_3",
+        "p44_quadratic_observation_dim_1_2_3",
+        "p44_nonlinear_transition_h2_dim_1_2_3",
+        "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3"
+      ],
+      "diagnostic_only_row_ids": [
+        "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3"
+      ],
+      "sgqf_scope_qualifier": "tiny_same_target_surrogate_fixture_only for surrogate analytical-score admission"
+    },
+    "highdim_source_scope": {
+      "source_scope_contract": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-source-paper-scope-contract-2026-06-11.json",
+      "comparison_algorithm_ids": [
+        "fixed_sgqf",
+        "ukf",
+        "zhao_cui_scalar_or_multistate"
+      ],
+      "excluded_algorithm_ids": [
+        "cut4"
+      ],
+      "blocked_fixed_sgqf_lowdim_replacement_rows": [
+        "sv_exact_transformed_actual_nongaussian_dim_1_2_3",
+        "native_generalized_sv_dense_lower_rung_dim_2",
+        "spatial_sir_lower_rung_j1_dim_2",
+        "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18",
+        "predator_prey_lower_rung_dim_2",
+        "predator_prey_production_tuned_h25_dim_2"
+      ],
+      "actual_and_surrogate_sv_must_remain_separate": true
+    }
+  }
 }

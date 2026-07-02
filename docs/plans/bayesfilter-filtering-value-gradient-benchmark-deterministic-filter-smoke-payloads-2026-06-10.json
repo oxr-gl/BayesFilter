@@ -20,12 +20,19 @@
       "theta_dimension": 4,
       "observation_id": "p1_lgssm_obs_dim1_v1",
       "value": -3.125,
-      "gradient": [0.18, -0.07, 0.04, 0.01],
+      "gradient": [
+        0.18,
+        -0.07,
+        0.04,
+        0.01
+      ],
       "value_status": "VALID",
       "gradient_status": "VALID",
       "reference_type": "exact",
       "evidence_role": "diagnostic",
-      "reason_codes": ["NONE"],
+      "reason_codes": [
+        "NONE"
+      ],
       "diagnostics": {
         "target_registry_status": "PASS_FILTER_BENCH_P1_TARGET_REGISTRY",
         "adapter_contract": "filter_bench.adapter_payload.v1",
@@ -36,7 +43,11 @@
       "runtime_seconds": 0.004,
       "random_seed": null,
       "artifact_path": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-deterministic-filter-smoke-payloads-2026-06-10.json",
-      "nonclaims": ["fixture payload only", "no benchmark ranking", "no new numerical evidence"]
+      "nonclaims": [
+        "fixture payload only",
+        "no benchmark ranking",
+        "no new numerical evidence"
+      ]
     },
     {
       "payload_schema_version": "filter_bench.adapter_payload.v1",
@@ -56,7 +67,9 @@
       "gradient_status": "GRADIENT_NOT_EXPOSED",
       "reference_type": "dense_numerical",
       "evidence_role": "diagnostic",
-      "reason_codes": ["GRADIENT_NOT_EXPOSED"],
+      "reason_codes": [
+        "GRADIENT_NOT_EXPOSED"
+      ],
       "diagnostics": {
         "target_registry_status": "PASS_FILTER_BENCH_P1_TARGET_REGISTRY",
         "adapter_contract": "filter_bench.adapter_payload.v1",
@@ -69,7 +82,11 @@
       "runtime_seconds": 0.019,
       "random_seed": null,
       "artifact_path": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-deterministic-filter-smoke-payloads-2026-06-10.json",
-      "nonclaims": ["fixture payload only", "UKF smoke is not truth", "no gradient certification"]
+      "nonclaims": [
+        "fixture payload only",
+        "UKF smoke is not truth",
+        "no gradient certification"
+      ]
     },
     {
       "payload_schema_version": "filter_bench.adapter_payload.v1",
@@ -89,7 +106,9 @@
       "gradient_status": "GRADIENT_NOT_EXPOSED",
       "reference_type": "dense_numerical",
       "evidence_role": "diagnostic",
-      "reason_codes": ["GRADIENT_NOT_EXPOSED"],
+      "reason_codes": [
+        "GRADIENT_NOT_EXPOSED"
+      ],
       "diagnostics": {
         "target_registry_status": "PASS_FILTER_BENCH_P1_TARGET_REGISTRY",
         "adapter_contract": "filter_bench.adapter_payload.v1",
@@ -102,7 +121,11 @@
       "runtime_seconds": 0.018,
       "random_seed": null,
       "artifact_path": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-deterministic-filter-smoke-payloads-2026-06-10.json",
-      "nonclaims": ["fixture payload only", "no benchmark ranking", "no gradient certification"]
+      "nonclaims": [
+        "fixture payload only",
+        "no benchmark ranking",
+        "no gradient certification"
+      ]
     },
     {
       "payload_schema_version": "filter_bench.adapter_payload.v1",
@@ -122,7 +145,9 @@
       "gradient_status": "GRADIENT_NOT_EXPOSED",
       "reference_type": "dense_numerical",
       "evidence_role": "diagnostic",
-      "reason_codes": ["GRADIENT_NOT_EXPOSED"],
+      "reason_codes": [
+        "GRADIENT_NOT_EXPOSED"
+      ],
       "diagnostics": {
         "target_registry_status": "PASS_FILTER_BENCH_P1_TARGET_REGISTRY",
         "adapter_contract": "filter_bench.adapter_payload.v1",
@@ -135,7 +160,11 @@
       "runtime_seconds": 0.027,
       "random_seed": null,
       "artifact_path": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-deterministic-filter-smoke-payloads-2026-06-10.json",
-      "nonclaims": ["fixture payload only", "no benchmark ranking", "no gradient certification"]
+      "nonclaims": [
+        "fixture payload only",
+        "no benchmark ranking",
+        "no gradient certification"
+      ]
     },
     {
       "payload_schema_version": "filter_bench.adapter_payload.v1",
@@ -150,12 +179,21 @@
       "theta_dimension": 6,
       "observation_id": "p1_sv_obs_dim3_v1",
       "value": -7.441,
-      "gradient": null,
+      "gradient": [
+        0.02,
+        -0.01,
+        0.03,
+        -0.02,
+        0.01,
+        -0.03
+      ],
       "value_status": "VALID",
-      "gradient_status": "GRADIENT_NOT_EXPOSED",
+      "gradient_status": "VALID",
       "reference_type": "gaussian_mixture_surrogate",
       "evidence_role": "diagnostic",
-      "reason_codes": ["REFERENCE_GRADIENT_NOT_AVAILABLE"],
+      "reason_codes": [
+        "NONE"
+      ],
       "diagnostics": {
         "target_registry_status": "PASS_FILTER_BENCH_P1_TARGET_REGISTRY",
         "adapter_contract": "filter_bench.adapter_payload.v1",
@@ -164,7 +202,8 @@
         "fixed_sgqf_sparse_level": 2,
         "fixed_sgqf_cloud_point_count": 31,
         "smoke_scope": "P4 representation fixture only",
-        "filter_backend": "fixed_sgqf_independent_panel_transformed_sv_gaussian_mixture"
+        "filter_backend": "fixed_sgqf_independent_panel_transformed_sv_gaussian_mixture",
+        "wrapper_score_contract": "analytic_component_score_logsumexp_aggregation"
       },
       "runtime_seconds": 0.081,
       "random_seed": null,
@@ -173,7 +212,7 @@
         "fixture payload only",
         "surrogate target only",
         "no actual transformed non-Gaussian SV claim",
-        "no analytic outer mixture score certification"
+        "analytical-score admission only for the declared tiny same-target surrogate fixture"
       ]
     },
     {
@@ -189,12 +228,21 @@
       "theta_dimension": 6,
       "observation_id": "p1_sv_obs_dim3_v1",
       "value": -7.443,
-      "gradient": [0.02, -0.03, 0.01, 0.04, -0.02, 0.03],
+      "gradient": [
+        0.02,
+        -0.03,
+        0.01,
+        0.04,
+        -0.02,
+        0.03
+      ],
       "value_status": "VALID",
       "gradient_status": "VALID",
       "reference_type": "transformed_actual_nongaussian",
       "evidence_role": "diagnostic",
-      "reason_codes": ["NONE"],
+      "reason_codes": [
+        "NONE"
+      ],
       "diagnostics": {
         "target_registry_status": "PASS_FILTER_BENCH_P1_TARGET_REGISTRY",
         "adapter_contract": "filter_bench.adapter_payload.v1",

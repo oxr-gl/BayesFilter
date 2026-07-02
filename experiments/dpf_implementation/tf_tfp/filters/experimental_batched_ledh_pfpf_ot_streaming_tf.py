@@ -85,6 +85,9 @@ class StreamingLEDHPFPFOTValueTensors:
     filtered_means: tf.Tensor
     filtered_variances: tf.Tensor
     ess_by_time: tf.Tensor
+    final_particles: tf.Tensor
+    max_row_residual: tf.Tensor
+    max_column_residual: tf.Tensor
 
     def __post_init__(self) -> None:
         log_likelihood = _to_float_tensor(self.log_likelihood, "log_likelihood")
@@ -94,10 +97,16 @@ class StreamingLEDHPFPFOTValueTensors:
             "filtered_variances",
         )
         ess_by_time = _to_float_tensor(self.ess_by_time, "ess_by_time")
+        final_particles = _to_float_tensor(self.final_particles, "final_particles")
+        max_row_residual = _to_float_tensor(self.max_row_residual, "max_row_residual")
+        max_column_residual = _to_float_tensor(self.max_column_residual, "max_column_residual")
         _require_static_rank(log_likelihood, 1, "log_likelihood")
         _require_static_rank(filtered_means, 3, "filtered_means")
         _require_static_rank(filtered_variances, 3, "filtered_variances")
         _require_static_rank(ess_by_time, 2, "ess_by_time")
+        _require_static_rank(final_particles, 3, "final_particles")
+        _require_static_rank(max_row_residual, 0, "max_row_residual")
+        _require_static_rank(max_column_residual, 0, "max_column_residual")
         mean_shape = _static_shape(filtered_means, "filtered_means")
         variance_shape = _static_shape(filtered_variances, "filtered_variances")
         if variance_shape != mean_shape:
@@ -105,7 +114,7 @@ class StreamingLEDHPFPFOTValueTensors:
                 "filtered_variances shape mismatch: "
                 f"got {variance_shape}, expected {mean_shape}"
             )
-        time_steps, batch_size, _state_dim = mean_shape
+        time_steps, batch_size, state_dim = mean_shape
         _require_equal(
             _static_shape(log_likelihood, "log_likelihood")[0],
             batch_size,
@@ -118,10 +127,16 @@ class StreamingLEDHPFPFOTValueTensors:
                 f"got {_static_shape(ess_by_time, 'ess_by_time')}, "
                 f"expected {expected_ess_shape}"
             )
+        final_particle_shape = _static_shape(final_particles, "final_particles")
+        if final_particle_shape[0] != batch_size or final_particle_shape[2] != state_dim:
+            raise ValueError("final_particles shape mismatch")
         object.__setattr__(self, "log_likelihood", log_likelihood)
         object.__setattr__(self, "filtered_means", filtered_means)
         object.__setattr__(self, "filtered_variances", filtered_variances)
         object.__setattr__(self, "ess_by_time", ess_by_time)
+        object.__setattr__(self, "final_particles", final_particles)
+        object.__setattr__(self, "max_row_residual", max_row_residual)
+        object.__setattr__(self, "max_column_residual", max_column_residual)
 
 
 def batched_ledh_flow_streaming_particles_tf(
@@ -275,6 +290,7 @@ def streaming_batched_ledh_pfpf_ot_value_core_tf(
     annealed_convergence_threshold: float | tf.Tensor = 1.0e-3,
     sinkhorn_iterations: int | tf.Tensor = 80,
     ledh_jitter: float | tf.Tensor = 1.0e-9,
+    transport_gradient_mode: str = "raw",
     transport_plan_mode: str = "streaming",
     transport_ad_mode: str = "stabilized",
     row_chunk_size: int = DEFAULT_STREAMING_CHUNK_SIZE,
@@ -424,7 +440,7 @@ def streaming_batched_ledh_pfpf_ot_value_core_tf(
         )
         mask = fixed_resampling_mask[:, time_index]
 
-        def do_transport() -> tuple[tf.Tensor, tf.Tensor]:
+        def do_transport() -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
             warmstart_state = None
             if retained_teacher_warmstart_fn is not None:
                 normalized_center = tf.reduce_mean(post_flow, axis=1, keepdims=True)
@@ -444,31 +460,46 @@ def streaming_batched_ledh_pfpf_ot_value_core_tf(
                 scaling=annealed_scaling,
                 convergence_threshold=annealed_convergence_threshold,
                 max_iterations=sinkhorn_iterations,
-                transport_gradient_mode="raw",
+                transport_gradient_mode=transport_gradient_mode,
                 transport_plan_mode=transport_plan_mode,
                 transport_ad_mode=transport_ad_mode,
                 row_chunk_size=row_chunk_size,
                 col_chunk_size=col_chunk_size,
                 warmstart_state=warmstart_state,
             )
-            return transported.particles, transported.log_weights
+            return (
+                transported.particles,
+                transported.log_weights,
+                transported.max_row_residual,
+                transported.max_column_residual,
+            )
 
-        def skip_transport() -> tuple[tf.Tensor, tf.Tensor]:
-            return post_flow, normalized_log_weights
+        def skip_transport() -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
+            zero = tf.constant(0.0, dtype=DTYPE)
+            return post_flow, normalized_log_weights, zero, zero
 
         dynamic_no_resampling = tf.logical_not(tf.reduce_any(mask))
         if static_no_resampling:
-            next_particles, next_log_weights = skip_transport()
+            next_particles, next_log_weights, step_row_residual, step_column_residual = skip_transport()
         elif skip_transport_when_no_active:
-            next_particles, next_log_weights = tf.cond(
+            next_particles, next_log_weights, step_row_residual, step_column_residual = tf.cond(
                 dynamic_no_resampling,
                 skip_transport,
                 do_transport,
             )
         else:
-            next_particles, next_log_weights = do_transport()
+            next_particles, next_log_weights, step_row_residual, step_column_residual = do_transport()
 
-        return next_particles, next_log_weights, next_log_likelihood, mean, variance, ess
+        return (
+            next_particles,
+            next_log_weights,
+            next_log_likelihood,
+            mean,
+            variance,
+            ess,
+            step_row_residual,
+            step_column_residual,
+        )
 
     if return_history:
         means_ta = tf.TensorArray(
@@ -495,6 +526,8 @@ def streaming_batched_ledh_pfpf_ot_value_core_tf(
             _means_ta: tf.TensorArray,
             _variances_ta: tf.TensorArray,
             _ess_ta: tf.TensorArray,
+            _max_row_residual: tf.Tensor,
+            _max_column_residual: tf.Tensor,
         ) -> tf.Tensor:
             return time_index < time_steps_tensor
 
@@ -506,6 +539,8 @@ def streaming_batched_ledh_pfpf_ot_value_core_tf(
             means_acc: tf.TensorArray,
             variances_acc: tf.TensorArray,
             ess_acc: tf.TensorArray,
+            current_max_row_residual: tf.Tensor,
+            current_max_column_residual: tf.Tensor,
         ):
             (
                 next_particles,
@@ -514,6 +549,8 @@ def streaming_batched_ledh_pfpf_ot_value_core_tf(
                 mean,
                 variance,
                 ess,
+                row_residual,
+                column_residual,
             ) = step_body(
                 time_index,
                 current_particles,
@@ -532,6 +569,8 @@ def streaming_batched_ledh_pfpf_ot_value_core_tf(
                 means_acc,
                 variances_acc,
                 ess_acc,
+                tf.maximum(current_max_row_residual, row_residual),
+                tf.maximum(current_max_column_residual, column_residual),
             )
 
         (
@@ -542,6 +581,8 @@ def streaming_batched_ledh_pfpf_ot_value_core_tf(
             means_ta,
             variances_ta,
             ess_ta,
+            max_row_residual_overall,
+            max_column_residual_overall,
         ) = tf.while_loop(
             history_cond,
             history_body,
@@ -553,6 +594,8 @@ def streaming_batched_ledh_pfpf_ot_value_core_tf(
                 means_ta,
                 variances_ta,
                 ess_ta,
+                tf.constant(0.0, dtype=DTYPE),
+                tf.constant(0.0, dtype=DTYPE),
             ),
             parallel_iterations=1,
             maximum_iterations=time_steps_tensor,
@@ -564,13 +607,25 @@ def streaming_batched_ledh_pfpf_ot_value_core_tf(
         filtered_variances.set_shape([time_steps, batch_size, state_dim])
         ess_by_time.set_shape([time_steps, batch_size])
     else:
+        def likelihood_cond(
+            time_index: tf.Tensor,
+            _particles: tf.Tensor,
+            _log_weights: tf.Tensor,
+            _log_likelihood: tf.Tensor,
+            _max_row_residual: tf.Tensor,
+            _max_column_residual: tf.Tensor,
+        ) -> tf.Tensor:
+            return time_index < time_steps_tensor
+
         def likelihood_body(
             time_index: tf.Tensor,
             current_particles: tf.Tensor,
             current_log_weights: tf.Tensor,
             current_log_likelihood: tf.Tensor,
+            current_max_row_residual: tf.Tensor,
+            current_max_column_residual: tf.Tensor,
         ):
-            next_particles, next_log_weights, next_log_likelihood, _, _, _ = step_body(
+            next_particles, next_log_weights, next_log_likelihood, _, _, _, row_residual, column_residual = step_body(
                 time_index,
                 current_particles,
                 current_log_weights,
@@ -582,6 +637,8 @@ def streaming_batched_ledh_pfpf_ot_value_core_tf(
                 next_particles,
                 next_log_weights,
                 next_log_likelihood,
+                tf.maximum(current_max_row_residual, row_residual),
+                tf.maximum(current_max_column_residual, column_residual),
             )
 
         (
@@ -589,6 +646,8 @@ def streaming_batched_ledh_pfpf_ot_value_core_tf(
             _final_particles,
             _final_log_weights,
             log_likelihood,
+            max_row_residual_overall,
+            max_column_residual_overall,
         ) = tf.while_loop(
             likelihood_cond,
             likelihood_body,
@@ -597,6 +656,8 @@ def streaming_batched_ledh_pfpf_ot_value_core_tf(
                 particles,
                 log_weights,
                 log_likelihood,
+                tf.constant(0.0, dtype=DTYPE),
+                tf.constant(0.0, dtype=DTYPE),
             ),
             parallel_iterations=1,
             maximum_iterations=time_steps_tensor,
@@ -605,11 +666,15 @@ def streaming_batched_ledh_pfpf_ot_value_core_tf(
         filtered_variances = tf.zeros([0, batch_size, state_dim], dtype=DTYPE)
         ess_by_time = tf.zeros([0, batch_size], dtype=DTYPE)
 
+    _final_particles.set_shape([batch_size, num_particles, state_dim])
     return StreamingLEDHPFPFOTValueTensors(
         log_likelihood=log_likelihood,
         filtered_means=filtered_means,
         filtered_variances=filtered_variances,
         ess_by_time=ess_by_time,
+        final_particles=_final_particles,
+        max_row_residual=max_row_residual_overall,
+        max_column_residual=max_column_residual_overall,
     )
 
 

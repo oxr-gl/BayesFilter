@@ -24,6 +24,9 @@ from experiments.dpf_implementation.tf_tfp.filters.experimental_batched_ledh_pfp
     BatchedLEDHPFPFOTCallbacks,
     BatchedLEDHPFPFOTFixedInputs,
     BatchedLEDHPFPFOTValueTensors,
+    MANUAL_DENSE_FINITE_TRANSPORT_GRADIENT_MODE,
+    MANUAL_STREAMING_BLOCKWISE_VJP_FINITE_TRANSPORT_GRADIENT_MODE,
+    MANUAL_STREAMING_FINITE_TRANSPORT_GRADIENT_MODE,
     SCALAR_PARITY_ATOL,
     SCALAR_PARITY_RTOL,
     TRANSPORT_PARITY_ATOL,
@@ -1129,3 +1132,161 @@ def test_phase4_value_and_score_source_has_no_numpy_rng_or_runtime_ess_branch() 
     assert "ess <" not in source
     assert "ess_threshold" not in source
     assert "GradientTape" in source
+
+
+def test_m5_manual_dense_value_and_score_tiny_opt_in_smoke() -> None:
+    theta = _score_theta_batch(2)
+    fixture = _score_fixture(2)
+    manual = _value_score_from_theta(
+        theta,
+        fixture,
+        transport_gradient_mode=MANUAL_DENSE_FINITE_TRANSPORT_GRADIENT_MODE,
+    )
+
+    assert manual.log_likelihood.shape == (2,)
+    assert manual.score.shape == (2, 3)
+    assert bool(tf.reduce_all(tf.math.is_finite(manual.log_likelihood)).numpy())
+    assert bool(tf.reduce_all(tf.math.is_finite(manual.score)).numpy())
+
+    @tf.function(reduce_retracing=True)
+    def graph(values: tf.Tensor) -> tuple[tf.Tensor, tf.Tensor]:
+        result = _value_score_from_theta(
+            values,
+            fixture,
+            transport_gradient_mode=MANUAL_DENSE_FINITE_TRANSPORT_GRADIENT_MODE,
+        )
+        return result.log_likelihood, result.score
+
+    graph_value, graph_score = graph(theta)
+    np.testing.assert_allclose(
+        graph_value.numpy(),
+        manual.log_likelihood.numpy(),
+        atol=1.0e-10,
+        rtol=1.0e-10,
+    )
+    np.testing.assert_allclose(
+        graph_score.numpy(),
+        manual.score.numpy(),
+        atol=1.0e-10,
+        rtol=1.0e-10,
+    )
+    assert len(graph._list_all_concrete_functions_for_serialization()) == 1
+
+
+def test_m6_manual_streaming_value_and_score_tiny_opt_in_smoke() -> None:
+    theta = _score_theta_batch(2)
+    fixture = _score_fixture(2)
+
+    def value_from_theta(values: tf.Tensor):
+        transition_matrix = values[:, 0:1, None]
+        transition_covariance = tf.exp(values[:, 1:2])[:, :, None]
+        observation_covariance = tf.exp(values[:, 2:3])[:, :, None]
+        return batched_ledh_pfpf_ot_value_core_tf(
+            observations=fixture["observations"],
+            initial_particles=fixture["initial_particles"],
+            pre_flow_particles=fixture["pre_flow_particles"],
+            fixed_resampling_mask=fixture["fixed_resampling_mask"],
+            transition_matrix=transition_matrix,
+            transition_covariance=transition_covariance,
+            observation_covariance=observation_covariance,
+            observation_fn=_value_observation,
+            observation_jacobian_fn=_value_observation_jacobian,
+            observation_residual_fn=_value_observation_residual,
+            transition_log_density_fn=_make_value_transition_log_density(
+                transition_matrix,
+                transition_covariance,
+            ),
+            observation_log_density_fn=_value_observation_log_density,
+            sinkhorn_iterations=2,
+            transport_gradient_mode=MANUAL_STREAMING_FINITE_TRANSPORT_GRADIENT_MODE,
+            transport_plan_mode="streaming",
+            row_chunk_size=2,
+            col_chunk_size=2,
+        )
+
+    manual = batched_ledh_pfpf_ot_value_and_score_tf(theta, value_from_theta)
+
+    assert manual.log_likelihood.shape == (2,)
+    assert manual.score.shape == (2, 3)
+    assert bool(tf.reduce_all(tf.math.is_finite(manual.log_likelihood)).numpy())
+    assert bool(tf.reduce_all(tf.math.is_finite(manual.score)).numpy())
+
+    @tf.function(reduce_retracing=True)
+    def graph(values: tf.Tensor) -> tuple[tf.Tensor, tf.Tensor]:
+        result = batched_ledh_pfpf_ot_value_and_score_tf(values, value_from_theta)
+        return result.log_likelihood, result.score
+
+    graph_value, graph_score = graph(theta)
+    np.testing.assert_allclose(
+        graph_value.numpy(),
+        manual.log_likelihood.numpy(),
+        atol=1.0e-10,
+        rtol=1.0e-10,
+    )
+    np.testing.assert_allclose(
+        graph_score.numpy(),
+        manual.score.numpy(),
+        atol=1.0e-10,
+        rtol=1.0e-10,
+    )
+    assert len(graph._list_all_concrete_functions_for_serialization()) == 1
+
+
+def test_s6_blockwise_manual_streaming_value_and_score_tiny_opt_in_smoke() -> None:
+    theta = _score_theta_batch(2)
+    fixture = _score_fixture(2)
+
+    def value_from_theta(values: tf.Tensor):
+        transition_matrix = values[:, 0:1, None]
+        transition_covariance = tf.exp(values[:, 1:2])[:, :, None]
+        observation_covariance = tf.exp(values[:, 2:3])[:, :, None]
+        return batched_ledh_pfpf_ot_value_core_tf(
+            observations=fixture["observations"],
+            initial_particles=fixture["initial_particles"],
+            pre_flow_particles=fixture["pre_flow_particles"],
+            fixed_resampling_mask=fixture["fixed_resampling_mask"],
+            transition_matrix=transition_matrix,
+            transition_covariance=transition_covariance,
+            observation_covariance=observation_covariance,
+            observation_fn=_value_observation,
+            observation_jacobian_fn=_value_observation_jacobian,
+            observation_residual_fn=_value_observation_residual,
+            transition_log_density_fn=_make_value_transition_log_density(
+                transition_matrix,
+                transition_covariance,
+            ),
+            observation_log_density_fn=_value_observation_log_density,
+            sinkhorn_iterations=2,
+            transport_gradient_mode=MANUAL_STREAMING_BLOCKWISE_VJP_FINITE_TRANSPORT_GRADIENT_MODE,
+            transport_plan_mode="streaming",
+            transport_ad_mode="stabilized",
+            row_chunk_size=2,
+            col_chunk_size=2,
+        )
+
+    manual = batched_ledh_pfpf_ot_value_and_score_tf(theta, value_from_theta)
+
+    assert manual.log_likelihood.shape == (2,)
+    assert manual.score.shape == (2, 3)
+    assert bool(tf.reduce_all(tf.math.is_finite(manual.log_likelihood)).numpy())
+    assert bool(tf.reduce_all(tf.math.is_finite(manual.score)).numpy())
+
+    @tf.function(reduce_retracing=True)
+    def graph(values: tf.Tensor) -> tuple[tf.Tensor, tf.Tensor]:
+        result = batched_ledh_pfpf_ot_value_and_score_tf(values, value_from_theta)
+        return result.log_likelihood, result.score
+
+    graph_value, graph_score = graph(theta)
+    np.testing.assert_allclose(
+        graph_value.numpy(),
+        manual.log_likelihood.numpy(),
+        atol=1.0e-10,
+        rtol=1.0e-10,
+    )
+    np.testing.assert_allclose(
+        graph_score.numpy(),
+        manual.score.numpy(),
+        atol=1.0e-10,
+        rtol=1.0e-10,
+    )
+    assert len(graph._list_all_concrete_functions_for_serialization()) == 1

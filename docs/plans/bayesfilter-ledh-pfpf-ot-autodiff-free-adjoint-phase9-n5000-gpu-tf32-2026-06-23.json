@@ -1,0 +1,282 @@
+{
+  "batch_seeds": [
+    81120,
+    81121,
+    81122,
+    81123,
+    81124
+  ],
+  "device": "/GPU:0",
+  "device_scope": "visible",
+  "elapsed_seconds": 2404.353009808008,
+  "expect_device_kind": "gpu",
+  "git_commit": "97ad05d40676f3fd15a2a2b4d45034ebb657ed97",
+  "gradient": {
+    "log_kappa_scale": -154.6905517578125,
+    "log_nu_scale": 69.28536224365234,
+    "log_obs_noise_scale": 47.51017761230469
+  },
+  "gradient_finite": true,
+  "gradient_values": [
+    -154.6905517578125,
+    69.28536224365234,
+    47.51017761230469
+  ],
+  "gradients_connected": true,
+  "host": "DESKTOP-RF1Q5IJ",
+  "logical_gpus": [
+    "LogicalDevice(name='/device:GPU:0', device_type='GPU')"
+  ],
+  "monte_carlo_gradient_noise": {
+    "log_kappa_scale": {
+      "batch_size": 5,
+      "max": -129.51104736328125,
+      "mean": -154.6905517578125,
+      "min": -174.40957641601562,
+      "sample_sd_across_seed_contributions": 16.553430557250977,
+      "standard_error_of_batch_mean": 7.402919769287109
+    },
+    "log_nu_scale": {
+      "batch_size": 5,
+      "max": 74.05716705322266,
+      "mean": 69.28536224365234,
+      "min": 63.9713134765625,
+      "sample_sd_across_seed_contributions": 3.6041669845581055,
+      "standard_error_of_batch_mean": 1.611832618713379
+    },
+    "log_obs_noise_scale": {
+      "batch_size": 5,
+      "max": 47.64971923828125,
+      "mean": 47.51017761230469,
+      "min": 47.222713470458984,
+      "sample_sd_across_seed_contributions": 0.18261413276195526,
+      "standard_error_of_batch_mean": 0.08166752755641937
+    }
+  },
+  "monte_carlo_gradient_noise_mcse_finite": true,
+  "nonclaims": [
+    "P8p diagnostic parameterized SIR d18 target only",
+    "not the fixed-parameter P8o leaderboard cell",
+    "not stochastic PF marginal-gradient correctness",
+    "not exact nonlinear likelihood correctness",
+    "not HMC/NUTS readiness",
+    "not posterior convergence",
+    "not production/default readiness",
+    "not Zhao-Cui TT/SIRT or MATLAB parity",
+    "regression FD diagnostic only",
+    "not a global reparameterization proof",
+    "not HMC geometry adequacy evidence"
+  ],
+  "objective": -125.61854553222656,
+  "objective_finite": true,
+  "output_devices": [
+    "/job:localhost/replica:0/task:0/device:GPU:0",
+    "/job:localhost/replica:0/task:0/device:GPU:0"
+  ],
+  "parameter_order": [
+    "log_kappa_scale",
+    "log_nu_scale",
+    "log_obs_noise_scale"
+  ],
+  "per_seed_gradient_contributions": [
+    [
+      -174.40957641601562,
+      74.05716705322266,
+      47.222713470458984
+    ],
+    [
+      -150.13548278808594,
+      68.885498046875,
+      47.63665771484375
+    ],
+    [
+      -158.62290954589844,
+      69.33978271484375,
+      47.607666015625
+    ],
+    [
+      -129.51104736328125,
+      63.9713134765625,
+      47.64971923828125
+    ],
+    [
+      -160.77371215820312,
+      70.17304992675781,
+      47.43413162231445
+    ]
+  ],
+  "phase": "P9 no-autodiff manual-reverse actual-gradient N5000 GPU TF32",
+  "physical_gpus": [
+    "PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')"
+  ],
+  "precision": {
+    "active_dtype": "float32",
+    "default_algorithm_target": "ledh_pfpf_ot_tf32",
+    "default_dtype": "float32",
+    "default_execution_target": "gpu",
+    "default_route_acceptance": "accepted_default_use_whenever_possible",
+    "default_route_guidance": "use for BayesFilter DPF LEDH-PFPF-OT work whenever GPU execution and the streaming fixed-branch contract are applicable",
+    "default_route_rationale": "streaming GPU TF32 LEDH-PFPF-OT avoids dense transport/history storage for large-particle DPF transport while preserving explicit reference and fallback arms",
+    "default_target_status": "production_default_by_owner_directive",
+    "default_tf32_mode": "enabled",
+    "dtype": "float32",
+    "fp64_reference_requires_explicit_dtype": true,
+    "historical_module_path": "experiments/dpf_implementation",
+    "precision_default_policy": "production_ledh_pfpf_ot_gpu_tf32",
+    "public_api_exposure": "separately_gated",
+    "scope": "production_ledh_pfpf_ot_gpu_tf32_default_lane",
+    "tf32_execution_enabled": true,
+    "tf32_mode": "enabled",
+    "tf_dtype": "float32"
+  },
+  "primary_pass": true,
+  "primary_pass_criterion": "finite objective, finite gradient components, finite seed-gradient MCSE values, and connected manual score route; not FD agreement or scientific validity",
+  "python_version": "3.11.14",
+  "regression_fd": {
+    "ad_evaluation_mode": "manual-reverse",
+    "adaptive_step_factors": [
+      1.0,
+      0.5,
+      0.25
+    ],
+    "base_step": 0.001,
+    "base_step_ladder": [
+      0.001
+    ],
+    "base_step_mode": "fixed",
+    "basis_results": [],
+    "basis_set": "raw",
+    "fd_mode": "ad-only",
+    "max_adaptive_base_step": 0.05,
+    "method": "ordinary least squares fit f(theta0 + x direction) = intercept + slope * x",
+    "min_adaptive_base_step": 0.00025,
+    "offsets": [
+      -4.0,
+      -3.0,
+      -2.0,
+      -1.0,
+      0.0,
+      1.0,
+      2.0,
+      3.0,
+      4.0
+    ],
+    "target_objective_delta": 0.15,
+    "trim_extreme_mode": "offset",
+    "trim_extreme_offsets": 0
+  },
+  "schema_version": "filter_bench.p8p_regression_fd_reparameterization.v1",
+  "seed_gradient_geometry": {
+    "parameter_order": [
+      "log_kappa_scale",
+      "log_nu_scale",
+      "log_obs_noise_scale"
+    ],
+    "seed_gradient_correlation": [
+      [
+        1.0000001192092896,
+        -0.9861321449279785,
+        0.8135812282562256
+      ],
+      [
+        -0.9861321449279785,
+        1.0,
+        -0.8455346822738647
+      ],
+      [
+        0.8135812282562256,
+        -0.8455346822738647,
+        1.0
+      ]
+    ],
+    "seed_gradient_covariance": [
+      [
+        274.0160827636719,
+        -58.833953857421875,
+        2.459366798400879
+      ],
+      [
+        -58.833953857421875,
+        12.990019798278809,
+        -0.5565071105957031
+      ],
+      [
+        2.459366798400879,
+        -0.5565071105957031,
+        0.033347923308610916
+      ]
+    ]
+  },
+  "shape": {
+    "ad_evaluation_mode": "manual-reverse",
+    "batch_size": 5,
+    "num_particles": 5000,
+    "obs_dim": 9,
+    "parameter_dim": 3,
+    "seed_microbatch_count": 5,
+    "seed_microbatch_size": 1,
+    "state_dim": 18,
+    "time_steps": 3
+  },
+  "sir_semantics": {
+    "actual_sir_callback_usage": "initial_sample, process/observation covariance callbacks, observation metadata, and route metadata",
+    "actual_sir_callbacks_used": true,
+    "adapter_classification": "BayesFilter DPF adapter for fixed-parameter SIR; not Zhao-Cui TT/SIRT source-faithfulness evidence",
+    "experimental_streaming_adapter_route": "batched nonlinear-prior LEDH-PFPF-OT streaming adapter with fixed process covariance, not scalar Li-Coates Algorithm 1 UKF covariance lifecycle parity",
+    "flow_observation_contract": "same_observation_gaussian_sir_infectious_components",
+    "graph_compatible_sir_transition_copy_used": true,
+    "graph_compatible_sir_transition_source": "bayesfilter.highdim.zhao_cui_sir_austria_model RK4 zhao_cui_sir_step equations, copied into TensorFlow graph form because the model validation path uses eager .numpy() checks",
+    "nonlinear_prior_mean_hook_used": true,
+    "observation_dimension": 9,
+    "process_noise_policy": "clip_susceptible_after_noise",
+    "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+    "scalar_algorithm1_ukf_covariance_lifecycle_parity_claim": false,
+    "seed_microbatching": {
+      "combination_rule": "exact seed-weighted batch mean over independent fixed-seed evaluations",
+      "enabled": true,
+      "seed_groups": [
+        [
+          81120
+        ],
+        [
+          81121
+        ],
+        [
+          81122
+        ],
+        [
+          81123
+        ],
+        [
+          81124
+        ]
+      ],
+      "seed_microbatch_size": 1
+    },
+    "state_dimension": 18,
+    "target_density_used_for_correction": true
+  },
+  "status": "pass",
+  "tensorflow_version": "2.19.1",
+  "theta": {
+    "log_kappa_scale": 0.02,
+    "log_nu_scale": -0.01,
+    "log_obs_noise_scale": 0.01
+  },
+  "timestamp_utc": "2026-06-23T15:30:24.115282+00:00",
+  "transport": {
+    "annealed_convergence_threshold": 0.001,
+    "annealed_scaling": 0.9,
+    "col_chunk_size": 512,
+    "dense_transport_matrix_materialized": false,
+    "gradient_mode": "manual_streaming_finite_sinkhorn_stopped_scale_keys",
+    "particle_chunk_size": 512,
+    "row_chunk_size": 512,
+    "sinkhorn_epsilon": 1.0,
+    "sinkhorn_iterations": 10,
+    "transport_ad_mode": "stabilized",
+    "transport_plan_mode": "streaming",
+    "value_core_mode": "streaming"
+  },
+  "transport_policy": "active-all"
+}

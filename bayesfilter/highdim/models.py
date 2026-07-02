@@ -303,6 +303,20 @@ class StochasticVolatilitySSM:
         )
         return distribution.log_prob(values[:, 0])
 
+    def initial_log_density_parameter_score(self, theta: tf.Tensor, x0: tf.Tensor) -> tf.Tensor:
+        values = _as_row_matrix(x0, self.state_dim(), "x0")
+        parameters = self.physical_parameters(theta)
+        gamma = parameters["gamma"]
+        theta_vector = _as_parameter_vector(theta, self.parameter_dim(), "theta")
+        dgamma_dtheta0 = _standard_normal().prob(theta_vector[0])
+        one_minus_gamma_sq = 1.0 - tf.square(gamma)
+        gamma_score = (
+            -gamma / one_minus_gamma_sq
+            + gamma * tf.square(values[:, 0]) / tf.square(self.sigma)
+        ) * dgamma_dtheta0
+        zero_beta_score = tf.zeros_like(gamma_score, dtype=tf.float64)
+        return tf.stack([gamma_score, zero_beta_score], axis=1)
+
     def transition_log_density(
         self,
         theta: tf.Tensor,
@@ -319,6 +333,25 @@ class StochasticVolatilitySSM:
             scale=self.sigma,
         )
         return distribution.log_prob(next_values[:, 0])
+
+    def transition_log_density_parameter_score(
+        self,
+        theta: tf.Tensor,
+        x_prev: tf.Tensor,
+        x_next: tf.Tensor,
+        t: int,
+    ) -> tf.Tensor:
+        del t
+        previous = _as_row_matrix(x_prev, self.state_dim(), "x_prev")
+        next_values = _as_row_matrix(x_next, self.state_dim(), "x_next")
+        parameters = self.physical_parameters(theta)
+        gamma = parameters["gamma"]
+        theta_vector = _as_parameter_vector(theta, self.parameter_dim(), "theta")
+        dgamma_dtheta0 = _standard_normal().prob(theta_vector[0])
+        residual = next_values[:, 0] - gamma * previous[:, 0]
+        gamma_score = residual * previous[:, 0] / tf.square(self.sigma) * dgamma_dtheta0
+        zero_beta_score = tf.zeros_like(gamma_score, dtype=tf.float64)
+        return tf.stack([gamma_score, zero_beta_score], axis=1)
 
     def observation_log_density(
         self,
@@ -337,6 +370,23 @@ class StochasticVolatilitySSM:
             scale=scale,
         )
         return distribution.log_prob(tf.broadcast_to(observation[0], tf.shape(scale)))
+
+    def observation_log_density_parameter_score(
+        self,
+        theta: tf.Tensor,
+        x_t: tf.Tensor,
+        y_t: tf.Tensor,
+        t: int,
+    ) -> tf.Tensor:
+        del t
+        values = _as_row_matrix(x_t, self.state_dim(), "x_t")
+        observation = tf.reshape(tf.convert_to_tensor(y_t, dtype=tf.float64), [self.observation_dim()])
+        parameters = self.physical_parameters(theta)
+        beta = parameters["beta"]
+        variance = tf.square(beta) * tf.exp(values[:, 0])
+        beta_score = tf.square(observation[0]) / variance - 1.0
+        gamma_score = tf.zeros_like(beta_score, dtype=tf.float64)
+        return tf.stack([gamma_score, beta_score], axis=1)
 
     def simulate(
         self,
@@ -369,6 +419,180 @@ class StochasticVolatilitySSM:
             "parameter_transform": "theta_prime=(Phi^{-1}(gamma), log(beta)); X_prime_t=X_t",
             "source_equations": ("eq:p27-sv1", "eq:p27-sv2", "eq:p27-sv3", "eq:p27-sv5a"),
             "dimension_convention": "synthetic row includes x_0:x_T; joint dimension is 2+(T+1)",
+        }
+
+
+@dataclass(frozen=True)
+class GeneralizedSVPriorMeanSSM:
+    """Scalar generalized-SV source-row target with explicit theta scores.
+
+    The row follows the generated prior-mean benchmark target:
+    ``theta=(z_gamma, log_tau, mu_over_tau)``, ``gamma=Phi(z_gamma)``,
+    ``tau=exp(log_tau)``, and ``mu=mu_over_tau * tau``.  The source-route
+    anchors are the mirrored Zhao-Cui `svmodels` transformations and densities.
+    """
+
+    process_scale: float | tf.Tensor = 1.0
+    source_route_label: str = "zhao_cui_svmodels_prior_mean_delta0_gaussian_shock"
+
+    def __post_init__(self) -> None:
+        process_scale = tf.convert_to_tensor(self.process_scale, dtype=tf.float64)
+        if process_scale.shape.rank != 0:
+            raise ValueError(f"process_scale: {HighDimStatus.INVALID_SHAPE.value}")
+        if not bool(tf.math.is_finite(process_scale).numpy()) or bool((process_scale <= 0.0).numpy()):
+            raise ValueError(f"process_scale: {HighDimStatus.NONFINITE_VALUE.value}")
+        object.__setattr__(self, "process_scale", process_scale)
+
+    def parameter_dim(self) -> int:
+        return 3
+
+    def state_dim(self) -> int:
+        return 1
+
+    def observation_dim(self) -> int:
+        return 1
+
+    def physical_parameters(self, theta: tf.Tensor) -> Mapping[str, tf.Tensor]:
+        theta_vector = _as_parameter_vector(theta, self.parameter_dim(), "theta")
+        standard_normal = _standard_normal()
+        gamma = standard_normal.cdf(theta_vector[0])
+        tau = tf.exp(theta_vector[1])
+        mu = theta_vector[2] * tau
+        return {"gamma": gamma, "tau": tau, "mu": mu}
+
+    def initial_log_density(self, theta: tf.Tensor, x0: tf.Tensor) -> tf.Tensor:
+        values = _as_row_matrix(x0, self.state_dim(), "x0")
+        parameters = self.physical_parameters(theta)
+        gamma = parameters["gamma"]
+        mu = parameters["mu"]
+        stationary_variance = tf.square(self.process_scale) / (1.0 - tf.square(gamma))
+        distribution = tfp.distributions.Normal(loc=mu, scale=tf.sqrt(stationary_variance))
+        return distribution.log_prob(values[:, 0])
+
+    def initial_log_density_parameter_score(self, theta: tf.Tensor, x0: tf.Tensor) -> tf.Tensor:
+        values = _as_row_matrix(x0, self.state_dim(), "x0")
+        theta_vector = _as_parameter_vector(theta, self.parameter_dim(), "theta")
+        parameters = self.physical_parameters(theta)
+        gamma = parameters["gamma"]
+        tau = parameters["tau"]
+        mu = parameters["mu"]
+        dgamma = _standard_normal().prob(theta_vector[0])
+        dmu_dlog_tau = mu
+        dmu_dtheta2 = tau
+        one_minus_gamma_sq = 1.0 - tf.square(gamma)
+        centered = values[:, 0] - mu
+        gamma_score = (
+            -gamma / one_minus_gamma_sq
+            + gamma * tf.square(centered) / tf.square(self.process_scale)
+        ) * dgamma
+        mu_score_physical = centered * one_minus_gamma_sq / tf.square(self.process_scale)
+        log_tau_score = mu_score_physical * dmu_dlog_tau
+        theta2_score = mu_score_physical * dmu_dtheta2
+        return tf.stack([gamma_score, log_tau_score, theta2_score], axis=1)
+
+    def transition_log_density(
+        self,
+        theta: tf.Tensor,
+        x_prev: tf.Tensor,
+        x_next: tf.Tensor,
+        t: int,
+    ) -> tf.Tensor:
+        del t
+        previous = _as_row_matrix(x_prev, self.state_dim(), "x_prev")
+        next_values = _as_row_matrix(x_next, self.state_dim(), "x_next")
+        parameters = self.physical_parameters(theta)
+        gamma = parameters["gamma"]
+        mu = parameters["mu"]
+        loc = mu + gamma * (previous[:, 0] - mu)
+        distribution = tfp.distributions.Normal(loc=loc, scale=self.process_scale)
+        return distribution.log_prob(next_values[:, 0])
+
+    def transition_log_density_parameter_score(
+        self,
+        theta: tf.Tensor,
+        x_prev: tf.Tensor,
+        x_next: tf.Tensor,
+        t: int,
+    ) -> tf.Tensor:
+        del t
+        previous = _as_row_matrix(x_prev, self.state_dim(), "x_prev")
+        next_values = _as_row_matrix(x_next, self.state_dim(), "x_next")
+        theta_vector = _as_parameter_vector(theta, self.parameter_dim(), "theta")
+        parameters = self.physical_parameters(theta)
+        gamma = parameters["gamma"]
+        tau = parameters["tau"]
+        mu = parameters["mu"]
+        dgamma = _standard_normal().prob(theta_vector[0])
+        dmu_dlog_tau = mu
+        dmu_dtheta2 = tau
+        loc = mu + gamma * (previous[:, 0] - mu)
+        residual = next_values[:, 0] - loc
+        physical_scale = tf.square(self.process_scale)
+        gamma_score = residual * (previous[:, 0] - mu) / physical_scale * dgamma
+        mu_score_physical = residual * (1.0 - gamma) / physical_scale
+        log_tau_score = mu_score_physical * dmu_dlog_tau
+        theta2_score = mu_score_physical * dmu_dtheta2
+        return tf.stack([gamma_score, log_tau_score, theta2_score], axis=1)
+
+    def observation_log_density(
+        self,
+        theta: tf.Tensor,
+        x_t: tf.Tensor,
+        y_t: tf.Tensor,
+        t: int,
+    ) -> tf.Tensor:
+        del t
+        values = _as_row_matrix(x_t, self.state_dim(), "x_t")
+        observation = tf.reshape(tf.convert_to_tensor(y_t, dtype=tf.float64), [self.observation_dim()])
+        parameters = self.physical_parameters(theta)
+        tau = parameters["tau"]
+        variance = tf.exp(tau * values[:, 0])
+        scale = tf.sqrt(variance)
+        distribution = tfp.distributions.Normal(loc=tf.zeros_like(scale), scale=scale)
+        return distribution.log_prob(tf.broadcast_to(observation[0], tf.shape(scale)))
+
+    def observation_log_density_parameter_score(
+        self,
+        theta: tf.Tensor,
+        x_t: tf.Tensor,
+        y_t: tf.Tensor,
+        t: int,
+    ) -> tf.Tensor:
+        del t
+        values = _as_row_matrix(x_t, self.state_dim(), "x_t")
+        observation = tf.reshape(tf.convert_to_tensor(y_t, dtype=tf.float64), [self.observation_dim()])
+        parameters = self.physical_parameters(theta)
+        tau = parameters["tau"]
+        variance = tf.exp(tau * values[:, 0])
+        dot_log_variance_tau = tau * values[:, 0]
+        log_tau_score = 0.5 * (tf.square(observation[0]) / variance - 1.0) * dot_log_variance_tau
+        zero = tf.zeros_like(log_tau_score, dtype=tf.float64)
+        return tf.stack([zero, log_tau_score, zero], axis=1)
+
+    def manifest_payload(self) -> Mapping[str, object]:
+        return {
+            "family": "GeneralizedSVPriorMeanSSM",
+            "process_scale": self.process_scale,
+            "parameter_transform": "theta=(z_gamma,log_tau,mu_over_tau); gamma=Phi(z_gamma), tau=exp(log_tau), mu=mu_over_tau*tau",
+            "source_route_label": self.source_route_label,
+            "source_anchors": (
+                "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/svmodels/ftt2true.m:6-14",
+                "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/svmodels/st_process.m:13-15",
+                "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/svmodels/like.m:4-7",
+                "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/svmodels/boxcoxinv.m:10-14",
+            ),
+            "fixed_context": {
+                "phi": 0.0,
+                "a": 0.0,
+                "delta": 0.0,
+                "nu1": "gaussian_limit",
+                "nu2": "gaussian_limit",
+            },
+            "what_is_not_claimed": (
+                "not adaptive MATLAB TT-cross/SIRT reproduction",
+                "not SP500 posterior estimate",
+                "not native two-state generalized-SV diagnostic target",
+            ),
         }
 
 
@@ -1412,6 +1636,62 @@ class PredatorPreySSM:
         next_values = _as_row_matrix(x_next, self.state_dim(), "x_next")
         return _mvn_log_prob(next_values, self.transition_mean(theta, previous), self.process_covariance)
 
+    def transition_mean_parameter_jacobian(
+        self,
+        theta: tf.Tensor,
+        x_prev: tf.Tensor,
+    ) -> tuple[tf.Tensor, tf.Tensor]:
+        """Return the RK4 transition mean and manual theta Jacobian.
+
+        The Jacobian has shape ``[parameter_dim, batch, state_dim]`` for
+        theta coordinates ``(r, K, a, s, u, v)``.
+        """
+
+        parameters = _as_parameter_vector(theta, self.parameter_dim(), "theta")
+        if not self.validate_parameter_box(parameters):
+            raise ValueError("theta outside P30 predator-prey parameter box")
+        state = _as_row_matrix(x_prev, self.state_dim(), "x_prev")
+        d_state = tf.zeros(
+            [self.parameter_dim(), tf.shape(state)[0], self.state_dim()],
+            dtype=tf.float64,
+        )
+        step = self.delta / tf.cast(self._rk4_substeps, tf.float64)
+        for _ in range(int(self._rk4_substeps)):
+            state, d_state = self._rk4_step_parameter_jacobian(
+                parameters,
+                state,
+                d_state,
+                step,
+            )
+        return state, d_state
+
+    def initial_log_density_parameter_score(self, theta: tf.Tensor, x0: tf.Tensor) -> tf.Tensor:
+        """Return manual theta score for the fixed initial Gaussian density."""
+
+        values = _as_row_matrix(x0, self.state_dim(), "x0")
+        del theta
+        return tf.zeros([tf.shape(values)[0], self.parameter_dim()], dtype=tf.float64)
+
+    def transition_log_density_parameter_score(
+        self,
+        theta: tf.Tensor,
+        x_prev: tf.Tensor,
+        x_next: tf.Tensor,
+        t: int,
+    ) -> tf.Tensor:
+        """Return manual theta score for the Gaussian RK4 transition density."""
+
+        del t
+        previous = _as_row_matrix(x_prev, self.state_dim(), "x_prev")
+        next_values = _as_row_matrix(x_next, self.state_dim(), "x_next")
+        mean, d_mean = self.transition_mean_parameter_jacobian(theta, previous)
+        residual = next_values - mean
+        chol = tf.linalg.cholesky(self.process_covariance)
+        solved = tf.linalg.matrix_transpose(
+            tf.linalg.cholesky_solve(chol, tf.linalg.matrix_transpose(residual))
+        )
+        return tf.transpose(tf.reduce_sum(d_mean * solved[tf.newaxis, :, :], axis=2))
+
     def observation_log_density(
         self,
         theta: tf.Tensor,
@@ -1427,6 +1707,19 @@ class PredatorPreySSM:
             values,
             self.observation_covariance,
         )
+
+    def observation_log_density_parameter_score(
+        self,
+        theta: tf.Tensor,
+        x_t: tf.Tensor,
+        y_t: tf.Tensor,
+        t: int,
+    ) -> tf.Tensor:
+        """Return manual theta score for the fixed observation density."""
+
+        values = _as_row_matrix(x_t, self.state_dim(), "x_t")
+        del theta, y_t, t
+        return tf.zeros([tf.shape(values)[0], self.parameter_dim()], dtype=tf.float64)
 
     def simulate(
         self,
@@ -1535,6 +1828,37 @@ class PredatorPreySSM:
         k4 = self._rhs(theta, state + step * k3)
         return state + (step / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4)
 
+    def _rk4_step_parameter_jacobian(
+        self,
+        theta: tf.Tensor,
+        state: tf.Tensor,
+        d_state: tf.Tensor,
+        step: tf.Tensor,
+    ) -> tuple[tf.Tensor, tf.Tensor]:
+        k1, d_k1 = self._rhs_parameter_jacobian(theta, state, d_state)
+        k2_input = state + tf.constant(0.5, dtype=tf.float64) * step * k1
+        d_k2_input = d_state + tf.constant(0.5, dtype=tf.float64) * step * d_k1
+        k2, d_k2 = self._rhs_parameter_jacobian(theta, k2_input, d_k2_input)
+        k3_input = state + tf.constant(0.5, dtype=tf.float64) * step * k2
+        d_k3_input = d_state + tf.constant(0.5, dtype=tf.float64) * step * d_k2
+        k3, d_k3 = self._rhs_parameter_jacobian(theta, k3_input, d_k3_input)
+        k4_input = state + step * k3
+        d_k4_input = d_state + step * d_k3
+        k4, d_k4 = self._rhs_parameter_jacobian(theta, k4_input, d_k4_input)
+        next_state = state + (step / tf.constant(6.0, dtype=tf.float64)) * (
+            k1
+            + tf.constant(2.0, dtype=tf.float64) * k2
+            + tf.constant(2.0, dtype=tf.float64) * k3
+            + k4
+        )
+        next_d_state = d_state + (step / tf.constant(6.0, dtype=tf.float64)) * (
+            d_k1
+            + tf.constant(2.0, dtype=tf.float64) * d_k2
+            + tf.constant(2.0, dtype=tf.float64) * d_k3
+            + d_k4
+        )
+        return next_state, next_d_state
+
     def _rhs(self, theta: tf.Tensor, state: tf.Tensor) -> tf.Tensor:
         parameters = _as_parameter_vector(theta, self.parameter_dim(), "theta")
         values = _as_row_matrix(state, self.state_dim(), "state")
@@ -1548,6 +1872,67 @@ class PredatorPreySSM:
         d_prey = r * prey * (1.0 - prey / k_capacity) - s_rate * interaction
         d_predator = u_rate * interaction - v_rate * predator
         return tf.stack([d_prey, d_predator], axis=1)
+
+    def _rhs_parameter_jacobian(
+        self,
+        theta: tf.Tensor,
+        state: tf.Tensor,
+        d_state: tf.Tensor,
+    ) -> tuple[tf.Tensor, tf.Tensor]:
+        parameters = _as_parameter_vector(theta, self.parameter_dim(), "theta")
+        values = _as_row_matrix(state, self.state_dim(), "state")
+        d_values = tf.convert_to_tensor(d_state, dtype=tf.float64)
+        if d_values.shape.rank != 3 or d_values.shape[0] != self.parameter_dim() or d_values.shape[2] != self.state_dim():
+            raise ValueError(f"d_state: {HighDimStatus.INVALID_SHAPE.value}")
+        if not bool(tf.reduce_all(tf.math.is_finite(d_values)).numpy()):
+            raise ValueError(f"d_state: {HighDimStatus.NONFINITE_VALUE.value}")
+
+        r, k_capacity, a_half, s_rate, u_rate, v_rate = tf.unstack(parameters)
+        prey = values[:, 0]
+        predator = values[:, 1]
+        d_prey = d_values[:, :, 0]
+        d_predator = d_values[:, :, 1]
+
+        denominator = a_half + prey
+        if bool(tf.reduce_any(tf.abs(denominator) <= 0.0).numpy()):
+            raise ValueError(f"predator-prey denominator: {HighDimStatus.NONFINITE_VALUE.value}")
+        interaction = prey * predator / denominator
+        d_interaction_state = (
+            predator[tf.newaxis, :] * (a_half / tf.square(denominator))[tf.newaxis, :] * d_prey
+            + (prey / denominator)[tf.newaxis, :] * d_predator
+        )
+        basis = tf.eye(self.parameter_dim(), dtype=tf.float64)
+        d_r = basis[:, 0][:, tf.newaxis]
+        d_k = basis[:, 1][:, tf.newaxis]
+        d_a = basis[:, 2][:, tf.newaxis]
+        d_s = basis[:, 3][:, tf.newaxis]
+        d_u = basis[:, 4][:, tf.newaxis]
+        d_v = basis[:, 5][:, tf.newaxis]
+        d_interaction_direct = (
+            -prey[tf.newaxis, :]
+            * predator[tf.newaxis, :]
+            / tf.square(denominator)[tf.newaxis, :]
+            * d_a
+        )
+        d_interaction = d_interaction_state + d_interaction_direct
+
+        logistic = prey * (1.0 - prey / k_capacity)
+        d_logistic_state = (1.0 - 2.0 * prey / k_capacity)[tf.newaxis, :] * d_prey
+        d_logistic_direct = tf.square(prey)[tf.newaxis, :] / tf.square(k_capacity) * d_k
+
+        d_rhs_prey = (
+            d_r * logistic[tf.newaxis, :]
+            + r * (d_logistic_state + d_logistic_direct)
+            - d_s * interaction[tf.newaxis, :]
+            - s_rate * d_interaction
+        )
+        d_rhs_predator = (
+            d_u * interaction[tf.newaxis, :]
+            + u_rate * d_interaction
+            - d_v * predator[tf.newaxis, :]
+            - v_rate * d_predator
+        )
+        return self._rhs(parameters, values), tf.stack([d_rhs_prey, d_rhs_predator], axis=2)
 
 
 def p30_predator_prey_fixture_model() -> PredatorPreySSM:

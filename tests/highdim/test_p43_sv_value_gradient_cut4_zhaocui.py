@@ -434,6 +434,7 @@ def test_p43_ksc_ukf_single_component_time0_score_matches_centered_finite_differ
     )
 
     tf.debugging.assert_near(analytic.score, finite_difference, atol=2e-6, rtol=2e-6)
+    assert analytic.diagnostics["wrapper_score_contract"] == "principal_sqrt_analytic_component_score_logsumexp_aggregation"
 
 
 def test_p43_ksc_ukf_time0_wrapper_score_matches_centered_finite_difference() -> None:
@@ -453,6 +454,7 @@ def test_p43_ksc_ukf_time0_wrapper_score_matches_centered_finite_difference() ->
     )
 
     tf.debugging.assert_near(analytic.score, finite_difference, atol=2e-6, rtol=2e-6)
+    assert analytic.diagnostics["wrapper_score_contract"] == "principal_sqrt_analytic_component_score_logsumexp_aggregation"
 
 
 def test_p43_ksc_ukf_two_observation_wrapper_score_matches_centered_finite_difference() -> None:
@@ -656,7 +658,8 @@ def test_p43_lane_a_fixed_sgqf_wrapper_score_matches_centered_finite_difference(
     )
 
     tf.debugging.assert_near(analytic.score, finite_difference, atol=2e-6, rtol=2e-6)
-    assert analytic.diagnostics["wrapper_score_contract"] == "gradient_tape_direct_likelihood_reweighting"
+    assert analytic.diagnostics["wrapper_score_contract"] == "manual_forward_sensitivity_direct_likelihood_reweighting"
+    assert analytic.diagnostics["derivative_method"] == "manual_forward_sensitivity_closed_form_recurrence"
     assert analytic.diagnostics["lane_id"] == "lane_a_direct_likelihood_quadrature"
 
 
@@ -707,7 +710,10 @@ def test_p43_lane_b_principal_sqrt_ukf_wrapper_score_matches_centered_finite_dif
 
     tf.debugging.assert_near(analytic.score, finite_difference, atol=3e-5, rtol=3e-5)
     assert analytic.diagnostics["wrapper_score_contract"] == "gradient_tape_lane_b_ukf_gaussian_closure"
-    assert analytic.diagnostics["backend_role"] == "historical_diagnostic_only"
+    assert analytic.diagnostics["backend_role"] == "diagnostic_autodiff_score_only"
+    assert analytic.diagnostics["score_admission_status"] == (
+        "not_admitted_requires_reviewed_analytical_augmented_noise_score"
+    )
 
 
 @pytest.mark.parametrize("dim", [1, 2, 3])

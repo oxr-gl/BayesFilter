@@ -1,0 +1,70 @@
+{
+  "schema_version": "bayesfilter.parameterized_sir.phase3.full_evaluator_blocker.v1",
+  "date": "2026-07-02",
+  "status": "BLOCK_PHASE3_FULL_EVALUATOR_COMPLEXITY_GATE",
+  "row_id": "zhao_cui_spatial_sir_austria_j9_T20_parameterized_logscale",
+  "algorithm_id": "zhao_cui_scalar_or_multistate",
+  "candidate_route": "bayesfilter/highdim/filtering.py::multistate_nonlinear_fixed_design_tt_score_path",
+  "candidate_route_admission": "diagnostic_historical_retained_grid_not_production_leaderboard",
+  "owner_directive": {
+    "generic_retained_grid_route": "demoted_to_diagnostic_historical",
+    "production_route": "fixed_variant_zhao_cui_source_route",
+    "leaderboard_rule": "do_not_repair_or_select_generic_retained_grid_route_for_production_rows"
+  },
+  "theta_coordinate": "sir_log_scale_theta",
+  "truth_theta": [0.0, 0.0, 0.0],
+  "parameter_order": [
+    "log_kappa_scale",
+    "log_nu_scale",
+    "log_obs_noise_scale"
+  ],
+  "state_dim": 18,
+  "observation_dim": 9,
+  "target_horizon": 20,
+  "lower_rung_evidence": {
+    "horizon0_score_path": {
+      "test": "tests/highdim/test_p81_analytical_sir_score.py::test_multistate_fixed_design_tt_score_path_runs_on_sir_d18_horizon0_observation_term",
+      "status": "passed",
+      "meaning": "candidate score path can run a horizon-0 observation-only SIR d18 analytical/manual score"
+    },
+    "horizon1_two_row_transition": {
+      "test": "tests/highdim/test_p81_analytical_sir_score.py::test_multistate_fixed_design_tt_score_path_blocks_sir_d18_two_row_all_grid_transition",
+      "status": "passed_as_expected_blocker",
+      "meaning": "candidate score path still blocks when a transition step requires the current full tensor grid route"
+    }
+  },
+  "complexity_calculation": {
+    "minimum_retained_quadrature_order": 2,
+    "minimum_retained_grid_points": 262144,
+    "reason": "2^18 tensor-product retained grid points are required before any transition step under the current multistate TT retained-grid implementation",
+    "streaming_defaults": {
+      "current_chunk_size": 512,
+      "previous_chunk_size": 64,
+      "max_chunk_products": 8192
+    },
+    "current_chunks_at_minimum_order": 512,
+    "previous_chunks_at_minimum_order": 4096,
+    "required_chunk_products_at_minimum_order": 2097152,
+    "chunk_product_gate_passes": false,
+    "per_block_derivative_memory_bytes_estimate": 23068672,
+    "per_block_memory_gate_passes": true,
+    "total_pair_count_per_transition_at_minimum_order": 68719476736,
+    "interpretation": "The current route is blocked by retained full-grid transition complexity, not by missing dataset theta metadata."
+  },
+  "unsupported_shortcut_rejected": {
+    "route": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py manual LEDH-PFPF-OT score",
+    "reason": "This route is a LEDH-PFPF-OT diagnostic and is explicitly not the Zhao-Cui fixed-design TT/SIRT evaluator bound by Phase 1."
+  },
+  "required_repair_before_phase4": {
+    "minimum": "Select or wire the reviewed fixed-variant Zhao-Cui source-route evaluator that avoids the generic full tensor-product retained transition grid and preserves analytical/manual score provenance.",
+    "review_boundary": "Any new route must be classified under the Zhao-Cui source-anchor gate as source_faithful, fixed_hmc_adaptation, or extension_or_invention before code admission.",
+    "phase4_block": "Score validation cannot start until the fixed-variant route emits a finite row value and finite analytical/manual score for the reviewed row."
+  },
+  "nonclaims": [
+    "not evidence against the parameterized SIR local score hooks",
+    "not evidence against the Phase 2 dataset row repair",
+    "not a proof that Zhao-Cui SIR inference is impossible",
+    "not permission to use LEDH-PFPF-OT as the Zhao-Cui leaderboard score",
+    "not GPU or HMC readiness evidence"
+  ]
+}

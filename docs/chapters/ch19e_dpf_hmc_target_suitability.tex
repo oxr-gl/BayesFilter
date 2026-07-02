@@ -235,7 +235,7 @@ full HMC-validity theorem and not by itself a stronger external claim.
 \subsection{Soft differentiable resampling}
 
 Soft resampling replaces categorical ancestor selection by a differentiable
-mixture or shrinkage construction.  The scalar value is therefore a
+mixture or shrinkage construction \citep{zhumurphyjonschkowski2020,jonschkowski2018differentiable,karkus2018particle}.  The scalar value is therefore a
 soft-resampling filtering value.  If HMC differentiates exactly that scalar, the
 resulting chain can be internally coherent for the soft target.  It should not
 be described as sampling the categorical-resampling posterior unless a separate
@@ -251,7 +251,7 @@ sampler.
 
 \subsection{OT and entropic OT resampling}
 
-At the OT/EOT rung, resampling is written as a transport problem.  Entropic
+At the OT/EOT rung, resampling is written as a transport problem \citep{reich2013nonparametric,cuturi2013sinkhorn,peyre2019computational,corenflos2021differentiable}.  Entropic
 regularization and a finite Sinkhorn solve make the construction differentiable
 and numerically structured, but they also define a different map from exact
 categorical resampling.  The scalar value must specify the cost, entropy
@@ -267,7 +267,8 @@ become an exact categorical resampling layer because its gradient exists.
 \subsection{Learned or amortized OT}
 
 Learned OT introduces a second approximation layer: a neural or amortized map is
-trained to imitate, accelerate, or residual-correct a transport teacher.  The
+trained to imitate, accelerate, or residual-correct a transport teacher
+\citep{amos2017icnn,makkuva2020otmapping,uscidda2023mongegap,gracykchen2024geonet}.  The
 scalar value is then the learned scalar unless a correction evaluates the
 teacher or original target.  The gradient path is the derivative through the
 learned map and any explicitly retained teacher terms.
@@ -419,7 +420,7 @@ validation ladder have been passed.
 \label{sec:bf-dpf-hmc-hnn-surrogates}
 
 Surrogate-HMC and Hamiltonian-neural-network ideas address a different point in
-the inference stack \citep{greydanus2019hamiltonian}.  They attempt to improve
+the inference stack \citep{greydanus2019hamiltonian,hoffman2019neutra,parno2018transport}.  They attempt to improve
 movement through an already chosen target, or to use a surrogate proposal that
 is later corrected against that target.  DPF methods may instead alter the
 filtering likelihood itself through flow approximation, relaxed resampling, or

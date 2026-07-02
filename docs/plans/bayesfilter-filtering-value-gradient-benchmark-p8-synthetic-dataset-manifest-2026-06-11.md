@@ -9,6 +9,7 @@ numeric_benchmark_status: BLOCK_P8_NUMERIC_BENCHMARK_NOT_YET_RUN
 | `zhao_cui_sv_actual_nongaussian_T1000` | `generated` | 1000 | 81101 |  |
 | `zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000` | `generated` | 1000 | 81101 |  |
 | `zhao_cui_spatial_sir_austria_j9_T20` | `generated` | 20 | 81103 |  |
+| `zhao_cui_spatial_sir_austria_j9_T20_parameterized_logscale` | `generated` | 20 | 81103 |  |
 | `zhao_cui_predator_prey_T20` | `generated` | 20 | 81104 |  |
 | `zhao_cui_generalized_sv_synthetic_from_estimated_values` | `generated` | 1008 | 81105 |  |
 

@@ -1,0 +1,933 @@
+{
+  "batch_seeds": [
+    81120,
+    81121
+  ],
+  "candidate_steps": [
+    10
+  ],
+  "cuda_visible_devices": "0",
+  "device": "/GPU:0",
+  "device_scope": "visible",
+  "elapsed_seconds": 69.11592862696853,
+  "expect_device_kind": "gpu",
+  "git_commit": "ef119f8bdb17b206339de92d722344a448eea745",
+  "gpu_memory_info_after": {
+    "current": 40960,
+    "peak": 73637632
+  },
+  "gpu_memory_info_before": {
+    "current": 19200,
+    "peak": 24832
+  },
+  "host": "DESKTOP-RF1Q5IJ",
+  "interpretation": {
+    "best_fd_z_steps": 10,
+    "best_max_abs_fd_z": 9.194453644584426,
+    "caution": "This diagnostic can implicate finite Sinkhorn budget, but it cannot certify SIR gradient correctness or rule out reset/covariance or objective-semantics errors.",
+    "fd_z_drop_from_steps10": false,
+    "hmc_direction_pass_exists": false,
+    "lowest_row_residual": 3.933906555175781e-06,
+    "lowest_row_steps": 10,
+    "residuals_drop": false,
+    "row10_residual": 3.933906555175781e-06,
+    "row_pass_exists": true,
+    "status": "budget10_row_residual_already_passes_this_screen"
+  },
+  "logical_gpus": [
+    "LogicalDevice(name='/device:GPU:0', device_type='GPU')"
+  ],
+  "nonclaims": [
+    "not SIR gradient correctness",
+    "not HMC readiness",
+    "not posterior correctness",
+    "not production readiness",
+    "not evidence that Sinkhorn budget is the only remaining issue"
+  ],
+  "output_devices": [
+    "/job:localhost/replica:0/task:0/device:GPU:0",
+    "/job:localhost/replica:0/task:0/device:GPU:0"
+  ],
+  "physical_gpus": [
+    "PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')"
+  ],
+  "precision": {
+    "active_dtype": "float32",
+    "default_algorithm_target": "ledh_pfpf_ot_tf32",
+    "default_dtype": "float32",
+    "default_execution_target": "gpu",
+    "default_route_acceptance": "accepted_default_use_whenever_possible",
+    "default_route_guidance": "use for BayesFilter DPF LEDH-PFPF-OT work whenever GPU execution and the streaming fixed-branch contract are applicable",
+    "default_route_rationale": "streaming GPU TF32 LEDH-PFPF-OT avoids dense transport/history storage for large-particle DPF transport while preserving explicit reference and fallback arms",
+    "default_target_status": "production_default_by_owner_directive",
+    "default_tf32_mode": "enabled",
+    "dtype": "float32",
+    "fp64_reference_requires_explicit_dtype": true,
+    "historical_module_path": "experiments/dpf_implementation",
+    "precision_default_policy": "production_ledh_pfpf_ot_gpu_tf32",
+    "public_api_exposure": "separately_gated",
+    "scope": "production_ledh_pfpf_ot_gpu_tf32_default_lane",
+    "tf32_execution_enabled": true,
+    "tf32_mode": "enabled",
+    "tf_dtype": "float32"
+  },
+  "python_version": "3.11.14",
+  "records": [
+    {
+      "all_raw_directions_hmc_direction_pass": false,
+      "all_raw_directions_within_2se": false,
+      "gradient": {
+        "manual_gradient_values": [
+          -9.37370777130127,
+          3.432502508163452,
+          4.548910617828369
+        ],
+        "monte_carlo_gradient_noise": {
+          "log_kappa_scale": {
+            "batch_size": 2,
+            "max": -9.032944679260254,
+            "mean": -9.37370777130127,
+            "min": -9.714470863342285,
+            "sample_sd_across_seed_contributions": 0.4819117784500122,
+            "standard_error_of_batch_mean": 0.3407630920410156
+          },
+          "log_nu_scale": {
+            "batch_size": 2,
+            "max": 3.557579517364502,
+            "mean": 3.432502508163452,
+            "min": 3.3074254989624023,
+            "sample_sd_across_seed_contributions": 0.17688558995723724,
+            "standard_error_of_batch_mean": 0.1250770092010498
+          },
+          "log_obs_noise_scale": {
+            "batch_size": 2,
+            "max": 4.860236644744873,
+            "mean": 4.548910617828369,
+            "min": 4.237584590911865,
+            "sample_sd_across_seed_contributions": 0.440281480550766,
+            "standard_error_of_batch_mean": 0.3113260269165039
+          }
+        },
+        "per_seed_gradient": [
+          [
+            -9.714470863342285,
+            3.557579517364502,
+            4.860236644744873
+          ],
+          [
+            -9.032944679260254,
+            3.3074254989624023,
+            4.237584590911865
+          ]
+        ],
+        "score_route": "manual_reverse_scan_no_autodiff"
+      },
+      "max_abs_combined_z_finite_or_inf": 5.1508682484477415,
+      "max_abs_fd_z_finite_or_inf": 9.194453644584426,
+      "raw_direction_details": [
+        {
+          "ad_directional_derivative": -9.37370777130127,
+          "ad_minus_regression_slope": -29.589829444885254,
+          "ad_minus_slope_over_slope_se": -5.159954389381737,
+          "base_step": 0.001,
+          "basis_name": "raw_theta",
+          "direction_name": "log_kappa_scale",
+          "direction_original_theta": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "fd_evaluation_mode": "batched-theta",
+          "fit_objective_values": [
+            -36.158992767333984,
+            -36.20903778076172,
+            -36.175132751464844,
+            -36.1715087890625,
+            -36.10856628417969,
+            -36.11354446411133,
+            -36.05615997314453
+          ],
+          "fit_theta_values": [
+            [
+              0.016999999061226845,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.017999999225139618,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.01899999938905239,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.020999999716877937,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.02199999988079071,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.023000000044703484,
+              -0.009999999776482582,
+              0.009999999776482582
+            ]
+          ],
+          "fit_x_values": [
+            -0.003000000026077032,
+            -0.0020000000949949026,
+            -0.0010000000474974513,
+            0.0,
+            0.0010000000474974513,
+            0.0020000000949949026,
+            0.003000000026077032
+          ],
+          "objective_values": [
+            -36.158992767333984,
+            -36.20903778076172,
+            -36.175132751464844,
+            -36.1715087890625,
+            -36.10856628417969,
+            -36.11354446411133,
+            -36.05615997314453
+          ],
+          "offsets": [
+            -3.0,
+            -2.0,
+            -1.0,
+            0.0,
+            1.0,
+            2.0,
+            3.0
+          ],
+          "regression_intercept": -36.141845703125,
+          "regression_max_abs_residual": 0.0435028076171875,
+          "regression_r_squared": 0.7131065130233765,
+          "regression_residual_sse": 0.004603851120918989,
+          "regression_slope": 20.216121673583984,
+          "regression_slope_standard_error": 5.734513759613037,
+          "theta_values": [
+            [
+              0.016999999061226845,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.017999999225139618,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.01899999938905239,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.020999999716877937,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.02199999988079071,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.023000000044703484,
+              -0.009999999776482582,
+              0.009999999776482582
+            ]
+          ],
+          "trim_extreme_points": {
+            "evaluated_point_count": 7,
+            "fit_point_count": 7,
+            "fit_point_indices": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "trim_extreme_offsets": 0,
+            "trim_mode": "value",
+            "trimmed": false
+          },
+          "x_values": [
+            -0.003000000026077032,
+            -0.0020000000949949026,
+            -0.0010000000474974513,
+            0.0,
+            0.0010000000474974513,
+            0.0020000000949949026,
+            0.003000000026077032
+          ]
+        },
+        {
+          "ad_directional_derivative": 3.432502508163452,
+          "ad_minus_regression_slope": 3.130868971347809,
+          "ad_minus_slope_over_slope_se": 2.5636434564730415,
+          "base_step": 0.001,
+          "basis_name": "raw_theta",
+          "direction_name": "log_nu_scale",
+          "direction_original_theta": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "fd_evaluation_mode": "batched-theta",
+          "fit_objective_values": [
+            -36.18620300292969,
+            -36.17913055419922,
+            -36.17681121826172,
+            -36.1715087890625,
+            -36.179603576660156,
+            -36.188663482666016,
+            -36.17610168457031
+          ],
+          "fit_theta_values": [
+            [
+              0.019999999552965164,
+              -0.013000000268220901,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.012000000104308128,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.010999999940395355,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.008999999612569809,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.007999999448657036,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.00699999975040555,
+              0.009999999776482582
+            ]
+          ],
+          "fit_x_values": [
+            -0.003000000026077032,
+            -0.0020000000949949026,
+            -0.0010000000474974513,
+            0.0,
+            0.0010000000474974513,
+            0.0020000000949949026,
+            0.003000000026077032
+          ],
+          "objective_values": [
+            -36.18620300292969,
+            -36.17913055419922,
+            -36.17681121826172,
+            -36.1715087890625,
+            -36.179603576660156,
+            -36.188663482666016,
+            -36.17610168457031
+          ],
+          "offsets": [
+            -3.0,
+            -2.0,
+            -1.0,
+            0.0,
+            1.0,
+            2.0,
+            3.0
+          ],
+          "regression_intercept": -36.179718017578125,
+          "regression_max_abs_residual": 0.009548187255859375,
+          "regression_r_squared": 0.012053370475769043,
+          "regression_residual_sse": 0.00020880585361737758,
+          "regression_slope": 0.3016335368156433,
+          "regression_slope_standard_error": 1.2212575674057007,
+          "theta_values": [
+            [
+              0.019999999552965164,
+              -0.013000000268220901,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.012000000104308128,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.010999999940395355,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.008999999612569809,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.007999999448657036,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.00699999975040555,
+              0.009999999776482582
+            ]
+          ],
+          "trim_extreme_points": {
+            "evaluated_point_count": 7,
+            "fit_point_count": 7,
+            "fit_point_indices": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "trim_extreme_offsets": 0,
+            "trim_mode": "value",
+            "trimmed": false
+          },
+          "x_values": [
+            -0.003000000026077032,
+            -0.0020000000949949026,
+            -0.0010000000474974513,
+            0.0,
+            0.0010000000474974513,
+            0.0020000000949949026,
+            0.003000000026077032
+          ]
+        },
+        {
+          "ad_directional_derivative": 4.548910617828369,
+          "ad_minus_regression_slope": -0.09439325332641602,
+          "ad_minus_slope_over_slope_se": -9.194453644584426,
+          "base_step": 0.001,
+          "basis_name": "raw_theta",
+          "direction_name": "log_obs_noise_scale",
+          "direction_original_theta": [
+            0.0,
+            0.0,
+            1.0
+          ],
+          "fd_evaluation_mode": "batched-theta",
+          "fit_objective_values": [
+            -36.18556213378906,
+            -36.18083953857422,
+            -36.176170349121094,
+            -36.1715087890625,
+            -36.16688537597656,
+            -36.162269592285156,
+            -36.15769958496094
+          ],
+          "fit_theta_values": [
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.00699999975040555
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.007999999448657036
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.008999999612569809
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.010999999940395355
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.012000000104308128
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.013000000268220901
+            ]
+          ],
+          "fit_x_values": [
+            -0.003000000026077032,
+            -0.0020000000949949026,
+            -0.0010000000474974513,
+            0.0,
+            0.0010000000474974513,
+            0.0020000000949949026,
+            0.003000000026077032
+          ],
+          "objective_values": [
+            -36.18556213378906,
+            -36.18083953857422,
+            -36.176170349121094,
+            -36.1715087890625,
+            -36.16688537597656,
+            -36.162269592285156,
+            -36.15769958496094
+          ],
+          "offsets": [
+            -3.0,
+            -2.0,
+            -1.0,
+            0.0,
+            1.0,
+            2.0,
+            3.0
+          ],
+          "regression_intercept": -36.17156219482422,
+          "regression_max_abs_residual": 6.866455078125e-05,
+          "regression_r_squared": 0.9999755620956421,
+          "regression_residual_sse": 1.4755642041563988e-08,
+          "regression_slope": 4.643303871154785,
+          "regression_slope_standard_error": 0.010266325436532497,
+          "theta_values": [
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.00699999975040555
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.007999999448657036
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.008999999612569809
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.010999999940395355
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.012000000104308128
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.013000000268220901
+            ]
+          ],
+          "trim_extreme_points": {
+            "evaluated_point_count": 7,
+            "fit_point_count": 7,
+            "fit_point_indices": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "trim_extreme_offsets": 0,
+            "trim_mode": "value",
+            "trimmed": false
+          },
+          "x_values": [
+            -0.003000000026077032,
+            -0.0020000000949949026,
+            -0.0010000000474974513,
+            0.0,
+            0.0010000000474974513,
+            0.0020000000949949026,
+            0.003000000026077032
+          ]
+        }
+      ],
+      "raw_direction_summaries": [
+        {
+          "combined_se": 5.744629452287467,
+          "direction_gate_reason": "inconclusive_precision_veto",
+          "direction_pass": false,
+          "direction_scale": 20.216121673583984,
+          "hmc_direction_gate": {
+            "combined_se": 5.744629452287467,
+            "direction_gate_reason": "inconclusive_precision_veto",
+            "direction_pass": false,
+            "direction_scale": 20.216121673583984,
+            "ladder_certificate": false,
+            "manual_gradient": -9.37370777130127,
+            "manual_minus_fd_over_combined_se": -5.1508682484477415,
+            "manual_minus_regression_fd": -29.589829444885254,
+            "near_equal_supportive": false,
+            "near_zero_direction": false,
+            "non_negligible_direction": true,
+            "numeric_direction_gate_reason": "inconclusive_precision_veto",
+            "numeric_direction_pass": false,
+            "precision_half_width": 11.489258904574934,
+            "precision_limit": 5.054030418395996,
+            "precision_pass": false,
+            "regression_fd_slope": 20.216121673583984,
+            "regression_slope_standard_error": 5.734513759613037,
+            "relative_error_to_regression_fd": 1.4636748790224048,
+            "route_prerequisite_failed_checks": [],
+            "route_prerequisite_pass": true,
+            "row_residual_pass": true,
+            "same_sign_or_near_zero": false,
+            "seed_gradient_standard_error": 0.3407630920410156,
+            "within_2_combined_se": false,
+            "within_4_combined_se": false
+          },
+          "manual_gradient": -9.37370777130127,
+          "manual_minus_fd_over_combined_se": -5.1508682484477415,
+          "manual_minus_fd_over_slope_se": -5.159954389381737,
+          "manual_minus_regression_fd": -29.589829444885254,
+          "near_equal_supportive": false,
+          "near_zero_direction": false,
+          "numeric_direction_gate_reason": "inconclusive_precision_veto",
+          "numeric_direction_pass": false,
+          "parameter": "log_kappa_scale",
+          "precision_pass": false,
+          "regression_fd_slope": 20.216121673583984,
+          "regression_max_abs_residual": 0.0435028076171875,
+          "regression_r_squared": 0.7131065130233765,
+          "regression_slope_standard_error": 5.734513759613037,
+          "route_prerequisite_failed_checks": [],
+          "route_prerequisite_pass": true,
+          "same_sign_or_near_zero": false,
+          "seed_gradient_standard_error": 0.3407630920410156,
+          "trim_extreme_points": {
+            "evaluated_point_count": 7,
+            "fit_point_count": 7,
+            "fit_point_indices": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "trim_extreme_offsets": 0,
+            "trim_mode": "value",
+            "trimmed": false
+          },
+          "within_2_combined_se": false,
+          "within_2_slope_se": false,
+          "within_4_combined_se": false
+        },
+        {
+          "combined_se": 1.2276458382515574,
+          "direction_gate_reason": "inconclusive_precision_veto",
+          "direction_pass": false,
+          "direction_scale": 3.432502508163452,
+          "hmc_direction_gate": {
+            "combined_se": 1.2276458382515574,
+            "direction_gate_reason": "inconclusive_precision_veto",
+            "direction_pass": false,
+            "direction_scale": 3.432502508163452,
+            "ladder_certificate": false,
+            "manual_gradient": 3.432502508163452,
+            "manual_minus_fd_over_combined_se": 2.550303087254275,
+            "manual_minus_regression_fd": 3.130868971347809,
+            "near_equal_supportive": false,
+            "near_zero_direction": false,
+            "non_negligible_direction": true,
+            "numeric_direction_gate_reason": "inconclusive_precision_veto",
+            "numeric_direction_pass": false,
+            "precision_half_width": 2.4552916765031148,
+            "precision_limit": 0.858125627040863,
+            "precision_pass": false,
+            "regression_fd_slope": 0.3016335368156433,
+            "regression_slope_standard_error": 1.2212575674057007,
+            "relative_error_to_regression_fd": 3.130868971347809,
+            "route_prerequisite_failed_checks": [],
+            "route_prerequisite_pass": true,
+            "row_residual_pass": true,
+            "same_sign_or_near_zero": true,
+            "seed_gradient_standard_error": 0.1250770092010498,
+            "within_2_combined_se": false,
+            "within_4_combined_se": true
+          },
+          "manual_gradient": 3.432502508163452,
+          "manual_minus_fd_over_combined_se": 2.550303087254275,
+          "manual_minus_fd_over_slope_se": 2.5636434564730415,
+          "manual_minus_regression_fd": 3.130868971347809,
+          "near_equal_supportive": false,
+          "near_zero_direction": false,
+          "numeric_direction_gate_reason": "inconclusive_precision_veto",
+          "numeric_direction_pass": false,
+          "parameter": "log_nu_scale",
+          "precision_pass": false,
+          "regression_fd_slope": 0.3016335368156433,
+          "regression_max_abs_residual": 0.009548187255859375,
+          "regression_r_squared": 0.012053370475769043,
+          "regression_slope_standard_error": 1.2212575674057007,
+          "route_prerequisite_failed_checks": [],
+          "route_prerequisite_pass": true,
+          "same_sign_or_near_zero": true,
+          "seed_gradient_standard_error": 0.1250770092010498,
+          "trim_extreme_points": {
+            "evaluated_point_count": 7,
+            "fit_point_count": 7,
+            "fit_point_indices": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "trim_extreme_offsets": 0,
+            "trim_mode": "value",
+            "trimmed": false
+          },
+          "within_2_combined_se": false,
+          "within_2_slope_se": false,
+          "within_4_combined_se": true
+        },
+        {
+          "combined_se": 0.311495252730414,
+          "direction_gate_reason": "within_2_combined_se",
+          "direction_pass": true,
+          "direction_scale": 4.643303871154785,
+          "hmc_direction_gate": {
+            "combined_se": 0.311495252730414,
+            "direction_gate_reason": "within_2_combined_se",
+            "direction_pass": true,
+            "direction_scale": 4.643303871154785,
+            "ladder_certificate": false,
+            "manual_gradient": 4.548910617828369,
+            "manual_minus_fd_over_combined_se": -0.3030327187943034,
+            "manual_minus_regression_fd": -0.09439325332641602,
+            "near_equal_supportive": false,
+            "near_zero_direction": false,
+            "non_negligible_direction": true,
+            "numeric_direction_gate_reason": "within_2_combined_se",
+            "numeric_direction_pass": true,
+            "precision_half_width": 0.622990505460828,
+            "precision_limit": 1.1608259677886963,
+            "precision_pass": true,
+            "regression_fd_slope": 4.643303871154785,
+            "regression_slope_standard_error": 0.010266325436532497,
+            "relative_error_to_regression_fd": 0.020328898548468356,
+            "route_prerequisite_failed_checks": [],
+            "route_prerequisite_pass": true,
+            "row_residual_pass": true,
+            "same_sign_or_near_zero": true,
+            "seed_gradient_standard_error": 0.3113260269165039,
+            "within_2_combined_se": true,
+            "within_4_combined_se": true
+          },
+          "manual_gradient": 4.548910617828369,
+          "manual_minus_fd_over_combined_se": -0.3030327187943034,
+          "manual_minus_fd_over_slope_se": -9.194453644584426,
+          "manual_minus_regression_fd": -0.09439325332641602,
+          "near_equal_supportive": false,
+          "near_zero_direction": false,
+          "numeric_direction_gate_reason": "within_2_combined_se",
+          "numeric_direction_pass": true,
+          "parameter": "log_obs_noise_scale",
+          "precision_pass": true,
+          "regression_fd_slope": 4.643303871154785,
+          "regression_max_abs_residual": 6.866455078125e-05,
+          "regression_r_squared": 0.9999755620956421,
+          "regression_slope_standard_error": 0.010266325436532497,
+          "route_prerequisite_failed_checks": [],
+          "route_prerequisite_pass": true,
+          "same_sign_or_near_zero": true,
+          "seed_gradient_standard_error": 0.3113260269165039,
+          "trim_extreme_points": {
+            "evaluated_point_count": 7,
+            "fit_point_count": 7,
+            "fit_point_indices": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "trim_extreme_offsets": 0,
+            "trim_mode": "value",
+            "trimmed": false
+          },
+          "within_2_combined_se": true,
+          "within_2_slope_se": false,
+          "within_4_combined_se": true
+        }
+      ],
+      "route_prerequisites": {
+        "checks": {
+          "compiler_jit_compile": true,
+          "device_scope_visible": true,
+          "dtype_float32": true,
+          "expect_device_kind_gpu": true,
+          "finite_gradient": true,
+          "finite_objective": true,
+          "manual_reverse_compiler_xla": true,
+          "manual_score_route": true,
+          "manual_streaming_transport_gradient": true,
+          "outputs_on_gpu": true,
+          "stabilized_transport_ad": true,
+          "streaming_transport_plan": true,
+          "tf32_enabled": true
+        },
+        "compiler": {
+          "compile_and_first_call_timings_seconds": [
+            63.13652501802426
+          ],
+          "compiled_unit": "manual_reverse_seed_microbatch_value_score",
+          "jit_compile": true,
+          "mode": "xla",
+          "repeats": 0,
+          "tf_function": true,
+          "warm_call_timings_seconds_by_context": [
+            []
+          ],
+          "warmups": 0
+        },
+        "failed_checks": [],
+        "route_prerequisite_pass": true,
+        "score_route": "manual_reverse_scan_no_autodiff"
+      },
+      "sinkhorn_steps": 10,
+      "transport": {
+        "column_residual_note": "manual streaming route reports column residual as 0.0 because the full transport matrix is not materialized; row residual is the active convergence diagnostic in this run",
+        "log_likelihood": [
+          -36.333534240722656,
+          -36.009483337402344
+        ],
+        "max_column_residual_reported": 0.0,
+        "max_row_residual": 3.933906555175781e-06,
+        "objective": -36.1715087890625,
+        "row_residual_pass": true,
+        "row_residual_threshold": 0.001
+      }
+    }
+  ],
+  "regression_fd_contract": {
+    "base_step": 0.001,
+    "basis": "raw_theta",
+    "fd_evaluation_mode": "batched-theta",
+    "offsets": [
+      -3.0,
+      -2.0,
+      -1.0,
+      0.0,
+      1.0,
+      2.0,
+      3.0
+    ],
+    "theta_offset_batch_size": 13,
+    "trim": "drop lowest and highest objective values before regression",
+    "trim_extreme_values": 0
+  },
+  "row_residual_threshold": 0.001,
+  "schema_version": "filter_bench.p8p_sir_sinkhorn_budget_hypothesis.v1",
+  "shape": {
+    "batch_size": 2,
+    "num_particles": 16,
+    "obs_dim": 9,
+    "parameter_dim": 3,
+    "state_dim": 18,
+    "time_steps": 1
+  },
+  "sir_semantics": {
+    "actual_sir_callback_usage": "initial_sample, process/observation covariance callbacks, observation metadata, and route metadata",
+    "actual_sir_callbacks_used": true,
+    "adapter_classification": "BayesFilter DPF adapter for fixed-parameter SIR; not Zhao-Cui TT/SIRT source-faithfulness evidence",
+    "experimental_streaming_adapter_route": "batched nonlinear-prior LEDH-PFPF-OT streaming adapter with fixed process covariance, not scalar Li-Coates Algorithm 1 UKF covariance lifecycle parity",
+    "flow_observation_contract": "same_observation_gaussian_sir_infectious_components",
+    "graph_compatible_sir_transition_copy_used": true,
+    "graph_compatible_sir_transition_source": "bayesfilter.highdim.zhao_cui_sir_austria_model RK4 zhao_cui_sir_step equations, copied into TensorFlow graph form because the model validation path uses eager .numpy() checks",
+    "nonlinear_prior_mean_hook_used": true,
+    "observation_dimension": 9,
+    "process_noise_policy": "clip_susceptible_after_noise",
+    "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+    "scalar_algorithm1_ukf_covariance_lifecycle_parity_claim": false,
+    "seed_microbatching": {
+      "combination_rule": "exact seed-weighted batch mean over independent fixed-seed evaluations",
+      "enabled": false,
+      "seed_groups": [
+        [
+          81120,
+          81121
+        ]
+      ],
+      "seed_microbatch_size": 0
+    },
+    "state_dimension": 18,
+    "target_density_used_for_correction": true
+  },
+  "tensorflow_version": "2.19.1",
+  "theta": {
+    "log_kappa_scale": 0.02,
+    "log_nu_scale": -0.01,
+    "log_obs_noise_scale": 0.01
+  },
+  "timestamp_utc": "2026-06-30T11:55:01.245863+00:00",
+  "transport": {
+    "annealed_convergence_threshold": 0.001,
+    "annealed_scaling": 0.9,
+    "col_chunk_size": 16,
+    "dense_transport_matrix_materialized": false,
+    "gradient_mode": "manual_streaming_finite_sinkhorn_stopped_scale_keys",
+    "particle_chunk_size": 16,
+    "row_chunk_size": 16,
+    "sinkhorn_epsilon": 1.0,
+    "sinkhorn_iterations": "varies_by_candidate",
+    "transport_ad_mode": "stabilized",
+    "transport_plan_mode": "streaming",
+    "value_core_mode": "streaming"
+  }
+}

@@ -367,6 +367,12 @@ small coupling with known column masses &
 projected equal-weight support cloud and dimensions &
 output has declared shape and column-mass normalization &
 projection or shape bug; not a coupling-optimality result \\
+Barycentric moment contract &
+\eqref{eq:bf-eot-barycentric-covariance-contraction} &
+linear-Gaussian, SV, or SIR fixture with no-OT weighted comparator &
+pre-reset weighted mean/covariance, post-reset equal-weight mean/covariance, and downstream value delta &
+mean preservation and declared covariance contraction are visible; any Kalman or exact-likelihood gate is labeled same-scalar or moment-preserving &
+finite-\(N\) reset changes the filtering scalar; do not interpret a same-scalar gradient as an exact-likelihood gradient \\
 Learned-map residual &
 \eqref{eq:bf-learned-ot-student-map}, \eqref{eq:bf-learned-ot-residual}, \eqref{eq:bf-learned-ot-equivariance} &
 permutation-equivariance test and held-out teacher clouds &
@@ -555,6 +561,15 @@ scalar value, gradient, accept/reject value, target-status label \\
 \end{longtable}
 \end{center}
 
+\paragraph{Why the OT doctrine starts here.}
+The preceding sections were equation-local: they tracked which scalar, Jacobian,
+log-determinant, and autodiff path the implementation is actually using.  The OT
+question now adds a second layer.  Once a candidate transport method is proposed,
+the issue is no longer only whether one equation was coded correctly, but whether
+the candidate preserves the same transport object, approximates it, or replaces it
+with a different one.  The next sections therefore move from local debugging into
+candidate classification and promotion doctrine.
+
 \section{Scalable OT reuse-risk and validation doctrine}
 \label{sec:bf-dpf-debug-scalable-ot-stack}
 
@@ -568,17 +583,35 @@ scalars or paper-reported benchmark values.
 A practical BayesFilter review should therefore separate three lanes:
 \begin{enumerate}[label=(\roman*)]
   \item \textbf{Exact reference lane:} dense or streamed entropic OT/Sinkhorn
-    implementations that preserve the same declared teacher object.
+    implementations that preserve the same declared teacher object
+    \citep{feydy2019geomloss,charlier2021keops,ye2026flashsinkhorn,xiao2026fastsinkhorn}.
   \item \textbf{Retained-teacher approximation lane:} Nystrom, positive-feature,
     low-rank, or similar accelerators judged first by teacher-preservation
-    residuals.
+    residuals \citep{altschuler2019nystrom,scetbon2020positivefeatures,forrow2019factored,scetbon2021lowrank}.
   \item \textbf{Structure-changing lane:} sliced, localized, block, or other
     replacement transport rules judged as explicit new resampling
-    approximations.
+    approximations \citep{kolouri2019generalized,deshpande2019maxsliced,paty2019subspace,nguyen2025sliced}.
 \end{enumerate}
 The first question for any candidate is therefore not ``is it faster?'' but
 ``which of these lanes does it belong to?''  The rest of the diagnostic stack
 depends on that classification.
+
+\begin{center}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}p{0.16\textwidth} p{0.11\textwidth} p{0.16\textwidth} p{0.17\textwidth} p{0.16\textwidth}@{}}
+\toprule
+Family & Lane & Object & Change & First diagnostic \\
+\midrule
+Exact online / streamed Sinkhorn & Exact reference & finite entropic coupling and barycentric cloud & memory traffic and execution strategy & marginal residual and barycentric parity \\
+Nystrom / positive-feature / low-rank routes & Retained-teacher & corrected teacher-side coupling or barycentric output & kernel or coupling execution path & teacher-preservation residual \\
+Sparse / screened variants & Boundary case & same finite object only if support restriction is harmless & active pair count or screened work & same-object parity before speed claims \\
+Sliced / localized / block replacements & Structure-changing & projected, local, or replacement transport rule & full-state transport semantics & declared replacement criterion plus downstream diagnostics \\
+\bottomrule
+\end{tabular}
+\setlength{\tabcolsep}{6pt}
+\normalsize
+\end{center}
 
 \subsection{Code availability and reuse risk are prefilters, not verdicts}
 \label{sec:bf-dpf-debug-code-risk}
@@ -600,6 +633,23 @@ narrow implementation note:
 \end{enumerate}
 A failure here does not refute the mathematics.  It only limits reuse value and
 raises implementation-surface risk.
+
+\begin{center}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}p{0.16\textwidth} p{0.13\textwidth} p{0.13\textwidth} p{0.18\textwidth} p{0.19\textwidth}@{}}
+\toprule
+Source style & Object exposed? & Backend fit & Main reuse risk & BayesFilter implication \\
+\midrule
+Dense or streamed entropic OT references & usually yes & strongest when TensorFlow/TFP-aligned & exact semantics but poor scaling if all pairs remain & best correctness baseline \\
+Retained-teacher factorized approximations & only if corrected coupling or barycentric output is explicit & acceptable if local correction is implementable & latent approximation may hide semantic drift & useful only with teacher-preservation audit \\
+Sparse or screened libraries & sometimes partial only & often specialized tooling & support restriction may change the effective finite object & treat as boundary case, not automatic drop-in \\
+Minibatch or stochastic libraries & often partial or local only & mixed & local plans need not define one full deterministic resampling map & concept lane until full-ensemble semantics are declared \\
+\bottomrule
+\end{tabular}
+\setlength{\tabcolsep}{6pt}
+\normalsize
+\end{center}
 
 \subsection{Validation ladder before promotion}
 \label{sec:bf-dpf-debug-validation-ladder}
@@ -643,6 +693,28 @@ The failure interpretation should remain lane-specific.
 This prevents a common review error: treating every non-dense transport as if it
 were trying to prove exact parity with the same teacher object.
 
+\subsection{Recommended research order}
+\label{sec:bf-dpf-debug-research-order}
+
+The scalable-OT survey also suggests a practical order for future BayesFilter work.
+That order should follow the three-lane split rather than a single global race for
+runtime.
+\begin{enumerate}[label=(\roman*)]
+  \item \textbf{Exact reference first:} keep the dense or streamed entropic
+    Sinkhorn route as the semantics-preserving baseline and measure how far better
+    execution strategy alone can scale.
+  \item \textbf{Retained-teacher approximations second:} test Nystrom,
+    positive-feature, low-rank, or related factorized routes by
+    teacher-preservation residuals before treating them as candidate drop-in
+    accelerators.
+  \item \textbf{Structure-changing candidates third:} study sliced, localized,
+    block, or other replacement transports only under an explicit replacement
+    criterion and downstream filtering diagnostics.
+\end{enumerate}
+This order is not a statement that the first lane will ultimately win.  It is a
+statement about evidence discipline.  A route that preserves the teacher object
+should be understood before a route that intentionally changes it.
+
 \section{Promotion thresholds}
 \label{sec:bf-dpf-debug-promotion-thresholds}
 
@@ -680,6 +752,26 @@ Assuming chapter-level mathematics alone is sufficient approval. &
 Requires a separate operational process. \\
 \bottomrule
 \end{longtable}
+
+\subsection{Closing scalable-OT synthesis}
+\label{sec:bf-dpf-debug-scalable-ot-synthesis}
+
+Taken together, the scalable-OT survey and the present monograph support a simple
+three-lane posture.  Exact online or streamed Sinkhorn remains the reference lane
+because it preserves the same declared entropic teacher object while improving
+execution strategy.  Nystrom, positive-feature, low-rank, and related factorized
+routes belong to the retained-teacher lane only when they are still judged first
+by teacher-preservation residuals rather than by runtime alone.  Sliced,
+localized, block, or other replacement transports belong to the structure-changing
+lane and therefore require an explicit replacement criterion plus downstream
+filtering evidence.
+
+The main non-claim is equally important.  A fast repository, a smooth scalar, a
+small local residual, or a favorable benchmark number does not by itself promote a
+scalable-OT candidate to BayesFilter default status.  Promotion still requires the
+same ledger fixed above: transported-particle parity or a declared replacement
+criterion, marginal checks, numerical-stability checks, and downstream filtering
+diagnostics matched to the lane being claimed.
 
 \section{Boundary of this contract}
 \label{sec:bf-dpf-debug-boundary}

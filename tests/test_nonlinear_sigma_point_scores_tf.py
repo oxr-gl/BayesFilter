@@ -218,6 +218,7 @@ def _model_c_value(
         model,
         rule=rule,
         innovation_floor=tf.constant(1e-12, dtype=tf.float64),
+        backend=backend,
     )
     return value
 

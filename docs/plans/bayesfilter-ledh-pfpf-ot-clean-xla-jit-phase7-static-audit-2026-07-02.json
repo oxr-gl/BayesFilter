@@ -1,0 +1,383 @@
+{
+  "absent_current_veto_patterns": [
+    {
+      "description": "RK4 forward stores TensorFlow tensors in a Python aux list.",
+      "id": "SIR-RK4-FWD-LIST",
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "severity": "current_veto",
+      "status": "ABSENT_CLEAN_OR_MOVED",
+      "symbol": "_sir_transition_mean_with_aux_tf"
+    },
+    {
+      "description": "RK4 forward substeps are Python-unrolled.",
+      "id": "SIR-RK4-FWD-RANGE",
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "severity": "current_veto",
+      "status": "ABSENT_CLEAN_OR_MOVED",
+      "symbol": "_sir_transition_mean_with_aux_tf"
+    },
+    {
+      "description": "RK4 reverse pass iterates over a Python aux list.",
+      "id": "SIR-RK4-REV-REVERSED",
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "severity": "current_veto",
+      "status": "ABSENT_CLEAN_OR_MOVED",
+      "symbol": "_sir_transition_mean_vjp_tf"
+    },
+    {
+      "description": "Manual route binds time length as a Python integer.",
+      "id": "SIR-MANUAL-TIME-STATIC",
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "severity": "current_veto",
+      "status": "ABSENT_CLEAN_OR_MOVED",
+      "symbol": "_manual_value_and_score_from_components"
+    },
+    {
+      "description": "Manual route stores forward history in a Python records list.",
+      "id": "SIR-MANUAL-RECORD-LIST",
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "severity": "current_veto",
+      "status": "ABSENT_CLEAN_OR_MOVED",
+      "symbol": "_manual_value_and_score_from_components"
+    },
+    {
+      "description": "Manual route forward time scan is Python-unrolled.",
+      "id": "SIR-MANUAL-FWD-RANGE",
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "severity": "current_veto",
+      "status": "ABSENT_CLEAN_OR_MOVED",
+      "symbol": "_manual_value_and_score_from_components"
+    },
+    {
+      "description": "Fixed randomness is built with a Python seed loop in the route.",
+      "id": "SIR-MANUAL-SEED-LOOP",
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "severity": "current_veto",
+      "status": "ABSENT_CLEAN_OR_MOVED",
+      "symbol": "_manual_value_and_score_from_components"
+    },
+    {
+      "description": "Manual route reverse time scan iterates over Python records.",
+      "id": "SIR-MANUAL-REV-REVERSED",
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "severity": "current_veto",
+      "status": "ABSENT_CLEAN_OR_MOVED",
+      "symbol": "_manual_value_and_score_from_components"
+    },
+    {
+      "description": "Stopped-key value helper uses a Python Sinkhorn loop.",
+      "id": "SINK-STOPPED-VALUE-RANGE",
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "severity": "current_veto",
+      "status": "ABSENT_CLEAN_OR_MOVED",
+      "symbol": "_filterflow_streaming_finite_sinkhorn_potentials_stopped_scale_keys"
+    },
+    {
+      "description": "Total value helper still uses a Python Sinkhorn loop.",
+      "id": "SINK-TOTAL-VALUE-RANGE",
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "severity": "current_veto",
+      "status": "ABSENT_CLEAN_OR_MOVED",
+      "symbol": "_filterflow_streaming_finite_sinkhorn_potentials_total_vjp"
+    },
+    {
+      "description": "Stopped-key VJP helper stores Sinkhorn states in a Python list.",
+      "id": "SINK-STOPPED-VJP-STATES",
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "severity": "current_veto",
+      "status": "ABSENT_CLEAN_OR_MOVED",
+      "symbol": "_filterflow_streaming_finite_sinkhorn_potentials_vjp_stopped_scale_keys"
+    }
+  ],
+  "current_veto_findings": [
+    {
+      "id": "SINK-STOPPED-VALUE-KEY",
+      "line": 1549,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "key_x = tf.stop_gradient(x)",
+      "severity": "current_veto",
+      "symbol": "_filterflow_streaming_finite_sinkhorn_potentials_stopped_scale_keys",
+      "text": "key_x = tf.stop_gradient(x)"
+    },
+    {
+      "id": "SINK-STOPPED-VJP-KEY",
+      "line": 1842,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "key_x = tf.stop_gradient(x)",
+      "severity": "current_veto",
+      "symbol": "_filterflow_streaming_finite_sinkhorn_potentials_vjp_stopped_scale_keys",
+      "text": "key_x = tf.stop_gradient(x)"
+    }
+  ],
+  "decision": "FAIL_CURRENT_ROUTE",
+  "findings": [
+    {
+      "id": "SINK-STOPPED-VALUE-KEY",
+      "line": 1549,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "key_x = tf.stop_gradient(x)",
+      "severity": "current_veto",
+      "symbol": "_filterflow_streaming_finite_sinkhorn_potentials_stopped_scale_keys",
+      "text": "key_x = tf.stop_gradient(x)"
+    },
+    {
+      "id": "SINK-STOPPED-VJP-KEY",
+      "line": 1842,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "key_x = tf.stop_gradient(x)",
+      "severity": "current_veto",
+      "symbol": "_filterflow_streaming_finite_sinkhorn_potentials_vjp_stopped_scale_keys",
+      "text": "key_x = tf.stop_gradient(x)"
+    },
+    {
+      "id": "SINK-TOTAL-CUSTOM-TAPE",
+      "line": 2393,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "tf.GradientTape",
+      "severity": "current_warning",
+      "symbol": "_filterflow_manual_streaming_finite_transport_total_vjp",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "id": "SINK-TOTAL-CUSTOM-TAPE",
+      "line": 2416,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "tape.gradient(",
+      "severity": "current_warning",
+      "symbol": "_filterflow_manual_streaming_finite_transport_total_vjp",
+      "text": "d_scaled_x, d_particles, d_logw, d_epsilon0 = tape.gradient("
+    }
+  ],
+  "missing_required_patterns": [],
+  "missing_warning_symbols": [],
+  "nonclaims": [
+    "static guardrail result only",
+    "not GPU/XLA runtime evidence",
+    "not HLO evidence",
+    "not numerical correctness evidence",
+    "not HMC readiness evidence",
+    "stopped partial derivatives are not scores"
+  ],
+  "required_pattern_results": [
+    {
+      "description": "RK4 forward stores TensorFlow tensors in a Python aux list.",
+      "end_line": 598,
+      "findings": [],
+      "id": "SIR-RK4-FWD-LIST",
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "severity": "current_veto",
+      "start_line": 483,
+      "status": "ABSENT_CLEAN_OR_MOVED",
+      "symbol": "_sir_transition_mean_with_aux_tf"
+    },
+    {
+      "description": "RK4 forward substeps are Python-unrolled.",
+      "end_line": 598,
+      "findings": [],
+      "id": "SIR-RK4-FWD-RANGE",
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "severity": "current_veto",
+      "start_line": 483,
+      "status": "ABSENT_CLEAN_OR_MOVED",
+      "symbol": "_sir_transition_mean_with_aux_tf"
+    },
+    {
+      "description": "RK4 reverse pass iterates over a Python aux list.",
+      "end_line": 689,
+      "findings": [],
+      "id": "SIR-RK4-REV-REVERSED",
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "severity": "current_veto",
+      "start_line": 601,
+      "status": "ABSENT_CLEAN_OR_MOVED",
+      "symbol": "_sir_transition_mean_vjp_tf"
+    },
+    {
+      "description": "Manual route binds time length as a Python integer.",
+      "end_line": 1880,
+      "findings": [],
+      "id": "SIR-MANUAL-TIME-STATIC",
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "severity": "current_veto",
+      "start_line": 1236,
+      "status": "ABSENT_CLEAN_OR_MOVED",
+      "symbol": "_manual_value_and_score_from_components"
+    },
+    {
+      "description": "Manual route stores forward history in a Python records list.",
+      "end_line": 1880,
+      "findings": [],
+      "id": "SIR-MANUAL-RECORD-LIST",
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "severity": "current_veto",
+      "start_line": 1236,
+      "status": "ABSENT_CLEAN_OR_MOVED",
+      "symbol": "_manual_value_and_score_from_components"
+    },
+    {
+      "description": "Manual route forward time scan is Python-unrolled.",
+      "end_line": 1880,
+      "findings": [],
+      "id": "SIR-MANUAL-FWD-RANGE",
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "severity": "current_veto",
+      "start_line": 1236,
+      "status": "ABSENT_CLEAN_OR_MOVED",
+      "symbol": "_manual_value_and_score_from_components"
+    },
+    {
+      "description": "Fixed randomness is built with a Python seed loop in the route.",
+      "end_line": 1880,
+      "findings": [],
+      "id": "SIR-MANUAL-SEED-LOOP",
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "severity": "current_veto",
+      "start_line": 1236,
+      "status": "ABSENT_CLEAN_OR_MOVED",
+      "symbol": "_manual_value_and_score_from_components"
+    },
+    {
+      "description": "Manual route reverse time scan iterates over Python records.",
+      "end_line": 1880,
+      "findings": [],
+      "id": "SIR-MANUAL-REV-REVERSED",
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "severity": "current_veto",
+      "start_line": 1236,
+      "status": "ABSENT_CLEAN_OR_MOVED",
+      "symbol": "_manual_value_and_score_from_components"
+    },
+    {
+      "description": "Stopped-key value helper omits total derivative through the keys.",
+      "end_line": 1672,
+      "findings": [
+        {
+          "id": "SINK-STOPPED-VALUE-KEY",
+          "line": 1549,
+          "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+          "pattern": "key_x = tf.stop_gradient(x)",
+          "severity": "current_veto",
+          "symbol": "_filterflow_streaming_finite_sinkhorn_potentials_stopped_scale_keys",
+          "text": "key_x = tf.stop_gradient(x)"
+        }
+      ],
+      "id": "SINK-STOPPED-VALUE-KEY",
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "severity": "current_veto",
+      "start_line": 1536,
+      "status": "FOUND_CURRENT_VETO",
+      "symbol": "_filterflow_streaming_finite_sinkhorn_potentials_stopped_scale_keys"
+    },
+    {
+      "description": "Stopped-key value helper uses a Python Sinkhorn loop.",
+      "end_line": 1672,
+      "findings": [],
+      "id": "SINK-STOPPED-VALUE-RANGE",
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "severity": "current_veto",
+      "start_line": 1536,
+      "status": "ABSENT_CLEAN_OR_MOVED",
+      "symbol": "_filterflow_streaming_finite_sinkhorn_potentials_stopped_scale_keys"
+    },
+    {
+      "description": "Total value helper still uses a Python Sinkhorn loop.",
+      "end_line": 1819,
+      "findings": [],
+      "id": "SINK-TOTAL-VALUE-RANGE",
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "severity": "current_veto",
+      "start_line": 1675,
+      "status": "ABSENT_CLEAN_OR_MOVED",
+      "symbol": "_filterflow_streaming_finite_sinkhorn_potentials_total_vjp"
+    },
+    {
+      "description": "Stopped-key VJP helper omits total derivative through the keys.",
+      "end_line": 2257,
+      "findings": [
+        {
+          "id": "SINK-STOPPED-VJP-KEY",
+          "line": 1842,
+          "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+          "pattern": "key_x = tf.stop_gradient(x)",
+          "severity": "current_veto",
+          "symbol": "_filterflow_streaming_finite_sinkhorn_potentials_vjp_stopped_scale_keys",
+          "text": "key_x = tf.stop_gradient(x)"
+        }
+      ],
+      "id": "SINK-STOPPED-VJP-KEY",
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "severity": "current_veto",
+      "start_line": 1822,
+      "status": "FOUND_CURRENT_VETO",
+      "symbol": "_filterflow_streaming_finite_sinkhorn_potentials_vjp_stopped_scale_keys"
+    },
+    {
+      "description": "Stopped-key VJP helper stores Sinkhorn states in a Python list.",
+      "end_line": 2257,
+      "findings": [],
+      "id": "SINK-STOPPED-VJP-STATES",
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "severity": "current_veto",
+      "start_line": 1822,
+      "status": "ABSENT_CLEAN_OR_MOVED",
+      "symbol": "_filterflow_streaming_finite_sinkhorn_potentials_vjp_stopped_scale_keys"
+    },
+    {
+      "description": "Total streaming transport helper uses local autodiff.",
+      "end_line": 2430,
+      "findings": [
+        {
+          "id": "SINK-TOTAL-CUSTOM-TAPE",
+          "line": 2393,
+          "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+          "pattern": "tf.GradientTape",
+          "severity": "current_warning",
+          "symbol": "_filterflow_manual_streaming_finite_transport_total_vjp",
+          "text": "with tf.GradientTape() as tape:"
+        },
+        {
+          "id": "SINK-TOTAL-CUSTOM-TAPE",
+          "line": 2416,
+          "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+          "pattern": "tape.gradient(",
+          "severity": "current_warning",
+          "symbol": "_filterflow_manual_streaming_finite_transport_total_vjp",
+          "text": "d_scaled_x, d_particles, d_logw, d_epsilon0 = tape.gradient("
+        }
+      ],
+      "id": "SINK-TOTAL-CUSTOM-TAPE",
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "severity": "current_warning",
+      "start_line": 2342,
+      "status": "FOUND_WARNING",
+      "symbol": "_filterflow_manual_streaming_finite_transport_total_vjp"
+    }
+  ],
+  "schema_version": "ledh_clean_xla_static_audit.v1",
+  "summary_by_file": {
+    "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py": {
+      "current_veto": 2,
+      "current_warning": 2
+    }
+  },
+  "warning_findings": [
+    {
+      "id": "SINK-TOTAL-CUSTOM-TAPE",
+      "line": 2393,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "tf.GradientTape",
+      "severity": "current_warning",
+      "symbol": "_filterflow_manual_streaming_finite_transport_total_vjp",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "id": "SINK-TOTAL-CUSTOM-TAPE",
+      "line": 2416,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "tape.gradient(",
+      "severity": "current_warning",
+      "symbol": "_filterflow_manual_streaming_finite_transport_total_vjp",
+      "text": "d_scaled_x, d_particles, d_logw, d_epsilon0 = tape.gradient("
+    }
+  ]
+}

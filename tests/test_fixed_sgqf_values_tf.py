@@ -223,7 +223,32 @@ def test_fixed_sgqf_affine_model_matches_exact_kalman_reference() -> None:
 
 
 
-def test_fixed_sgqf_affine_model_matches_exact_kalman_reference_in_2d() -> None:
+def test_fixed_sgqf_affine_structural_adapter_matches_exact_kalman_reference() -> None:
+    _fixed_model, structural_model, observations = _affine_fixed_sgqf_model()
+    adapted = tf_structural_to_fixed_sgqf_model(structural_model)
+
+    assert adapted.eligible is True
+    assert adapted.model is not None
+    assert adapted.exact_eligible is True
+    assert adapted.approximate_eligible is False
+
+    cloud = tf_fixed_sgqf_cloud(dim=1, sparse_level=2)
+    result = tf_fixed_sgqf_filter(observations, adapted.model, cloud=cloud, return_filtered=True)
+    linear = affine_structural_to_linear_gaussian_tf(structural_model)
+    exact = tf_linear_gaussian_log_likelihood(
+        observations,
+        linear,
+        backend="tf_cholesky",
+        jitter=tf.constant(0.0, dtype=tf.float64),
+        return_filtered=True,
+    )
+
+    assert result.failure is None
+    np.testing.assert_allclose(result.log_likelihood.numpy(), exact.log_likelihood.numpy(), atol=1e-10)
+    np.testing.assert_allclose(result.filtered_means.numpy(), exact.filtered_means.numpy(), atol=1e-10)
+    np.testing.assert_allclose(result.filtered_covariances.numpy(), exact.filtered_covariances.numpy(), atol=1e-10)
+
+
     partition = StatePartition(
         state_names=("x1", "x2"),
         stochastic_indices=(0, 1),
@@ -525,6 +550,8 @@ def test_fixed_sgqf_structural_model_c_adapter_matches_dense_reference_first_ste
 
     assert adapted.eligible is True
     assert adapted.model is not None
+    assert adapted.exact_eligible is False
+    assert adapted.approximate_eligible is True
 
     result = tf_fixed_sgqf_filter(observations, adapted.model, cloud=tf_fixed_sgqf_cloud(dim=2, sparse_level=2), return_filtered=True)
     dense = dense_projection_first_step(structural_model, observations[0], nodes_per_dim=17)

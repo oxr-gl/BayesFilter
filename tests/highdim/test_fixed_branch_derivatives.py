@@ -680,7 +680,89 @@ def test_scalar_fixed_design_tt_score_path_matches_same_branch_fd_for_exact_tran
     assert result.finite_difference_table.valid_rows()
     assert result.diagnostics["score_path"] == "scalar_nonlinear_fixed_design_tt_score_path"
     assert result.diagnostics["fixed_branch_only"] is True
+    assert result.diagnostics["target_derivative_backend"] == "model_parameter_score_methods_only"
     assert float(result.finite_difference_table.max_abs_error().numpy()) < 5e-2
+
+
+def test_scalar_fixed_design_tt_score_path_rejects_missing_manual_model_score_method() -> None:
+    class _MissingObservationScore(highdim.ExactTransformedSVSSM):
+        observation_log_density_parameter_score = None
+
+    observations = _observations()
+    gamma, beta, sigma = _physical_parameters()
+    theta = _theta_from_physical(gamma, beta)
+    model = _MissingObservationScore(sigma=sigma[0])
+    z = highdim.exact_transformed_sv_observations(observations)
+    config = _score_config("p37-score-no-fallback")
+    derivative_config = highdim.FixedBranchDerivativeConfig(parameter_indices=(0,))
+
+    with pytest.raises(ValueError, match="requires explicit model parameter-score methods"):
+        highdim.scalar_nonlinear_fixed_design_tt_score_path(
+            model,
+            theta,
+            z,
+            config,
+            derivative_config,
+            fixture_id="p37.score.no-fallback.v1",
+            initial_target_id="p37.score.no-fallback.initial.v1",
+            transition_target_id="p37.score.no-fallback.transition.v1",
+            branch_seed_prefix="p37-score-no-fallback",
+        )
+
+
+def test_stochastic_volatility_local_parameter_scores_match_tape_jacobians() -> None:
+    model = highdim.StochasticVolatilitySSM(sigma=1.0)
+    theta = model.unconstrained_from_physical(gamma=0.60, beta=0.40)
+    previous = tf.constant([[-0.30], [0.20], [0.80]], dtype=tf.float64)
+    current = tf.constant([[0.15], [-0.10], [0.40]], dtype=tf.float64)
+    observation = tf.constant([0.25], dtype=tf.float64)
+
+    def _jacobian(value_fn):
+        with tf.GradientTape() as tape:
+            tape.watch(theta)
+            values = value_fn(theta)
+        return tape.jacobian(values, theta)
+
+    tf.debugging.assert_near(
+        model.initial_log_density_parameter_score(theta, current),
+        _jacobian(lambda th: model.initial_log_density(th, current)),
+        atol=2e-10,
+        rtol=2e-10,
+    )
+    tf.debugging.assert_near(
+        model.transition_log_density_parameter_score(theta, previous, current, t=1),
+        _jacobian(lambda th: model.transition_log_density(th, previous, current, t=1)),
+        atol=2e-10,
+        rtol=2e-10,
+    )
+    tf.debugging.assert_near(
+        model.observation_log_density_parameter_score(theta, current, observation, t=1),
+        _jacobian(lambda th: model.observation_log_density(th, current, observation, t=1)),
+        atol=2e-10,
+        rtol=2e-10,
+    )
+
+
+def test_transformed_sv_local_observation_scores_match_tape_jacobians() -> None:
+    theta = highdim.StochasticVolatilitySSM(sigma=1.0).unconstrained_from_physical(
+        gamma=0.60,
+        beta=0.40,
+    )
+    values = tf.constant([[-0.35], [0.20], [0.75]], dtype=tf.float64)
+    raw_observation = tf.constant([[0.25]], dtype=tf.float64)
+    exact_observation = highdim.exact_transformed_sv_observations(raw_observation)[0]
+    ksc_observation = highdim.transformed_sv_panel_observations(raw_observation)[0]
+
+    for model, observation in (
+        (highdim.ExactTransformedSVSSM(sigma=1.0), exact_observation),
+        (highdim.KSCMixtureTransformedSVSSM(sigma=1.0), ksc_observation),
+    ):
+        with tf.GradientTape() as tape:
+            tape.watch(theta)
+            target = model.observation_log_density(theta, values, observation, t=1)
+        expected = tape.jacobian(target, theta)
+        actual = model.observation_log_density_parameter_score(theta, values, observation, t=1)
+        tf.debugging.assert_near(actual, expected, atol=2e-10, rtol=2e-10)
 
 
 def test_multistate_fixed_design_tt_score_path_matches_same_branch_fd_for_tiny_horizon0_fixture() -> None:
@@ -714,6 +796,15 @@ def test_multistate_fixed_design_tt_score_path_matches_same_branch_fd_for_tiny_h
         assert row.branch_hash_plus == row.branch_hash_base
         assert row.branch_hash_minus == row.branch_hash_base
     assert result.diagnostics["score_path"] == "multistate_nonlinear_fixed_design_tt_score_path"
+    assert result.diagnostics["route_role"] == highdim.MULTISTATE_RETAINED_GRID_ROUTE_ROLE
+    assert (
+        result.diagnostics["leaderboard_admission"]
+        == highdim.MULTISTATE_RETAINED_GRID_LEADERBOARD_ADMISSION
+    )
+    assert (
+        result.diagnostics["production_zhao_cui_route"]
+        == highdim.FIXED_VARIANT_ZHAO_CUI_PRODUCTION_ROUTE
+    )
     assert result.diagnostics["fixed_branch_only"] is True
     assert result.diagnostics["state_dim"] == 2
     assert float(result.finite_difference_table.max_abs_error().numpy()) < 2e-1
@@ -752,6 +843,15 @@ def test_multistate_fixed_design_tt_score_path_matches_same_branch_fd_for_tiny_t
         assert row.branch_hash_plus == row.branch_hash_base
         assert row.branch_hash_minus == row.branch_hash_base
     assert result.diagnostics["score_path"] == "multistate_nonlinear_fixed_design_tt_score_path"
+    assert result.diagnostics["route_role"] == highdim.MULTISTATE_RETAINED_GRID_ROUTE_ROLE
+    assert (
+        result.diagnostics["leaderboard_admission"]
+        == highdim.MULTISTATE_RETAINED_GRID_LEADERBOARD_ADMISSION
+    )
+    assert (
+        result.diagnostics["production_zhao_cui_route"]
+        == highdim.FIXED_VARIANT_ZHAO_CUI_PRODUCTION_ROUTE
+    )
     assert result.diagnostics["fixed_branch_only"] is True
     assert result.diagnostics["state_dim"] == 2
     assert result.diagnostics["observation_count"] == 2

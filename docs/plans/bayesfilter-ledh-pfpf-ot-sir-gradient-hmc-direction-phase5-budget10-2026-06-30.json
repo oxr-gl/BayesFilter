@@ -1,0 +1,1555 @@
+{
+  "batch_seeds": [
+    81120,
+    81121,
+    81122,
+    81123,
+    81124
+  ],
+  "candidate_steps": [
+    10
+  ],
+  "cuda_visible_devices": "0",
+  "device": "/GPU:0",
+  "device_scope": "visible",
+  "elapsed_seconds": 1611.4168632070068,
+  "expect_device_kind": "gpu",
+  "git_commit": "ef119f8bdb17b206339de92d722344a448eea745",
+  "gpu_memory_info_after": {
+    "current": 76288,
+    "peak": 84710656
+  },
+  "gpu_memory_info_before": {
+    "current": 19200,
+    "peak": 24832
+  },
+  "host": "DESKTOP-RF1Q5IJ",
+  "interpretation": {
+    "best_fd_z_steps": 10,
+    "best_max_abs_fd_z": 362.54378733987676,
+    "caution": "This diagnostic can implicate finite Sinkhorn budget, but it cannot certify SIR gradient correctness or rule out reset/covariance or objective-semantics errors.",
+    "fd_z_drop_from_steps10": false,
+    "hmc_direction_pass_exists": false,
+    "lowest_row_residual": 1.4722347259521484e-05,
+    "lowest_row_steps": 10,
+    "residuals_drop": false,
+    "row10_residual": 1.4722347259521484e-05,
+    "row_pass_exists": true,
+    "status": "budget10_row_residual_already_passes_this_screen"
+  },
+  "logical_gpus": [
+    "LogicalDevice(name='/device:GPU:0', device_type='GPU')"
+  ],
+  "nonclaims": [
+    "not SIR gradient correctness",
+    "not HMC readiness",
+    "not posterior correctness",
+    "not production readiness",
+    "not evidence that Sinkhorn budget is the only remaining issue"
+  ],
+  "output_devices": [
+    "/job:localhost/replica:0/task:0/device:GPU:0",
+    "/job:localhost/replica:0/task:0/device:GPU:0"
+  ],
+  "physical_gpus": [
+    "PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')"
+  ],
+  "precision": {
+    "active_dtype": "float32",
+    "default_algorithm_target": "ledh_pfpf_ot_tf32",
+    "default_dtype": "float32",
+    "default_execution_target": "gpu",
+    "default_route_acceptance": "accepted_default_use_whenever_possible",
+    "default_route_guidance": "use for BayesFilter DPF LEDH-PFPF-OT work whenever GPU execution and the streaming fixed-branch contract are applicable",
+    "default_route_rationale": "streaming GPU TF32 LEDH-PFPF-OT avoids dense transport/history storage for large-particle DPF transport while preserving explicit reference and fallback arms",
+    "default_target_status": "production_default_by_owner_directive",
+    "default_tf32_mode": "enabled",
+    "dtype": "float32",
+    "fp64_reference_requires_explicit_dtype": true,
+    "historical_module_path": "experiments/dpf_implementation",
+    "precision_default_policy": "production_ledh_pfpf_ot_gpu_tf32",
+    "public_api_exposure": "separately_gated",
+    "scope": "production_ledh_pfpf_ot_gpu_tf32_default_lane",
+    "tf32_execution_enabled": true,
+    "tf32_mode": "enabled",
+    "tf_dtype": "float32"
+  },
+  "python_version": "3.11.14",
+  "records": [
+    {
+      "all_raw_directions_hmc_direction_pass": false,
+      "all_raw_directions_within_2se": false,
+      "gradient": {
+        "manual_gradient_values": [
+          -143.36988830566406,
+          68.2666244506836,
+          46.060081481933594
+        ],
+        "monte_carlo_gradient_noise": {
+          "log_kappa_scale": {
+            "batch_size": 5,
+            "max": 19.7109375,
+            "mean": -143.36988830566406,
+            "min": -266.63763427734375,
+            "sample_sd_across_seed_contributions": 109.43289947509766,
+            "standard_error_of_batch_mean": 48.939884185791016
+          },
+          "log_nu_scale": {
+            "batch_size": 5,
+            "max": 98.93370056152344,
+            "mean": 68.2666244506836,
+            "min": 23.23186492919922,
+            "sample_sd_across_seed_contributions": 29.083513259887695,
+            "standard_error_of_batch_mean": 13.00654411315918
+          },
+          "log_obs_noise_scale": {
+            "batch_size": 5,
+            "max": 47.99067687988281,
+            "mean": 46.060081481933594,
+            "min": 44.68324279785156,
+            "sample_sd_across_seed_contributions": 1.2141233682632446,
+            "standard_error_of_batch_mean": 0.5429725050926208
+          }
+        },
+        "per_seed_gradient": [
+          [
+            -266.63763427734375,
+            98.93370056152344,
+            44.68324279785156
+          ],
+          [
+            19.7109375,
+            23.23186492919922,
+            46.15401077270508
+          ],
+          [
+            -129.80564880371094,
+            68.35176086425781,
+            47.99067687988281
+          ],
+          [
+            -122.60647583007812,
+            62.90188980102539,
+            45.57051086425781
+          ],
+          [
+            -217.5105743408203,
+            87.9139175415039,
+            45.9019775390625
+          ]
+        ],
+        "score_route": "manual_reverse_scan_no_autodiff"
+      },
+      "max_abs_combined_z_finite_or_inf": 2.8281962476351596,
+      "max_abs_fd_z_finite_or_inf": 362.54378733987676,
+      "raw_direction_details": [
+        {
+          "ad_directional_derivative": -143.36988830566406,
+          "ad_minus_regression_slope": 119.81556701660156,
+          "ad_minus_slope_over_slope_se": 114.46296898193143,
+          "base_step": 0.001,
+          "basis_name": "raw_theta",
+          "direction_name": "log_kappa_scale",
+          "direction_original_theta": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "fd_evaluation_mode": "batched-theta",
+          "fit_objective_values": [
+            -124.1850814819336,
+            -124.43977355957031,
+            -124.69571685791016,
+            -124.9532699584961,
+            -125.21257019042969,
+            -125.47464752197266,
+            -125.73731994628906,
+            -126.00370788574219,
+            -126.27362060546875,
+            -126.54560852050781,
+            -126.8186264038086
+          ],
+          "fit_theta_values": [
+            [
+              0.014999998733401299,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.01599999889731407,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.016999999061226845,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.017999999225139618,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.01899999938905239,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.020999999716877937,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.02199999988079071,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.023000000044703484,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.024000000208616257,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.02500000037252903,
+              -0.009999999776482582,
+              0.009999999776482582
+            ]
+          ],
+          "fit_x_values": [
+            -0.005000000353902578,
+            -0.004000000189989805,
+            -0.003000000026077032,
+            -0.0020000000949949026,
+            -0.0010000000474974513,
+            0.0,
+            0.0010000000474974513,
+            0.0020000000949949026,
+            0.003000000026077032,
+            0.004000000189989805,
+            0.005000000353902578
+          ],
+          "objective_values": [
+            -123.93304443359375,
+            -124.1850814819336,
+            -124.43977355957031,
+            -124.69571685791016,
+            -124.9532699584961,
+            -125.21257019042969,
+            -125.47464752197266,
+            -125.73731994628906,
+            -126.00370788574219,
+            -126.27362060546875,
+            -126.54560852050781,
+            -126.8186264038086,
+            -127.09521484375
+          ],
+          "offsets": [
+            -6.0,
+            -5.0,
+            -4.0,
+            -3.0,
+            -2.0,
+            -1.0,
+            0.0,
+            1.0,
+            2.0,
+            3.0,
+            4.0,
+            5.0,
+            6.0
+          ],
+          "regression_intercept": -125.4854507446289,
+          "regression_max_abs_residual": 0.01725006103515625,
+          "regression_r_squared": 0.9998576641082764,
+          "regression_residual_sse": 0.0010847552912309766,
+          "regression_slope": -263.1854553222656,
+          "regression_slope_standard_error": 1.0467627048492432,
+          "theta_values": [
+            [
+              0.0139999995008111,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.014999998733401299,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.01599999889731407,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.016999999061226845,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.017999999225139618,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.01899999938905239,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.020999999716877937,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.02199999988079071,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.023000000044703484,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.024000000208616257,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.02500000037252903,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.026000000536441803,
+              -0.009999999776482582,
+              0.009999999776482582
+            ]
+          ],
+          "trim_extreme_points": {
+            "dropped_high_value_points": [
+              {
+                "index": 0,
+                "objective_value": -123.93304443359375,
+                "x": -0.006000000052154064
+              }
+            ],
+            "dropped_low_value_points": [
+              {
+                "index": 12,
+                "objective_value": -127.09521484375,
+                "x": 0.006000000052154064
+              }
+            ],
+            "dropped_objective_values": [
+              -127.09521484375,
+              -123.93304443359375
+            ],
+            "dropped_point_indices": [
+              12,
+              0
+            ],
+            "dropped_x_values": [
+              0.006000000052154064,
+              -0.006000000052154064
+            ],
+            "evaluated_point_count": 13,
+            "fit_objective_values": [
+              -124.1850814819336,
+              -124.43977355957031,
+              -124.69571685791016,
+              -124.9532699584961,
+              -125.21257019042969,
+              -125.47464752197266,
+              -125.73731994628906,
+              -126.00370788574219,
+              -126.27362060546875,
+              -126.54560852050781,
+              -126.8186264038086
+            ],
+            "fit_point_count": 11,
+            "fit_point_indices": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11
+            ],
+            "fit_x_values": [
+              -0.005000000353902578,
+              -0.004000000189989805,
+              -0.003000000026077032,
+              -0.0020000000949949026,
+              -0.0010000000474974513,
+              0.0,
+              0.0010000000474974513,
+              0.0020000000949949026,
+              0.003000000026077032,
+              0.004000000189989805,
+              0.005000000353902578
+            ],
+            "tie_break_rule": "low values: objective ascending, x ascending, original index ascending; high values: objective descending, x ascending, original index ascending after excluding low-value drops",
+            "trim_extreme_offsets": 1,
+            "trim_extreme_values": 1,
+            "trim_mode": "value",
+            "trimmed": true
+          },
+          "x_values": [
+            -0.006000000052154064,
+            -0.005000000353902578,
+            -0.004000000189989805,
+            -0.003000000026077032,
+            -0.0020000000949949026,
+            -0.0010000000474974513,
+            0.0,
+            0.0010000000474974513,
+            0.0020000000949949026,
+            0.003000000026077032,
+            0.004000000189989805,
+            0.005000000353902578,
+            0.006000000052154064
+          ]
+        },
+        {
+          "ad_directional_derivative": 68.2666244506836,
+          "ad_minus_regression_slope": -36.78617858886719,
+          "ad_minus_slope_over_slope_se": -362.54378733987676,
+          "base_step": 0.001,
+          "basis_name": "raw_theta",
+          "direction_name": "log_nu_scale",
+          "direction_original_theta": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "fd_evaluation_mode": "batched-theta",
+          "fit_objective_values": [
+            -126.00251770019531,
+            -125.89665222167969,
+            -125.7900390625,
+            -125.68565368652344,
+            -125.57920837402344,
+            -125.47464752197266,
+            -125.36940002441406,
+            -125.26531982421875,
+            -125.16069030761719,
+            -125.05623626708984,
+            -124.9513931274414
+          ],
+          "fit_theta_values": [
+            [
+              0.019999999552965164,
+              -0.015000000596046448,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.014000000432133675,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.013000000268220901,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.012000000104308128,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.010999999940395355,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.008999999612569809,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.007999999448657036,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.00699999975040555,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.005999999586492777,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.004999999422580004,
+              0.009999999776482582
+            ]
+          ],
+          "fit_x_values": [
+            -0.005000000353902578,
+            -0.004000000189989805,
+            -0.003000000026077032,
+            -0.0020000000949949026,
+            -0.0010000000474974513,
+            0.0,
+            0.0010000000474974513,
+            0.0020000000949949026,
+            0.003000000026077032,
+            0.004000000189989805,
+            0.005000000353902578
+          ],
+          "objective_values": [
+            -126.11006927490234,
+            -126.00251770019531,
+            -125.89665222167969,
+            -125.7900390625,
+            -125.68565368652344,
+            -125.57920837402344,
+            -125.47464752197266,
+            -125.36940002441406,
+            -125.26531982421875,
+            -125.16069030761719,
+            -125.05623626708984,
+            -124.9513931274414,
+            -124.84769439697266
+          ],
+          "offsets": [
+            -6.0,
+            -5.0,
+            -4.0,
+            -3.0,
+            -2.0,
+            -1.0,
+            0.0,
+            1.0,
+            2.0,
+            3.0,
+            4.0,
+            5.0,
+            6.0
+          ],
+          "regression_intercept": -125.47561645507812,
+          "regression_max_abs_residual": 0.00164031982421875,
+          "regression_r_squared": 0.9999915957450867,
+          "regression_residual_sse": 1.0192568879574537e-05,
+          "regression_slope": 105.05280303955078,
+          "regression_slope_standard_error": 0.10146685689687729,
+          "theta_values": [
+            [
+              0.019999999552965164,
+              -0.01599999889731407,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.015000000596046448,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.014000000432133675,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.013000000268220901,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.012000000104308128,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.010999999940395355,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.008999999612569809,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.007999999448657036,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.00699999975040555,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.005999999586492777,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.004999999422580004,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.003999999724328518,
+              0.009999999776482582
+            ]
+          ],
+          "trim_extreme_points": {
+            "dropped_high_value_points": [
+              {
+                "index": 12,
+                "objective_value": -124.84769439697266,
+                "x": 0.006000000052154064
+              }
+            ],
+            "dropped_low_value_points": [
+              {
+                "index": 0,
+                "objective_value": -126.11006927490234,
+                "x": -0.006000000052154064
+              }
+            ],
+            "dropped_objective_values": [
+              -126.11006927490234,
+              -124.84769439697266
+            ],
+            "dropped_point_indices": [
+              0,
+              12
+            ],
+            "dropped_x_values": [
+              -0.006000000052154064,
+              0.006000000052154064
+            ],
+            "evaluated_point_count": 13,
+            "fit_objective_values": [
+              -126.00251770019531,
+              -125.89665222167969,
+              -125.7900390625,
+              -125.68565368652344,
+              -125.57920837402344,
+              -125.47464752197266,
+              -125.36940002441406,
+              -125.26531982421875,
+              -125.16069030761719,
+              -125.05623626708984,
+              -124.9513931274414
+            ],
+            "fit_point_count": 11,
+            "fit_point_indices": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11
+            ],
+            "fit_x_values": [
+              -0.005000000353902578,
+              -0.004000000189989805,
+              -0.003000000026077032,
+              -0.0020000000949949026,
+              -0.0010000000474974513,
+              0.0,
+              0.0010000000474974513,
+              0.0020000000949949026,
+              0.003000000026077032,
+              0.004000000189989805,
+              0.005000000353902578
+            ],
+            "tie_break_rule": "low values: objective ascending, x ascending, original index ascending; high values: objective descending, x ascending, original index ascending after excluding low-value drops",
+            "trim_extreme_offsets": 1,
+            "trim_extreme_values": 1,
+            "trim_mode": "value",
+            "trimmed": true
+          },
+          "x_values": [
+            -0.006000000052154064,
+            -0.005000000353902578,
+            -0.004000000189989805,
+            -0.003000000026077032,
+            -0.0020000000949949026,
+            -0.0010000000474974513,
+            0.0,
+            0.0010000000474974513,
+            0.0020000000949949026,
+            0.003000000026077032,
+            0.004000000189989805,
+            0.005000000353902578,
+            0.006000000052154064
+          ]
+        },
+        {
+          "ad_directional_derivative": 46.060081481933594,
+          "ad_minus_regression_slope": -0.7067184448242188,
+          "ad_minus_slope_over_slope_se": -10.714087771710554,
+          "base_step": 0.001,
+          "basis_name": "raw_theta",
+          "direction_name": "log_obs_noise_scale",
+          "direction_original_theta": [
+            0.0,
+            0.0,
+            1.0
+          ],
+          "fd_evaluation_mode": "batched-theta",
+          "fit_objective_values": [
+            -125.70875549316406,
+            -125.6613998413086,
+            -125.614990234375,
+            -125.5669937133789,
+            -125.52033996582031,
+            -125.47464752197266,
+            -125.42695617675781,
+            -125.37992858886719,
+            -125.33331298828125,
+            -125.28780364990234,
+            -125.24127197265625
+          ],
+          "fit_theta_values": [
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.004999999422580004
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.005999999586492777
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.00699999975040555
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.007999999448657036
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.008999999612569809
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.010999999940395355
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.012000000104308128
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.013000000268220901
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.014000000432133675
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.015000000596046448
+            ]
+          ],
+          "fit_x_values": [
+            -0.005000000353902578,
+            -0.004000000189989805,
+            -0.003000000026077032,
+            -0.0020000000949949026,
+            -0.0010000000474974513,
+            0.0,
+            0.0010000000474974513,
+            0.0020000000949949026,
+            0.003000000026077032,
+            0.004000000189989805,
+            0.005000000353902578
+          ],
+          "objective_values": [
+            -125.75614929199219,
+            -125.70875549316406,
+            -125.6613998413086,
+            -125.614990234375,
+            -125.5669937133789,
+            -125.52033996582031,
+            -125.47464752197266,
+            -125.42695617675781,
+            -125.37992858886719,
+            -125.33331298828125,
+            -125.28780364990234,
+            -125.24127197265625,
+            -125.19828796386719
+          ],
+          "offsets": [
+            -6.0,
+            -5.0,
+            -4.0,
+            -3.0,
+            -2.0,
+            -1.0,
+            0.0,
+            1.0,
+            2.0,
+            3.0,
+            4.0,
+            5.0,
+            6.0
+          ],
+          "regression_intercept": -125.4742202758789,
+          "regression_max_abs_residual": 0.000885009765625,
+          "regression_r_squared": 0.9999821186065674,
+          "regression_residual_sse": 4.307425115257502e-06,
+          "regression_slope": 46.76679992675781,
+          "regression_slope_standard_error": 0.06596160680055618,
+          "theta_values": [
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.003999999724328518
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.004999999422580004
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.005999999586492777
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.00699999975040555
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.007999999448657036
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.008999999612569809
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.009999999776482582
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.010999999940395355
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.012000000104308128
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.013000000268220901
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.014000000432133675
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.015000000596046448
+            ],
+            [
+              0.019999999552965164,
+              -0.009999999776482582,
+              0.01599999889731407
+            ]
+          ],
+          "trim_extreme_points": {
+            "dropped_high_value_points": [
+              {
+                "index": 12,
+                "objective_value": -125.19828796386719,
+                "x": 0.006000000052154064
+              }
+            ],
+            "dropped_low_value_points": [
+              {
+                "index": 0,
+                "objective_value": -125.75614929199219,
+                "x": -0.006000000052154064
+              }
+            ],
+            "dropped_objective_values": [
+              -125.75614929199219,
+              -125.19828796386719
+            ],
+            "dropped_point_indices": [
+              0,
+              12
+            ],
+            "dropped_x_values": [
+              -0.006000000052154064,
+              0.006000000052154064
+            ],
+            "evaluated_point_count": 13,
+            "fit_objective_values": [
+              -125.70875549316406,
+              -125.6613998413086,
+              -125.614990234375,
+              -125.5669937133789,
+              -125.52033996582031,
+              -125.47464752197266,
+              -125.42695617675781,
+              -125.37992858886719,
+              -125.33331298828125,
+              -125.28780364990234,
+              -125.24127197265625
+            ],
+            "fit_point_count": 11,
+            "fit_point_indices": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11
+            ],
+            "fit_x_values": [
+              -0.005000000353902578,
+              -0.004000000189989805,
+              -0.003000000026077032,
+              -0.0020000000949949026,
+              -0.0010000000474974513,
+              0.0,
+              0.0010000000474974513,
+              0.0020000000949949026,
+              0.003000000026077032,
+              0.004000000189989805,
+              0.005000000353902578
+            ],
+            "tie_break_rule": "low values: objective ascending, x ascending, original index ascending; high values: objective descending, x ascending, original index ascending after excluding low-value drops",
+            "trim_extreme_offsets": 1,
+            "trim_extreme_values": 1,
+            "trim_mode": "value",
+            "trimmed": true
+          },
+          "x_values": [
+            -0.006000000052154064,
+            -0.005000000353902578,
+            -0.004000000189989805,
+            -0.003000000026077032,
+            -0.0020000000949949026,
+            -0.0010000000474974513,
+            0.0,
+            0.0010000000474974513,
+            0.0020000000949949026,
+            0.003000000026077032,
+            0.004000000189989805,
+            0.005000000353902578,
+            0.006000000052154064
+          ]
+        }
+      ],
+      "raw_direction_summaries": [
+        {
+          "combined_se": 48.95107737607928,
+          "direction_gate_reason": "inconclusive_precision_veto",
+          "direction_pass": false,
+          "direction_scale": 263.1854553222656,
+          "hmc_direction_gate": {
+            "combined_se": 48.95107737607928,
+            "direction_gate_reason": "inconclusive_precision_veto",
+            "direction_pass": false,
+            "direction_scale": 263.1854553222656,
+            "ladder_certificate": false,
+            "manual_gradient": -143.36988830566406,
+            "manual_minus_fd_over_combined_se": 2.447659447739782,
+            "manual_minus_regression_fd": 119.81556701660156,
+            "near_equal_supportive": false,
+            "near_zero_direction": false,
+            "non_negligible_direction": true,
+            "numeric_direction_gate_reason": "inconclusive_precision_veto",
+            "numeric_direction_pass": false,
+            "precision_half_width": 97.90215475215857,
+            "precision_limit": 65.7963638305664,
+            "precision_pass": false,
+            "regression_fd_slope": -263.1854553222656,
+            "regression_slope_standard_error": 1.0467627048492432,
+            "relative_error_to_regression_fd": 0.455251476073743,
+            "route_prerequisite_failed_checks": [],
+            "route_prerequisite_pass": true,
+            "row_residual_pass": true,
+            "same_sign_or_near_zero": true,
+            "seed_gradient_standard_error": 48.939884185791016,
+            "within_2_combined_se": false,
+            "within_4_combined_se": true
+          },
+          "manual_gradient": -143.36988830566406,
+          "manual_minus_fd_over_combined_se": 2.447659447739782,
+          "manual_minus_fd_over_slope_se": 114.46296898193143,
+          "manual_minus_regression_fd": 119.81556701660156,
+          "near_equal_supportive": false,
+          "near_zero_direction": false,
+          "numeric_direction_gate_reason": "inconclusive_precision_veto",
+          "numeric_direction_pass": false,
+          "parameter": "log_kappa_scale",
+          "precision_pass": false,
+          "regression_fd_slope": -263.1854553222656,
+          "regression_max_abs_residual": 0.01725006103515625,
+          "regression_r_squared": 0.9998576641082764,
+          "regression_slope_standard_error": 1.0467627048492432,
+          "route_prerequisite_failed_checks": [],
+          "route_prerequisite_pass": true,
+          "same_sign_or_near_zero": true,
+          "seed_gradient_standard_error": 48.939884185791016,
+          "trim_extreme_points": {
+            "dropped_high_value_points": [
+              {
+                "index": 0,
+                "objective_value": -123.93304443359375,
+                "x": -0.006000000052154064
+              }
+            ],
+            "dropped_low_value_points": [
+              {
+                "index": 12,
+                "objective_value": -127.09521484375,
+                "x": 0.006000000052154064
+              }
+            ],
+            "dropped_objective_values": [
+              -127.09521484375,
+              -123.93304443359375
+            ],
+            "dropped_point_indices": [
+              12,
+              0
+            ],
+            "dropped_x_values": [
+              0.006000000052154064,
+              -0.006000000052154064
+            ],
+            "evaluated_point_count": 13,
+            "fit_objective_values": [
+              -124.1850814819336,
+              -124.43977355957031,
+              -124.69571685791016,
+              -124.9532699584961,
+              -125.21257019042969,
+              -125.47464752197266,
+              -125.73731994628906,
+              -126.00370788574219,
+              -126.27362060546875,
+              -126.54560852050781,
+              -126.8186264038086
+            ],
+            "fit_point_count": 11,
+            "fit_point_indices": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11
+            ],
+            "fit_x_values": [
+              -0.005000000353902578,
+              -0.004000000189989805,
+              -0.003000000026077032,
+              -0.0020000000949949026,
+              -0.0010000000474974513,
+              0.0,
+              0.0010000000474974513,
+              0.0020000000949949026,
+              0.003000000026077032,
+              0.004000000189989805,
+              0.005000000353902578
+            ],
+            "tie_break_rule": "low values: objective ascending, x ascending, original index ascending; high values: objective descending, x ascending, original index ascending after excluding low-value drops",
+            "trim_extreme_offsets": 1,
+            "trim_extreme_values": 1,
+            "trim_mode": "value",
+            "trimmed": true
+          },
+          "within_2_combined_se": false,
+          "within_2_slope_se": false,
+          "within_4_combined_se": true
+        },
+        {
+          "combined_se": 13.006939889559122,
+          "direction_gate_reason": "within_4_combined_se_requires_ladder_certificate",
+          "direction_pass": false,
+          "direction_scale": 105.05280303955078,
+          "hmc_direction_gate": {
+            "combined_se": 13.006939889559122,
+            "direction_gate_reason": "within_4_combined_se_requires_ladder_certificate",
+            "direction_pass": false,
+            "direction_scale": 105.05280303955078,
+            "ladder_certificate": false,
+            "manual_gradient": 68.2666244506836,
+            "manual_minus_fd_over_combined_se": -2.8281962476351596,
+            "manual_minus_regression_fd": -36.78617858886719,
+            "near_equal_supportive": false,
+            "near_zero_direction": false,
+            "non_negligible_direction": true,
+            "numeric_direction_gate_reason": "within_4_combined_se_requires_ladder_certificate",
+            "numeric_direction_pass": false,
+            "precision_half_width": 26.013879779118245,
+            "precision_limit": 26.263200759887695,
+            "precision_pass": true,
+            "regression_fd_slope": 105.05280303955078,
+            "regression_slope_standard_error": 0.10146685689687729,
+            "relative_error_to_regression_fd": 0.35016846313960565,
+            "route_prerequisite_failed_checks": [],
+            "route_prerequisite_pass": true,
+            "row_residual_pass": true,
+            "same_sign_or_near_zero": true,
+            "seed_gradient_standard_error": 13.00654411315918,
+            "within_2_combined_se": false,
+            "within_4_combined_se": true
+          },
+          "manual_gradient": 68.2666244506836,
+          "manual_minus_fd_over_combined_se": -2.8281962476351596,
+          "manual_minus_fd_over_slope_se": -362.54378733987676,
+          "manual_minus_regression_fd": -36.78617858886719,
+          "near_equal_supportive": false,
+          "near_zero_direction": false,
+          "numeric_direction_gate_reason": "within_4_combined_se_requires_ladder_certificate",
+          "numeric_direction_pass": false,
+          "parameter": "log_nu_scale",
+          "precision_pass": true,
+          "regression_fd_slope": 105.05280303955078,
+          "regression_max_abs_residual": 0.00164031982421875,
+          "regression_r_squared": 0.9999915957450867,
+          "regression_slope_standard_error": 0.10146685689687729,
+          "route_prerequisite_failed_checks": [],
+          "route_prerequisite_pass": true,
+          "same_sign_or_near_zero": true,
+          "seed_gradient_standard_error": 13.00654411315918,
+          "trim_extreme_points": {
+            "dropped_high_value_points": [
+              {
+                "index": 12,
+                "objective_value": -124.84769439697266,
+                "x": 0.006000000052154064
+              }
+            ],
+            "dropped_low_value_points": [
+              {
+                "index": 0,
+                "objective_value": -126.11006927490234,
+                "x": -0.006000000052154064
+              }
+            ],
+            "dropped_objective_values": [
+              -126.11006927490234,
+              -124.84769439697266
+            ],
+            "dropped_point_indices": [
+              0,
+              12
+            ],
+            "dropped_x_values": [
+              -0.006000000052154064,
+              0.006000000052154064
+            ],
+            "evaluated_point_count": 13,
+            "fit_objective_values": [
+              -126.00251770019531,
+              -125.89665222167969,
+              -125.7900390625,
+              -125.68565368652344,
+              -125.57920837402344,
+              -125.47464752197266,
+              -125.36940002441406,
+              -125.26531982421875,
+              -125.16069030761719,
+              -125.05623626708984,
+              -124.9513931274414
+            ],
+            "fit_point_count": 11,
+            "fit_point_indices": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11
+            ],
+            "fit_x_values": [
+              -0.005000000353902578,
+              -0.004000000189989805,
+              -0.003000000026077032,
+              -0.0020000000949949026,
+              -0.0010000000474974513,
+              0.0,
+              0.0010000000474974513,
+              0.0020000000949949026,
+              0.003000000026077032,
+              0.004000000189989805,
+              0.005000000353902578
+            ],
+            "tie_break_rule": "low values: objective ascending, x ascending, original index ascending; high values: objective descending, x ascending, original index ascending after excluding low-value drops",
+            "trim_extreme_offsets": 1,
+            "trim_extreme_values": 1,
+            "trim_mode": "value",
+            "trimmed": true
+          },
+          "within_2_combined_se": false,
+          "within_2_slope_se": false,
+          "within_4_combined_se": true
+        },
+        {
+          "combined_se": 0.5469644182744133,
+          "direction_gate_reason": "within_2_combined_se",
+          "direction_pass": true,
+          "direction_scale": 46.76679992675781,
+          "hmc_direction_gate": {
+            "combined_se": 0.5469644182744133,
+            "direction_gate_reason": "within_2_combined_se",
+            "direction_pass": true,
+            "direction_scale": 46.76679992675781,
+            "ladder_certificate": false,
+            "manual_gradient": 46.060081481933594,
+            "manual_minus_fd_over_combined_se": -1.292073892217348,
+            "manual_minus_regression_fd": -0.7067184448242188,
+            "near_equal_supportive": false,
+            "near_zero_direction": false,
+            "non_negligible_direction": true,
+            "numeric_direction_gate_reason": "within_2_combined_se",
+            "numeric_direction_pass": true,
+            "precision_half_width": 1.0939288365488267,
+            "precision_limit": 11.691699981689453,
+            "precision_pass": true,
+            "regression_fd_slope": 46.76679992675781,
+            "regression_slope_standard_error": 0.06596160680055618,
+            "relative_error_to_regression_fd": 0.015111541647729182,
+            "route_prerequisite_failed_checks": [],
+            "route_prerequisite_pass": true,
+            "row_residual_pass": true,
+            "same_sign_or_near_zero": true,
+            "seed_gradient_standard_error": 0.5429725050926208,
+            "within_2_combined_se": true,
+            "within_4_combined_se": true
+          },
+          "manual_gradient": 46.060081481933594,
+          "manual_minus_fd_over_combined_se": -1.292073892217348,
+          "manual_minus_fd_over_slope_se": -10.714087771710554,
+          "manual_minus_regression_fd": -0.7067184448242188,
+          "near_equal_supportive": false,
+          "near_zero_direction": false,
+          "numeric_direction_gate_reason": "within_2_combined_se",
+          "numeric_direction_pass": true,
+          "parameter": "log_obs_noise_scale",
+          "precision_pass": true,
+          "regression_fd_slope": 46.76679992675781,
+          "regression_max_abs_residual": 0.000885009765625,
+          "regression_r_squared": 0.9999821186065674,
+          "regression_slope_standard_error": 0.06596160680055618,
+          "route_prerequisite_failed_checks": [],
+          "route_prerequisite_pass": true,
+          "same_sign_or_near_zero": true,
+          "seed_gradient_standard_error": 0.5429725050926208,
+          "trim_extreme_points": {
+            "dropped_high_value_points": [
+              {
+                "index": 12,
+                "objective_value": -125.19828796386719,
+                "x": 0.006000000052154064
+              }
+            ],
+            "dropped_low_value_points": [
+              {
+                "index": 0,
+                "objective_value": -125.75614929199219,
+                "x": -0.006000000052154064
+              }
+            ],
+            "dropped_objective_values": [
+              -125.75614929199219,
+              -125.19828796386719
+            ],
+            "dropped_point_indices": [
+              0,
+              12
+            ],
+            "dropped_x_values": [
+              -0.006000000052154064,
+              0.006000000052154064
+            ],
+            "evaluated_point_count": 13,
+            "fit_objective_values": [
+              -125.70875549316406,
+              -125.6613998413086,
+              -125.614990234375,
+              -125.5669937133789,
+              -125.52033996582031,
+              -125.47464752197266,
+              -125.42695617675781,
+              -125.37992858886719,
+              -125.33331298828125,
+              -125.28780364990234,
+              -125.24127197265625
+            ],
+            "fit_point_count": 11,
+            "fit_point_indices": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11
+            ],
+            "fit_x_values": [
+              -0.005000000353902578,
+              -0.004000000189989805,
+              -0.003000000026077032,
+              -0.0020000000949949026,
+              -0.0010000000474974513,
+              0.0,
+              0.0010000000474974513,
+              0.0020000000949949026,
+              0.003000000026077032,
+              0.004000000189989805,
+              0.005000000353902578
+            ],
+            "tie_break_rule": "low values: objective ascending, x ascending, original index ascending; high values: objective descending, x ascending, original index ascending after excluding low-value drops",
+            "trim_extreme_offsets": 1,
+            "trim_extreme_values": 1,
+            "trim_mode": "value",
+            "trimmed": true
+          },
+          "within_2_combined_se": true,
+          "within_2_slope_se": false,
+          "within_4_combined_se": true
+        }
+      ],
+      "route_prerequisites": {
+        "checks": {
+          "compiler_jit_compile": true,
+          "device_scope_visible": true,
+          "dtype_float32": true,
+          "expect_device_kind_gpu": true,
+          "finite_gradient": true,
+          "finite_objective": true,
+          "manual_reverse_compiler_xla": true,
+          "manual_score_route": true,
+          "manual_streaming_transport_gradient": true,
+          "outputs_on_gpu": true,
+          "stabilized_transport_ad": true,
+          "streaming_transport_plan": true,
+          "tf32_enabled": true
+        },
+        "compiler": {
+          "compile_and_first_call_timings_seconds": [
+            275.07642574294005,
+            275.4180949709844,
+            282.74220043001696,
+            280.79138897696976,
+            282.233399856952
+          ],
+          "compiled_unit": "manual_reverse_seed_microbatch_value_score",
+          "jit_compile": true,
+          "mode": "xla",
+          "repeats": 0,
+          "tf_function": true,
+          "warm_call_timings_seconds_by_context": [
+            [],
+            [],
+            [],
+            [],
+            []
+          ],
+          "warmups": 0
+        },
+        "failed_checks": [],
+        "route_prerequisite_pass": true,
+        "score_route": "manual_reverse_scan_no_autodiff"
+      },
+      "sinkhorn_steps": 10,
+      "transport": {
+        "column_residual_note": "manual streaming route reports column residual as 0.0 because the full transport matrix is not materialized; row residual is the active convergence diagnostic in this run",
+        "log_likelihood": [
+          -125.52214050292969,
+          -125.237060546875,
+          -126.2314453125,
+          -124.89723205566406,
+          -125.48130798339844
+        ],
+        "max_column_residual_reported": 0.0,
+        "max_row_residual": 1.4722347259521484e-05,
+        "objective": -125.47383880615234,
+        "row_residual_pass": true,
+        "row_residual_threshold": 0.001
+      }
+    }
+  ],
+  "regression_fd_contract": {
+    "base_step": 0.001,
+    "basis": "raw_theta",
+    "fd_evaluation_mode": "batched-theta",
+    "offsets": [
+      -6.0,
+      -5.0,
+      -4.0,
+      -3.0,
+      -2.0,
+      -1.0,
+      0.0,
+      1.0,
+      2.0,
+      3.0,
+      4.0,
+      5.0,
+      6.0
+    ],
+    "theta_offset_batch_size": 2,
+    "trim": "drop lowest and highest objective values before regression",
+    "trim_extreme_values": 1
+  },
+  "row_residual_threshold": 0.001,
+  "schema_version": "filter_bench.p8p_sir_sinkhorn_budget_hypothesis.v1",
+  "shape": {
+    "batch_size": 5,
+    "num_particles": 64,
+    "obs_dim": 9,
+    "parameter_dim": 3,
+    "state_dim": 18,
+    "time_steps": 3
+  },
+  "sir_semantics": {
+    "actual_sir_callback_usage": "initial_sample, process/observation covariance callbacks, observation metadata, and route metadata",
+    "actual_sir_callbacks_used": true,
+    "adapter_classification": "BayesFilter DPF adapter for fixed-parameter SIR; not Zhao-Cui TT/SIRT source-faithfulness evidence",
+    "experimental_streaming_adapter_route": "batched nonlinear-prior LEDH-PFPF-OT streaming adapter with fixed process covariance, not scalar Li-Coates Algorithm 1 UKF covariance lifecycle parity",
+    "flow_observation_contract": "same_observation_gaussian_sir_infectious_components",
+    "graph_compatible_sir_transition_copy_used": true,
+    "graph_compatible_sir_transition_source": "bayesfilter.highdim.zhao_cui_sir_austria_model RK4 zhao_cui_sir_step equations, copied into TensorFlow graph form because the model validation path uses eager .numpy() checks",
+    "nonlinear_prior_mean_hook_used": true,
+    "observation_dimension": 9,
+    "process_noise_policy": "clip_susceptible_after_noise",
+    "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+    "scalar_algorithm1_ukf_covariance_lifecycle_parity_claim": false,
+    "seed_microbatching": {
+      "combination_rule": "exact seed-weighted batch mean over independent fixed-seed evaluations",
+      "enabled": true,
+      "seed_groups": [
+        [
+          81120
+        ],
+        [
+          81121
+        ],
+        [
+          81122
+        ],
+        [
+          81123
+        ],
+        [
+          81124
+        ]
+      ],
+      "seed_microbatch_size": 1
+    },
+    "state_dimension": 18,
+    "target_density_used_for_correction": true
+  },
+  "tensorflow_version": "2.19.1",
+  "theta": {
+    "log_kappa_scale": 0.02,
+    "log_nu_scale": -0.01,
+    "log_obs_noise_scale": 0.01
+  },
+  "timestamp_utc": "2026-06-30T16:20:41.632721+00:00",
+  "transport": {
+    "annealed_convergence_threshold": 0.001,
+    "annealed_scaling": 0.9,
+    "col_chunk_size": 64,
+    "dense_transport_matrix_materialized": false,
+    "gradient_mode": "manual_streaming_finite_sinkhorn_stopped_scale_keys",
+    "particle_chunk_size": 64,
+    "row_chunk_size": 64,
+    "sinkhorn_epsilon": 1.0,
+    "sinkhorn_iterations": "varies_by_candidate",
+    "transport_ad_mode": "stabilized",
+    "transport_plan_mode": "streaming",
+    "value_core_mode": "streaming"
+  }
+}

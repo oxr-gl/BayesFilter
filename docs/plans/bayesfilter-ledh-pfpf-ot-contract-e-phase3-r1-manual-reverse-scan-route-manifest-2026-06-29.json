@@ -1,0 +1,193 @@
+{
+  "schema_version": "contract_e_phase3_manual_reverse_route_manifest.v1",
+  "date": "2026-06-29",
+  "route_id": "contract_e_phase3_manual_likelihood_reverse_scan_design",
+  "route_status": "design_only_not_implemented",
+  "selected_route_name": "manual_likelihood_reverse_scan_no_autodiff",
+  "material_gate_authorized": false,
+  "material_blocker_code": "PHASE3_MATERIAL_GATE_BLOCKED_PENDING_MANUAL_REVERSE_SCAN",
+  "material_unblocking_rule": "R2 reset-policy decision alone cannot unblock material mode; only a later implemented and audited full manual likelihood reverse scan may do so.",
+  "current_rejected_routes": [
+    {
+      "route_name": "manual-transport-vjp-only",
+      "reason": "transport-only VJP with outer generic score tape; diagnostic only"
+    },
+    {
+      "route_name": "value-only-ad-probe",
+      "reason": "localization probe; diagnostic only"
+    }
+  ],
+  "forbidden_material_score_patterns": [
+    "tf.GradientTape",
+    "GradientTape(",
+    ".gradient(",
+    ".jacobian(",
+    ".batch_jacobian(",
+    "tf.gradients",
+    "tf.autodiff.ForwardAccumulator",
+    "ForwardAccumulator(",
+    "transport_ad_mode=full"
+  ],
+  "source_anchors": [
+    {
+      "path": "docs/benchmarks/diagnose_ledh_pfpf_ot_contract_e_lgssm_gradient.py",
+      "symbol": "_make_compiled_contract_e",
+      "classification": "current_contract_e_forward_scalar"
+    },
+    {
+      "path": "docs/benchmarks/diagnose_ledh_pfpf_ot_contract_e_lgssm_gradient.py",
+      "symbol": "_make_compiled_value_and_gradient",
+      "classification": "current_rejected_outer_tape_score_diagnostic"
+    },
+    {
+      "path": "tests/test_ledh_pfpf_ot_lgssm_kalman_statistical.py",
+      "symbol": "_lgssm_manual_value_and_score",
+      "classification": "reference_manual_forward_reverse_scan_pattern"
+    },
+    {
+      "path": "tests/test_ledh_pfpf_ot_lgssm_kalman_statistical.py",
+      "symbol": "_transport_forward",
+      "classification": "reference_manual_transport_forward"
+    },
+    {
+      "path": "tests/test_ledh_pfpf_ot_lgssm_kalman_statistical.py",
+      "symbol": "_transport_vjp",
+      "classification": "reference_manual_transport_vjp"
+    }
+  ],
+  "derivative_boundaries": [
+    {
+      "id": "B01",
+      "name": "LGSSM parameterization to transition matrix and covariance",
+      "classification": "manual_carry_available_from_old_route"
+    },
+    {
+      "id": "B02",
+      "name": "fixed initial particles and transition noise reparameterization",
+      "classification": "manual_carry_available_from_old_route"
+    },
+    {
+      "id": "B03",
+      "name": "LEDH affine flow",
+      "classification": "manual_vjp_available"
+    },
+    {
+      "id": "B04",
+      "name": "transition log density",
+      "classification": "manual_vjp_available"
+    },
+    {
+      "id": "B05",
+      "name": "observation log density",
+      "classification": "manual_vjp_available"
+    },
+    {
+      "id": "B06",
+      "name": "log-weight correction identity",
+      "classification": "manual_vjp_available"
+    },
+    {
+      "id": "B07",
+      "name": "normalize, floor, and likelihood increment",
+      "classification": "manual_vjp_available"
+    },
+    {
+      "id": "B08",
+      "name": "Sinkhorn transport",
+      "classification": "manual_vjp_available_for_reference_route_contract_e_selection_pending"
+    },
+    {
+      "id": "B09",
+      "name": "time reverse scan",
+      "classification": "manual_pattern_available"
+    },
+    {
+      "id": "B10",
+      "name": "diagnostic outputs",
+      "classification": "non_gradient_monitor"
+    }
+  ],
+  "contract_e_reset_sub_boundaries": [
+    {
+      "id": "E01",
+      "name": "weighted target moments",
+      "classification": "blocked_pending_r2"
+    },
+    {
+      "id": "E02",
+      "name": "barycentric first-stage map",
+      "classification": "blocked_pending_r2"
+    },
+    {
+      "id": "E03",
+      "name": "plus-cloud uniform moments",
+      "classification": "blocked_pending_r2"
+    },
+    {
+      "id": "E04",
+      "name": "covariance gap",
+      "classification": "blocked_pending_r2"
+    },
+    {
+      "id": "E05",
+      "name": "target projector/rank/eigen classification",
+      "classification": "blocked_pending_r2"
+    },
+    {
+      "id": "E06",
+      "name": "residual covariance",
+      "classification": "blocked_pending_r2"
+    },
+    {
+      "id": "E07",
+      "name": "residual covariance square root",
+      "classification": "blocked_pending_r2"
+    },
+    {
+      "id": "E08",
+      "name": "residual-noise recentering and injection",
+      "classification": "blocked_pending_r2"
+    },
+    {
+      "id": "E09",
+      "name": "tilde-cloud uniform moments",
+      "classification": "blocked_pending_r2"
+    },
+    {
+      "id": "E10",
+      "name": "target covariance square root",
+      "classification": "blocked_pending_r2"
+    },
+    {
+      "id": "E11",
+      "name": "tilde covariance pseudo-inverse square root",
+      "classification": "blocked_pending_r2"
+    },
+    {
+      "id": "E12",
+      "name": "affine moment-restoration map",
+      "classification": "blocked_pending_r2"
+    },
+    {
+      "id": "E13",
+      "name": "final recentering to reset cloud",
+      "classification": "blocked_pending_r2"
+    },
+    {
+      "id": "E14",
+      "name": "diagnostic moment and conditioning monitors",
+      "classification": "non_gradient_monitor"
+    }
+  ],
+  "next_phase": {
+    "phase": "R2",
+    "objective": "isolate Contract E reset map and choose manual_vjp_implemented, stop_gradient_by_design, or blocked",
+    "may_unblock_material_gate": false
+  },
+  "nonclaims": [
+    "no Contract E reset VJP implemented",
+    "no gradient correctness claim",
+    "no FD or Kalman comparison",
+    "no GPU or material Phase 3 authorization"
+  ]
+}

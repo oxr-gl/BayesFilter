@@ -1,0 +1,55 @@
+{
+  "args": {
+    "annealed_scaling": 0.9,
+    "batch_seeds": [
+      81120
+    ],
+    "dtype": "float64",
+    "num_particles": 2,
+    "sinkhorn_epsilon": 1.0,
+    "sinkhorn_iterations": 1,
+    "theta_values": [
+      0.02,
+      -0.01,
+      0.01
+    ],
+    "time_steps": 2,
+    "transport_ad_mode": "stabilized",
+    "transport_gradient_mode": "manual_streaming_finite_sinkhorn_stopped_scale_keys",
+    "transport_policy": "active-all"
+  },
+  "comparator": "pre_phase4_python_record_manual_route",
+  "gradient_tensor": [
+    -48.75524851687841,
+    17.709154450750713,
+    8.969537295009577
+  ],
+  "log_likelihood": [
+    -71.40062611753442
+  ],
+  "objective": -71.40062611753442,
+  "per_seed_gradient": [
+    [
+      -48.75524851687841,
+      17.709154450750713,
+      8.969537295009577
+    ]
+  ],
+  "schema_version": "clean_xla_phase4_manual_scan_preedit_baseline.v1",
+  "sir_semantics": {
+    "actual_sir_callback_usage": "initial_sample, process/observation covariance callbacks, observation metadata, and route metadata",
+    "actual_sir_callbacks_used": true,
+    "adapter_classification": "BayesFilter DPF adapter for fixed-parameter SIR; not Zhao-Cui TT/SIRT source-faithfulness evidence",
+    "experimental_streaming_adapter_route": "batched nonlinear-prior LEDH-PFPF-OT streaming adapter with fixed process covariance, not scalar Li-Coates Algorithm 1 UKF covariance lifecycle parity",
+    "flow_observation_contract": "same_observation_gaussian_sir_infectious_components",
+    "graph_compatible_sir_transition_copy_used": true,
+    "graph_compatible_sir_transition_source": "bayesfilter.highdim.zhao_cui_sir_austria_model RK4 zhao_cui_sir_step equations, copied into TensorFlow graph form because the model validation path uses eager .numpy() checks",
+    "nonlinear_prior_mean_hook_used": true,
+    "observation_dimension": 9,
+    "process_noise_policy": "clip_susceptible_after_noise",
+    "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+    "scalar_algorithm1_ukf_covariance_lifecycle_parity_claim": false,
+    "state_dimension": 18,
+    "target_density_used_for_correction": true
+  }
+}

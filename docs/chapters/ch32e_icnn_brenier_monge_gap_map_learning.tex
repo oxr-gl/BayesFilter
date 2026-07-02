@@ -14,7 +14,7 @@ training choice now acts directly on the output cloud.
 
 This chapter therefore has one dominant task: teach the reader what direct-map
 learning is trying to learn, why Brenier/ICNN and Monge-gap methods are natural
-representatives of that lane, and what evidence is needed once no corrective
+representatives of that lane \citep{amos2017icnn,makkuva2020otmapping,uscidda2023mongegap}, and what evidence is needed once no corrective
 teacher solve remains in control.
 
 \section{What changes when the map itself is learned?}
@@ -37,6 +37,15 @@ it?”
 If the previous chapter was about helping an expensive trusted calculation, this
 chapter is about replacing that calculation by a learned map.  That is why the
 mathematical structure and the evidence contract both change.
+
+\paragraph{How to read the rest of this chapter.}
+The sequence now splits into two direct-map routes.  First comes the
+Brenier/ICNN family, which keeps a strong structural prior by learning a convex
+potential whose gradient defines the map.  Then comes the Monge-gap family,
+which keeps the same direct-map goal but relaxes the structural prior and asks
+instead how OT-like the learned endpoint map remains under the chosen cost.
+Both routes differ from the previous chapter in the same decisive way: there is
+no corrective teacher solve standing behind the final output object.
 
 \section{Running direct-map cell}
 \label{sec:bf-neural-ot-direct-running-cell}
@@ -109,7 +118,18 @@ pushforward relation
   T_\#\mu = \nu,
 \end{equation}
 meaning that if one samples \(X\sim\mu\) and then computes \(T(X)\), the law of
-that transformed sample is \(\nu\).
+that transformed sample is \(\nu\).  Equivalently, for every test function
+\(f\) for which the integrals exist,
+\begin{equation}
+\label{eq:bf-neural-ot-direct-pushforward-testfn}
+  \int f(y)\,d(T_\#\mu)(y)
+  =
+  \int f(T(x))\,d\mu(x).
+\end{equation}
+At the empirical-cloud level, this means that if the chapter starts from source
+particles \(x_i\sim\mu\) and evaluates \(z_i=T(x_i)\), then the mapped cloud
+\(\{z_i\}\) is the finite-sample object being asked to approximate the declared
+target law or target cloud.
 
 The important change relative to the warm-start chapter is immediate: the learned
 object is no longer an internal solver coordinate.  It is the transport map
@@ -137,17 +157,48 @@ downstream scalar built from mapped particles & implementation consequence & mus
 The direct-map route is not just a stronger warm start.  It asks the learned map
 itself to carry the approximation burden.
 
+\paragraph{Reader map for the technical core.}
+Before moving deeper into the equations, it helps to keep the two direct-map routes
+side by side.
+
+\begin{center}
+\small
+\begin{tabular}{p{0.20\textwidth} p{0.24\textwidth} p{0.24\textwidth} p{0.20\textwidth}}
+\toprule
+Route & Learned object & Training signal & Evidence required \\
+\midrule
+Brenier / ICNN & convex potential \(\psi_\theta\) and endpoint map \(T_\theta=\nabla\psi_\theta\) & potential-based objective built from mapped source samples and target-side scoring & endpoint fit, OT-structure plausibility, downstream scalar stability \\
+Monge-gap & direct endpoint map \(T_\theta\) & endpoint-fit term plus empirical Monge-gap surrogate & endpoint fit, Monge-gap behavior, downstream scalar stability \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The rest of the chapter should be read through those three columns: what object is
+learned, what training signal drives it, and what evidence would justify trusting
+that object in later filtering code.
+
 \section{Brenier viewpoint}
 \label{sec:bf-neural-ot-direct-brenier}
 
 In the quadratic-cost Euclidean setting, a classical route is to represent the
-map as the gradient of a convex potential:
+map as the gradient of a convex potential \citep{villani2003topics,peyre2019computational,vesseron2024brenier}:
 \begin{equation}
 \label{eq:bf-neural-ot-direct-brenier}
   T^\star(x)=\nabla\psi^\star(x),
   \qquad
   \psi^\star\text{ convex}.
 \end{equation}
+The quickest intuition is geometric.  Quadratic-cost transport prefers maps with a
+monotone or, more precisely, cyclically monotone structure.  Gradients of convex
+potentials are the canonical way to realize that structure.  In one dimension this
+reduces to the familiar monotone rearrangement picture: sort the mass from left to
+right and move it without crossings.  In higher dimension the theorem-strength
+statement is subtler, but the guiding lesson is the same: the more the transport is
+forced to behave like a monotone gradient field, the more a convex potential
+becomes a natural object to learn.  This is why the Brenier viewpoint appears so
+naturally: instead of learning an arbitrary map, learn a scalar potential whose
+gradient already lives in a mathematically privileged map family.
+
 This statement should be read with its theorem-level assumptions attached.  The
 classical Brenier characterization is a continuous-measure result for quadratic
 cost in Euclidean space under regularity conditions such as finite second
@@ -175,11 +226,31 @@ This tiny calculation is the cleanest way to see what the Brenier/ICNN family is
 trying to exploit: instead of learning the map directly, it learns a structured
 potential whose gradient gives the map.
 
+A small finite-cloud warning is useful here.  Even in tiny empirical problems, the
+transport object may fail to be a single theorem-strength Monge map.  If one source
+atom of mass \(1\) must feed two target atoms of mass \(1/2\) each, the natural
+finite-cloud transport may split mass across targets rather than assign one unique
+endpoint to that source atom.  This is exactly why the chapter treats Brenier as a
+structured motivation ladder rather than as an automatic finite-cloud theorem.
+
+\paragraph{What survives from Brenier theory in this chapter.}
+The theorem-strength Brenier result is not being imported wholesale into the
+finite-cloud BayesFilter setting.  What survives here is a narrower bridge.  The
+quadratic-cost theory says that convex-potential gradients are a mathematically
+natural map family when the continuous assumptions hold.  The monograph then uses
+that fact as \emph{structured motivation} for a direct-map parameterization.  What
+does \emph{not} survive automatically is a theorem that every finite empirical-cloud
+transport problem in this particle-filter setting is already solved exactly by an
+ICNN potential.  The reader should therefore carry forward a three-way separation:
+continuous-theorem support, structured finite-cloud motivation, and the separate
+empirical question of whether the learned map behaves well once embedded in the
+actual BayesFilter computation.
+
 \section{ICNN/Brenier route}
 \label{sec:bf-neural-ot-direct-icnn}
 
 Input-convex neural networks (ICNNs) provide a parametric family of scalar
-functions that remain convex in designated inputs.  The implementation idea is:
+functions that remain convex in designated inputs \citep{amos2017icnn,makkuva2020otmapping}.  The implementation idea is:
 \begin{enumerate}[label=(\roman*)]
   \item parameterize the potential \(\psi\) by an ICNN \(\psi_\theta\),
   \item obtain the transport map by differentiating the network,
@@ -189,6 +260,14 @@ functions that remain convex in designated inputs.  The implementation idea is:
   \item train \(\psi_\theta\) so that the induced map sends source mass toward
   the target according to the chosen OT objective.
 \end{enumerate}
+
+The middle step is the important one to slow down.  The learned object is not yet
+a teacher-side coupling or a corrected barycentric cloud.  It is the potential
+\(\psi_\theta\), together with the gradient-defined endpoint map
+\(T_\theta=\nabla\psi_\theta\) that later code will actually apply to the source
+particles.  So the training objective is not certifying ``the same object as the
+retained teacher, only faster.''  It is certifying, at best, that this chosen map
+family behaves plausibly under the declared direct-map evidence contract.
 
 A useful mathematical picture to keep in view is not one universal training
 formula, but the structural relation
@@ -205,9 +284,55 @@ present chapter therefore uses the Brenier/ICNN viewpoint primarily as
 structured motivation for the map family, not as a claim that one displayed
 objective automatically covers every finite-cloud training loop.
 
+One good way to read the displayed objective is to track the roles of its two
+functions separately.  The network parameter \(\theta\) chooses the source-side
+potential \(\psi_\theta\), whose gradient becomes the deployed map.  The function
+\(\varphi\) plays the complementary target-side role: it scores where the mapped
+samples land and therefore transmits target information back into the optimization.
+The formula is not saying that every direct-map implementation literally fixes this
+\(\varphi\) in advance.  It is saying that one common way to train a Brenier-style
+map is to balance a source-to-map transport cost against a target-side scoring term
+that rewards mapped samples for matching the intended target law.  For a practical
+reading, a first-year reader can think of \(\varphi\) as the target-side scoring
+object in the objective: whether it is held fixed, updated alternately, or learned
+jointly depends on the exact implementation, but its mathematical role in the
+displayed formula is always to encode how good the mapped samples look from the
+target side.
+
 The attraction of this route is that the map is not a black-box regressor.  It
 is constrained to come from a convex potential, which is exactly the sort of
 structure the quadratic-cost theory suggests under its stated assumptions.
+
+A concrete canonical training objective helps fix ideas.  One representative
+potential-based route is to choose a target-side potential \(\varphi\) and solve
+an objective of the schematic form
+\begin{equation}
+\label{eq:bf-neural-ot-direct-icnn-objective}
+  \min_\theta
+  \mathbb E_{X\sim\mu}\!
+  \left[
+    \frac{1}{2}\|X-\nabla\psi_\theta(X)\|^2
+    - \varphi(\nabla\psi_\theta(X))
+  \right]
+  +
+  \mathbb E_{Y\sim\nu}[\varphi(Y)].
+\end{equation}
+This should not be read as the only ICNN objective in the literature.  Its role in
+this chapter is narrower: it makes explicit what the learner is optimizing.  The
+first expectation penalizes the source-to-map transport cost while evaluating the
+target-side potential on the mapped samples.  The second expectation anchors the
+target distribution through samples from \(\nu\).  At deployment time the object
+used by later code is still the gradient-defined endpoint map
+\(T_\theta=\nabla\psi_\theta\), not the training objective itself.  The objective
+therefore certifies only what this direct-map learner was trained to do; it does
+not by itself recreate the retained-teacher guarantee from the previous chapter.
+A first-year reader should therefore read the objective in four rungs:
+\begin{enumerate}[label=(\roman*)]
+  \item choose a convex potential family \(\psi_\theta\),
+  \item obtain the endpoint map by differentiation,
+  \item optimize a loss built from mapped samples and target-side information,
+  \item deploy only the resulting endpoint map, not the training loss itself.
+\end{enumerate}
 
 The cost is also immediate from the equations.  One must evaluate gradients of
 the potential and, depending on the chosen training formulation, may need to
@@ -236,16 +361,36 @@ map-learning objective.
 \end{algorithmic}
 \end{algorithm}
 
+\paragraph{Reader checkpoint.}
+Three evidential layers should remain separate for this route:
+\begin{enumerate}[label=(\roman*)]
+  \item whether the learned map reaches the right endpoint law or cloud well enough,
+  \item whether the learned map still behaves like a plausible OT-style map under
+    the declared cost and structural prior,
+  \item whether a downstream scalar built from the mapped particles remains stable
+    once this learned map is inserted into filtering or HMC-adjacent code.
+\end{enumerate}
+A good training loss or good endpoint fit may support the first layer without yet
+settling the second or third.
+
 \paragraph{Approximation enters here.}
 The learned object is the transport map itself.  Errors in the learned potential
 or its gradient directly change the transported output cloud.
+
+\paragraph{Why the next section changes emphasis rather than object.}
+The Brenier/ICNN route and the Monge-gap route are both direct-map answers.  The
+learned endpoint map is still the primary object in both cases.  What changes in
+the next section is not the endpoint ambition but the structural prior: instead of
+forcing the map to arise from one especially rigid potential family, the chapter
+asks how to penalize a candidate map when it behaves unlike an OT map under the
+chosen cost.
 
 \section{Monge-gap route}
 \label{sec:bf-neural-ot-direct-monge-gap}
 
 A more flexible direct-map family regularizes a candidate map by how far it
 behaves from an OT map rather than forcing a particular architecture from the
-start.  For cost \(c\) and reference measure \(\rho\), the Monge gap is
+start \citep{uscidda2023mongegap}.  For cost \(c\) and reference measure \(\rho\), the Monge gap is
 \begin{equation}
 \label{eq:bf-neural-ot-direct-monge-gap}
   \mathcal M_\rho^c(T)
@@ -261,19 +406,74 @@ measure to emphasize a wider training envelope or a different weighting of the
 state space.  The role of \(\rho\) must therefore be named explicitly rather than
 left implicit.
 
+The key structural property is immediate from the definition.  The deterministic
+map \(x\mapsto T(x)\) induces a coupling between \(\rho\) and \(T_\#\rho\), so by
+the definition of optimal transport,
+\begin{equation}
+\label{eq:bf-neural-ot-direct-monge-gap-nonnegative}
+  W_c(\rho,T_\#\rho)
+  \le
+  \int c(x,T(x))\,d\rho(x).
+\end{equation}
+In slightly fuller words: the map-induced coupling
+\(\gamma_T=(\operatorname{Id},T)_\#\rho\) is one admissible coupling between the
+source measure and the pushforward target.  The optimal-transport cost
+\(W_c(\rho,T_\#\rho)\) is the infimum over all admissible couplings with those
+same marginals, so it cannot exceed the cost of this specific map-induced one.
+Therefore
+\begin{equation}
+\label{eq:bf-neural-ot-direct-monge-gap-nonnegative-conclusion}
+  \mathcal M_\rho^c(T)\ge 0,
+\end{equation}
+with equality when the map-induced coupling is already optimal for transporting
+\(\rho\) to \(T_\#\rho\).  This is why the Monge gap is a meaningful regularizer:
+it measures how far the learned map behaves from an OT map under the chosen cost.
+
 As a mathematical definition, the Monge gap is exact.  But in a practical
 training loop, the second term is typically not available in closed form because
 the pushforward measure \(T_\#\rho\) itself depends on the current learned map.
-So any finite-sample training objective that uses an estimated OT reference term
-should be read as a surrogate or approximate Monge-gap objective unless the
-estimator and its properties are stated explicitly.  Operationally, the chapter’s
-point is: fit a useful map, but penalize it when it behaves unlike an OT map for
-the chosen cost.
+So the reader should picture a four-step ladder:
+\begin{enumerate}[label=(\roman*)]
+  \item define the exact Monge-gap quantity mathematically,
+  \item recognize that the OT reference term is usually unavailable in closed form
+    inside training,
+  \item replace that unavailable term by a declared estimator or surrogate,
+  \item interpret the resulting optimization only as strongly as that surrogate
+    justification allows.
+\end{enumerate}
+A concrete empirical surrogate is obtained by drawing reference samples
+\(x_i\sim\rho\), forming mapped particles \(z_i=T_\theta(x_i)\), and defining
+\begin{equation}
+\label{eq:bf-neural-ot-direct-monge-gap-empirical}
+  \widehat{\mathcal M}_{\rho,m}^c(T_\theta)
+  =
+  \frac{1}{m}\sum_{i=1}^m c(x_i,z_i)
+  -
+  W_c\!\left(\frac{1}{m}\sum_{i=1}^m\delta_{x_i},
+  \frac{1}{m}\sum_{i=1}^m\delta_{z_i}\right).
+\end{equation}
+The second term is now a batchwise discrete OT problem on the empirical reference
+cloud and its mapped image.  This is now a finite-sample training quantity, not the
+exact population Monge gap.  So any finite-sample training objective that uses an
+estimated OT reference term should be read as a surrogate or approximate Monge-gap
+objective unless the estimator and its properties are stated explicitly.
+Operationally, the chapter’s point is: fit a useful map, but penalize it when it
+behaves unlike an OT map for the chosen cost.  A useful mental model is that the
+training loop is differentiating through two finite objects at once: the mapped
+sample cloud and a discrete OT computation on that cloud.  If either one is a poor
+proxy for the intended downstream use case, the empirical Monge-gap objective may
+still decrease while the later filtering scalar drifts in an undesired direction.
 
 The running cell already shows the idea.  The good and bad endpoint maps above
-both match the endpoint law, but the bad map moves mass much less efficiently.
-The Monge-gap route is attractive precisely because it can discourage such maps
-without forcing the full ICNN/Brenier structural commitment.
+both match the endpoint law, but the bad map moves mass much less efficiently.  On
+that tiny example, the direct transport cost of the good map is
+\(\frac{1}{2}(1^2+1^2)=1\), while the bad map has cost
+\(\frac{1}{2}(3^2+1^2)=5\).  So even before worrying about population measures or
+finite-sample estimators, the Monge-gap logic is already visible: two maps can fit
+the same endpoint cloud while differing sharply in how OT-like their transport
+behavior is under the chosen cost.  The Monge-gap route is attractive precisely
+because it can discourage such maps without forcing the full ICNN/Brenier
+structural commitment.
 
 \begin{algorithm}[ht]
 \caption{\texttt{train\_monge\_gap\_regularized\_direct\_map}}
@@ -306,7 +506,8 @@ than by a retained teacher solver.
 \label{sec:bf-neural-ot-direct-scalable-boundary}
 
 The same direct-map logic can be combined with additional structural priors,
-such as sparse displacement or factorized transport structure.  These are worth
+such as sparse displacement or factorized transport structure
+\citep{forrow2019factored,chenxiezhang2024sicnn,xu2025flowot,geuter2025unot}.  These are worth
 keeping in view because they may be useful when the filtering update itself has
 a scientifically justified sparse or low-active-subspace geometry.  But they
 inherit the same chapter-wide burden: the learned endpoint map itself must be
@@ -317,7 +518,23 @@ answer from retained-teacher acceleration.  It is more radical than
 teacher-preserving factorized Sinkhorn, because the final map object itself is
 learned.  But it is still narrower than the dynamic or operator families of the
 next chapter, because it aims to learn one endpoint map rather than an entire
-transport path or measure-level operator.
+transport path or measure-level operator.  The next chapter therefore does not
+continue the same endpoint-map story at larger scale; it changes the learned
+object again, from one final map to richer path, velocity-field, or operator
+representations.
+
+\begin{center}
+\small
+\begin{tabular}{p{0.18\textwidth} p{0.20\textwidth} p{0.22\textwidth} p{0.27\textwidth}}
+\toprule
+Family & Learned object & Corrective teacher retained? & First burden of proof \\
+\midrule
+Retained-teacher acceleration & solver state or latent teacher coordinate & yes & teacher-preservation residual after correction \\
+Direct-map learning & endpoint map or potential-derived map & no & endpoint, OT-structure, and downstream scalar drift \\
+Dynamic/operator learners & path, velocity field, or operator family & no & target-status and same-scalar coherence across richer objects \\
+\bottomrule
+\end{tabular}
+\end{center}
 
 \section{Why this is not the default first route}
 \label{sec:bf-neural-ot-direct-why-not-default}

@@ -29,6 +29,300 @@ full covariances and applying simplified covariance updates internally.  The
 BayesFilter monograph should therefore describe the actual implemented
 recursion, not only the label attached to the filter.
 
+\section{Factor-Propagating SR-UKF Score Contract}
+\label{sec:bf-srukf-factor-propagating-score-contract}
+
+This section defines the generic square-root UKF score object used by
+BayesFilter when the phrase ``factor-propagating SR-UKF analytical score'' is
+used.  It is not the historical SVD sigma-point score of
+Chapter~\ref{ch:bf-svd-sigma-point}.  It is also not the strict-SPD principal
+matrix-square-root derivative branch in
+Section~\ref{sec:bf-svd-principal-sqrt-backend}.  The backend below propagates a
+declared factor and differentiates the declared factor branch.  It must not
+differentiate an eigendecomposition or a principal square-root map as a hidden
+substitute for the factor recursion.
+
+\paragraph{Audit assumptions.}
+\label{par:bf-srukf-audit-assumptions}
+All derivatives in this section are local derivatives on one fixed branch of
+the declared factor recursion.  The branch fixes the sigma-point rule, weights,
+offsets, factor ranks, column order, QR pivot policy, sign convention, and the
+ordered update/downdate sequence.  If any of those choices changes, the
+derivative below is not reused.  For a step with state dimension \(d_x\),
+observation dimension \(d_y\), sigma variable dimension \(n_a\), and factor
+rank \(r_a\), the objects have shapes
+\[
+  \mu_a\in\mathbb R^{n_a},\quad
+  C_a\in\mathbb R^{n_a\times r_a},\quad
+  x^{(j)}\in\mathbb R^{d_x},\quad
+  z^{(j)}\in\mathbb R^{d_y},
+\]
+\[
+  P_{xx,\star}\in\mathbb R^{d_x\times d_x},\quad
+  S_\star\in\mathbb R^{d_y\times d_y},\quad
+  P_{xz,\star}\in\mathbb R^{d_x\times d_y},\quad
+  K\in\mathbb R^{d_x\times d_y},\quad
+  v,w,q\in\mathbb R^{d_y}.
+\]
+For the ordinary Gaussian innovation likelihood, the audited branch requires
+\(S_\star=C_SC_S^\top\) to be symmetric positive definite on the observed
+coordinates.  The implementation may evaluate \(S_\star^{-1}b\) only through
+declared solves and must report solve residual and conditioning diagnostics.
+The trace term in the score is square because
+\(\dot S_\star^{(i)}\in\mathbb R^{d_y\times d_y}\).
+
+\subsection{Sigma-Point Placement From A Declared Factor}
+\label{sec:bf-srukf-factor-placement}
+
+Let the sigma-point variable for one filtering step be
+\[
+  a_t\mid y_{1:t-1}\approx \calN(\mu_a,C_aC_a^\top),
+  \qquad
+  C_a\in\mathbb R^{n_a\times r_a}.
+\]
+The factor may be rectangular.  Rank deficiency of the represented law is
+therefore allowed on a fixed-rank branch; no inverse of \(C_a\), no Cholesky
+factor of \(C_aC_a^\top\), and no principal square root of \(C_aC_a^\top\) is
+part of the placement contract.  For fixed standardized offsets
+\(\xi^{(j)}\in\mathbb R^{r_a}\) and weights
+\((w_j^{(m)},w_j^{(c)})\), the SR-UKF placement is
+\begin{equation}
+\label{eq:bf-srukf-factor-placement}
+  a_t^{(j)}=\mu_a+C_a\xi^{(j)} .
+\end{equation}
+The offsets and weights define the UKF rule.  The factor \(C_a\) defines the
+gauge in which that rule is placed.
+
+For a parameter component \(\theta_i\), the first derivative of a placed point
+on a fixed factor branch is
+\begin{equation}
+\label{eq:bf-srukf-factor-placement-first}
+  \dot a_t^{(j,i)}
+  =
+  \dot\mu_a^{(i)}+\dot C_a^{(i)}\xi^{(j)} .
+\end{equation}
+The offsets are not differentiated.  A branch that changes offsets, rank,
+pivoting, jitter, sign convention, or active support is a new branch and must
+fail closed for analytical score admission unless that branch has its own
+reviewed derivative contract.
+
+\subsection{Moment Factors And Signed Square-Root Updates}
+\label{sec:bf-srukf-moment-factor}
+
+Let \(g_\theta\) be any smooth propagation map applied to the placed points, and
+write \(u^{(j)}=g_\theta(a_t^{(j)})\).  The weighted mean and centered
+deviations are
+\[
+  \bar u=\sum_j w_j^{(m)}u^{(j)},\qquad
+  e^{(j)}=u^{(j)}-\bar u .
+\]
+For a covariance object that may also include an additive factor
+\(G G^\top\), define positive and negative weighted stacks
+\[
+  E_+ =
+  \begin{bmatrix}
+    \{\sqrt{w_j^{(c)}}\,e^{(j)}: w_j^{(c)}>0\} & G
+  \end{bmatrix},
+  \qquad
+  E_- =
+  \begin{bmatrix}
+    \{\sqrt{-w_j^{(c)}}\,e^{(j)}: w_j^{(c)}<0\}
+  \end{bmatrix}.
+\]
+A factor-propagating SR-UKF backend chooses a declared branch
+\(\mathcal B\) consisting of a positive-stack QR factorization followed by
+ordered signed update/downdate primitives for the columns of \(E_-\).  The
+implemented factor is
+\begin{equation}
+\label{eq:bf-srukf-weighted-moment-factor}
+  C_u=\operatorname{SR}_{\mathcal B}(E_+,E_-),
+  \qquad
+  C_uC_u^\top
+  =
+  A_{u,\star}
+  =
+  E_+E_+^\top-E_-E_-^\top .
+\end{equation}
+The subscript \(\star\) records the implemented branch.  If a downdate fails,
+a pivot changes, a sign convention changes, or a stabilizing floor is activated,
+then the branch has changed.  Such an event is a diagnostic stop for the
+analytical score branch unless a separate reviewed branch states the new
+implemented covariance \(A_{u,\star}\) and its derivative.
+
+The first derivative of the propagated point is
+\begin{equation}
+\label{eq:bf-srukf-propagated-point-first}
+  \dot u^{(j,i)}
+  =
+  D_a g_\theta(a_t^{(j)})\,\dot a_t^{(j,i)}
+  +\partial_i g_\theta(a_t^{(j)}),
+\end{equation}
+and the mean and covariance-object derivatives are
+\begin{align}
+\label{eq:bf-srukf-moment-mean-first}
+  \dot{\bar u}^{(i)}
+  &=
+  \sum_j w_j^{(m)}\dot u^{(j,i)},\\
+\label{eq:bf-srukf-moment-covariance-first}
+  \dot A_{u,\star}^{(i)}
+  &=
+  \sum_j w_j^{(c)}
+  \left(
+    \dot e^{(j,i)}e^{(j)\top}
+    +e^{(j)}\dot e^{(j,i)\top}
+  \right)
+  +\dot G^{(i)}G^\top+G\dot G^{(i)\top},
+\end{align}
+where \(\dot e^{(j,i)}=\dot u^{(j,i)}-\dot{\bar u}^{(i)}\).  The factor
+derivative is the derivative of the same declared QR/update branch and must
+reconstruct the implemented covariance derivative:
+\begin{equation}
+\label{eq:bf-srukf-factor-reconstruction-first}
+  \dot A_{u,\star}^{(i)}
+  =
+  \dot C_u^{(i)}C_u^\top+C_u\dot C_u^{(i)\top}.
+\end{equation}
+Equation~\eqref{eq:bf-srukf-factor-reconstruction-first} is the local audit
+equation for the SR-UKF factor branch.  The QR and Cholesky branch derivatives
+in Chapter~\ref{ch:bf-factor-derivatives} give the primitive calculus used to
+obtain \(\dot C_u^{(i)}\) when the rank, pivot, sign, and update/downdate
+branch are fixed.
+
+\subsection{Innovation Factor, Likelihood, And Score}
+\label{sec:bf-srukf-innovation-score}
+
+Apply the moment construction to the predicted state points \(x^{(j)}\) and
+observation points \(z^{(j)}\).  This produces
+\[
+  \bar x,\qquad
+  \bar z,\qquad
+  P_{xx,\star},\qquad
+  S_\star,\qquad
+  P_{xz,\star}.
+\]
+The innovation factor is the declared SR factor of the observation covariance:
+\begin{equation}
+\label{eq:bf-srukf-innovation-factor}
+  C_S C_S^\top=S_\star .
+\end{equation}
+On the same fixed factor branch, its first derivative reconstructs the
+observation covariance derivative:
+\begin{equation}
+\label{eq:bf-srukf-innovation-factor-first}
+  \dot S_\star^{(i)}
+  =
+  \dot C_S^{(i)}C_S^\top+C_S\dot C_S^{(i)\top}.
+\end{equation}
+For the ordinary Gaussian innovation likelihood, \(S_\star\) must be full rank
+on the observed coordinates.  If it is not, the backend must either use a
+separately reviewed singular-density branch or fail closed; it must not add an
+unreported nugget and call the result the same likelihood.
+
+Let \(v=y_t-\bar z\).  The solve-form likelihood uses triangular or factor
+solves from the declared innovation branch:
+\begin{equation}
+\label{eq:bf-srukf-loglik-solve}
+  C_S q=v,\qquad C_S^\top w=q,\qquad
+  \ell_t
+  =
+  -\frac12
+  \left[
+    d_y\log(2\pi)+2\log|\det C_S|+q^\top q
+  \right].
+\end{equation}
+Equivalently, \(S_\star w=v\).  The first derivative of the innovation is
+\(\dot v^{(i)}=-\dot{\bar z}^{(i)}\).  Differentiating
+\[
+  -\frac12\{\log\det S_\star+v^\top S_\star^{-1}v\}
+\]
+on the same SPD solve branch uses
+\(\partial_i\log\det S_\star=\tr(S_\star^{-1}\dot S_\star^{(i)})\) and
+\(\partial_i S_\star^{-1}
+=-S_\star^{-1}\dot S_\star^{(i)}S_\star^{-1}\).  With
+\(w=S_\star^{-1}v\), the analytical score contribution is
+\begin{equation}
+\label{eq:bf-srukf-score-first}
+  \dot\ell_t^{(i)}
+  =
+  -\frac12
+  \left[
+    \tr(S_\star^{-1}\dot S_\star^{(i)})
+    +2\dot v^{(i)\top}w
+    -w^\top\dot S_\star^{(i)}w
+  \right].
+\end{equation}
+The trace term may be evaluated through the innovation factor branch, but the
+object being differentiated is \(S_\star=C_SC_S^\top\) from
+\eqref{eq:bf-srukf-innovation-factor}.  A derivative of a principal
+matrix-square-root map is not the generic SR-UKF score route defined here.
+
+\subsection{Filtered State And Propagated Factor Derivatives}
+\label{sec:bf-srukf-filtered-state}
+
+The UKF gain and filtered mean are
+\[
+  K=P_{xz,\star}S_\star^{-1},\qquad
+  \mu_{t|t}=\bar x+Kv .
+\]
+Equivalently, \(KS_\star=P_{xz,\star}\).  Differentiating this solve equation
+on the same invertible innovation branch gives the gain derivative in solve
+form:
+\begin{align}
+\label{eq:bf-srukf-gain-first}
+  \dot K^{(i)}S_\star
+  &=
+  \dot P_{xz,\star}^{(i)}-K\dot S_\star^{(i)},\\
+\label{eq:bf-srukf-filtered-mean-first}
+  \dot\mu_{t|t}^{(i)}
+  &=
+  \dot{\bar x}^{(i)}+\dot K^{(i)}v+K\dot v^{(i)} .
+\end{align}
+The filtered covariance object is
+\[
+  P_{t|t,\star}
+  =
+  P_{xx,\star}-K S_\star K^\top .
+\]
+The filtered square-root factor \(C_{t|t}\) is produced by the same declared
+signed factor branch:
+\begin{equation}
+\label{eq:bf-srukf-filtered-factor}
+  C_{t|t}
+  =
+  \operatorname{SR}_{\mathcal B_t}
+  \left(C_{xx,+},C_{KS}\right),
+  \qquad
+  C_{t|t}C_{t|t}^\top=P_{t|t,\star},
+\end{equation}
+where \(C_{xx,+}\) denotes the positive state-deviation stack used for
+\(P_{xx,\star}\) and \(C_{KS}\) denotes the downdated contribution whose
+covariance is \(K S_\star K^\top\).  The first derivative must again reconstruct
+the implemented branch:
+\begin{equation}
+\label{eq:bf-srukf-filtered-factor-first}
+  \dot P_{t|t,\star}^{(i)}
+  =
+  \dot C_{t|t}^{(i)}C_{t|t}^\top
+  +C_{t|t}\dot C_{t|t}^{(i)\top}.
+\end{equation}
+Equations~\eqref{eq:bf-srukf-filtered-mean-first} and
+\eqref{eq:bf-srukf-filtered-factor-first} are the state handoff contract for a
+multi-step analytical score recursion.
+
+\subsection{Admission Boundary}
+\label{sec:bf-srukf-admission-boundary}
+
+An implementation may be called an admitted factor-propagating SR-UKF analytical
+score only if its diagnostics identify the factor branch, update/downdate
+events, reconstruction residuals in
+\eqref{eq:bf-srukf-factor-reconstruction-first} and
+\eqref{eq:bf-srukf-filtered-factor-first}, innovation solve residuals, and
+score provenance.  The admitted provenance must not contain an autodiff tape
+fallback, the historical SVD/eigenderivative score route, or the strict-SPD
+principal-square-root derivative route.  Those routes can remain diagnostic
+comparators, but they do not satisfy the generic SR-UKF score contract in this
+section.
+
 \section{HMC-Relevant Risks}
 \label{sec:bf-square-root-hmc-risks}
 

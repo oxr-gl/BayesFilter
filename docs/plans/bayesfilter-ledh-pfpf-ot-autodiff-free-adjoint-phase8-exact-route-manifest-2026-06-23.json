@@ -1,0 +1,235 @@
+{
+  "schema_version": "ledh_no_autodiff_route_manifest.v2",
+  "route_id": "p8_manual_reverse_exact_route_certification",
+  "route_scope": "selected_route_exact",
+  "git_commit_at_manifest_write": "97ad05d40676f3fd15a2a2b4d45034ebb657ed97",
+  "command_path": "docs/benchmarks/benchmark_p8p_regression_fd_reparameterization.py",
+  "production_entrypoint": "docs/benchmarks/benchmark_p8p_regression_fd_reparameterization.py --ad-evaluation-mode manual-reverse --fd-mode ad-only",
+  "selected_route_name": "manual_reverse_scan_no_autodiff",
+  "selected_symbols": [
+    {
+      "path": "docs/benchmarks/benchmark_p8p_regression_fd_reparameterization.py",
+      "symbol": "main"
+    },
+    {
+      "path": "docs/benchmarks/benchmark_p8p_regression_fd_reparameterization.py",
+      "symbol": "_manual_gradient_diagnostic_for_contexts"
+    },
+    {
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "symbol": "_manual_value_and_score_from_components"
+    },
+    {
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "symbol": "_manual_forward_transport_tf"
+    },
+    {
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "symbol": "_manual_transport_vjp_tf"
+    }
+  ],
+  "exact_command_flags": {
+    "ad_evaluation_mode": "manual-reverse",
+    "fd_mode": "ad-only",
+    "transport_plan_mode": "streaming",
+    "transport_ad_mode": "stabilized",
+    "transport_gradient_mode": "manual_streaming_finite_sinkhorn_stopped_scale_keys",
+    "dtype": "float32",
+    "tf32_mode": "enabled",
+    "device_scope": "cpu",
+    "device": "/CPU:0",
+    "expect_device_kind": "cpu",
+    "time_steps": 1,
+    "num_particles": 2,
+    "batch_seeds": [
+      81120
+    ],
+    "row_chunk_size": 2,
+    "col_chunk_size": 2,
+    "particle_chunk_size": 2,
+    "sinkhorn_iterations": 1
+  },
+  "route_flags": {
+    "ad_evaluation_mode": "manual-reverse",
+    "dtype": "float32",
+    "fd_mode": "ad-only",
+    "tf32_mode": "enabled",
+    "transport_ad_mode": "stabilized",
+    "transport_gradient_mode": "manual_streaming_finite_sinkhorn_stopped_scale_keys",
+    "transport_plan_mode": "streaming"
+  },
+  "seed_policy": {
+    "seed_list": [
+      81120
+    ],
+    "seed_aggregation": "single-seed tiny certification smoke; later GPU/FD phases must use their own reviewed seed policies"
+  },
+  "audit_tool": {
+    "path": "scripts/audit_ledh_no_autodiff.py",
+    "version": "selected_route_exact_v1",
+    "whitelist_path": "docs/plans/bayesfilter-ledh-pfpf-ot-autodiff-free-adjoint-audit-whitelist-2026-06-23.json",
+    "audit_result_path": "docs/plans/bayesfilter-ledh-pfpf-ot-autodiff-free-adjoint-phase8-current-route-audit-result-2026-06-23.json"
+  },
+  "runtime_sentinel": {
+    "test_path": "tests/test_ledh_pfpf_ot_p7_manual_score.py",
+    "covered_route_ids": [
+      "p7_manual_score",
+      "p7_context_manual_score"
+    ]
+  },
+  "forbidden_patterns": [
+    "tf.GradientTape",
+    "GradientTape(",
+    ".gradient(",
+    ".jacobian(",
+    ".batch_jacobian(",
+    "tf.gradients",
+    "tf.autodiff.ForwardAccumulator",
+    "ForwardAccumulator(",
+    "tf.custom_gradient",
+    "@tf.custom_gradient",
+    "gradient_override_map",
+    "RegisterGradient",
+    "custom_gradient",
+    "watch("
+  ],
+  "production_files": [
+    "docs/benchmarks/benchmark_p8p_regression_fd_reparameterization.py",
+    "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+    "experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_tf.py",
+    "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py"
+  ],
+  "diagnostic_or_test_files": [
+    "tests/highdim/test_p81_analytical_sir_score.py",
+    "tests/test_experimental_batched_ledh_pfpf_ot_tf.py",
+    "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+    "tests/test_ledh_pfpf_ot_p7_manual_score.py"
+  ],
+  "allowed_custom_gradient_boundaries": [
+    {
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "decorator_line": 1960,
+      "symbol": "_filterflow_manual_streaming_finite_transport_stopped_scale_keys",
+      "classification": "selected_manual_custom_gradient_boundary",
+      "reason": "selected finite streaming transport route; grad body must pass no-autodiff scan"
+    }
+  ],
+  "excluded_symbols": [
+    {
+      "path": "docs/benchmarks/benchmark_p8p_regression_fd_reparameterization.py",
+      "symbol": "_forward_jvp_diagnostic_for_contexts",
+      "classification": "diagnostic_only_forward_jvp",
+      "reason": "bad route flag gate forbids ad_evaluation_mode=forward-jvp for production certification"
+    },
+    {
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "symbol": "_gradient_diagnostic",
+      "classification": "diagnostic_only_reverse_autodiff",
+      "reason": "bad route flag gate forbids ad_evaluation_mode=reverse-gradient for production certification"
+    },
+    {
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "symbol": "_isolated_observation_noise_diagnostic",
+      "classification": "diagnostic_only_reverse_autodiff",
+      "reason": "isolated diagnostic helper is not selected by manual-reverse certification route"
+    },
+    {
+      "path": "experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_tf.py",
+      "symbol": "batched_annealed_transport_core_tf",
+      "classification": "unselected_generic_transport_dispatcher",
+      "reason": "manual-reverse exact route calls the selected finite streaming transport helper directly"
+    },
+    {
+      "path": "experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_tf.py",
+      "symbol": "batched_ledh_pfpf_ot_value_and_score_tf",
+      "classification": "unselected_reverse_autodiff_score_helper",
+      "reason": "manual-reverse exact route uses hand-coded score helper, not this generic tape score"
+    },
+    {
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "symbol": "_transport_active",
+      "classification": "unselected_legacy_transport_dispatcher",
+      "reason": "selected exact route calls the finite streaming transport helper directly, not the legacy active dispatcher"
+    },
+    {
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "symbol": "_filterflow_manual_streaming_blockwise_vjp_finite_transport_stopped_scale_keys",
+      "classification": "unselected_manual_transport_variant",
+      "reason": "selected route uses manual_streaming_finite_sinkhorn_stopped_scale_keys, not the blockwise variant"
+    },
+    {
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "symbol": "_clip_transport_upstream_gradient",
+      "classification": "unselected_legacy_transport_variant",
+      "reason": "selected route does not use filterflow_clipped"
+    },
+    {
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "symbol": "_transport_backward_rule",
+      "classification": "unselected_transport_metadata_helper",
+      "reason": "selected exact route does not use the legacy filterflow_custom_op backward-rule label"
+    },
+    {
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "symbol": "_filterflow_custom_gradient_transport_matrix",
+      "classification": "unselected_bad_route_flag_variant",
+      "reason": "bad route flag gate forbids transport_gradient_mode=filterflow_custom_op for production certification"
+    },
+    {
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "symbol": "_filterflow_manual_dense_finite_transport_matrix_stopped_scale_keys",
+      "classification": "unselected_dense_transport_variant",
+      "reason": "selected route uses streaming transport, not dense transport"
+    }
+  ],
+  "excluded_line_ranges": [
+    {
+      "path": "experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_tf.py",
+      "start_line": 20,
+      "end_line": 24,
+      "classification": "unselected_legacy_import",
+      "reason": "selected exact route does not call imported legacy filterflow custom-gradient transport matrix"
+    }
+  ],
+  "expected_negative_control_failures": [],
+  "p1_findings": [
+    {
+      "classification": "closed_by_p7_manual_reverse_route",
+      "id": "P1-L001",
+      "line": 477,
+      "path": "docs/benchmarks/benchmark_p8p_regression_fd_reparameterization.py",
+      "pattern": "tf.GradientTape"
+    },
+    {
+      "classification": "closed_by_p7_manual_reverse_route",
+      "id": "P1-L003",
+      "line": 485,
+      "path": "docs/benchmarks/benchmark_p8p_regression_fd_reparameterization.py",
+      "pattern": "tape.gradient"
+    },
+    {
+      "classification": "closed_by_p6_transport_manual_vjp",
+      "id": "P1-L013",
+      "line": 1988,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "tf.GradientTape"
+    },
+    {
+      "classification": "closed_by_p6_transport_manual_vjp",
+      "id": "P1-L015",
+      "line": 2003,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "tape.gradient"
+    }
+  ],
+  "nonclaims": [
+    "tiny CPU-hidden certification route only",
+    "not GPU feasibility",
+    "not N10000 feasibility",
+    "not FD agreement",
+    "not HMC readiness",
+    "not posterior correctness",
+    "not production default",
+    "not scientific validity"
+  ]
+}

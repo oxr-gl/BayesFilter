@@ -1,0 +1,1393 @@
+{
+  "decision": {
+    "decision": "H1 remains live: dense/streaming parity or mass residual veto failed.",
+    "main_uncertainty": "Whether tighter Sinkhorn changes the qualitative reset-moment pattern or merely attenuates the same barycentric contraction.",
+    "next_justified_action": "Inspect transport orientation/normalization on the small shared cloud first.",
+    "not_concluded": "No gradient correctness, SIR correctness, HMC readiness, posterior correctness, production readiness, or broad scientific validity.",
+    "primary_criterion_status": "FAIL parity vetoes: state_dim=1 setting=eps0.5_steps8, state_dim=2 setting=eps0.5_steps8",
+    "veto_diagnostic_status": "FAIL"
+  },
+  "interpretation": [
+    "state_dim=1 setting=eps0.5_steps8: total_delta=0.417087, t0_pre_post_mean_l2=1.432e-09, t0_post_pre_cov_trace_ratio=0.361629, t1_increment_delta=0.054821, parity_max_diff=1.490e-07, dense_col_resid=5.960e-07.",
+    "state_dim=2 setting=eps0.5_steps8: total_delta=0.932989, t0_pre_post_mean_l2=8.919e-09, t0_post_pre_cov_trace_ratio=0.274686, t1_increment_delta=0.127646, parity_max_diff=1.192e-07, dense_col_resid=5.960e-07."
+  ],
+  "manifest": {
+    "cuda_visible_devices": "-1",
+    "dense_parity_particles": 64,
+    "device_scope": "cpu",
+    "git_commit": "97ad05d40676f3fd15a2a2b4d45034ebb657ed97",
+    "logical_gpus": [],
+    "num_particles": 128,
+    "physical_gpus": [],
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "python": "3.11.14 (main, Oct 21 2025, 18:31:21) [GCC 11.2.0]",
+    "runtime_seconds": 32.600918470008764,
+    "seed_count": 10,
+    "settings": [
+      {
+        "epsilon": 0.5,
+        "label": "eps0.5_steps8",
+        "steps": 8
+      }
+    ],
+    "state_dims": [
+      1,
+      2
+    ],
+    "tf32_execution_enabled": true,
+    "tf32_mode": "enabled",
+    "time_steps": 10,
+    "xla": true
+  },
+  "plan": "docs/plans/bayesfilter-ledh-pfpf-ot-lgssm-ot-reset-moment-hypothesis-test-plan-2026-06-26.md",
+  "results": [
+    {
+      "dense_streaming_parity": {
+        "dense_column_residual": 5.960464477539062e-07,
+        "dense_row_residual": 0.9198691844940186,
+        "max_abs_dense_streaming_particle_diff": 1.4901161193847656e-07,
+        "mean_abs_dense_streaming_particle_diff": 2.263113962897023e-08,
+        "shared_cloud": {
+          "epsilon": 0.5,
+          "finite_steps": 8,
+          "particle_subset": 64,
+          "renormalized_subset_log_weights": true,
+          "seed_batch_size": 10,
+          "state_dim": 1,
+          "time_index": 0
+        },
+        "streaming_row_residual": 0.9198691844940186
+      },
+      "kalman_total": -6.914505011117434,
+      "seed_values": [
+        -6.48829460144043,
+        -6.522001266479492,
+        -6.487331867218018,
+        -6.488584518432617,
+        -6.518786430358887,
+        -6.551734924316406,
+        -6.5026984214782715,
+        -6.491538047790527,
+        -6.434680938720703,
+        -6.488532543182373
+      ],
+      "setting": {
+        "epsilon": 0.5,
+        "label": "eps0.5_steps8",
+        "steps": 8
+      },
+      "state_dim": 1,
+      "time_records": [
+        {
+          "ess_mean": 118.55662155151367,
+          "ess_min": 115.29603576660156,
+          "increment_delta_to_kalman": 0.027899737473232822,
+          "increment_mcse": 0.007685083564544455,
+          "increment_mean": -0.8296619415283203,
+          "increment_sd": 0.02430236807268611,
+          "kalman_filtered_cov_trace": 0.19806089340280375,
+          "kalman_filtered_covariance": [
+            [
+              0.19806089340280375
+            ]
+          ],
+          "kalman_filtered_mean": [
+            0.026408118850736562
+          ],
+          "kalman_increment": -0.8575616790015531,
+          "kalman_prefix": -0.8575616790015531,
+          "next_increment_delta_to_kalman": 0.054821351983330935,
+          "next_increment_mcse": 0.0022750548864753422,
+          "next_increment_mean": -0.636556339263916,
+          "next_increment_sd": 0.007194355243157883,
+          "next_kalman_increment": -0.6913776912472469,
+          "post_kalman_cov_trace_ratio": 0.35691964599787,
+          "post_ot_uniform_cov_trace": 0.07069182395935059,
+          "post_ot_uniform_covariance": [
+            [
+              0.07069182395935059
+            ]
+          ],
+          "post_ot_uniform_mean": [
+            0.034302168886642906
+          ],
+          "post_pre_cov_trace_ratio": 0.361629382449831,
+          "post_to_kalman_mean_l2": 0.007894050035906344,
+          "pre_kalman_cov_trace_ratio": 0.9869763446209618,
+          "pre_ot_weighted_cov_trace": 0.19548141658306123,
+          "pre_ot_weighted_covariance": [
+            [
+              0.19548141658306123
+            ]
+          ],
+          "pre_ot_weighted_mean": [
+            0.03430217031855136
+          ],
+          "pre_to_kalman_mean_l2": 0.007894051467814796,
+          "pre_to_post_mean_l2": 1.431908452920183e-09,
+          "prefix_delta_to_kalman": 0.027899737473232822,
+          "prefix_mcse": 0.007685083564544455,
+          "prefix_mean": -0.8296619415283203,
+          "prefix_sd": 0.02430236807268611,
+          "time_index": 0,
+          "transport_row_residual": 0.9933776259422302
+        },
+        {
+          "ess_mean": 127.75680160522461,
+          "ess_min": 127.65803527832031,
+          "increment_delta_to_kalman": 0.054821351983330935,
+          "increment_mcse": 0.0022750548864753422,
+          "increment_mean": -0.636556339263916,
+          "increment_sd": 0.007194355243157883,
+          "kalman_filtered_cov_trace": 0.15546226676009572,
+          "kalman_filtered_covariance": [
+            [
+              0.15546226676009572
+            ]
+          ],
+          "kalman_filtered_mean": [
+            0.07479645153489803
+          ],
+          "kalman_increment": -0.6913776912472469,
+          "kalman_prefix": -1.5489393702488,
+          "next_increment_delta_to_kalman": 0.0452298563573742,
+          "next_increment_mcse": 0.0014329260108654602,
+          "next_increment_mean": -0.6254203796386719,
+          "next_increment_sd": 0.004531309912834037,
+          "next_kalman_increment": -0.6706502359960461,
+          "post_kalman_cov_trace_ratio": 0.3557007621215621,
+          "post_ot_uniform_cov_trace": 0.05529804676771164,
+          "post_ot_uniform_covariance": [
+            [
+              0.05529804676771164
+            ]
+          ],
+          "post_ot_uniform_mean": [
+            0.08605063259601593
+          ],
+          "post_pre_cov_trace_ratio": 0.414061623116846,
+          "post_to_kalman_mean_l2": 0.011254181061117904,
+          "pre_kalman_cov_trace_ratio": 0.8590527164628952,
+          "pre_ot_weighted_cov_trace": 0.1335502825677395,
+          "pre_ot_weighted_covariance": [
+            [
+              0.1335502825677395
+            ]
+          ],
+          "pre_ot_weighted_mean": [
+            0.08605063632130623
+          ],
+          "pre_to_kalman_mean_l2": 0.011254184786408203,
+          "pre_to_post_mean_l2": 3.725290298461914e-09,
+          "prefix_delta_to_kalman": 0.08272108945656353,
+          "prefix_mcse": 0.007667922040037846,
+          "prefix_mean": -1.4662182807922364,
+          "prefix_sd": 0.024248098567124426,
+          "time_index": 1,
+          "transport_row_residual": 0.9263247847557068
+        },
+        {
+          "ess_mean": 127.84398727416992,
+          "ess_min": 127.78289794921875,
+          "increment_delta_to_kalman": 0.0452298563573742,
+          "increment_mcse": 0.0014329260108654602,
+          "increment_mean": -0.6254203796386719,
+          "increment_sd": 0.004531309912834037,
+          "kalman_filtered_cov_trace": 0.15014776482449238,
+          "kalman_filtered_covariance": [
+            [
+              0.15014776482449238
+            ]
+          ],
+          "kalman_filtered_mean": [
+            0.09852339391562075
+          ],
+          "kalman_increment": -0.6706502359960461,
+          "kalman_prefix": -2.219589606244846,
+          "next_increment_delta_to_kalman": 0.04253382530843619,
+          "next_increment_mcse": 0.0011528511940962312,
+          "next_increment_mean": -0.6217530250549317,
+          "next_increment_sd": 0.0036456355765889523,
+          "next_kalman_increment": -0.6642868503633679,
+          "post_kalman_cov_trace_ratio": 0.36654390939218545,
+          "post_ot_uniform_cov_trace": 0.05503574870526791,
+          "post_ot_uniform_covariance": [
+            [
+              0.05503574870526791
+            ]
+          ],
+          "post_ot_uniform_mean": [
+            0.10631130486726761
+          ],
+          "post_pre_cov_trace_ratio": 0.3873471590084326,
+          "post_to_kalman_mean_l2": 0.0077879109516468675,
+          "pre_kalman_cov_trace_ratio": 0.9462930109788305,
+          "pre_ot_weighted_cov_trace": 0.14208378046751022,
+          "pre_ot_weighted_covariance": [
+            [
+              0.14208378046751022
+            ]
+          ],
+          "pre_ot_weighted_mean": [
+            0.10631130337715149
+          ],
+          "pre_to_kalman_mean_l2": 0.00778790946153074,
+          "pre_to_post_mean_l2": 1.4901161277114383e-09,
+          "prefix_delta_to_kalman": 0.12795094581393762,
+          "prefix_mcse": 0.007578928707509258,
+          "prefix_mean": -2.0916386604309083,
+          "prefix_sd": 0.023966676939765338,
+          "time_index": 2,
+          "transport_row_residual": 0.9524562954902649
+        },
+        {
+          "ess_mean": 127.90899124145508,
+          "ess_min": 127.8727035522461,
+          "increment_delta_to_kalman": 0.04253382530843619,
+          "increment_mcse": 0.0011528511940962312,
+          "increment_mean": -0.6217530250549317,
+          "increment_sd": 0.0036456355765889523,
+          "kalman_filtered_cov_trace": 0.14945719386786643,
+          "kalman_filtered_covariance": [
+            [
+              0.14945719386786643
+            ]
+          ],
+          "kalman_filtered_mean": [
+            0.09853837357071556
+          ],
+          "kalman_increment": -0.6642868503633679,
+          "kalman_prefix": -2.883876456608214,
+          "next_increment_delta_to_kalman": 0.04234850473870111,
+          "next_increment_mcse": 0.0011378393179928043,
+          "next_increment_mean": -0.6191264152526855,
+          "next_increment_sd": 0.0035981638561498695,
+          "next_kalman_increment": -0.6614749199913866,
+          "post_kalman_cov_trace_ratio": 0.3617883973497334,
+          "post_ot_uniform_cov_trace": 0.0540718786418438,
+          "post_ot_uniform_covariance": [
+            [
+              0.0540718786418438
+            ]
+          ],
+          "post_ot_uniform_mean": [
+            0.12013223096728325
+          ],
+          "post_pre_cov_trace_ratio": 0.4049221786821092,
+          "post_to_kalman_mean_l2": 0.02159385739656769,
+          "pre_kalman_cov_trace_ratio": 0.8934763675510135,
+          "pre_ot_weighted_cov_trace": 0.1335364706814289,
+          "pre_ot_weighted_covariance": [
+            [
+              0.1335364706814289
+            ]
+          ],
+          "pre_ot_weighted_mean": [
+            0.12013222724199295
+          ],
+          "pre_to_kalman_mean_l2": 0.02159385367127739,
+          "pre_to_post_mean_l2": 3.725290298461914e-09,
+          "prefix_delta_to_kalman": 0.17048477112237403,
+          "prefix_mcse": 0.007135227133587094,
+          "prefix_mean": -2.7133916854858398,
+          "prefix_sd": 0.022563569364769727,
+          "time_index": 3,
+          "transport_row_residual": 0.918681263923645
+        },
+        {
+          "ess_mean": 127.96054382324219,
+          "ess_min": 127.93299102783203,
+          "increment_delta_to_kalman": 0.04234850473870111,
+          "increment_mcse": 0.0011378393179928043,
+          "increment_mean": -0.6191264152526855,
+          "increment_sd": 0.0035981638561498695,
+          "kalman_filtered_cov_trace": 0.14936699294733363,
+          "kalman_filtered_covariance": [
+            [
+              0.14936699294733363
+            ]
+          ],
+          "kalman_filtered_mean": [
+            0.07497601296094286
+          ],
+          "kalman_increment": -0.6614749199913866,
+          "kalman_prefix": -3.5453513765996005,
+          "next_increment_delta_to_kalman": 0.04341762258645576,
+          "next_increment_mcse": 0.0014818529493824388,
+          "next_increment_mean": -0.623063039779663,
+          "next_increment_sd": 0.004686030477486711,
+          "next_kalman_increment": -0.6664806623661188,
+          "post_kalman_cov_trace_ratio": 0.33096830903775865,
+          "post_ot_uniform_cov_trace": 0.04943574108183384,
+          "post_ot_uniform_covariance": [
+            [
+              0.04943574108183384
+            ]
+          ],
+          "post_ot_uniform_mean": [
+            0.08155299164354801
+          ],
+          "post_pre_cov_trace_ratio": 0.37860691021978476,
+          "post_to_kalman_mean_l2": 0.00657697868260515,
+          "pre_kalman_cov_trace_ratio": 0.8741739786144647,
+          "pre_ot_weighted_cov_trace": 0.13057273849844933,
+          "pre_ot_weighted_covariance": [
+            [
+              0.13057273849844933
+            ]
+          ],
+          "pre_ot_weighted_mean": [
+            0.08155299238860607
+          ],
+          "pre_to_kalman_mean_l2": 0.006576979427663207,
+          "pre_to_post_mean_l2": 7.450580569168253e-10,
+          "prefix_delta_to_kalman": 0.21283327586107514,
+          "prefix_mcse": 0.007684345843526175,
+          "prefix_mean": -3.3325181007385254,
+          "prefix_sd": 0.024300035193990564,
+          "time_index": 4,
+          "transport_row_residual": 0.9525803327560425
+        },
+        {
+          "ess_mean": 127.89856719970703,
+          "ess_min": 127.85934448242188,
+          "increment_delta_to_kalman": 0.04341762258645576,
+          "increment_mcse": 0.0014818529493824388,
+          "increment_mean": -0.623063039779663,
+          "increment_sd": 0.004686030477486711,
+          "kalman_filtered_cov_trace": 0.14935520311146117,
+          "kalman_filtered_covariance": [
+            [
+              0.14935520311146117
+            ]
+          ],
+          "kalman_filtered_mean": [
+            0.015120404325498112
+          ],
+          "kalman_increment": -0.6664806623661188,
+          "kalman_prefix": -4.211832038965719,
+          "next_increment_delta_to_kalman": 0.039831163359813404,
+          "next_increment_mcse": 0.0020920957962635035,
+          "next_increment_mean": -0.6444993495941163,
+          "next_increment_sd": 0.006615787799456254,
+          "next_kalman_increment": -0.6843305129539297,
+          "post_kalman_cov_trace_ratio": 0.3351624794092314,
+          "post_ot_uniform_cov_trace": 0.05005826018750668,
+          "post_ot_uniform_covariance": [
+            [
+              0.05005826018750668
+            ]
+          ],
+          "post_ot_uniform_mean": [
+            0.025530026573687793
+          ],
+          "post_pre_cov_trace_ratio": 0.37330574891122076,
+          "post_to_kalman_mean_l2": 0.010409622248189681,
+          "pre_kalman_cov_trace_ratio": 0.8978229785819329,
+          "pre_ot_weighted_cov_trace": 0.13409453332424165,
+          "pre_ot_weighted_covariance": [
+            [
+              0.13409453332424165
+            ]
+          ],
+          "pre_ot_weighted_mean": [
+            0.02553002620115876
+          ],
+          "pre_to_kalman_mean_l2": 0.010409621875660649,
+          "pre_to_post_mean_l2": 3.725290319278596e-10,
+          "prefix_delta_to_kalman": 0.25625089844753024,
+          "prefix_mcse": 0.006868925698892982,
+          "prefix_mean": -3.9555811405181887,
+          "prefix_sd": 0.02172145028696575,
+          "time_index": 5,
+          "transport_row_residual": 0.9415957927703857
+        },
+        {
+          "ess_mean": 127.60405502319335,
+          "ess_min": 127.40088653564453,
+          "increment_delta_to_kalman": 0.039831163359813404,
+          "increment_mcse": 0.0020920957962635035,
+          "increment_mean": -0.6444993495941163,
+          "increment_sd": 0.006615787799456254,
+          "kalman_filtered_cov_trace": 0.14935366196830474,
+          "kalman_filtered_covariance": [
+            [
+              0.14935366196830474
+            ]
+          ],
+          "kalman_filtered_mean": [
+            -0.07156255187453378
+          ],
+          "kalman_increment": -0.6843305129539297,
+          "kalman_prefix": -4.896162551919648,
+          "next_increment_delta_to_kalman": 0.03822283161914064,
+          "next_increment_mcse": 0.0021730142874699055,
+          "next_increment_mean": -0.6454501628875733,
+          "next_increment_sd": 0.006871674536492791,
+          "next_kalman_increment": -0.6836729945067139,
+          "post_kalman_cov_trace_ratio": 0.36877978117164273,
+          "post_ot_uniform_cov_trace": 0.05507861077785492,
+          "post_ot_uniform_covariance": [
+            [
+              0.05507861077785492
+            ]
+          ],
+          "post_ot_uniform_mean": [
+            -0.06244208179414272
+          ],
+          "post_pre_cov_trace_ratio": 0.409911409542449,
+          "post_to_kalman_mean_l2": 0.00912047008039106,
+          "pre_kalman_cov_trace_ratio": 0.8996572737101458,
+          "pre_ot_weighted_cov_trace": 0.13436710834503174,
+          "pre_ot_weighted_covariance": [
+            [
+              0.13436710834503174
+            ]
+          ],
+          "pre_ot_weighted_mean": [
+            -0.06244207955896854
+          ],
+          "pre_to_kalman_mean_l2": 0.009120472315565238,
+          "pre_to_post_mean_l2": 2.2351741776893697e-09,
+          "prefix_delta_to_kalman": 0.2960820618073434,
+          "prefix_mcse": 0.008071635539636444,
+          "prefix_mean": -4.600080490112305,
+          "prefix_sd": 0.02552475274801347,
+          "time_index": 6,
+          "transport_row_residual": 0.915040910243988
+        },
+        {
+          "ess_mean": 127.5394889831543,
+          "ess_min": 127.31454467773438,
+          "increment_delta_to_kalman": 0.03822283161914064,
+          "increment_mcse": 0.0021730142874699055,
+          "increment_mean": -0.6454501628875733,
+          "increment_sd": 0.006871674536492791,
+          "kalman_filtered_cov_trace": 0.14935346051090287,
+          "kalman_filtered_covariance": [
+            [
+              0.14935346051090287
+            ]
+          ],
+          "kalman_filtered_mean": [
+            -0.13278590858032566
+          ],
+          "kalman_increment": -0.6836729945067139,
+          "kalman_prefix": -5.579835546426362,
+          "next_increment_delta_to_kalman": 0.03945432590102549,
+          "next_increment_mcse": 0.0014369414257449978,
+          "next_increment_mean": -0.6232909679412841,
+          "next_increment_sd": 0.004544007769603907,
+          "next_kalman_increment": -0.6627452938423096,
+          "post_kalman_cov_trace_ratio": 0.39016750152871477,
+          "post_ot_uniform_cov_trace": 0.058272866532206535,
+          "post_ot_uniform_covariance": [
+            [
+              0.058272866532206535
+            ]
+          ],
+          "post_ot_uniform_mean": [
+            -0.12607248723506928
+          ],
+          "post_pre_cov_trace_ratio": 0.4122793029257694,
+          "post_to_kalman_mean_l2": 0.006713421345256376,
+          "pre_kalman_cov_trace_ratio": 0.9463669380438536,
+          "pre_ot_weighted_cov_trace": 0.14134317710995675,
+          "pre_ot_weighted_covariance": [
+            [
+              0.14134317710995675
+            ]
+          ],
+          "pre_ot_weighted_mean": [
+            -0.12607249170541762
+          ],
+          "pre_to_kalman_mean_l2": 0.006713416874908035,
+          "pre_to_post_mean_l2": 4.4703483415009515e-09,
+          "prefix_delta_to_kalman": 0.3343048934264843,
+          "prefix_mcse": 0.008484513293147911,
+          "prefix_mean": -5.245530652999878,
+          "prefix_sd": 0.02683038684432329,
+          "time_index": 7,
+          "transport_row_residual": 0.9388077259063721
+        },
+        {
+          "ess_mean": 127.9000129699707,
+          "ess_min": 127.85986328125,
+          "increment_delta_to_kalman": 0.03945432590102549,
+          "increment_mcse": 0.0014369414257449978,
+          "increment_mean": -0.6232909679412841,
+          "increment_sd": 0.004544007769603907,
+          "kalman_filtered_cov_trace": 0.1493534341764602,
+          "kalman_filtered_covariance": [
+            [
+              0.1493534341764602
+            ]
+          ],
+          "kalman_filtered_mean": [
+            -0.11574942097375242
+          ],
+          "kalman_increment": -0.6627452938423096,
+          "kalman_prefix": -6.242580840268672,
+          "next_increment_delta_to_kalman": 0.04332743584815224,
+          "next_increment_mcse": 0.001564859418273097,
+          "next_increment_mean": -0.6285967350006103,
+          "next_increment_sd": 0.0049485199797091005,
+          "next_kalman_increment": -0.6719241708487625,
+          "post_kalman_cov_trace_ratio": 0.33760192225223234,
+          "post_ot_uniform_cov_trace": 0.050422006472945216,
+          "post_ot_uniform_covariance": [
+            [
+              0.050422006472945216
+            ]
+          ],
+          "post_ot_uniform_mean": [
+            -0.11162440106272697
+          ],
+          "post_pre_cov_trace_ratio": 0.39619620327711463,
+          "post_to_kalman_mean_l2": 0.004125019911025443,
+          "pre_kalman_cov_trace_ratio": 0.8521079189042626,
+          "pre_ot_weighted_cov_trace": 0.12726524397730826,
+          "pre_ot_weighted_covariance": [
+            [
+              0.12726524397730826
+            ]
+          ],
+          "pre_ot_weighted_mean": [
+            -0.11162440329790116
+          ],
+          "pre_to_kalman_mean_l2": 0.0041250176758512586,
+          "pre_to_post_mean_l2": 2.2351741846282636e-09,
+          "prefix_delta_to_kalman": 0.37375921932750966,
+          "prefix_mcse": 0.008957654097614235,
+          "prefix_mean": -5.868821620941162,
+          "prefix_sd": 0.028326589440401242,
+          "time_index": 8,
+          "transport_row_residual": 0.9532524943351746
+        },
+        {
+          "ess_mean": 127.85345230102538,
+          "ess_min": 127.7155990600586,
+          "increment_delta_to_kalman": 0.04332743584815224,
+          "increment_mcse": 0.001564859418273097,
+          "increment_mean": -0.6285967350006103,
+          "increment_sd": 0.0049485199797091005,
+          "kalman_filtered_cov_trace": 0.14935343073403018,
+          "kalman_filtered_covariance": [
+            [
+              0.14935343073403018
+            ]
+          ],
+          "kalman_filtered_mean": [
+            -0.027446610560356466
+          ],
+          "kalman_increment": -0.6719241708487625,
+          "kalman_prefix": -6.914505011117434,
+          "next_increment_delta_to_kalman": null,
+          "next_increment_mcse": null,
+          "next_increment_mean": null,
+          "next_increment_sd": null,
+          "next_kalman_increment": null,
+          "post_kalman_cov_trace_ratio": 0.3440994278771034,
+          "post_ot_uniform_cov_trace": 0.05139243006706238,
+          "post_ot_uniform_covariance": [
+            [
+              0.05139243006706238
+            ]
+          ],
+          "post_ot_uniform_mean": [
+            -0.03678504852578044
+          ],
+          "post_pre_cov_trace_ratio": 0.3891818213532113,
+          "post_to_kalman_mean_l2": 0.009338437965423975,
+          "pre_kalman_cov_trace_ratio": 0.8841611015659638,
+          "pre_ot_weighted_cov_trace": 0.132052493840456,
+          "pre_ot_weighted_covariance": [
+            [
+              0.132052493840456
+            ]
+          ],
+          "pre_ot_weighted_mean": [
+            -0.03678504913114011
+          ],
+          "pre_to_kalman_mean_l2": 0.009338438570783647,
+          "pre_to_post_mean_l2": 6.053596721122823e-10,
+          "prefix_delta_to_kalman": 0.41708665517566157,
+          "prefix_mcse": 0.009633055840812725,
+          "prefix_mean": -6.497418355941773,
+          "prefix_sd": 0.030462397284556606,
+          "time_index": 9,
+          "transport_row_residual": 0.9347071051597595
+        }
+      ],
+      "total_delta_to_kalman": 0.41708665517566157,
+      "total_mcse": 0.009633055840812725,
+      "total_mean": -6.497418355941773,
+      "total_sd": 0.030462397284556606
+    },
+    {
+      "dense_streaming_parity": {
+        "dense_column_residual": 5.960464477539062e-07,
+        "dense_row_residual": 0.9619391560554504,
+        "max_abs_dense_streaming_particle_diff": 1.1920928955078125e-07,
+        "mean_abs_dense_streaming_particle_diff": 2.727165382410135e-09,
+        "shared_cloud": {
+          "epsilon": 0.5,
+          "finite_steps": 8,
+          "particle_subset": 64,
+          "renormalized_subset_log_weights": true,
+          "seed_batch_size": 10,
+          "state_dim": 2,
+          "time_index": 0
+        },
+        "streaming_row_residual": 0.9619391560554504
+      },
+      "kalman_total": -13.784138550091015,
+      "seed_values": [
+        -12.807648181915283,
+        -12.829172134399414,
+        -12.830277442932129,
+        -12.771199703216553,
+        -12.915170192718506,
+        -12.860642910003662,
+        -12.891436100006104,
+        -12.90564775466919,
+        -12.828425884246826,
+        -12.871878147125244
+      ],
+      "setting": {
+        "epsilon": 0.5,
+        "label": "eps0.5_steps8",
+        "steps": 8
+      },
+      "state_dim": 2,
+      "time_records": [
+        {
+          "ess_mean": 107.70929565429688,
+          "ess_min": 104.07894897460938,
+          "increment_delta_to_kalman": 0.027318497206470393,
+          "increment_mcse": 0.0088415962395667,
+          "increment_mean": -1.6950538635253907,
+          "increment_sd": 0.02795958226861053,
+          "kalman_filtered_cov_trace": 0.3961217868056075,
+          "kalman_filtered_covariance": [
+            [
+              0.19806089340280375,
+              0.0
+            ],
+            [
+              0.0,
+              0.19806089340280375
+            ]
+          ],
+          "kalman_filtered_mean": [
+            0.026408118850736562,
+            -0.07922435655220969
+          ],
+          "kalman_increment": -1.722372360731861,
+          "kalman_prefix": -1.722372360731861,
+          "next_increment_delta_to_kalman": 0.12764571123635626,
+          "next_increment_mcse": 0.0031774499922088014,
+          "next_increment_mean": -1.2458160877227784,
+          "next_increment_sd": 0.010047979126664084,
+          "next_kalman_increment": -1.3734617989591347,
+          "post_kalman_cov_trace_ratio": 0.27238880230897694,
+          "post_ot_uniform_cov_trace": 0.10789913907647133,
+          "post_ot_uniform_covariance": [
+            [
+              0.059976781532168386,
+              0.0025623139459639787
+            ],
+            [
+              0.0025623139459639787,
+              0.04792235754430294
+            ]
+          ],
+          "post_ot_uniform_mean": [
+            0.045235435385257004,
+            -0.06502719447016717
+          ],
+          "post_pre_cov_trace_ratio": 0.2746855899652937,
+          "post_to_kalman_mean_l2": 0.02358023025915593,
+          "pre_kalman_cov_trace_ratio": 0.9916384850890543,
+          "pre_ot_weighted_cov_trace": 0.39280960857868197,
+          "pre_ot_weighted_covariance": [
+            [
+              0.20563016086816788,
+              0.004913574689999223
+            ],
+            [
+              0.004913576133549214,
+              0.18717944771051406
+            ]
+          ],
+          "pre_ot_weighted_mean": [
+            0.04523543110117316,
+            -0.06502718664705753
+          ],
+          "pre_to_kalman_mean_l2": 0.0235802315487189,
+          "pre_to_post_mean_l2": 8.91932837757648e-09,
+          "prefix_delta_to_kalman": 0.027318497206470393,
+          "prefix_mcse": 0.0088415962395667,
+          "prefix_mean": -1.6950538635253907,
+          "prefix_sd": 0.02795958226861053,
+          "time_index": 0,
+          "transport_row_residual": 0.8534820675849915
+        },
+        {
+          "ess_mean": 127.70088195800781,
+          "ess_min": 127.50347137451172,
+          "increment_delta_to_kalman": 0.12764571123635626,
+          "increment_mcse": 0.0031774499922088014,
+          "increment_mean": -1.2458160877227784,
+          "increment_sd": 0.010047979126664084,
+          "kalman_filtered_cov_trace": 0.31092453352019145,
+          "kalman_filtered_covariance": [
+            [
+              0.15546226676009572,
+              0.0
+            ],
+            [
+              0.0,
+              0.15546226676009572
+            ]
+          ],
+          "kalman_filtered_mean": [
+            0.07479645153489803,
+            -0.058963050310029304
+          ],
+          "kalman_increment": -1.3734617989591347,
+          "kalman_prefix": -3.0958341596909955,
+          "next_increment_delta_to_kalman": 0.1022546530513655,
+          "next_increment_mcse": 0.0015599865995938747,
+          "next_increment_mean": -1.2326850891113281,
+          "next_increment_sd": 0.004933110774057745,
+          "next_kalman_increment": -1.3349397421626936,
+          "post_kalman_cov_trace_ratio": 0.2685564223771278,
+          "post_ot_uniform_cov_trace": 0.08350078035145997,
+          "post_ot_uniform_covariance": [
+            [
+              0.0406757665798068,
+              -0.000744349937667721
+            ],
+            [
+              -0.000744349937667721,
+              0.042825013771653174
+            ]
+          ],
+          "post_ot_uniform_mean": [
+            0.08130736574530602,
+            -0.031935401586815716
+          ],
+          "post_pre_cov_trace_ratio": 0.30224991398151685,
+          "post_to_kalman_mean_l2": 0.027800823717305963,
+          "pre_kalman_cov_trace_ratio": 0.8885243963826257,
+          "pre_ot_weighted_cov_trace": 0.2762640334665776,
+          "pre_ot_weighted_covariance": [
+            [
+              0.13654560446739197,
+              -2.3274857085198164e-05
+            ],
+            [
+              -2.3274903651326894e-05,
+              0.13971842899918557
+            ]
+          ],
+          "pre_ot_weighted_mean": [
+            0.08130736425518989,
+            -0.03193540060892701
+          ],
+          "pre_to_kalman_mean_l2": 0.027800824319015316,
+          "pre_to_post_mean_l2": 1.7823334139101207e-09,
+          "prefix_delta_to_kalman": 0.15496420844282666,
+          "prefix_mcse": 0.009801526834849727,
+          "prefix_mean": -2.940869951248169,
+          "prefix_sd": 0.030995149345386178,
+          "time_index": 1,
+          "transport_row_residual": 0.858853280544281
+        },
+        {
+          "ess_mean": 127.83664474487304,
+          "ess_min": 127.74549865722656,
+          "increment_delta_to_kalman": 0.1022546530513655,
+          "increment_mcse": 0.0015599865995938747,
+          "increment_mean": -1.2326850891113281,
+          "increment_sd": 0.004933110774057745,
+          "kalman_filtered_cov_trace": 0.30029552964898476,
+          "kalman_filtered_covariance": [
+            [
+              0.15014776482449238,
+              0.0
+            ],
+            [
+              0.0,
+              0.15014776482449238
+            ]
+          ],
+          "kalman_filtered_mean": [
+            0.09852339391562075,
+            -0.03342353783083907
+          ],
+          "kalman_increment": -1.3349397421626936,
+          "kalman_prefix": -4.430773901853689,
+          "next_increment_delta_to_kalman": 0.10011703938827843,
+          "next_increment_mcse": 0.0015010961815200012,
+          "next_increment_mean": -1.225938892364502,
+          "next_increment_sd": 0.004746882920584759,
+          "next_kalman_increment": -1.3260559317527805,
+          "post_kalman_cov_trace_ratio": 0.25930195687739027,
+          "post_ot_uniform_cov_trace": 0.07786721847951412,
+          "post_ot_uniform_covariance": [
+            [
+              0.040440987423062326,
+              -0.0029867313161958007
+            ],
+            [
+              -0.0029867313161958007,
+              0.0374262310564518
+            ]
+          ],
+          "post_ot_uniform_mean": [
+            0.09638188667595386,
+            -0.021218020794913174
+          ],
+          "post_pre_cov_trace_ratio": 0.2943091811274764,
+          "post_to_kalman_mean_l2": 0.012391961078530828,
+          "pre_kalman_cov_trace_ratio": 0.8810528977860085,
+          "pre_ot_weighted_cov_trace": 0.26457624658942225,
+          "pre_ot_weighted_covariance": [
+            [
+              0.1359853208065033,
+              -0.0072076527227181945
+            ],
+            [
+              -0.007207652274519205,
+              0.12859092578291892
+            ]
+          ],
+          "pre_ot_weighted_mean": [
+            0.09638189114630222,
+            -0.021218023635447024
+          ],
+          "pre_to_kalman_mean_l2": 0.012391957508195208,
+          "pre_to_post_mean_l2": 5.296474957016827e-09,
+          "prefix_delta_to_kalman": 0.2572188614941915,
+          "prefix_mcse": 0.009511446893704091,
+          "prefix_mean": -4.173555040359497,
+          "prefix_sd": 0.030077836027838374,
+          "time_index": 2,
+          "transport_row_residual": 0.8559440970420837
+        },
+        {
+          "ess_mean": 127.88042755126953,
+          "ess_min": 127.81621551513672,
+          "increment_delta_to_kalman": 0.10011703938827843,
+          "increment_mcse": 0.0015010961815200012,
+          "increment_mean": -1.225938892364502,
+          "increment_sd": 0.004746882920584759,
+          "kalman_filtered_cov_trace": 0.29891438773573287,
+          "kalman_filtered_covariance": [
+            [
+              0.14945719386786643,
+              0.0
+            ],
+            [
+              0.0,
+              0.14945719386786643
+            ]
+          ],
+          "kalman_filtered_mean": [
+            0.09853837357071556,
+            -0.020234265393385485
+          ],
+          "kalman_increment": -1.3260559317527805,
+          "kalman_prefix": -5.756829833606469,
+          "next_increment_delta_to_kalman": 0.09601465036212065,
+          "next_increment_mcse": 0.0017687473159568765,
+          "next_increment_mean": -1.2271201610565186,
+          "next_increment_sd": 0.005593270123733213,
+          "next_kalman_increment": -1.3231348114186392,
+          "post_kalman_cov_trace_ratio": 0.2806026498825555,
+          "post_ot_uniform_cov_trace": 0.0838761692866683,
+          "post_ot_uniform_covariance": [
+            [
+              0.04005568791180849,
+              -0.00043026788625866175
+            ],
+            [
+              -0.00043026788625866175,
+              0.04382048137485981
+            ]
+          ],
+          "post_ot_uniform_mean": [
+            0.09813430048525333,
+            -0.023014232516288757
+          ],
+          "post_pre_cov_trace_ratio": 0.3117311525714232,
+          "post_to_kalman_mean_l2": 0.0028091799982945306,
+          "pre_kalman_cov_trace_ratio": 0.900143112319403,
+          "pre_ot_weighted_cov_trace": 0.2690657272934914,
+          "pre_ot_weighted_covariance": [
+            [
+              0.13157302737236024,
+              -0.0013905859435908497
+            ],
+            [
+              -0.0013905860600061716,
+              0.13749269992113114
+            ]
+          ],
+          "pre_ot_weighted_mean": [
+            0.09813429489731788,
+            -0.023014234006404878
+          ],
+          "pre_to_kalman_mean_l2": 0.002809182276689747,
+          "pre_to_post_mean_l2": 5.783205739118119e-09,
+          "prefix_delta_to_kalman": 0.3573359008824699,
+          "prefix_mcse": 0.009947418023671278,
+          "prefix_mean": -5.399493932723999,
+          "prefix_sd": 0.031456497792611976,
+          "time_index": 3,
+          "transport_row_residual": 0.7558085322380066
+        },
+        {
+          "ess_mean": 127.90298919677734,
+          "ess_min": 127.84762573242188,
+          "increment_delta_to_kalman": 0.09601465036212065,
+          "increment_mcse": 0.0017687473159568765,
+          "increment_mean": -1.2271201610565186,
+          "increment_sd": 0.005593270123733213,
+          "kalman_filtered_cov_trace": 0.29873398589466726,
+          "kalman_filtered_covariance": [
+            [
+              0.14936699294733363,
+              0.0
+            ],
+            [
+              0.0,
+              0.14936699294733363
+            ]
+          ],
+          "kalman_filtered_mean": [
+            0.07497601296094286,
+            -0.006141294019459438
+          ],
+          "kalman_increment": -1.3231348114186392,
+          "kalman_prefix": -7.079964645025108,
+          "next_increment_delta_to_kalman": 0.09861549518247026,
+          "next_increment_mcse": 0.001711944491907643,
+          "next_increment_mean": -1.2328128814697266,
+          "next_increment_sd": 0.005413643822207847,
+          "next_kalman_increment": -1.3314283766521968,
+          "post_kalman_cov_trace_ratio": 0.25980730432848437,
+          "post_ot_uniform_cov_trace": 0.07761327158659698,
+          "post_ot_uniform_covariance": [
+            [
+              0.03723765593022108,
+              0.001453101495280862
+            ],
+            [
+              0.001453101495280862,
+              0.04037561565637589
+            ]
+          ],
+          "post_ot_uniform_mean": [
+            0.07072121668606997,
+            -0.008203815831802786
+          ],
+          "post_pre_cov_trace_ratio": 0.30182427930735845,
+          "post_to_kalman_mean_l2": 0.004728349349092592,
+          "pre_kalman_cov_trace_ratio": 0.8607899434886526,
+          "pre_ot_weighted_cov_trace": 0.25714721083641057,
+          "pre_ot_weighted_covariance": [
+            [
+              0.12537662386894227,
+              0.002650864509632811
+            ],
+            [
+              0.0026508646144066004,
+              0.13177058696746827
+            ]
+          ],
+          "pre_ot_weighted_mean": [
+            0.07072121948003769,
+            -0.008203815389424562
+          ],
+          "pre_to_kalman_mean_l2": 0.004728346641979197,
+          "pre_to_post_mean_l2": 2.8287725492264504e-09,
+          "prefix_delta_to_kalman": 0.4533505512445908,
+          "prefix_mcse": 0.010373196132915334,
+          "prefix_mean": -6.626614093780518,
+          "prefix_sd": 0.032802926395663186,
+          "time_index": 4,
+          "transport_row_residual": 0.8297197818756104
+        },
+        {
+          "ess_mean": 127.8504150390625,
+          "ess_min": 127.73495483398438,
+          "increment_delta_to_kalman": 0.09861549518247026,
+          "increment_mcse": 0.001711944491907643,
+          "increment_mean": -1.2328128814697266,
+          "increment_sd": 0.005413643822207847,
+          "kalman_filtered_cov_trace": 0.29871040622292233,
+          "kalman_filtered_covariance": [
+            [
+              0.14935520311146117,
+              0.0
+            ],
+            [
+              0.0,
+              0.14935520311146117
+            ]
+          ],
+          "kalman_filtered_mean": [
+            0.015120404325498112,
+            0.02807892706838551
+          ],
+          "kalman_increment": -1.3314283766521968,
+          "kalman_prefix": -8.411393021677306,
+          "next_increment_delta_to_kalman": 0.09467602206706083,
+          "next_increment_mcse": 0.002918763284987898,
+          "next_increment_mean": -1.2619374752044679,
+          "next_increment_sd": 0.009229939931436903,
+          "next_kalman_increment": -1.3566134972715287,
+          "post_kalman_cov_trace_ratio": 0.2804891271725312,
+          "post_ot_uniform_cov_trace": 0.08378502111881972,
+          "post_ot_uniform_covariance": [
+            [
+              0.04393477514386177,
+              -0.001312085916288197
+            ],
+            [
+              -0.001312085916288197,
+              0.03985024597495794
+            ]
+          ],
+          "post_ot_uniform_mean": [
+            0.011015318427234888,
+            0.03293412909843028
+          ],
+          "post_pre_cov_trace_ratio": 0.3089110189941472,
+          "post_to_kalman_mean_l2": 0.0063580434871641466,
+          "pre_kalman_cov_trace_ratio": 0.9079932729037598,
+          "pre_ot_weighted_cov_trace": 0.27122703939676285,
+          "pre_ot_weighted_covariance": [
+            [
+              0.13993778675794602,
+              -0.003158817475195974
+            ],
+            [
+              -0.0031588181387633084,
+              0.13128925263881683
+            ]
+          ],
+          "pre_ot_weighted_mean": [
+            0.011015325831249357,
+            0.03293412709608674
+          ],
+          "pre_to_kalman_mean_l2": 0.0063580371776935755,
+          "pre_to_post_mean_l2": 7.669994125742115e-09,
+          "prefix_delta_to_kalman": 0.5519660464270615,
+          "prefix_mcse": 0.011386618794436767,
+          "prefix_mean": -7.859426975250244,
+          "prefix_sd": 0.0360076502385008,
+          "time_index": 5,
+          "transport_row_residual": 0.7660544514656067
+        },
+        {
+          "ess_mean": 127.50992431640626,
+          "ess_min": 127.38774108886719,
+          "increment_delta_to_kalman": 0.09467602206706083,
+          "increment_mcse": 0.002918763284987898,
+          "increment_mean": -1.2619374752044679,
+          "increment_sd": 0.009229939931436903,
+          "kalman_filtered_cov_trace": 0.2987073239366095,
+          "kalman_filtered_covariance": [
+            [
+              0.14935366196830474,
+              0.0
+            ],
+            [
+              0.0,
+              0.14935366196830474
+            ]
+          ],
+          "kalman_filtered_mean": [
+            -0.07156255187453378,
+            0.07705055463669667
+          ],
+          "kalman_increment": -1.3566134972715287,
+          "kalman_prefix": -9.768006518948834,
+          "next_increment_delta_to_kalman": 0.09458878324364828,
+          "next_increment_mcse": 0.0024099534434521832,
+          "next_increment_mean": -1.259917640686035,
+          "next_increment_sd": 0.007620941936274699,
+          "next_kalman_increment": -1.3545064239296833,
+          "post_kalman_cov_trace_ratio": 0.2550090444086419,
+          "post_ot_uniform_cov_trace": 0.07617306923493744,
+          "post_ot_uniform_covariance": [
+            [
+              0.04252172224223614,
+              -0.0012655525191803464
+            ],
+            [
+              -0.0012655525191803464,
+              0.033651346992701295
+            ]
+          ],
+          "post_ot_uniform_mean": [
+            -0.06250389628112316,
+            0.07275965325534343
+          ],
+          "post_pre_cov_trace_ratio": 0.29148593373542114,
+          "post_to_kalman_mean_l2": 0.010023526117316637,
+          "pre_kalman_cov_trace_ratio": 0.8748588350068072,
+          "pre_ot_weighted_cov_trace": 0.26132674142718315,
+          "pre_ot_weighted_covariance": [
+            [
+              0.14000090807676316,
+              -0.0011502325534820557
+            ],
+            [
+              -0.0011502324021421372,
+              0.12132583335041999
+            ]
+          ],
+          "pre_ot_weighted_mean": [
+            -0.06250389665365219,
+            0.07275965698063373
+          ],
+          "pre_to_kalman_mean_l2": 0.01002352418591444,
+          "pre_to_post_mean_l2": 3.743870415763412e-09,
+          "prefix_delta_to_kalman": 0.6466420684941223,
+          "prefix_mcse": 0.012514387605191338,
+          "prefix_mean": -9.121364450454712,
+          "prefix_sd": 0.039573968354584634,
+          "time_index": 6,
+          "transport_row_residual": 0.8443589210510254
+        },
+        {
+          "ess_mean": 127.50921478271485,
+          "ess_min": 127.36573791503906,
+          "increment_delta_to_kalman": 0.09458878324364828,
+          "increment_mcse": 0.0024099534434521832,
+          "increment_mean": -1.259917640686035,
+          "increment_sd": 0.007620941936274699,
+          "kalman_filtered_cov_trace": 0.29870692102180574,
+          "kalman_filtered_covariance": [
+            [
+              0.14935346051090287,
+              0.0
+            ],
+            [
+              0.0,
+              0.14935346051090287
+            ]
+          ],
+          "kalman_filtered_mean": [
+            -0.13278590858032566,
+            0.10840070542240188
+          ],
+          "kalman_increment": -1.3545064239296833,
+          "kalman_prefix": -11.122512942878517,
+          "next_increment_delta_to_kalman": 0.09590358626025819,
+          "next_increment_mcse": 0.0013479357520276452,
+          "next_increment_mean": -1.2289518356323241,
+          "next_increment_sd": 0.004262547115979287,
+          "next_kalman_increment": -1.3248554218925823,
+          "post_kalman_cov_trace_ratio": 0.27307201110541707,
+          "post_ot_uniform_cov_trace": 0.08156849965453147,
+          "post_ot_uniform_covariance": [
+            [
+              0.04018586091697216,
+              -0.0009924850848619827
+            ],
+            [
+              -0.0009924850848619827,
+              0.04138263873755932
+            ]
+          ],
+          "post_ot_uniform_mean": [
+            -0.12019163891673088,
+            0.09689508862793446
+          ],
+          "post_pre_cov_trace_ratio": 0.30137689518314137,
+          "post_to_kalman_mean_l2": 0.01705857104743755,
+          "pre_kalman_cov_trace_ratio": 0.9060814397848119,
+          "pre_ot_weighted_cov_trace": 0.27065279707312584,
+          "pre_ot_weighted_covariance": [
+            [
+              0.13444695249199867,
+              -0.002457612054422498
+            ],
+            [
+              -0.002457611821591854,
+              0.13620584458112717
+            ]
+          ],
+          "pre_ot_weighted_mean": [
+            -0.12019163519144058,
+            0.09689508825540542
+          ],
+          "pre_to_kalman_mean_l2": 0.017058574049065838,
+          "pre_to_post_mean_l2": 3.743870415763412e-09,
+          "prefix_delta_to_kalman": 0.7412308517377699,
+          "prefix_mcse": 0.013892390224015326,
+          "prefix_mean": -10.381282091140747,
+          "prefix_sd": 0.043931595251745253,
+          "time_index": 7,
+          "transport_row_residual": 0.869845449924469
+        },
+        {
+          "ess_mean": 127.85787429809571,
+          "ess_min": 127.79804992675781,
+          "increment_delta_to_kalman": 0.09590358626025819,
+          "increment_mcse": 0.0013479357520276452,
+          "increment_mean": -1.2289518356323241,
+          "increment_sd": 0.004262547115979287,
+          "kalman_filtered_cov_trace": 0.2987068683529204,
+          "kalman_filtered_covariance": [
+            [
+              0.1493534341764602,
+              0.0
+            ],
+            [
+              0.0,
+              0.1493534341764602
+            ]
+          ],
+          "kalman_filtered_mean": [
+            -0.11574942097375242,
+            0.09280192912552045
+          ],
+          "kalman_increment": -1.3248554218925823,
+          "kalman_prefix": -12.4473683647711,
+          "next_increment_delta_to_kalman": 0.0958542669696949,
+          "next_increment_mcse": 0.0017721509809580122,
+          "next_increment_mean": -1.2409159183502196,
+          "next_increment_sd": 0.005604033457529001,
+          "next_kalman_increment": -1.3367701853199145,
+          "post_kalman_cov_trace_ratio": 0.27211227842452657,
+          "post_ot_uniform_cov_trace": 0.08128180652856827,
+          "post_ot_uniform_covariance": [
+            [
+              0.04342792890965939,
+              -0.0002591559539723676
+            ],
+            [
+              -0.0002591559539723676,
+              0.037853877618908884
+            ]
+          ],
+          "post_ot_uniform_mean": [
+            -0.12192594483494759,
+            0.08802439719438553
+          ],
+          "post_pre_cov_trace_ratio": 0.3040609064788506,
+          "post_to_kalman_mean_l2": 0.007808601562439148,
+          "pre_kalman_cov_trace_ratio": 0.8949268801954773,
+          "pre_ot_weighted_cov_trace": 0.2673208057880402,
+          "pre_ot_weighted_covariance": [
+            [
+              0.13890379890799523,
+              0.0012445277301594616
+            ],
+            [
+              0.001244528463575989,
+              0.12841700688004493
+            ]
+          ],
+          "pre_ot_weighted_mean": [
+            -0.12192593812942505,
+            0.08802439998835325
+          ],
+          "pre_to_kalman_mean_l2": 0.007808594549008157,
+          "pre_to_post_mean_l2": 7.264316084562785e-09,
+          "prefix_delta_to_kalman": 0.8371344379980279,
+          "prefix_mcse": 0.013919826639022602,
+          "prefix_mean": -11.610233926773072,
+          "prefix_sd": 0.04401835681399787,
+          "time_index": 8,
+          "transport_row_residual": 0.8378050327301025
+        },
+        {
+          "ess_mean": 127.79531707763672,
+          "ess_min": 127.63816833496094,
+          "increment_delta_to_kalman": 0.0958542669696949,
+          "increment_mcse": 0.0017721509809580122,
+          "increment_mean": -1.2409159183502196,
+          "increment_sd": 0.005604033457529001,
+          "kalman_filtered_cov_trace": 0.29870686146806036,
+          "kalman_filtered_covariance": [
+            [
+              0.14935343073403018,
+              0.0
+            ],
+            [
+              0.0,
+              0.14935343073403018
+            ]
+          ],
+          "kalman_filtered_mean": [
+            -0.027446610560356466,
+            0.034756827719221034
+          ],
+          "kalman_increment": -1.3367701853199145,
+          "kalman_prefix": -13.784138550091015,
+          "next_increment_delta_to_kalman": null,
+          "next_increment_mcse": null,
+          "next_increment_mean": null,
+          "next_increment_sd": null,
+          "next_kalman_increment": null,
+          "post_kalman_cov_trace_ratio": 0.281807047062126,
+          "post_ot_uniform_cov_trace": 0.08417769856750965,
+          "post_ot_uniform_covariance": [
+            [
+              0.04323473200201988,
+              -0.002256643935106695
+            ],
+            [
+              -0.002256643935106695,
+              0.04094296656548977
+            ]
+          ],
+          "post_ot_uniform_mean": [
+            -0.041744943521916864,
+            0.034078830014914276
+          ],
+          "post_pre_cov_trace_ratio": 0.30620103621834927,
+          "post_to_kalman_mean_l2": 0.014314398568109307,
+          "pre_kalman_cov_trace_ratio": 0.9203334206262187,
+          "pre_ot_weighted_cov_trace": 0.274909907579422,
+          "pre_ot_weighted_covariance": [
+            [
+              0.13899314329028128,
+              -0.0038768275175243617
+            ],
+            [
+              -0.003876827540807426,
+              0.1359167642891407
+            ]
+          ],
+          "pre_ot_weighted_mean": [
+            -0.041744944639503956,
+            0.034078828152269126
+          ],
+          "pre_to_kalman_mean_l2": 0.014314399772665897,
+          "pre_to_post_mean_l2": 2.172198853894544e-09,
+          "prefix_delta_to_kalman": 0.9329887049677232,
+          "prefix_mcse": 0.014503204780267159,
+          "prefix_mean": -12.851149845123292,
+          "prefix_sd": 0.045863160477486085,
+          "time_index": 9,
+          "transport_row_residual": 0.8600506782531738
+        }
+      ],
+      "total_delta_to_kalman": 0.9329887049677232,
+      "total_mcse": 0.014503204780267159,
+      "total_mean": -12.851149845123292,
+      "total_sd": 0.045863160477486085
+    }
+  ],
+  "source_harness": "tests/test_ledh_pfpf_ot_lgssm_kalman_statistical.py",
+  "timestamp": "2026-06-26T10:52:35.193364+00:00"
+}

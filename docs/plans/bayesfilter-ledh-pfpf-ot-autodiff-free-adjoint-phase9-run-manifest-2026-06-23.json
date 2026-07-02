@@ -1,0 +1,89 @@
+{
+  "command_flags": {
+    "ad_evaluation_mode": "manual-reverse",
+    "basis_set": "raw",
+    "batch_seeds": [
+      81120,
+      81121,
+      81122,
+      81123,
+      81124
+    ],
+    "col_chunk_size": 512,
+    "device": "/GPU:0",
+    "device_scope": "visible",
+    "dtype": "float32",
+    "expect_device_kind": "gpu",
+    "fd_mode": "ad-only",
+    "particle_chunk_size": 512,
+    "row_chunk_size": 512,
+    "seed_microbatch_size": 1,
+    "sinkhorn_epsilon": 1.0,
+    "sinkhorn_iterations": 10,
+    "tf32_mode": "enabled",
+    "time_steps": 3,
+    "transport_ad_mode": "stabilized",
+    "transport_gradient_mode": "manual_streaming_finite_sinkhorn_stopped_scale_keys",
+    "transport_plan_mode": "streaming",
+    "transport_policy": "active-all"
+  },
+  "cwd": "/home/chakwong/BayesFilter",
+  "git_commit": "97ad05d40676f3fd15a2a2b4d45034ebb657ed97",
+  "gpu_preflight_pass": true,
+  "gpu_preflight_path": "docs/plans/bayesfilter-ledh-pfpf-ot-autodiff-free-adjoint-phase9-gpu-preflight-2026-06-23.json",
+  "mplconfigdir": "/tmp",
+  "p8_audit_decision": "PASS_NO_AUTODIFF_AUDIT",
+  "p8_audit_path": "docs/plans/bayesfilter-ledh-pfpf-ot-autodiff-free-adjoint-phase8-current-route-audit-result-2026-06-23.json",
+  "p8_manifest_path": "docs/plans/bayesfilter-ledh-pfpf-ot-autodiff-free-adjoint-phase8-exact-route-manifest-2026-06-23.json",
+  "p8_route_flags": {
+    "ad_evaluation_mode": "manual-reverse",
+    "dtype": "float32",
+    "fd_mode": "ad-only",
+    "tf32_mode": "enabled",
+    "transport_ad_mode": "stabilized",
+    "transport_gradient_mode": "manual_streaming_finite_sinkhorn_stopped_scale_keys",
+    "transport_plan_mode": "streaming"
+  },
+  "p8_route_id": "p8_manual_reverse_exact_route_certification",
+  "p8_route_scope": "selected_route_exact",
+  "python_executable": "/home/chakwong/anaconda3/envs/tf-gpu/bin/python",
+  "python_version": "3.11.14",
+  "required_python_executable": "/home/chakwong/anaconda3/envs/tf-gpu/bin/python",
+  "rungs": [
+    {
+      "name": "N100",
+      "num_particles": 100,
+      "output": "docs/plans/bayesfilter-ledh-pfpf-ot-autodiff-free-adjoint-phase9-n100-gpu-tf32-2026-06-23.json",
+      "timeout_seconds": 900
+    },
+    {
+      "name": "N1000",
+      "num_particles": 1000,
+      "output": "docs/plans/bayesfilter-ledh-pfpf-ot-autodiff-free-adjoint-phase9-n1000-gpu-tf32-2026-06-23.json",
+      "timeout_seconds": 1800
+    },
+    {
+      "name": "N2500",
+      "num_particles": 2500,
+      "output": "docs/plans/bayesfilter-ledh-pfpf-ot-autodiff-free-adjoint-phase9-n2500-gpu-tf32-2026-06-23.json",
+      "timeout_seconds": 3600
+    },
+    {
+      "name": "N5000",
+      "num_particles": 5000,
+      "output": "docs/plans/bayesfilter-ledh-pfpf-ot-autodiff-free-adjoint-phase9-n5000-gpu-tf32-2026-06-23.json",
+      "timeout_seconds": 5400
+    },
+    {
+      "name": "N10000",
+      "num_particles": 10000,
+      "output": "docs/plans/bayesfilter-ledh-pfpf-ot-autodiff-free-adjoint-phase9-n10000-gpu-tf32-2026-06-23.json",
+      "progress_output": "docs/plans/bayesfilter-ledh-pfpf-ot-autodiff-free-adjoint-phase9-n10000-progress-2026-06-23.json",
+      "timeout_seconds": 7200
+    }
+  ],
+  "schema_version": "ledh_p9_run_manifest.v1",
+  "stop_policy": "stop at first non-PASSED rung; do not launch higher rungs after BLOCKED or FAILED",
+  "timeout_binary": "/usr/bin/timeout",
+  "timestamp_utc": "2026-06-23T14:30:48.757853+00:00"
+}
