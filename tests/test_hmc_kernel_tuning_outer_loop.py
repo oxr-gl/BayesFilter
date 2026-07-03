@@ -2676,6 +2676,160 @@ def test_outer_loop_missing_required_private_handoff_is_architecture_blocked() -
     assert result.final_kernel_hash is None
 
 
+def test_outer_loop_labels_phase6_repair_handoff_when_final_attempt_has_no_slot() -> None:
+    windowed = _windowed_stage()
+    fixed_pass_run, _ = _scripted_full_chain_runner(
+        phase5_screen_acceptances=[0.70],
+        verification_acceptances=[0.70],
+    )
+    fixed_pass = hmc_kernel_tuning.run_hmc_fixed_mass_step_stage(
+        adapter=_ToyGaussianAdapter(),
+        geometry=_geometry(),
+        bootstrap=_bootstrap(),
+        windowed_stage=windowed,
+        config=hmc_kernel_tuning.HMCFixedMassStepStageConfig(
+            target_accept_prob=0.70,
+            seed=(20260621, 50),
+            chain_execution_mode="eager",
+            target_scope="kernel_fixed_mass_step_toy_gaussian",
+        ),
+        run_full_chain=fixed_pass_run,
+        _attempt_budget_policy=_tiny_budget_factory(2, 2),
+    )
+
+    def trajectory_run(_adapter: Any, _initial_state: Any, config: Any):
+        return _fake_result(
+            num_results=int(config.num_results),
+            acceptance=0.90,
+            samples=np.zeros((int(config.num_results), 2)),
+        )
+
+    trajectory_fail = hmc_kernel_tuning.run_hmc_frozen_step_trajectory_stage(
+        adapter=_ToyGaussianAdapter(),
+        geometry=_geometry(),
+        bootstrap=_bootstrap(),
+        windowed_stage=windowed,
+        fixed_mass_step_stage=fixed_pass,
+        config=hmc_kernel_tuning.HMCFrozenStepTrajectoryStageConfig(
+            target_accept_prob=0.70,
+            seed=(20260621, 60),
+            chain_execution_mode="eager",
+            target_scope="kernel_fixed_mass_step_toy_gaussian",
+            trajectory_window_lower_multiplier=0.01,
+            trajectory_window_upper_multiplier=100.0,
+        ),
+        run_full_chain=trajectory_run,
+        _attempt_budget_policy=_tiny_budget_factory(2, 2),
+    )
+
+    assert fixed_pass.passed is True
+    assert trajectory_fail.passed is False
+    assert {
+        candidate["trajectory_window_relation"]
+        for candidate in trajectory_fail.candidate_results
+    } == {"inside_trajectory_window"}
+
+    def windowed_stage_runner(**_kwargs: Any):
+        return windowed
+
+    fixed_stage_calls: list[int] = []
+
+    def fixed_step_stage_runner(**kwargs: Any):
+        attempt_index = int(kwargs["_attempt_index"])
+        fixed_stage_calls.append(attempt_index)
+        if attempt_index < 2:
+            repair_payload = {
+                "runtime": "bayesfilter.test.phase5_repair_fixture",
+                "step_size": 0.1,
+                "private_handoff_only": True,
+            }
+            return replace(
+                fixed_pass,
+                final_status="repair_or_retry",
+                diagnostic_role="repair_trigger",
+                repair_triggers=("fixed_mass_fixture_repair",),
+                selected_step_payload=None,
+                selected_step_hash=None,
+                repair_step_payload=repair_payload,
+                repair_step_hash=hmc_kernel_tuning.stable_config_hash(repair_payload),
+            )
+        return fixed_pass
+
+    def trajectory_stage_runner(**_kwargs: Any):
+        return trajectory_fail
+
+    def verification_runner(**_kwargs: Any):
+        raise AssertionError("verification must not run without a Phase 6 pass")
+
+    result = run_hmc_tune_verify_repair_loop(
+        adapter=_ToyGaussianAdapter(),
+        geometry=_geometry(),
+        bootstrap=_bootstrap(),
+        config=_loop_config(
+            max_attempts=3,
+            trajectory_window_lower_multiplier=0.01,
+            trajectory_window_upper_multiplier=100.0,
+        ),
+        _budget_policy_factory=_tiny_budget_factory,
+        _windowed_stage_runner=windowed_stage_runner,
+        _fixed_mass_step_stage_runner=fixed_step_stage_runner,
+        _frozen_step_trajectory_stage_runner=trajectory_stage_runner,
+        _phase7_final_verification_runner=verification_runner,
+    )
+
+    assert result.final_status == "budget_exhausted"
+    assert result.diagnostic_role == (
+        "phase7_repair_handoff_budget_exhausted_no_attempt_slot"
+    )
+    assert len(result.attempts) == 3
+    assert fixed_stage_calls == [0, 1, 2]
+    assert result.attempts[0].fixed_mass_step_stage.passed is False
+    assert result.attempts[0].frozen_step_trajectory_stage is None
+    assert result.attempts[1].fixed_mass_step_stage.passed is False
+    assert result.attempts[1].frozen_step_trajectory_stage is None
+    final_attempt = result.attempts[2]
+    assert final_attempt.fixed_mass_step_stage.passed is True
+    assert final_attempt.frozen_step_trajectory_stage.passed is False
+    assert final_attempt.handoff_state_payload["verification_repair_applied"] is True
+    assert (
+        final_attempt.handoff_state_payload["verification_repair_trigger"]
+        == "phase6_trajectory_acceptance_outside_pass_band"
+    )
+    assert (
+        final_attempt.handoff_state_payload["verification_repair_source"]
+        == "phase6_frozen_step_trajectory_acceptance"
+    )
+    assert (
+        "phase7_repair_handoff_budget_exhausted_no_attempt_slot"
+        in result.repair_triggers
+    )
+    assert "phase7_budget_exhausted" not in result.repair_triggers
+    guard = result.terminal_budget_guard_payload
+    assert guard["classification"] == (
+        "phase7_repair_handoff_budget_exhausted_no_attempt_slot"
+    )
+    assert guard["last_attempt_index"] == 2
+    assert guard["configured_max_attempts"] == 3
+    assert guard["remaining_attempt_slots"] == 0
+    assert guard["last_handoff_stage"] == "phase5_selected"
+    public_summary = hmc_kernel_tuning._phase7_public_summary(result)
+    public_guard = public_summary["terminal_budget_guard"]
+    assert public_guard["classification"] == guard["classification"]
+    assert public_guard["hmc_mechanics_exposed"] is False
+    text = json.dumps(public_summary, sort_keys=True)
+    for forbidden in (
+        "candidate_l_values",
+        "step_size",
+        "num_leapfrog_steps",
+        "mass_artifact_payload",
+        "samples",
+        "trace",
+        "target_log_prob",
+        "final_state",
+    ):
+        assert forbidden not in text
+
+
 def test_outer_loop_public_exports_are_scoped_without_final_tuner() -> None:
     assert bayesfilter.HMCTuneVerifyRepairLoopConfig is HMCTuneVerifyRepairLoopConfig
     assert bayesfilter.HMCTuneVerifyRepairLoopResult is HMCTuneVerifyRepairLoopResult

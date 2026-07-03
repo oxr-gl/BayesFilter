@@ -188,6 +188,9 @@ _PHASE7_VERIFICATION_ACCEPTANCE_REPAIR_TRIGGER = (
 _PHASE7_VERIFY_ONLY_BUDGET_SATURATED = (
     "verification_only_rhat_cap_budget_saturated_no_repair_slot"
 )
+_PHASE7_REPAIR_HANDOFF_BUDGET_EXHAUSTED = (
+    "phase7_repair_handoff_budget_exhausted_no_attempt_slot"
+)
 _PHASE7_VERIFICATION_ACCEPTANCE_RETRY_PRE_PHASE6_MIN_RESERVES = 1.0
 
 
@@ -4960,10 +4963,20 @@ def run_hmc_tune_verify_repair_loop(
         attempt_state = handoff_state
     else:
         final_status = "budget_exhausted"
-        diagnostic_role = "budget_exhausted_non_promoting"
         final_kernel_payload = None
         final_kernel_hash = None
-        repair_triggers.append("phase7_budget_exhausted")
+        repair_handoff_slot_blocker = _phase7_repair_handoff_attempt_slot_blocker(
+            config=cfg,
+            attempt_state=attempt_state,
+            last_attempt=attempts[-1] if attempts else None,
+        )
+        if repair_handoff_slot_blocker is not None:
+            diagnostic_role = _PHASE7_REPAIR_HANDOFF_BUDGET_EXHAUSTED
+            terminal_budget_guard_payload = repair_handoff_slot_blocker
+            repair_triggers.append(_PHASE7_REPAIR_HANDOFF_BUDGET_EXHAUSTED)
+        else:
+            diagnostic_role = "budget_exhausted_non_promoting"
+            repair_triggers.append("phase7_budget_exhausted")
 
     hard_vetoes = list(dict.fromkeys(str(item) for item in hard_vetoes))
     repair_triggers = list(dict.fromkeys(str(item) for item in repair_triggers))
@@ -6554,6 +6567,12 @@ def _phase7_terminal_budget_guard_public_summary(
         "next_attempt_public_budget_class",
         "next_attempt_public_budget_cap",
         "next_attempt_budget_is_public_policy",
+        "last_attempt_index",
+        "configured_max_attempts",
+        "remaining_attempt_slots",
+        "last_attempt_final_status",
+        "last_attempt_diagnostic_role",
+        "last_handoff_stage",
         "timeout_budget_s",
         "elapsed_s",
         "remaining_s",
@@ -7708,6 +7727,53 @@ def _phase7_verify_only_budget_saturation_blocker(
         "closeout_required_before_identical_verify_only_retry": True,
         "diagnostic_role": _PHASE7_VERIFY_ONLY_BUDGET_SATURATED,
         "progress_only": True,
+        "hmc_mechanics_exposed": False,
+        "reports_posterior_convergence": False,
+        "reports_sampler_superiority": False,
+        "reports_default_readiness": False,
+        "reports_external_client_scientific_claim": False,
+        "reports_gpu_or_xla_readiness": False,
+        "nonclaims": TUNE_VERIFY_REPAIR_LOOP_NONCLAIMS,
+    }
+
+
+def _phase7_repair_handoff_attempt_slot_blocker(
+    *,
+    config: HMCTuneVerifyRepairLoopConfig,
+    attempt_state: "_HMCPhaseAttemptState | None",
+    last_attempt: HMCTuneVerifyRepairAttempt | None,
+) -> Mapping[str, Any] | None:
+    if attempt_state is None or last_attempt is None:
+        return None
+    if (
+        not attempt_state.verification_repair_applied
+        or attempt_state.verification_repair_trigger
+        != _PHASE6_TRAJECTORY_ACCEPTANCE_REPAIR_TRIGGER
+    ):
+        return None
+    remaining_attempt_slots = (
+        int(config.max_attempts) - int(last_attempt.attempt_index) - 1
+    )
+    if remaining_attempt_slots > 0:
+        return None
+    return {
+        "schema": "bayesfilter.hmc_phase7_repair_handoff_budget_exhausted.v1",
+        "classification": _PHASE7_REPAIR_HANDOFF_BUDGET_EXHAUSTED,
+        "last_attempt_index": int(last_attempt.attempt_index),
+        "configured_max_attempts": int(config.max_attempts),
+        "remaining_attempt_slots": remaining_attempt_slots,
+        "last_attempt_final_status": last_attempt.final_status,
+        "last_attempt_diagnostic_role": last_attempt.diagnostic_role,
+        "last_handoff_stage": attempt_state.handoff_stage,
+        "previous_verification_acceptance_relation": (
+            attempt_state.verification_acceptance_relation
+        ),
+        "previous_verification_repair_source": attempt_state.verification_repair_source,
+        "verification_repair_trigger": attempt_state.verification_repair_trigger,
+        "verification_repair_applied": True,
+        "closeout_required_before_next_attempt": True,
+        "diagnostic_role": _PHASE7_REPAIR_HANDOFF_BUDGET_EXHAUSTED,
+        "progress_only": False,
         "hmc_mechanics_exposed": False,
         "reports_posterior_convergence": False,
         "reports_sampler_superiority": False,
