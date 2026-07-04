@@ -2,7 +2,7 @@
 
 Date: 2026-07-03
 
-Status: `DRAFT_PENDING_PHASE5`
+Status: `DRAFT_READY_AFTER_PHASE5`
 
 ## Phase Objective
 
@@ -12,8 +12,12 @@ which are blocked.
 
 ## Entry Conditions Inherited From Previous Phase
 
-- Phase 5 merged leaderboard artifact exists.
-- Claude has reviewed the merged artifact or a blocker result exists.
+- Phase 5 merged leaderboard artifact exists:
+  `docs/plans/bayesfilter-two-lane-highdim-ledh-inclusive-leaderboard-results-2026-07-03.json`.
+- Phase 5 result exists:
+  `docs/plans/bayesfilter-ledh-inclusive-highdim-leaderboard-phase5-merge-comparison-result-2026-07-03.md`.
+- Claude has reviewed the Phase 4 claim-boundary packet. Phase 5 still needs
+  bounded closeout review before final closeout.
 
 ## Required Artifacts
 

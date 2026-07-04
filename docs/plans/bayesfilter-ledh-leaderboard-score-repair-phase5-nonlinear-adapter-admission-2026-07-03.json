@@ -1,0 +1,38 @@
+{
+  "schema_version": "bayesfilter.ledh_leaderboard_score_repair.phase5_adapter_admission.v1",
+  "date": "2026-07-03",
+  "status": "all_nonlinear_rows_blocked_or_target_mismatched",
+  "score_definition": "total_derivative_of_same_leaderboard_log_likelihood_target",
+  "carried_forward_blockers": {
+    "lgssm_score": "blocked_total_transport_vjp_needs_no_tape_repair",
+    "fixed_sir_main_row": "no_free_theta_value_only",
+    "parameterized_sir_logscale": "scoped_component_evidence_only_not_full_observed_data_filtering_score"
+  },
+  "rows": [
+    {
+      "row_id": "zhao_cui_sv_actual_nongaussian_T1000",
+      "classification": "adapter_missing",
+      "score_repair_admitted": false,
+      "reason": "No reviewed current GPU/XLA LEDH adapter proves the exact requested target."
+    },
+    {
+      "row_id": "zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000",
+      "classification": "target_mismatch",
+      "score_repair_admitted": false,
+      "reason": "This row is the declared KSC Gaussian-mixture surrogate target, not the exact native SV likelihood."
+    },
+    {
+      "row_id": "zhao_cui_predator_prey_T20",
+      "classification": "adapter_missing",
+      "score_repair_admitted": false,
+      "reason": "No reviewed same-target T20 observed-data LEDH adapter is available."
+    },
+    {
+      "row_id": "zhao_cui_generalized_sv_synthetic_from_estimated_values",
+      "classification": "adapter_missing",
+      "score_repair_admitted": false,
+      "reason": "The exact source-row evaluator is missing; native-oracle, precursor, auxiliary, actual-SV, and KSC evidence are not admission evidence."
+    }
+  ],
+  "phase6_handoff": "skip_or_block_phase6_unless_a_new_same_target_adapter_is_explicitly_approved"
+}

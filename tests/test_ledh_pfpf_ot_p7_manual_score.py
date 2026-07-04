@@ -73,6 +73,21 @@ def test_p7_manual_score_runs_under_runtime_autodiff_sentinel() -> None:
     assert diagnostic["gradients_connected"] is True
 
 
+def test_p7_manual_full_transport_score_runs_under_runtime_autodiff_sentinel() -> None:
+    args = _args(dtype="float32")
+    args.transport_ad_mode = "full"
+    p8p._configure_precision(args)
+    tensors, _semantics = p8p._build_base_tensors(args)
+
+    with audit.AutodiffRuntimeSentinel(p8p.tf, route_id="p7_manual_full_score"):
+        diagnostic = p8p._manual_gradient_diagnostic(tensors, args, args.theta_values)
+
+    assert bool(tf.reduce_all(tf.math.is_finite(diagnostic["log_likelihood"])).numpy())
+    assert bool(tf.reduce_all(tf.math.is_finite(diagnostic["gradient_tensor"])).numpy())
+    assert diagnostic["gradients_connected"] is True
+    assert diagnostic["score_route"] == "manual_reverse_scan_no_autodiff"
+
+
 def test_p7_manual_score_decomposition_reconstructs_gradient() -> None:
     args = _args(dtype="float32")
     args.transport_ad_mode = "stabilized"

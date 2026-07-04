@@ -8,6 +8,9 @@ helpers fail closed instead of hiding scalar row loops in the runtime layer.
 
 from __future__ import annotations
 
+import hashlib
+import json
+import re
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from typing import Any, Literal
@@ -30,11 +33,25 @@ NONCLAIMS = (
     "no scientific validity claim",
 )
 
+FIXED_TRANSPORT_NONCLAIMS = (
+    "fixed transport value/score wrapper only",
+    "transport is frozen; no NeuTra training claim",
+    "no HMC tuning or sampling claim",
+    "no posterior convergence claim",
+    "no scientific validity claim",
+)
+
 _GRAPH_NATIVE_AUTHORITIES = frozenset(
     {
         "graph_native",
         "reviewed_gradient_tape_xla_exception",
     }
+)
+
+_PROCESS_LOCAL_SIGNATURE_PATTERNS = (
+    re.compile(r"\b0x[0-9a-fA-F]+\b"),
+    re.compile(r"\bobject at\b"),
+    re.compile(r"\bid\s*\("),
 )
 
 
@@ -416,3 +433,315 @@ class LatentAffineBatchValueScoreAdapter:
         if int(trailing) != self.parameter_dim:
             raise ValueError(f"{label} trailing dimension must match transform dimension")
         return tensor
+
+
+class FixedTransportValueScoreAdapter:
+    """Batch-native value/score wrapper for a frozen nonlinear transport.
+
+    The wrapped base target lives in position coordinates ``u`` and the fixed
+    transport maps HMC coordinates ``z`` to ``u``.  The transformed target is
+
+    ``log pi_z(z) = log pi_u(T(z)) + log|det dT/dz|``.
+
+    The base adapter supplies reviewed values and scores in ``u``.  This wrapper
+    differentiates only through the frozen transport and log-Jacobian term, so
+    it can apply the chain rule without opening a GradientTape through the base
+    filtering likelihood.
+    """
+
+    def __init__(
+        self,
+        *,
+        base_adapter: Any,
+        transport: Any,
+        target_scope: str,
+        runtime_backend: str = "bayesfilter.inference.FixedTransportValueScoreAdapter",
+        evidence_path: str | None = None,
+        xla_hmc_ready: bool = False,
+        full_chain_xla_diagnostic_ready: bool = False,
+        require_batch_native: bool = True,
+        nonclaims: tuple[str, ...] = FIXED_TRANSPORT_NONCLAIMS,
+    ) -> None:
+        if not hasattr(base_adapter, "log_prob_and_grad"):
+            raise TypeError("base_adapter must expose log_prob_and_grad")
+        self.base_adapter = base_adapter
+        self.transport = transport
+        self.parameter_dim = _transport_parameter_dim(transport)
+        self.target_scope = str(target_scope)
+        if not self.target_scope:
+            raise ValueError("target_scope must be non-empty")
+        self.runtime_backend = str(runtime_backend)
+        self.evidence_path = evidence_path
+        self.xla_hmc_ready = bool(xla_hmc_ready)
+        self.full_chain_xla_diagnostic_ready = bool(full_chain_xla_diagnostic_ready)
+        self.require_batch_native = bool(require_batch_native)
+        self.nonclaims = tuple(str(item) for item in nonclaims) or FIXED_TRANSPORT_NONCLAIMS
+        self._transport_manifest = _transport_manifest_payload(transport)
+        self._transport_manifest_hash = _stable_json_hash(self._transport_manifest)
+
+    @property
+    def transport_manifest_hash(self) -> str:
+        return self._transport_manifest_hash
+
+    def adapter_signature(self) -> str:
+        base_signature = _stable_adapter_signature(self.base_adapter)
+        base_capability = value_score_capability(self.base_adapter)
+        return _stable_json_hash(
+            {
+                "schema": "bayesfilter.fixed_transport_value_score_adapter.v1",
+                "base_adapter_signature": base_signature,
+                "fixed_transport_manifest_hash": self.transport_manifest_hash,
+                "fixed_transport_parameter_dim": self.parameter_dim,
+                "target_scope": self.target_scope,
+                "value_score_authority": base_capability.value_score_authority,
+                "batch_native_required": self.require_batch_native,
+            }
+        )
+
+    def manifest_payload(self) -> Mapping[str, Any]:
+        base_capability = value_score_capability(self.base_adapter)
+        return {
+            "schema": "bayesfilter.fixed_transport_value_score_adapter.v1",
+            "target_scope": self.target_scope,
+            "parameter_dim": self.parameter_dim,
+            "base_adapter_signature": _stable_adapter_signature(self.base_adapter),
+            "fixed_transport_manifest_hash": self.transport_manifest_hash,
+            "fixed_transport_manifest": self._transport_manifest,
+            "value_score_authority": base_capability.value_score_authority,
+            "xla_hmc_ready": self.value_score_capability().xla_hmc_ready,
+            "full_chain_xla_diagnostic_ready": (
+                self.value_score_capability().full_chain_xla_diagnostic_ready
+            ),
+            "batch_native_required": self.require_batch_native,
+            "nonclaims": self.nonclaims,
+        }
+
+    def value_score_capability(self) -> ValueScoreCapability:
+        base_capability = value_score_capability(self.base_adapter)
+        graph_native_base = base_capability.value_score_authority in _GRAPH_NATIVE_AUTHORITIES
+        xla_ready = bool(
+            self.xla_hmc_ready
+            and graph_native_base
+            and base_capability.is_accepted_xla_hmc_authority
+        )
+        full_chain_ready = bool(
+            self.full_chain_xla_diagnostic_ready
+            and xla_ready
+            and base_capability.is_accepted_full_chain_xla_diagnostic_authority
+        )
+        nonclaims = self.nonclaims + (
+            f"base value/score authority: {base_capability.value_score_authority}",
+            "fixed transport wrapper cannot promote fallback base authority",
+        )
+        return ValueScoreCapability(
+            value_score_authority=base_capability.value_score_authority,
+            xla_hmc_ready=xla_ready,
+            full_chain_xla_diagnostic_ready=full_chain_ready,
+            runtime_backend=self.runtime_backend,
+            evidence_path=self.evidence_path,
+            target_scope=self.target_scope,
+            nonclaims=nonclaims,
+        )
+
+    def initial_position(self) -> tf.Tensor:
+        return tf.zeros((self.parameter_dim,), dtype=tf.float64)
+
+    def latent_to_position(self, z: Any) -> tf.Tensor:
+        z_tensor = self._validate_z_tensor(z, allow_sample_axes=True)
+        if z_tensor.shape.rank == 1:
+            return tf.convert_to_tensor(self.transport.forward(z_tensor), dtype=z_tensor.dtype)
+        forward_batch = getattr(self.transport, "forward_batch", None)
+        if callable(forward_batch):
+            return tf.convert_to_tensor(
+                forward_batch(z_tensor),
+                dtype=z_tensor.dtype,
+            )
+        if self.require_batch_native:
+            raise TypeError("fixed transport must expose forward_batch")
+        return tf.vectorized_map(
+            lambda row: tf.convert_to_tensor(self.transport.forward(row), dtype=z_tensor.dtype),
+            z_tensor,
+        )
+
+    def log_abs_det_jacobian(self, z: Any) -> tf.Tensor:
+        z_tensor = self._validate_z_tensor(z, allow_sample_axes=False)
+        if z_tensor.shape.rank == 1:
+            logdet = getattr(self.transport, "log_abs_det_jacobian", None)
+            if not callable(logdet):
+                raise TypeError("fixed transport must expose log_abs_det_jacobian")
+            return tf.convert_to_tensor(
+                logdet(z_tensor),
+                dtype=z_tensor.dtype,
+            )
+        logdet_batch = getattr(self.transport, "log_abs_det_jacobian_batch", None)
+        if not callable(logdet_batch):
+            if self.require_batch_native:
+                raise TypeError("fixed transport must expose log_abs_det_jacobian_batch")
+            logdet = getattr(self.transport, "log_abs_det_jacobian", None)
+            if not callable(logdet):
+                raise TypeError("fixed transport must expose log_abs_det_jacobian")
+            return tf.vectorized_map(
+                lambda row: tf.convert_to_tensor(
+                    logdet(row),
+                    dtype=z_tensor.dtype,
+                ),
+                z_tensor,
+            )
+        return tf.convert_to_tensor(
+            logdet_batch(z_tensor),
+            dtype=z_tensor.dtype,
+        )
+
+    def log_prob_and_grad(self, z: Any) -> tuple[tf.Tensor, tf.Tensor]:
+        z_tensor = self._validate_z_tensor(z)
+        with tf.GradientTape(persistent=True) as tape:
+            tape.watch(z_tensor)
+            u_tensor = self.latent_to_position(z_tensor)
+            logdet_tensor = self.log_abs_det_jacobian(z_tensor)
+        if z_tensor.shape.rank == 2:
+            jacobian = tape.batch_jacobian(u_tensor, z_tensor)
+            logdet_score = tape.batch_jacobian(logdet_tensor[:, tf.newaxis], z_tensor)[:, 0, :]
+        else:
+            jacobian = tape.jacobian(u_tensor, z_tensor)
+            logdet_score = tape.gradient(logdet_tensor, z_tensor)
+        del tape
+        if logdet_score is None:
+            logdet_score = tf.zeros_like(z_tensor)
+
+        value_u, score_u = self.base_adapter.log_prob_and_grad(u_tensor)
+        value_u_tensor = tf.convert_to_tensor(value_u, dtype=z_tensor.dtype)
+        score_u_tensor = tf.convert_to_tensor(score_u, dtype=z_tensor.dtype)
+        _validate_value_score_shapes(theta=u_tensor, value=value_u_tensor, score=score_u_tensor)
+        score_u_tensor = tf.stop_gradient(score_u_tensor)
+        value_u_tensor = tf.stop_gradient(value_u_tensor)
+        if z_tensor.shape.rank == 1:
+            transport_score = tf.linalg.matvec(jacobian, score_u_tensor, transpose_a=True)
+        else:
+            transport_score = tf.einsum("bui,bu->bi", jacobian, score_u_tensor)
+        value_z = value_u_tensor + logdet_tensor
+        score_z = transport_score + logdet_score
+        _validate_value_score_shapes(theta=z_tensor, value=value_z, score=score_z)
+        return value_z, score_z
+
+    def log_prob_and_grad_batch(self, z_batch: Any) -> tuple[tf.Tensor, tf.Tensor]:
+        z_tensor = self._validate_z_tensor(z_batch)
+        if z_tensor.shape.rank != 2:
+            raise ValueError("fixed transport batch target requires rank 2 input")
+        return self.log_prob_and_grad(z_tensor)
+
+    def target_status_telemetry(self, z: Any) -> Mapping[str, Any]:
+        telemetry = getattr(self.base_adapter, "target_status_telemetry", None)
+        if not callable(telemetry):
+            raise TypeError("base_adapter must expose target_status_telemetry")
+        payload = telemetry(self.latent_to_position(z))
+        if not isinstance(payload, Mapping):
+            raise TypeError("target_status_telemetry must return a mapping")
+        return payload
+
+    def _validate_z_tensor(
+        self,
+        value: Any,
+        *,
+        allow_sample_axes: bool = False,
+    ) -> tf.Tensor:
+        tensor = tf.convert_to_tensor(value, dtype=tf.float64)
+        max_rank = None if allow_sample_axes else 2
+        if tensor.shape.rank is None:
+            raise ValueError("fixed transport coordinate tensor must have static rank")
+        if tensor.shape.rank < 1 or (
+            max_rank is not None and tensor.shape.rank > max_rank
+        ):
+            if allow_sample_axes:
+                raise ValueError(
+                    "fixed transport coordinate tensor must have rank at least 1"
+                )
+            raise ValueError("fixed transport coordinate tensor must have rank 1 or rank 2")
+        trailing = tensor.shape[-1]
+        if trailing is None:
+            raise ValueError(
+                "fixed transport coordinate tensor must have static trailing dimension"
+            )
+        if int(trailing) != self.parameter_dim:
+            raise ValueError(
+                "fixed transport coordinate trailing dimension must match transport dimension"
+            )
+        return tensor
+
+
+def _transport_parameter_dim(transport: Any) -> int:
+    for name in ("parameter_dim", "dim", "dimension"):
+        value = getattr(transport, name, None)
+        if value is not None:
+            result = int(value() if callable(value) else value)
+            if result <= 0:
+                raise ValueError("fixed transport parameter dimension must be positive")
+            return result
+    manifest = _transport_manifest_payload(transport)
+    value = manifest.get("parameter_dim", manifest.get("dim"))
+    if value is None:
+        raise TypeError("fixed transport must expose parameter_dim, dim, or manifest dimension")
+    result = int(value)
+    if result <= 0:
+        raise ValueError("fixed transport parameter dimension must be positive")
+    return result
+
+
+def _transport_manifest_payload(transport: Any) -> Mapping[str, Any]:
+    manifest = getattr(transport, "manifest_payload", None)
+    if not callable(manifest):
+        raise TypeError("fixed transport must expose manifest_payload")
+    payload = manifest()
+    if not isinstance(payload, Mapping):
+        raise TypeError("fixed transport manifest_payload must return a mapping")
+    return _json_safe(payload)
+
+
+def _stable_adapter_signature(adapter: Any) -> str:
+    explicit = getattr(adapter, "adapter_signature", None)
+    if explicit is not None:
+        signature = explicit() if callable(explicit) else explicit
+        return _validate_stable_signature(str(signature))
+    payload: dict[str, Any] = {
+        "class": adapter.__class__.__qualname__,
+        "module": adapter.__class__.__module__,
+    }
+    if hasattr(adapter, "parameter_dim"):
+        payload["parameter_dim"] = int(getattr(adapter, "parameter_dim"))
+    names = getattr(adapter, "parameter_names", None)
+    if names is not None:
+        values = names() if callable(names) else names
+        payload["parameter_names"] = tuple(str(name) for name in values)
+    return _stable_json_hash(payload)
+
+
+def _validate_stable_signature(signature: str) -> str:
+    if not signature:
+        raise ValueError("adapter_signature must be non-empty")
+    if any(pattern.search(signature) for pattern in _PROCESS_LOCAL_SIGNATURE_PATTERNS):
+        raise ValueError("adapter_signature must not contain process-local object identity")
+    return signature
+
+
+def _stable_json_hash(payload: Mapping[str, Any] | Any) -> str:
+    normalized = _json_safe(payload)
+    blob = json.dumps(normalized, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(blob.encode("utf-8")).hexdigest()
+
+
+def _json_safe(value: Any) -> Any:
+    if isinstance(value, Mapping):
+        return {str(key): _json_safe(item) for key, item in value.items()}
+    if isinstance(value, (tuple, list)):
+        return [_json_safe(item) for item in value]
+    if hasattr(value, "numpy"):
+        return _json_safe(value.numpy())
+    if hasattr(value, "tolist") and hasattr(value, "shape"):
+        return _json_safe(value.tolist())
+    if hasattr(value, "item") and not isinstance(value, Mapping):
+        try:
+            return value.item()
+        except (TypeError, ValueError):
+            pass
+    if isinstance(value, (str, int, float, bool)) or value is None:
+        return value
+    return repr(value)

@@ -1,0 +1,179 @@
+{
+  "schema": "bayesfilter.general_neutra_ssm_interface.phase7_validation_ledger.v1",
+  "created_at_local_date": "2026-07-03",
+  "phase": 7,
+  "status": "completed_interface_validation_with_real_artifact_migration_blocked",
+  "question": "What level of evidence does the generic NeuTra SSM interface have after implementation and fail-closed real-artifact inventory?",
+  "focused_test_command": "CUDA_VISIBLE_DEVICES=-1 python -m pytest tests/test_general_ssm_contracts.py tests/test_general_ssm_target_builder.py tests/test_general_ssm_filter_registry.py tests/test_neutra_artifact_loader.py tests/test_fixed_transport_hmc_binding.py -q -p no:cacheprovider",
+  "focused_test_result": {
+    "status": "passed",
+    "tests_passed": 44,
+    "duration_s": 6.66,
+    "cpu_only_gpu_hidden": true,
+    "gpu_or_cuda_used": false
+  },
+  "validation_rungs": [
+    {
+      "rung": "generic_ssm_contracts",
+      "role": "engineering_correctness",
+      "surface": "bayesfilter.ssm.contracts",
+      "status": "passed_focused_tests",
+      "evidence": "tests/test_general_ssm_contracts.py",
+      "checked": [
+        "stable target signatures",
+        "problem/chart/prior/filter/frozen transport manifests",
+        "process-local identity rejection",
+        "dimension and target-signature mismatch rejection"
+      ],
+      "not_concluded": [
+        "likelihood correctness",
+        "filter numerical correctness",
+        "HMC readiness"
+      ]
+    },
+    {
+      "rung": "posterior_target_builder",
+      "role": "engineering_correctness",
+      "surface": "bayesfilter.ssm.target_builder",
+      "status": "passed_focused_tests",
+      "evidence": "tests/test_general_ssm_target_builder.py",
+      "checked": [
+        "rank-2 batch-native value/score",
+        "rank-1 theta rejection",
+        "target signature preservation",
+        "metadata carries non-batch SSM static shape and batch-rank policy",
+        "stable adapter signature"
+      ],
+      "not_concluded": [
+        "real-model posterior correctness",
+        "all-filter support",
+        "XLA HMC readiness"
+      ]
+    },
+    {
+      "rung": "filter_registry",
+      "role": "engineering_correctness",
+      "surface": "bayesfilter.ssm.filter_registry",
+      "status": "passed_focused_tests",
+      "evidence": "tests/test_general_ssm_filter_registry.py",
+      "checked": [
+        "capability match acceptance",
+        "missing capability rejection",
+        "fresh stochastic filter rejection",
+        "fixed-randomness filter acceptance only when explicit",
+        "downstream SSMTargetContract validation"
+      ],
+      "not_concluded": [
+        "production particle-filter HMC readiness",
+        "filter accuracy",
+        "all BayesFilter filters are admissible"
+      ]
+    },
+    {
+      "rung": "frozen_neutra_artifact_loader",
+      "role": "engineering_correctness",
+      "surface": "bayesfilter.inference.neutra_artifacts",
+      "status": "passed_synthetic_focused_tests",
+      "evidence": "tests/test_neutra_artifact_loader.py",
+      "checked": [
+        "synthetic affine-diagonal frozen transport loads",
+        "target-signature mismatch rejection",
+        "missing log-Jacobian rejection",
+        "unsupported schema rejection",
+        "fixed-transport wrapper does not promote fallback value/score authority"
+      ],
+      "not_concluded": [
+        "real dense IAF artifact loading",
+        "NeuTra training success",
+        "sampler validity"
+      ]
+    },
+    {
+      "rung": "fixed_transport_hmc_mechanics",
+      "role": "engineering_correctness",
+      "surface": "bayesfilter.inference.fixed_transport_hmc",
+      "status": "passed_synthetic_cpu_only_mechanics_tests",
+      "evidence": "tests/test_fixed_transport_hmc_binding.py",
+      "checked": [
+        "finite value/score mechanics call",
+        "target signature and transport hash in manifest",
+        "HMC policy label and hash in manifest",
+        "fallback authority rejected for XLA binding",
+        "scalar initial position rejection"
+      ],
+      "not_concluded": [
+        "HMC chain convergence",
+        "acceptance/ESS/R-hat evidence",
+        "real-artifact HMC reuse"
+      ]
+    },
+    {
+      "rung": "existing_neutra_artifact_reuse",
+      "role": "artifact_migration_status",
+      "surface": "docs/plans/bayesfilter-general-neutra-ssm-interface-phase6-artifact-inventory-2026-07-03.json",
+      "status": "blocked_for_generic_loader_reuse",
+      "classification_counts": {
+        "reusable": 0,
+        "missing_payload": 3,
+        "signature_not_available_nonreusable": 7,
+        "signature_mismatch": 0,
+        "loader_blocked": 0,
+        "not_checked": 0
+      },
+      "checked": [
+        "five user-named evidence cells found and classified",
+        "selected compact notes and JSON summaries hashed",
+        "referenced training-state payload paths checked",
+        "no external artifact loaded without schema/signature compatibility"
+      ],
+      "not_concluded": [
+        "historical NeuTra evidence is invalid",
+        "generic loader can reuse dense IAF artifacts",
+        "real-artifact mechanics canary success"
+      ]
+    }
+  ],
+  "hard_vetoes": [
+    {
+      "veto": "real_artifact_reuse_without_generic_signature",
+      "status": "preserved",
+      "evidence": "Phase 6 classified zero external artifacts as reusable."
+    },
+    {
+      "veto": "serious_hmc_or_training_in_phase7",
+      "status": "preserved",
+      "evidence": "Phase 7 ran focused CPU-only tests only; no GPU/CUDA, training, or serious HMC command was launched."
+    },
+    {
+      "veto": "unsupported_default_readiness_claim",
+      "status": "preserved",
+      "evidence": "Closeout separates implemented interface surfaces from posterior/scientific/default claims."
+    }
+  ],
+  "viable_implemented_surfaces": [
+    "Generic SSM target identity contracts and stable signatures",
+    "Batch-native posterior target adapter for deterministic TensorFlow value/score functions",
+    "Filter-program registry for deterministic/fixed-randomness admissibility metadata",
+    "Synthetic frozen affine-diagonal NeuTra artifact loader",
+    "Synthetic fixed-transport HMC mechanics manifest binding"
+  ],
+  "migration_blockers": [
+    "Existing dense IAF NeuTra artifacts do not expose the Phase 4 loader schema.",
+    "Existing result notes do not carry the new generic SSMTargetContract target_signature.",
+    "Several referenced training-state payloads are absent from the reconciled checkout.",
+    "The current loader supports only the reviewed affine-diagonal fixture schema, not dense IAF transport payloads."
+  ],
+  "next_evidence_needed": [
+    "A reviewed dense-IAF frozen-transport loader schema or an exporter that converts old artifacts into a small signed BayesFilter frozen-transport manifest.",
+    "A target-signature bridge from each historical target identity to a generic SSMTargetContract manifest.",
+    "Restoration or re-export of missing training-state payloads with SHA-256 verification.",
+    "A separate reviewed plan for any real-artifact mechanics canary, GPU NeuTra training, serious HMC validation, or posterior/reference comparison."
+  ],
+  "nonclaims": [
+    "No sampler superiority claim.",
+    "No broad posterior correctness claim.",
+    "No all-filter HMC readiness claim.",
+    "No real-artifact reuse success claim.",
+    "No default product-policy change."
+  ]
+}

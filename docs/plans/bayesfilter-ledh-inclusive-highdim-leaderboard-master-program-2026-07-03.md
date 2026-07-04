@@ -65,6 +65,65 @@ Every row must be classified as one of:
 | Not concluded | No HMC readiness, posterior correctness, broad scientific superiority, exact nonlinear likelihood correctness, or production default change unless separate gates explicitly check those claims. |
 | Artifacts | Master program, phase subplans, phase results, Claude review ledger, visible execution ledger, raw LEDH result JSON/MD, merged leaderboard JSON/MD, logs under `docs/plans/logs/`. |
 
+## Comparator Provenance Rule
+
+The final artifact must choose one of two comparator modes and label it directly:
+
+- `frozen_non_ledh_baseline_plus_fresh_ledh`: non-LEDH rows are copied from the
+  July 3 baseline with provenance labels and are value/score comparable only by
+  target/status, not by runtime environment;
+- `fresh_all_algorithm_rerun`: all algorithms are rerun under a shared harness,
+  device policy, seed policy, and artifact schema before runtime comparisons are
+  made.
+
+The default mode for this program is
+`frozen_non_ledh_baseline_plus_fresh_ledh`. Therefore runtime rankings across
+LEDH and non-LEDH algorithms are forbidden unless a later reviewed phase changes
+to `fresh_all_algorithm_rerun` before seeing results.
+
+Every requested row must appear in the final artifact as one of:
+
+- full row;
+- scoped component row;
+- blocked value row;
+- blocked score row;
+- blocked no same-target adapter row.
+
+No requested row may be silently omitted or replaced by a different target.
+
+## LEDH Ladder Policy
+
+The default LEDH value ladder uses:
+
+- seeds: `81120,81121,81122,81123,81124`;
+- rungs: `N=1000` and `N=10000` for all admitted rows;
+- adjacent high rung: `N=50000` only when Phase 3/4 pre-run budget estimates say
+  it is feasible within the visible runtime and memory gate;
+- primary value criterion: finite outputs, MCSE reported from the five-seed
+  sample mean, ESS reported, and adjacent-rung mean change no larger than the
+  predeclared row tolerance or else the row is value-diagnostic only;
+- deviation rule: any row that cannot run both default rungs must record a
+  direct blocker or a reviewed row-specific ladder before execution.
+
+Phase 4 may refine tolerances row by row before execution, but it must not
+change them after seeing row results.
+
+## Score Admission Rule
+
+LEDH score admission is row specific. A row can be marked
+`executed_value_score` only if at least one of the following is preserved:
+
+- an exact derivation in the repo notation showing that the implemented score is
+  the total derivative of the stated row log likelihood target;
+- a trusted numerical check against the same deterministic target with fixed
+  random numbers and a finite-difference step policy declared before execution;
+- an exact oracle comparison such as Kalman for LGSSM.
+
+If the implemented score omits functional dependence on parameters, the score
+is wrong relative to the stated total-derivative target unless the row
+explicitly declares a partial-derivative target. Partial derivatives are not
+MLE/HMC score evidence.
+
 ## Skeptical Plan Audit
 
 This plan checks the main failure modes before execution:
@@ -77,6 +136,9 @@ This plan checks the main failure modes before execution:
   repair loop.
 - Unfair comparisons: LEDH rows are compared only when row scope says the same
   target is computed. Otherwise the row is blocked or scoped.
+- Comparator provenance: default comparison uses frozen non-LEDH baseline rows
+  and fresh LEDH rows, so runtime cross-ranking is forbidden unless all
+  algorithms are rerun under a shared harness.
 - Hidden assumptions: GPU/XLA/TF32, particle count, seeds, transport policy,
   and score route must be written into artifacts.
 - Stale context: the row inventory is read from the current runner and July 3

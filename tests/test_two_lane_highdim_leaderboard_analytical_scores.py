@@ -3,6 +3,8 @@ from __future__ import annotations
 import importlib.util
 from pathlib import Path
 
+import pytest
+
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "docs/benchmarks/benchmark_two_lane_highdim_leaderboard.py"
@@ -43,6 +45,71 @@ def test_actual_leaderboard_score_rows_exclude_autodiff_provenance() -> None:
         if row["algorithm_id"] == "ukf":
             assert "svd" not in provenance, (row["row_id"], row["algorithm_id"], provenance)
             assert "eigenderivative" not in provenance, (row["row_id"], row["algorithm_id"], provenance)
+
+
+def test_admitted_value_score_rows_use_one_declared_route() -> None:
+    module = _load_module()
+    score_rows = module._apply_value_score_route_contract(
+        [
+            {
+                "row_id": "zhao_cui_sv_actual_nongaussian_T1000",
+                "algorithm_id": "ukf",
+                "comparison_status": "executed_value_score",
+                "score": [0.1, 0.2],
+                "score_derivative_provenance": (
+                    "actual_sv_augmented_noise_factor_propagating_srukf_manual_score"
+                ),
+                "nonclaims": [],
+            },
+            {
+                "row_id": "zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000",
+                "algorithm_id": "ukf",
+                "comparison_status": "executed_value_score",
+                "score": [0.1, 0.2],
+                "score_derivative_provenance": (
+                    "principal_sqrt_ukf_independent_panel_transformed_sv_gaussian_mixture_"
+                    "analytical_component_score_logsumexp_aggregation"
+                ),
+                "nonclaims": [],
+            },
+        ]
+    )
+
+    module._validate_analytical_score_contract(score_rows)
+    for row in score_rows:
+        assert row["value_route_id"] == row["score_route_id"], (
+            row["row_id"],
+            row["algorithm_id"],
+            row.get("value_route_id"),
+            row.get("score_route_id"),
+        )
+        assert row["value_score_route_status"] == "same_route_value_score"
+
+
+def test_score_contract_rejects_missing_or_mixed_value_score_routes() -> None:
+    module = _load_module()
+    base = {
+        "row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+        "algorithm_id": "fixed_sgqf",
+        "comparison_status": "executed_value_score",
+        "numeric_execution_status": "executed_direct_affine_sgqf_value_score",
+        "score": [1.0],
+        "score_l2_norm": 1.0,
+        "score_coordinate_system": "theta",
+        "score_derivative_provenance": "fixed_sgqf_analytic_first_order_fixed_branch_affine_lgssm_score",
+    }
+
+    with pytest.raises(ValueError, match="requires value_route_id"):
+        module._validate_analytical_score_contract([dict(base)])
+
+    mixed = dict(
+        base,
+        value_route_id="fixed_sgqf_direct_affine_lgssm",
+        score_route_id="other_score_route",
+        value_score_route_status="same_route_value_score",
+    )
+    with pytest.raises(ValueError, match="mixes value route"):
+        module._validate_analytical_score_contract([mixed])
 
 
 def test_autodiff_score_rows_are_value_only_diagnostic_rows() -> None:

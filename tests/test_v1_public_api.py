@@ -105,6 +105,7 @@ COMMON_INFERENCE_RUNTIME_SYMBOLS = {
     "FixedTrajectoryCandidateResult",
     "FixedTrajectoryTuningConfig",
     "FixedTrajectoryTuningResult",
+    "FixedTransportValueScoreAdapter",
     "GENERIC_HMC_TUNING_NONCLAIMS",
     "GenericHMCCandidateEvaluation",
     "GenericHMCCandidateResult",

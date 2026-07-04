@@ -1,0 +1,95 @@
+{
+  "bridge_candidates": [
+    {
+      "bridge_status": "missing_static_shape",
+      "canonical_signature": null,
+      "is_embedded_payload_candidate": true,
+      "missing_fields": [
+        "static_shape",
+        "data_signature",
+        "prior",
+        "filter_program"
+      ],
+      "notes": "Legacy payload has dense-IAF tensors, but generic target metadata is insufficient for canonical target_signature.",
+      "observed_contract_fields": {
+        "chart": {
+          "parameter_dim_inferred_from_payload": "present_but_names_and_transform_not_canonical"
+        },
+        "problem_id": "legacy_rotemberg_name_only_not_canonical"
+      },
+      "path": "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase7/rotemberg_trainable_canary.json.training_state.json",
+      "payload_status": "embedded_transport_payload_present",
+      "phase1_status": "missing_target_signature",
+      "ssm_target_contract_manifest": null,
+      "transport_kinds": [
+        "composed",
+        "dense_autoregressive_iaf"
+      ],
+      "veto_reason": "Cannot define canonical SSMTargetContract without inventing fields: static_shape, data_signature, prior, filter_program"
+    },
+    {
+      "bridge_status": "missing_static_shape",
+      "canonical_signature": null,
+      "is_embedded_payload_candidate": true,
+      "missing_fields": [
+        "static_shape",
+        "data_signature",
+        "prior",
+        "filter_program"
+      ],
+      "notes": "Legacy payload has dense-IAF tensors, but generic target metadata is insufficient for canonical target_signature.",
+      "observed_contract_fields": {
+        "chart": {
+          "parameter_dim_inferred_from_payload": "present_but_names_and_transform_not_canonical"
+        },
+        "problem_id": "legacy_rotemberg_name_only_not_canonical"
+      },
+      "path": "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-neutra-preflight-2026-06-20/runner_training_canary.json.training_state.json",
+      "payload_status": "embedded_transport_payload_present",
+      "phase1_status": "missing_target_signature",
+      "ssm_target_contract_manifest": null,
+      "transport_kinds": [
+        "composed",
+        "dense_autoregressive_iaf"
+      ],
+      "veto_reason": "Cannot define canonical SSMTargetContract without inventing fields: static_shape, data_signature, prior, filter_program"
+    }
+  ],
+  "bridge_population_count": 2,
+  "bridgeable_count": 0,
+  "candidate_status_counts": {
+    "missing_static_shape": 2
+  },
+  "canonical_field_set": [
+    "problem_id",
+    "static_shape",
+    "data_signature",
+    "chart",
+    "prior",
+    "filter_program"
+  ],
+  "cpu_gpu_status": "CPU-only/read-only bridge rerun; no GPU/CUDA device was probed or used",
+  "created_at_local_date": "2026-07-04",
+  "created_at_utc": "2026-07-04T07:17:49.626467+00:00",
+  "embedded_payload_candidate_count": 2,
+  "external_mutation": "None; /home/chakwong/python was not modified",
+  "hostname": "DESKTOP-RF1Q5IJ",
+  "network_status": "No network fetch",
+  "nonclaims": [
+    "read-only bridge rerun only",
+    "no historical artifact loaded through BayesFilter",
+    "no payload export success",
+    "no HMC convergence claim",
+    "no posterior correctness claim",
+    "no sampler superiority claim",
+    "no GPU readiness claim",
+    "no default policy change"
+  ],
+  "phase1_inventory_path": "docs/plans/bayesfilter-rotemberg-target-contract-reconstruction-phase1-metadata-source-inventory-2026-07-04.json",
+  "phase1_inventory_sha256": "sha256:5bceb231290f34b72b0ff40ce1e02bd492ba229624532bd24d6543f17a1359ed",
+  "phase2_manifest_path": "docs/plans/bayesfilter-rotemberg-target-contract-reconstruction-phase2-contract-manifest-2026-07-04.json",
+  "phase2_manifest_sha256": "sha256:7e7dbb74aa16aa41424e9e0c7d75331c9e16fad85578e15aa8593764c3c84d84",
+  "required_field_count": 6,
+  "schema": "bayesfilter.rotemberg_target_contract_reconstruction.phase4_bridge.v1",
+  "status": "PHASE4_BLOCKED_NO_BRIDGEABLE_TARGET_SIGNATURE"
+}

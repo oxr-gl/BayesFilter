@@ -118,7 +118,12 @@ def test_default_clean_xla_audit_reports_current_route_unclean_with_line_anchors
         if item["status"] == "ABSENT_CLEAN_OR_MOVED"
     } == removed_current_veto_ids
     assert result["current_veto_findings"]
-    assert result["warning_findings"]
+    assert result["warning_findings"] == []
+    assert {
+        item["id"]
+        for item in result["required_pattern_results"]
+        if item["status"] == "ABSENT_WARNING"
+    } == {"SINK-TOTAL-CUSTOM-TAPE"}
     assert "stopped partial derivatives are not scores" in result["nonclaims"]
     for finding in result["findings"]:
         assert finding["line"] > 0

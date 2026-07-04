@@ -715,30 +715,33 @@ def _manual_transport_vjp_tf(
     scaling = tf.convert_to_tensor(args.annealed_scaling, dtype=DTYPE)
     steps = core_tf._manual_dense_finite_steps(args.sinkhorn_iterations)  # noqa: SLF001
     if args.transport_ad_mode == "full":
-        with tf.GradientTape() as tape:
-            tape.watch([post_flow, normalized_log_weights])
-            center = tf.reduce_mean(post_flow, axis=1, keepdims=True)
-            scale = annealed_transport_tf._filterflow_scale(post_flow)  # noqa: SLF001
-            scaled_x = (post_flow - center) / scale[:, None, None]
-            epsilon0 = annealed_transport_tf._filterflow_epsilon_start(scaled_x)  # noqa: SLF001
-            transported, _row_residual = (
-                annealed_transport_tf._filterflow_manual_streaming_finite_transport_total_vjp(  # noqa: SLF001
-                    scaled_x,
-                    post_flow,
-                    normalized_log_weights,
-                    epsilon,
-                    epsilon0,
-                    scaling,
-                    steps=steps,
-                    row_chunk_size=args.row_chunk_size,
-                    col_chunk_size=args.col_chunk_size,
-                )
-            )
-            scalar = tf.reduce_sum(transported * active_upstream)
-        d_post_flow, d_logw = tape.gradient(
-            scalar,
-            [post_flow, normalized_log_weights],
-            unconnected_gradients=tf.UnconnectedGradients.ZERO,
+        center = tf.reduce_mean(post_flow, axis=1, keepdims=True)
+        scale = annealed_transport_tf._filterflow_scale(post_flow)  # noqa: SLF001
+        scaled_x = (post_flow - center) / scale[:, None, None]
+        epsilon0 = annealed_transport_tf._filterflow_epsilon_start(scaled_x)  # noqa: SLF001
+        (
+            d_scaled_x,
+            d_particles,
+            d_logw,
+            d_epsilon0,
+        ) = annealed_transport_tf._filterflow_manual_streaming_finite_transport_total_pullback(  # noqa: SLF001
+            scaled_x,
+            post_flow,
+            normalized_log_weights,
+            epsilon,
+            epsilon0,
+            scaling,
+            active_upstream,
+            steps=steps,
+            row_chunk_size=args.row_chunk_size,
+            col_chunk_size=args.col_chunk_size,
+        )
+        d_scaled_x += _filterflow_epsilon_start_vjp(scaled_x, d_epsilon0)
+        d_post_flow = d_particles + _scaled_centered_particles_vjp(
+            post_flow,
+            center,
+            scale,
+            d_scaled_x,
         )
         return (
             tf.convert_to_tensor(d_post_flow, dtype=DTYPE),
@@ -803,6 +806,81 @@ def _manual_transport_vjp_tf(
     d_post_flow = d_particles + d_scaled_x / scale[:, None, None]
     d_logw = d_logw_transport + d_log_alpha
     return d_post_flow, d_logw
+
+
+def _filterflow_epsilon_start_vjp(
+    scaled_x: tf.Tensor,
+    d_epsilon0: tf.Tensor,
+) -> tf.Tensor:
+    scaled_x = tf.convert_to_tensor(scaled_x, dtype=DTYPE)
+    d_epsilon0 = tf.reshape(tf.convert_to_tensor(d_epsilon0, dtype=DTYPE), [-1])
+    max_value = tf.reduce_max(scaled_x, axis=[1, 2])
+    min_value = tf.reduce_min(scaled_x, axis=[1, 2])
+    coordinate_range = max_value - min_value
+    active = tf.cast(
+        coordinate_range * coordinate_range >= tf.constant(1.0e-6, DTYPE),
+        DTYPE,
+    )
+    max_mask = tf.cast(scaled_x == max_value[:, None, None], DTYPE)
+    min_mask = tf.cast(scaled_x == min_value[:, None, None], DTYPE)
+    max_count = tf.reduce_sum(max_mask, axis=[1, 2], keepdims=True)
+    min_count = tf.reduce_sum(min_mask, axis=[1, 2], keepdims=True)
+    common = 2.0 * coordinate_range * d_epsilon0 * active
+    return (
+        common[:, None, None] * max_mask / max_count
+        - common[:, None, None] * min_mask / min_count
+    )
+
+
+def _scaled_centered_particles_vjp(
+    particles: tf.Tensor,
+    center: tf.Tensor,
+    scale: tf.Tensor,
+    d_scaled_x: tf.Tensor,
+) -> tf.Tensor:
+    particles = tf.convert_to_tensor(particles, dtype=DTYPE)
+    scale = tf.reshape(tf.convert_to_tensor(scale, dtype=DTYPE), [-1])
+    d_scaled_x = tf.convert_to_tensor(d_scaled_x, dtype=DTYPE)
+    centered = particles - center
+    d_centered = d_scaled_x / scale[:, None, None]
+    d_scale = -tf.reduce_sum(
+        d_scaled_x * centered / (scale[:, None, None] * scale[:, None, None]),
+        axis=[1, 2],
+    )
+    return (
+        d_centered
+        - tf.reduce_mean(d_centered, axis=1, keepdims=True)
+        + _filterflow_scale_vjp(particles, d_scale)
+    )
+
+
+def _filterflow_scale_vjp(
+    particles: tf.Tensor,
+    d_scale: tf.Tensor,
+) -> tf.Tensor:
+    particles = tf.convert_to_tensor(particles, dtype=DTYPE)
+    d_scale = tf.reshape(tf.convert_to_tensor(d_scale, dtype=DTYPE), [-1])
+    num_particles = tf.cast(tf.shape(particles)[1], DTYPE)
+    state_dim = tf.shape(particles)[2]
+    dimension = tf.cast(state_dim, DTYPE)
+    mean = tf.reduce_mean(particles, axis=1, keepdims=True)
+    centered = particles - mean
+    variance = tf.reduce_mean(centered * centered, axis=1)
+    std = tf.sqrt(variance)
+    diameter = tf.reduce_max(std, axis=1)
+    active_diameter = tf.cast(diameter != 0.0, DTYPE)
+    max_mask = tf.cast(std == diameter[:, None], DTYPE)
+    max_count = tf.reduce_sum(max_mask, axis=1, keepdims=True)
+    d_std = (
+        d_scale[:, None]
+        * tf.sqrt(dimension)
+        * active_diameter[:, None]
+        * max_mask
+        / max_count
+    )
+    safe_std = tf.where(std > 0.0, std, tf.ones_like(std))
+    d_variance = tf.where(std > 0.0, d_std / (2.0 * safe_std), tf.zeros_like(d_std))
+    return (2.0 / num_particles) * centered * d_variance[:, None, :]
 
 
 def _manual_forward_transport_tf(

@@ -96,6 +96,28 @@ def _json_safe(value: Any) -> Any:
     return value
 
 
+def _same_value_score_loglik(
+    value_loglik: Any,
+    score_loglik: Any,
+    route_label: str,
+) -> tuple[float | None, str | None]:
+    """Return the score-route scalar only when it matches the value-route scalar."""
+
+    value = float(tf.convert_to_tensor(value_loglik, dtype=DTYPE).numpy())
+    score = float(tf.convert_to_tensor(score_loglik, dtype=DTYPE).numpy())
+    if not math.isfinite(value):
+        return None, f"{route_label} value-route log likelihood was non-finite"
+    if not math.isfinite(score):
+        return None, f"{route_label} score-route log likelihood was non-finite"
+    tolerance = 1e-8 * max(1.0, abs(value), abs(score))
+    if abs(value - score) > tolerance:
+        return None, (
+            f"{route_label} value/score route mismatch: value loglik={value:.17g}, "
+            f"score loglik={score:.17g}, tolerance={tolerance:.3g}"
+        )
+    return score, None
+
+
 def _row_summary_from_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     row_summary = []
     for row_id in HIGHDIM_ROWS:
@@ -127,6 +149,69 @@ def _row_summary_from_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
             }
         )
     return row_summary
+
+
+def _value_score_route_id(row: dict[str, Any]) -> str | None:
+    """Return the single scalar route that an admitted value/score row uses."""
+
+    if row.get("comparison_status") != "executed_value_score":
+        return None
+    key = (row.get("algorithm_id"), row.get("row_id"))
+    route_ids = {
+        ("fixed_sgqf", "benchmark_lgssm_exact_oracle_m3_T50"): (
+            "fixed_sgqf_direct_affine_lgssm"
+        ),
+        ("ukf", "benchmark_lgssm_exact_oracle_m3_T50"): (
+            "ukf_lgssm_affine_equivalence_differentiated_kalman"
+        ),
+        ("zhao_cui_scalar_or_multistate", "benchmark_lgssm_exact_oracle_m3_T50"): (
+            "zhao_cui_lgssm_exact_oracle_affine_adapter"
+        ),
+        ("fixed_sgqf", "zhao_cui_sv_actual_nongaussian_T1000"): (
+            "fixed_sgqf_direct_exact_transformed_sv"
+        ),
+        ("ukf", "zhao_cui_sv_actual_nongaussian_T1000"): (
+            "actual_sv_augmented_noise_factor_propagating_srukf"
+        ),
+        ("zhao_cui_scalar_or_multistate", "zhao_cui_sv_actual_nongaussian_T1000"): (
+            "zhao_cui_exact_transformed_sv_fixed_branch_tt"
+        ),
+        ("fixed_sgqf", "zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000"): (
+            "fixed_sgqf_independent_panel_ksc_mixture"
+        ),
+        ("ukf", "zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000"): (
+            "principal_sqrt_ukf_independent_panel_ksc_mixture"
+        ),
+        ("zhao_cui_scalar_or_multistate", "zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000"): (
+            "zhao_cui_ksc_mixture_fixed_branch_tt"
+        ),
+        ("fixed_sgqf", "zhao_cui_predator_prey_T20"): (
+            "fixed_sgqf_direct_predator_prey_t20"
+        ),
+        ("zhao_cui_scalar_or_multistate", "zhao_cui_predator_prey_T20"): (
+            "zhao_cui_predator_prey_t20_multistate_fixed_design_tt"
+        ),
+        ("zhao_cui_scalar_or_multistate", "zhao_cui_generalized_sv_synthetic_from_estimated_values"): (
+            "zhao_cui_generalized_sv_prior_mean_scalar_fixed_design_tt"
+        ),
+        ("zhao_cui_scalar_or_multistate", PARAMETERIZED_SIR_ROW): (
+            "zhao_cui_sir_d18_local_complete_data_manual_component"
+        ),
+    }
+    return route_ids.get(key)
+
+
+def _apply_value_score_route_contract(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    updated: list[dict[str, Any]] = []
+    for row in rows:
+        row = dict(row)
+        route_id = _value_score_route_id(row)
+        if route_id is not None:
+            row["value_route_id"] = route_id
+            row["score_route_id"] = route_id
+            row["value_score_route_status"] = "same_route_value_score"
+        updated.append(row)
+    return updated
 
 
 def _status_from_manifest(manifest: dict[str, Any]) -> str | None:
@@ -501,9 +586,16 @@ def _lgssm_reference_and_sgqf() -> tuple[float, float | None, list[float] | None
     if score.failure is not None or score.score is None:
         stage = score.failure.stage if score.failure is not None else "unknown"
         return float(exact.log_likelihood.numpy()), float(sgqf.log_likelihood.numpy()), None, None, f"SGQF score failure at {stage}"
+    loglik, mismatch_reason = _same_value_score_loglik(
+        sgqf.log_likelihood,
+        score.log_likelihood,
+        "direct affine LGSSM fixed-SGQF",
+    )
+    if loglik is None:
+        return float(exact.log_likelihood.numpy()), None, None, None, mismatch_reason
     return (
         float(exact.log_likelihood.numpy()),
-        float(sgqf.log_likelihood.numpy()),
+        loglik,
         [float(value) for value in score.score.numpy()],
         float(tf.linalg.norm(score.score).numpy()),
         None,
@@ -546,7 +638,13 @@ def _predator_reference_and_sgqf() -> tuple[float, float | None, list[float] | N
         stage = score.failure.stage if score.failure is not None else "unknown"
         return float("nan"), float(value.log_likelihood.numpy()), None, None, f"predator-prey SGQF score failure at {stage}"
 
-    loglik = float(value.log_likelihood.numpy())
+    loglik, mismatch_reason = _same_value_score_loglik(
+        value.log_likelihood,
+        score.log_likelihood,
+        "predator-prey fixed-SGQF",
+    )
+    if loglik is None:
+        return float("nan"), None, None, None, mismatch_reason
     return (
         float("nan"),
         loglik,
@@ -576,7 +674,13 @@ def _ksc_source_scope_sgqf_from_lowdim() -> tuple[float | None, float | None, li
         sigma=tf.constant(1.0, dtype=DTYPE),
         sparse_level=2,
     )
-    loglik = float(result.log_likelihood.numpy())
+    loglik, mismatch_reason = _same_value_score_loglik(
+        result.log_likelihood,
+        score.log_likelihood,
+        "KSC fixed-SGQF",
+    )
+    if loglik is None:
+        return None, None, None, None, mismatch_reason
     return (
         float(loglik / float(tf.shape(observations)[0].numpy())),
         loglik,
@@ -647,6 +751,13 @@ def _actual_sv_direct_sgqf_value_score() -> tuple[float | None, float | None, li
     )
     if score_result.score is None:
         return None, loglik, None, None, "direct exact-transformed SGQF actual-SV score was not emitted"
+    loglik, mismatch_reason = _same_value_score_loglik(
+        result.log_likelihood,
+        score_result.log_likelihood,
+        "direct exact-transformed actual-SV fixed-SGQF",
+    )
+    if loglik is None:
+        return None, None, None, None, mismatch_reason
     score = [float(value) for value in score_result.score.numpy()]
     if any(not math.isfinite(value) for value in score):
         return None, loglik, None, None, "direct exact-transformed SGQF actual-SV score was non-finite"
@@ -1857,6 +1968,19 @@ def _validate_analytical_score_contract(rows: list[dict[str, Any]]) -> None:
             raise ValueError(f"{row['row_id']} {row['algorithm_id']}: executed_value_score requires a score vector")
         if any(not math.isfinite(float(value)) for value in score):
             raise ValueError(f"{row['row_id']} {row['algorithm_id']}: score vector must be finite")
+        value_route_id = row.get("value_route_id")
+        score_route_id = row.get("score_route_id")
+        if not isinstance(value_route_id, str) or not value_route_id:
+            raise ValueError(f"{row['row_id']} {row['algorithm_id']}: admitted score row requires value_route_id")
+        if value_route_id != score_route_id:
+            raise ValueError(
+                f"{row['row_id']} {row['algorithm_id']}: admitted score row mixes value route "
+                f"{value_route_id!r} with score route {score_route_id!r}"
+            )
+        if row.get("value_score_route_status") != "same_route_value_score":
+            raise ValueError(
+                f"{row['row_id']} {row['algorithm_id']}: admitted score row must declare same_route_value_score"
+            )
         lower = provenance.lower()
         if "autodiff" in lower or "gradienttape" in lower or "gradient_tape" in lower:
             raise ValueError(f"{row['row_id']} {row['algorithm_id']}: score provenance must not use autodiff/tape fallback")
@@ -2084,6 +2208,7 @@ def build_artifact() -> dict[str, Any]:
             row = _apply_p91_zhao_cui_status(row)
             rows.append(row)
     rows = _enforce_analytical_score_admission(rows)
+    rows = _apply_value_score_route_contract(rows)
     rows = [_apply_phase7_status(row) for row in rows]
     _validate_analytical_score_contract(rows)
 
@@ -2156,6 +2281,7 @@ def build_artifact_from_cached_baseline(
     rows = [row for row in rows if row.get("row_id") != PARAMETERIZED_SIR_ROW]
     rows.extend(patch_rows)
     rows = _enforce_analytical_score_admission(rows)
+    rows = _apply_value_score_route_contract(rows)
     rows = [_apply_phase7_status(row) for row in rows]
     _validate_analytical_score_contract(rows)
 

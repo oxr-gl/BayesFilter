@@ -638,17 +638,19 @@ def _filterflow_streaming_softmin_vjp(
     row_chunk_size: int,
     col_chunk_size: int,
     stop_keys: bool,
-) -> tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
+    return_epsilon: bool = False,
+) -> tuple[tf.Tensor, tf.Tensor, tf.Tensor] | tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
     """Blockwise VJP for `_filterflow_streaming_softmin`."""
 
     row_chunk_size = _validate_chunk_size(row_chunk_size, "row_chunk_size")
     col_chunk_size = _validate_chunk_size(col_chunk_size, "col_chunk_size")
+    raw_epsilon = tf.cast(epsilon, DTYPE)
     query = tf.cast(query, DTYPE)
     key = tf.cast(key, DTYPE)
     values = tf.cast(values, DTYPE)
     upstream = tf.cast(upstream, DTYPE)
     batch_size = tf.shape(query)[0]
-    epsilon = _epsilon_per_batch(epsilon, batch_size)
+    epsilon = _epsilon_per_batch(raw_epsilon, batch_size)
     num_rows = tf.shape(query)[1]
     num_cols = tf.shape(key)[1]
     state_dim = tf.shape(query)[2]
@@ -663,12 +665,14 @@ def _filterflow_streaming_softmin_vjp(
     )
     initial_d_key = tf.zeros_like(key)
     initial_d_values = tf.zeros_like(values)
+    initial_d_epsilon = tf.zeros([batch_size], dtype=DTYPE)
 
     def row_cond(
         row_start: tf.Tensor,
         _query_blocks: tf.TensorArray,
         _d_key: tf.Tensor,
         _d_values: tf.Tensor,
+        _d_epsilon: tf.Tensor,
     ) -> tf.Tensor:
         return row_start < num_rows
 
@@ -677,6 +681,7 @@ def _filterflow_streaming_softmin_vjp(
         query_ta: tf.TensorArray,
         d_key_accum: tf.Tensor,
         d_values_accum: tf.Tensor,
+        d_epsilon_accum: tf.Tensor,
     ):
         query_block = _slice_axis1_padded_3d(query, row_start, row_chunk_size)
         upstream_block = _slice_axis1_padded_2d(
@@ -710,12 +715,14 @@ def _filterflow_streaming_softmin_vjp(
             loop_vars=(tf.constant(0, tf.int32), running),
             maximum_iterations=num_col_blocks,
         )
+        row_d_epsilon = tf.reduce_sum(upstream_block * (-row_logsum), axis=1)
 
         def col_cond(
             col_start: tf.Tensor,
             _d_query_block: tf.Tensor,
             _d_key_accum: tf.Tensor,
             _d_values_accum: tf.Tensor,
+            _row_d_epsilon: tf.Tensor,
         ) -> tf.Tensor:
             return col_start < num_cols
 
@@ -724,6 +731,7 @@ def _filterflow_streaming_softmin_vjp(
             d_query_block_accum: tf.Tensor,
             inner_d_key_accum: tf.Tensor,
             inner_d_values_accum: tf.Tensor,
+            inner_row_d_epsilon: tf.Tensor,
         ):
             key_block = _slice_axis1_padded_3d(key, col_start, col_chunk_size)
             values_block = _slice_axis1_padded_2d(
@@ -762,14 +770,20 @@ def _filterflow_streaming_softmin_vjp(
                 col_start,
                 d_values_block,
             )
+            expected_cost_block = tf.reduce_sum(probs * cost, axis=2)
+            d_epsilon_from_cost = tf.reduce_sum(
+                upstream_block * (-expected_cost_block / epsilon[:, None]),
+                axis=1,
+            )
             return (
                 col_start + col_chunk_tensor,
                 d_query_next,
                 d_key_next,
                 d_values_next,
+                inner_row_d_epsilon + d_epsilon_from_cost,
             )
 
-        _, d_query_block, d_key_accum, d_values_accum = tf.while_loop(
+        _, d_query_block, d_key_accum, d_values_accum, row_d_epsilon = tf.while_loop(
             col_cond,
             col_body,
             loop_vars=(
@@ -777,17 +791,37 @@ def _filterflow_streaming_softmin_vjp(
                 d_query_block,
                 d_key_accum,
                 d_values_accum,
+                row_d_epsilon,
             ),
             maximum_iterations=num_col_blocks,
         )
         block_index = row_start // row_chunk_tensor
         query_ta = query_ta.write(block_index, d_query_block)
-        return row_start + row_chunk_tensor, query_ta, d_key_accum, d_values_accum
+        return (
+            row_start + row_chunk_tensor,
+            query_ta,
+            d_key_accum,
+            d_values_accum,
+            d_epsilon_accum + row_d_epsilon,
+        )
 
-    _, query_blocks, d_key, d_values = tf.while_loop(
+    _, query_blocks, d_key, d_values, d_epsilon = tf.while_loop(
         row_cond,
         row_body,
-        loop_vars=(tf.constant(0, tf.int32), query_blocks, initial_d_key, initial_d_values),
+        loop_vars=(
+            tf.constant(0, tf.int32),
+            query_blocks,
+            initial_d_key,
+            initial_d_values,
+            initial_d_epsilon,
+        ),
+        shape_invariants=(
+            tf.TensorShape([]),
+            tf.TensorShape(None),
+            key.shape,
+            values.shape,
+            tf.TensorShape([None]),
+        ),
         maximum_iterations=num_row_blocks,
     )
     stacked = query_blocks.stack()
@@ -796,7 +830,33 @@ def _filterflow_streaming_softmin_vjp(
         transposed,
         [batch_size, num_row_blocks * row_chunk_tensor, state_dim],
     )[:, :num_rows, :]
+    if return_epsilon:
+        d_epsilon = _match_epsilon_cotangent_shape(raw_epsilon, d_epsilon)
+        return d_query, d_key, d_values, d_epsilon
     return d_query, d_key, d_values
+
+
+def _match_epsilon_cotangent_shape(
+    epsilon: tf.Tensor,
+    d_epsilon_per_batch: tf.Tensor,
+) -> tf.Tensor:
+    """Map per-batch epsilon cotangents to the shape used by `_epsilon_per_batch`."""
+
+    epsilon = tf.cast(epsilon, DTYPE)
+    d_epsilon_per_batch = tf.cast(d_epsilon_per_batch, DTYPE)
+    static_rank = epsilon.shape.rank
+    if static_rank == 0:
+        return tf.reduce_sum(d_epsilon_per_batch)
+    if static_rank == 1:
+        return tf.reshape(d_epsilon_per_batch, tf.shape(epsilon))
+    flat = tf.reshape(tf.zeros_like(epsilon), [tf.shape(epsilon)[0], -1])
+    batch_indices = tf.range(tf.shape(flat)[0], dtype=tf.int32)
+    scatter_indices = tf.stack(
+        [batch_indices, tf.zeros_like(batch_indices)],
+        axis=1,
+    )
+    flat = tf.tensor_scatter_nd_add(flat, scatter_indices, d_epsilon_per_batch)
+    return tf.reshape(flat, tf.shape(epsilon))
 
 
 def _filterflow_streaming_sinkhorn_potentials(
@@ -2257,6 +2317,483 @@ def _filterflow_streaming_finite_sinkhorn_potentials_vjp_stopped_scale_keys(
     return d_log_alpha, d_log_beta, d_x
 
 
+def _filterflow_streaming_finite_sinkhorn_potentials_vjp_total(
+    log_alpha: tf.Tensor,
+    log_beta: tf.Tensor,
+    x: tf.Tensor,
+    upstream_alpha: tf.Tensor,
+    upstream_beta: tf.Tensor,
+    epsilon: tf.Tensor,
+    epsilon0: tf.Tensor,
+    scaling: tf.Tensor,
+    *,
+    steps: int,
+    row_chunk_size: int,
+    col_chunk_size: int,
+) -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
+    """No-tape total VJP for the finite streaming Sinkhorn potential recursion."""
+
+    steps = _validate_manual_dense_finite_route_inputs(epsilon, steps)
+    log_alpha = tf.cast(log_alpha, DTYPE)
+    log_beta = tf.cast(log_beta, DTYPE)
+    x = tf.cast(x, DTYPE)
+    upstream_alpha = tf.cast(upstream_alpha, DTYPE)
+    upstream_beta = tf.cast(upstream_beta, DTYPE)
+    batch_size = tf.shape(x)[0]
+    key_x = x
+    initial_running = _epsilon_per_batch(tf.cast(epsilon0, DTYPE), batch_size)
+    running = initial_running
+    eps = _epsilon_per_batch(tf.cast(epsilon, DTYPE), batch_size)
+    raw_epsilon0 = tf.cast(epsilon0, DTYPE)
+    scaling_factor = tf.cast(scaling, DTYPE) ** 2
+    a_y = _filterflow_streaming_softmin(
+        running,
+        x,
+        key_x,
+        log_alpha,
+        row_chunk_size=row_chunk_size,
+        col_chunk_size=col_chunk_size,
+    )
+    b_x = _filterflow_streaming_softmin(
+        running,
+        x,
+        key_x,
+        log_beta,
+        row_chunk_size=row_chunk_size,
+        col_chunk_size=col_chunk_size,
+    )
+    a_x = _filterflow_streaming_softmin(
+        running,
+        x,
+        key_x,
+        log_alpha,
+        row_chunk_size=row_chunk_size,
+        col_chunk_size=col_chunk_size,
+    )
+    b_y = _filterflow_streaming_softmin(
+        running,
+        x,
+        key_x,
+        log_beta,
+        row_chunk_size=row_chunk_size,
+        col_chunk_size=col_chunk_size,
+    )
+    running_ta = tf.TensorArray(
+        dtype=DTYPE,
+        size=steps,
+        element_shape=running.shape,
+        clear_after_read=False,
+    )
+    a_y_ta = tf.TensorArray(
+        dtype=DTYPE,
+        size=steps,
+        element_shape=a_y.shape,
+        clear_after_read=False,
+    )
+    b_x_ta = tf.TensorArray(
+        dtype=DTYPE,
+        size=steps,
+        element_shape=b_x.shape,
+        clear_after_read=False,
+    )
+    a_x_ta = tf.TensorArray(
+        dtype=DTYPE,
+        size=steps,
+        element_shape=a_x.shape,
+        clear_after_read=False,
+    )
+    b_y_ta = tf.TensorArray(
+        dtype=DTYPE,
+        size=steps,
+        element_shape=b_y.shape,
+        clear_after_read=False,
+    )
+    steps_tensor = tf.constant(steps, tf.int32)
+
+    def forward_cond(
+        iteration: tf.Tensor,
+        _running: tf.Tensor,
+        _a_y: tf.Tensor,
+        _b_x: tf.Tensor,
+        _a_x: tf.Tensor,
+        _b_y: tf.Tensor,
+        _running_ta: tf.TensorArray,
+        _a_y_ta: tf.TensorArray,
+        _b_x_ta: tf.TensorArray,
+        _a_x_ta: tf.TensorArray,
+        _b_y_ta: tf.TensorArray,
+    ) -> tf.Tensor:
+        del _running, _a_y, _b_x, _a_x, _b_y
+        del _running_ta, _a_y_ta, _b_x_ta, _a_x_ta, _b_y_ta
+        return iteration < steps_tensor
+
+    def forward_body(
+        iteration: tf.Tensor,
+        running_value: tf.Tensor,
+        a_y_value: tf.Tensor,
+        b_x_value: tf.Tensor,
+        a_x_value: tf.Tensor,
+        b_y_value: tf.Tensor,
+        running_records: tf.TensorArray,
+        a_y_records: tf.TensorArray,
+        b_x_records: tf.TensorArray,
+        a_x_records: tf.TensorArray,
+        b_y_records: tf.TensorArray,
+    ) -> tuple[
+        tf.Tensor,
+        tf.Tensor,
+        tf.Tensor,
+        tf.Tensor,
+        tf.Tensor,
+        tf.Tensor,
+        tf.TensorArray,
+        tf.TensorArray,
+        tf.TensorArray,
+        tf.TensorArray,
+        tf.TensorArray,
+    ]:
+        running_records = running_records.write(iteration, running_value)
+        a_y_records = a_y_records.write(iteration, a_y_value)
+        b_x_records = b_x_records.write(iteration, b_x_value)
+        a_x_records = a_x_records.write(iteration, a_x_value)
+        b_y_records = b_y_records.write(iteration, b_y_value)
+        running_ = tf.reshape(running_value, [-1, 1])
+        at_y = _filterflow_streaming_softmin(
+            running_value,
+            x,
+            key_x,
+            log_alpha + b_x_value / running_,
+            row_chunk_size=row_chunk_size,
+            col_chunk_size=col_chunk_size,
+        )
+        bt_x = _filterflow_streaming_softmin(
+            running_value,
+            x,
+            key_x,
+            log_beta + a_y_value / running_,
+            row_chunk_size=row_chunk_size,
+            col_chunk_size=col_chunk_size,
+        )
+        at_x = _filterflow_streaming_softmin(
+            running_value,
+            x,
+            key_x,
+            log_alpha + a_x_value / running_,
+            row_chunk_size=row_chunk_size,
+            col_chunk_size=col_chunk_size,
+        )
+        bt_y = _filterflow_streaming_softmin(
+            running_value,
+            x,
+            key_x,
+            log_beta + b_y_value / running_,
+            row_chunk_size=row_chunk_size,
+            col_chunk_size=col_chunk_size,
+        )
+        return (
+            iteration + 1,
+            tf.maximum(running_value * scaling_factor, eps),
+            0.5 * (a_y_value + at_y),
+            0.5 * (b_x_value + bt_x),
+            0.5 * (a_x_value + at_x),
+            0.5 * (b_y_value + bt_y),
+            running_records,
+            a_y_records,
+            b_x_records,
+            a_x_records,
+            b_y_records,
+        )
+
+    (
+        _,
+        running,
+        a_y,
+        b_x,
+        a_x,
+        b_y,
+        running_ta,
+        a_y_ta,
+        b_x_ta,
+        a_x_ta,
+        b_y_ta,
+    ) = tf.while_loop(
+        forward_cond,
+        forward_body,
+        loop_vars=(
+            tf.constant(0, tf.int32),
+            running,
+            a_y,
+            b_x,
+            a_x,
+            b_y,
+            running_ta,
+            a_y_ta,
+            b_x_ta,
+            a_x_ta,
+            b_y_ta,
+        ),
+        maximum_iterations=steps,
+    )
+
+    d_log_alpha = tf.zeros_like(log_alpha)
+    d_log_beta = tf.zeros_like(log_beta)
+    d_x = tf.zeros_like(x)
+    d_running = tf.zeros_like(running)
+    d_a_y = tf.zeros_like(log_alpha)
+    d_b_x = tf.zeros_like(log_beta)
+    d_a_x = tf.zeros_like(log_alpha)
+    d_b_y = tf.zeros_like(log_beta)
+    eps_ = tf.reshape(eps, [-1, 1])
+
+    dc, dk, dv, d_soft_eps = _filterflow_streaming_softmin_vjp(
+        eps,
+        x,
+        key_x,
+        log_alpha + b_x / eps_,
+        upstream_alpha,
+        row_chunk_size=row_chunk_size,
+        col_chunk_size=col_chunk_size,
+        stop_keys=False,
+        return_epsilon=True,
+    )
+    d_x += dc + dk
+    d_log_alpha += dv
+    d_b_x += dv / eps_
+    dc, dk, dv, d_soft_eps_beta = _filterflow_streaming_softmin_vjp(
+        eps,
+        x,
+        key_x,
+        log_beta + a_y / eps_,
+        upstream_beta,
+        row_chunk_size=row_chunk_size,
+        col_chunk_size=col_chunk_size,
+        stop_keys=False,
+        return_epsilon=True,
+    )
+    d_x += dc + dk
+    d_log_beta += dv
+    d_a_y += dv / eps_
+    # `epsilon` is constant in this primitive target; these cotangents are
+    # computed to keep the total local reverse formula explicit.
+    del d_soft_eps, d_soft_eps_beta
+
+    def reverse_cond(
+        iteration: tf.Tensor,
+        _d_log_alpha: tf.Tensor,
+        _d_log_beta: tf.Tensor,
+        _d_x: tf.Tensor,
+        _d_running: tf.Tensor,
+        _d_a_y: tf.Tensor,
+        _d_b_x: tf.Tensor,
+        _d_a_x: tf.Tensor,
+        _d_b_y: tf.Tensor,
+    ) -> tf.Tensor:
+        del _d_log_alpha, _d_log_beta, _d_x, _d_running
+        del _d_a_y, _d_b_x, _d_a_x, _d_b_y
+        return iteration > 0
+
+    def reverse_body(
+        iteration: tf.Tensor,
+        d_log_alpha_value: tf.Tensor,
+        d_log_beta_value: tf.Tensor,
+        d_x_value: tf.Tensor,
+        d_running_value: tf.Tensor,
+        d_a_y_value: tf.Tensor,
+        d_b_x_value: tf.Tensor,
+        d_a_x_value: tf.Tensor,
+        d_b_y_value: tf.Tensor,
+    ) -> tuple[
+        tf.Tensor,
+        tf.Tensor,
+        tf.Tensor,
+        tf.Tensor,
+        tf.Tensor,
+        tf.Tensor,
+        tf.Tensor,
+        tf.Tensor,
+        tf.Tensor,
+    ]:
+        state_index = iteration - 1
+        old_running = running_ta.read(state_index)
+        old_a_y = a_y_ta.read(state_index)
+        old_b_x = b_x_ta.read(state_index)
+        old_a_x = a_x_ta.read(state_index)
+        old_b_y = b_y_ta.read(state_index)
+        running_ = tf.reshape(old_running, [-1, 1])
+        old_d_a_y = 0.5 * d_a_y_value
+        old_d_b_x = 0.5 * d_b_x_value
+        old_d_a_x = 0.5 * d_a_x_value
+        old_d_b_y = 0.5 * d_b_y_value
+        active_running = tf.cast(old_running * scaling_factor >= eps, DTYPE)
+        old_d_running = d_running_value * scaling_factor * active_running
+
+        dc, dk, dv, d_soft_running = _filterflow_streaming_softmin_vjp(
+            old_running,
+            x,
+            key_x,
+            log_alpha + old_b_x / running_,
+            0.5 * d_a_y_value,
+            row_chunk_size=row_chunk_size,
+            col_chunk_size=col_chunk_size,
+            stop_keys=False,
+            return_epsilon=True,
+        )
+        d_x_value += dc + dk
+        d_log_alpha_value += dv
+        old_d_b_x += dv / running_
+        old_d_running += d_soft_running
+        old_d_running += -tf.reduce_sum(dv * old_b_x / (running_ * running_), axis=1)
+
+        dc, dk, dv, d_soft_running = _filterflow_streaming_softmin_vjp(
+            old_running,
+            x,
+            key_x,
+            log_beta + old_a_y / running_,
+            0.5 * d_b_x_value,
+            row_chunk_size=row_chunk_size,
+            col_chunk_size=col_chunk_size,
+            stop_keys=False,
+            return_epsilon=True,
+        )
+        d_x_value += dc + dk
+        d_log_beta_value += dv
+        old_d_a_y += dv / running_
+        old_d_running += d_soft_running
+        old_d_running += -tf.reduce_sum(dv * old_a_y / (running_ * running_), axis=1)
+
+        dc, dk, dv, d_soft_running = _filterflow_streaming_softmin_vjp(
+            old_running,
+            x,
+            key_x,
+            log_alpha + old_a_x / running_,
+            0.5 * d_a_x_value,
+            row_chunk_size=row_chunk_size,
+            col_chunk_size=col_chunk_size,
+            stop_keys=False,
+            return_epsilon=True,
+        )
+        d_x_value += dc + dk
+        d_log_alpha_value += dv
+        old_d_a_x += dv / running_
+        old_d_running += d_soft_running
+        old_d_running += -tf.reduce_sum(dv * old_a_x / (running_ * running_), axis=1)
+
+        dc, dk, dv, d_soft_running = _filterflow_streaming_softmin_vjp(
+            old_running,
+            x,
+            key_x,
+            log_beta + old_b_y / running_,
+            0.5 * d_b_y_value,
+            row_chunk_size=row_chunk_size,
+            col_chunk_size=col_chunk_size,
+            stop_keys=False,
+            return_epsilon=True,
+        )
+        d_x_value += dc + dk
+        d_log_beta_value += dv
+        old_d_b_y += dv / running_
+        old_d_running += d_soft_running
+        old_d_running += -tf.reduce_sum(dv * old_b_y / (running_ * running_), axis=1)
+
+        return (
+            state_index,
+            d_log_alpha_value,
+            d_log_beta_value,
+            d_x_value,
+            old_d_running,
+            old_d_a_y,
+            old_d_b_x,
+            old_d_a_x,
+            old_d_b_y,
+        )
+
+    (
+        _,
+        d_log_alpha,
+        d_log_beta,
+        d_x,
+        d_running,
+        d_a_y,
+        d_b_x,
+        d_a_x,
+        d_b_y,
+    ) = tf.while_loop(
+        reverse_cond,
+        reverse_body,
+        loop_vars=(
+            tf.constant(steps, tf.int32),
+            d_log_alpha,
+            d_log_beta,
+            d_x,
+            d_running,
+            d_a_y,
+            d_b_x,
+            d_a_x,
+            d_b_y,
+        ),
+        maximum_iterations=steps,
+    )
+
+    dc, dk, dv, d_soft_running = _filterflow_streaming_softmin_vjp(
+        initial_running,
+        x,
+        key_x,
+        log_beta,
+        d_b_y,
+        row_chunk_size=row_chunk_size,
+        col_chunk_size=col_chunk_size,
+        stop_keys=False,
+        return_epsilon=True,
+    )
+    d_x += dc + dk
+    d_log_beta += dv
+    d_running += d_soft_running
+    dc, dk, dv, d_soft_running = _filterflow_streaming_softmin_vjp(
+        initial_running,
+        x,
+        key_x,
+        log_alpha,
+        d_a_x,
+        row_chunk_size=row_chunk_size,
+        col_chunk_size=col_chunk_size,
+        stop_keys=False,
+        return_epsilon=True,
+    )
+    d_x += dc + dk
+    d_log_alpha += dv
+    d_running += d_soft_running
+    dc, dk, dv, d_soft_running = _filterflow_streaming_softmin_vjp(
+        initial_running,
+        x,
+        key_x,
+        log_beta,
+        d_b_x,
+        row_chunk_size=row_chunk_size,
+        col_chunk_size=col_chunk_size,
+        stop_keys=False,
+        return_epsilon=True,
+    )
+    d_x += dc + dk
+    d_log_beta += dv
+    d_running += d_soft_running
+    dc, dk, dv, d_soft_running = _filterflow_streaming_softmin_vjp(
+        initial_running,
+        x,
+        key_x,
+        log_alpha,
+        d_a_y,
+        row_chunk_size=row_chunk_size,
+        col_chunk_size=col_chunk_size,
+        stop_keys=False,
+        return_epsilon=True,
+    )
+    d_x += dc + dk
+    d_log_alpha += dv
+    d_running += d_soft_running
+    d_epsilon0 = _match_epsilon_cotangent_shape(raw_epsilon0, d_running)
+    return d_log_alpha, d_log_beta, d_x, d_epsilon0
+
+
 def _filterflow_manual_streaming_finite_transport_value_stopped_scale_keys(
     scaled_x: tf.Tensor,
     particles: tf.Tensor,
@@ -2339,6 +2876,77 @@ def _filterflow_manual_streaming_finite_transport_value_total_vjp(
     )
 
 
+def _filterflow_manual_streaming_finite_transport_total_pullback(
+    scaled_x: tf.Tensor,
+    particles: tf.Tensor,
+    logw: tf.Tensor,
+    eps: tf.Tensor,
+    epsilon0: tf.Tensor,
+    scaling: tf.Tensor,
+    upstream: tf.Tensor,
+    *,
+    steps: int,
+    row_chunk_size: int,
+    col_chunk_size: int,
+) -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
+    """No-tape VJP for the finite streaming transport total-value helper."""
+
+    steps = _validate_manual_dense_finite_route_inputs(eps, steps)
+    float_n = tf.cast(tf.shape(scaled_x)[1], scaled_x.dtype)
+    log_n = tf.math.log(float_n)
+    uniform_log_weight = -log_n * tf.ones_like(logw)
+    alpha, beta = _filterflow_streaming_finite_sinkhorn_potentials_total_vjp(
+        logw,
+        uniform_log_weight,
+        scaled_x,
+        eps,
+        epsilon0,
+        scaling,
+        steps=steps,
+        row_chunk_size=row_chunk_size,
+        col_chunk_size=col_chunk_size,
+    )
+    (
+        d_scaled_x_transport,
+        d_particles,
+        d_alpha,
+        d_beta,
+        d_logw_transport,
+    ) = _filterflow_streaming_transport_from_potentials_vjp(
+        scaled_x,
+        particles,
+        alpha,
+        beta,
+        eps,
+        logw,
+        float_n,
+        upstream,
+        row_chunk_size=row_chunk_size,
+        col_chunk_size=col_chunk_size,
+    )
+    (
+        d_log_alpha,
+        _d_log_beta,
+        d_scaled_x_sinkhorn,
+        d_epsilon0,
+    ) = _filterflow_streaming_finite_sinkhorn_potentials_vjp_total(
+        logw,
+        uniform_log_weight,
+        scaled_x,
+        d_alpha,
+        d_beta,
+        eps,
+        epsilon0,
+        scaling,
+        steps=steps,
+        row_chunk_size=row_chunk_size,
+        col_chunk_size=col_chunk_size,
+    )
+    d_scaled_x = d_scaled_x_transport + d_scaled_x_sinkhorn
+    d_logw = d_logw_transport + d_log_alpha
+    return d_scaled_x, d_particles, d_logw, d_epsilon0
+
+
 def _filterflow_manual_streaming_finite_transport_total_vjp(
     scaled_x: tf.Tensor,
     particles: tf.Tensor,
@@ -2390,38 +2998,22 @@ def _filterflow_manual_streaming_finite_transport_total_vjp(
             d_row_residual: tf.Tensor | None = None,
         ) -> tuple[tf.Tensor | None, ...]:
             del d_row_residual
-            with tf.GradientTape() as tape:
-                tape.watch(
-                    [
-                        inner_scaled_x,
-                        inner_particles,
-                        inner_logw,
-                        inner_epsilon0,
-                    ]
-                )
-                replayed, _ = (
-                    _filterflow_manual_streaming_finite_transport_value_total_vjp(
-                        inner_scaled_x,
-                        inner_particles,
-                        inner_logw,
-                        inner_eps,
-                        inner_epsilon0,
-                        inner_scaling,
-                        steps=steps,
-                        row_chunk_size=row_chunk_size,
-                        col_chunk_size=col_chunk_size,
-                    )
-                )
-                scalar = tf.reduce_sum(replayed * d_transported)
-            d_scaled_x, d_particles, d_logw, d_epsilon0 = tape.gradient(
-                scalar,
-                [
-                    inner_scaled_x,
-                    inner_particles,
-                    inner_logw,
-                    inner_epsilon0,
-                ],
-                unconnected_gradients=tf.UnconnectedGradients.ZERO,
+            (
+                d_scaled_x,
+                d_particles,
+                d_logw,
+                d_epsilon0,
+            ) = _filterflow_manual_streaming_finite_transport_total_pullback(
+                inner_scaled_x,
+                inner_particles,
+                inner_logw,
+                inner_eps,
+                inner_epsilon0,
+                inner_scaling,
+                d_transported,
+                row_chunk_size=row_chunk_size,
+                col_chunk_size=col_chunk_size,
+                steps=steps,
             )
             return d_scaled_x, d_particles, d_logw, None, d_epsilon0, None
 

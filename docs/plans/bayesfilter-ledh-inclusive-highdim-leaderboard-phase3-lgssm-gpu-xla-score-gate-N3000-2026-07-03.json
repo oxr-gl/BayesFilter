@@ -1,0 +1,362 @@
+{
+  "device": {
+    "cuda_visible_devices": "0",
+    "device_scope": "visible",
+    "logical_gpus": [
+      "LogicalDevice(name='/device:GPU:0', device_type='GPU')"
+    ],
+    "physical_gpus": [
+      "PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')"
+    ],
+    "tf32_execution_enabled": true,
+    "xla": true
+  },
+  "elapsed_seconds": 18.98874477192294,
+  "gate": {
+    "fixture_gates": [
+      {
+        "conditioning_ok": true,
+        "covariance_restoration_ok": true,
+        "finite_base": true,
+        "kalman_value": -13.784138554721768,
+        "parameter_gates": [
+          {
+            "delta_to_kalman": -0.03188965923410958,
+            "gradient_mcse": 0.010994846466715755,
+            "gradient_mean": -5.003586292266846,
+            "gradient_sd": 0.034768757358676475,
+            "hmc_direction_gate": true,
+            "hmc_direction_gate_reason": "within_1pct_relative_error",
+            "kalman_gradient": -4.971696633032736,
+            "mcse_decreases_with_n_certificate": false,
+            "parameter": "ar_coefficient",
+            "relative_error_limit": 0.01,
+            "relative_error_to_kalman": 0.006414240768881523,
+            "within_1pct_relative_error_to_kalman": true,
+            "within_2_gradient_mcse_of_kalman": false,
+            "within_4_gradient_mcse_of_kalman": true,
+            "within_4_gradient_mcse_with_n_ladder_mcse_decrease": false,
+            "z_over_gradient_mcse": -2.9004187853507393
+          },
+          {
+            "delta_to_kalman": -0.007439160310051651,
+            "gradient_mcse": 0.0017000945778979605,
+            "gradient_mean": -3.9398706197738647,
+            "gradient_sd": 0.005376171103860111,
+            "hmc_direction_gate": true,
+            "hmc_direction_gate_reason": "within_1pct_relative_error",
+            "kalman_gradient": -3.932431459463813,
+            "mcse_decreases_with_n_certificate": false,
+            "parameter": "log_transition_variance",
+            "relative_error_limit": 0.01,
+            "relative_error_to_kalman": 0.0018917457015426228,
+            "within_1pct_relative_error_to_kalman": true,
+            "within_2_gradient_mcse_of_kalman": false,
+            "within_4_gradient_mcse_of_kalman": false,
+            "within_4_gradient_mcse_with_n_ladder_mcse_decrease": false,
+            "z_over_gradient_mcse": -4.375733213177831
+          },
+          {
+            "delta_to_kalman": -0.007663724492789292,
+            "gradient_mcse": 0.0011801704724620262,
+            "gradient_mean": -5.510846281051636,
+            "gradient_sd": 0.0037320267202570275,
+            "hmc_direction_gate": true,
+            "hmc_direction_gate_reason": "within_1pct_relative_error",
+            "kalman_gradient": -5.503182556558847,
+            "mcse_decreases_with_n_certificate": false,
+            "parameter": "log_observation_variance",
+            "relative_error_limit": 0.01,
+            "relative_error_to_kalman": 0.001392598630706054,
+            "within_1pct_relative_error_to_kalman": true,
+            "within_2_gradient_mcse_of_kalman": false,
+            "within_4_gradient_mcse_of_kalman": false,
+            "within_4_gradient_mcse_with_n_ladder_mcse_decrease": false,
+            "z_over_gradient_mcse": -6.493743634173057
+          }
+        ],
+        "ridge_ok": true,
+        "setting": "eps0.55_steps2",
+        "state_dim": 2,
+        "status": "pass",
+        "value_delta_to_kalman": -0.003984099239414007,
+        "value_hmc_direction_gate": true,
+        "value_hmc_direction_gate_reason": "within_2_mcse",
+        "value_mcse": 0.00412146316179652,
+        "value_mcse_decreases_with_n_certificate": false,
+        "value_mean": -13.788122653961182,
+        "value_relative_error_limit": 0.01,
+        "value_relative_error_to_kalman": 0.00028903505457359547,
+        "value_sd": 0.013033210883756072,
+        "value_within_1pct_relative_error_to_kalman": true,
+        "value_within_2_mcse_of_kalman": true,
+        "value_within_4_mcse_of_kalman": true,
+        "value_within_4_mcse_with_n_ladder_mcse_decrease": false,
+        "value_z_over_mcse": -0.966671078451994
+      }
+    ],
+    "gpu_visible": true,
+    "manual_score_route": true,
+    "primary_criterion": "GPU/XLA/TF32 batched Contract E seed-mean value and score satisfy the HMC-direction gate against exact FP64 Kalman: within 2 MCSE, or within 4 MCSE with an explicit N-ladder MCSE-decrease certificate, or within 1% relative error.",
+    "route_ok": true,
+    "status": "passed",
+    "tf32_execution_enabled": true,
+    "xla_enabled": true
+  },
+  "host": "DESKTOP-RF1Q5IJ",
+  "manifest": {
+    "chol_ridge_abs": 1e-10,
+    "chol_ridge_escalation": 10.0,
+    "chol_ridge_max_attempts": 12,
+    "chol_ridge_rel": 1e-08,
+    "condition_limit": 100000000.0,
+    "contract_e_reset_factorization": "cholesky-ridge",
+    "contract_e_residual_seed_schedule": "seed indices 9100..9109; residual seeds [seed,43+t] for t=0..9",
+    "covariance_residual_limit": 0.0005,
+    "initial_transition_seed_schedule": "seed indices 9100..9109; initial seeds [seed,17]; transition seeds [seed,29]",
+    "num_particles": 3000,
+    "reverse_contract_e_gradient_probe": "full",
+    "reverse_gradient_route": "manual reverse scan of per-seed Contract E scalars with explicit transport/reset/normalization/log-density/LEDH-flow VJPs; no outer GradientTape score wrapper and no FD ladder in this runner",
+    "rho": 1.0,
+    "route": "gpu_xla_tf32_batched_contract_e_manual_reverse_scan_score_diagnostic",
+    "score_route": "manual-reverse-scan",
+    "seed_count": 10,
+    "settings": [
+      {
+        "epsilon": 0.55,
+        "label": "eps0.55_steps2",
+        "steps": 2
+      }
+    ],
+    "spectral_floor": 1e-06,
+    "state_dims": [
+      2
+    ],
+    "tau": 1e-06,
+    "theta": [
+      0.7200000286102295,
+      -1.5141277313232422,
+      -1.2039728164672852
+    ],
+    "time_steps": 10
+  },
+  "nonclaims": [
+    "not CPU LEDH evidence",
+    "not same-scalar FD evidence",
+    "not SIR/SV/nonlinear correctness",
+    "not HMC readiness",
+    "not production readiness"
+  ],
+  "plan": "docs/plans/bayesfilter-ledh-pfpf-ot-contract-e-phase3-r12-gpu-xla-manual-score-route-plan-2026-06-30.md",
+  "python_version": "3.11.14",
+  "records": [
+    {
+      "base": {
+        "diagnostics": {
+          "any_ridge_failure": false,
+          "gap_diagnostic_label": "min residual Cholesky diagonal of sym(target_cov - plus_cov)+lambda I",
+          "max_column_residual": 1.0728836059570312e-06,
+          "max_covariance_relative_residual": 2.2806844413025829e-07,
+          "max_mean_linf_residual": 1.4901161193847656e-08,
+          "max_realized_ridge": 2.034301394004956e-09,
+          "max_ridge_attempts_used": 1,
+          "max_row_residual": 0.9894222021102905,
+          "max_tilde_condition": 1.0921781063079834,
+          "min_gap_eig": 0.3191511034965515,
+          "min_rank_margin": 0.3191511034965515,
+          "min_tilde_positive_eig": 0.3696697950363159,
+          "rank_margin_diagnostic_label": "legacy field: repeats min residual Cholesky diagonal under cholesky-ridge",
+          "tilde_positive_diagnostic_label": "min Cholesky diagonal of tilde_cov+lambda I"
+        },
+        "gradient": {
+          "kalman": [
+            -4.971696633032736,
+            -3.932431459463813,
+            -5.503182556558847
+          ],
+          "mcse": [
+            0.010994846466715755,
+            0.0017000945778979605,
+            0.0011801704724620262
+          ],
+          "mean": [
+            -5.003586292266846,
+            -3.9398706197738647,
+            -5.510846281051636
+          ],
+          "sd": [
+            0.034768757358676475,
+            0.005376171103860111,
+            0.0037320267202570275
+          ],
+          "values": [
+            [
+              -5.028525352478027,
+              -3.9363598823547363,
+              -5.515308380126953
+            ],
+            [
+              -5.028602123260498,
+              -3.9388763904571533,
+              -5.511946678161621
+            ],
+            [
+              -4.991072654724121,
+              -3.939357042312622,
+              -5.514316558837891
+            ],
+            [
+              -5.000217914581299,
+              -3.9349100589752197,
+              -5.513213157653809
+            ],
+            [
+              -5.0133233070373535,
+              -3.938929557800293,
+              -5.514565467834473
+            ],
+            [
+              -5.0262908935546875,
+              -3.938225746154785,
+              -5.5100483894348145
+            ],
+            [
+              -5.037646293640137,
+              -3.9364123344421387,
+              -5.507574081420898
+            ],
+            [
+              -5.019413948059082,
+              -3.93678879737854,
+              -5.504631996154785
+            ],
+            [
+              -4.927103042602539,
+              -3.952105760574341,
+              -5.5107855796813965
+            ],
+            [
+              -4.963667392730713,
+              -3.9467406272888184,
+              -5.506072521209717
+            ]
+          ]
+        },
+        "setting": {
+          "epsilon": 0.55,
+          "label": "eps0.55_steps2",
+          "steps": 2
+        },
+        "state_dim": 2,
+        "value": {
+          "delta_to_kalman": -0.003984099239414007,
+          "kalman": -13.784138554721768,
+          "mcse": 0.00412146316179652,
+          "mean": -13.788122653961182,
+          "sd": 0.013033210883756072,
+          "values": [
+            -13.80064582824707,
+            -13.793380737304688,
+            -13.772441864013672,
+            -13.782388687133789,
+            -13.7994384765625,
+            -13.797317504882812,
+            -13.800020217895508,
+            -13.790501594543457,
+            -13.762046813964844,
+            -13.783044815063477
+          ]
+        }
+      },
+      "gate": {
+        "conditioning_ok": true,
+        "covariance_restoration_ok": true,
+        "finite_base": true,
+        "kalman_value": -13.784138554721768,
+        "parameter_gates": [
+          {
+            "delta_to_kalman": -0.03188965923410958,
+            "gradient_mcse": 0.010994846466715755,
+            "gradient_mean": -5.003586292266846,
+            "gradient_sd": 0.034768757358676475,
+            "hmc_direction_gate": true,
+            "hmc_direction_gate_reason": "within_1pct_relative_error",
+            "kalman_gradient": -4.971696633032736,
+            "mcse_decreases_with_n_certificate": false,
+            "parameter": "ar_coefficient",
+            "relative_error_limit": 0.01,
+            "relative_error_to_kalman": 0.006414240768881523,
+            "within_1pct_relative_error_to_kalman": true,
+            "within_2_gradient_mcse_of_kalman": false,
+            "within_4_gradient_mcse_of_kalman": true,
+            "within_4_gradient_mcse_with_n_ladder_mcse_decrease": false,
+            "z_over_gradient_mcse": -2.9004187853507393
+          },
+          {
+            "delta_to_kalman": -0.007439160310051651,
+            "gradient_mcse": 0.0017000945778979605,
+            "gradient_mean": -3.9398706197738647,
+            "gradient_sd": 0.005376171103860111,
+            "hmc_direction_gate": true,
+            "hmc_direction_gate_reason": "within_1pct_relative_error",
+            "kalman_gradient": -3.932431459463813,
+            "mcse_decreases_with_n_certificate": false,
+            "parameter": "log_transition_variance",
+            "relative_error_limit": 0.01,
+            "relative_error_to_kalman": 0.0018917457015426228,
+            "within_1pct_relative_error_to_kalman": true,
+            "within_2_gradient_mcse_of_kalman": false,
+            "within_4_gradient_mcse_of_kalman": false,
+            "within_4_gradient_mcse_with_n_ladder_mcse_decrease": false,
+            "z_over_gradient_mcse": -4.375733213177831
+          },
+          {
+            "delta_to_kalman": -0.007663724492789292,
+            "gradient_mcse": 0.0011801704724620262,
+            "gradient_mean": -5.510846281051636,
+            "gradient_sd": 0.0037320267202570275,
+            "hmc_direction_gate": true,
+            "hmc_direction_gate_reason": "within_1pct_relative_error",
+            "kalman_gradient": -5.503182556558847,
+            "mcse_decreases_with_n_certificate": false,
+            "parameter": "log_observation_variance",
+            "relative_error_limit": 0.01,
+            "relative_error_to_kalman": 0.001392598630706054,
+            "within_1pct_relative_error_to_kalman": true,
+            "within_2_gradient_mcse_of_kalman": false,
+            "within_4_gradient_mcse_of_kalman": false,
+            "within_4_gradient_mcse_with_n_ladder_mcse_decrease": false,
+            "z_over_gradient_mcse": -6.493743634173057
+          }
+        ],
+        "ridge_ok": true,
+        "status": "pass",
+        "value_delta_to_kalman": -0.003984099239414007,
+        "value_hmc_direction_gate": true,
+        "value_hmc_direction_gate_reason": "within_2_mcse",
+        "value_mcse": 0.00412146316179652,
+        "value_mcse_decreases_with_n_certificate": false,
+        "value_mean": -13.788122653961182,
+        "value_relative_error_limit": 0.01,
+        "value_relative_error_to_kalman": 0.00028903505457359547,
+        "value_sd": 0.013033210883756072,
+        "value_within_1pct_relative_error_to_kalman": true,
+        "value_within_2_mcse_of_kalman": true,
+        "value_within_4_mcse_of_kalman": true,
+        "value_within_4_mcse_with_n_ladder_mcse_decrease": false,
+        "value_z_over_mcse": -0.966671078451994
+      },
+      "manifest_probe": "full",
+      "score_route": "manual-reverse-scan",
+      "setting": {
+        "epsilon": 0.55,
+        "label": "eps0.55_steps2",
+        "steps": 2
+      },
+      "state_dim": 2
+    }
+  ],
+  "schema_version": "filter_bench.ledh_pfpf_ot_contract_e_lgssm_gpu_score.v2",
+  "tensorflow_version": "2.19.1",
+  "timestamp_utc": "2026-07-02T21:41:41.412227+00:00"
+}

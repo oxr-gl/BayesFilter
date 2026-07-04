@@ -77,14 +77,19 @@ Stop handoff:
 | Not concluded | HMC readiness, posterior correctness, and scientific superiority are not concluded by this leaderboard alone. |
 | Artifacts | Phase results, raw LEDH JSON/MD, merged JSON/MD, logs, review ledger. |
 
+Comparator mode is `frozen_non_ledh_baseline_plus_fresh_ledh` unless a reviewed
+phase changes it before results are seen. Runtime ranking across LEDH and
+non-LEDH rows is forbidden in this mode.
+
 ## Default And Assumption Audit
 
 | Choice | Provenance | Justification | Failure mode | Early diagnostic | Status |
 | --- | --- | --- | --- | --- | --- |
 | LEDH uses GPU/XLA/TF32 route | `AGENTS.md` default execution target | Matches project default for DPF transport work | CPU run misrepresented as production | Trusted GPU probe in Phase 3 | planned |
 | July 3 highdim leaderboard is baseline | Existing artifact | It is the latest non-LEDH highdim artifact | Hidden mutation of baseline rows | Phase 0 freeze and Phase 5 diff check | planned |
+| Frozen baseline plus fresh LEDH | This runbook | Avoids rerunning unrelated expensive rows while preserving provenance | Runtime comparisons become unfair | Disable runtime ranking unless all algorithms rerun | planned |
 | Score is total derivative | User direction and recent debugging result | MLE/HMC need derivative of log likelihood target | Partial derivative admitted as score | Phase 3 score gate and row status fields | planned |
-| Value MCSE is required | Monte Carlo LEDH values | Single seed value is not enough | Stable-looking single seed used as evidence | Phase 4 batched seeds | planned |
+| Value MCSE is required | Monte Carlo LEDH values | Single seed value is not enough | Stable-looking single seed used as evidence | Phase 4 batched seeds `81120..81124` and default `N=1000,10000` ladder | planned |
 
 ## Skeptical Plan Audit
 
