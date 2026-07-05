@@ -289,6 +289,11 @@ def _repeated_positive_innovation_model_and_derivatives() -> tuple[
     return observations, model, derivatives
 
 
+def _scalar_rows(
+    tensors: dict[str, tf.Tensor],
+    *,
+    backend: str,
+) -> tuple[tf.Tensor, tf.Tensor]:
     values = []
     scores = []
     batch_size = int(tensors["initial_mean"].shape[0])

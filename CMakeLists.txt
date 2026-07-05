@@ -55,6 +55,28 @@ set(CONDA_INCLUDE "${PY_ENV_PREFIX}/include")
 if(EXISTS "${CONDA_INCLUDE}/absl/container/flat_hash_map.h")
     list(APPEND EXTRA_INCLUDES "${CONDA_INCLUDE}")
 endif()
+set(TF_LLVM_PROJECT_ROOT "${TF_get_include}/external/llvm-project")
+set(TF_MLIR_INCLUDE "${TF_LLVM_PROJECT_ROOT}/mlir/include")
+if(EXISTS "${TF_MLIR_INCLUDE}/mlir/IR/MLIRContext.h")
+    list(APPEND EXTRA_INCLUDES "${TF_MLIR_INCLUDE}")
+endif()
+find_path(LLVM_INCLUDE_DIR
+    NAMES llvm/ADT/ArrayRef.h
+    PATHS
+        "${CONDA_INCLUDE}"
+        "${TF_LLVM_PROJECT_ROOT}/llvm/include"
+        "/usr/include"
+        "/usr/lib/llvm-19/include"
+        "/usr/lib/llvm-18/include"
+        "/usr/lib/llvm-17/include"
+        "/usr/lib/llvm-16/include")
+if(LLVM_INCLUDE_DIR)
+    list(APPEND EXTRA_INCLUDES "${LLVM_INCLUDE_DIR}")
+else()
+    message(STATUS
+        "LLVM headers not found; install llvm development headers so "
+        "llvm/ADT/ArrayRef.h is available for the TensorFlow XLA custom op")
+endif()
 if(EXISTS "${TF_get_include}/external/highwayhash/highwayhash/arch_specific.h")
     list(APPEND EXTRA_INCLUDES "${TF_get_include}/external/highwayhash")
 endif()
@@ -82,6 +104,12 @@ target_include_directories(
     ${TF_get_include}
     ${Python3_INCLUDE_DIRS}
     ${EXTRA_INCLUDES})
+if(NOT LLVM_INCLUDE_DIR)
+    message(FATAL_ERROR
+        "Missing LLVM headers required by the TensorFlow XLA custom op. "
+        "Install llvm development headers in the active environment or system "
+        "so llvm/ADT/ArrayRef.h is reachable.")
+endif()
 if(HAS_CUDA)
     target_include_directories(symmetric_sylvester PRIVATE ${CUDA_INCLUDE})
     target_compile_definitions(symmetric_sylvester PRIVATE HAS_CUDA)
