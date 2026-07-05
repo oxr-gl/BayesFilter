@@ -1,0 +1,48 @@
+{
+  "schema_version": "bayesfilter.highdim_leaderboard.remaining_blockers.phase4.ukf_row.v1",
+  "date": "2026-07-02",
+  "row_id": "zhao_cui_predator_prey_T20",
+  "algorithm_id": "ukf",
+  "lane": "highdim_source_scope",
+  "comparison_status": "executed_value_only",
+  "numeric_execution_status": "executed_numeric_value_only_autodiff_score_not_admitted",
+  "target_contract_status": "target_compatible",
+  "average_log_likelihood": -8.56827587430274,
+  "log_likelihood": -171.3655174860548,
+  "runtime_seconds": 5.479427,
+  "score": null,
+  "score_l2_norm": null,
+  "score_coordinate_system": null,
+  "score_derivative_provenance": null,
+  "score_status": "blocked_manual_srukf_route_missing",
+  "score_status_reason": "The existing UKF value route is finite, but the only current score provenance for this exact row is TensorFlow autodiff diagnostic evidence. Analytical gradient accuracy is the leaderboard score benchmark, and no reviewed exact-row principal-square-root/factor SR-UKF manual route binding exists.",
+  "route_binding": {
+    "route_status": "value_only_blocked",
+    "route_family": "none",
+    "implementation_path": null,
+    "function_symbol": null,
+    "route_binding_ledger": "docs/plans/bayesfilter-highdim-leaderboard-remaining-blockers-phase4-ukf-route-bindings-2026-07-02.json"
+  },
+  "blocker": {
+    "code": "BLOCK_PHASE4_UKF_PREDATOR_PREY_MANUAL_SRUKF_ROUTE_MISSING",
+    "required_to_unblock": [
+      "reviewed exact-row predator-prey UKF target and theta contract",
+      "manual principal-square-root or factor-propagating SR-UKF derivative route",
+      "structured route binding with exact implementation path and function symbol",
+      "finite value and finite analytical score tests",
+      "route guard proving no SVD/tape/FD score admission"
+    ]
+  },
+  "forbidden_admissions_preserved": [
+    "autodiff score not admitted",
+    "historical SVD UKF score not admitted",
+    "finite-difference score not admitted",
+    "provenance-only relabeling not admitted"
+  ],
+  "nonclaims": [
+    "not a UKF analytical-score row",
+    "not HMC readiness evidence",
+    "not GPU/XLA readiness evidence",
+    "not all-row leaderboard regeneration"
+  ]
+}

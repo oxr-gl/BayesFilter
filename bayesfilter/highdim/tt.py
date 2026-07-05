@@ -346,6 +346,11 @@ def _measure_convention_payload(convention: MeasureConvention) -> Mapping[str, o
 
 
 def _basis_payload(basis) -> Mapping[str, object]:
+    if hasattr(basis, "manifest_payload"):
+        payload = basis.manifest_payload()
+        if not isinstance(payload, Mapping):
+            raise TypeError("basis manifest_payload() must return a mapping")
+        return payload
     return {
         "family": "LegendreBasis1D",
         "left": basis.domain.left,

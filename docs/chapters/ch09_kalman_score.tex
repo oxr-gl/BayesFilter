@@ -36,13 +36,11 @@ The differentiated prediction step is
   +F_tP_{t-1|t-1}\dot F_t^{(i)\top}
   +\dot Q_t^{(i)}.
 \end{align}
-These are source labels \texttt{eq:dm\_pred\_note} and
-\texttt{eq:dP\_pred\_note} in the MacroFinance analytic derivative note.  They
-also define the initial-condition contract: if the implementation fixes
-$(m_{0|0},P_{0|0})$ as data, the initial derivatives are zero; if it uses a
-stationary initial covariance, the derivatives must come from the corresponding
-derivative Lyapunov equations and be reported as part of the structural
-provider.
+These equations also define the initial-condition contract: if the
+implementation fixes $(m_{0|0},P_{0|0})$ as data, the initial derivatives are
+zero; if it uses a stationary initial covariance, the derivatives must come from
+the corresponding derivative Lyapunov equations and be reported as part of the
+structural provider.
 
 \section{Innovation Derivatives}
 \label{sec:bf-score-innovation-derivatives}
@@ -63,7 +61,6 @@ The source note derives the innovation derivatives
   +H_tP_{t|t-1}\dot H_t^{(i)\top}
   +\dot R_t^{(i)}.
 \end{align}
-These are source labels \texttt{eq:dv\_note} and \texttt{eq:dS\_note}.
 Using $\partial_i S^{-1}=-S^{-1}\dot S^{(i)}S^{-1}$, the per-time score
 contribution is
 \begin{equation}
@@ -77,12 +74,6 @@ contribution is
     -v_t^\top S_t^{-1}\dot S_t^{(i)}S_t^{-1}v_t
   \right].
 \end{equation}
-This is consolidated from source label \texttt{eq:score\_note} in the
-MacroFinance analytic Kalman derivative note.
-
-\section{Solve-Form Score}
-\label{sec:bf-solve-form-score}
-
 For production code, BayesFilter prefers the solve form.  Let $S_tw_t=v_t$.
 Then the same score can be written as
 \begin{equation}
@@ -96,11 +87,9 @@ Then the same score can be written as
     -w_t^\top\dot S_t^{(i)}w_t
   \right].
 \end{equation}
-This is source label \texttt{eq:solve\_score\_proved}.  The implementation
-reference is the MacroFinance solve differentiated Kalman backend.  The trace
-term may be computed by explicit materialization in small tests, but production
-code should prefer factor solves or trace estimators appropriate to the
-dimension and backend.
+The trace term may be computed by explicit materialization in small tests, but
+production code should prefer factor solves or trace estimators appropriate to
+the dimension and backend.
 
 \section{Gain and Update Derivatives}
 \label{sec:bf-score-update-derivatives}

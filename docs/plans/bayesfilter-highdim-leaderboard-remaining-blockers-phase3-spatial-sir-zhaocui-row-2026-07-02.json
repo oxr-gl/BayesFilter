@@ -1,0 +1,72 @@
+{
+  "schema_version": "bayesfilter.highdim_leaderboard.remaining_blockers.phase3.spatial_sir_row.v1",
+  "date": "2026-07-02",
+  "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+  "algorithm_id": "zhao_cui_scalar_or_multistate",
+  "lane": "highdim_source_scope",
+  "comparison_status": "blocked_or_status_only",
+  "target_contract_status": "full_filtering_blocked_local_complete_data_component_ready",
+  "numeric_execution_status": "blocked_full_filtering_theta_binding_unavailable",
+  "truth_theta_coordinate": "no_free_theta",
+  "truth_theta": [],
+  "theta_binding_status": "blocked_no_reviewed_full_observed_data_filtering_theta_binding",
+  "value_status": "blocked",
+  "score_status": "blocked",
+  "score_coordinate_system": null,
+  "score_derivative_provenance": null,
+  "score": null,
+  "score_l2_norm": null,
+  "average_log_likelihood": null,
+  "log_likelihood": null,
+  "runtime_seconds": null,
+  "score_at_true_calibration_status": "skipped_binding_unavailable",
+  "blocker": {
+    "code": "BLOCK_PHASE3_SIR_FULL_FILTERING_THETA_BINDING_UNAVAILABLE",
+    "summary": "The reviewed source-scope leaderboard row remains a full observed-data/filtering row with no admitted free-theta binding; the generated dataset declares no_free_theta. Existing ParameterizedZhaoCuiSIRSSM/P8p/P79/P91 analytical-score evidence is local or diagnostic sidecar evidence and is not a reviewed full-row observed-data/filtering score route.",
+    "required_to_unblock": [
+      "reviewed full observed-data/filtering row target contract",
+      "reviewed theta coordinate and parameterization for that same row",
+      "finite full-row value route for that target",
+      "manual or analytical score of the same scalar with respect to the reviewed theta",
+      "boundary tests proving P91 local complete-data evidence is not promoted as the full row"
+    ]
+  },
+  "sidecar_evidence": {
+    "p91_scoped_local_complete_data_status": "P91_SCOPED_PRODUCTION_READY_CLOSED",
+    "scope": "local_complete_data_zhao_cui_sir_d18_component",
+    "admission_scope": "sidecar_only_not_full_observed_data_filtering_row",
+    "evidence_paths": [
+      "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase9-final-decision-result-2026-06-29.md",
+      "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase4-score-identity-manifest-2026-06-29.json",
+      "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase5-gpu-xla-jit-manifest-2026-06-29.json",
+      "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase6-performance-benchmark-2026-06-29.json",
+      "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase7-hmc-smoke-2026-06-29.json"
+    ],
+    "nonclaims": [
+      "not full observed-data/filtering row admission",
+      "not full observed-data/filtering score identity",
+      "not exact likelihood correctness",
+      "not posterior correctness or convergence",
+      "not main-leaderboard timing evidence"
+    ]
+  },
+  "inventory_evidence": {
+    "dataset_generator_path": "scripts/filtering_value_gradient_benchmark_generate_p8_datasets.py::_sir_dataset",
+    "dataset_truth_theta_coordinate": "no_free_theta",
+    "parameterized_surface_path": "bayesfilter/highdim/models.py::ParameterizedZhaoCuiSIRSSM",
+    "parameterized_surface_scope": "P8p/P79/P91 local or diagnostic SIR theta surface; not reviewed here as the full observed-data/filtering leaderboard row",
+    "baseline_leaderboard_path": "docs/plans/bayesfilter-two-lane-highdim-leaderboard-results-2026-07-01.json"
+  },
+  "forbidden_admissions_preserved": [
+    "P91 local complete-data score was not reported as the full observed-data/filtering score",
+    "no autodiff score was admitted",
+    "no finite-difference score was admitted",
+    "no score row was admitted without a reviewed free theta",
+    "no GPU/XLA/HMC readiness was inferred for the full row"
+  ],
+  "next_phase_handoff": {
+    "phase": 4,
+    "status": "ready_after_precise_sir_blocker",
+    "subplan": "docs/plans/bayesfilter-highdim-leaderboard-remaining-blockers-phase4-ukf-score-cleanup-subplan-2026-07-02.md"
+  }
+}

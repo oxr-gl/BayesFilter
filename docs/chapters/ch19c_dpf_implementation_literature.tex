@@ -342,6 +342,16 @@ the Algorithm~1 lifecycle.  Likewise, introducing differentiable or optimal
 transport resampling may be a BayesFilter extension, but it must be labelled as
 an extension and audited separately from the Li--Coates source algorithm.
 
+\subsection{Why the OT block begins here}
+\label{sec:bf-pfpf-ot-why-here}
+
+The next chapters do not reopen proposal correction.  By the end of the PF-PF
+stage, the object of record is already the weighted post-flow ensemble together
+with its carried particle-local state.  The remaining question is different: once
+that weighted object exists, what equal-weighting rule should act on it?  The OT
+block begins here because BayesFilter still needs a transport object that turns
+that weighted PF-PF output into an equally weighted downstream representation.
+
 \subsection{What the later OT chapters inherit from PF-PF}
 \label{sec:bf-pfpf-ot-handoff}
 

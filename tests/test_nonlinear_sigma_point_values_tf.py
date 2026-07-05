@@ -6,6 +6,7 @@ from bayesfilter.linear.kalman_tf import tf_linear_gaussian_log_likelihood
 from bayesfilter.nonlinear.svd_cut_tf import tf_svd_cut4_filter
 from bayesfilter.nonlinear.cut_tf import tf_cut4g_sigma_point_rule
 from bayesfilter.nonlinear.sigma_points_tf import tf_svd_sigma_point_filter
+from bayesfilter.nonlinear.svd_sigma_point_derivatives_tf import tf_principal_sqrt_ukf_score
 from bayesfilter.testing import (
     dense_projection_first_step,
     make_affine_gaussian_structural_oracle_tf,
@@ -41,13 +42,19 @@ def test_model_a_value_filters_match_exact_kalman_reference() -> None:
         backend="tf_svd_ukf",
         innovation_floor=tf.constant(1e-12, dtype=tf.float64),
     )
+    principal_sqrt = tf_svd_sigma_point_filter(
+        observations,
+        model,
+        backend="tf_principal_sqrt_ukf",
+        innovation_floor=tf.constant(1e-12, dtype=tf.float64),
+    )
     cut4 = tf_svd_cut4_filter(
         observations,
         model,
         innovation_floor=tf.constant(1e-12, dtype=tf.float64),
     )
 
-    for result in (cubature, ukf, cut4):
+    for result in (cubature, ukf, principal_sqrt, cut4):
         np.testing.assert_allclose(
             result.log_likelihood.numpy(),
             exact.log_likelihood.numpy(),
@@ -71,6 +78,7 @@ def test_model_b_value_filters_are_finite_and_report_residuals() -> None:
     results = [
         tf_svd_sigma_point_filter(observations, model, backend="tf_svd_cubature"),
         tf_svd_sigma_point_filter(observations, model, backend="tf_svd_ukf"),
+        tf_svd_sigma_point_filter(observations, model, backend="tf_principal_sqrt_ukf"),
         tf_svd_cut4_filter(observations, model),
     ]
 
@@ -90,6 +98,7 @@ def test_model_c_value_filters_are_finite_and_report_phase_residuals() -> None:
     results = [
         tf_svd_sigma_point_filter(observations, model, backend="tf_svd_cubature"),
         tf_svd_sigma_point_filter(observations, model, backend="tf_svd_ukf"),
+        tf_svd_sigma_point_filter(observations, model, backend="tf_principal_sqrt_ukf"),
         tf_svd_cut4_filter(observations, model),
     ]
 
@@ -102,9 +111,57 @@ def test_model_c_value_filters_are_finite_and_report_phase_residuals() -> None:
         )
 
 
-def test_model_b_first_step_sigma_point_observation_moments_near_dense_projection() -> None:
+
+
+def test_model_a_principal_sqrt_value_filter_matches_exact_kalman_reference() -> None:
+    model = make_affine_gaussian_structural_oracle_tf()
+    observations = model_a_observations_tf()
+    linear = affine_structural_to_linear_gaussian_tf(model)
+    exact = tf_linear_gaussian_log_likelihood(
+        observations,
+        linear,
+        backend="tf_cholesky",
+        jitter=tf.constant(0.0, dtype=tf.float64),
+    )
+    principal_sqrt = tf_svd_sigma_point_filter(
+        observations,
+        model,
+        backend="tf_principal_sqrt_ukf",
+        innovation_floor=tf.constant(1e-12, dtype=tf.float64),
+    )
+    np.testing.assert_allclose(
+        principal_sqrt.log_likelihood.numpy(),
+        exact.log_likelihood.numpy(),
+        atol=1e-8,
+    )
+
+
+def test_model_b_principal_sqrt_value_filter_is_finite_and_matches_ukf_on_benign_fixture() -> None:
     model = make_nonlinear_accumulation_model_tf()
-    observation = model_b_observations_tf()[0]
+    observations = model_b_observations_tf()
+    principal_sqrt = tf_svd_sigma_point_filter(
+        observations,
+        model,
+        backend="tf_principal_sqrt_ukf",
+        innovation_floor=tf.constant(1e-12, dtype=tf.float64),
+    )
+    ukf = tf_svd_sigma_point_filter(
+        observations,
+        model,
+        backend="tf_svd_ukf",
+        innovation_floor=tf.constant(1e-12, dtype=tf.float64),
+    )
+
+    assert np.isfinite(principal_sqrt.log_likelihood.numpy())
+    np.testing.assert_allclose(
+        principal_sqrt.log_likelihood.numpy(),
+        ukf.log_likelihood.numpy(),
+        atol=2e-5,
+        rtol=2e-5,
+    )
+
+
+def test_model_b_first_step_sigma_point_observation_moments_near_dense_projection() -> None:
     dense = dense_projection_first_step(model, observation, nodes_per_dim=11)
     cut4_projection = sigma_point_projection_first_step(
         model,

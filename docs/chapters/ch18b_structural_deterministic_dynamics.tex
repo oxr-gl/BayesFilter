@@ -754,6 +754,18 @@ Gaussian objects induced by \eqref{eq:bf-kernel-ukf-joint-gaussian}:
 \end{align}
 The corresponding contribution to the log likelihood is
 $\log\widehat\lambda_t^{\mathrm{UKF}}$.
+For actual stochastic-volatility rows, augmentation is admissible only when
+marginalizing the augmented variable reproduces the same observation density
+intended by the inference problem.  In the transformed actual-SV setting that
+means preserving the exact law
+\(
+  z_t=\log(y_t^2),
+  \ z_t-\log(\beta^2)-h_t\sim\log(\chi_1^2)
+\).
+The previous actual-SV Gaussian-closure framing failed this condition: it used
+augmentation to construct a different innovation scalar rather than the intended
+normalizer.  That construction may still define a Gaussian-projection filter, but
+it does not define the correct actual-SV likelihood target.
 If measurement noise is augmented rather than added, replace
 $a=(x_{t-1},\varepsilon_t)$ by
 $a=(x_{t-1},\varepsilon_t,e_t)$, set

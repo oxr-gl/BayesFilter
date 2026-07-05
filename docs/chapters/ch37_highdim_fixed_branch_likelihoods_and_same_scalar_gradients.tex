@@ -83,6 +83,28 @@ stabilization choices, and stored-field conventions that define the TT/KR scalar
 The chapter therefore treats fixed-branch discipline as a cross-method target
 contract, not as an appendix to one particular algorithm.
 
+For the actual-SV family, the ordering of obligations is now explicit.  First
+one declares the target-correct scalar.  For the transformed actual-SV problem
+that scalar is the cumulative likelihood built from the exact transformed
+normalizers,
+\[
+  \widehat\ell_T^{\rm sv}(\theta;B)
+  =
+  \sum_{t=1}^T \log \widehat Z_t^{\rm sv}(\theta;B),
+  \qquad
+  \widehat Z_t^{\rm sv}(\theta;B)\approx Z_t(\theta).
+\]
+Only after that declaration does the same-scalar derivative contract become
+meaningful.  Direct-likelihood quadrature, fixed-cloud reweighting, and
+Zhao--Cui comparisons are legitimate only when they approximate this same
+normalizer sequence.  The previous actual-SV ``Lane~B'' framing violated that
+ordering by differentiating a Gaussian-closure replacement scalar built from
+predictive observation moments of an augmented variable.  That scalar was not a
+second admissible target for the intended inference problem; it was the wrong
+scalar.  A finite-difference or autodiff check on that wrong scalar can show only
+internal consistency of the replacement construction, not correctness for the
+actual-SV likelihood.
+
 \section{Finite-Difference Contract And Branch-Validity Logic}
 \label{sec:bf-hd-fixed-branch-fd-contract}
 

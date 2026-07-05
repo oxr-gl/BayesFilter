@@ -462,6 +462,56 @@ class TFFixedSGQFAffineModel:
 
 
 @dataclass(frozen=True)
+class TFFixedSGQFNonGaussianModel:
+    """Fixed-SGQF model with direct non-Gaussian likelihood reweighting."""
+
+    initial_mean: tf.Tensor
+    initial_covariance: tf.Tensor
+    process_covariance: tf.Tensor
+    transition_fn: Callable[[tf.Tensor], tf.Tensor]
+    observation_log_density_fn: Callable[[tf.Tensor, tf.Tensor], tf.Tensor]
+    observation_dim: int = 1
+    name: str = "fixed_sgqf_nongaussian_model"
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "initial_mean", tf.convert_to_tensor(self.initial_mean, dtype=tf.float64))
+        object.__setattr__(self, "initial_covariance", tf.convert_to_tensor(self.initial_covariance, dtype=tf.float64))
+        object.__setattr__(self, "process_covariance", tf.convert_to_tensor(self.process_covariance, dtype=tf.float64))
+        object.__setattr__(self, "observation_dim", int(self.observation_dim))
+        if self.initial_mean.shape.rank != 1:
+            raise ValueError("initial_mean must be rank 1")
+        state_dim = int(self.initial_mean.shape[0])
+        if self.initial_covariance.shape != (state_dim, state_dim):
+            raise ValueError("initial_covariance shape mismatch")
+        if self.process_covariance.shape != (state_dim, state_dim):
+            raise ValueError("process_covariance shape mismatch")
+        if int(self.observation_dim) <= 0:
+            raise ValueError("observation_dim must be positive")
+
+    @property
+    def state_dim(self) -> int:
+        return int(self.initial_mean.shape[0])
+
+    def transition(self, points: tf.Tensor) -> tf.Tensor:
+        return tf.convert_to_tensor(
+            self.transition_fn(tf.convert_to_tensor(points, dtype=tf.float64)),
+            dtype=tf.float64,
+        )
+
+    def observation_log_density(self, points: tf.Tensor, observation: tf.Tensor) -> tf.Tensor:
+        values = tf.convert_to_tensor(
+            self.observation_log_density_fn(
+                tf.convert_to_tensor(points, dtype=tf.float64),
+                tf.convert_to_tensor(observation, dtype=tf.float64),
+            ),
+            dtype=tf.float64,
+        )
+        if values.shape.rank != 1:
+            raise ValueError("observation_log_density_fn must return a length-point_count vector")
+        return values
+
+
+@dataclass(frozen=True)
 class TFFixedSGQFOneStepOracle:
     """p47 one-step scalar nonlinear oracle parameters and expectations."""
 
@@ -873,7 +923,7 @@ def _branch_failure_result(
 
 def tf_fixed_sgqf_filter(
     observations: tf.Tensor,
-    model: TFFixedSGQFNonlinearModel | TFFixedSGQFAffineModel,
+    model: TFFixedSGQFNonGaussianModel | TFFixedSGQFNonlinearModel | TFFixedSGQFAffineModel,
     *,
     cloud: TFFixedSGQFCloud,
     branch_config: TFFixedSGQFBranchConfig | None = None,

@@ -152,9 +152,32 @@ def test_filter_bench_preflight_matrix_nonclaims_and_manifest_are_explicit() -> 
     assert scope["preflight_values_are_performance_evidence"] is False
     assert scope["stochastic_preflight_values_are_rankable"] is False
     assert "no_silent_holes_policy" in scope
+    assert scope["coverage_roster_is_broader_than_two_lane_comparison"] is True
     assert manifest["plan_file"].endswith("p7-preflight-matrix-subplan-2026-06-10.md")
     assert manifest["result_file"].endswith("p7-preflight-matrix-result-2026-06-10.md")
     assert manifest["preflight_output_path"] == str(PREFLIGHT_PATH)
     assert "not benchmark values" in nonclaims
     assert "no filter ranking" in nonclaims
     assert "no dpf gradient certification" in nonclaims
+
+
+def test_filter_bench_preflight_matrix_carries_two_lane_comparison_contract() -> None:
+    preflight = _load(PREFLIGHT_PATH)
+    contract = preflight["two_lane_comparison_contract"]
+
+    assert contract["comparison_program_master"].endswith(
+        "bayesfilter-two-lane-filter-comparison-master-program-2026-06-24.md"
+    )
+    assert contract["coverage_roster_is_not_comparison_roster"] is True
+    assert contract["lowdim_same_target"]["comparison_algorithm_ids"] == [
+        "fixed_sgqf",
+        "ukf",
+        "cut4",
+        "zhao_cui_scalar_or_multistate",
+    ]
+    assert contract["highdim_source_scope"]["comparison_algorithm_ids"] == [
+        "fixed_sgqf",
+        "ukf",
+        "zhao_cui_scalar_or_multistate",
+    ]
+    assert contract["highdim_source_scope"]["excluded_algorithm_ids"] == ["cut4"]

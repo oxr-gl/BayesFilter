@@ -9,7 +9,7 @@ from typing import Mapping, Sequence
 
 import tensorflow as tf
 
-from bayesfilter.highdim.bases import ProductBasis
+from bayesfilter.highdim.bases import BoundedInterval, LegendreBasis1D, ProductBasis
 from bayesfilter.highdim.diagnostics import (
     HighDimStatus,
     MeasureConvention,
@@ -1141,14 +1141,24 @@ def _measure_convention_payload(convention: MeasureConvention) -> Mapping[str, o
 
 
 def _basis_payload(basis) -> Mapping[str, object]:
+    if hasattr(basis, "manifest_payload"):
+        payload = dict(basis.manifest_payload())
+        if isinstance(basis, LegendreBasis1D) and isinstance(basis.domain, BoundedInterval):
+            payload.update(
+                {
+                    "family": "LegendreBasis1D",
+                    "left": basis.domain.left,
+                    "right": basis.domain.right,
+                    "reference_measure": "UniformReferenceMeasure",
+                    "max_degree": int(basis.max_degree),
+                    "normalized": bool(basis.normalized),
+                }
+            )
+        return payload
     return {
-        "family": "LegendreBasis1D",
-        "left": basis.domain.left,
-        "right": basis.domain.right,
+        "family": type(basis).__name__,
         "dtype": basis.dtype.name,
-        "reference_measure": "UniformReferenceMeasure",
-        "max_degree": int(basis.max_degree),
-        "normalized": bool(basis.normalized),
+        "basis_dim": int(basis.basis_dim),
     }
 
 

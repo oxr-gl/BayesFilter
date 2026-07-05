@@ -599,7 +599,9 @@
     "old_ledh_pfpf_ot_current_evidence_allowed": false,
     "preflight_or_smoke_values_are_performance_evidence": false,
     "all_approximate_filters_can_be_attempted_on_source_rows": true,
-    "kalman_non_lgssm_policy": "structured not-applicable or declared mixture-surrogate cell status only"
+    "kalman_non_lgssm_policy": "structured not-applicable or declared mixture-surrogate cell status only",
+    "comparison_lane_contract_active": true,
+    "highdim_comparison_excludes_cut4": true
   },
   "remaining_fixable_tasks": [
     "implement exact-oracle LGSSM T=50, source-paper SV T=1000, predator-prey T=20, and KSC surrogate target/evaluator rows",
@@ -645,5 +647,51 @@
     "not evidence that Zhao-Cui generalized-SV posterior estimated values have been extracted",
     "not evidence that spatial SIR d=18 value route is unblocked",
     "not Bayesian-estimation readiness"
-  ]
+  ],
+  "two_lane_comparison_contract": {
+    "comparison_program_master": "docs/plans/bayesfilter-two-lane-filter-comparison-master-program-2026-06-24.md",
+    "lowdim_same_target": {
+      "target_registry": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-target-registry-2026-06-10.json",
+      "comparison_algorithm_ids": [
+        "fixed_sgqf",
+        "ukf",
+        "cut4",
+        "zhao_cui_scalar_or_multistate"
+      ]
+    },
+    "highdim_source_scope": {
+      "comparison_row_ids": [
+        "benchmark_lgssm_exact_oracle_m3_T50",
+        "zhao_cui_sv_actual_nongaussian_T1000",
+        "zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000",
+        "zhao_cui_spatial_sir_austria_j9_T20",
+        "zhao_cui_predator_prey_T20",
+        "zhao_cui_generalized_sv_synthetic_from_estimated_values"
+      ],
+      "comparison_algorithm_ids": [
+        "fixed_sgqf",
+        "ukf",
+        "zhao_cui_scalar_or_multistate"
+      ],
+      "execution_algorithm_ids_retained_for_numeric_and_status_artifacts": [
+        "kalman_exact_or_mixture_enumeration",
+        "ukf",
+        "svd_sigma_point",
+        "cut4",
+        "zhao_cui_scalar_or_multistate",
+        "bootstrap_dpf_current",
+        "ledh_pfpf_alg1_ukf_current"
+      ],
+      "excluded_algorithm_ids": [
+        "cut4"
+      ],
+      "actual_and_surrogate_sv_must_remain_separate": true,
+      "blocked_fixed_sgqf_rows_until_reviewed_same_target_route": [
+        "zhao_cui_sv_actual_nongaussian_T1000",
+        "zhao_cui_spatial_sir_austria_j9_T20",
+        "zhao_cui_predator_prey_T20",
+        "zhao_cui_generalized_sv_synthetic_from_estimated_values"
+      ]
+    }
+  }
 }

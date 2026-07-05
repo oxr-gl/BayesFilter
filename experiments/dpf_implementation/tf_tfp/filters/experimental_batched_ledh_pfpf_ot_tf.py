@@ -23,6 +23,11 @@ from experiments.dpf_implementation.tf_tfp.resampling.annealed_transport_tf impo
     _clip_transport_upstream_gradient,
     _filterflow_custom_gradient_transport_matrix,
     _filterflow_exact_transport_matrix,
+    _filterflow_epsilon_start,
+    _filterflow_manual_dense_finite_transport_matrix_stopped_scale_keys,
+    _filterflow_manual_streaming_blockwise_vjp_finite_transport_stopped_scale_keys,
+    _filterflow_manual_streaming_finite_transport_stopped_scale_keys,
+    _filterflow_manual_streaming_finite_transport_total_vjp,
     _filterflow_scale,
     _filterflow_streaming_transport,
     _transport_ad_stop_scale,
@@ -43,6 +48,15 @@ DEFAULT_ROUTE_RATIONALE = (
     "for large-particle DPF transport while preserving explicit reference "
     "and fallback arms"
 )
+MANUAL_DENSE_FINITE_TRANSPORT_GRADIENT_MODE = (
+    "manual_dense_finite_sinkhorn_stopped_scale_keys"
+)
+MANUAL_STREAMING_FINITE_TRANSPORT_GRADIENT_MODE = (
+    "manual_streaming_finite_sinkhorn_stopped_scale_keys"
+)
+MANUAL_STREAMING_BLOCKWISE_VJP_FINITE_TRANSPORT_GRADIENT_MODE = (
+    "manual_streaming_blockwise_vjp_finite_sinkhorn_stopped_scale_keys"
+)
 
 SCALAR_PARITY_ATOL = 1.0e-10
 SCALAR_PARITY_RTOL = 1.0e-10
@@ -62,6 +76,16 @@ def _sync_transport_dtype() -> None:
     """Keep imported transport helper globals aligned with this experimental lane."""
 
     annealed_transport_tf.DTYPE = DTYPE
+
+
+def _manual_dense_finite_steps(max_iterations: int | tf.Tensor) -> int:
+    value = tf.get_static_value(max_iterations)
+    if value is None:
+        raise ValueError("manual dense finite route requires static max_iterations")
+    steps = int(value)
+    if steps <= 0:
+        raise ValueError("manual dense finite route requires positive max_iterations")
+    return steps
 
 
 def precision_policy_metadata() -> dict[str, Any]:
@@ -298,6 +322,45 @@ class BatchedLEDHFlowTensors:
             "local_posterior_covariances",
             local_posterior_covariances,
         )
+
+
+@dataclass(frozen=True)
+class BatchedLEDHFlowVJPTensors:
+    """Manual cotangents for the linearized LEDH flow primitive."""
+
+    pre_flow_particles: tf.Tensor
+    prior_means: tf.Tensor
+    observation_jacobian: tf.Tensor
+    observation_residual: tf.Tensor
+    transition_covariance: tf.Tensor
+    observation_covariance: tf.Tensor
+
+
+@dataclass(frozen=True)
+class _BatchedLEDHLinearizedFlowAux:
+    """Forward checkpoints used by the manual linearized LEDH flow VJP."""
+
+    x0: tf.Tensor
+    prior_means: tf.Tensor
+    observation_jacobian: tf.Tensor
+    observation_residual: tf.Tensor
+    transition_covariance: tf.Tensor
+    observation_covariance: tf.Tensor
+    transition_covariance_stable: tf.Tensor
+    observation_covariance_stable: tf.Tensor
+    prior_chol: tf.Tensor
+    prior_precision: tf.Tensor
+    obs_precision: tf.Tensor
+    pseudo_observation: tf.Tensor
+    post_precision: tf.Tensor
+    post_precision_stable: tf.Tensor
+    post_covariance_unstabilized: tf.Tensor
+    post_covariance: tf.Tensor
+    post_chol: tf.Tensor
+    prior_inv: tf.Tensor
+    affine_transform: tf.Tensor
+    delta: tf.Tensor
+    info: tf.Tensor
 
 
 @dataclass(frozen=True)
@@ -678,6 +741,612 @@ def batched_ledh_flow_core_tf(
     )
 
 
+def _symmetrize_matrix(matrix: tf.Tensor) -> tf.Tensor:
+    return 0.5 * (matrix + tf.linalg.matrix_transpose(matrix))
+
+
+def _cholesky_vjp(cholesky_factor: tf.Tensor, upstream: tf.Tensor) -> tf.Tensor:
+    """Manual VJP for ``tf.linalg.cholesky`` on symmetric positive matrices."""
+
+    chol = _to_float_tensor(cholesky_factor, "cholesky_factor")
+    bar_chol = _to_float_tensor(upstream, "cholesky upstream")
+    moment = tf.matmul(chol, bar_chol, transpose_a=True)
+    lower = tf.linalg.band_part(moment, -1, 0)
+    sym_lower = lower + tf.linalg.matrix_transpose(lower) - tf.linalg.diag(
+        tf.linalg.diag_part(lower)
+    )
+    left = tf.linalg.triangular_solve(
+        chol,
+        sym_lower,
+        lower=True,
+        adjoint=True,
+    )
+    right = tf.linalg.matrix_transpose(
+        tf.linalg.triangular_solve(
+            chol,
+            tf.linalg.matrix_transpose(left),
+            lower=True,
+            adjoint=True,
+        )
+    )
+    return 0.5 * right
+
+
+def _inverse_spd_vjp(inverse: tf.Tensor, upstream: tf.Tensor) -> tf.Tensor:
+    """Manual VJP for ``tf.linalg.inv`` at an SPD inverse output."""
+
+    inv = _to_float_tensor(inverse, "inverse")
+    bar_inv = _to_float_tensor(upstream, "inverse upstream")
+    return -tf.matmul(
+        inv,
+        tf.matmul(bar_inv, inv, transpose_b=True),
+        transpose_a=True,
+    )
+
+
+def _triangular_solve_eye_vjp(
+    triangular_factor: tf.Tensor,
+    solution: tf.Tensor,
+    upstream_solution: tf.Tensor,
+) -> tf.Tensor:
+    """Manual VJP for ``tf.linalg.triangular_solve(L, I)`` with lower ``L``."""
+
+    factor = _to_float_tensor(triangular_factor, "triangular_factor")
+    solve_value = _to_float_tensor(solution, "solution")
+    bar_solution = _to_float_tensor(upstream_solution, "solution upstream")
+    raw = -tf.matmul(
+        tf.linalg.triangular_solve(
+            factor,
+            bar_solution,
+            lower=True,
+            adjoint=True,
+        ),
+        solve_value,
+        transpose_b=True,
+    )
+    return tf.linalg.band_part(raw, -1, 0)
+
+
+def _batched_gaussian_logpdf_vjp(
+    residuals: tf.Tensor,
+    covariance: tf.Tensor,
+    upstream: tf.Tensor,
+) -> tuple[tf.Tensor, tf.Tensor]:
+    """Manual VJP for ``_batched_gaussian_logpdf``.
+
+    Returns cotangents for residuals with shape ``[B,N,D]`` and covariance with
+    shape ``[B,D,D]``.  Covariance cotangents are reduced across particles.
+    """
+
+    residuals = _to_float_tensor(residuals, "residuals")
+    covariance = _to_float_tensor(covariance, "covariance")
+    upstream = _to_float_tensor(upstream, "gaussian logpdf upstream")
+    _require_static_rank(residuals, 3, "residuals")
+    _require_static_rank(covariance, 3, "covariance")
+    _require_static_rank(upstream, 2, "gaussian logpdf upstream")
+    batch_size, num_particles, dim = _static_shape(residuals, "residuals")
+    _require_square_batch(covariance, batch_size, dim, "covariance")
+    if _static_shape(upstream, "gaussian logpdf upstream") != (batch_size, num_particles):
+        raise ValueError("gaussian logpdf upstream shape mismatch")
+
+    chol = tf.linalg.cholesky(covariance)
+    precision = tf.linalg.cholesky_solve(chol, _tile_eye(batch_size, dim))
+    solved = tf.einsum("bnd,bde->bne", residuals, precision)
+    bar_residuals = -upstream[:, :, None] * solved
+    outer = tf.einsum("bni,bnj->bnij", solved, solved)
+    bar_covariance = 0.5 * tf.reduce_sum(
+        upstream[:, :, None, None] * (outer - precision[:, None, :, :]),
+        axis=1,
+    )
+    return bar_residuals, _symmetrize_matrix(bar_covariance)
+
+
+def _transition_gaussian_log_density_vjp(
+    x_next: tf.Tensor,
+    transition_mean: tf.Tensor,
+    transition_covariance: tf.Tensor,
+    upstream: tf.Tensor,
+) -> dict[str, tf.Tensor]:
+    """Manual VJP for a transition Gaussian log-density residual."""
+
+    x_next = _to_float_tensor(x_next, "x_next")
+    transition_mean = _to_float_tensor(transition_mean, "transition_mean")
+    if _static_shape(transition_mean, "transition_mean") != _static_shape(
+        x_next,
+        "x_next",
+    ):
+        raise ValueError("transition_mean shape mismatch")
+    bar_residual, bar_covariance = _batched_gaussian_logpdf_vjp(
+        x_next - transition_mean,
+        transition_covariance,
+        upstream,
+    )
+    return {
+        "x_next": bar_residual,
+        "transition_mean": -bar_residual,
+        "transition_covariance": bar_covariance,
+    }
+
+
+def _observation_gaussian_log_density_vjp(
+    predicted_observation: tf.Tensor,
+    observation: tf.Tensor,
+    observation_covariance: tf.Tensor,
+    upstream: tf.Tensor,
+    *,
+    residual_convention: str = "model_minus_observation",
+) -> dict[str, tf.Tensor]:
+    """Manual VJP for observation Gaussian log-density residual conventions."""
+
+    predicted = _to_float_tensor(predicted_observation, "predicted_observation")
+    observation = _to_float_tensor(observation, "observation")
+    _require_static_rank(predicted, 3, "predicted_observation")
+    observation_rank = observation.shape.rank
+    if observation_rank == 1:
+        observation_broadcast = observation[None, None, :]
+    elif observation_rank == 2:
+        observation_broadcast = observation[:, None, :]
+    else:
+        raise ValueError("observation must have static rank 1 or 2")
+    if residual_convention == "model_minus_observation":
+        residual = predicted - observation_broadcast
+    elif residual_convention == "observation_minus_model":
+        residual = observation_broadcast - predicted
+    else:
+        raise ValueError(
+            "residual_convention must be 'model_minus_observation' or "
+            "'observation_minus_model'"
+        )
+    bar_residual, bar_covariance = _batched_gaussian_logpdf_vjp(
+        residual,
+        observation_covariance,
+        upstream,
+    )
+    bar_predicted, bar_observation = _observation_difference_residual_vjp(
+        bar_residual,
+        convention=residual_convention,
+    )
+    if observation_rank == 1:
+        bar_observation = tf.reduce_sum(bar_observation, axis=0)
+    return {
+        "predicted_observation": bar_predicted,
+        "observation": bar_observation,
+        "observation_covariance": bar_covariance,
+    }
+
+
+def _normalize_log_weights_vjp(
+    corrected_log_weights: tf.Tensor,
+    normalized_log_weight_upstream: tf.Tensor | None = None,
+    incremental_upstream: tf.Tensor | None = None,
+) -> tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
+    """Manual VJP for log-normalization and likelihood increment."""
+
+    corrected = _to_float_tensor(corrected_log_weights, "corrected_log_weights")
+    _require_static_rank(corrected, 2, "corrected_log_weights")
+    batch_size, num_particles = _static_shape(corrected, "corrected_log_weights")
+    weights, incremental = _normalize_log_weights(corrected)
+    if normalized_log_weight_upstream is None:
+        bar_normalized = tf.zeros_like(corrected)
+    else:
+        bar_normalized = _to_float_tensor(
+            normalized_log_weight_upstream,
+            "normalized_log_weight_upstream",
+        )
+        if _static_shape(bar_normalized, "normalized_log_weight_upstream") != (
+            batch_size,
+            num_particles,
+        ):
+            raise ValueError("normalized_log_weight_upstream shape mismatch")
+    if incremental_upstream is None:
+        bar_incremental = tf.zeros([batch_size], dtype=DTYPE)
+    else:
+        bar_incremental = _to_float_tensor(incremental_upstream, "incremental_upstream")
+        _require_static_rank(bar_incremental, 1, "incremental_upstream")
+        if _static_shape(bar_incremental, "incremental_upstream") != (batch_size,):
+            raise ValueError("incremental_upstream shape mismatch")
+
+    bar_corrected = (
+        bar_incremental[:, None] * weights
+        + bar_normalized
+        - weights * tf.reduce_sum(bar_normalized, axis=1, keepdims=True)
+    )
+    return bar_corrected, weights, incremental
+
+
+def _floor_log_weights_vjp(
+    weights: tf.Tensor,
+    floored_log_weight_upstream: tf.Tensor,
+    *,
+    floor: tf.Tensor | None = None,
+) -> tuple[tf.Tensor, tf.Tensor]:
+    """Fixed-branch VJP for ``log(max(weights, floor))``.
+
+    The returned first tensor is the cotangent of unfloored normalized log
+    weights.  The second tensor is the branch mask used by the VJP.
+    """
+
+    weights = _to_float_tensor(weights, "weights")
+    upstream = _to_float_tensor(
+        floored_log_weight_upstream,
+        "floored_log_weight_upstream",
+    )
+    _require_static_rank(weights, 2, "weights")
+    _require_static_rank(upstream, 2, "floored_log_weight_upstream")
+    if _static_shape(upstream, "floored_log_weight_upstream") != _static_shape(
+        weights,
+        "weights",
+    ):
+        raise ValueError("floored_log_weight_upstream shape mismatch")
+    floor_value = _log_weight_floor() if floor is None else tf.cast(floor, DTYPE)
+    active = weights > floor_value
+    return tf.where(active, upstream, tf.zeros_like(upstream)), active
+
+
+def _normalize_log_weights_with_floor_vjp(
+    corrected_log_weights: tf.Tensor,
+    floored_log_weight_upstream: tf.Tensor,
+    incremental_upstream: tf.Tensor | None = None,
+    *,
+    floor: tf.Tensor | None = None,
+) -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
+    """Manual VJP for normalize, fixed floor branch, and likelihood increment."""
+
+    corrected = _to_float_tensor(corrected_log_weights, "corrected_log_weights")
+    weights, incremental = _normalize_log_weights(corrected)
+    bar_normalized, floor_active = _floor_log_weights_vjp(
+        weights,
+        floored_log_weight_upstream,
+        floor=floor,
+    )
+    bar_corrected, _weights, _incremental = _normalize_log_weights_vjp(
+        corrected,
+        bar_normalized,
+        incremental_upstream,
+    )
+    return bar_corrected, weights, incremental, floor_active
+
+
+def _log_weight_correction_vjp(
+    corrected_log_weight_upstream: tf.Tensor,
+) -> dict[str, tf.Tensor]:
+    """Distribute cotangents through the LEDH log-weight correction identity."""
+
+    bar = _to_float_tensor(
+        corrected_log_weight_upstream,
+        "corrected_log_weight_upstream",
+    )
+    _require_static_rank(bar, 2, "corrected_log_weight_upstream")
+    return {
+        "current_log_weights": bar,
+        "transition_log_density": bar,
+        "observation_log_density": bar,
+        "pre_flow_log_density": -bar,
+        "forward_log_det": bar,
+    }
+
+
+def _observation_difference_residual_vjp(
+    residual_upstream: tf.Tensor,
+    *,
+    convention: str,
+) -> tuple[tf.Tensor, tf.Tensor]:
+    """Manual VJP for observation residual subtraction conventions."""
+
+    bar_residual = _to_float_tensor(residual_upstream, "residual_upstream")
+    if convention == "model_minus_observation":
+        return bar_residual, -tf.reduce_sum(bar_residual, axis=1)
+    if convention == "observation_minus_model":
+        return -bar_residual, tf.reduce_sum(bar_residual, axis=1)
+    raise ValueError(
+        "convention must be 'model_minus_observation' or 'observation_minus_model'"
+    )
+
+
+def _batched_ledh_linearized_flow_with_aux_tf(
+    *,
+    pre_flow_particles: tf.Tensor,
+    prior_means: tf.Tensor,
+    observation_jacobian: tf.Tensor,
+    observation_residual: tf.Tensor,
+    transition_covariance: tf.Tensor,
+    observation_covariance: tf.Tensor,
+    jitter: float | tf.Tensor = 1.0e-9,
+) -> tuple[BatchedLEDHFlowTensors, _BatchedLEDHLinearizedFlowAux]:
+    """Run the matrix-only LEDH flow primitive and retain VJP checkpoints."""
+
+    x0 = _to_float_tensor(pre_flow_particles, "pre_flow_particles")
+    prior_means = _to_float_tensor(prior_means, "prior_means")
+    h_jac = _to_float_tensor(observation_jacobian, "observation_jacobian")
+    residual = _to_float_tensor(observation_residual, "observation_residual")
+    transition_covariance = _to_float_tensor(
+        transition_covariance,
+        "transition_covariance",
+    )
+    observation_covariance = _to_float_tensor(
+        observation_covariance,
+        "observation_covariance",
+    )
+    _require_static_rank(x0, 3, "pre_flow_particles")
+    _require_static_rank(prior_means, 3, "prior_means")
+    _require_static_rank(h_jac, 4, "observation_jacobian")
+    _require_static_rank(residual, 3, "observation_residual")
+    _require_static_rank(transition_covariance, 3, "transition_covariance")
+    _require_static_rank(observation_covariance, 3, "observation_covariance")
+    batch_size, num_particles, state_dim = _static_shape(x0, "pre_flow_particles")
+    if _static_shape(prior_means, "prior_means") != (batch_size, num_particles, state_dim):
+        raise ValueError("prior_means shape mismatch")
+    observation_dim = _static_shape(observation_covariance, "observation_covariance")[1]
+    _require_square_batch(
+        transition_covariance,
+        batch_size,
+        state_dim,
+        "transition_covariance",
+    )
+    _require_square_batch(
+        observation_covariance,
+        batch_size,
+        observation_dim,
+        "observation_covariance",
+    )
+    _require_observation_callback_shapes(
+        h_ref=residual,
+        h_jac=h_jac,
+        residual=residual,
+        batch_size=batch_size,
+        num_particles=num_particles,
+        state_dim=state_dim,
+        observation_dim=observation_dim,
+    )
+
+    transition_covariance_stable = _stabilize_batch_covariance(
+        transition_covariance,
+        jitter,
+        "transition_covariance",
+    )
+    observation_covariance_stable = _stabilize_batch_covariance(
+        observation_covariance,
+        jitter,
+        "observation_covariance",
+    )
+    delta = x0 - prior_means
+    pre_flow_log_density = _batched_gaussian_logpdf(
+        delta,
+        transition_covariance_stable,
+    )
+    prior_chol = tf.linalg.cholesky(transition_covariance_stable)
+    prior_precision = tf.linalg.cholesky_solve(
+        prior_chol,
+        _tile_eye(batch_size, state_dim),
+    )
+    obs_chol = tf.linalg.cholesky(observation_covariance_stable)
+    obs_precision = tf.linalg.cholesky_solve(
+        obs_chol,
+        _tile_eye(batch_size, observation_dim),
+    )
+    pseudo_observation = tf.einsum("bnod,bnd->bno", h_jac, x0) + residual
+    post_precision = prior_precision[:, None, :, :] + tf.einsum(
+        "bnod,boq,bnqe->bnde",
+        h_jac,
+        obs_precision,
+        h_jac,
+    )
+    post_precision_stable = _stabilize_batch_covariance(
+        post_precision,
+        jitter,
+        "post_precision",
+    )
+    post_covariance_unstabilized = tf.linalg.inv(post_precision_stable)
+    post_covariance = _stabilize_batch_covariance(
+        post_covariance_unstabilized,
+        jitter,
+        "post_covariance",
+    )
+    info = tf.einsum("bde,bne->bnd", prior_precision, prior_means) + tf.einsum(
+        "bnod,boq,bnq->bnd",
+        h_jac,
+        obs_precision,
+        pseudo_observation,
+    )
+    post_mean = tf.einsum("bnde,bne->bnd", post_covariance, info)
+    post_chol = tf.linalg.cholesky(post_covariance)
+    prior_inv = tf.linalg.triangular_solve(
+        prior_chol,
+        _tile_eye(batch_size, state_dim),
+    )
+    affine_transform = tf.einsum("bnij,bjk->bnik", post_chol, prior_inv)
+    post_flow_particles = post_mean + tf.einsum(
+        "bnij,bnj->bni",
+        affine_transform,
+        delta,
+    )
+    forward_log_det = tf.reduce_sum(
+        tf.math.log(tf.linalg.diag_part(post_chol)),
+        axis=-1,
+    ) - tf.reduce_sum(
+        tf.math.log(tf.linalg.diag_part(prior_chol)),
+        axis=-1,
+    )[:, None]
+    flow = BatchedLEDHFlowTensors(
+        post_flow_particles=post_flow_particles,
+        pre_flow_log_density=pre_flow_log_density,
+        forward_log_det=forward_log_det,
+        local_posterior_means=post_mean,
+        local_posterior_covariances=post_covariance,
+    )
+    aux = _BatchedLEDHLinearizedFlowAux(
+        x0=x0,
+        prior_means=prior_means,
+        observation_jacobian=h_jac,
+        observation_residual=residual,
+        transition_covariance=transition_covariance,
+        observation_covariance=observation_covariance,
+        transition_covariance_stable=transition_covariance_stable,
+        observation_covariance_stable=observation_covariance_stable,
+        prior_chol=prior_chol,
+        prior_precision=prior_precision,
+        obs_precision=obs_precision,
+        pseudo_observation=pseudo_observation,
+        post_precision=post_precision,
+        post_precision_stable=post_precision_stable,
+        post_covariance_unstabilized=post_covariance_unstabilized,
+        post_covariance=post_covariance,
+        post_chol=post_chol,
+        prior_inv=prior_inv,
+        affine_transform=affine_transform,
+        delta=delta,
+        info=info,
+    )
+    return flow, aux
+
+
+def _batched_ledh_linearized_flow_vjp(
+    aux: _BatchedLEDHLinearizedFlowAux,
+    post_flow_particles_upstream: tf.Tensor,
+    pre_flow_log_density_upstream: tf.Tensor,
+    forward_log_det_upstream: tf.Tensor,
+) -> BatchedLEDHFlowVJPTensors:
+    """Manual VJP for the matrix-only LEDH affine flow primitive."""
+
+    x0 = aux.x0
+    prior_means = aux.prior_means
+    h_jac = aux.observation_jacobian
+    state_dim = _static_shape(x0, "pre_flow_particles")[2]
+    batch_size, num_particles, _state_dim = _static_shape(x0, "pre_flow_particles")
+
+    bar_post = _to_float_tensor(
+        post_flow_particles_upstream,
+        "post_flow_particles_upstream",
+    )
+    bar_pre_log = _to_float_tensor(
+        pre_flow_log_density_upstream,
+        "pre_flow_log_density_upstream",
+    )
+    bar_logdet = _to_float_tensor(forward_log_det_upstream, "forward_log_det_upstream")
+    if _static_shape(bar_post, "post_flow_particles_upstream") != _static_shape(
+        x0,
+        "pre_flow_particles",
+    ):
+        raise ValueError("post_flow_particles_upstream shape mismatch")
+    if _static_shape(bar_pre_log, "pre_flow_log_density_upstream") != (
+        batch_size,
+        num_particles,
+    ):
+        raise ValueError("pre_flow_log_density_upstream shape mismatch")
+    if _static_shape(bar_logdet, "forward_log_det_upstream") != (
+        batch_size,
+        num_particles,
+    ):
+        raise ValueError("forward_log_det_upstream shape mismatch")
+
+    bar_x0 = tf.zeros_like(x0)
+    bar_prior_means = tf.zeros_like(prior_means)
+    bar_h_jac = tf.zeros_like(h_jac)
+    bar_residual = tf.zeros_like(aux.observation_residual)
+    bar_transition_covariance = tf.zeros_like(aux.transition_covariance_stable)
+    bar_observation_covariance = tf.zeros_like(aux.observation_covariance_stable)
+
+    bar_delta_from_pre_log, bar_cov_from_pre_log = _batched_gaussian_logpdf_vjp(
+        aux.delta,
+        aux.transition_covariance_stable,
+        bar_pre_log,
+    )
+    bar_x0 += bar_delta_from_pre_log
+    bar_prior_means -= bar_delta_from_pre_log
+    bar_transition_covariance += bar_cov_from_pre_log
+
+    bar_post_mean = bar_post
+    bar_affine = tf.einsum("bni,bnj->bnij", bar_post, aux.delta)
+    bar_delta = tf.einsum("bnij,bni->bnj", aux.affine_transform, bar_post)
+    bar_x0 += bar_delta
+    bar_prior_means -= bar_delta
+
+    bar_post_chol = tf.einsum("bnik,bjk->bnij", bar_affine, aux.prior_inv)
+    bar_prior_inv = tf.einsum("bnij,bnik->bjk", aux.post_chol, bar_affine)
+
+    diag_post = tf.linalg.diag_part(aux.post_chol)
+    bar_post_chol += tf.linalg.diag(bar_logdet[:, :, None] / diag_post)
+    diag_prior = tf.linalg.diag_part(aux.prior_chol)
+    bar_prior_chol = tf.linalg.diag(
+        -tf.reduce_sum(bar_logdet, axis=1)[:, None] / diag_prior
+    )
+    bar_prior_chol += _triangular_solve_eye_vjp(
+        aux.prior_chol,
+        aux.prior_inv,
+        bar_prior_inv,
+    )
+
+    bar_post_covariance = _cholesky_vjp(aux.post_chol, bar_post_chol)
+    bar_post_covariance += tf.einsum(
+        "bni,bnj->bnij",
+        bar_post_mean,
+        aux.info,
+    )
+    bar_info = tf.einsum("bnij,bni->bnj", aux.post_covariance, bar_post_mean)
+
+    bar_post_covariance_unstabilized = _symmetrize_matrix(bar_post_covariance)
+    bar_post_precision_stable = _inverse_spd_vjp(
+        aux.post_covariance_unstabilized,
+        bar_post_covariance_unstabilized,
+    )
+    bar_post_precision = _symmetrize_matrix(bar_post_precision_stable)
+
+    bar_prior_precision = tf.reduce_sum(bar_post_precision, axis=1)
+    sh = tf.einsum("boq,bnqd->bnod", aux.obs_precision, h_jac)
+    bar_h_jac += tf.matmul(sh, bar_post_precision, transpose_b=True)
+    bar_h_jac += tf.einsum(
+        "boq,bnqd->bnod",
+        tf.linalg.matrix_transpose(aux.obs_precision),
+        tf.matmul(h_jac, bar_post_precision),
+    )
+    bar_obs_precision = tf.einsum(
+        "bnod,bnde,bnpe->bop",
+        h_jac,
+        bar_post_precision,
+        h_jac,
+    )
+
+    bar_prior_precision += tf.einsum("bnd,bne->bde", bar_info, prior_means)
+    bar_prior_means += tf.einsum("bde,bnd->bne", aux.prior_precision, bar_info)
+
+    s_z = tf.einsum("bop,bnp->bno", aux.obs_precision, aux.pseudo_observation)
+    bar_h_jac += tf.einsum("bno,bnd->bnod", s_z, bar_info)
+    h_bar_info = tf.einsum("bnod,bnd->bno", h_jac, bar_info)
+    bar_obs_precision += tf.einsum(
+        "bno,bnp->bop",
+        h_bar_info,
+        aux.pseudo_observation,
+    )
+    bar_pseudo_observation = tf.einsum(
+        "bop,bno->bnp",
+        aux.obs_precision,
+        h_bar_info,
+    )
+
+    bar_h_jac += tf.einsum("bno,bnd->bnod", bar_pseudo_observation, x0)
+    bar_x0 += tf.einsum("bnod,bno->bnd", h_jac, bar_pseudo_observation)
+    bar_residual += bar_pseudo_observation
+
+    bar_transition_covariance += _inverse_spd_vjp(
+        aux.prior_precision,
+        bar_prior_precision,
+    )
+    bar_observation_covariance += _inverse_spd_vjp(
+        aux.obs_precision,
+        bar_obs_precision,
+    )
+    bar_transition_covariance += _cholesky_vjp(aux.prior_chol, bar_prior_chol)
+
+    return BatchedLEDHFlowVJPTensors(
+        pre_flow_particles=bar_x0,
+        prior_means=bar_prior_means,
+        observation_jacobian=bar_h_jac,
+        observation_residual=bar_residual,
+        transition_covariance=_symmetrize_matrix(bar_transition_covariance),
+        observation_covariance=_symmetrize_matrix(bar_observation_covariance),
+    )
+
+
 def batched_annealed_transport_core_tf(
     particles: tf.Tensor,
     log_weights: tf.Tensor,
@@ -697,16 +1366,63 @@ def batched_annealed_transport_core_tf(
     """Apply annealed transport to fixed-mask rows without eager branch logic."""
 
     _sync_transport_dtype()
-    if transport_gradient_mode not in {"filterflow_clipped", "filterflow_custom_op", "raw"}:
+    allowed_gradient_modes = {
+        "filterflow_clipped",
+        "filterflow_custom_op",
+        "raw",
+        MANUAL_DENSE_FINITE_TRANSPORT_GRADIENT_MODE,
+        MANUAL_STREAMING_FINITE_TRANSPORT_GRADIENT_MODE,
+        MANUAL_STREAMING_BLOCKWISE_VJP_FINITE_TRANSPORT_GRADIENT_MODE,
+    }
+    if transport_gradient_mode not in allowed_gradient_modes:
         raise ValueError(
             "transport_gradient_mode must be 'filterflow_clipped', "
-            "'filterflow_custom_op', or 'raw'"
+            f"'filterflow_custom_op', 'raw', or "
+            f"'{MANUAL_DENSE_FINITE_TRANSPORT_GRADIENT_MODE}'/"
+            f"'{MANUAL_STREAMING_FINITE_TRANSPORT_GRADIENT_MODE}'/"
+            f"'{MANUAL_STREAMING_BLOCKWISE_VJP_FINITE_TRANSPORT_GRADIENT_MODE}'"
         )
     if transport_plan_mode not in {"dense", "streaming"}:
         raise ValueError("transport_plan_mode must be 'dense' or 'streaming'")
     _validate_transport_ad_mode(transport_ad_mode)
+    if transport_gradient_mode == MANUAL_DENSE_FINITE_TRANSPORT_GRADIENT_MODE:
+        if transport_plan_mode != "dense":
+            raise ValueError("manual dense finite route supports dense transport only")
+        if warmstart_state is not None:
+            raise ValueError("manual dense finite route does not support warmstarts")
+        if transport_ad_mode != "stabilized":
+            raise ValueError("manual dense finite route requires transport_ad_mode='stabilized'")
+        manual_dense_finite_steps = _manual_dense_finite_steps(max_iterations)
+    else:
+        manual_dense_finite_steps = 0
+    if transport_gradient_mode == MANUAL_STREAMING_FINITE_TRANSPORT_GRADIENT_MODE:
+        if transport_plan_mode != "streaming":
+            raise ValueError("manual streaming finite route supports streaming transport only")
+        if warmstart_state is not None:
+            raise ValueError("manual streaming finite route does not support warmstarts")
+        if transport_ad_mode not in {"stabilized", "full"}:
+            raise ValueError("manual streaming finite route requires transport_ad_mode='stabilized' or 'full'")
+        manual_streaming_finite_steps = _manual_dense_finite_steps(max_iterations)
+    else:
+        manual_streaming_finite_steps = 0
+    if transport_gradient_mode == MANUAL_STREAMING_BLOCKWISE_VJP_FINITE_TRANSPORT_GRADIENT_MODE:
+        if transport_plan_mode != "streaming":
+            raise ValueError("manual streaming blockwise VJP finite route supports streaming transport only")
+        if warmstart_state is not None:
+            raise ValueError("manual streaming blockwise VJP finite route does not support warmstarts")
+        if transport_ad_mode != "stabilized":
+            raise ValueError(
+                "manual streaming blockwise VJP finite route requires transport_ad_mode='stabilized'"
+            )
+        manual_streaming_blockwise_vjp_finite_steps = _manual_dense_finite_steps(max_iterations)
+    else:
+        manual_streaming_blockwise_vjp_finite_steps = 0
     if transport_plan_mode == "streaming" and transport_gradient_mode != "raw":
-        raise ValueError("streaming transport currently supports transport_gradient_mode='raw' only")
+        if transport_gradient_mode not in {
+            MANUAL_STREAMING_FINITE_TRANSPORT_GRADIENT_MODE,
+            MANUAL_STREAMING_BLOCKWISE_VJP_FINITE_TRANSPORT_GRADIENT_MODE,
+        }:
+            raise ValueError("streaming transport currently supports raw or manual streaming gradients only")
     if row_chunk_size <= 0 or col_chunk_size <= 0:
         raise ValueError("row_chunk_size and col_chunk_size must be positive")
     x = _to_float_tensor(particles, "particles")
@@ -747,7 +1463,52 @@ def batched_annealed_transport_core_tf(
     threshold_tensor = tf.convert_to_tensor(convergence_threshold, dtype=DTYPE)
     max_iterations_tensor = tf.convert_to_tensor(max_iterations, dtype=tf.int32)
     num_particles_tensor = tf.shape(x)[1]
-    if transport_plan_mode == "streaming":
+    if transport_gradient_mode == MANUAL_STREAMING_FINITE_TRANSPORT_GRADIENT_MODE:
+        if epsilon_tensor.shape.rank is not None and epsilon_tensor.shape.rank != 0:
+            raise ValueError("manual streaming finite route supports scalar epsilon only")
+        epsilon0 = _filterflow_epsilon_start(scaled_x)
+        if transport_ad_mode == "stabilized":
+            epsilon0 = tf.stop_gradient(epsilon0)
+            transport_fn = _filterflow_manual_streaming_finite_transport_stopped_scale_keys
+        else:
+            transport_fn = _filterflow_manual_streaming_finite_transport_total_vjp
+        (
+            transported,
+            row_residual,
+        ) = transport_fn(
+            scaled_x,
+            x,
+            logw,
+            epsilon_tensor,
+            epsilon0,
+            scaling_tensor,
+            steps=manual_streaming_finite_steps,
+            row_chunk_size=row_chunk_size,
+            col_chunk_size=col_chunk_size,
+        )
+        transport_matrix = tf.zeros([batch_size, 0, 0], dtype=DTYPE)
+        column_residual = tf.constant(0.0, DTYPE)
+    elif transport_gradient_mode == MANUAL_STREAMING_BLOCKWISE_VJP_FINITE_TRANSPORT_GRADIENT_MODE:
+        if epsilon_tensor.shape.rank is not None and epsilon_tensor.shape.rank != 0:
+            raise ValueError("manual streaming blockwise VJP finite route supports scalar epsilon only")
+        epsilon0 = tf.stop_gradient(_filterflow_epsilon_start(scaled_x))
+        (
+            transported,
+            row_residual,
+        ) = _filterflow_manual_streaming_blockwise_vjp_finite_transport_stopped_scale_keys(
+            scaled_x,
+            x,
+            logw,
+            epsilon_tensor,
+            epsilon0,
+            scaling_tensor,
+            steps=manual_streaming_blockwise_vjp_finite_steps,
+            row_chunk_size=row_chunk_size,
+            col_chunk_size=col_chunk_size,
+        )
+        transport_matrix = tf.zeros([batch_size, 0, 0], dtype=DTYPE)
+        column_residual = tf.constant(0.0, DTYPE)
+    elif transport_plan_mode == "streaming":
         transport_matrix = tf.zeros([batch_size, 0, 0], dtype=DTYPE)
         (
             transported,
@@ -777,6 +1538,24 @@ def batched_annealed_transport_core_tf(
             threshold_tensor,
             max_iterations_tensor,
             num_particles_tensor,
+        )
+        transported = tf.linalg.matmul(transport_matrix, x)
+        row_residual = tf.reduce_max(tf.abs(tf.reduce_sum(transport_matrix, axis=2) - 1.0))
+        source_weights = tf.exp(logw)
+        column_mass = tf.reduce_sum(transport_matrix, axis=1)
+        column_target = source_weights * tf.cast(num_particles, DTYPE)
+        column_residual = tf.reduce_max(tf.abs(column_mass - column_target))
+    elif transport_gradient_mode == MANUAL_DENSE_FINITE_TRANSPORT_GRADIENT_MODE:
+        if epsilon_tensor.shape.rank is not None and epsilon_tensor.shape.rank != 0:
+            raise ValueError("manual dense finite route supports scalar epsilon only")
+        epsilon0 = tf.stop_gradient(_filterflow_epsilon_start(scaled_x))
+        transport_matrix = _filterflow_manual_dense_finite_transport_matrix_stopped_scale_keys(
+            scaled_x,
+            logw,
+            epsilon_tensor,
+            epsilon0,
+            scaling_tensor,
+            steps=manual_dense_finite_steps,
         )
         transported = tf.linalg.matmul(transport_matrix, x)
         row_residual = tf.reduce_max(tf.abs(tf.reduce_sum(transport_matrix, axis=2) - 1.0))

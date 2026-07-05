@@ -666,14 +666,17 @@ The residuals in
 the minimum spectral gap, the active-floor set, and any fallback branch are part
 of the derivative output contract.
 
-\section{Principal-Square-Root Placement Backend}
+\section{Principal-Square-Root UKF Backend}
 \label{sec:bf-svd-principal-sqrt-backend}
 
 The preceding eigenderivative formulas define the historical
-\texttt{tf\_svd\_ukf} branch.  BayesFilter also has a distinct experimental
-backend, \texttt{tf\_principal\_sqrt\_ukf}, whose factor is the principal
-matrix square root rather than a signed or ordered eigenvector column factor.
-The two names are backend contracts, not aliases.
+\texttt{tf\_svd\_ukf} branch.  BayesFilter also has a distinct promoted
+strict-SPD backend, \texttt{tf\_principal\_sqrt\_ukf}, whose factor is the
+principal matrix square root rather than a signed or ordered eigenvector column
+factor.  The historical eigenderivative branch is retained for diagnostic
+comparison and bounded regression use, not as the HMC-facing production route on
+the promoted strict-SPD scope.  The two names are backend contracts, not
+aliases.
 
 On a strict-SPD branch, let
 \[
@@ -714,6 +717,61 @@ Thus the same Sylvester primitive supplies the Hessian-level square-root
 factor derivative once $\dot S^{(i)}$, $\dot S^{(j)}$, and
 $\ddot P^{(ij)}$ are available.
 
+The same strict-SPD rule applies at the update stage to the innovation
+covariance.  Let
+\[
+  S_t\in\mathbb S_{++}^{n_y},\qquad
+  R_t=S_t^{1/2}=R_t^\top\succ0,
+\]
+where $S_t$ is the innovation covariance assembled from the sigma-point moment
+recursion in
+\eqref{eq:bf-svd-sp-transformed-cov}--\eqref{eq:bf-svd-sp-cross-second}.  Then
+for each parameter component $\theta_i$ the promoted principal-square-root UKF
+contract uses
+\begin{equation}
+\label{eq:bf-svd-principal-sqrt-innovation-first}
+  R_t\,\dot R_t^{(i)}+\dot R_t^{(i)}R_t=\dot S_t^{(i)}
+\end{equation}
+rather than differentiating an eigendecomposition of $S_t$.  Likewise the
+second-order update branch, when needed, is defined by
+\begin{equation}
+\label{eq:bf-svd-principal-sqrt-innovation-second}
+  R_t\,\ddot R_t^{(ij)}+\ddot R_t^{(ij)}R_t
+  =
+  \ddot S_t^{(ij)}
+  -\dot R_t^{(i)}\dot R_t^{(j)}
+  -\dot R_t^{(j)}\dot R_t^{(i)} .
+\end{equation}
+On this branch the repeated-positive-eigenvalue hazard is handled by the same
+strict-SPD Sylvester operator as in the placement stage; the backend must not
+reintroduce eigen-gap denominators by differentiating innovation eigenvectors or
+innovation eigenvalues under a separate SVD branch.
+
+This update-side contract also keeps the Gaussian score and gain derivatives in
+solve form.  Let $S_tw_t=v_t$ as in
+\eqref{eq:bf-svd-sp-score}.  Then
+\begin{equation}
+\label{eq:bf-svd-principal-sqrt-innovation-solve-first}
+  S_t\,\dot w_t^{(i)}
+  =
+  \dot v_t^{(i)}-\dot S_t^{(i)}w_t,
+\end{equation}
+and
+\begin{equation}
+\label{eq:bf-svd-principal-sqrt-innovation-logdet-first}
+  \partial_i\log\det S_t
+  =
+  2\tr\left(R_t^{-1}\dot R_t^{(i)}\right)
+  =
+  \tr\left(S_t^{-1}\dot S_t^{(i)}\right).
+\end{equation}
+Therefore the promoted principal-square-root branch may use a symmetric square
+root of $S_t$ for value-side solves and diagnostics, but its derivative contract
+is the solve/Sylvester form in
+\eqref{eq:bf-svd-principal-sqrt-innovation-first}--
+\eqref{eq:bf-svd-principal-sqrt-innovation-logdet-first}, not an
+innovation-eigendecomposition derivative.
+
 The sigma-point rule has square-root gauge freedom.  If $C C^\top=P$, then
 the standardized point cloud $\chi^{(r)}=m+C\xi^{(r)}$ matches the same first
 and second Gaussian moments whenever the chosen rule's offsets and weights
@@ -728,12 +786,20 @@ claim nonlinear value identity across gauges.
 The current principal-square-root backend is strict-SPD only.  It must keep
 fixed-null support disabled unless a separate reviewed branch specifies how
 structural nulls, active floors, and rank-deficient covariance laws are
-represented and differentiated.  Required diagnostics for this backend include
-the Sylvester residual in
-\eqref{eq:bf-svd-principal-sqrt-first}, the reconstruction residual
-$\dot P^{(i)}-(\dot S^{(i)}S+S\dot S^{(i)})$, minimum eigenvalue of $P$, any
-jitter or floor policy, and eager/compiled parity for the complete
-value-and-score path.
+represented and differentiated.  A promoted principal-square-root UKF backend
+must fail closed whenever the strict-SPD assumptions for either placement or
+innovation covariance are violated.  An active floor, a semidefinite innovation
+law, or a structural-null completion rule is a different backend branch, not a
+silent reinterpretation of
+\eqref{eq:bf-svd-principal-sqrt-first} or
+\eqref{eq:bf-svd-principal-sqrt-innovation-first}.  Required diagnostics for
+this backend include the Sylvester residuals in
+\eqref{eq:bf-svd-principal-sqrt-first} and
+\eqref{eq:bf-svd-principal-sqrt-innovation-first}, the reconstruction residuals
+$\dot P^{(i)}-(\dot S^{(i)}S+S\dot S^{(i)})$ and
+$\dot S_t^{(i)}-(\dot R_t^{(i)}R_t+R_t\dot R_t^{(i)})$, the minimum eigenvalues
+of $P$ and $S_t$, any jitter or floor policy, and eager/compiled parity for the
+complete value-and-score path.
 
 The Phase 2026-06 strict-SPD implementation evidence is bounded: repeated
 positive-spectrum fixtures, reconstruction checks, compiled value/score smoke,
@@ -1170,5 +1236,6 @@ targets, the project must additionally provide:
     fails the preceding checks.
 \end{enumerate}
 For industrial-size models, the conservative default is prevention rather than
-debugging: certify a derivative path before relying on SVD-tape gradients in a
-long HMC run.
+debugging: rely on the promoted strict-SPD principal-square-root derivative path
+for HMC-facing work, and keep the historical eigenderivative SVD-UKF branch as a
+diagnostic comparator rather than the production route.

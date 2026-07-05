@@ -10,7 +10,7 @@ learned acceleration are added.
 The key conceptual move is simple.  A weighted particle cloud and an equal-weight
 particle cloud are not the same object.  Deterministic OT equal-weighting asks for
 a mass-redistribution rule that sends the weighted source cloud to an equal-weight
-target cloud as cheaply as possible under a declared cost.  This already changes
+target cloud as cheaply as possible under a declared cost \citep{villani2003topics,peyre2019computational,reich2013nonparametric}.  This already changes
 the resampling object relative to categorical ancestor sampling, but it does so in
 a clean, finite-dimensional, deterministic way.
 
@@ -22,7 +22,7 @@ Suppose a particle filter has produced support points
 \(w_1,\ldots,w_N\).  A later stage of the filter may want an equally weighted
 cloud so that no single particle dominates future propagation or summary
 statistics.  Classical resampling achieves this by random duplication and
-elimination.  The deterministic OT baseline instead asks:
+elimination \citep{doucet2001sequential,chopin2020introduction}.  The deterministic OT baseline instead asks:
 
 \begin{quote}
 How should mass be reassigned from the weighted cloud to an equal-weight output
@@ -37,6 +37,21 @@ This chapter answers that question in three layers:
   \item convert that coupling into the equal-weight output cloud by barycentric
   projection.
 \end{enumerate}
+These are the same basic objects that underlie deterministic ensemble-transform
+and OT-based equal-weighting formulations \citep{reich2013nonparametric,peyre2019computational}.
+
+\begin{center}
+\small
+\begin{tabular}{p{0.20\textwidth} p{0.22\textwidth} p{0.22\textwidth} p{0.24\textwidth}}
+\toprule
+Stage & Source object & Output object & What later chapters change \\
+\midrule
+This chapter & weighted empirical cloud & deterministic coupling and barycentric equal-weight cloud & nothing yet; fixes the baseline object \\
+Next chapter & same weighted cloud & entropically regularized coupling and barycentric cloud & replaces the deterministic LP by an entropic teacher and finite Sinkhorn route \\
+Later OT chapters & same weighted cloud & accelerated, learned, or target-changing transports & may preserve the teacher, compress it, or replace it entirely \\
+\bottomrule
+\end{tabular}
+\end{center}
 
 \section{Running three-particle cell: deterministic OT version}
 \label{sec:bf-ot-baseline-cell}
@@ -181,7 +196,9 @@ The scalable-OT survey sharpens the main practical boundary here.  For the
 BayesFilter filtering recursion, a fast scalar optimal-transport value is not by
 itself a usable resampling output.  The filter needs an object that actually acts
 on the weighted particle cloud.  In the deterministic equal-weighting baseline,
-that usable object is the coupling \(\Pi\) together with its barycentric action.
+that usable object is the coupling \(\Pi\) together with its barycentric action,
+in the spirit of ensemble-transform and differentiable OT-resampling work
+\citep{reich2013nonparametric,corenflos2021differentiable}.
 Schematically, the required outputs are of the form
 \begin{equation}
 \label{eq:bf-ot-baseline-usable-object}
@@ -336,6 +353,9 @@ weighting.  It does \emph{not} claim:
 \end{itemize}
 Its role is narrower: it fixes the exact deterministic OT baseline so that the
 next chapter can explain what changes when entropy, Sinkhorn iteration, and
-solver differentiation are added.
+solver differentiation are added.  More precisely, the next chapter will preserve
+the need for a usable transport object and the same barycentric output map while
+changing the teacher coupling from the unregularized linear-program object to an
+entropically regularized one.
 
 \FloatBarrier

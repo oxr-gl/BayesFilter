@@ -1,0 +1,67 @@
+{
+  "schema_version": "bayesfilter.highdim_leaderboard.remaining_blockers.phase5.readiness_manifest.v1",
+  "date": "2026-07-02",
+  "phase": 5,
+  "status": "PHASE5_READINESS_CLASSIFIED_NO_ADMISSION_CHANGE",
+  "scope": {
+    "admitted_row_artifacts_only": [
+      "docs/plans/bayesfilter-highdim-leaderboard-remaining-blockers-phase1-predator-prey-zhaocui-row-2026-07-02.json",
+      "docs/plans/bayesfilter-highdim-leaderboard-remaining-blockers-phase2-generalized-sv-zhaocui-row-2026-07-02.json"
+    ],
+    "negative_boundary_artifact": "docs/plans/bayesfilter-highdim-leaderboard-remaining-blockers-phase4-ukf-route-bindings-2026-07-02.json",
+    "non_admitted_phase3_phase4_blockers_promoted": false,
+    "gpu_xla_claimed": false
+  },
+  "admitted_rows": [
+    {
+      "row_key": "phase1_zhao_cui_predator_prey_T20",
+      "row_id": "zhao_cui_predator_prey_T20",
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "row_artifact": "docs/plans/bayesfilter-highdim-leaderboard-remaining-blockers-phase1-predator-prey-zhaocui-row-2026-07-02.json",
+      "row_artifact_shape": "single_object",
+      "comparison_status": "executed_value_score",
+      "score_status": "analytical_score_emitted",
+      "score_derivative_provenance": "zhao_cui_predator_prey_t20_multistate_fixed_design_tt_manual_parameter_score_methods_only",
+      "score_coordinate_system": "theta=(r,K,a,s,u,v)",
+      "score_l2_norm": 154.27055472098652,
+      "runtime_seconds": 107.88529662997462,
+      "batch_parity_status": "deferred_exact_harness_missing",
+      "score_at_true_status": "deferred_exact_multiseed_harness_missing",
+      "gpu_xla_status": "not_run_requires_explicit_trusted_approval",
+      "readiness_summary": "value/manual-score row admitted locally; batch, GPU/XLA, and multi-seed score-at-true readiness are not claimed"
+    },
+    {
+      "row_key": "phase2_zhao_cui_generalized_sv_synthetic_from_estimated_values",
+      "row_id": "zhao_cui_generalized_sv_synthetic_from_estimated_values",
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "row_artifact": "docs/plans/bayesfilter-highdim-leaderboard-remaining-blockers-phase2-generalized-sv-zhaocui-row-2026-07-02.json",
+      "row_artifact_shape": "list_with_one_object",
+      "comparison_status": "executed_value_score",
+      "score_status": "analytical_score_emitted",
+      "score_derivative_provenance": "zhao_cui_generalized_sv_prior_mean_scalar_fixed_design_tt_manual_parameter_score_methods_only",
+      "score_coordinate_system": "theta=(z_gamma,log_tau,mu_over_tau); gamma=Phi(z_gamma), tau=exp(log_tau), mu=mu_over_tau*tau",
+      "score_l2_norm": 2.5941465338897247,
+      "runtime_seconds": 454.6250707899453,
+      "batch_parity_status": "deferred_exact_harness_missing",
+      "score_at_true_status": "deferred_exact_multiseed_harness_missing",
+      "gpu_xla_status": "not_run_requires_explicit_trusted_approval",
+      "readiness_summary": "value/manual-score row admitted locally; batch, GPU/XLA, and multi-seed score-at-true readiness are not claimed"
+    }
+  ],
+  "phase4_negative_boundary": {
+    "status": "passed_no_phase4_ukf_blocker_promoted",
+    "route_binding_artifact": "docs/plans/bayesfilter-highdim-leaderboard-remaining-blockers-phase4-ukf-route-bindings-2026-07-02.json",
+    "blocked_ukf_rows_remain_non_admitted_readiness_targets": [
+      "zhao_cui_predator_prey_T20",
+      "zhao_cui_generalized_sv_synthetic_from_estimated_values",
+      "zhao_cui_spatial_sir_austria_j9_T20"
+    ]
+  },
+  "nonclaims": [
+    "readiness classification does not change value/score admission",
+    "no row-specific batch-parity result is claimed",
+    "no trusted GPU/XLA result is claimed",
+    "no multi-seed score-at-true calibration result is claimed",
+    "score-at-true consistency, if run later, would not prove exact likelihood correctness"
+  ]
+}

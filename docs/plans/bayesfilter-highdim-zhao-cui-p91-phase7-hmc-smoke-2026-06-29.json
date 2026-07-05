@@ -1,0 +1,104 @@
+{
+  "actual_xla_status": true,
+  "artifact_paths": {
+    "exact_command_refresh": "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase7-hmc-smoke-exact-command-refresh-2026-06-29.md",
+    "manifest": "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase7-hmc-smoke-2026-06-29.json",
+    "phase8_subplan": "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase8-packaging-release-subplan-2026-06-29.md",
+    "result": "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase7-hmc-smoke-result-2026-06-29.md"
+  },
+  "blocker_statuses_preserved": {
+    "fixed_ttsirt_transport_derivative": "BLOCK_FIXED_TTSIRT_PROPOSAL_TRANSPORT_DERIVATIVE_NOT_IMPLEMENTED",
+    "full_observed_data_filtering_score_identity": "NOT_CLAIMED",
+    "full_source_route_fd": "BLOCK_FULL_SOURCE_ROUTE_FD_NOT_CLAIMED",
+    "previous_marginal_derivative": "BLOCK_FIXED_TTSIRT_PREVIOUS_MARGINAL_DERIVATIVE_NOT_IMPLEMENTED"
+  },
+  "chains": 2,
+  "command": "python scripts/p91_hmc_smoke.py --manifest docs/plans/bayesfilter-highdim-zhao-cui-p91-phase7-hmc-smoke-2026-06-29.json --chains 2 --num-results 8 --num-burnin-steps 4 --step-size 0.0001 --num-leapfrog-steps 3 --seed 9107 --xla true",
+  "conda_environment": "tf-gpu",
+  "decision_veto_status": {
+    "hard_veto_failed": false,
+    "primary_criterion_passed": true
+  },
+  "devices": {
+    "gpu_names": [
+      "NVIDIA GeForce RTX 4080 SUPER"
+    ],
+    "logical_gpus": [
+      "/device:GPU:0"
+    ],
+    "physical_gpus": [
+      "/physical_device:GPU:0"
+    ]
+  },
+  "diagnostics": {
+    "acceptance_rate": 1.0,
+    "log_accept_ratio_finite": true,
+    "log_accept_ratio_max": 0.0003263671841562399,
+    "log_accept_ratio_min": -0.00015480153324620716,
+    "output_devices": [
+      "/job:localhost/replica:0/task:0/device:GPU:0",
+      "/job:localhost/replica:0/task:0/device:GPU:0",
+      "/job:localhost/replica:0/task:0/device:GPU:0",
+      "/job:localhost/replica:0/task:0/device:GPU:0",
+      "/job:localhost/replica:0/task:0/device:GPU:0"
+    ],
+    "sample_finite": true,
+    "sample_gradients_finite": true,
+    "sample_mean": [
+      -0.0003253445444026354,
+      -0.00018564377980693104,
+      -0.0005329718134856366
+    ],
+    "sample_standard_deviation": [
+      0.008747643601678932,
+      0.009419954318096406,
+      0.0013989455954458313
+    ],
+    "target_value_max": -233.63369836493763,
+    "target_value_min": -236.8208996006386,
+    "target_values_finite": true
+  },
+  "divergence_count": null,
+  "divergence_source": "native boolean divergence field not exposed in trace_fn",
+  "divergence_status": "unavailable",
+  "first_call_seconds": 8.222991356044076,
+  "git_commit": "c815edc52162779e969b2982723b2f52770fd849",
+  "initial_gradient": [
+    15.804320716438662,
+    0.6904322032950861,
+    -44.9925
+  ],
+  "initial_target_value": -227.76731057912758,
+  "initial_value_gradient_finite": true,
+  "nonclaims": [
+    "no posterior correctness",
+    "no convergence claim",
+    "no exact likelihood correctness",
+    "no full observed-data/filtering HMC target readiness",
+    "no package/default readiness",
+    "no production readiness"
+  ],
+  "num_burnin_steps": 4,
+  "num_leapfrog_steps": 3,
+  "num_results": 8,
+  "oom_status": false,
+  "phase3_limited_fd_caveat": "Phase 3 is owner-accepted for continuation with caveats; not a full FD pass.",
+  "post_warmup_retrace_detected": false,
+  "python_executable": "/home/chakwong/anaconda3/envs/tf-gpu/bin/python",
+  "random_seed": 9107,
+  "requested_xla_status": true,
+  "retry_count": 0,
+  "schema_version": "p91.phase7.hmc_smoke.v1",
+  "second_call_seconds": 0.1347640580497682,
+  "status": "PASS_P91_PHASE7_HMC_SMOKE",
+  "step_size": 0.0001,
+  "target_scope": "local_complete_data_zhao_cui_sir_d18_component",
+  "tensorflow_probability_version": "0.25.0",
+  "tensorflow_version": "2.19.1",
+  "trace_count_after_first": 1,
+  "trace_count_after_second": 1,
+  "trace_count_before": 0,
+  "trusted_escalated_gpu_run": true,
+  "veto_reasons": [],
+  "worktree_status": "dirty research worktree"
+}

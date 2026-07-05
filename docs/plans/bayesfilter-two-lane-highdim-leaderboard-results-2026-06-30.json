@@ -1,0 +1,1059 @@
+{
+  "benchmark": "bayesfilter_two_lane_highdim_leaderboard_reference",
+  "comparison_algorithm_ids": [
+    "fixed_sgqf",
+    "ukf",
+    "zhao_cui_scalar_or_multistate"
+  ],
+  "manifest": {
+    "comparison_program_master": "docs/plans/bayesfilter-two-lane-filter-comparison-master-program-2026-06-24.md",
+    "excluded_algorithms": [
+      "cut4",
+      "bootstrap_dpf_current",
+      "ledh_pfpf_alg1_ukf_current",
+      "ledh_pfpf_ot"
+    ],
+    "execution_mode": "non_ledh_rebuild_reviewed_p8d_numeric_artifact_plus_direct_sgqf_and_p91_zhaocui_sidecar",
+    "lane": "highdim_source_scope",
+    "phase7_batch_gpu_xla_status_policy": "main rows are not ranked by Phase 7 timing; P91 timings are structurally isolated under p91_scoped_evidence",
+    "source_numeric_artifact": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8d-numeric-results-2026-06-13.json",
+    "source_scope_contract": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-source-paper-scope-contract-2026-06-11.json"
+  },
+  "metadata_date": "2026-06-30",
+  "nonclaims": [
+    "This highdim packet combines the reviewed P8d numeric artifact with direct SGQF row routes where already supported in code/tests.",
+    "CUT4 is excluded from the highdim lane by contract.",
+    "LEDH/PFPF-OT and DPF transport rows are omitted from this June 30 rebuild.",
+    "P91 Zhao-Cui SIR d18 evidence is included only as scoped local complete-data component evidence, not as full observed-data/filtering leaderboard execution.",
+    "Actual transformed SV and KSC surrogate SV remain separate rows and must not be merged.",
+    "Rows with blocked or missing algorithms are not full three-way leaderboard rows.",
+    "Main leaderboard rows are not a production-GPU timing packet.",
+    "P91 Zhao-Cui SIR d18 CPU/GPU/XLA timings are scoped local complete-data sidecar evidence and are not full observed-data/filtering leaderboard timings."
+  ],
+  "row_summary": [
+    {
+      "blocked_or_missing_algorithms": [],
+      "executed_algorithms": [
+        "fixed_sgqf",
+        "ukf",
+        "zhao_cui_scalar_or_multistate"
+      ],
+      "full_three_way_ready": true,
+      "row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+      "score_admitted_algorithms": [
+        "fixed_sgqf",
+        "ukf",
+        "zhao_cui_scalar_or_multistate"
+      ]
+    },
+    {
+      "blocked_or_missing_algorithms": [],
+      "executed_algorithms": [
+        "fixed_sgqf",
+        "ukf",
+        "zhao_cui_scalar_or_multistate"
+      ],
+      "full_three_way_ready": false,
+      "row_id": "zhao_cui_sv_actual_nongaussian_T1000",
+      "score_admitted_algorithms": [
+        "fixed_sgqf"
+      ]
+    },
+    {
+      "blocked_or_missing_algorithms": [],
+      "executed_algorithms": [
+        "fixed_sgqf",
+        "ukf",
+        "zhao_cui_scalar_or_multistate"
+      ],
+      "full_three_way_ready": false,
+      "row_id": "zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000",
+      "score_admitted_algorithms": [
+        "fixed_sgqf",
+        "ukf"
+      ]
+    },
+    {
+      "blocked_or_missing_algorithms": [
+        "fixed_sgqf",
+        "zhao_cui_scalar_or_multistate"
+      ],
+      "executed_algorithms": [
+        "ukf"
+      ],
+      "full_three_way_ready": false,
+      "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+      "score_admitted_algorithms": []
+    },
+    {
+      "blocked_or_missing_algorithms": [
+        "fixed_sgqf",
+        "zhao_cui_scalar_or_multistate"
+      ],
+      "executed_algorithms": [
+        "ukf"
+      ],
+      "full_three_way_ready": false,
+      "row_id": "zhao_cui_predator_prey_T20",
+      "score_admitted_algorithms": []
+    },
+    {
+      "blocked_or_missing_algorithms": [
+        "fixed_sgqf",
+        "zhao_cui_scalar_or_multistate"
+      ],
+      "executed_algorithms": [
+        "ukf"
+      ],
+      "full_three_way_ready": false,
+      "row_id": "zhao_cui_generalized_sv_synthetic_from_estimated_values",
+      "score_admitted_algorithms": []
+    }
+  ],
+  "rows": [
+    {
+      "absolute_value_gap_to_kalman": 0.0,
+      "algorithm_id": "fixed_sgqf",
+      "average_log_likelihood": -2.721519497158494,
+      "comparison_status": "executed_value_score",
+      "lane": "highdim_source_scope",
+      "log_likelihood": -136.0759748579247,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "direct affine SGQF value plus analytical fixed-branch score route",
+        "not a production-GPU timing result"
+      ],
+      "numeric_execution_status": "executed_direct_affine_sgqf_value_score",
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_claimed_no_reviewed_batched_main_row_evaluator",
+        "cpu_timing_status": "not_measured_in_phase7",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_claimed_no_trusted_row_specific_gpu_xla_manifest",
+        "nonclaims": [
+          "no row-specific batched main evaluator claim",
+          "no row-specific GPU/XLA timing claim",
+          "not ranked by Phase 7 timing"
+        ],
+        "reason": "Phase 7 did not run or admit a row-specific batched/GPU/XLA main leaderboard benchmark for this value/score cell.",
+        "scope": "main_leaderboard_row",
+        "timing_rank_status": "not_ranked_by_phase7_timing"
+      },
+      "reason": null,
+      "reason_codes": [
+        "DIRECT_AFFINE_SGQF_LGSSM_VALUE_SCORE_ROUTE"
+      ],
+      "reference_log_likelihood": -136.0759748579247,
+      "row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+      "runtime_seconds": null,
+      "score": [
+        5.655446880394385,
+        -3.835056458864437,
+        0.3023616838294101,
+        -1.9171802706081804,
+        4.35426591901195
+      ],
+      "score_coordinate_system": "p8d_lgssm_theta",
+      "score_derivative_provenance": "fixed_sgqf_analytic_first_order_fixed_branch_affine_lgssm_score",
+      "score_l2_norm": 8.331768835665498,
+      "score_status": "analytical_score_emitted",
+      "score_status_reason": "SGQF score vector emitted by reviewed analytical fixed-branch score path",
+      "target_contract_status": "target_compatible_direct_affine_sgqf"
+    },
+    {
+      "absolute_score_l2_gap_to_kalman": 0.0,
+      "absolute_value_gap_to_kalman": 4.838057066081092e-09,
+      "algorithm_id": "ukf",
+      "average_log_likelihood": -2.721519497158494,
+      "comparison_status": "executed_value_score",
+      "lane": "highdim_source_scope",
+      "log_likelihood": -136.0759748579247,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "LGSSM affine-equivalence differentiated-Kalman score, not native sigma-point placement derivative",
+        "physical-coordinate score, not canonical unconstrained phi",
+        "not a nonlinear benchmark ranking"
+      ],
+      "numeric_execution_status": "executed_numeric_lgssm_score",
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_claimed_no_reviewed_batched_main_row_evaluator",
+        "cpu_timing_status": "not_measured_in_phase7",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_claimed_no_trusted_row_specific_gpu_xla_manifest",
+        "nonclaims": [
+          "no row-specific batched main evaluator claim",
+          "no row-specific GPU/XLA timing claim",
+          "not ranked by Phase 7 timing"
+        ],
+        "reason": "Phase 7 did not run or admit a row-specific batched/GPU/XLA main leaderboard benchmark for this value/score cell.",
+        "scope": "main_leaderboard_row",
+        "timing_rank_status": "not_ranked_by_phase7_timing"
+      },
+      "reason": null,
+      "reason_codes": [
+        "P8D_NUMERIC_EXECUTED_LGSSM_DIFFERENTIATED_KALMAN_AFFINE_VALUE_SCORE_HESSIAN"
+      ],
+      "reference_log_likelihood": -136.07597485308665,
+      "reference_score": [
+        5.655446876369503,
+        -3.83505645148858,
+        0.3023616684162056,
+        -1.9171806685717399,
+        4.354265155260018
+      ],
+      "row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+      "runtime_seconds": null,
+      "score": [
+        5.655446876369503,
+        -3.83505645148858,
+        0.3023616684162056,
+        -1.9171806685717399,
+        4.354265155260018
+      ],
+      "score_coordinate_system": "physical_theta",
+      "score_derivative_provenance": "ukf_lgssm_affine_equivalence_to_tf_covariance_differentiated_kalman_reference_cholesky_solve_physical_theta",
+      "score_l2_norm": 8.331768521408039,
+      "score_status": null,
+      "score_status_reason": null,
+      "target_contract_status": "target_compatible"
+    },
+    {
+      "absolute_score_l2_gap_to_kalman": 0.0,
+      "absolute_value_gap_to_kalman": 4.838057066081092e-09,
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "average_log_likelihood": -2.721519497061733,
+      "comparison_status": "executed_value_score",
+      "lane": "highdim_source_scope",
+      "log_likelihood": -136.07597485308665,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "user-amended exact-oracle LGSSM adapter; not Zhao-Cui MATLAB rng(0) reproduction",
+        "not paper-scale Zhao-Cui TT-cross/SIRT training",
+        "no historical ALS training used",
+        "physical-coordinate score, not canonical unconstrained phi",
+        "not a nonlinear benchmark ranking"
+      ],
+      "numeric_execution_status": "executed_lgssm_exact_oracle_adapter_value_score",
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_claimed_no_reviewed_batched_main_row_evaluator",
+        "cpu_timing_status": "not_measured_in_phase7",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_claimed_no_trusted_row_specific_gpu_xla_manifest",
+        "nonclaims": [
+          "no row-specific batched main evaluator claim",
+          "no row-specific GPU/XLA timing claim",
+          "not ranked by Phase 7 timing"
+        ],
+        "reason": "Phase 7 did not run or admit a row-specific batched/GPU/XLA main leaderboard benchmark for this value/score cell.",
+        "scope": "main_leaderboard_row",
+        "timing_rank_status": "not_ranked_by_phase7_timing"
+      },
+      "reason": null,
+      "reason_codes": [
+        "ZHAO_CUI_LGSSM_SOURCE_ROW_SUPERSEDED_BY_USER_AMENDED_EXACT_ORACLE_ADAPTER",
+        "P8D_NUMERIC_EXECUTED_LGSSM_DIFFERENTIATED_KALMAN_AFFINE_VALUE_SCORE_HESSIAN"
+      ],
+      "reference_log_likelihood": -136.0759748579247,
+      "reference_score": [
+        5.655446876369503,
+        -3.83505645148858,
+        0.3023616684162056,
+        -1.9171806685717399,
+        4.354265155260018
+      ],
+      "row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+      "runtime_seconds": null,
+      "score": [
+        5.655446876369503,
+        -3.83505645148858,
+        0.3023616684162056,
+        -1.9171806685717399,
+        4.354265155260018
+      ],
+      "score_coordinate_system": "physical_theta",
+      "score_derivative_provenance": "zhao_cui_lgssm_user_amended_exact_oracle_affine_adapter_to_tf_covariance_differentiated_kalman_reference_cholesky_solve_physical_theta",
+      "score_l2_norm": 8.331768521408039,
+      "target_contract_status": "target_compatible_user_amended_lgssm_exact_oracle_adapter"
+    },
+    {
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "fixed_sgqf",
+      "average_log_likelihood": -2.3009108495009922,
+      "comparison_status": "executed_value_score",
+      "lane": "highdim_source_scope",
+      "log_likelihood": -2300.9108495009923,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "direct exact-transformed SGQF actual-SV value plus manual forward-sensitivity score route executed",
+        "not KSC Gaussian mixture approximation",
+        "not augmented-noise Gaussian-closure route",
+        "score differentiates the fixed-SGQF approximate value target, not an exact-likelihood oracle",
+        "not a production-GPU timing result"
+      ],
+      "numeric_execution_status": "executed_direct_exact_transformed_sv_sgqf_value_score",
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_claimed_no_reviewed_batched_main_row_evaluator",
+        "cpu_timing_status": "not_measured_in_phase7",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_claimed_no_trusted_row_specific_gpu_xla_manifest",
+        "nonclaims": [
+          "no row-specific batched main evaluator claim",
+          "no row-specific GPU/XLA timing claim",
+          "not ranked by Phase 7 timing"
+        ],
+        "reason": "Phase 7 did not run or admit a row-specific batched/GPU/XLA main leaderboard benchmark for this value/score cell.",
+        "scope": "main_leaderboard_row",
+        "timing_rank_status": "not_ranked_by_phase7_timing"
+      },
+      "reason": null,
+      "reason_codes": [
+        "DIRECT_EXACT_TRANSFORMED_SV_SGQF_VALUE_SCORE_ROUTE"
+      ],
+      "reference_log_likelihood": null,
+      "row_id": "zhao_cui_sv_actual_nongaussian_T1000",
+      "runtime_seconds": null,
+      "score": [
+        25.92680758701344,
+        29.605825646547327
+      ],
+      "score_coordinate_system": "theta=[probit_gamma, log_beta] per coordinate",
+      "score_derivative_provenance": "fixed_sgqf_exact_transformed_sv_manual_forward_sensitivity_analytical_recurrence",
+      "score_l2_norm": 39.35358006417938,
+      "score_status": "analytical_score_emitted",
+      "score_status_reason": "SGQF score vector emitted by reviewed analytical fixed-branch score path",
+      "target_contract_status": "target_compatible_direct_exact_transformed_sv_sgqf_value_score"
+    },
+    {
+      "absolute_score_l2_gap_to_kalman": null,
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "ukf",
+      "average_log_likelihood": -1.4607021902071977,
+      "comparison_status": "executed_value_only",
+      "lane": "highdim_source_scope",
+      "log_likelihood": -1460.7021902071976,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "actual raw-observation SV sigma-point approximation with observation-noise augmentation",
+        "not exact nonlinear likelihood",
+        "P8c is a partial comparator-only baseline, not full scientific truth",
+        "no filter ranking or Bayesian-estimation readiness claim",
+        "augmented-noise UKF value is the default nonlinear UKF diagnostic for actual SV",
+        "autodiff score provenance is diagnostic only and is not admitted as a leaderboard gradient benchmark",
+        "analytical augmented-noise UKF score remains an open route before gradient admission"
+      ],
+      "numeric_execution_status": "executed_numeric_value_only_autodiff_score_not_admitted",
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_applicable_until_value_score_row_exists",
+        "cpu_timing_status": "not_applicable_until_value_score_row_exists",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_applicable_until_value_score_row_exists",
+        "nonclaims": [
+          "no batch/GPU/XLA readiness claim while value/score gate remains open",
+          "not ranked by timing"
+        ],
+        "reason": "Value/score row is not admitted, so timing cannot rank or rescue this cell.",
+        "scope": "main_leaderboard_row",
+        "timing_rank_status": "not_rankable_correctness_gate_open"
+      },
+      "reason": "actual-SV nonlinear UKF value uses the augmented-noise sigma-point diagnostic route; its current score provenance is autodiff only, so analytical gradient accuracy is not admitted",
+      "reason_codes": [
+        "P8D_EXECUTED_DETERMINISTIC_VALUE_AND_TF_AUTODIFF_SCORE"
+      ],
+      "reference_log_likelihood": null,
+      "reference_score": null,
+      "row_id": "zhao_cui_sv_actual_nongaussian_T1000",
+      "runtime_seconds": 15.01487,
+      "score": null,
+      "score_coordinate_system": null,
+      "score_derivative_provenance": "ukf_augmented_noise_sigma_point_raw_sv_tf_autodiff_score",
+      "score_l2_norm": null,
+      "score_status": "blocked_autodiff_not_admitted",
+      "score_status_reason": "actual-SV nonlinear UKF value uses the augmented-noise sigma-point diagnostic route; its current score provenance is autodiff only, so analytical gradient accuracy is not admitted",
+      "target_contract_status": "target_compatible"
+    },
+    {
+      "absolute_score_l2_gap_to_kalman": null,
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "average_log_likelihood": -0.7150968568579721,
+      "comparison_status": "executed_value_only",
+      "lane": "highdim_source_scope",
+      "log_likelihood": -715.096856857972,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "fixed-branch dense scalar route, not adaptive MATLAB TT-cross/SIRT reproduction",
+        "full T=1000 source-row observations used",
+        "P8c is a partial comparator-only baseline, not full scientific truth",
+        "no filter ranking or Bayesian-estimation readiness claim",
+        "autodiff score provenance is diagnostic only and is not admitted as a leaderboard gradient benchmark",
+        "analytical gradient accuracy is the benchmarked score standard"
+      ],
+      "numeric_execution_status": "executed_numeric_value_only_autodiff_score_not_admitted",
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_applicable_until_value_score_row_exists",
+        "cpu_timing_status": "not_applicable_until_value_score_row_exists",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_applicable_until_value_score_row_exists",
+        "nonclaims": [
+          "no batch/GPU/XLA readiness claim while value/score gate remains open",
+          "not ranked by timing"
+        ],
+        "reason": "Value/score row is not admitted, so timing cannot rank or rescue this cell.",
+        "scope": "main_leaderboard_row",
+        "timing_rank_status": "not_rankable_correctness_gate_open"
+      },
+      "reason": "autodiff score provenance is diagnostic only; analytical gradient accuracy is the leaderboard benchmark",
+      "reason_codes": [
+        "P8D_EXECUTED_DETERMINISTIC_VALUE_AND_TF_AUTODIFF_SCORE"
+      ],
+      "reference_log_likelihood": null,
+      "reference_score": null,
+      "row_id": "zhao_cui_sv_actual_nongaussian_T1000",
+      "runtime_seconds": 17.155709,
+      "score": null,
+      "score_coordinate_system": null,
+      "score_derivative_provenance": "fixed_branch_scalar_dense_zhaocui_style_value_path_tf_autodiff_score",
+      "score_l2_norm": null,
+      "score_status": "blocked_autodiff_not_admitted",
+      "score_status_reason": "autodiff score provenance is diagnostic only; analytical gradient accuracy is the leaderboard benchmark",
+      "target_contract_status": "target_compatible"
+    },
+    {
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "fixed_sgqf",
+      "average_log_likelihood": -2.2846321465997916,
+      "comparison_status": "executed_value_score",
+      "lane": "highdim_source_scope",
+      "log_likelihood": -2284.6321465997917,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "source-scope KSC SGQF value plus analytical component-score route executed",
+        "declared KSC Gaussian-mixture surrogate target only"
+      ],
+      "numeric_execution_status": "executed_source_scope_ksc_sgqf_value_score",
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_claimed_no_reviewed_batched_main_row_evaluator",
+        "cpu_timing_status": "not_measured_in_phase7",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_claimed_no_trusted_row_specific_gpu_xla_manifest",
+        "nonclaims": [
+          "no row-specific batched main evaluator claim",
+          "no row-specific GPU/XLA timing claim",
+          "not ranked by Phase 7 timing"
+        ],
+        "reason": "Phase 7 did not run or admit a row-specific batched/GPU/XLA main leaderboard benchmark for this value/score cell.",
+        "scope": "main_leaderboard_row",
+        "timing_rank_status": "not_ranked_by_phase7_timing"
+      },
+      "reason": null,
+      "reason_codes": [
+        "DIRECT_KSC_SOURCE_SCOPE_SGQF_VALUE_SCORE_ROUTE"
+      ],
+      "reference_log_likelihood": null,
+      "row_id": "zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000",
+      "runtime_seconds": null,
+      "score": [
+        4.884234590243841,
+        -2.386899529323978
+      ],
+      "score_coordinate_system": "p8_truth_theta_coordinate",
+      "score_derivative_provenance": "fixed_sgqf_independent_panel_transformed_sv_gaussian_mixture_analytic_component_score_logsumexp_aggregation",
+      "score_l2_norm": 5.436270495074859,
+      "score_status": "analytical_score_emitted",
+      "score_status_reason": "SGQF score vector emitted by reviewed analytical fixed-branch score path",
+      "target_contract_status": "target_compatible_declared_ksc_surrogate_value_score"
+    },
+    {
+      "absolute_score_l2_gap_to_kalman": null,
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "ukf",
+      "average_log_likelihood": -2.2846321465997916,
+      "comparison_status": "executed_value_score",
+      "lane": "highdim_source_scope",
+      "log_likelihood": -2284.6321465997917,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "principal-square-root UKF analytical score route; historical SVD UKF score route is not used",
+        "KSC transformed Gaussian-mixture surrogate row, not exact native SV likelihood",
+        "not a production-GPU timing result"
+      ],
+      "numeric_execution_status": "executed_principal_sqrt_ukf_ksc_mixture_value_score",
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_claimed_no_reviewed_batched_main_row_evaluator",
+        "cpu_timing_status": "source_runtime_reused_explanatory_only",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_claimed_no_trusted_row_specific_gpu_xla_manifest",
+        "nonclaims": [
+          "no row-specific batched main evaluator claim",
+          "no row-specific GPU/XLA timing claim",
+          "not ranked by Phase 7 timing"
+        ],
+        "reason": "Phase 7 did not run or admit a row-specific batched/GPU/XLA main leaderboard benchmark for this value/score cell.",
+        "scope": "main_leaderboard_row",
+        "timing_rank_status": "not_ranked_by_phase7_timing"
+      },
+      "reason": null,
+      "reason_codes": [
+        "DIRECT_KSC_MIXTURE_PRINCIPAL_SQRT_UKF_VALUE_SCORE_ROUTE"
+      ],
+      "reference_log_likelihood": null,
+      "reference_score": null,
+      "row_id": "zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000",
+      "runtime_seconds": 108.2336141760461,
+      "score": [
+        4.884234590243924,
+        -2.386899529323502
+      ],
+      "score_coordinate_system": "theta=[probit_gamma,log_beta]",
+      "score_derivative_provenance": "principal_sqrt_ukf_independent_panel_transformed_sv_gaussian_mixture_analytical_component_score_logsumexp_aggregation",
+      "score_l2_norm": 5.436270495074725,
+      "score_status": "analytical_score_emitted",
+      "score_status_reason": "UKF score vector emitted by reviewed principal-square-root analytical component score path",
+      "target_contract_status": "target_compatible_direct_principal_sqrt_ukf_ksc_mixture"
+    },
+    {
+      "absolute_score_l2_gap_to_kalman": null,
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "average_log_likelihood": -2.0150851664190284,
+      "comparison_status": "executed_value_only",
+      "lane": "highdim_source_scope",
+      "log_likelihood": -2015.0851664190282,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "declared KSC Gaussian-mixture surrogate, not native SV likelihood",
+        "independent scalar/panel route, not coupled high-dimensional TT",
+        "fixed-branch scalar route, not adaptive MATLAB TT-cross/SIRT reproduction",
+        "P8c is a partial comparator-only baseline, not full scientific truth",
+        "no filter ranking or Bayesian-estimation readiness claim",
+        "autodiff score provenance is diagnostic only and is not admitted as a leaderboard gradient benchmark",
+        "analytical gradient accuracy is the benchmarked score standard"
+      ],
+      "numeric_execution_status": "executed_numeric_value_only_autodiff_score_not_admitted",
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_applicable_until_value_score_row_exists",
+        "cpu_timing_status": "not_applicable_until_value_score_row_exists",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_applicable_until_value_score_row_exists",
+        "nonclaims": [
+          "no batch/GPU/XLA readiness claim while value/score gate remains open",
+          "not ranked by timing"
+        ],
+        "reason": "Value/score row is not admitted, so timing cannot rank or rescue this cell.",
+        "scope": "main_leaderboard_row",
+        "timing_rank_status": "not_rankable_correctness_gate_open"
+      },
+      "reason": "autodiff score provenance is diagnostic only; analytical gradient accuracy is the leaderboard benchmark",
+      "reason_codes": [
+        "P8D_EXECUTED_DETERMINISTIC_VALUE_AND_TF_AUTODIFF_SCORE"
+      ],
+      "reference_log_likelihood": null,
+      "reference_score": null,
+      "row_id": "zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000",
+      "runtime_seconds": 22.661457,
+      "score": null,
+      "score_coordinate_system": null,
+      "score_derivative_provenance": "zhao_cui_scalar_or_multistate_ksc_mixture_tf_autodiff_score",
+      "score_l2_norm": null,
+      "score_status": "blocked_autodiff_not_admitted",
+      "score_status_reason": "autodiff score provenance is diagnostic only; analytical gradient accuracy is the leaderboard benchmark",
+      "target_contract_status": "target_compatible"
+    },
+    {
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "fixed_sgqf",
+      "average_log_likelihood": null,
+      "comparison_status": "blocked",
+      "lane": "highdim_source_scope",
+      "log_likelihood": null,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "not executed in the current source-scope leaderboard lane",
+        "no SGQF broad high-dimensional admission is implied"
+      ],
+      "numeric_execution_status": "blocked_by_two_lane_contract_or_missing_source_scope_evaluator",
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_applicable_until_value_score_row_exists",
+        "cpu_timing_status": "not_applicable_until_value_score_row_exists",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_applicable_until_value_score_row_exists",
+        "nonclaims": [
+          "no batch/GPU/XLA readiness claim while value/score gate remains open",
+          "not ranked by timing"
+        ],
+        "reason": "Value/score row is not admitted, so timing cannot rank or rescue this cell.",
+        "scope": "main_leaderboard_row",
+        "timing_rank_status": "not_rankable_correctness_gate_open"
+      },
+      "reason": "no reviewed SGQF source-scope spatial SIR route is wired",
+      "reason_codes": [
+        "TWO_LANE_FIXED_SGQF_BLOCK_OR_MISSING_EVALUATOR"
+      ],
+      "reference_log_likelihood": null,
+      "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+      "runtime_seconds": null,
+      "score": null,
+      "score_coordinate_system": null,
+      "score_derivative_provenance": null,
+      "score_l2_norm": null,
+      "score_status": "blocked_no_free_theta",
+      "score_status_reason": "row has no free theta and no reviewed SGQF source-scope route",
+      "target_contract_status": "blocked_fixed_sgqf_current_scope"
+    },
+    {
+      "absolute_score_l2_gap_to_kalman": null,
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "ukf",
+      "average_log_likelihood": -36.832007416195985,
+      "comparison_status": "executed_value_only",
+      "lane": "highdim_source_scope",
+      "log_likelihood": -736.6401483239197,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "spatial SIR P8 source row has no free theta",
+        "value-only sigma-point approximation",
+        "value-only cell because the P8 source row has no free theta"
+      ],
+      "numeric_execution_status": "executed_numeric_value_only_no_free_theta",
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_applicable_until_value_score_row_exists",
+        "cpu_timing_status": "not_applicable_until_value_score_row_exists",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_applicable_until_value_score_row_exists",
+        "nonclaims": [
+          "no batch/GPU/XLA readiness claim while value/score gate remains open",
+          "not ranked by timing"
+        ],
+        "reason": "Value/score row is not admitted, so timing cannot rank or rescue this cell.",
+        "scope": "main_leaderboard_row",
+        "timing_rank_status": "not_rankable_correctness_gate_open"
+      },
+      "reason": null,
+      "reason_codes": [
+        "P8D_EXECUTED_DETERMINISTIC_VALUE_ONLY_NO_FREE_THETA"
+      ],
+      "reference_log_likelihood": null,
+      "reference_score": null,
+      "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+      "runtime_seconds": 0.684872,
+      "score": null,
+      "score_coordinate_system": "no_free_theta",
+      "score_derivative_provenance": "not_applicable_no_free_theta",
+      "score_l2_norm": null,
+      "score_status": null,
+      "score_status_reason": null,
+      "target_contract_status": "target_compatible"
+    },
+    {
+      "absolute_score_l2_gap_to_kalman": null,
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "average_log_likelihood": null,
+      "comparison_status": "blocked_or_status_only",
+      "lane": "highdim_source_scope",
+      "log_likelihood": null,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "not a numeric benchmark result for this cell",
+        "no silent N/A: cell remains explicit structured blocker or not-applicable",
+        "not full observed-data/filtering score identity",
+        "not full source-route FD derivative readiness",
+        "not exact likelihood correctness",
+        "not posterior correctness or convergence"
+      ],
+      "numeric_execution_status": "blocked_full_filtering_evaluator_pending_p91_local_component_ready",
+      "p91_scoped_evidence": {
+        "benchmark_status": "PASS_P91_PHASE6_PERFORMANCE_BENCHMARK",
+        "evidence_paths": [
+          "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase9-final-decision-result-2026-06-29.md",
+          "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase4-score-identity-manifest-2026-06-29.json",
+          "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase5-gpu-xla-jit-manifest-2026-06-29.json",
+          "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase6-performance-benchmark-2026-06-29.json",
+          "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase7-hmc-smoke-2026-06-29.json"
+        ],
+        "gpu_xla_status": "PASS_P91_PHASE5_GPU_XLA_JIT_LOCAL_COMPLETE_DATA",
+        "hmc_smoke_status": "PASS_P91_PHASE7_HMC_SMOKE",
+        "nonclaims": [
+          "not full observed-data/filtering score identity",
+          "not full source-route FD derivative readiness",
+          "not exact likelihood correctness",
+          "not posterior correctness or convergence"
+        ],
+        "phase7_sidecar_performance": {
+          "admission_scope": "sidecar_only_not_full_observed_data_filtering_row",
+          "evidence_paths": [
+            "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase6-performance-benchmark-2026-06-29.json",
+            "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase6-performance-benchmark-cpu-2026-06-29.json",
+            "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase6-performance-benchmark-gpu-2026-06-29.json"
+          ],
+          "excluded_from_main_leaderboard_ranking": true,
+          "main_row_admission_status": "not_full_observed_data_filtering_evidence",
+          "namespace": "p91_scoped_local_complete_data_sidecar",
+          "nonclaims": [
+            "not full observed-data/filtering SIR timing",
+            "not full observed-data/filtering SIR score admission",
+            "not part of main leaderboard timing ranking"
+          ],
+          "scope": "local_complete_data_zhao_cui_sir_d18_component",
+          "status": "PASS_P91_PHASE6_PERFORMANCE_BENCHMARK",
+          "timing_by_target": {
+            "cpu": {
+              "actual_xla_status": false,
+              "checks": {
+                "cpu_batched": {
+                  "first_call_seconds": 1.258851503022015,
+                  "gpu_output_devices": false,
+                  "passed": true,
+                  "post_warmup_retrace_detected": false,
+                  "steady_mean_seconds": 0.003697521169669926,
+                  "steady_per_item_seconds": 0.0009243802924174815
+                },
+                "cpu_looped_single": {
+                  "first_call_seconds": 0.7271717760013416,
+                  "gpu_output_devices": false,
+                  "passed": true,
+                  "post_warmup_retrace_detected": false,
+                  "steady_mean_seconds": 0.0034192421939224006,
+                  "steady_per_item_seconds": 0.0034192421939224006
+                }
+              },
+              "manifest_path": "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase6-performance-benchmark-cpu-2026-06-29.json",
+              "status": "PASS_P91_PHASE6_CPU_BENCHMARK"
+            },
+            "gpu_xla": {
+              "actual_xla_status": true,
+              "checks": {
+                "gpu_xla_batched": {
+                  "first_call_seconds": 5.666246789041907,
+                  "gpu_output_devices": true,
+                  "passed": true,
+                  "post_warmup_retrace_detected": false,
+                  "steady_mean_seconds": 0.0017791393911466002,
+                  "steady_per_item_seconds": 0.00044478484778665006
+                },
+                "gpu_xla_looped_single": {
+                  "first_call_seconds": 1.809944199048914,
+                  "gpu_output_devices": true,
+                  "passed": true,
+                  "post_warmup_retrace_detected": false,
+                  "steady_mean_seconds": 0.0009009486064314842,
+                  "steady_per_item_seconds": 0.0009009486064314842
+                }
+              },
+              "manifest_path": "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase6-performance-benchmark-gpu-2026-06-29.json",
+              "status": "PASS_P91_PHASE6_GPU_XLA_BENCHMARK"
+            }
+          }
+        },
+        "scope": "local_complete_data_zhao_cui_sir_d18_component",
+        "score_identity_status": "PASS_P91_PHASE4_LOCAL_COMPONENT_SCORE_IDENTITY",
+        "status": "P91_SCOPED_PRODUCTION_READY_CLOSED"
+      },
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_applicable_until_value_score_row_exists",
+        "cpu_timing_status": "not_applicable_until_value_score_row_exists",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_applicable_until_value_score_row_exists",
+        "nonclaims": [
+          "no batch/GPU/XLA readiness claim while value/score gate remains open",
+          "not ranked by timing"
+        ],
+        "reason": "Value/score row is not admitted, so timing cannot rank or rescue this cell.",
+        "scope": "main_leaderboard_row",
+        "timing_rank_status": "not_rankable_correctness_gate_open"
+      },
+      "reason": "P91 closes the scoped local complete-data SIR d18 component route, but the full observed-data/filtering leaderboard evaluator remains blocked by preserved source-route derivative/evaluator gaps.",
+      "reason_codes": [
+        "P8D_MODEL_SPECIFIC_NUMERIC_EVALUATOR_ADAPTER_REQUIRED",
+        "P91_SCOPED_LOCAL_COMPLETE_DATA_READY",
+        "FULL_FILTERING_LEADERBOARD_CELL_STILL_BLOCKED"
+      ],
+      "reference_log_likelihood": null,
+      "reference_score": null,
+      "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+      "runtime_seconds": null,
+      "score": null,
+      "score_coordinate_system": null,
+      "score_derivative_provenance": null,
+      "score_l2_norm": null,
+      "score_status": null,
+      "score_status_reason": null,
+      "target_contract_status": "full_filtering_blocked_local_complete_data_component_ready"
+    },
+    {
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "fixed_sgqf",
+      "average_log_likelihood": null,
+      "comparison_status": "blocked",
+      "lane": "highdim_source_scope",
+      "log_likelihood": null,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "no fixed-SGQF T20 predator-prey value emitted in this phase",
+        "P47 two-observation lower-rung SGQF diagnostic is not reported as the T20 source-scope row",
+        "not a production-GPU timing result"
+      ],
+      "numeric_execution_status": "blocked_predator_prey_sgqf_value",
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_applicable_until_value_score_row_exists",
+        "cpu_timing_status": "not_applicable_until_value_score_row_exists",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_applicable_until_value_score_row_exists",
+        "nonclaims": [
+          "no batch/GPU/XLA readiness claim while value/score gate remains open",
+          "not ranked by timing"
+        ],
+        "reason": "Value/score row is not admitted, so timing cannot rank or rescue this cell.",
+        "scope": "main_leaderboard_row",
+        "timing_rank_status": "not_rankable_correctness_gate_open"
+      },
+      "reason": "blocked_target_alignment: no reviewed fixed-SGQF evaluator is wired for the source-scope T20 predator-prey observations; the available P47 two-observation lower-rung value is diagnostic-only and is not reported as this T20 row",
+      "reason_codes": [
+        "PREDATOR_PREY_T20_FIXED_SGQF_EVALUATOR_REQUIRED"
+      ],
+      "reference_log_likelihood": null,
+      "row_id": "zhao_cui_predator_prey_T20",
+      "runtime_seconds": null,
+      "score": null,
+      "score_coordinate_system": null,
+      "score_derivative_provenance": null,
+      "score_l2_norm": null,
+      "score_status": "blocked_target_alignment",
+      "score_status_reason": "no reviewed fixed-SGQF evaluator is wired for the source-scope T20 predator-prey observations; the P47 two-observation lower-rung diagnostic is not reported as this T20 row",
+      "target_contract_status": "blocked_missing_t20_fixed_sgqf_evaluator"
+    },
+    {
+      "absolute_score_l2_gap_to_kalman": null,
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "ukf",
+      "average_log_likelihood": -8.56827587430274,
+      "comparison_status": "executed_value_only",
+      "lane": "highdim_source_scope",
+      "log_likelihood": -171.3655174860548,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "additive-Gaussian predator-prey structural approximation",
+        "predict-then-observe filter convention",
+        "P8c is a partial comparator-only baseline, not full scientific truth",
+        "no filter ranking or Bayesian-estimation readiness claim",
+        "autodiff score provenance is diagnostic only and is not admitted as a leaderboard gradient benchmark",
+        "analytical gradient accuracy is the benchmarked score standard"
+      ],
+      "numeric_execution_status": "executed_numeric_value_only_autodiff_score_not_admitted",
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_applicable_until_value_score_row_exists",
+        "cpu_timing_status": "not_applicable_until_value_score_row_exists",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_applicable_until_value_score_row_exists",
+        "nonclaims": [
+          "no batch/GPU/XLA readiness claim while value/score gate remains open",
+          "not ranked by timing"
+        ],
+        "reason": "Value/score row is not admitted, so timing cannot rank or rescue this cell.",
+        "scope": "main_leaderboard_row",
+        "timing_rank_status": "not_rankable_correctness_gate_open"
+      },
+      "reason": "autodiff score provenance is diagnostic only; analytical gradient accuracy is the leaderboard benchmark",
+      "reason_codes": [
+        "P8D_EXECUTED_DETERMINISTIC_VALUE_AND_TF_AUTODIFF_SCORE"
+      ],
+      "reference_log_likelihood": null,
+      "reference_score": null,
+      "row_id": "zhao_cui_predator_prey_T20",
+      "runtime_seconds": 5.479427,
+      "score": null,
+      "score_coordinate_system": null,
+      "score_derivative_provenance": "ukf_predator_prey_structural_sigma_point_tf_autodiff_score",
+      "score_l2_norm": null,
+      "score_status": "blocked_autodiff_not_admitted",
+      "score_status_reason": "autodiff score provenance is diagnostic only; analytical gradient accuracy is the leaderboard benchmark",
+      "target_contract_status": "target_compatible"
+    },
+    {
+      "absolute_score_l2_gap_to_kalman": null,
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "average_log_likelihood": null,
+      "comparison_status": "blocked_or_status_only",
+      "lane": "highdim_source_scope",
+      "log_likelihood": null,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "not a numeric benchmark result for this cell",
+        "no silent N/A: cell remains explicit structured blocker or not-applicable"
+      ],
+      "numeric_execution_status": "blocked_model_specific_evaluator_adapter_required",
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_applicable_until_value_score_row_exists",
+        "cpu_timing_status": "not_applicable_until_value_score_row_exists",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_applicable_until_value_score_row_exists",
+        "nonclaims": [
+          "no batch/GPU/XLA readiness claim while value/score gate remains open",
+          "not ranked by timing"
+        ],
+        "reason": "Value/score row is not admitted, so timing cannot rank or rescue this cell.",
+        "scope": "main_leaderboard_row",
+        "timing_rank_status": "not_rankable_correctness_gate_open"
+      },
+      "reason": "P8D_MODEL_SPECIFIC_NUMERIC_EVALUATOR_ADAPTER_REQUIRED",
+      "reason_codes": [
+        "P8D_MODEL_SPECIFIC_NUMERIC_EVALUATOR_ADAPTER_REQUIRED"
+      ],
+      "reference_log_likelihood": null,
+      "reference_score": null,
+      "row_id": "zhao_cui_predator_prey_T20",
+      "runtime_seconds": null,
+      "score": null,
+      "score_coordinate_system": null,
+      "score_derivative_provenance": null,
+      "score_l2_norm": null,
+      "score_status": null,
+      "score_status_reason": null,
+      "target_contract_status": "target_compatible"
+    },
+    {
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "fixed_sgqf",
+      "average_log_likelihood": null,
+      "comparison_status": "blocked",
+      "lane": "highdim_source_scope",
+      "log_likelihood": null,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "not executed in the current source-scope leaderboard lane",
+        "native dense oracle, precursor, auxiliary, actual-SV, and KSC evidence may inform debugging only and do not admit this fixed-SGQF source-row cell"
+      ],
+      "numeric_execution_status": "blocked_generalized_sv_fixed_sgqf_source_row_evaluator_missing",
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_applicable_until_value_score_row_exists",
+        "cpu_timing_status": "not_applicable_until_value_score_row_exists",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_applicable_until_value_score_row_exists",
+        "nonclaims": [
+          "no batch/GPU/XLA readiness claim while value/score gate remains open",
+          "not ranked by timing"
+        ],
+        "reason": "Value/score row is not admitted, so timing cannot rank or rescue this cell.",
+        "scope": "main_leaderboard_row",
+        "timing_rank_status": "not_rankable_correctness_gate_open"
+      },
+      "reason": "blocked_source_row_evaluator_missing: no reviewed fixed-SGQF exact-row evaluator is wired for zhao_cui_generalized_sv_synthetic_from_estimated_values; native-oracle, precursor, auxiliary, actual-SV, and KSC evidence are not source-row admission evidence",
+      "reason_codes": [
+        "GENERALIZED_SV_EXACT_SOURCE_ROW_FIXED_SGQF_EVALUATOR_REQUIRED",
+        "PRECURSOR_NATIVE_ORACLE_AUXILIARY_ACTUAL_SV_KSC_NOT_ADMISSION_EVIDENCE"
+      ],
+      "reference_log_likelihood": null,
+      "row_id": "zhao_cui_generalized_sv_synthetic_from_estimated_values",
+      "runtime_seconds": null,
+      "score": null,
+      "score_coordinate_system": null,
+      "score_derivative_provenance": null,
+      "score_l2_norm": null,
+      "score_status": "blocked_exact_source_row_evaluator_missing",
+      "score_status_reason": "no reviewed fixed-SGQF exact-row evaluator or derivative route exists for zhao_cui_generalized_sv_synthetic_from_estimated_values",
+      "target_contract_status": "blocked_exact_source_row_evaluator_missing"
+    },
+    {
+      "absolute_score_l2_gap_to_kalman": null,
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "ukf",
+      "average_log_likelihood": -1.428934153339374,
+      "comparison_status": "executed_value_only",
+      "lane": "highdim_source_scope",
+      "log_likelihood": -1440.365626566089,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "prior-mean generalized-SV synthetic row",
+        "sigma-point approximation with observation-noise augmentation",
+        "P8c is a partial comparator-only baseline, not full scientific truth",
+        "no filter ranking or Bayesian-estimation readiness claim",
+        "autodiff score provenance is diagnostic only and is not admitted as a leaderboard gradient benchmark",
+        "analytical gradient accuracy is the benchmarked score standard"
+      ],
+      "numeric_execution_status": "executed_numeric_value_only_autodiff_score_not_admitted",
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_applicable_until_value_score_row_exists",
+        "cpu_timing_status": "not_applicable_until_value_score_row_exists",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_applicable_until_value_score_row_exists",
+        "nonclaims": [
+          "no batch/GPU/XLA readiness claim while value/score gate remains open",
+          "not ranked by timing"
+        ],
+        "reason": "Value/score row is not admitted, so timing cannot rank or rescue this cell.",
+        "scope": "main_leaderboard_row",
+        "timing_rank_status": "not_rankable_correctness_gate_open"
+      },
+      "reason": "autodiff score provenance is diagnostic only; analytical gradient accuracy is the leaderboard benchmark",
+      "reason_codes": [
+        "P8D_EXECUTED_DETERMINISTIC_VALUE_AND_TF_AUTODIFF_SCORE"
+      ],
+      "reference_log_likelihood": null,
+      "reference_score": null,
+      "row_id": "zhao_cui_generalized_sv_synthetic_from_estimated_values",
+      "runtime_seconds": 15.095921,
+      "score": null,
+      "score_coordinate_system": null,
+      "score_derivative_provenance": "ukf_generalized_sv_augmented_noise_sigma_point_tf_autodiff_score",
+      "score_l2_norm": null,
+      "score_status": "blocked_autodiff_not_admitted",
+      "score_status_reason": "autodiff score provenance is diagnostic only; analytical gradient accuracy is the leaderboard benchmark",
+      "target_contract_status": "target_compatible"
+    },
+    {
+      "absolute_score_l2_gap_to_kalman": null,
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "average_log_likelihood": null,
+      "comparison_status": "blocked_or_status_only",
+      "lane": "highdim_source_scope",
+      "log_likelihood": null,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "not a numeric benchmark result for this cell",
+        "no silent N/A: cell remains explicit structured blocker or not-applicable",
+        "native dense oracle, precursor, auxiliary, actual-SV, and KSC evidence may inform debugging only and do not admit this Zhao-Cui source-row cell",
+        "not source-row value execution",
+        "not source-row score execution"
+      ],
+      "numeric_execution_status": "blocked_generalized_sv_zhao_cui_source_row_evaluator_adapter_required",
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_applicable_until_value_score_row_exists",
+        "cpu_timing_status": "not_applicable_until_value_score_row_exists",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_applicable_until_value_score_row_exists",
+        "nonclaims": [
+          "no batch/GPU/XLA readiness claim while value/score gate remains open",
+          "not ranked by timing"
+        ],
+        "reason": "Value/score row is not admitted, so timing cannot rank or rescue this cell.",
+        "scope": "main_leaderboard_row",
+        "timing_rank_status": "not_rankable_correctness_gate_open"
+      },
+      "reason": "blocked_source_row_evaluator_missing: no reviewed Zhao-Cui exact-row evaluator is wired for zhao_cui_generalized_sv_synthetic_from_estimated_values; native-oracle, precursor, auxiliary, actual-SV, and KSC evidence are not source-row admission evidence.",
+      "reason_codes": [
+        "GENERALIZED_SV_EXACT_SOURCE_ROW_ZHAO_CUI_EVALUATOR_REQUIRED",
+        "PRECURSOR_NATIVE_ORACLE_AUXILIARY_ACTUAL_SV_KSC_NOT_ADMISSION_EVIDENCE"
+      ],
+      "reference_log_likelihood": null,
+      "reference_score": null,
+      "row_id": "zhao_cui_generalized_sv_synthetic_from_estimated_values",
+      "runtime_seconds": null,
+      "score": null,
+      "score_coordinate_system": null,
+      "score_derivative_provenance": null,
+      "score_l2_norm": null,
+      "score_status": null,
+      "score_status_reason": null,
+      "target_contract_status": "blocked_exact_source_row_evaluator_missing"
+    }
+  ],
+  "source_scope_row_ids": [
+    "benchmark_lgssm_exact_oracle_m3_T50",
+    "zhao_cui_sv_actual_nongaussian_T1000",
+    "zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000",
+    "zhao_cui_spatial_sir_austria_j9_T20",
+    "zhao_cui_predator_prey_T20",
+    "zhao_cui_generalized_sv_synthetic_from_estimated_values"
+  ]
+}

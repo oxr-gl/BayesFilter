@@ -1,0 +1,269 @@
+{
+  "blockers": [],
+  "cpu_only": true,
+  "cuda_visible_devices": "-1",
+  "fit_sample_count": 9,
+  "manifest": {
+    "artifact_role": "d18_execution_only_validation_ladder",
+    "blocked_higher_tiers": {
+      "d100": "requires d50 non-veto scaling evidence first",
+      "d18_correctness_candidate": "missing_same_target_reference_or_bridge",
+      "d18_same_route_rank_convergence": "missing_higher_rank_same_route_comparator",
+      "d50": "requires d18_same_route_rank_convergence first"
+    },
+    "comparator_tier": "d18_execution_only",
+    "correction_log_weight_ranges": [
+      [
+        -27.455518672970765,
+        -27.455518672970765
+      ],
+      [
+        -0.09725429093328941,
+        -0.09725429093328941
+      ]
+    ],
+    "density_branch_hashes": [
+      "3b71b9cd88f3146206edd1e03cedf5debbd0bf8e15dc5be29dd8826fe6dff562",
+      "0d785836473b2307631d756f68a02b829f93d7f0bb3bd3e62140f7c4b3694d89"
+    ],
+    "effective_sample_size_by_step": [
+      1.0,
+      1.0
+    ],
+    "fit_branch_hashes": [
+      "4654aa5d33b01d65b20d41299d2032da3bdaaf851b16343f6e4dbc3c80d9aaa7",
+      "d4275a776b6900da69daafebb7a684e4aecb34cb737d44c99f46b78c66ff4752"
+    ],
+    "fit_sample_count": 9,
+    "fit_sample_count_by_step": [
+      9,
+      9
+    ],
+    "fit_sample_count_policy": {
+      "default_fit_sample_count": 9,
+      "default_fit_sample_count_source": "p70_row_adequacy_hard_minimum_d36_degree0_rank1",
+      "default_row_adequacy": {
+        "max_core_columns": 1,
+        "n_hard": 9,
+        "n_preferred": 36,
+        "nonclaim": "row adequacy is not sample coverage or convergence proof",
+        "row_count": 9,
+        "status": "diagnostic_only_below_preferred_rows",
+        "threshold_role": "bayesfilter_fixed_hmc_engineering_safeguard"
+      },
+      "explicit_under_rowed_calls_fail_closed": true,
+      "nonclaim": "row adequacy is not sample coverage or convergence proof"
+    },
+    "holdout_replay_diagnostics_by_step": [
+      {
+        "branch_identity_unchanged_by_diagnostics": true,
+        "coordinate_frame_hash": "246c07d504c10bf4eb58a34f97813e59ce3dbaac8ea3a2d8f69274bd608c7580",
+        "density_branch_hash_after_diagnostic": "3b71b9cd88f3146206edd1e03cedf5debbd0bf8e15dc5be29dd8826fe6dff562",
+        "density_branch_hash_before_diagnostic": "3b71b9cd88f3146206edd1e03cedf5debbd0bf8e15dc5be29dd8826fe6dff562",
+        "diagnostic_classification": "fixed_hmc_adaptation",
+        "diagnostic_role": "post_fit_diagnostic_only",
+        "fit_branch_hash_after_diagnostic": "4654aa5d33b01d65b20d41299d2032da3bdaaf851b16343f6e4dbc3c80d9aaa7",
+        "fit_branch_hash_before_diagnostic": "4654aa5d33b01d65b20d41299d2032da3bdaaf851b16343f6e4dbc3c80d9aaa7",
+        "fit_point_count": 9,
+        "fit_point_hash": "3e4f9908a3c695138ffbd5e8976906e1e505dd2106f33f2325dc8fa24c81b7c4",
+        "fit_target_hash": "7d8dd11554dd9774136d562defe2944bf3fa3ff2cb120798dbb7e3b651f77926",
+        "fit_weight_hash": "ad77b4bffe8bc696b3143ab13124c9677e2974d9b5b9fdb76b3bc9e2298f3cbd",
+        "fixed_branch_adaptation_class": "fixed_hmc_adaptation",
+        "holdout_available": true,
+        "holdout_construction": "p69_step1_holdout_distinct_diagnostic_seed",
+        "holdout_disjoint_from_fit": true,
+        "holdout_nonfinite": false,
+        "holdout_point_count": 9,
+        "holdout_point_hash": "9e40e2f85b4fd80e5d77469d33764b75905c048c3d84cae1138cb361f085babf",
+        "holdout_residual": 0.7631177642204027,
+        "holdout_residual_available": true,
+        "holdout_status": "PASS_HOLDOUT_REPLAY_DIAGNOSTICS_AVAILABLE",
+        "holdout_target_hash": "b8c3f16a39f2eac4cd0056707e3948bbaa5a9621d41ccdd63b9dc187421923a2",
+        "holdout_threshold_role": "diagnostic_only_unless_predeclared",
+        "holdout_weight_hash": "d35af08a7ac8d8f30230f03ac6ab99ad038ad3e94a31285650a5173ca5b1ac89",
+        "nonclaims": [
+          "post-fit diagnostics do not change fitted cores",
+          "holdout/replay residuals are not filtering correctness",
+          "no adaptive Zhao-Cui parity claim"
+        ],
+        "replay_available": true,
+        "replay_disjoint_from_fit": true,
+        "replay_identity": "p69_replay_post_fit_replay.v1",
+        "replay_nonfinite": false,
+        "replay_point_count": 9,
+        "replay_point_hash": "ced6a7c9ebf3728d6d1cb0ec7829a74da8cfe2d64c1425721f880d3557b18b9a",
+        "replay_residual": 0.18473015793467817,
+        "replay_residual_available": true,
+        "replay_status": "PASS_HOLDOUT_REPLAY_DIAGNOSTICS_AVAILABLE",
+        "replay_target_hash": "2a9d4e80d425b7f07d1587976aff2302616bfbdd6453483079396d360f82820e",
+        "replay_weight_hash": "71ffd863ea46cabde84e99b292acd821000429e6a76efc888091acb7daa6d42c",
+        "source_route_invariants": {
+          "fit_data_mode": "source_pushed_computeL_resampled_local_fit",
+          "holdout_route_match": true,
+          "replay_route_match": true,
+          "route_mismatch": false
+        },
+        "status": "PASS_HOLDOUT_REPLAY_DIAGNOSTICS_AVAILABLE",
+        "warning_status": "WARN_HOLDOUT_REPLAY_DIAGNOSTIC_ONLY"
+      },
+      {
+        "branch_identity_unchanged_by_diagnostics": true,
+        "coordinate_frame_hash": "159824e62c134d173724f7f7f94b99c1d478c74677c3b48b9436c99fcb1310f4",
+        "density_branch_hash_after_diagnostic": "0d785836473b2307631d756f68a02b829f93d7f0bb3bd3e62140f7c4b3694d89",
+        "density_branch_hash_before_diagnostic": "0d785836473b2307631d756f68a02b829f93d7f0bb3bd3e62140f7c4b3694d89",
+        "diagnostic_classification": "fixed_hmc_adaptation",
+        "diagnostic_role": "post_fit_diagnostic_only",
+        "fit_branch_hash_after_diagnostic": "d4275a776b6900da69daafebb7a684e4aecb34cb737d44c99f46b78c66ff4752",
+        "fit_branch_hash_before_diagnostic": "d4275a776b6900da69daafebb7a684e4aecb34cb737d44c99f46b78c66ff4752",
+        "fit_point_count": 9,
+        "fit_point_hash": "0605edafd507dfb037c41518b3c623bdb325b746f8015f70c652ceaaef37e887",
+        "fit_target_hash": "89e8cc7069163be75b7dffc41ec00826bf75adacf983b2ab4fc6dcdf9d1ce30d",
+        "fit_weight_hash": "ad77b4bffe8bc696b3143ab13124c9677e2974d9b5b9fdb76b3bc9e2298f3cbd",
+        "fixed_branch_adaptation_class": "fixed_hmc_adaptation",
+        "holdout_available": true,
+        "holdout_construction": "p69_step2_holdout_distinct_diagnostic_seed",
+        "holdout_disjoint_from_fit": true,
+        "holdout_nonfinite": false,
+        "holdout_point_count": 9,
+        "holdout_point_hash": "99de4905a7677ec3ed8701400bfe20396b1be3a36f6a3b0ce90c383f032331ec",
+        "holdout_residual": 0.27491616473224934,
+        "holdout_residual_available": true,
+        "holdout_status": "PASS_HOLDOUT_REPLAY_DIAGNOSTICS_AVAILABLE",
+        "holdout_target_hash": "1ad7aad8dd2b3a263ef9af0d8c7cc50f85a711bd7596c4274650cea37aa9e849",
+        "holdout_threshold_role": "diagnostic_only_unless_predeclared",
+        "holdout_weight_hash": "d35af08a7ac8d8f30230f03ac6ab99ad038ad3e94a31285650a5173ca5b1ac89",
+        "nonclaims": [
+          "post-fit diagnostics do not change fitted cores",
+          "holdout/replay residuals are not filtering correctness",
+          "no adaptive Zhao-Cui parity claim"
+        ],
+        "replay_available": true,
+        "replay_disjoint_from_fit": true,
+        "replay_identity": "p69_replay_post_fit_replay.v1",
+        "replay_nonfinite": false,
+        "replay_point_count": 9,
+        "replay_point_hash": "3f119f74d66bf268f37e91bb3cae825c69784fedd16ee8db46e70f49a244171c",
+        "replay_residual": 0.20736072445027343,
+        "replay_residual_available": true,
+        "replay_status": "PASS_HOLDOUT_REPLAY_DIAGNOSTICS_AVAILABLE",
+        "replay_target_hash": "e71ce2d9518b395037f787883ced1052cccf07638faade213034687da8c4cad8",
+        "replay_weight_hash": "71ffd863ea46cabde84e99b292acd821000429e6a76efc888091acb7daa6d42c",
+        "source_route_invariants": {
+          "fit_data_mode": "source_pushed_computeL_resampled_local_fit",
+          "holdout_route_match": true,
+          "replay_route_match": true,
+          "route_mismatch": false
+        },
+        "status": "PASS_HOLDOUT_REPLAY_DIAGNOSTICS_AVAILABLE",
+        "warning_status": "WARN_HOLDOUT_REPLAY_DIAGNOSTIC_ONLY"
+      }
+    ],
+    "log_marginal_likelihood": -329.0602743560211,
+    "nonclaims": [
+      "no d18 filtering accuracy claim",
+      "no same-route rank convergence claim",
+      "no d18 correctness candidate claim",
+      "no d50 or d100 scaling claim",
+      "no HMC production readiness claim",
+      "no adaptive Zhao-Cui parity claim",
+      "no UKF correctness comparator"
+    ],
+    "normalizer_increments": [
+      -183.23346210666938,
+      -145.82681224935175
+    ],
+    "parameter_dimension": 0,
+    "pipeline_phase": "P59-9e",
+    "prerequisite_tokens": {
+      "p58_readiness": "PASS_P58_M9_SOURCE_ROUTE_PIPELINE_READY_FOR_PHASE9_LAUNCH",
+      "p59_9a": "PASS_P59_9A_AUTHOR_SIR_36D_TARGET_FIT_PREP",
+      "p59_9b": "PASS_P59_9B_SOURCE_ROUTE_STEP_SPEC_ASSEMBLY",
+      "p59_9c": "PASS_P59_9C_PRECONDITIONED_ROUTE_INTEGRATION",
+      "p59_9d": "PASS_P59_9D_RUNNER_MANIFEST_PATH"
+    },
+    "previous_marginal_input_axes": [
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35
+    ],
+    "previous_marginal_keep_axes": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17
+    ],
+    "promotion_boundary": "execution-only tier permits finite values, ESS, replay, normalizer, rank, memory, and wall-time diagnostics; it cannot claim accuracy.",
+    "row_adequacy_by_step": [
+      {
+        "max_core_columns": 1,
+        "n_hard": 9,
+        "n_preferred": 36,
+        "nonclaim": "row adequacy is not sample coverage or convergence proof",
+        "row_count": 9,
+        "status": "diagnostic_only_below_preferred_rows",
+        "threshold_role": "bayesfilter_fixed_hmc_engineering_safeguard"
+      },
+      {
+        "max_core_columns": 1,
+        "n_hard": 9,
+        "n_preferred": 36,
+        "nonclaim": "row adequacy is not sample coverage or convergence proof",
+        "row_count": 9,
+        "status": "diagnostic_only_below_preferred_rows",
+        "threshold_role": "bayesfilter_fixed_hmc_engineering_safeguard"
+      }
+    ],
+    "runner_manifest_path": "docs/plans/bayesfilter-highdim-zhao-cui-p59-9d-runner-readiness-manifest-2026-06-11.json",
+    "source_anchors": [
+      "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/full_sol.m:21-25",
+      "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/full_sol.m:26-30",
+      "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/full_sol.m:32-39",
+      "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/full_sol.m:54-87",
+      "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/full_sol.m:101-130"
+    ],
+    "state_dimension": 18,
+    "status": "PASS_P59_9E_D18_EXECUTION_ONLY",
+    "step_count": 2,
+    "target_dimension": 36,
+    "target_id": "zhao_cui_sir_austria_d18",
+    "tier": "d18_execution_only",
+    "transport_source_contract_levels": [
+      "fixed_ttsirt",
+      "fixed_ttsirt"
+    ]
+  },
+  "phase": "P83_PHASE7_SIR_D18_SOURCE_ROUTE_VALIDATION",
+  "phase6_budget_compliant_fit_evidence": false,
+  "schema_version": "bayesfilter.p83.phase7.execution_only.v1",
+  "status": "PASS_P59_9E_D18_EXECUTION_ONLY",
+  "tier": "d18_execution_only"
+}

@@ -496,22 +496,24 @@ def test_p44_m4_cut4_horizon_4_error_accumulation_is_bounded_dims_1_2_3() -> Non
         tf.debugging.assert_less(score_rel, tf.constant(1e-2, dtype=DTYPE))
 
 
-def test_p44_m4_zhaocui_horizon_4_is_explicit_nonclaim_for_current_scalar_helper() -> None:
-    try:
-        highdim.scalar_nonlinear_fixed_design_tt_value_path(
-            _ScalarNonlinearTransitionSSM(0, initial_quadrature_order=181),
-            _theta0(),
-            _observations(1, 4),
-            _tt_config(0),
-            fixture_id="p44.m4.nonlinear-transition.axis-0.horizon-4.nonclaim",
-            branch_seed_prefix="p44-m4-nonlinear-transition-axis-0-horizon-4-nonclaim",
-            retained_moment_order=241,
-            retained_propagation_order=241,
-        )
-    except ValueError as exc:
-        assert "pinned to exactly two observations" in str(exc)
-    else:
-        raise AssertionError("Zhao-Cui scalar helper unexpectedly accepted horizon 4")
+def test_p44_m4_zhaocui_horizon_4_scalar_helper_runs_full_observation_path() -> None:
+    result = highdim.scalar_nonlinear_fixed_design_tt_value_path(
+        _ScalarNonlinearTransitionSSM(0, initial_quadrature_order=181),
+        _theta0(),
+        _observations(1, 4),
+        _tt_config(0),
+        fixture_id="p44.m4.nonlinear-transition.axis-0.horizon-4.scalar-full-path",
+        branch_seed_prefix="p44-m4-nonlinear-transition-axis-0-horizon-4-scalar-full-path",
+        retained_moment_order=241,
+        retained_propagation_order=241,
+    )
+
+    assert result.status is highdim.HighDimStatus.OK
+    assert len(result.steps) == 4
+    assert result.diagnostics["promoted_horizon"] == 4
+    assert result.diagnostics["observation_count"] == 4
+    assert result.diagnostics["last_time_index"] == 3
+    assert all(step.retained_filter.storage_kind == "scalar_tt_grid" for step in result.steps)
 
 
 def test_p44_m4_cut4_metadata_keeps_transition_stress_boundary() -> None:

@@ -1,0 +1,197 @@
+{
+  "schema_version": "contract_e_phase3_r2_reset_vjp_decision_manifest.v1",
+  "date": "2026-06-29",
+  "route_id": "contract_e_phase3_reset_vjp_decision",
+  "route_status": "blocked_reset_vjp_not_implemented",
+  "selected_route_name": "manual_likelihood_reverse_scan_no_autodiff",
+  "material_gate_authorized": false,
+  "material_blocker_code": "PHASE3_MATERIAL_GATE_BLOCKED_PENDING_MANUAL_REVERSE_SCAN",
+  "material_unblocking_rule": "R2 reset-policy decision cannot unblock material mode; only a later implemented and audited full manual likelihood reverse scan, including a resolved reset policy, may do so.",
+  "r1_manifest": "docs/plans/bayesfilter-ledh-pfpf-ot-contract-e-phase3-r1-manual-reverse-scan-route-manifest-2026-06-29.json",
+  "r2_decision_note": "docs/plans/bayesfilter-ledh-pfpf-ot-contract-e-phase3-r2-reset-vjp-decision-2026-06-29.md",
+  "current_rejected_routes": [
+    {
+      "route_name": "manual-transport-vjp-only",
+      "reason": "transport-only VJP with outer generic score tape; diagnostic only"
+    },
+    {
+      "route_name": "value-only-ad-probe",
+      "reason": "localization probe; diagnostic only"
+    }
+  ],
+  "forbidden_material_score_patterns": [
+    "tf.GradientTape",
+    "GradientTape(",
+    ".gradient(",
+    ".jacobian(",
+    ".batch_jacobian(",
+    "tf.gradients",
+    "tf.autodiff.ForwardAccumulator",
+    "ForwardAccumulator(",
+    "transport_ad_mode=full"
+  ],
+  "spectral_boundary_safety_rule": {
+    "applies_to": [
+      "E05",
+      "E07",
+      "E10",
+      "E11"
+    ],
+    "rule": "A manual VJP claim through projector, square-root, or pseudo-inverse-square-root operations must be scoped to a fixed local spectral class with unchanged retained rank, unchanged floor branch, no eigenvalue floor crossing, and explicit local FD parity. Rank/floor switch cases remain blocked or require a reviewed stop-gradient policy with bias nonclaims.",
+    "hidden_autodiff_fallback_allowed": false
+  },
+  "contract_e_reset_sub_boundaries": [
+    {
+      "id": "E01",
+      "name": "weighted target moments",
+      "terminal_classification": "blocked",
+      "fd_parity_required_for_manual_vjp": true,
+      "fd_parity_status": "not_run_no_manual_vjp_claim",
+      "fixed_rank_scope": "not_applicable",
+      "evidence_artifact": "docs/plans/bayesfilter-ledh-pfpf-ot-contract-e-phase3-r2-reset-vjp-decision-2026-06-29.md",
+      "blocker": "Algebraic VJP is feasible, but no implemented reset VJP or FD parity artifact exists."
+    },
+    {
+      "id": "E02",
+      "name": "barycentric first-stage map",
+      "terminal_classification": "blocked",
+      "fd_parity_required_for_manual_vjp": true,
+      "fd_parity_status": "not_run_no_manual_vjp_claim",
+      "fixed_rank_scope": "not_applicable",
+      "evidence_artifact": "docs/plans/bayesfilter-ledh-pfpf-ot-contract-e-phase3-r2-reset-vjp-decision-2026-06-29.md",
+      "blocker": "Linear map VJP is feasible, but the reset output cotangent depends on downstream spectral adjoints not yet derived."
+    },
+    {
+      "id": "E03",
+      "name": "plus-cloud uniform moments",
+      "terminal_classification": "blocked",
+      "fd_parity_required_for_manual_vjp": true,
+      "fd_parity_status": "not_run_no_manual_vjp_claim",
+      "fixed_rank_scope": "not_applicable",
+      "evidence_artifact": "docs/plans/bayesfilter-ledh-pfpf-ot-contract-e-phase3-r2-reset-vjp-decision-2026-06-29.md",
+      "blocker": "Algebraic VJP is feasible, but no local same-map parity check exists."
+    },
+    {
+      "id": "E04",
+      "name": "covariance gap",
+      "terminal_classification": "blocked",
+      "fd_parity_required_for_manual_vjp": true,
+      "fd_parity_status": "not_run_no_manual_vjp_claim",
+      "fixed_rank_scope": "not_applicable",
+      "evidence_artifact": "docs/plans/bayesfilter-ledh-pfpf-ot-contract-e-phase3-r2-reset-vjp-decision-2026-06-29.md",
+      "blocker": "Linear/symmetric VJP is feasible, but downstream square-root/projector cotangents are unresolved."
+    },
+    {
+      "id": "E05",
+      "name": "target projector/rank/eigen classification",
+      "terminal_classification": "blocked",
+      "fd_parity_required_for_manual_vjp": true,
+      "fd_parity_status": "not_run_no_manual_vjp_claim",
+      "fixed_rank_scope": "required_but_not_derived",
+      "evidence_artifact": "docs/plans/bayesfilter-ledh-pfpf-ot-contract-e-phase3-r2-reset-vjp-decision-2026-06-29.md",
+      "blocker": "Hard eigenvalue floor and retained-rank branch; no fixed-rank spectral projector VJP is derived or checked."
+    },
+    {
+      "id": "E06",
+      "name": "residual covariance",
+      "terminal_classification": "blocked",
+      "fd_parity_required_for_manual_vjp": true,
+      "fd_parity_status": "not_run_no_manual_vjp_claim",
+      "fixed_rank_scope": "depends_on_E05",
+      "evidence_artifact": "docs/plans/bayesfilter-ledh-pfpf-ot-contract-e-phase3-r2-reset-vjp-decision-2026-06-29.md",
+      "blocker": "Algebraic VJP depends on unresolved projector cotangent from E05."
+    },
+    {
+      "id": "E07",
+      "name": "residual covariance square root",
+      "terminal_classification": "blocked",
+      "fd_parity_required_for_manual_vjp": true,
+      "fd_parity_status": "not_run_no_manual_vjp_claim",
+      "fixed_rank_scope": "required_but_not_derived",
+      "evidence_artifact": "docs/plans/bayesfilter-ledh-pfpf-ot-contract-e-phase3-r2-reset-vjp-decision-2026-06-29.md",
+      "blocker": "Principal square-root VJP requires a fixed spectral class and Sylvester/eigenbasis derivative; not implemented or FD checked."
+    },
+    {
+      "id": "E08",
+      "name": "residual-noise recentering and injection",
+      "terminal_classification": "blocked",
+      "fd_parity_required_for_manual_vjp": true,
+      "fd_parity_status": "not_run_no_manual_vjp_claim",
+      "fixed_rank_scope": "depends_on_E07",
+      "evidence_artifact": "docs/plans/bayesfilter-ledh-pfpf-ot-contract-e-phase3-r2-reset-vjp-decision-2026-06-29.md",
+      "blocker": "Noise centering is algebraic, but the cotangent to B depends on unresolved E07."
+    },
+    {
+      "id": "E09",
+      "name": "tilde-cloud uniform moments",
+      "terminal_classification": "blocked",
+      "fd_parity_required_for_manual_vjp": true,
+      "fd_parity_status": "not_run_no_manual_vjp_claim",
+      "fixed_rank_scope": "not_applicable",
+      "evidence_artifact": "docs/plans/bayesfilter-ledh-pfpf-ot-contract-e-phase3-r2-reset-vjp-decision-2026-06-29.md",
+      "blocker": "Algebraic VJP is feasible, but no implemented reset VJP or FD parity artifact exists."
+    },
+    {
+      "id": "E10",
+      "name": "target covariance square root",
+      "terminal_classification": "blocked",
+      "fd_parity_required_for_manual_vjp": true,
+      "fd_parity_status": "not_run_no_manual_vjp_claim",
+      "fixed_rank_scope": "required_but_not_derived",
+      "evidence_artifact": "docs/plans/bayesfilter-ledh-pfpf-ot-contract-e-phase3-r2-reset-vjp-decision-2026-06-29.md",
+      "blocker": "Principal square-root VJP for target covariance is not implemented and is unsafe at rank/floor crossings."
+    },
+    {
+      "id": "E11",
+      "name": "tilde covariance pseudo-inverse square root",
+      "terminal_classification": "blocked",
+      "fd_parity_required_for_manual_vjp": true,
+      "fd_parity_status": "not_run_no_manual_vjp_claim",
+      "fixed_rank_scope": "required_but_not_derived",
+      "evidence_artifact": "docs/plans/bayesfilter-ledh-pfpf-ot-contract-e-phase3-r2-reset-vjp-decision-2026-06-29.md",
+      "blocker": "Hard retained-support branch and reciprocal square-root derivative are unresolved near the spectral floor."
+    },
+    {
+      "id": "E12",
+      "name": "affine moment-restoration map",
+      "terminal_classification": "blocked",
+      "fd_parity_required_for_manual_vjp": true,
+      "fd_parity_status": "not_run_no_manual_vjp_claim",
+      "fixed_rank_scope": "depends_on_E10_E11",
+      "evidence_artifact": "docs/plans/bayesfilter-ledh-pfpf-ot-contract-e-phase3-r2-reset-vjp-decision-2026-06-29.md",
+      "blocker": "Matrix-product VJP depends on unresolved target-sqrt and tilde-pseudo-inverse-sqrt adjoints."
+    },
+    {
+      "id": "E13",
+      "name": "final recentering to reset cloud",
+      "terminal_classification": "blocked",
+      "fd_parity_required_for_manual_vjp": true,
+      "fd_parity_status": "not_run_no_manual_vjp_claim",
+      "fixed_rank_scope": "not_applicable",
+      "evidence_artifact": "docs/plans/bayesfilter-ledh-pfpf-ot-contract-e-phase3-r2-reset-vjp-decision-2026-06-29.md",
+      "blocker": "Algebraic VJP is feasible, but no end-to-end reset VJP has passed local FD parity."
+    },
+    {
+      "id": "E14",
+      "name": "diagnostic moment and conditioning monitors",
+      "terminal_classification": "non_gradient_monitor",
+      "fd_parity_required_for_manual_vjp": false,
+      "fd_parity_status": "not_applicable",
+      "fixed_rank_scope": "not_applicable",
+      "evidence_artifact": "docs/plans/bayesfilter-ledh-pfpf-ot-contract-e-phase3-r2-reset-vjp-decision-2026-06-29.md",
+      "blocker": "None; diagnostics do not feed the material score route."
+    }
+  ],
+  "next_phase": {
+    "phase": "R3",
+    "objective": "resolve the reset VJP blocker before any full manual likelihood reverse-scan material route can be implemented or unblocked",
+    "may_unblock_material_gate": false
+  },
+  "nonclaims": [
+    "no Contract E reset VJP implemented",
+    "no stop-gradient reset policy approved",
+    "no gradient correctness claim",
+    "no FD or Kalman comparison",
+    "no GPU or material Phase 3 authorization"
+  ]
+}

@@ -9,11 +9,13 @@ from typing import Literal, Mapping
 import tensorflow as tf
 
 from bayesfilter.diagnostics import TFFilterDiagnostics, TFRegularizationDiagnostics
+from bayesfilter.linear.qr_factor_tf import factor_solve
 from bayesfilter.linear.svd_factor_tf import (
     eigh_logdet,
     eigh_solve,
     floor_count,
     psd_eigh,
+    strict_spd_principal_sqrt_first_derivatives,
     symmetrize,
 )
 from bayesfilter.results_tf import TFFilterValueResult
@@ -24,7 +26,7 @@ from bayesfilter.structural_tf import (
 )
 
 
-TFSigmaPointValueBackend = Literal["tf_svd_cubature", "tf_svd_ukf"]
+TFSigmaPointValueBackend = Literal["tf_svd_cubature", "tf_svd_ukf", "tf_principal_sqrt_ukf"]
 TFSigmaPointRuleName = Literal["cubature", "unscented"]
 
 
@@ -225,6 +227,39 @@ def tf_svd_sigma_point_placement(
     return points, diagnostics
 
 
+def _principal_sqrt_sigma_point_placement(
+    mean: tf.Tensor,
+    covariance: tf.Tensor,
+    rule: TFSigmaPointRule,
+    *,
+    singular_floor: tf.Tensor | float = 0.0,
+) -> tuple[tf.Tensor, TFSigmaPointDiagnostics]:
+    """Place sigma points with the strict-SPD principal square root."""
+
+    mean = tf.convert_to_tensor(mean, dtype=tf.float64)
+    covariance = symmetrize(tf.convert_to_tensor(covariance, dtype=tf.float64))
+    diagnostics = strict_spd_principal_sqrt_first_derivatives(
+        covariance,
+        tf.zeros([1, int(covariance.shape[0]), int(covariance.shape[1])], dtype=tf.float64),
+        singular_floor=singular_floor,
+        label="principal-sqrt sigma-point placement",
+    )
+    factor = diagnostics.factor
+    point_offsets = rule.offsets @ tf.transpose(factor)
+    points = mean[tf.newaxis, :] + point_offsets
+    support_residual = tf.constant(0.0, dtype=tf.float64)
+    placement_diagnostics = TFSigmaPointDiagnostics(
+        rank=tf.cast(tf.shape(covariance)[0], tf.int32),
+        floor_count=diagnostics.floor_count,
+        psd_projection_residual=diagnostics.psd_projection_residual,
+        support_residual=support_residual,
+        implemented_covariance=diagnostics.implemented_covariance,
+        raw_eigenvalues=diagnostics.eigenvalues,
+        floored_eigenvalues=diagnostics.floored_eigenvalues,
+    )
+    return points, placement_diagnostics
+
+
 def tf_svd_sigma_point_log_likelihood(
     observations: tf.Tensor,
     model: TFStructuralStateSpace,
@@ -235,9 +270,13 @@ def tf_svd_sigma_point_log_likelihood(
     rank_tolerance: tf.Tensor | float = 1e-12,
     jitter: tf.Tensor | float = 0.0,
     return_filtered: bool = False,
+    backend: TFSigmaPointValueBackend | None = None,
 ) -> tuple[tf.Tensor, tf.Tensor | None, tf.Tensor | None, Mapping[str, tf.Tensor]]:
     """Evaluate a structural SVD/eigen sigma-point Gaussian likelihood."""
 
+    inferred_backend = backend or (
+        "tf_principal_sqrt_ukf" if rule == "unscented" else "tf_svd_cubature"
+    )
     return tf_svd_sigma_point_log_likelihood_with_rule(
         observations,
         model,
@@ -250,6 +289,7 @@ def tf_svd_sigma_point_log_likelihood(
         rank_tolerance=rank_tolerance,
         jitter=jitter,
         return_filtered=return_filtered,
+        backend_name=inferred_backend,
     )
 
 
@@ -263,6 +303,7 @@ def tf_svd_sigma_point_log_likelihood_with_rule(
     rank_tolerance: tf.Tensor | float = 1e-12,
     jitter: tf.Tensor | float = 0.0,
     return_filtered: bool = False,
+    backend_name: TFSigmaPointValueBackend = "tf_svd_cubature",
 ) -> tuple[tf.Tensor, tf.Tensor | None, tf.Tensor | None, Mapping[str, tf.Tensor]]:
     """Evaluate a structural sigma-point likelihood with a fixed rule."""
 
@@ -316,13 +357,21 @@ def tf_svd_sigma_point_log_likelihood_with_rule(
             axis=1,
         )
         aug_covariance = tf.concat([upper, lower], axis=0)
-        aug_points, placement = tf_svd_sigma_point_placement(
-            aug_mean,
-            aug_covariance,
-            sigma_rule,
-            singular_floor=placement_floor_tensor,
-            rank_tolerance=rank_tolerance_tensor,
-        )
+        if backend_name == "tf_principal_sqrt_ukf":
+            aug_points, placement = _principal_sqrt_sigma_point_placement(
+                aug_mean,
+                aug_covariance,
+                sigma_rule,
+                singular_floor=placement_floor_tensor,
+            )
+        else:
+            aug_points, placement = tf_svd_sigma_point_placement(
+                aug_mean,
+                aug_covariance,
+                sigma_rule,
+                singular_floor=placement_floor_tensor,
+                rank_tolerance=rank_tolerance_tensor,
+            )
         previous_points = aug_points[:, :state_dim]
         innovation_points = aug_points[:, state_dim:]
         predicted_points = model.transition(previous_points, innovation_points)
@@ -359,25 +408,40 @@ def tf_svd_sigma_point_log_likelihood_with_rule(
             centered_y * sigma_rule.covariance_weights[:, tf.newaxis]
         )
         innovation = y[t] - observation_mean
-        (
-            innovation_eigenvalues,
-            innovation_floored,
-            innovation_eigenvectors,
-            implemented_innovation_covariance,
-            innovation_residual,
-        ) = psd_eigh(raw_innovation_covariance, innovation_floor_tensor)
-        solve_innovation = eigh_solve(
-            innovation_eigenvectors,
-            innovation_floored,
-            innovation,
-        )
-        innovation_precision = eigh_solve(
-            innovation_eigenvectors,
-            innovation_floored,
-            obs_identity,
-        )
+        if backend_name == "tf_principal_sqrt_ukf":
+            innovation_factor = strict_spd_principal_sqrt_first_derivatives(
+                raw_innovation_covariance,
+                tf.zeros([1, observation_dim, observation_dim], dtype=tf.float64),
+                singular_floor=innovation_floor_tensor,
+                label="principal-sqrt sigma-point innovation",
+            )
+            implemented_innovation_covariance = innovation_factor.implemented_covariance
+            innovation_residual = innovation_factor.psd_projection_residual
+            innovation_solve_factor = innovation_factor.factor
+            solve_innovation = factor_solve(innovation_solve_factor, innovation)
+            innovation_precision = factor_solve(innovation_solve_factor, obs_identity)
+            log_det = 2.0 * tf.reduce_sum(tf.math.log(tf.linalg.diag_part(innovation_solve_factor)))
+            innovation_eigenvalues = innovation_factor.eigenvalues
+        else:
+            (
+                innovation_eigenvalues,
+                innovation_floored,
+                innovation_eigenvectors,
+                implemented_innovation_covariance,
+                innovation_residual,
+            ) = psd_eigh(raw_innovation_covariance, innovation_floor_tensor)
+            solve_innovation = eigh_solve(
+                innovation_eigenvectors,
+                innovation_floored,
+                innovation,
+            )
+            innovation_precision = eigh_solve(
+                innovation_eigenvectors,
+                innovation_floored,
+                obs_identity,
+            )
+            log_det = eigh_logdet(innovation_floored)
         mahalanobis = tf.reduce_sum(innovation * solve_innovation)
-        log_det = eigh_logdet(innovation_floored)
         contribution = -0.5 * (
             tf.cast(observation_dim, tf.float64) * tf.math.log(two_pi)
             + log_det
@@ -450,7 +514,17 @@ def _backend_rule(backend: TFSigmaPointValueBackend) -> TFSigmaPointRuleName:
         return "cubature"
     if backend == "tf_svd_ukf":
         return "unscented"
+    if backend == "tf_principal_sqrt_ukf":
+        return "unscented"
     raise ValueError(f"unknown TensorFlow SVD sigma-point backend: {backend}")
+
+
+def _backend_role(backend: TFSigmaPointValueBackend) -> str:
+    if backend == "tf_principal_sqrt_ukf":
+        return "strict_spd_promoted"
+    if backend == "tf_svd_ukf":
+        return "historical_diagnostic_only"
+    return "standard"
 
 
 def tf_svd_sigma_point_filter(
@@ -477,6 +551,7 @@ def tf_svd_sigma_point_filter(
             rank_tolerance=rank_tolerance,
             jitter=jitter,
             return_filtered=return_filtered,
+            backend=backend,
         )
     )
     block_metadata = dict(structural_block_metadata(model))
@@ -499,8 +574,19 @@ def tf_svd_sigma_point_filter(
         "deterministic_residual": raw_diagnostics["deterministic_residual"],
         "min_placement_eigen_gap": raw_diagnostics["min_placement_eigen_gap"],
         "min_innovation_eigen_gap": raw_diagnostics["min_innovation_eigen_gap"],
-        "factorization": "tf.linalg.eigh",
-        "derivative_status_reason": "SVD sigma-point derivatives are not certified in value Phase 4.",
+        "backend_role": _backend_role(backend),
+        "factorization": (
+            "principal_square_root" if backend == "tf_principal_sqrt_ukf" else "tf.linalg.eigh"
+        ),
+        "derivative_status_reason": (
+            "strict-SPD principal-square-root backend promoted for value path"
+            if backend == "tf_principal_sqrt_ukf"
+            else (
+                "historical eigenderivative UKF path retained for diagnostics only"
+                if backend == "tf_svd_ukf"
+                else "SVD sigma-point derivatives are not certified in value Phase 4."
+            )
+        ),
     }
     diagnostics = TFFilterDiagnostics(
         backend=backend,
@@ -511,7 +597,11 @@ def tf_svd_sigma_point_filter(
             floor_count=raw_diagnostics["innovation_floor_count"],
             psd_projection_residual=raw_diagnostics["innovation_psd_projection_residual"],
             implemented_covariance=raw_diagnostics["implemented_innovation_covariance"],
-            branch_label="svd_sigma_point_value",
+            branch_label=(
+                "principal_square_root_sigma_point_value"
+                if backend == "tf_principal_sqrt_ukf"
+                else "svd_sigma_point_value"
+            ),
             derivative_target="blocked",
         ),
         extra=extra,

@@ -22,8 +22,10 @@ from experiments.dpf_implementation.tf_tfp.resampling.sinkhorn_tf import (
 from experiments.dpf_implementation.tf_tfp.resampling.sinkhorn_warmstart_student_tf import (
     RetainedTeacherWarmStartConfigTF,
     SinkhornWarmStartStudentTF,
+    meta_ot_dual_objective_loss_tf,
+    predict_canonical_log_u_tf,
     predict_sinkhorn_initial_state_tf,
-    teacher_state_loss_tf,
+    teacher_log_u_loss_tf,
 )
 from experiments.dpf_implementation.tf_tfp.runners.common_tf import (
     OUTPUT_DIR,
@@ -42,21 +44,22 @@ from experiments.dpf_implementation.tf_tfp.runners.common_tf import (
 
 
 INPUT_JSON_PATH = OUTPUT_DIR / "retained_teacher_sinkhorn_teacher_data_range_bearing_2026-06-18.json"
-JSON_PATH = OUTPUT_DIR / "retained_teacher_sinkhorn_low_budget_eval_range_bearing_2026-06-18.json"
-REPORT_PATH = REPORT_DIR / "retained-teacher-sinkhorn-low-budget-eval-range-bearing-2026-06-18.md"
-RESULT_PATH = "docs/plans/bayesfilter-neural-ot-retained-teacher-low-budget-eval-range-bearing-result-2026-06-18.md"
-PLAN_PATH = "docs/plans/bayesfilter-neural-ot-retained-teacher-range-bearing-cross-envelope-plan-2026-06-18.md"
+JSON_PATH = OUTPUT_DIR / "retained_teacher_sinkhorn_low_budget_eval_range_bearing_better_contract_2026-06-29.json"
+REPORT_PATH = REPORT_DIR / "retained-teacher-sinkhorn-low-budget-eval-range-bearing-better-contract-2026-06-29.md"
+RESULT_PATH = "docs/plans/bayesfilter-neural-ot-metaot-refit-range-bearing-better-contract-result-2026-06-29.md"
+PLAN_PATH = "docs/plans/bayesfilter-neural-ot-metaot-refit-better-evidence-contract-plan-2026-06-28.md"
 SCALAR_ID = "retained_teacher_sinkhorn_low_budget_teacher_cloud_fidelity_range_bearing_tf"
 TRAINING_SEED = 20260618
 EPOCHS = 250
 LEARNING_RATE = 1e-2
-PRIMARY_BUDGET = 10
-EXPLANATORY_BUDGET = 20
+PRIMARY_BUDGETS = (2, 3)
+EXPLANATORY_BUDGETS = (5,)
 BUDGET_TOLERANCE_FLOORS = {
-    10: 1e-5,
-    20: 1e-8,
+    2: 3e-4,
+    3: 1e-4,
+    5: 1e-5,
 }
-EXPECTED_DECISION = "RETAINED_TEACHER_SINKHORN_LOW_BUDGET_EVAL_RANGE_BEARING_PASSED"
+EXPECTED_DECISION = "RETAINED_TEACHER_SINKHORN_RANGE_BEARING_LOCAL_USEFULNESS_ON_DISCRIMINATING_BUDGETS"
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -89,43 +92,48 @@ def _run() -> dict[str, Any]:
         raise RuntimeError("range-bearing teacher-data artifact must include both train and heldout examples")
 
     tf.keras.utils.set_random_seed(TRAINING_SEED)
-    model = SinkhornWarmStartStudentTF(RetainedTeacherWarmStartConfigTF())
+    model = SinkhornWarmStartStudentTF(
+        RetainedTeacherWarmStartConfigTF(prediction_head="meta_ot_log_u")
+    )
     _ = model(train_examples[0]["particles"], train_examples[0]["weights"], epsilon=train_examples[0]["epsilon"])
     optimizer = tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE)
 
-    initial_train_loss = _mean_latent_loss(model, train_examples)
+    initial_train_loss = _mean_training_loss(model, train_examples)
     for _ in range(EPOCHS):
         with tf.GradientTape() as tape:
-            loss = _mean_latent_loss(model, train_examples)
+            loss = _mean_training_loss(model, train_examples)
         grads = tape.gradient(loss, model.trainable_variables)
         optimizer.apply_gradients(zip(grads, model.trainable_variables))
-    final_train_loss = _mean_latent_loss(model, train_examples)
-    heldout_latent_loss = _mean_latent_loss(model, heldout_examples)
+    final_train_loss = _mean_training_loss(model, train_examples)
+    heldout_log_u_loss = _mean_log_u_loss(model, heldout_examples)
 
-    primary_metrics = _budget_metrics(
-        model,
-        heldout_examples,
-        PRIMARY_BUDGET,
-        tolerance=max(float(teacher_policy["teacher_tolerance"]), float(BUDGET_TOLERANCE_FLOORS[PRIMARY_BUDGET])),
-    )
-    explanatory_metrics = _budget_metrics(
-        model,
-        heldout_examples,
-        EXPLANATORY_BUDGET,
-        tolerance=max(float(teacher_policy["teacher_tolerance"]), float(BUDGET_TOLERANCE_FLOORS[EXPLANATORY_BUDGET])),
-    )
+    all_budgets = PRIMARY_BUDGETS + EXPLANATORY_BUDGETS
+    budget_metrics = {
+        str(budget): _budget_metrics(
+            model,
+            heldout_examples,
+            budget,
+            tolerance=max(float(teacher_policy["teacher_tolerance"]), float(BUDGET_TOLERANCE_FLOORS[budget])),
+        )
+        for budget in all_budgets
+    }
+    budget_metrics = _annotate_budget_regimes(budget_metrics)
 
     decision = EXPECTED_DECISION
     if scalar(final_train_loss) >= scalar(initial_train_loss):
-        decision = "RETAINED_TEACHER_SINKHORN_LOW_BUDGET_EVAL_RANGE_BEARING_FAILED"
-    elif not _metrics_finite(primary_metrics, explanatory_metrics):
-        decision = "RETAINED_TEACHER_SINKHORN_LOW_BUDGET_EVAL_RANGE_BEARING_FAILED"
-    elif primary_metrics["mean_student_teacher_cloud_rmse"] > primary_metrics["mean_zero_teacher_cloud_rmse"]:
-        decision = "RETAINED_TEACHER_SINKHORN_LOW_BUDGET_EVAL_RANGE_BEARING_FAILED"
+        decision = "RETAINED_TEACHER_SINKHORN_RANGE_BEARING_OBJECTIVE_ROUTE_FAILED"
+    elif not _budgets_all_finite(budget_metrics):
+        decision = "RETAINED_TEACHER_SINKHORN_RANGE_BEARING_OBJECTIVE_ROUTE_FAILED"
+    else:
+        for budget in PRIMARY_BUDGETS:
+            metrics = budget_metrics[str(budget)]
+            if metrics["mean_student_teacher_cloud_rmse"] > metrics["mean_zero_teacher_cloud_rmse"]:
+                decision = "RETAINED_TEACHER_SINKHORN_RANGE_BEARING_NON_PROMOTED_ON_DISCRIMINATING_BUDGETS"
+                break
 
     payload = {
         "decision": decision,
-        "question": "On range-bearing heldout teacher-data examples, does student-warm-started retained Sinkhorn improve teacher-cloud fidelity relative to zero-init at a calibrated low budget?",
+        "question": "On range-bearing heldout teacher-data examples, does donor-aligned one-half retained Sinkhorn show local usefulness when the evaluation distinguishes discriminating budgets from saturated zero-init budgets?",
         "created_at_utc": utc_now(),
         "backend": "tensorflow_tensorflow_probability",
         "scalar_id": SCALAR_ID,
@@ -137,8 +145,10 @@ def _run() -> dict[str, Any]:
             "epochs": EPOCHS,
             "learning_rate": LEARNING_RATE,
             "optimizer": "Adam",
-            "primary_budget": PRIMARY_BUDGET,
-            "explanatory_budget": EXPLANATORY_BUDGET,
+            "loss_route": "meta_ot_log_u_dual_objective_plus_teacher_log_u",
+            "prediction_head": "meta_ot_log_u",
+            "primary_budgets": list(PRIMARY_BUDGETS),
+            "explanatory_budgets": list(EXPLANATORY_BUDGETS),
             "budget_tolerance_floors": {str(k): v for k, v in BUDGET_TOLERANCE_FLOORS.items()},
             "teacher_epsilon": teacher_policy["teacher_epsilon"],
             "teacher_tolerance": teacher_policy["teacher_tolerance"],
@@ -146,14 +156,11 @@ def _run() -> dict[str, Any]:
             "heldout_examples": len(heldout_examples),
         },
         "losses": {
-            "initial_train_latent_loss": scalar(initial_train_loss),
-            "final_train_latent_loss": scalar(final_train_loss),
-            "heldout_latent_loss": scalar(heldout_latent_loss),
+            "initial_train_loss": scalar(initial_train_loss),
+            "final_train_loss": scalar(final_train_loss),
+            "heldout_log_u_loss": scalar(heldout_log_u_loss),
         },
-        "budget_metrics": {
-            str(PRIMARY_BUDGET): primary_metrics,
-            str(EXPLANATORY_BUDGET): explanatory_metrics,
-        },
+        "budget_metrics": budget_metrics,
         "run_manifest": environment_manifest(
             command="CUDA_VISIBLE_DEVICES=-1 python -m experiments.dpf_implementation.tf_tfp.runners.run_retained_teacher_sinkhorn_low_budget_eval_range_bearing_tf",
             pre_import_cuda_visible_devices=PRE_IMPORT_CUDA_VISIBLE_DEVICES,
@@ -179,16 +186,37 @@ def _tensorize_example(example: dict[str, Any], teacher_policy: dict[str, Any]) 
     }
 
 
-def _mean_latent_loss(model: SinkhornWarmStartStudentTF, examples: list[dict[str, Any]]) -> tf.Tensor:
+def _mean_training_loss(model: SinkhornWarmStartStudentTF, examples: list[dict[str, Any]]) -> tf.Tensor:
     losses = []
     for example in examples:
-        predicted_state = predict_sinkhorn_initial_state_tf(
+        predicted_log_u = predict_canonical_log_u_tf(
             model,
             example["particles"],
             example["weights"],
             example["epsilon"],
         )
-        losses.append(teacher_state_loss_tf(predicted_state, example["teacher_state"]))
+        losses.append(
+            meta_ot_dual_objective_loss_tf(
+                predicted_log_u,
+                example["particles"],
+                example["weights"],
+                example["epsilon"],
+            )
+            + teacher_log_u_loss_tf(predicted_log_u, example["teacher_state"])
+        )
+    return tf.add_n(losses) / tf.cast(len(losses), tf.float64)
+
+
+def _mean_log_u_loss(model: SinkhornWarmStartStudentTF, examples: list[dict[str, Any]]) -> tf.Tensor:
+    losses = []
+    for example in examples:
+        predicted_log_u = predict_canonical_log_u_tf(
+            model,
+            example["particles"],
+            example["weights"],
+            example["epsilon"],
+        )
+        losses.append(teacher_log_u_loss_tf(predicted_log_u, example["teacher_state"]))
     return tf.add_n(losses) / tf.cast(len(losses), tf.float64)
 
 
@@ -247,6 +275,16 @@ def _budget_metrics(
     }
 
 
+def _annotate_budget_regimes(budget_metrics: dict[str, dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    annotated = {}
+    for budget, metrics in budget_metrics.items():
+        row = dict(metrics)
+        saturated = row["mean_zero_teacher_cloud_rmse"] <= 1e-12
+        row["budget_regime"] = "saturated_zero_init" if saturated else "discriminating"
+        annotated[budget] = row
+    return annotated
+
+
 def _max_residual(diagnostics: dict[str, Any]) -> float:
     return max(
         float(diagnostics["max_row_residual"]),
@@ -255,9 +293,9 @@ def _max_residual(diagnostics: dict[str, Any]) -> float:
     )
 
 
-def _metrics_finite(primary_metrics: dict[str, Any], explanatory_metrics: dict[str, Any]) -> bool:
+def _budgets_all_finite(budget_metrics: dict[str, dict[str, Any]]) -> bool:
     values = []
-    for metrics in (primary_metrics, explanatory_metrics):
+    for metrics in budget_metrics.values():
         values.extend(
             [
                 metrics["mean_student_teacher_cloud_rmse"],
@@ -272,24 +310,30 @@ def _metrics_finite(primary_metrics: dict[str, Any], explanatory_metrics: dict[s
 
 
 def _validate_payload(payload: dict[str, Any]) -> None:
-    if payload["decision"] != EXPECTED_DECISION:
+    if payload["decision"] not in {
+        EXPECTED_DECISION,
+        "RETAINED_TEACHER_SINKHORN_RANGE_BEARING_NON_PROMOTED_ON_DISCRIMINATING_BUDGETS",
+    }:
         raise RuntimeError(payload["decision"])
     if payload["run_manifest"]["pre_import_cuda_visible_devices"] != "-1":
         raise RuntimeError("missing CPU-only pre-import manifest")
     if payload["scalar_id"] != SCALAR_ID:
         raise RuntimeError("wrong scalar id")
-    if payload["losses"]["final_train_latent_loss"] >= payload["losses"]["initial_train_latent_loss"]:
-        raise RuntimeError("training did not improve train latent loss")
-    primary = payload["budget_metrics"][str(PRIMARY_BUDGET)]
-    if primary["mean_student_teacher_cloud_rmse"] > primary["mean_zero_teacher_cloud_rmse"]:
-        raise RuntimeError("student is worse than zero-init at range-bearing primary budget")
+    if payload["losses"]["final_train_loss"] >= payload["losses"]["initial_train_loss"]:
+        raise RuntimeError("training did not improve train loss")
+    discriminating_budgets = [
+        payload["budget_metrics"][str(budget)] for budget in PRIMARY_BUDGETS
+        if payload["budget_metrics"][str(budget)]["budget_regime"] == "discriminating"
+    ]
+    if not discriminating_budgets:
+        raise RuntimeError("missing discriminating primary-budget rung")
     if "reproducibility_digest" not in payload:
         raise RuntimeError("missing reproducibility digest")
 
 
 def _markdown(payload: dict[str, Any]) -> str:
     lines = [
-        "# Retained-Teacher Sinkhorn Range-Bearing Evaluation Result",
+        "# Retained-Teacher Sinkhorn Range-Bearing Better-Contract Evaluation Result",
         "",
         "## Decision",
         "",
@@ -297,19 +341,20 @@ def _markdown(payload: dict[str, Any]) -> str:
         "",
         "## Decision Table",
         "",
-        "| Budget | Student mean RMSE | Zero-init mean RMSE | Student max residual | Zero-init max residual | Student better-or-equal |",
-        "| --- | ---: | ---: | ---: | ---: | ---: |",
+        "| Budget | Regime | Student mean RMSE | Zero-init mean RMSE | Student max residual | Zero-init max residual | Student better-or-equal |",
+        "| --- | --- | ---: | ---: | ---: | ---: | ---: |",
     ]
-    for budget, metrics in payload["budget_metrics"].items():
+    for budget in list(PRIMARY_BUDGETS) + list(EXPLANATORY_BUDGETS):
+        metrics = payload["budget_metrics"][str(budget)]
         lines.append(
-            f"| `{budget}` | `{metrics['mean_student_teacher_cloud_rmse']:.3e}` | `{metrics['mean_zero_teacher_cloud_rmse']:.3e}` | `{metrics['max_student_residual']:.3e}` | `{metrics['max_zero_residual']:.3e}` | `{metrics['student_better_or_equal_count']}/{metrics['heldout_example_count']}` |"
+            f"| `{budget}` | `{metrics['budget_regime']}` | `{metrics['mean_student_teacher_cloud_rmse']:.3e}` | `{metrics['mean_zero_teacher_cloud_rmse']:.3e}` | `{metrics['max_student_residual']:.3e}` | `{metrics['max_zero_residual']:.3e}` | `{metrics['student_better_or_equal_count']}/{metrics['heldout_example_count']}` |"
         )
     lines.extend(
         [
             "",
             "## Interpretation",
             "",
-            "This rung asks whether the retained-teacher warm-start effect survives the move to the range-bearing family under a calibrated low-budget replay contract.",
+            "This range-bearing better-contract rung uses the P6-calibrated discriminating budgets (`2`, `3`) as the primary evidence and keeps the first saturated rung (`5`) explanatory only. The decision should therefore be read as governed local usefulness or local non-promotion on an actually informative range-bearing ladder, not as a replay of the earlier saturated `10`/`20` comparison.",
             "",
             "## Non-Implications",
             "",

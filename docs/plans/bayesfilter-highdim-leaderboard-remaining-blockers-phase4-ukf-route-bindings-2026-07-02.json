@@ -1,0 +1,55 @@
+{
+  "schema_version": "bayesfilter.highdim_leaderboard.remaining_blockers.phase4.ukf_route_bindings.v1",
+  "date": "2026-07-02",
+  "phase": 4,
+  "bindings": [
+    {
+      "row_id": "zhao_cui_predator_prey_T20",
+      "algorithm_id": "ukf",
+      "route_status": "value_only_blocked",
+      "route_family": "none",
+      "implementation_path": null,
+      "function_symbol": null,
+      "derivative_contract_path": null,
+      "derivative_inventory_reference": "docs/plans/bayesfilter-highdim-leaderboard-remaining-blockers-phase4-ukf-derivative-inventory-2026-07-02.json#/target_rows/0",
+      "theta_coordinate_system": null,
+      "forbidden_route_scan_status": "passed_no_admitted_forbidden_route_because_no_score_admitted",
+      "route_guard_status": "passed_static_srukf_guardrails_for_existing_admitted_backends",
+      "score_admission_status": "not_admitted",
+      "blocker_code": "BLOCK_PHASE4_UKF_PREDATOR_PREY_MANUAL_SRUKF_ROUTE_MISSING",
+      "blocker_reason": "No reviewed exact-row principal-square-root or factor-propagating SR-UKF manual derivative binding exists; current score evidence is autodiff diagnostic only."
+    },
+    {
+      "row_id": "zhao_cui_generalized_sv_synthetic_from_estimated_values",
+      "algorithm_id": "ukf",
+      "route_status": "value_only_blocked",
+      "route_family": "none",
+      "implementation_path": null,
+      "function_symbol": null,
+      "derivative_contract_path": null,
+      "derivative_inventory_reference": "docs/plans/bayesfilter-highdim-leaderboard-remaining-blockers-phase4-ukf-derivative-inventory-2026-07-02.json#/target_rows/1",
+      "theta_coordinate_system": null,
+      "forbidden_route_scan_status": "passed_no_admitted_forbidden_route_because_no_score_admitted",
+      "route_guard_status": "passed_static_srukf_guardrails_for_existing_admitted_backends",
+      "score_admission_status": "not_admitted",
+      "blocker_code": "BLOCK_PHASE4_UKF_GENERALIZED_SV_MANUAL_SRUKF_ROUTE_MISSING",
+      "blocker_reason": "No reviewed exact-row principal-square-root or factor-propagating SR-UKF manual derivative binding exists; current score evidence is autodiff diagnostic only."
+    },
+    {
+      "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+      "algorithm_id": "ukf",
+      "route_status": "out_of_scope_phase4_value_only_no_free_theta",
+      "route_family": "none",
+      "implementation_path": null,
+      "function_symbol": null,
+      "derivative_contract_path": "docs/plans/bayesfilter-highdim-leaderboard-remaining-blockers-phase3-spatial-sir-result-2026-07-02.md",
+      "derivative_inventory_reference": null,
+      "theta_coordinate_system": "no_free_theta",
+      "forbidden_route_scan_status": "not_applicable_no_score_admitted",
+      "route_guard_status": "not_applicable_no_score_admitted",
+      "score_admission_status": "not_applicable_no_free_theta",
+      "blocker_code": "BLOCK_PHASE3_SIR_FULL_FILTERING_THETA_BINDING_UNAVAILABLE",
+      "blocker_reason": "Phase 3 closed SIR as a full-row theta-binding blocker; Phase 4 does not repair SIR UKF score."
+    }
+  ]
+}

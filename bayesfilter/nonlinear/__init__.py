@@ -29,7 +29,13 @@ __all__ = [
     "TFSigmaPointDiagnostics",
     "TFSigmaPointRule",
     "TFSigmaPointValueBackend",
+    "TFSRUKFSigmaPointRule",
+    "TFSRUKFStepDerivatives",
+    "TFSRUKFStepResult",
+    "SRUKFRouteGuardViolation",
+    "assert_no_forbidden_srukf_routes",
     "find_forbidden_compiled_value_tokens",
+    "find_forbidden_srukf_routes",
     "stable_nonlinear_filter_value_path_signature",
     "tf_fixed_sgqf_active_multi_indices",
     "tf_fixed_sgqf_branch_identity",
@@ -49,9 +55,12 @@ __all__ = [
     "tf_svd_cut4_filter",
     "tf_svd_cut4_log_likelihood",
     "tf_svd_cut4_score",
+    "tf_srukf_factor_score_step",
+    "tf_srukf_unit_sigma_point_rule",
     "tf_unit_sigma_point_rule",
     "tf_svd_sigma_point_score_with_rule",
     "tf_svd_ukf_score",
+    "tf_principal_sqrt_ukf_score",
     "tf_standard_normal_ghq_level_rule",
     "tensorflow_nonlinear_value_path_contract",
 ]
@@ -85,7 +94,13 @@ _EXPORT_MODULES = {
     "TFSigmaPointDiagnostics": "bayesfilter.nonlinear.sigma_points_tf",
     "TFSigmaPointRule": "bayesfilter.nonlinear.sigma_points_tf",
     "TFSigmaPointValueBackend": "bayesfilter.nonlinear.sigma_points_tf",
+    "TFSRUKFSigmaPointRule": "bayesfilter.nonlinear.srukf_factor_tf",
+    "TFSRUKFStepDerivatives": "bayesfilter.nonlinear.srukf_factor_tf",
+    "TFSRUKFStepResult": "bayesfilter.nonlinear.srukf_factor_tf",
+    "SRUKFRouteGuardViolation": "bayesfilter.nonlinear.srukf_route_guard",
+    "assert_no_forbidden_srukf_routes": "bayesfilter.nonlinear.srukf_route_guard",
     "find_forbidden_compiled_value_tokens": "bayesfilter.nonlinear.compiled_value_paths",
+    "find_forbidden_srukf_routes": "bayesfilter.nonlinear.srukf_route_guard",
     "stable_nonlinear_filter_value_path_signature": (
         "bayesfilter.nonlinear.compiled_value_paths"
     ),
@@ -115,11 +130,14 @@ _EXPORT_MODULES = {
     "tf_svd_cut4_filter": "bayesfilter.nonlinear.svd_cut_tf",
     "tf_svd_cut4_log_likelihood": "bayesfilter.nonlinear.svd_cut_tf",
     "tf_svd_cut4_score": "bayesfilter.nonlinear.svd_sigma_point_derivatives_tf",
+    "tf_srukf_factor_score_step": "bayesfilter.nonlinear.srukf_factor_tf",
+    "tf_srukf_unit_sigma_point_rule": "bayesfilter.nonlinear.srukf_factor_tf",
     "tf_unit_sigma_point_rule": "bayesfilter.nonlinear.sigma_points_tf",
     "tf_svd_sigma_point_score_with_rule": (
         "bayesfilter.nonlinear.svd_sigma_point_derivatives_tf"
     ),
     "tf_svd_ukf_score": "bayesfilter.nonlinear.svd_sigma_point_derivatives_tf",
+    "tf_principal_sqrt_ukf_score": "bayesfilter.nonlinear.svd_sigma_point_derivatives_tf",
     "tf_standard_normal_ghq_level_rule": "bayesfilter.nonlinear.fixed_sgqf_tf",
     "tensorflow_nonlinear_value_path_contract": (
         "bayesfilter.nonlinear.compiled_value_paths"

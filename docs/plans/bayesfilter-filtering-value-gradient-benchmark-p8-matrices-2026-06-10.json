@@ -5,7 +5,7 @@
   "status": "BLOCK_FILTER_BENCH_P8_RUNNER_MATRICES",
   "blocker": {
     "blocked_token": "BLOCK_FILTER_BENCH_P8_RUNNER_MATRICES",
-    "reason": "No reviewed full numeric benchmark runner exists for the frozen 7x12 roster; emitting complete status matrices is possible, but promoting smoke/preflight values to value or gradient errors would violate the evidence contract.",
+    "reason": "No reviewed full numeric benchmark runner exists for the frozen 8x12 roster; emitting complete status matrices is possible, but promoting smoke/preflight values to value or gradient errors would violate the evidence contract.",
     "required_repair": "Implement actual per-cell numeric benchmark adapters for the frozen roster or explicitly revise the P8 criterion before claiming benchmark performance."
   },
   "source_artifacts": {
@@ -23,6 +23,7 @@
       "ukf",
       "svd_sigma_point",
       "cut4",
+      "fixed_sgqf",
       "zhao_cui_scalar_or_multistate",
       "bootstrap_dpf_current",
       "ledh_pfpf_alg1_ukf_current"
@@ -41,7 +42,7 @@
       "predator_prey_lower_rung_dim_2",
       "predator_prey_production_tuned_h25_dim_2"
     ],
-    "expected_cell_count": 84,
+    "expected_cell_count": 96,
     "historical_algorithm_ids_excluded_from_current_roster": [
       "ledh_pfpf_ot_historical"
     ]
@@ -62,7 +63,8 @@
     "performance_answer_complete": false,
     "p7_preflight_used_as_performance_evidence": false,
     "smoke_fixtures_used_as_performance_evidence": false,
-    "old_ledh_pfpf_ot_current_evidence": false
+    "old_ledh_pfpf_ot_current_evidence": false,
+    "coverage_roster_is_broader_than_two_lane_comparison": true
   },
   "run_manifest": {
     "git_commit": "dirty worktree; P8 artifacts uncommitted",
@@ -1386,6 +1388,193 @@
         ],
         "reason_codes": [
           "BLOCK_P53_M5_RANK_SELECTION_INTEGRATION",
+          "GRADIENT_STATUS_ONLY_BY_P6_SEMANTICS"
+        ],
+        "mc_standard_error": null,
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "predator_prey_lower_rung_dim_2": {
+        "value_error_abs": null,
+        "value_error_rel": null,
+        "value_status": "NOT_RUN",
+        "cell_status": "NOT_RUN_ADAPTER_REQUIRED",
+        "comparator_labels": [
+          "exact_or_dense_numerical",
+          "approximate_nongaussian"
+        ],
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET",
+          "GRADIENT_STATUS_ONLY_BY_P6_SEMANTICS"
+        ],
+        "mc_standard_error": null,
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "predator_prey_production_tuned_h25_dim_2": {
+        "value_error_abs": null,
+        "value_error_rel": null,
+        "value_status": "NOT_RUN",
+        "cell_status": "NOT_RUN_ADAPTER_REQUIRED",
+        "comparator_labels": [
+          "exact_or_dense_numerical",
+          "approximate_nongaussian"
+        ],
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET",
+          "GRADIENT_STATUS_ONLY_BY_P6_SEMANTICS"
+        ],
+        "mc_standard_error": null,
+        "performance_interpretation": "not_performance_evidence"
+      }
+    },
+    "fixed_sgqf": {
+      "lgssm_exact_kalman_dim_1_2_3": {
+        "value_error_abs": null,
+        "value_error_rel": null,
+        "value_status": "NOT_RUN",
+        "cell_status": "NOT_RUN_ADAPTER_REQUIRED",
+        "comparator_labels": [
+          "exact_LGSSM"
+        ],
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET",
+          "GRADIENT_STATUS_ONLY_BY_P6_SEMANTICS"
+        ],
+        "mc_standard_error": null,
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_cubic_additive_gaussian_dim_1_2_3": {
+        "value_error_abs": null,
+        "value_error_rel": null,
+        "value_status": "NOT_RUN",
+        "cell_status": "NOT_RUN_ADAPTER_REQUIRED",
+        "comparator_labels": [
+          "exact_or_dense_numerical"
+        ],
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET",
+          "GRADIENT_STATUS_ONLY_BY_P6_SEMANTICS"
+        ],
+        "mc_standard_error": null,
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_quadratic_observation_dim_1_2_3": {
+        "value_error_abs": null,
+        "value_error_rel": null,
+        "value_status": "NOT_RUN",
+        "cell_status": "NOT_RUN_ADAPTER_REQUIRED",
+        "comparator_labels": [
+          "exact_or_dense_numerical"
+        ],
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET",
+          "GRADIENT_STATUS_ONLY_BY_P6_SEMANTICS"
+        ],
+        "mc_standard_error": null,
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_nonlinear_transition_h2_dim_1_2_3": {
+        "value_error_abs": null,
+        "value_error_rel": null,
+        "value_status": "NOT_RUN",
+        "cell_status": "NOT_RUN_ADAPTER_REQUIRED",
+        "comparator_labels": [
+          "exact_or_dense_numerical"
+        ],
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET",
+          "GRADIENT_STATUS_ONLY_BY_P6_SEMANTICS"
+        ],
+        "mc_standard_error": null,
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3": {
+        "value_error_abs": null,
+        "value_error_rel": null,
+        "value_status": "NOT_RUN",
+        "cell_status": "NOT_RUN_ADAPTER_REQUIRED",
+        "comparator_labels": [
+          "no_reference"
+        ],
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET",
+          "GRADIENT_STATUS_ONLY_BY_P6_SEMANTICS"
+        ],
+        "mc_standard_error": null,
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "sv_exact_transformed_actual_nongaussian_dim_1_2_3": {
+        "value_error_abs": null,
+        "value_error_rel": null,
+        "value_status": "NOT_RUN",
+        "cell_status": "NOT_RUN_ADAPTER_REQUIRED",
+        "comparator_labels": [
+          "transformed_actual_nongaussian"
+        ],
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET",
+          "GRADIENT_STATUS_ONLY_BY_P6_SEMANTICS"
+        ],
+        "mc_standard_error": null,
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3": {
+        "value_error_abs": null,
+        "value_error_rel": null,
+        "value_status": "VALID",
+        "cell_status": "SMOKE_FIXTURE_NOT_BENCHMARK_RESULT",
+        "comparator_labels": [
+          "gaussian_mixture_surrogate"
+        ],
+        "reason_codes": [
+          "P8_NUMERIC_BENCHMARK_NOT_EXECUTED",
+          "SMOKE_FIXTURE_NOT_BENCHMARK_RESULT"
+        ],
+        "mc_standard_error": null,
+        "performance_interpretation": "not_performance_evidence",
+        "scope_qualifier": "tiny_same_target_surrogate_fixture_only"
+      },
+      "native_generalized_sv_dense_lower_rung_dim_2": {
+        "value_error_abs": null,
+        "value_error_rel": null,
+        "value_status": "NOT_RUN",
+        "cell_status": "NOT_RUN_ADAPTER_REQUIRED",
+        "comparator_labels": [
+          "exact_or_dense_numerical",
+          "approximate_nongaussian"
+        ],
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET",
+          "GRADIENT_STATUS_ONLY_BY_P6_SEMANTICS"
+        ],
+        "mc_standard_error": null,
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "spatial_sir_lower_rung_j1_dim_2": {
+        "value_error_abs": null,
+        "value_error_rel": null,
+        "value_status": "NOT_RUN",
+        "cell_status": "NOT_RUN_ADAPTER_REQUIRED",
+        "comparator_labels": [
+          "exact_or_dense_numerical",
+          "approximate_nongaussian"
+        ],
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET",
+          "GRADIENT_STATUS_ONLY_BY_P6_SEMANTICS"
+        ],
+        "mc_standard_error": null,
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18": {
+        "value_error_abs": null,
+        "value_error_rel": null,
+        "value_status": "NOT_RUN",
+        "cell_status": "NOT_RUN_ADAPTER_REQUIRED",
+        "comparator_labels": [
+          "no_reference"
+        ],
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET",
           "GRADIENT_STATUS_ONLY_BY_P6_SEMANTICS"
         ],
         "mc_standard_error": null,
@@ -2848,6 +3037,205 @@
         ],
         "performance_interpretation": "not_performance_evidence"
       }
+    },
+    "fixed_sgqf": {
+      "lgssm_exact_kalman_dim_1_2_3": {
+        "gradient_error_abs": null,
+        "gradient_error_rel": null,
+        "gradient_status": "adapter_required",
+        "raw_gradient_status": "NOT_RUN",
+        "p8_gradient_error_eligible": false,
+        "cell_status": "NOT_RUN_ADAPTER_REQUIRED",
+        "comparator_labels": [
+          "exact_LGSSM"
+        ],
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET",
+          "GRADIENT_STATUS_ONLY_BY_P6_SEMANTICS"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_cubic_additive_gaussian_dim_1_2_3": {
+        "gradient_error_abs": null,
+        "gradient_error_rel": null,
+        "gradient_status": "adapter_required",
+        "raw_gradient_status": "NOT_RUN",
+        "p8_gradient_error_eligible": false,
+        "cell_status": "NOT_RUN_ADAPTER_REQUIRED",
+        "comparator_labels": [
+          "exact_or_dense_numerical"
+        ],
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET",
+          "GRADIENT_STATUS_ONLY_BY_P6_SEMANTICS"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_quadratic_observation_dim_1_2_3": {
+        "gradient_error_abs": null,
+        "gradient_error_rel": null,
+        "gradient_status": "adapter_required",
+        "raw_gradient_status": "NOT_RUN",
+        "p8_gradient_error_eligible": false,
+        "cell_status": "NOT_RUN_ADAPTER_REQUIRED",
+        "comparator_labels": [
+          "exact_or_dense_numerical"
+        ],
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET",
+          "GRADIENT_STATUS_ONLY_BY_P6_SEMANTICS"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_nonlinear_transition_h2_dim_1_2_3": {
+        "gradient_error_abs": null,
+        "gradient_error_rel": null,
+        "gradient_status": "adapter_required",
+        "raw_gradient_status": "NOT_RUN",
+        "p8_gradient_error_eligible": false,
+        "cell_status": "NOT_RUN_ADAPTER_REQUIRED",
+        "comparator_labels": [
+          "exact_or_dense_numerical"
+        ],
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET",
+          "GRADIENT_STATUS_ONLY_BY_P6_SEMANTICS"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3": {
+        "gradient_error_abs": null,
+        "gradient_error_rel": null,
+        "gradient_status": "adapter_required",
+        "raw_gradient_status": "NOT_RUN",
+        "p8_gradient_error_eligible": false,
+        "cell_status": "NOT_RUN_ADAPTER_REQUIRED",
+        "comparator_labels": [
+          "no_reference"
+        ],
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET",
+          "GRADIENT_STATUS_ONLY_BY_P6_SEMANTICS"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "sv_exact_transformed_actual_nongaussian_dim_1_2_3": {
+        "gradient_error_abs": null,
+        "gradient_error_rel": null,
+        "gradient_status": "adapter_required",
+        "raw_gradient_status": "NOT_RUN",
+        "p8_gradient_error_eligible": false,
+        "cell_status": "NOT_RUN_ADAPTER_REQUIRED",
+        "comparator_labels": [
+          "transformed_actual_nongaussian"
+        ],
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET",
+          "GRADIENT_STATUS_ONLY_BY_P6_SEMANTICS"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3": {
+        "gradient_error_abs": null,
+        "gradient_error_rel": null,
+        "gradient_status": "valid_analytic_gradient",
+        "raw_gradient_status": "VALID",
+        "p8_gradient_error_eligible": true,
+        "cell_status": "SMOKE_FIXTURE_NOT_BENCHMARK_RESULT",
+        "comparator_labels": [
+          "gaussian_mixture_surrogate"
+        ],
+        "reason_codes": [
+          "P8_NUMERIC_BENCHMARK_NOT_EXECUTED",
+          "SMOKE_FIXTURE_NOT_BENCHMARK_RESULT"
+        ],
+        "performance_interpretation": "not_performance_evidence",
+        "scope_qualifier": "tiny_same_target_surrogate_fixture_only"
+      },
+      "native_generalized_sv_dense_lower_rung_dim_2": {
+        "gradient_error_abs": null,
+        "gradient_error_rel": null,
+        "gradient_status": "adapter_required",
+        "raw_gradient_status": "NOT_RUN",
+        "p8_gradient_error_eligible": false,
+        "cell_status": "NOT_RUN_ADAPTER_REQUIRED",
+        "comparator_labels": [
+          "exact_or_dense_numerical",
+          "approximate_nongaussian"
+        ],
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET",
+          "GRADIENT_STATUS_ONLY_BY_P6_SEMANTICS"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "spatial_sir_lower_rung_j1_dim_2": {
+        "gradient_error_abs": null,
+        "gradient_error_rel": null,
+        "gradient_status": "adapter_required",
+        "raw_gradient_status": "NOT_RUN",
+        "p8_gradient_error_eligible": false,
+        "cell_status": "NOT_RUN_ADAPTER_REQUIRED",
+        "comparator_labels": [
+          "exact_or_dense_numerical",
+          "approximate_nongaussian"
+        ],
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET",
+          "GRADIENT_STATUS_ONLY_BY_P6_SEMANTICS"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18": {
+        "gradient_error_abs": null,
+        "gradient_error_rel": null,
+        "gradient_status": "adapter_required",
+        "raw_gradient_status": "NOT_RUN",
+        "p8_gradient_error_eligible": false,
+        "cell_status": "NOT_RUN_ADAPTER_REQUIRED",
+        "comparator_labels": [
+          "no_reference"
+        ],
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET",
+          "GRADIENT_STATUS_ONLY_BY_P6_SEMANTICS"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "predator_prey_lower_rung_dim_2": {
+        "gradient_error_abs": null,
+        "gradient_error_rel": null,
+        "gradient_status": "adapter_required",
+        "raw_gradient_status": "NOT_RUN",
+        "p8_gradient_error_eligible": false,
+        "cell_status": "NOT_RUN_ADAPTER_REQUIRED",
+        "comparator_labels": [
+          "exact_or_dense_numerical",
+          "approximate_nongaussian"
+        ],
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET",
+          "GRADIENT_STATUS_ONLY_BY_P6_SEMANTICS"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "predator_prey_production_tuned_h25_dim_2": {
+        "gradient_error_abs": null,
+        "gradient_error_rel": null,
+        "gradient_status": "adapter_required",
+        "raw_gradient_status": "NOT_RUN",
+        "p8_gradient_error_eligible": false,
+        "cell_status": "NOT_RUN_ADAPTER_REQUIRED",
+        "comparator_labels": [
+          "exact_or_dense_numerical",
+          "approximate_nongaussian"
+        ],
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET",
+          "GRADIENT_STATUS_ONLY_BY_P6_SEMANTICS"
+        ],
+        "performance_interpretation": "not_performance_evidence"
+      }
     }
   },
   "status_matrix": {
@@ -4021,6 +4409,169 @@
           "GRADIENT_STATUS_ONLY_BY_P6_SEMANTICS"
         ]
       }
+    },
+    "fixed_sgqf": {
+      "lgssm_exact_kalman_dim_1_2_3": {
+        "cell_status": "NOT_RUN_ADAPTER_REQUIRED",
+        "value_status": "NOT_RUN",
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "comparator_labels": [
+          "exact_LGSSM"
+        ],
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET",
+          "GRADIENT_STATUS_ONLY_BY_P6_SEMANTICS"
+        ]
+      },
+      "p44_cubic_additive_gaussian_dim_1_2_3": {
+        "cell_status": "NOT_RUN_ADAPTER_REQUIRED",
+        "value_status": "NOT_RUN",
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "comparator_labels": [
+          "exact_or_dense_numerical"
+        ],
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET",
+          "GRADIENT_STATUS_ONLY_BY_P6_SEMANTICS"
+        ]
+      },
+      "p44_quadratic_observation_dim_1_2_3": {
+        "cell_status": "NOT_RUN_ADAPTER_REQUIRED",
+        "value_status": "NOT_RUN",
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "comparator_labels": [
+          "exact_or_dense_numerical"
+        ],
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET",
+          "GRADIENT_STATUS_ONLY_BY_P6_SEMANTICS"
+        ]
+      },
+      "p44_nonlinear_transition_h2_dim_1_2_3": {
+        "cell_status": "NOT_RUN_ADAPTER_REQUIRED",
+        "value_status": "NOT_RUN",
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "comparator_labels": [
+          "exact_or_dense_numerical"
+        ],
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET",
+          "GRADIENT_STATUS_ONLY_BY_P6_SEMANTICS"
+        ]
+      },
+      "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3": {
+        "cell_status": "NOT_RUN_ADAPTER_REQUIRED",
+        "value_status": "NOT_RUN",
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "comparator_labels": [
+          "no_reference"
+        ],
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET",
+          "GRADIENT_STATUS_ONLY_BY_P6_SEMANTICS"
+        ]
+      },
+      "sv_exact_transformed_actual_nongaussian_dim_1_2_3": {
+        "cell_status": "NOT_RUN_ADAPTER_REQUIRED",
+        "value_status": "NOT_RUN",
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "comparator_labels": [
+          "transformed_actual_nongaussian"
+        ],
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET",
+          "GRADIENT_STATUS_ONLY_BY_P6_SEMANTICS"
+        ]
+      },
+      "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3": {
+        "cell_status": "SMOKE_FIXTURE_NOT_BENCHMARK_RESULT",
+        "value_status": "VALID",
+        "raw_gradient_status": "VALID",
+        "normalized_gradient_status": "valid_analytic_gradient",
+        "comparator_labels": [
+          "gaussian_mixture_surrogate"
+        ],
+        "reason_codes": [
+          "P8_NUMERIC_BENCHMARK_NOT_EXECUTED",
+          "SMOKE_FIXTURE_NOT_BENCHMARK_RESULT"
+        ],
+        "scope_qualifier": "tiny_same_target_surrogate_fixture_only"
+      },
+      "native_generalized_sv_dense_lower_rung_dim_2": {
+        "cell_status": "NOT_RUN_ADAPTER_REQUIRED",
+        "value_status": "NOT_RUN",
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "comparator_labels": [
+          "exact_or_dense_numerical",
+          "approximate_nongaussian"
+        ],
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET",
+          "GRADIENT_STATUS_ONLY_BY_P6_SEMANTICS"
+        ]
+      },
+      "spatial_sir_lower_rung_j1_dim_2": {
+        "cell_status": "NOT_RUN_ADAPTER_REQUIRED",
+        "value_status": "NOT_RUN",
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "comparator_labels": [
+          "exact_or_dense_numerical",
+          "approximate_nongaussian"
+        ],
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET",
+          "GRADIENT_STATUS_ONLY_BY_P6_SEMANTICS"
+        ]
+      },
+      "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18": {
+        "cell_status": "NOT_RUN_ADAPTER_REQUIRED",
+        "value_status": "NOT_RUN",
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "comparator_labels": [
+          "no_reference"
+        ],
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET",
+          "GRADIENT_STATUS_ONLY_BY_P6_SEMANTICS"
+        ]
+      },
+      "predator_prey_lower_rung_dim_2": {
+        "cell_status": "NOT_RUN_ADAPTER_REQUIRED",
+        "value_status": "NOT_RUN",
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "comparator_labels": [
+          "exact_or_dense_numerical",
+          "approximate_nongaussian"
+        ],
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET",
+          "GRADIENT_STATUS_ONLY_BY_P6_SEMANTICS"
+        ]
+      },
+      "predator_prey_production_tuned_h25_dim_2": {
+        "cell_status": "NOT_RUN_ADAPTER_REQUIRED",
+        "value_status": "NOT_RUN",
+        "raw_gradient_status": "NOT_RUN",
+        "normalized_gradient_status": "adapter_required",
+        "comparator_labels": [
+          "exact_or_dense_numerical",
+          "approximate_nongaussian"
+        ],
+        "reason_codes": [
+          "ADAPTER_REQUIRED_NATIVE_OR_NONGAUSSIAN_TARGET",
+          "GRADIENT_STATUS_ONLY_BY_P6_SEMANTICS"
+        ]
+      }
     }
   },
   "diagnostics_matrix": {
@@ -4883,6 +5434,134 @@
         "reference_gradient_policy": "reference_gradient_unavailable_but_value_benchmarkable",
         "performance_interpretation": "not_performance_evidence"
       }
+    },
+    "fixed_sgqf": {
+      "lgssm_exact_kalman_dim_1_2_3": {
+        "source_kind": "deterministic",
+        "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+        "cell_kind": "structured_reason_code_without_run",
+        "reference_type": "exact",
+        "benchmark_class": "benchmarkable_value_gradient",
+        "reference_gradient_policy": "reference_gradient_available",
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_cubic_additive_gaussian_dim_1_2_3": {
+        "source_kind": "deterministic",
+        "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+        "cell_kind": "structured_reason_code_without_run",
+        "reference_type": "dense_numerical",
+        "benchmark_class": "benchmarkable_value_gradient",
+        "reference_gradient_policy": "reference_gradient_available",
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_quadratic_observation_dim_1_2_3": {
+        "source_kind": "deterministic",
+        "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+        "cell_kind": "structured_reason_code_without_run",
+        "reference_type": "dense_numerical",
+        "benchmark_class": "benchmarkable_value_gradient",
+        "reference_gradient_policy": "reference_gradient_available",
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_nonlinear_transition_h2_dim_1_2_3": {
+        "source_kind": "deterministic",
+        "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+        "cell_kind": "structured_reason_code_without_run",
+        "reference_type": "dense_numerical",
+        "benchmark_class": "benchmarkable_value_gradient",
+        "reference_gradient_policy": "reference_gradient_available",
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3": {
+        "source_kind": "deterministic",
+        "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+        "cell_kind": "structured_reason_code_without_run",
+        "reference_type": "diagnostic",
+        "benchmark_class": "diagnostic_only",
+        "reference_gradient_policy": "reference_gradient_available",
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "sv_exact_transformed_actual_nongaussian_dim_1_2_3": {
+        "source_kind": "deterministic",
+        "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+        "cell_kind": "structured_reason_code_without_run",
+        "reference_type": "transformed_actual_nongaussian",
+        "benchmark_class": "benchmarkable_value_gradient",
+        "reference_gradient_policy": "reference_gradient_available",
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3": {
+        "source_kind": "deterministic",
+        "source_status": "READY_SURROGATE_VALUE_GRADIENT",
+        "cell_kind": "smoke_fixture_available",
+        "reference_type": "gaussian_mixture_surrogate",
+        "benchmark_class": "surrogate_approximation_lane",
+        "reference_gradient_policy": "reference_gradient_available",
+        "performance_interpretation": "not_performance_evidence",
+        "smoke_fixture_artifact": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-deterministic-filter-smoke-payloads-2026-06-10.json",
+        "smoke_runtime_seconds": 0.081,
+        "smoke_random_seed": null,
+        "algorithm_value_fixture": -7.441,
+        "algorithm_gradient_fixture": [
+          0.02,
+          -0.01,
+          0.03,
+          -0.02,
+          0.01,
+          -0.03
+        ],
+        "mc_standard_error": null,
+        "particle_count": null,
+        "effective_sample_size_min": null,
+        "resampling_policy": null,
+        "seed_list": null,
+        "scope_qualifier": "tiny_same_target_surrogate_fixture_only"
+      },
+      "native_generalized_sv_dense_lower_rung_dim_2": {
+        "source_kind": "deterministic",
+        "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+        "cell_kind": "structured_reason_code_without_run",
+        "reference_type": "dense_numerical",
+        "benchmark_class": "benchmarkable_value_gradient",
+        "reference_gradient_policy": "reference_gradient_available",
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "spatial_sir_lower_rung_j1_dim_2": {
+        "source_kind": "deterministic",
+        "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+        "cell_kind": "structured_reason_code_without_run",
+        "reference_type": "dense_numerical",
+        "benchmark_class": "benchmarkable_value_only",
+        "reference_gradient_policy": "reference_gradient_unavailable_but_value_benchmarkable",
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "spatial_sir_scaling_route_admitted_rank_selection_blocked_d18": {
+        "source_kind": "deterministic",
+        "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+        "cell_kind": "structured_reason_code_without_run",
+        "reference_type": "blocked_only",
+        "benchmark_class": "blocked_only",
+        "reference_gradient_policy": "blocked_value_route",
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "predator_prey_lower_rung_dim_2": {
+        "source_kind": "deterministic",
+        "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+        "cell_kind": "structured_reason_code_without_run",
+        "reference_type": "dense_numerical",
+        "benchmark_class": "benchmarkable_value_only",
+        "reference_gradient_policy": "reference_gradient_unavailable_but_value_benchmarkable",
+        "performance_interpretation": "not_performance_evidence"
+      },
+      "predator_prey_production_tuned_h25_dim_2": {
+        "source_kind": "deterministic",
+        "source_status": "ADAPTER_REQUIRED_WITH_REASON",
+        "cell_kind": "structured_reason_code_without_run",
+        "reference_type": "dense_numerical",
+        "benchmark_class": "benchmarkable_value_only",
+        "reference_gradient_policy": "reference_gradient_unavailable_but_value_benchmarkable",
+        "performance_interpretation": "not_performance_evidence"
+      }
     }
   },
   "seed_level_raw_rows": [
@@ -4983,5 +5662,38 @@
     "smoke fixtures are not benchmark performance evidence",
     "no DPF gradient certification",
     "no HMC, GPU, or Bayesian-estimation readiness"
-  ]
+  ],
+  "two_lane_comparison_contract": {
+    "comparison_program_master": "docs/plans/bayesfilter-two-lane-filter-comparison-master-program-2026-06-24.md",
+    "coverage_roster_is_not_comparison_roster": true,
+    "lowdim_same_target": {
+      "comparison_algorithm_ids": [
+        "fixed_sgqf",
+        "ukf",
+        "cut4",
+        "zhao_cui_scalar_or_multistate"
+      ],
+      "rankable_row_ids": [
+        "lgssm_exact_kalman_dim_1_2_3",
+        "p44_cubic_additive_gaussian_dim_1_2_3",
+        "p44_quadratic_observation_dim_1_2_3",
+        "p44_nonlinear_transition_h2_dim_1_2_3",
+        "sv_ksc_gaussian_mixture_surrogate_dim_1_2_3"
+      ],
+      "diagnostic_only_row_ids": [
+        "p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3"
+      ]
+    },
+    "highdim_source_scope": {
+      "source_scope_contract": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-source-paper-scope-contract-2026-06-11.json",
+      "comparison_algorithm_ids": [
+        "fixed_sgqf",
+        "ukf",
+        "zhao_cui_scalar_or_multistate"
+      ],
+      "excluded_algorithm_ids": [
+        "cut4"
+      ]
+    }
+  }
 }

@@ -2,7 +2,26 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 import tensorflow as tf
+
+
+@dataclass(frozen=True)
+class PrincipalSqrtFirstDerivativeDiagnostics:
+    """Strict-SPD principal-square-root factor and first-derivative diagnostics."""
+
+    eigenvalues: tf.Tensor
+    floored_eigenvalues: tf.Tensor
+    eigenvectors: tf.Tensor
+    factor: tf.Tensor
+    d_factor: tf.Tensor
+    implemented_covariance: tf.Tensor
+    floor_count: tf.Tensor
+    min_eigenvalue: tf.Tensor
+    psd_projection_residual: tf.Tensor
+    sylvester_residual: tf.Tensor
+    reconstruction_residual: tf.Tensor
 
 
 def symmetrize(matrix: tf.Tensor) -> tf.Tensor:
@@ -87,6 +106,139 @@ def psd_eigh_graph_status(
         implemented_covariance,
         residual,
         tf.logical_not(valid_eigensolver_input),
+    )
+
+
+def principal_sqrt_frechet_derivative_from_eigh(
+    eigenvectors: tf.Tensor,
+    sqrt_eigenvalues: tf.Tensor,
+    d_covariance: tf.Tensor,
+) -> tf.Tensor:
+    """Return the strict-SPD principal-square-root Frechet derivative.
+
+    The derivative is expressed in the eigenbasis of the strict-SPD covariance
+    through the Sylvester/Frechet identity and therefore avoids eigen-gap
+    denominators associated with eigenvector derivatives.
+    """
+
+    eigenvectors = tf.convert_to_tensor(eigenvectors, dtype=tf.float64)
+    sqrt_eigenvalues = tf.convert_to_tensor(sqrt_eigenvalues, dtype=tf.float64)
+    d_covariance = symmetrize(tf.convert_to_tensor(d_covariance, dtype=tf.float64))
+    transformed_rhs = (
+        tf.linalg.matrix_transpose(eigenvectors)[tf.newaxis, :, :]
+        @ d_covariance
+        @ eigenvectors[tf.newaxis, :, :]
+    )
+    denominator = sqrt_eigenvalues[:, tf.newaxis] + sqrt_eigenvalues[tf.newaxis, :]
+    transformed_derivative = transformed_rhs / denominator[tf.newaxis, :, :]
+    return symmetrize(
+        eigenvectors[tf.newaxis, :, :]
+        @ transformed_derivative
+        @ tf.linalg.matrix_transpose(eigenvectors)[tf.newaxis, :, :]
+    )
+
+
+def strict_spd_principal_sqrt_first_derivatives(
+    covariance: tf.Tensor,
+    d_covariance: tf.Tensor,
+    *,
+    singular_floor: tf.Tensor | float,
+    label: str,
+    lyapunov_tolerance: tf.Tensor | float = 1.0e-10,
+) -> PrincipalSqrtFirstDerivativeDiagnostics:
+    """Return strict-SPD principal-square-root factor derivatives.
+
+    This helper is intentionally strict: it blocks when a floor is active or the
+    covariance is not strictly SPD.  The derivative contract is the Sylvester
+    derivative of the principal square root of the same covariance used to place
+    points or solve innovation systems on the promoted principal-square-root
+    branch.
+    """
+
+    covariance = symmetrize(tf.convert_to_tensor(covariance, dtype=tf.float64))
+    d_covariance = symmetrize(tf.convert_to_tensor(d_covariance, dtype=tf.float64))
+    singular_floor = tf.convert_to_tensor(singular_floor, dtype=tf.float64)
+    (
+        eigenvalues,
+        floored_eigenvalues,
+        eigenvectors,
+        _implemented_covariance,
+        psd_projection_residual,
+    ) = psd_eigh(covariance, singular_floor)
+    active_floors = floor_count(eigenvalues, singular_floor)
+    min_eigenvalue = tf.reduce_min(eigenvalues)
+    assertions = [
+        tf.debugging.assert_equal(
+            active_floors,
+            tf.constant(0, dtype=tf.int32),
+            message=f"blocked_active_floor: {label} floor is active",
+        ),
+        tf.debugging.assert_greater(
+            min_eigenvalue,
+            singular_floor,
+            message=f"blocked_non_spd_principal_sqrt: {label} is not strict SPD",
+        ),
+        tf.debugging.assert_all_finite(
+            eigenvalues,
+            f"blocked_nonfinite_factor: {label} eigenvalues are nonfinite",
+        ),
+    ]
+    with tf.control_dependencies(assertions):
+        eigenvalues = tf.identity(eigenvalues)
+        floored_eigenvalues = tf.identity(floored_eigenvalues)
+        eigenvectors = tf.identity(eigenvectors)
+
+    sqrt_eigenvalues = tf.sqrt(floored_eigenvalues)
+    factor = (
+        eigenvectors
+        @ tf.linalg.diag(sqrt_eigenvalues)
+        @ tf.linalg.matrix_transpose(eigenvectors)
+    )
+    d_factor = principal_sqrt_frechet_derivative_from_eigh(
+        eigenvectors,
+        sqrt_eigenvalues,
+        d_covariance,
+    )
+    implemented_covariance = symmetrize(factor @ tf.linalg.matrix_transpose(factor))
+    psd_projection_residual = tf.linalg.norm(implemented_covariance - covariance)
+    sylvester_residual = tf.linalg.norm(
+        factor[tf.newaxis, :, :] @ d_factor
+        + d_factor @ factor[tf.newaxis, :, :]
+        - d_covariance,
+        axis=[-2, -1],
+    )
+    reconstructed = (
+        tf.matmul(d_factor, factor[tf.newaxis, :, :], transpose_b=True)
+        + tf.matmul(factor[tf.newaxis, :, :], d_factor, transpose_b=True)
+    )
+    reconstruction_residual = tf.linalg.norm(
+        reconstructed - d_covariance,
+        axis=[-2, -1],
+    )
+    max_residual = tf.maximum(sylvester_residual, reconstruction_residual)
+    lyapunov_tolerance = tf.convert_to_tensor(lyapunov_tolerance, dtype=tf.float64)
+    with tf.control_dependencies(
+        [
+            tf.debugging.assert_less_equal(
+                tf.reduce_max(max_residual),
+                lyapunov_tolerance,
+                message=f"blocked_principal_sqrt_reconstruction: {label} derivative reconstruction failed",
+            )
+        ]
+    ):
+        d_factor = tf.identity(d_factor)
+    return PrincipalSqrtFirstDerivativeDiagnostics(
+        eigenvalues=eigenvalues,
+        floored_eigenvalues=floored_eigenvalues,
+        eigenvectors=eigenvectors,
+        factor=factor,
+        d_factor=d_factor,
+        implemented_covariance=implemented_covariance,
+        floor_count=active_floors,
+        min_eigenvalue=min_eigenvalue,
+        psd_projection_residual=psd_projection_residual,
+        sylvester_residual=tf.reduce_max(sylvester_residual),
+        reconstruction_residual=tf.reduce_max(reconstruction_residual),
     )
 
 

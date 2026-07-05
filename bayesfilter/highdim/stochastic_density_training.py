@@ -77,6 +77,7 @@ class P75TrainableTTConfig:
     tau: tf.Tensor = tf.constant(1e-8, dtype=tf.float64)
     normalizer_floor: tf.Tensor = tf.constant(1e-14, dtype=tf.float64)
     denominator_floor: tf.Tensor = tf.constant(1e-300, dtype=tf.float64)
+    l1_weight: tf.Tensor = tf.constant(0.0, dtype=tf.float64)
     l2_weight: tf.Tensor = tf.constant(0.0, dtype=tf.float64)
     logz_anchor_weight: tf.Tensor = tf.constant(0.0, dtype=tf.float64)
     logz_reference: tf.Tensor | None = None
@@ -98,6 +99,7 @@ class P75TrainableTTConfig:
             "tau",
             "normalizer_floor",
             "denominator_floor",
+            "l1_weight",
             "l2_weight",
             "logz_anchor_weight",
         ):
@@ -658,8 +660,9 @@ class TrainableFunctionalTT:
         )
 
     def _regularization(self, log_normalizer: tf.Tensor) -> tf.Tensor:
+        l1 = tf.add_n([tf.reduce_sum(tf.abs(core)) for core in self.cores])
         l2 = tf.add_n([tf.reduce_sum(tf.square(core)) for core in self.cores])
-        penalty = self.config.l2_weight * l2
+        penalty = self.config.l1_weight * l1 + self.config.l2_weight * l2
         if self.config.logz_anchor_weight > 0.0:
             reference = (
                 tf.stop_gradient(log_normalizer)
@@ -890,6 +893,7 @@ def config_payload(config: P75TrainableTTConfig) -> Mapping[str, object]:
         "tau": float(config.tau.numpy()),
         "normalizer_floor": float(config.normalizer_floor.numpy()),
         "denominator_floor": float(config.denominator_floor.numpy()),
+        "l1_weight": float(config.l1_weight.numpy()),
         "l2_weight": float(config.l2_weight.numpy()),
         "logz_anchor_weight": float(config.logz_anchor_weight.numpy()),
         "learning_rate": config.learning_rate,

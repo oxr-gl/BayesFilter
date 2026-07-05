@@ -1,0 +1,147 @@
+{
+  "cold_log_likelihood_preview": [
+    820.1132202148438
+  ],
+  "cold_max_column_residual": 0.0,
+  "cold_max_row_residual": 0.007936239242553711,
+  "compile_and_first_call_seconds": 5090.462801736023,
+  "compiled_unit": "streaming_batched_ledh_pfpf_ot_lgssm_value",
+  "cuda_visible_devices": "0",
+  "device": "/GPU:0",
+  "device_scope": "visible",
+  "ess_by_time_preview": [],
+  "expect_device_kind": "gpu",
+  "filtered_means_preview": [],
+  "filtered_variances_preview": [],
+  "final_particles_preview": [
+    -0.0423583984375,
+    0.046996891498565674,
+    0.021666932851076126,
+    -0.0021419012919068336,
+    -0.02354200929403305,
+    0.04711614549160004,
+    0.008551528677344322,
+    0.0009434340172447264
+  ],
+  "finite_output": true,
+  "gpu_memory_info_after": {
+    "current": 16256256,
+    "peak": 58201088
+  },
+  "gpu_memory_info_before": {
+    "current": 8235264,
+    "peak": 8235264
+  },
+  "history_shapes": {
+    "ess_by_time": [
+      0,
+      1
+    ],
+    "filtered_means": [
+      0,
+      1,
+      20
+    ],
+    "filtered_variances": [
+      0,
+      1,
+      20
+    ],
+    "final_particles": [
+      1,
+      50000,
+      20
+    ]
+  },
+  "host": "DESKTOP-RF1Q5IJ",
+  "jit_compile": true,
+  "log_likelihood_preview": [
+    820.113037109375
+  ],
+  "logical_gpus": [
+    "LogicalDevice(name='/device:GPU:0', device_type='GPU')"
+  ],
+  "max_column_residual": 0.0,
+  "max_row_residual": 0.010607004165649414,
+  "nonclaims": [
+    "single synthetic LGSSM-shaped fixture only",
+    "production/default target by owner directive",
+    "no CPU/GPU ranking claim",
+    "no posterior validity claim",
+    "no active transport gradient validation claim",
+    "no HMC readiness claim",
+    "streaming removes dense transport storage but not all-pairs OT compute"
+  ],
+  "output_devices": [
+    "/job:localhost/replica:0/task:0/device:GPU:0"
+  ],
+  "output_shape": [
+    1
+  ],
+  "particle_chunk_size": 256,
+  "physical_gpus": [
+    "PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')"
+  ],
+  "precision": {
+    "active_dtype": "float32",
+    "default_algorithm_target": "ledh_pfpf_ot_tf32",
+    "default_dtype": "float32",
+    "default_execution_target": "gpu",
+    "default_route_acceptance": "accepted_default_use_whenever_possible",
+    "default_route_guidance": "use for BayesFilter DPF LEDH-PFPF-OT work whenever GPU execution and the streaming fixed-branch contract are applicable",
+    "default_route_rationale": "streaming GPU TF32 LEDH-PFPF-OT avoids dense transport/history storage for large-particle DPF transport while preserving explicit reference and fallback arms",
+    "default_target_status": "production_default_by_owner_directive",
+    "default_tf32_mode": "enabled",
+    "dtype": "float32",
+    "fp64_reference_requires_explicit_dtype": true,
+    "historical_module_path": "experiments/dpf_implementation",
+    "precision_default_policy": "production_ledh_pfpf_ot_gpu_tf32",
+    "public_api_exposure": "separately_gated",
+    "scope": "production_ledh_pfpf_ot_gpu_tf32_default_lane",
+    "tf32_execution_enabled": false,
+    "tf32_mode": "disabled",
+    "tf_dtype": "float32"
+  },
+  "proposal_mode": "callback",
+  "python_version": "3.11.14",
+  "repeats": 1,
+  "return_history": false,
+  "seed": 20260615,
+  "shape": {
+    "batch_size": 1,
+    "num_particles": 50000,
+    "obs_dim": 20,
+    "state_dim": 20,
+    "time_steps": 200
+  },
+  "stores_full_pre_flow_particles": false,
+  "teacher_replay_max_abs": 0.0006644055247306824,
+  "teacher_replay_max_abs_proxy": 0.07085954397916794,
+  "teacher_replay_rmse": 0.00015392147179227322,
+  "teacher_replay_rmse_proxy": 0.03329170122742653,
+  "tensorflow_version": "2.19.1",
+  "timestamp_utc": "2026-06-25T22:24:49.645513+00:00",
+  "transport": {
+    "annealed_convergence_threshold": 0.001,
+    "annealed_scaling": 0.9,
+    "col_chunk_size": 1024,
+    "dense_transport_matrix_materialized": false,
+    "gradient_mode": "raw",
+    "plan_mode": "streaming",
+    "row_chunk_size": 1024,
+    "sinkhorn_epsilon": 0.5,
+    "sinkhorn_iterations": 10
+  },
+  "transport_policy": "active-all",
+  "warm_call_timing_summary_seconds": {
+    "max": 4199.515477239038,
+    "mean": 4199.515477239038,
+    "median": 4199.515477239038,
+    "min": 4199.515477239038
+  },
+  "warm_call_timings_seconds": [
+    4199.515477239038
+  ],
+  "warmstart_mode": "learned",
+  "warmups": 0
+}

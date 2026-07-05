@@ -148,13 +148,463 @@ the observation density gives
 Thus a filtering implementation that changes the normalizers changes the
 likelihood, not merely the state estimate.
 
+For actual stochastic-volatility rows, the target discipline is now explicit:
+there is one cumulative likelihood target,
+\(
+\ell_T(\theta)=\sum_{t=1}^T\log Z_t(\theta)
+\),
+and every admissible numerical route must approximate that same scalar.  In the
+transformed observation parameterization used in the code and later chapters,
+\[
+  z_t=\log(y_t^2),
+  \qquad
+  z_t-\log(\beta^2)-h_t\sim \log(\chi_1^2),
+\]
+so the one-step normalizer is defined by the exact transformed actual-SV
+observation law.  Direct-likelihood quadrature, fixed-cloud reweighting, and the
+current Zhao--Cui comparator are therefore comparable only because they are meant
+to approximate that same normalizer sequence.
+
+The previous actual-SV ``Lane~B'' framing was wrong for this inference problem.
+It replaced the transformed actual-SV observation law by a Gaussian-closure
+construction built from predictive observation moments of an augmented variable.
+That replacement changes the implied one-step normalizer and therefore changes
+the cumulative likelihood target itself.  A filter may still be internally
+self-consistent for that replacement scalar, but it is not evidence about the
+intended actual-SV likelihood in \eqref{eq:bf-hd-likelihood-factor}.  Any
+implementation, benchmark, or gradient check must therefore keep two questions
+separate: whether a method differentiates its own declared scalar correctly, and
+whether that declared scalar is the right target in the first place.
+
+\subsection{Actual-SV Single-Target Derivation}
+\label{sec:bf-hd-actual-sv-single-target-derivation}
+
+The corrected actual-SV statement can now be written as a short derivation.
+Start from the raw observation equation
+\begin{equation}
+  y_t=\beta e^{h_t/2}\varepsilon_t,
+  \qquad
+  \varepsilon_t\sim \calN(0,1),
+  \qquad
+  \beta>0.
+  \label{eq:bf-hd-actual-sv-raw-observation}
+\end{equation}
+For nonzero observations define the transformed datum
+\begin{equation}
+  z_t=\log(y_t^2).
+  \label{eq:bf-hd-actual-sv-z-definition}
+\end{equation}
+Squaring \eqref{eq:bf-hd-actual-sv-raw-observation} gives
+\(
+  y_t^2=\beta^2 e^{h_t}\varepsilon_t^2
+\), and taking logs yields
+\begin{equation}
+  z_t-\log(\beta^2)-h_t
+  =
+  \log(\varepsilon_t^2).
+  \label{eq:bf-hd-actual-sv-transform-identity}
+\end{equation}
+Since \(\varepsilon_t^2\sim\chi_1^2\), the transformed observation density is
+therefore
+\begin{equation}
+  g_\theta(z_t\mid h_t)
+  =
+  p_{\log\chi_1^2}\!\left(z_t-\log(\beta^2)-h_t\right).
+  \label{eq:bf-hd-actual-sv-transform-density}
+\end{equation}
+Thus the transformed actual-SV one-step normalizer is
+\begin{equation}
+  Z_t(\theta)
+  =
+  \int g_\theta(z_t\mid h_t)
+  p_\theta(h_t\mid z_{1:t-1})\,dh_t,
+  \label{eq:bf-hd-actual-sv-normalizer}
+\end{equation}
+and the target remains the single cumulative likelihood
+\(
+  \ell_T(\theta)=\sum_{t=1}^T\log Z_t(\theta)
+\).
+
+This identity fixes the admissible same-target routes.  A dense exact-transformed
+reference, a direct-likelihood fixed-cloud rule, or the current factorized
+scalar Zhao--Cui wrapper may differ numerically, but they remain comparable only
+when they all evaluate \eqref{eq:bf-hd-actual-sv-transform-density} and then
+accumulate the resulting transformed normalizers.  The direct-likelihood route
+has the generic node-reweighting form
+\begin{equation}
+  \widehat Z_t^{\rm dir}(\theta;B)
+  =
+  \sum_{r=1}^M
+  w_r
+g_\theta\bigl(z_t\mid h_t^{(r)}\bigr),
+  \label{eq:bf-hd-actual-sv-direct-normalizer}
+\end{equation}
+with node locations \(h_t^{(r)}\) and weights \(w_r\) supplied by the declared
+predictive approximation branch \(B\).  The dense reference and the present
+Zhao--Cui comparator are same-target for the same reason: their value paths also
+consume the transformed observations \(z_t\) and the exact transformed density
+in \eqref{eq:bf-hd-actual-sv-transform-density}.
+
+\begin{proposition}[Augmented Gaussian closure changes the actual-SV scalar]
+\label{prop:bf-hd-actual-sv-gc-wrong-target}
+Suppose instead that one augments the one-step state with an explicit
+observation-noise coordinate and uses the raw observation map in
+\eqref{eq:bf-hd-actual-sv-raw-observation}.  If the resulting filter propagates
+that augmented cloud through the raw map, replaces
+\eqref{eq:bf-hd-actual-sv-transform-density} by predictive observation moments,
+and accumulates a Gaussian innovation likelihood such as
+\eqref{eq:bf-hd-sgqf-loglik}, then the accumulated scalar is not the transformed
+actual-SV likelihood target \(\ell_T(\theta)\).
+\end{proposition}
+
+\begin{proof}
+The transformed target in \eqref{eq:bf-hd-actual-sv-normalizer} is defined by
+integrating the exact transformed observation density
+\(g_\theta(z_t\mid h_t)\).  By contrast, the augmented Gaussian-closure route
+uses the raw map \(y_t=\beta e^{h_t/2}\varepsilon_t\), forms predictive
+observation moments such as \(\bar z_t\) and \(S_t\), and then accumulates a
+Gaussian innovation scalar.  That replacement changes the observation-density
+object inside the one-step normalizer.  Once the one-step normalizer changes, the
+cumulative likelihood changes as well by \eqref{eq:bf-hd-likelihood-factor}.
+Hence the Gaussian-closure route may define a different declared approximate
+scalar, but it is not a same-target approximation to the transformed actual-SV
+likelihood.
+\end{proof}
+
+\begin{proposition}[When a Gaussian-closure likelihood surrogate can be reasonable]
+\label{prop:bf-hd-gaussian-closure-surrogate-regime}
+Let \(p_t^{\rm obs}(y)\) be the predictive observation density induced by the
+correct augmented input law, and let \((\bar z_t,S_t)\) be the predictive mean
+and covariance used in the Gaussian innovation scalar
+\eqref{eq:bf-hd-sgqf-loglik}.  Suppose:
+\begin{enumerate}[label=(\roman*), leftmargin=0.28in]
+  \item the sigma-point or fixed-cloud rule is applied to the correct augmented
+    input variable, so that the moment statement in
+    Proposition~\ref{prop:bf-structural-ukf-ut-accuracy} applies;
+  \item the local small-uncertainty and smoothness hypotheses behind
+    Proposition~\ref{prop:bf-structural-ukf-ut-accuracy} hold, so the predictive
+    mean and covariance are accurate through the stated second-order regime; and
+  \item on a neighborhood \(\mathcal U_t\) containing the realized observation
+    \(y_t\), the predictive observation log density satisfies
+    \begin{equation}
+      \log p_t^{\rm obs}(y)
+      =
+      \log \varphi_{n_y}(y;\bar z_t,S_t)+r_t(y),
+      \qquad y\in\mathcal U_t,
+      \label{eq:bf-hd-gaussian-closure-log-density-remainder}
+    \end{equation}
+    with remainder bounded by
+    \begin{equation}
+      |r_t(y)|\le \delta_t,
+      \qquad y\in\mathcal U_t.
+      \label{eq:bf-hd-gaussian-closure-remainder-bound}
+    \end{equation}
+\end{enumerate}
+Then, provided \(y_t\in\mathcal U_t\), the one-step Gaussian innovation scalar
+is a local likelihood surrogate with error bounded by
+\begin{equation}
+  \left|
+    \log p_t^{\rm obs}(y_t)
+    -
+    \left[-\frac12\left\{\log\det S_t+v_t^\top S_t^{-1}v_t+n_y\log(2\pi)\right\}\right]
+  \right|
+  \le \delta_t.
+  \label{eq:bf-hd-gaussian-closure-surrogate-bound}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+By definition of the Gaussian density,
+\[
+  \log \varphi_{n_y}(y_t;\bar z_t,S_t)
+  =
+  -\frac12\left\{\log\det S_t+v_t^\top S_t^{-1}v_t+n_y\log(2\pi)\right\},
+\]
+with \(v_t=y_t-\bar z_t\).  Evaluating
+\eqref{eq:bf-hd-gaussian-closure-log-density-remainder} at \(y_t\) gives
+\[
+  \log p_t^{\rm obs}(y_t)
+  -
+  \log \varphi_{n_y}(y_t;\bar z_t,S_t)
+  =
+  r_t(y_t),
+\]
+and \eqref{eq:bf-hd-gaussian-closure-surrogate-bound} follows from
+\eqref{eq:bf-hd-gaussian-closure-remainder-bound}.
+\end{proof}
+
+This proposition states the admissible sense in which a UKF-style or
+fixed-cloud Gaussian closure can still be useful.  The structural UKF result
+controls predictive moments under the correct augmented input law; the extra
+remainder assumption controls how far the full predictive observation density is
+from the Gaussian density built from those moments.  Both ingredients are needed.
+Accurate moments alone do not guarantee an accurate likelihood scalar when the
+predictive observation law is strongly skewed, heavy-tailed, multimodal, or
+otherwise far from Gaussian near the realized observation.
+
+For actual SV this means the augmented Gaussian-closure route may be a reasonable
+local surrogate likelihood under a small-uncertainty, near-Gaussian predictive
+observation regime, but it still does not become the same target as the
+transformed exact likelihood in \eqref{eq:bf-hd-actual-sv-normalizer}.  It is a
+surrogate scalar, not a second exact route to the same inference problem.
+
+\subsection{Actual-SV SR-UKF Augmented-Noise Adapter}
+\label{sec:bf-hd-actual-sv-srukf-augmented-adapter}
+
+This subsection gives the model-specific adapter for the factor-propagating
+SR-UKF score contract in
+Section~\ref{sec:bf-srukf-factor-propagating-score-contract}.  It is deliberately
+an adapter for the raw-observation Gaussian-closure surrogate in
+Proposition~\ref{prop:bf-hd-gaussian-closure-surrogate-regime}; it is not an
+admission that the surrogate equals the transformed actual-SV target in
+\eqref{eq:bf-hd-actual-sv-normalizer}.
+
+For one panel coordinate, use the scalar latent recursion
+\begin{equation}
+  H_t=\gamma H_{t-1}+U_t,
+  \qquad
+  U_t\sim\calN(0,\sigma^2),
+  \qquad
+  Y_t=\beta \exp(H_t/2)E_t,
+  \qquad
+  E_t\sim\calN(0,1).
+  \label{eq:bf-hd-actual-sv-srukf-model}
+\end{equation}
+The candidate score contract for this surrogate uses the unconstrained
+parameterization
+\begin{equation}
+  \theta=(\theta_\gamma,\theta_\beta),
+  \qquad
+  \gamma=\Phi(\theta_\gamma),
+  \qquad
+  \beta=\exp(\theta_\beta),
+  \qquad
+  \sigma \text{ fixed}.
+  \label{eq:bf-hd-actual-sv-srukf-parameterization}
+\end{equation}
+Here \(\Phi\) is the standard normal distribution function and
+\(\varphi\) is its density, so
+\begin{equation}
+  \partial_{\theta_\gamma}\gamma=\varphi(\theta_\gamma),
+  \qquad
+  \partial_{\theta_\beta}\beta=\beta,
+  \qquad
+  \partial_{\theta_i}\sigma=0.
+  \label{eq:bf-hd-actual-sv-srukf-parameter-derivatives}
+\end{equation}
+A sigma-point adapter must place points on the pre-observation uncertainty
+variable
+\begin{equation}
+  A_t=(H_{t-1},U_t,E_t)^\top .
+  \label{eq:bf-hd-actual-sv-srukf-augmented-variable}
+\end{equation}
+If the previous filtered approximation is
+\[
+  H_{t-1}\mid y_{1:t-1}\approx
+  \calN(m_{t-1},c_{t-1}c_{t-1}^\top),
+\]
+then the declared augmented law is
+\begin{equation}
+  A_t\mid y_{1:t-1}
+  \approx
+  \calN\!\left(
+    \begin{bmatrix}m_{t-1}\\0\\0\end{bmatrix},
+    C_{a,t}C_{a,t}^\top
+  \right),
+  \qquad
+  C_{a,t}
+  =
+  \begin{bmatrix}
+    c_{t-1} & 0 & 0\\
+    0 & \sigma & 0\\
+    0 & 0 & 1
+  \end{bmatrix}.
+  \label{eq:bf-hd-actual-sv-srukf-augmented-law}
+\end{equation}
+The exact shape of \(c_{t-1}\) follows the scalar factor branch used by the
+generic SR-UKF handoff.  The crucial point is the three-coordinate law:
+lagged latent state, state innovation, and observation shock are all present.
+
+The state and raw-observation maps sent to the generic SR-UKF backend are
+\begin{align}
+  X_\theta(A_t)
+    &=
+    \gamma H_{t-1}+U_t,
+    \label{eq:bf-hd-actual-sv-srukf-transition-map}\\
+  Z_\theta(A_t)
+    &=
+    \beta\exp(X_\theta(A_t)/2)E_t .
+    \label{eq:bf-hd-actual-sv-srukf-observation-map}
+\end{align}
+The symbol \(Z_\theta(A_t)\) in
+\eqref{eq:bf-hd-actual-sv-srukf-observation-map} is the raw predicted
+observation coordinate used by the Gaussian closure; it is not the transformed
+datum \(z_t=\log(y_t^2)\) from
+\eqref{eq:bf-hd-actual-sv-z-definition}.
+
+For a placed point \(a^{(j)}=(h_-^{(j)},u^{(j)},e^{(j)})\), the local map
+derivatives required by
+\eqref{eq:bf-srukf-propagated-point-first} are
+\begin{align}
+  D_a X_\theta(a^{(j)})
+    &=
+    \begin{bmatrix}\gamma&1&0\end{bmatrix},
+    &
+  \partial_{\theta_\gamma}X_\theta(a^{(j)})
+    &=
+    \varphi(\theta_\gamma)h_-^{(j)},
+    &
+  \partial_{\theta_\beta}X_\theta(a^{(j)})
+    &=0,
+    \label{eq:bf-hd-actual-sv-srukf-transition-derivatives}\\
+  D_a Z_\theta(a^{(j)})
+    &=
+    \beta\exp(x^{(j)}/2)
+    \begin{bmatrix}
+      \frac12\gamma e^{(j)}&
+      \frac12 e^{(j)}&
+      1
+    \end{bmatrix},
+    \label{eq:bf-hd-actual-sv-srukf-observation-state-derivative}\\
+  \partial_{\theta_\gamma}Z_\theta(a^{(j)})
+    &=
+    \frac12
+    \beta\exp(x^{(j)}/2)e^{(j)}
+    \varphi(\theta_\gamma)h_-^{(j)},
+    &
+  \partial_{\theta_\beta}Z_\theta(a^{(j)})
+    &=
+    \beta\exp(x^{(j)}/2)e^{(j)},
+    \label{eq:bf-hd-actual-sv-srukf-observation-parameter-derivatives}
+\end{align}
+where \(x^{(j)}=X_\theta(a^{(j)})\).  These are ordinary pointwise derivatives
+of the declared maps.  They do not differentiate a principal matrix square
+root, an eigensystem, an SVD basis, or an autodiff tape.
+
+The initial stationary branch, when used, is
+\begin{equation}
+  H_0\sim\calN\!\left(0,\frac{\sigma^2}{1-\gamma^2}\right),
+  \qquad |\gamma|<1,
+  \label{eq:bf-hd-actual-sv-srukf-initial-law}
+\end{equation}
+with score handoff derivatives
+\begin{equation}
+  \partial_{\theta_\gamma}m_0=0,\qquad
+  \partial_{\theta_\beta}m_0=0,\qquad
+  \partial_{\theta_\gamma}
+  \frac{\sigma^2}{1-\gamma^2}
+  =
+  \frac{2\sigma^2\gamma}{(1-\gamma^2)^2}\varphi(\theta_\gamma),
+  \qquad
+  \partial_{\theta_\beta}
+  \frac{\sigma^2}{1-\gamma^2}=0.
+  \label{eq:bf-hd-actual-sv-srukf-initial-derivatives}
+\end{equation}
+If the factor-propagating backend consumes the scalar stationary factor
+\(c_0=\sigma(1-\gamma^2)^{-1/2}\) rather than the variance, the corresponding
+fixed-\(\sigma\) branch derivative is
+\begin{equation}
+  \partial_{\theta_\gamma}c_0
+  =
+  \sigma\gamma(1-\gamma^2)^{-3/2}\varphi(\theta_\gamma),
+  \qquad
+  \partial_{\theta_\beta}c_0=0.
+  \label{eq:bf-hd-actual-sv-srukf-initial-factor-derivatives}
+\end{equation}
+If a nonstationary initialization is chosen, the initialization law and its
+derivatives must replace \eqref{eq:bf-hd-actual-sv-srukf-initial-law}--
+\eqref{eq:bf-hd-actual-sv-srukf-initial-factor-derivatives} explicitly.
+
+Given the placed points from
+\eqref{eq:bf-hd-actual-sv-srukf-augmented-law}, the generic SR-UKF backend
+computes
+\[
+  \bar x_t,\quad \bar y_t,\quad
+  P_{xx,t,\star},\quad S_{t,\star},\quad P_{xy,t,\star}
+\]
+from the propagated pairs
+\((X_\theta(a_t^{(j)}),Z_\theta(a_t^{(j)}))\).  The declared one-step
+surrogate contribution is
+\begin{equation}
+  \widehat\ell_t^{\rm rawGC}(\theta)
+  =
+  -\frac12
+  \left[
+    \log(2\pi)+\log S_{t,\star}
+    +(y_t-\bar y_t)^2S_{t,\star}^{-1}
+  \right],
+  \label{eq:bf-hd-actual-sv-srukf-surrogate-loglik}
+\end{equation}
+or its vector-panel analogue when several independent coordinates are combined.
+Its analytical score is exactly the specialization of
+\eqref{eq:bf-srukf-score-first} with \(v_t=y_t-\bar y_t\), followed by the
+filtered-state derivative handoff
+\eqref{eq:bf-srukf-filtered-mean-first}--
+\eqref{eq:bf-srukf-filtered-factor-first}:
+\begin{equation}
+  \partial_{\theta_i}
+  \sum_{t=1}^T\widehat\ell_t^{\rm rawGC}(\theta)
+  =
+  \sum_{t=1}^T
+  \partial_{\theta_i}
+  \widehat\ell_t^{\rm rawGC}(\theta),
+  \qquad i\in\{\gamma,\beta\}.
+  \label{eq:bf-hd-actual-sv-srukf-score-handoff}
+\end{equation}
+This is the score of the raw actual-SV Gaussian-closure surrogate scalar.  It
+is not the score of \(\ell_T(\theta)\) in
+\eqref{eq:bf-hd-actual-sv-normalizer}.
+
+A two-coordinate collapsed-process specialization may be used only after this
+three-coordinate adapter has been audited.  The required proof obligation is
+the scalar Gaussian law equivalence
+\begin{equation}
+  (H_t^-,E_t)
+  =
+  (\gamma H_{t-1}+U_t,E_t)
+  \sim
+  \calN\!\left(
+    \begin{bmatrix}\gamma m_{t-1}\\0\end{bmatrix},
+    \begin{bmatrix}
+      \gamma^2 c_{t-1}c_{t-1}^\top+\sigma^2 & 0\\
+      0 & 1
+    \end{bmatrix}
+  \right),
+  \label{eq:bf-hd-actual-sv-srukf-collapsed-law-equivalence}
+\end{equation}
+together with derivative equivalence for the mean and factor handoff.  A
+collapsed route that cannot demonstrate
+\eqref{eq:bf-hd-actual-sv-srukf-collapsed-law-equivalence} and the matching
+derivatives remains a separate approximation and cannot be used as the admitted
+SR-UKF analytical-score route.
+
+\begin{equation}
+  \boxed{
+  \begin{gathered}
+  \text{No exact actual-SV likelihood claim;}\\
+  \text{no same-target transformed-likelihood claim;}\\
+  \text{no GradientTape score admission;}\\
+  \text{no historical SVD/eigenderivative score admission;}\\
+  \text{no strict-SPD principal-root derivative admission.}
+  \end{gathered}}
+  \label{eq:bf-hd-actual-sv-srukf-nonclaims}
+\end{equation}
+
+The practical consequence is strict.  Same-scalar derivative checks, fixed-branch
+audits, or optimizer/HMC experiments are meaningful only after the value path is
+a route to \eqref{eq:bf-hd-actual-sv-normalizer}.  Internal consistency of a
+Gaussian-closure scalar does not repair the target mismatch.  This is why the
+current transformed direct-likelihood route and the current Zhao--Cui comparator
+remain admissible same-target comparators, whereas the previous augmented
+Gaussian-closure framing does not.
+
 \paragraph{Reader checkpoint.}
 What should now be clear: filtering updates a probability law and a scalar
 normalizer at the same time.  Object preserved: the conditional law after
 normalization.  Approximation enters at: the representation of the predictive
 law, the integral for \(Z_t\), or both.  Exported to synthesis: any industrial
-method must say whether it preserves a law, a likelihood scalar, or only a
-moment summary.
+method must say whether it preserves the intended likelihood scalar, merely a
+different surrogate scalar, or only a moment summary.
 
 \begin{proposition}[Predictive score identity]
 \label{prop:bf-hd-score}

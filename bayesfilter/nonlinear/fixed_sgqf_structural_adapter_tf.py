@@ -6,16 +6,45 @@ import tensorflow as tf
 
 from bayesfilter.highdim.models import PredatorPreySSM
 from bayesfilter.nonlinear.fixed_sgqf_derivatives_tf import TFFixedSGQFDerivatives
-from bayesfilter.nonlinear.fixed_sgqf_tf import TFFixedSGQFNonlinearModel
+from bayesfilter.nonlinear.fixed_sgqf_tf import (
+    TFFixedSGQFAffineModel,
+    TFFixedSGQFNonlinearModel,
+)
 from bayesfilter.structural_tf import TFStructuralStateSpace
+
+
+_ADMISSION_STATUSES = {"exact_eligible", "approximate_eligible", "ineligible"}
 
 
 @dataclass(frozen=True)
 class TFFixedSGQFStructuralAdapterResult:
     eligible: bool
     reason: str | None
-    model: TFFixedSGQFNonlinearModel | None
+    model: TFFixedSGQFNonlinearModel | TFFixedSGQFAffineModel | None
     derivatives: TFFixedSGQFDerivatives | None = None
+    admission_status: str = "ineligible"
+    target_scope: str | None = None
+    nonclaims: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "eligible", bool(self.eligible))
+        if self.reason is not None:
+            object.__setattr__(self, "reason", str(self.reason))
+        admission_status = str(self.admission_status)
+        if admission_status not in _ADMISSION_STATUSES:
+            raise ValueError(f"unknown structural adapter admission status: {admission_status!r}")
+        object.__setattr__(self, "admission_status", admission_status)
+        if self.target_scope is not None:
+            object.__setattr__(self, "target_scope", str(self.target_scope))
+        object.__setattr__(self, "nonclaims", tuple(str(item) for item in self.nonclaims))
+
+    @property
+    def exact_eligible(self) -> bool:
+        return self.admission_status == "exact_eligible"
+
+    @property
+    def approximate_eligible(self) -> bool:
+        return self.admission_status == "approximate_eligible"
 
 
 def tf_predator_prey_to_fixed_sgqf_model(
@@ -50,6 +79,12 @@ def tf_predator_prey_to_fixed_sgqf_model(
             reason=None,
             model=fixed_model,
             derivatives=None,
+            admission_status="approximate_eligible",
+            target_scope="declared_structural_gaussian_projection_predator_prey_adapter",
+            nonclaims=(
+                "not generic nonlinear-SSM admission",
+                "not exact-target admission outside the reviewed predator-prey lane",
+            ),
         )
 
     parameter_dim = int(theta.shape[0])
@@ -105,6 +140,12 @@ def tf_predator_prey_to_fixed_sgqf_model(
         reason=None,
         model=fixed_model,
         derivatives=fixed_derivatives,
+        admission_status="approximate_eligible",
+        target_scope="declared_structural_gaussian_projection_predator_prey_adapter",
+        nonclaims=(
+            "not generic nonlinear-SSM admission",
+            "not exact-target admission outside the reviewed predator-prey lane",
+        ),
     )
 
 
@@ -113,12 +154,46 @@ def tf_structural_to_fixed_sgqf_model(
     *,
     derivatives=None,
 ) -> TFFixedSGQFStructuralAdapterResult:
+    if model.is_affine:
+        affine_model = TFFixedSGQFAffineModel(
+            initial_mean=model.initial_mean,
+            initial_covariance=model.initial_covariance,
+            transition_matrix=model.transition_matrix,
+            process_covariance=(
+                model.innovation_matrix
+                @ model.innovation_covariance
+                @ tf.transpose(model.innovation_matrix)
+            ),
+            observation_matrix=model.observation_matrix,
+            observation_covariance=model.observation_covariance,
+            transition_offset=model.transition_offset,
+            observation_offset=model.observation_offset,
+            name=f"fixed_sgqf_{model.name}_affine_structural_adapter",
+        )
+        return TFFixedSGQFStructuralAdapterResult(
+            eligible=True,
+            reason=None,
+            model=affine_model,
+            derivatives=None,
+            admission_status="exact_eligible",
+            target_scope="exact_affine_structural_lane",
+            nonclaims=(
+                "affine structural exactness does not imply generic nonlinear exact admission",
+            ),
+        )
+
     if model.name != "model_c_autonomous_nonlinear_growth":
         return TFFixedSGQFStructuralAdapterResult(
             eligible=False,
-            reason="current fixed SGQF structural adapter only supports the autonomous phase nonlinear growth fixture exactly; model_b remains exact-ineligible under the additive-state lane",
+            reason="current fixed SGQF structural adapter is exact-eligible only for affine structural models and approximate-eligible only for the autonomous phase nonlinear growth fixture; model_b remains ineligible under the present additive-state lane",
             model=None,
             derivatives=None,
+            admission_status="ineligible",
+            target_scope="structural_admission_fail_closed",
+            nonclaims=(
+                "not generic nonlinear-SSM admission",
+                "model-specific unsupported routes remain blocked",
+            ),
         )
 
     process_variance = tf.convert_to_tensor(model.innovation_covariance[0, 0], dtype=tf.float64)
@@ -165,6 +240,12 @@ def tf_structural_to_fixed_sgqf_model(
             reason=None,
             model=fixed_model,
             derivatives=None,
+            admission_status="approximate_eligible",
+            target_scope="declared_structural_gaussian_projection_model_c_adapter",
+            nonclaims=(
+                "not exact-target admission",
+                "not generic nonlinear-SSM admission outside the reviewed model-c fixture",
+            ),
         )
 
     parameter_dim = int(derivatives.d_initial_mean.shape[0])
@@ -208,4 +289,10 @@ def tf_structural_to_fixed_sgqf_model(
         reason=None,
         model=fixed_model,
         derivatives=fixed_derivatives,
+        admission_status="approximate_eligible",
+        target_scope="declared_structural_gaussian_projection_model_c_adapter",
+        nonclaims=(
+            "not exact-target admission",
+            "not generic nonlinear-SSM admission outside the reviewed model-c fixture",
+        ),
     )

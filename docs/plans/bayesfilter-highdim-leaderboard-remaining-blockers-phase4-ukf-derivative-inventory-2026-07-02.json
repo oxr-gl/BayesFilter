@@ -1,0 +1,97 @@
+{
+  "schema_version": "bayesfilter.highdim_leaderboard.remaining_blockers.phase4.ukf_derivative_inventory.v1",
+  "date": "2026-07-02",
+  "phase": 4,
+  "scope": "UKF analytical-score cleanup for predator-prey and generalized-SV target rows",
+  "route_standard": {
+    "allowed_admitted_route_families": [
+      "principal_sqrt_ukf_manual_derivatives",
+      "factor_propagating_srukf_manual_score"
+    ],
+    "forbidden_admission_sources": [
+      "historical SVD eigenderivative UKF",
+      "GradientTape",
+      "ForwardAccumulator",
+      "finite difference",
+      "provenance-only relabeling"
+    ],
+    "guardrail_evidence": [
+      {
+        "row_id": "zhao_cui_sv_actual_nongaussian_T1000",
+        "algorithm_id": "ukf",
+        "route_family": "factor_propagating_srukf_manual_score",
+        "implementation_path": "bayesfilter/highdim/actual_sv_srukf_tf.py",
+        "function_symbol": "actual_transformed_sv_independent_panel_augmented_noise_srukf_score",
+        "status": "existing_admitted_route_standard_only_not_reused_for_target_rows"
+      },
+      {
+        "row_id": "zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000",
+        "algorithm_id": "ukf",
+        "route_family": "principal_sqrt_ukf_manual_derivatives",
+        "implementation_path": "bayesfilter/highdim/sv_mixture_cut4.py",
+        "function_symbol": "independent_panel_sv_mixture_ukf_score",
+        "status": "existing_admitted_route_standard_only_not_reused_for_target_rows"
+      }
+    ]
+  },
+  "target_rows": [
+    {
+      "row_id": "zhao_cui_predator_prey_T20",
+      "algorithm_id": "ukf",
+      "baseline_comparison_status": "executed_value_only",
+      "baseline_numeric_execution_status": "executed_numeric_value_only_autodiff_score_not_admitted",
+      "baseline_average_log_likelihood": -8.56827587430274,
+      "baseline_log_likelihood": -171.3655174860548,
+      "baseline_runtime_seconds": 5.479427,
+      "baseline_score_derivative_provenance": "ukf_predator_prey_structural_sigma_point_tf_autodiff_score",
+      "theta_coordinate_candidate": "physical predator-prey theta from source row, if a reviewed SR-UKF route is later implemented",
+      "manual_principal_sqrt_route_found": false,
+      "manual_factor_srukf_route_found": false,
+      "autodiff_diagnostic_found": true,
+      "route_status": "value_only_blocked",
+      "blocker_code": "BLOCK_PHASE4_UKF_PREDATOR_PREY_MANUAL_SRUKF_ROUTE_MISSING",
+      "blocker_reason": "The current UKF row has a finite value but its score came from TensorFlow autodiff diagnostics. No reviewed exact-row principal-square-root or factor-propagating SR-UKF manual derivative implementation path/function binding exists for the T20 predator-prey row."
+    },
+    {
+      "row_id": "zhao_cui_generalized_sv_synthetic_from_estimated_values",
+      "algorithm_id": "ukf",
+      "baseline_comparison_status": "executed_value_only",
+      "baseline_numeric_execution_status": "executed_numeric_value_only_autodiff_score_not_admitted",
+      "baseline_average_log_likelihood": -1.428934153339374,
+      "baseline_log_likelihood": -1440.365626566089,
+      "baseline_runtime_seconds": 15.095921,
+      "baseline_score_derivative_provenance": "ukf_generalized_sv_augmented_noise_sigma_point_tf_autodiff_score",
+      "theta_coordinate_candidate": "generalized-SV source-row truth theta, if a reviewed SR-UKF route is later implemented",
+      "manual_principal_sqrt_route_found": false,
+      "manual_factor_srukf_route_found": false,
+      "autodiff_diagnostic_found": true,
+      "route_status": "value_only_blocked",
+      "blocker_code": "BLOCK_PHASE4_UKF_GENERALIZED_SV_MANUAL_SRUKF_ROUTE_MISSING",
+      "blocker_reason": "The current UKF row has a finite value but its score came from TensorFlow autodiff diagnostics. No reviewed exact-row principal-square-root or factor-propagating SR-UKF manual derivative implementation path/function binding exists for the generalized-SV exact source row."
+    }
+  ],
+  "checks": [
+    {
+      "command": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp pytest -q tests/test_srukf_factor_tf.py::test_srukf_backend_source_passes_static_route_guard tests/test_srukf_factor_tf.py::test_srukf_route_guard_rejects_forbidden_route_families tests/test_srukf_factor_tf.py::test_srukf_route_guard_assertion_rejects_forbidden_file",
+      "status": "passed",
+      "summary": "7 passed in 2.24s"
+    },
+    {
+      "command": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp pytest -q tests/test_two_lane_highdim_leaderboard_analytical_scores.py tests/test_actual_sv_srukf_tf.py tests/test_srukf_factor_tf.py",
+      "status": "interrupted_narrowed",
+      "summary": "Interrupted with code 130 after producing no useful preflight output; narrowed to static SR-UKF route guards."
+    },
+    {
+      "command": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp pytest -q tests/test_srukf_factor_tf.py::test_srukf_backend_source_passes_static_route_guard tests/test_srukf_factor_tf.py::test_srukf_route_guard_rejects_forbidden_route_families tests/test_two_lane_highdim_leaderboard_analytical_scores.py::test_historical_svd_ukf_score_rows_are_value_only_diagnostics tests/test_two_lane_highdim_leaderboard_analytical_scores.py::test_ukf_sv_rows_use_only_admitted_principal_sqrt_scores",
+      "status": "interrupted_narrowed",
+      "summary": "Interrupted with code 130 after progress dots because the artifact-building test path was too broad for Phase 4 launch inventory."
+    }
+  ],
+  "nonclaims": [
+    "no predator-prey UKF score admission",
+    "no generalized-SV UKF score admission",
+    "no claim that these rows are unsolvable",
+    "no GPU/XLA/HMC readiness claim",
+    "no all-row leaderboard regeneration"
+  ]
+}

@@ -108,6 +108,55 @@ def test_p53_m4b_local_coordinate_factor_matches_transition_coordinate_density()
     assert coordinate in result.dependency_neighborhood
 
 
+def test_p81_phase10_parameterized_local_metadata_uses_base_structure() -> None:
+    base_model = highdim.p30_spatial_sir_fixture_model(2)
+    model = highdim.ParameterizedZhaoCuiSIRSSM(base_model)
+
+    metadata = highdim.spatial_sir_local_scaling_route_metadata(model, _config())
+    base_metadata = highdim.spatial_sir_local_scaling_route_metadata(base_model, _config())
+
+    assert metadata.dependency_neighborhoods == base_metadata.dependency_neighborhoods
+    assert metadata.rk4_substeps == base_metadata.rk4_substeps
+    assert metadata.R_eff == base_metadata.R_eff
+    assert metadata.memory_forecast_bytes == base_metadata.memory_forecast_bytes
+
+
+def test_p81_phase10_parameterized_coordinate_factor_matches_dense_reference() -> None:
+    base_model = highdim.p30_spatial_sir_fixture_model(2)
+    model = highdim.ParameterizedZhaoCuiSIRSSM(base_model)
+    theta = tf.constant([0.12, -0.08, 0.03], dtype=DTYPE)
+    previous = _previous_points(base_model)
+    coordinate = 1
+    scaled = model.scaled_model(theta)
+    means = scaled.transition_mean(previous)[:, coordinate]
+    current_values = tf.constant(
+        [
+            float(means[0].numpy()) - 0.01,
+            float(means[1].numpy()) + 0.005,
+            float(means[2].numpy()) + 0.02,
+        ],
+        dtype=DTYPE,
+    )
+
+    result = highdim.spatial_sir_local_coordinate_log_factor(
+        model=model,
+        theta=theta,
+        previous_physical_points=previous,
+        current_coordinate_values=current_values,
+        coordinate_index=coordinate,
+        config=_config(),
+    )
+    variance = tf.linalg.diag_part(base_model.process_covariance)[coordinate]
+    expected = -0.5 * (
+        tf.math.log(tf.constant(2.0 * 3.141592653589793, dtype=DTYPE))
+        + tf.math.log(variance)
+        + tf.square(current_values[:, tf.newaxis] - means[tf.newaxis, :]) / variance
+    )
+
+    tf.debugging.assert_near(result.log_factor, expected, atol=1e-12)
+    assert result.metadata.route_class == "scaling_route"
+
+
 def test_p53_m4b_local_coordinate_factor_preserves_current_value_gradients() -> None:
     model = highdim.p30_spatial_sir_fixture_model(1)
     previous = _previous_points(model)

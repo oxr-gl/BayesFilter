@@ -20,6 +20,7 @@ if str(ROOT) not in sys.path:
 from bayesfilter.highdim.models import (
     LinearGaussianSSM,
     StochasticVolatilitySSM,
+    parameterized_zhao_cui_sir_austria_model,
     p30_predator_prey_fixture_model,
     zhao_cui_sir_austria_model,
 )
@@ -67,6 +68,11 @@ DATASET_ROWS = [
     },
     {
         "model_row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+        "status": "generate",
+        "seed": 81103,
+    },
+    {
+        "model_row_id": "zhao_cui_spatial_sir_austria_j9_T20_parameterized_logscale",
         "status": "generate",
         "seed": 81103,
     },
@@ -219,6 +225,61 @@ def _sir_dataset(seed: int) -> dict[str, Any]:
     }
 
 
+def _parameterized_sir_dataset(seed: int) -> dict[str, Any]:
+    parameterized = parameterized_zhao_cui_sir_austria_model()
+    theta = tf.zeros([parameterized.parameter_dim()], dtype=tf.float64)
+    scaled = parameterized.scaled_model(theta)
+    states, observations = scaled.simulate(final_time=19, seed=seed)
+    return {
+        "truth_theta_coordinate": "sir_log_scale_theta",
+        "truth_theta_semantics": (
+            "log-scale origin reproducing fixed source SIR base parameters"
+        ),
+        "theta_domain": {
+            "log_kappa_scale": [-0.5, 0.5],
+            "log_nu_scale": [-0.5, 0.5],
+            "log_obs_noise_scale": [-0.5, 0.5],
+        },
+        "parameter_order": [
+            "log_kappa_scale",
+            "log_nu_scale",
+            "log_obs_noise_scale",
+        ],
+        "fixed_base_model_row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+        "truth_physical": {
+            "kappa": [0.1] * 9,
+            "nu": [18.0] * 9,
+            "observation_standard_deviation": 10.0,
+        },
+        "truth_theta": [float(x) for x in theta.numpy().tolist()],
+        "states": states,
+        "observations": observations,
+        "model_manifest": parameterized.manifest_payload()
+        | {
+            "target_contract": (
+                "docs/plans/"
+                "bayesfilter-parameterized-sir-target-contract-2026-07-02.md"
+            ),
+            "semantic_binding": (
+                "docs/plans/"
+                "bayesfilter-parameterized-sir-semantic-binding-2026-07-02.md"
+            ),
+            "source_adaptation_classification": "extension_or_invention",
+            "fixed_base_model_row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+            "truth_theta_semantics": (
+                "log-scale origin reproducing fixed source SIR base parameters"
+            ),
+            "theta_domain": {
+                "log_kappa_scale": [-0.5, 0.5],
+                "log_nu_scale": [-0.5, 0.5],
+                "log_obs_noise_scale": [-0.5, 0.5],
+            },
+            "leaderboard_score_provenance_requirement": "analytical_manual_only",
+        },
+        "domain_diagnostics": scaled.domain_diagnostics(states),
+    }
+
+
 def _predator_prey_dataset(seed: int) -> dict[str, Any]:
     model = p30_predator_prey_fixture_model()
     theta = model.true_parameters()
@@ -293,7 +354,7 @@ def _generalized_sv_prior_mean_dataset(seed: int) -> dict[str, Any]:
             "state_dimension": 1,
             "observation_dimension": 1,
             "horizon": horizon,
-            "active_estimated_parameters": ["gamma", "tau", "mu"],
+            "active_estimated_parameters": ["gamma", "tau", "mu_over_tau"],
             "fixed_context": {"phi": 0.0, "a": 0.0, "delta": 0.0, "nu1": "inf", "nu2": "inf"},
             "prior_mean_convention": (
                 "finite-coordinate prior center: E[(gamma+1)/2], E[sigma], "
@@ -312,8 +373,10 @@ def _generalized_sv_prior_mean_dataset(seed: int) -> dict[str, Any]:
             },
             "coordinate_caveat": (
                 "The paper writes log(beta)/sigma as the third transformed "
-                "coordinate; the mirrored svmodels code names the third active "
-                "coordinate mu. The prior-center value is zero under both labels."
+                "coordinate; the mirrored svmodels ftt2true route names the "
+                "third active coordinate mu but maps it to physical mu by "
+                "multiplying the transformed coordinate by tau. The prior-center "
+                "value is zero under both labels."
             ),
             "what_is_not_claimed": [
                 "not a posterior estimate from SP500 returns",
@@ -376,6 +439,8 @@ def _dataset_record(row: dict[str, Any], generated: dict[str, dict[str, Any]]) -
         payload = _sv_dataset(seed)
     elif row_id == "zhao_cui_spatial_sir_austria_j9_T20":
         payload = _sir_dataset(seed)
+    elif row_id == "zhao_cui_spatial_sir_austria_j9_T20_parameterized_logscale":
+        payload = _parameterized_sir_dataset(seed)
     elif row_id == "zhao_cui_predator_prey_T20":
         payload = _predator_prey_dataset(seed)
     elif row_id == "zhao_cui_generalized_sv_synthetic_from_estimated_values":
@@ -407,6 +472,19 @@ def _dataset_record(row: dict[str, Any], generated: dict[str, dict[str, Any]]) -
                 "not a posterior estimate from SP500 returns",
                 "not a direct SP500 benchmark-data row",
                 "not an ordinary finite-mean claim for sigma_squared_or_beta",
+            ]
+        )
+    if row_id == "zhao_cui_spatial_sir_austria_j9_T20_parameterized_logscale":
+        record["truth_theta_semantics"] = payload["truth_theta_semantics"]
+        record["theta_domain"] = payload["theta_domain"]
+        record["parameter_order"] = payload["parameter_order"]
+        record["fixed_base_model_row_id"] = payload["fixed_base_model_row_id"]
+        record["nonclaims"].extend(
+            [
+                "not source-faithful as an inference-theta parameterization",
+                "not exact likelihood evidence",
+                "not score admission evidence",
+                "not a replacement for the fixed no-free-theta source-parity row",
             ]
         )
     if "domain_diagnostics" in payload:

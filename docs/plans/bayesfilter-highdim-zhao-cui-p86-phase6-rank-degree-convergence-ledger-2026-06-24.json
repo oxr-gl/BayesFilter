@@ -1,0 +1,87 @@
+{
+  "schema_version": "p86_phase6_rank_degree_convergence_ledger.v1",
+  "date": "2026-06-24",
+  "status": "BLOCK_P86_PHASE6_RANK_DEGREE_CONVERGENCE_NOT_ESTABLISHED",
+  "decision": "rank5_comparator_fit_admissible_but_rank_convergence_not_established_degree_convergence_blocked",
+  "lower_rung": {
+    "artifact": "docs/plans/bayesfilter-highdim-zhao-cui-p86-phase5-budget-compliant-fit-2026-06-24.json",
+    "status": "P86_PHASE5_BUDGET_COMPLIANT_TRAINING_BASE_COMPLETED",
+    "training_backend": "training_base_optimizer",
+    "fit_rank": 4,
+    "p_theta": 18216,
+    "training_sample_count": 364320,
+    "completed_train_steps": 89,
+    "planned_training_sample_visits": 364544,
+    "normalizer": 1.696098696075702e-06,
+    "sqrt_square_normalizer": 1.686098696075702e-06,
+    "fit_residual": 0.22022907890919044,
+    "holdout_residual": 0.22090990401849483,
+    "runtime_seconds": 56.53906785399886,
+    "peak_memory_mib": 2173.27734375,
+    "memory_cap_mib": 12288,
+    "post_fit_required_status": "ok"
+  },
+  "rank5_comparator": {
+    "artifact": "docs/plans/bayesfilter-highdim-zhao-cui-p86-phase6-rank5-comparator-fit-2026-06-24.json",
+    "status": "P86_PHASE6_RANK5_COMPARATOR_TRAINING_BASE_COMPLETED",
+    "training_backend": "training_base_optimizer",
+    "fit_rank": 5,
+    "p_theta": 28380,
+    "training_sample_count": 567600,
+    "completed_train_steps": 139,
+    "planned_training_sample_visits": 569344,
+    "normalizer": 3.9049342442131245e-08,
+    "sqrt_square_normalizer": 2.904934244213124e-08,
+    "fit_residual": 21.67632778142163,
+    "holdout_residual": 21.41256396525755,
+    "runtime_seconds": 98.29290339001454,
+    "peak_memory_mib": 3080.56640625,
+    "memory_cap_mib": 12288,
+    "post_fit_required_status": "ok",
+    "original_shell_return_code_status": "known_cli_success_predicate_bug_patched_after_artifact",
+    "artifact_status_over_return_code": "json_status_and_post_fit_gates_are_authoritative_for_artifact_admissibility"
+  },
+  "same_route_identity": {
+    "target_dimension": 36,
+    "basis_family": "lagrangep",
+    "basis_order": 4,
+    "basis_num_elems": 8,
+    "basis_dim_per_dimension": 33,
+    "domain_map": "algebraic",
+    "domain_scale": 1.0,
+    "measure_convention": "reference_density_square_root_with_physical_jacobian_transform",
+    "training_backend": "training_base_optimizer",
+    "historical_als_status": "historical_buggy_stale_route_not_allowed_for_fixed_variant_zhao_cui_training",
+    "route_identity_status": "ok"
+  },
+  "rank_comparison": {
+    "status": "blocked_not_established",
+    "fit_residual_delta_rank5_minus_rank4": 21.45609870251244,
+    "holdout_residual_delta_rank5_minus_rank4": 21.191654061239054,
+    "fit_residual_ratio_rank5_over_rank4": 98.42452789458024,
+    "holdout_residual_ratio_rank5_over_rank4": 96.92713752414362,
+    "normalizer_ratio_rank5_over_rank4": 0.023022799726172334,
+    "sqrt_square_normalizer_ratio_rank5_over_rank4": 0.017228746878290682,
+    "interpretation": "The rank-5 comparator fit is admissible as a same-route artifact, but the available evidence does not establish rank convergence. Residuals are much worse than the rank-4 lower rung, and the Phase 5/Phase 6 JSON artifacts are summary-only rather than serialized trained TT cores suitable for a reviewed functional-delta convergence test."
+  },
+  "degree_convergence": {
+    "status": "blocked_pending_reviewed_configurable_basis_path",
+    "reason": "The current P86 runner is hard-wired to author Lagrangep(4,8). Degree/order/element comparisons require a reviewed configurable-basis execution path and exact-command approvals before any fit."
+  },
+  "veto_and_nonclaim_boundary": {
+    "historical_als_used": false,
+    "audit_cloud_used_for_tuning": false,
+    "gpu_claim": false,
+    "posterior_correctness_claim": false,
+    "kr_closure_claim": false,
+    "hmc_readiness_claim": false,
+    "ledh_comparator_claim": false,
+    "scale_claim": false,
+    "production_readiness_claim": false
+  },
+  "next_handoff": {
+    "phase7_status": "blocked_or_reframed_only",
+    "phase7_reason": "Correctness bridge work cannot promote the candidate while Phase 6 rank/degree convergence remains not established. Phase 7 may only write a bridge blocker or a tightly reviewed reframing note.",
+    "result_artifact": "docs/plans/bayesfilter-highdim-zhao-cui-p86-phase6-rank-degree-convergence-result-2026-06-24.md"
+  }
+}

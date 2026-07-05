@@ -14,6 +14,7 @@ import math
 import os
 import platform
 import sys
+import threading
 import time
 from pathlib import Path
 from typing import Any
@@ -56,8 +57,8 @@ def _parse_float_csv(value: str, *, expected: int) -> list[float]:
 
 def _parse_offsets(value: str) -> list[float]:
     parsed = [float(item.strip()) for item in str(value).split(",") if item.strip()]
-    if len(parsed) not in (7, 9, 15, 17):
-        raise ValueError("regression offsets must contain 7, 9, 15, or 17 values")
+    if len(parsed) not in (7, 9, 13, 15, 17):
+        raise ValueError("regression offsets must contain 7, 9, 13, 15, or 17 values")
     if not all(math.isfinite(item) for item in parsed):
         raise ValueError("regression offsets must be finite")
     if not any(item < 0.0 for item in parsed) or not any(item > 0.0 for item in parsed):
@@ -112,6 +113,15 @@ def _parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+        "--trim-extreme-mode",
+        choices=("offset", "value"),
+        default="offset",
+        help=(
+            "offset drops the smallest/largest FD offsets; value drops the "
+            "lowest/highest mean objective values after seed aggregation"
+        ),
+    )
+    parser.add_argument(
         "--fd-evaluation-mode",
         choices=("serial", "batched-theta"),
         default="serial",
@@ -148,6 +158,15 @@ def _parse_args() -> argparse.Namespace:
         default="streaming",
     )
     parser.add_argument(
+        "--transport-gradient-mode",
+        choices=(
+            "raw",
+            p8p.core_tf.MANUAL_STREAMING_FINITE_TRANSPORT_GRADIENT_MODE,
+            p8p.core_tf.MANUAL_STREAMING_BLOCKWISE_VJP_FINITE_TRANSPORT_GRADIENT_MODE,
+        ),
+        default="raw",
+    )
+    parser.add_argument(
         "--transport-ad-mode",
         choices=(
             "stabilized",
@@ -178,11 +197,41 @@ def _parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--ad-evaluation-mode",
-        choices=("reverse-gradient", "forward-jvp"),
+        choices=("reverse-gradient", "forward-jvp", "manual-reverse"),
         default="reverse-gradient",
         help=(
-            "reverse-gradient computes a full parameter gradient; forward-jvp "
-            "uses one forward-mode directional derivative per raw parameter"
+            "manual-reverse computes the opt-in no-autodiff manual score; "
+            "reverse-gradient and forward-jvp are diagnostic-only modes"
+        ),
+    )
+    parser.add_argument(
+        "--manual-reverse-compiler",
+        choices=("eager", "tf-function", "xla"),
+        default="xla",
+        help=(
+            "compiler for manual-reverse seed microbatch value/score; "
+            "defaults to xla because non-XLA manual-reverse is a known "
+            "misleadingly slow diagnostic route"
+        ),
+    )
+    parser.add_argument(
+        "--manual-reverse-warmups",
+        type=int,
+        default=0,
+        help="warm calls after compile for manual-reverse compiler timing",
+    )
+    parser.add_argument(
+        "--manual-reverse-repeats",
+        type=int,
+        default=0,
+        help="timed warm calls after compile and warmups for manual-reverse compiler timing",
+    )
+    parser.add_argument(
+        "--manual-score-decomposition",
+        action="store_true",
+        help=(
+            "for manual-reverse only, return named manual score components; "
+            "diagnostic-only because it replays selected SIR VJPs"
         ),
     )
     parser.add_argument(
@@ -203,6 +252,20 @@ def _parse_args() -> argparse.Namespace:
         "--progress-output",
         default="",
         help="optional JSON file updated after AD and after each FD window",
+    )
+    parser.add_argument(
+        "--memory-sample-output",
+        default="",
+        help=(
+            "optional JSON file periodically updated with in-process TensorFlow "
+            "GPU allocator current/peak memory"
+        ),
+    )
+    parser.add_argument(
+        "--memory-sample-interval-seconds",
+        type=float,
+        default=30.0,
+        help="positive sampling interval for --memory-sample-output",
     )
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
@@ -240,6 +303,12 @@ def _parse_args() -> argparse.Namespace:
         raise ValueError("chunk sizes must be positive")
     if args.seed_microbatch_size < 0:
         raise ValueError("seed-microbatch-size must be nonnegative")
+    if args.manual_reverse_warmups < 0 or args.manual_reverse_repeats < 0:
+        raise ValueError("manual reverse warmups/repeats must be nonnegative")
+    if args.manual_score_decomposition and args.ad_evaluation_mode != "manual-reverse":
+        raise ValueError("manual-score-decomposition requires ad-evaluation-mode=manual-reverse")
+    if args.memory_sample_interval_seconds <= 0.0:
+        raise ValueError("memory-sample-interval-seconds must be positive")
     return args
 
 
@@ -454,39 +523,14 @@ def _gradient_diagnostic_for_contexts(
     values = []
     connected = []
     for context in contexts:
-        if len(context["seeds"]) == 1:
-            theta_components = p8p._theta_components(theta_values)
-            with tf.GradientTape() as tape:
-                for component in theta_components:
-                    tape.watch(component)
-                objective, value = p8p._objective_from_components(
-                    context["tensors"],
-                    context["args"],
-                    theta_components,
-                )
-            gradients = tape.gradient(objective, theta_components)
-            connected.append(all(gradient is not None for gradient in gradients))
-            per_seed_gradients.append(
-                tf.stack(
-                    [
-                        tf.constant(float("nan"), dtype=p8p.DTYPE)
-                        if gradient is None
-                        else tf.convert_to_tensor(gradient, dtype=p8p.DTYPE)
-                        for gradient in gradients
-                    ],
-                    axis=0,
-                )[tf.newaxis, :]
-            )
-            values.append(tf.convert_to_tensor(value, dtype=p8p.DTYPE))
-        else:
-            diag = p8p._gradient_diagnostic(
-                context["tensors"],
-                context["args"],
-                theta_values,
-            )
-            per_seed_gradients.append(tf.convert_to_tensor(diag["per_seed_gradient"], dtype=p8p.DTYPE))
-            values.append(tf.convert_to_tensor(diag["log_likelihood"], dtype=p8p.DTYPE))
-            connected.append(bool(diag["gradients_connected"]))
+        diag = p8p._gradient_diagnostic(
+            context["tensors"],
+            context["args"],
+            theta_values,
+        )
+        per_seed_gradients.append(tf.convert_to_tensor(diag["per_seed_gradient"], dtype=p8p.DTYPE))
+        values.append(tf.convert_to_tensor(diag["log_likelihood"], dtype=p8p.DTYPE))
+        connected.append(bool(diag["gradients_connected"]))
     per_seed_gradient = tf.concat(per_seed_gradients, axis=0)
     value = tf.concat(values, axis=0)
     return {
@@ -496,6 +540,112 @@ def _gradient_diagnostic_for_contexts(
         "per_seed_gradient": per_seed_gradient,
         "gradients_connected": bool(all(connected)),
     }
+
+
+def _manual_gradient_diagnostic_for_contexts(
+    contexts: list[dict[str, Any]],
+    theta_values: list[float],
+    *,
+    compiler: str = "xla",
+    warmups: int = 0,
+    repeats: int = 0,
+    return_score_decomposition: bool = False,
+) -> dict[str, Any]:
+    if compiler not in {"eager", "tf-function", "xla"}:
+        raise ValueError("compiler must be eager, tf-function, or xla")
+    per_seed_gradients = []
+    values = []
+    connected = []
+    compile_and_first_call_timings = []
+    warm_call_timings_by_context = []
+    score_components = []
+    for context in contexts:
+        theta_tensor = tf.constant(theta_values, dtype=p8p.DTYPE)
+
+        def materialize(*items: tf.Tensor) -> None:
+            for item in items:
+                _ = item.numpy()
+
+        def run_manual(theta_row: tf.Tensor) -> tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
+            theta_components = tuple(tf.unstack(theta_row, axis=0))
+            manual = p8p._manual_value_and_score_from_components(
+                context["tensors"],
+                context["args"],
+                theta_components,  # type: ignore[arg-type]
+                return_score_decomposition=return_score_decomposition,
+            )
+            component_tensor = (
+                manual["manual_score_components"]
+                if return_score_decomposition
+                else tf.zeros(
+                    [0, 0, len(p8p.PARAMETER_NAMES)],
+                    dtype=p8p.DTYPE,
+                )
+            )
+            return manual["log_likelihood"], manual["per_seed_gradient"], component_tensor
+
+        if compiler == "eager":
+            value, per_seed_gradient, component_tensor = run_manual(theta_tensor)
+            compile_and_first_call_timings.append(None)
+            warm_call_timings_by_context.append([])
+        else:
+            compiled = tf.function(
+                run_manual,
+                jit_compile=compiler == "xla",
+                reduce_retracing=True,
+            )
+            compile_start = time.perf_counter()
+            value, per_seed_gradient, component_tensor = compiled(theta_tensor)
+            materialize(value, per_seed_gradient, component_tensor)
+            compile_and_first_call_timings.append(time.perf_counter() - compile_start)
+            for _ in range(warmups):
+                warm_value, warm_gradient, warm_components = compiled(theta_tensor)
+                materialize(warm_value, warm_gradient, warm_components)
+            warm_timings = []
+            for _ in range(repeats):
+                warm_start = time.perf_counter()
+                value, per_seed_gradient, component_tensor = compiled(theta_tensor)
+                materialize(value, per_seed_gradient, component_tensor)
+                warm_timings.append(time.perf_counter() - warm_start)
+            warm_call_timings_by_context.append(warm_timings)
+        per_seed_gradients.append(tf.convert_to_tensor(per_seed_gradient, dtype=p8p.DTYPE))
+        values.append(tf.convert_to_tensor(value, dtype=p8p.DTYPE))
+        if return_score_decomposition:
+            score_components.append(tf.convert_to_tensor(component_tensor, dtype=p8p.DTYPE))
+        connected.append(True)
+    per_seed_gradient = tf.concat(per_seed_gradients, axis=0)
+    value = tf.concat(values, axis=0)
+    result = {
+        "objective": tf.reduce_mean(value),
+        "log_likelihood": value,
+        "gradient_tensor": tf.reduce_mean(per_seed_gradient, axis=0),
+        "per_seed_gradient": per_seed_gradient,
+        "gradients_connected": bool(all(connected)),
+        "score_route": "manual_reverse_scan_no_autodiff",
+        "compiler": {
+            "mode": compiler,
+            "tf_function": compiler in {"tf-function", "xla"},
+            "jit_compile": compiler == "xla",
+            "compiled_unit": "manual_reverse_seed_microbatch_value_score",
+            "compile_and_first_call_timings_seconds": compile_and_first_call_timings,
+            "warmups": int(warmups),
+            "repeats": int(repeats),
+            "warm_call_timings_seconds_by_context": warm_call_timings_by_context,
+        },
+    }
+    if return_score_decomposition:
+        component_tensor = tf.concat(score_components, axis=1)
+        component_sum = tf.reduce_sum(component_tensor, axis=0)
+        result["manual_score_decomposition"] = {
+            "component_names": list(p8p.MANUAL_SCORE_COMPONENT_NAMES),
+            "components": component_tensor,
+            "component_sum": component_sum,
+            "component_mean": tf.reduce_mean(component_tensor, axis=1),
+            "component_sum_reconstruction_max_abs_delta": tf.reduce_max(
+                tf.abs(component_sum - per_seed_gradient)
+            ),
+        }
+    return result
 
 
 def _forward_jvp_diagnostic_for_contexts(
@@ -651,37 +801,117 @@ def _trim_extreme_points(
     y: tf.Tensor,
     theta_rows: tf.Tensor,
     trim_count: int,
+    *,
+    trim_mode: str = "offset",
 ) -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, dict[str, Any]]:
+    x_tensor = tf.convert_to_tensor(xs, dtype=p8p.DTYPE)
+    y_tensor = tf.convert_to_tensor(y, dtype=p8p.DTYPE)
+    theta_tensor = tf.convert_to_tensor(theta_rows, dtype=p8p.DTYPE)
+    point_count = int(x_tensor.shape[0])
+    if trim_mode not in ("offset", "value"):
+        raise ValueError("trim_mode must be 'offset' or 'value'")
     if trim_count <= 0:
         return (
-            xs,
-            y,
-            theta_rows,
+            x_tensor,
+            y_tensor,
+            theta_tensor,
             {
                 "trimmed": False,
+                "trim_mode": trim_mode,
                 "trim_extreme_offsets": 0,
-                "fit_point_count": int(xs.shape[0]),
+                "evaluated_point_count": point_count,
+                "fit_point_count": point_count,
+                "fit_point_indices": list(range(point_count)),
             },
         )
-    order = tf.argsort(xs)
-    keep_order = order[trim_count : int(xs.shape[0]) - trim_count]
-    fit_xs = tf.gather(xs, keep_order)
-    fit_y = tf.gather(y, keep_order)
-    fit_theta_rows = tf.gather(theta_rows, keep_order)
+    if trim_mode == "offset":
+        order = tf.argsort(x_tensor, stable=True)
+        drop_order = tf.concat(
+            [
+                order[:trim_count],
+                order[point_count - trim_count :],
+            ],
+            axis=0,
+        )
+        keep_order = order[trim_count : point_count - trim_count]
+        fit_xs = tf.gather(x_tensor, keep_order)
+        fit_y = tf.gather(y_tensor, keep_order)
+        fit_theta_rows = tf.gather(theta_tensor, keep_order)
+        dropped_indices = [int(item) for item in drop_order.numpy().tolist()]
+        fit_indices = [int(item) for item in keep_order.numpy().tolist()]
+        dropped_x_values = [float(item) for item in tf.gather(x_tensor, drop_order).numpy().tolist()]
+        dropped_y_values = [float(item) for item in tf.gather(y_tensor, drop_order).numpy().tolist()]
+        return (
+            fit_xs,
+            fit_y,
+            fit_theta_rows,
+            {
+                "trimmed": True,
+                "trim_mode": "offset",
+                "trim_extreme_offsets": int(trim_count),
+                "evaluated_point_count": point_count,
+                "fit_point_count": int(fit_xs.shape[0]),
+                "fit_point_indices": fit_indices,
+                "dropped_point_indices": dropped_indices,
+                "dropped_x_values": dropped_x_values,
+                "dropped_objective_values": dropped_y_values,
+                "tie_break_rule": "sort by x ascending with stable original-index tie break",
+            },
+        )
+
+    x_values = [float(item) for item in x_tensor.numpy().tolist()]
+    y_values = [float(item) for item in y_tensor.numpy().tolist()]
+    indices = list(range(point_count))
+    low_order = sorted(indices, key=lambda index: (y_values[index], x_values[index], index))
+    low_indices = low_order[:trim_count]
+    low_set = set(low_indices)
+    high_order = sorted(
+        [index for index in indices if index not in low_set],
+        key=lambda index: (-y_values[index], x_values[index], index),
+    )
+    high_indices = high_order[:trim_count]
+    dropped_index_set = set(low_indices + high_indices)
+    keep_indices = [index for index in indices if index not in dropped_index_set]
+    keep_order = tf.constant(keep_indices, dtype=tf.int32)
+    fit_xs = tf.gather(x_tensor, keep_order)
+    fit_y = tf.gather(y_tensor, keep_order)
+    fit_theta_rows = tf.gather(theta_tensor, keep_order)
+
+    def _point_records(point_indices: list[int]) -> list[dict[str, float | int]]:
+        return [
+            {
+                "index": int(index),
+                "x": float(x_values[index]),
+                "objective_value": float(y_values[index]),
+            }
+            for index in point_indices
+        ]
+
+    dropped_indices = low_indices + high_indices
     return (
         fit_xs,
         fit_y,
         fit_theta_rows,
         {
             "trimmed": True,
+            "trim_mode": "value",
             "trim_extreme_offsets": int(trim_count),
-            "evaluated_point_count": int(xs.shape[0]),
+            "trim_extreme_values": int(trim_count),
+            "evaluated_point_count": point_count,
             "fit_point_count": int(fit_xs.shape[0]),
-            "dropped_x_values": [
-                float(item)
-                for item in tf.gather(xs, order[:trim_count]).numpy().tolist()
-                + tf.gather(xs, order[int(xs.shape[0]) - trim_count :]).numpy().tolist()
-            ],
+            "fit_point_indices": keep_indices,
+            "fit_x_values": [float(x_values[index]) for index in keep_indices],
+            "fit_objective_values": [float(y_values[index]) for index in keep_indices],
+            "dropped_point_indices": dropped_indices,
+            "dropped_low_value_points": _point_records(low_indices),
+            "dropped_high_value_points": _point_records(high_indices),
+            "dropped_x_values": [float(x_values[index]) for index in dropped_indices],
+            "dropped_objective_values": [float(y_values[index]) for index in dropped_indices],
+            "tie_break_rule": (
+                "low values: objective ascending, x ascending, original index ascending; "
+                "high values: objective descending, x ascending, original index ascending "
+                "after excluding low-value drops"
+            ),
         },
     )
 
@@ -716,6 +946,7 @@ def _regression_diagnostic_for_direction(
         y,
         theta_rows_tensor,
         int(args.trim_extreme_offsets),
+        trim_mode=args.trim_extreme_mode,
     )
     fit = _linear_regression(fit_xs, fit_y)
     ad_directional = tf.reduce_sum(gradient * direction)
@@ -880,6 +1111,121 @@ def _write_progress(
     )
 
 
+def _append_memory_sample(
+    args: argparse.Namespace,
+    *,
+    start: float,
+    samples: list[dict[str, Any]],
+    lock: threading.Lock,
+    stage: str,
+) -> None:
+    if not args.memory_sample_output:
+        return
+    sample = {
+        "timestamp_utc": _dt.datetime.now(tz=_dt.timezone.utc).isoformat(),
+        "elapsed_seconds": time.perf_counter() - start,
+        "stage": stage,
+        "gpu_memory_info": p8p._gpu_memory_info(),
+    }
+    with lock:
+        samples.append(sample)
+        record = {
+            "schema_version": "filter_bench.gpu_memory_sampler.v1",
+            "phase": args.phase_label,
+            "output": args.output,
+            "sample_count": len(samples),
+            "latest": sample,
+            "samples": samples,
+        }
+        memory_path = Path(args.memory_sample_output)
+        memory_path.parent.mkdir(parents=True, exist_ok=True)
+        memory_path.write_text(
+            json.dumps(record, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+
+
+def _memory_sampler_worker(
+    args: argparse.Namespace,
+    *,
+    start: float,
+    stop_event: threading.Event,
+    samples: list[dict[str, Any]],
+    lock: threading.Lock,
+) -> None:
+    while not stop_event.wait(float(args.memory_sample_interval_seconds)):
+        _append_memory_sample(
+            args,
+            start=start,
+            samples=samples,
+            lock=lock,
+            stage="running",
+        )
+
+
+def _result_contract_metadata(
+    args: argparse.Namespace,
+    *,
+    objective: tf.Tensor,
+    gradient: tf.Tensor,
+    per_seed_gradient: tf.Tensor,
+    gradients_connected: bool,
+) -> dict[str, Any]:
+    gradient_values = p8p._to_float_list(gradient)
+    mc_noise = p8p._mc_noise_summary(per_seed_gradient)
+    objective_finite = math.isfinite(float(objective.numpy()))
+    gradient_finite = all(math.isfinite(item) for item in gradient_values)
+    mcse_finite = all(
+        math.isfinite(float(record["standard_error_of_batch_mean"]))
+        for record in mc_noise.values()
+    )
+    primary_pass = bool(
+        objective_finite
+        and gradient_finite
+        and mcse_finite
+        and bool(gradients_connected)
+    )
+    ad_evaluation_mode = getattr(args, "ad_evaluation_mode", "reverse-gradient")
+    gradient_path_label = (
+        "connected manual score route"
+        if ad_evaluation_mode == "manual-reverse"
+        else "connected diagnostic autodiff path"
+    )
+    return {
+        "status": "pass" if primary_pass else "blocked_or_failed",
+        "batch_seeds": [int(seed) for seed in args.batch_seeds],
+        "objective_finite": objective_finite,
+        "gradient_values": gradient_values,
+        "gradient_finite": gradient_finite,
+        "monte_carlo_gradient_noise": mc_noise,
+        "monte_carlo_gradient_noise_mcse_finite": mcse_finite,
+        "gradients_connected": bool(gradients_connected),
+        "primary_pass": primary_pass,
+        "primary_pass_criterion": (
+            "finite objective, finite gradient components, finite seed-gradient "
+            f"MCSE values, and {gradient_path_label}; not FD agreement or "
+            "scientific validity"
+        ),
+    }
+
+
+def _transport_metadata(args: argparse.Namespace) -> dict[str, Any]:
+    return {
+        "value_core_mode": "streaming",
+        "transport_plan_mode": args.transport_plan_mode,
+        "transport_ad_mode": args.transport_ad_mode,
+        "gradient_mode": args.transport_gradient_mode,
+        "row_chunk_size": args.row_chunk_size,
+        "col_chunk_size": args.col_chunk_size,
+        "particle_chunk_size": args.particle_chunk_size,
+        "sinkhorn_iterations": args.sinkhorn_iterations,
+        "sinkhorn_epsilon": args.sinkhorn_epsilon,
+        "annealed_scaling": args.annealed_scaling,
+        "annealed_convergence_threshold": args.annealed_convergence_threshold,
+        "dense_transport_matrix_materialized": False,
+    }
+
+
 def main() -> None:
     args = _parse_args()
     precision = p8p._configure_precision(args)
@@ -887,113 +1233,218 @@ def main() -> None:
     contexts, sir_semantics = _build_microbatch_contexts(args)
     theta0 = tf.constant(args.theta_values, dtype=p8p.DTYPE)
     start = time.perf_counter()
-    with tf.device(args.device):
-        if args.ad_evaluation_mode == "forward-jvp":
-            gradient_diag = _forward_jvp_diagnostic_for_contexts(contexts, args.theta_values)
-        else:
-            gradient_diag = _gradient_diagnostic_for_contexts(contexts, args.theta_values)
-        objective = gradient_diag["objective"]
-        gradient = gradient_diag["gradient_tensor"]
-        per_seed_gradient = gradient_diag["per_seed_gradient"]
-        geometry = p8p._gradient_geometry_summary(per_seed_gradient)
-        seed_covariance = tf.constant(geometry["seed_gradient_covariance"], dtype=p8p.DTYPE)
-        completed_progress: list[dict[str, Any]] = []
-        _write_progress(
+    memory_samples: list[dict[str, Any]] = []
+    memory_lock = threading.Lock()
+    memory_stop = threading.Event()
+    memory_thread = None
+    if args.memory_sample_output:
+        _append_memory_sample(
             args,
             start=start,
-            stage="ad_complete",
-            completed=completed_progress,
-            current=None,
+            samples=memory_samples,
+            lock=memory_lock,
+            stage="start",
         )
-        basis_results = []
-        if args.fd_mode == "enabled":
-            for basis in _basis_matrices(seed_covariance, args.basis_set):
-                matrix = tf.convert_to_tensor(basis["matrix_columns"], dtype=p8p.DTYPE)
-                direction_results = []
-                for index, direction_name in enumerate(basis["direction_names"]):
-                    if (
-                        args.direction_filter_values
-                        and direction_name not in args.direction_filter_values
-                    ):
-                        continue
-                    window_results = []
-                    direction = matrix[:, index]
-                    base_steps, step_selection = _base_steps_for_direction(
-                        args,
-                        gradient,
-                        direction,
-                    )
-                    for base_step in base_steps:
-                        _write_progress(
+        memory_thread = threading.Thread(
+            target=_memory_sampler_worker,
+            kwargs={
+                "args": args,
+                "start": start,
+                "stop_event": memory_stop,
+                "samples": memory_samples,
+                "lock": memory_lock,
+            },
+            daemon=True,
+        )
+        memory_thread.start()
+    memory_before = p8p._gpu_memory_info()
+    try:
+        with tf.device(args.device):
+            if args.ad_evaluation_mode == "forward-jvp":
+                gradient_diag = _forward_jvp_diagnostic_for_contexts(contexts, args.theta_values)
+            elif args.ad_evaluation_mode == "manual-reverse":
+                gradient_diag = _manual_gradient_diagnostic_for_contexts(
+                    contexts,
+                    args.theta_values,
+                    compiler=args.manual_reverse_compiler,
+                    warmups=args.manual_reverse_warmups,
+                    repeats=args.manual_reverse_repeats,
+                    return_score_decomposition=args.manual_score_decomposition,
+                )
+            else:
+                gradient_diag = _gradient_diagnostic_for_contexts(contexts, args.theta_values)
+            objective = gradient_diag["objective"]
+            gradient = gradient_diag["gradient_tensor"]
+            per_seed_gradient = gradient_diag["per_seed_gradient"]
+            geometry = p8p._gradient_geometry_summary(per_seed_gradient)
+            seed_covariance = tf.constant(geometry["seed_gradient_covariance"], dtype=p8p.DTYPE)
+            completed_progress: list[dict[str, Any]] = []
+            _write_progress(
+                args,
+                start=start,
+                stage="ad_complete",
+                completed=completed_progress,
+                current=None,
+            )
+            basis_results = []
+            if args.fd_mode == "enabled":
+                for basis in _basis_matrices(seed_covariance, args.basis_set):
+                    matrix = tf.convert_to_tensor(basis["matrix_columns"], dtype=p8p.DTYPE)
+                    direction_results = []
+                    for index, direction_name in enumerate(basis["direction_names"]):
+                        if (
+                            args.direction_filter_values
+                            and direction_name not in args.direction_filter_values
+                        ):
+                            continue
+                        window_results = []
+                        direction = matrix[:, index]
+                        base_steps, step_selection = _base_steps_for_direction(
                             args,
-                            start=start,
-                            stage="fd_window_started",
-                            completed=completed_progress,
-                            current={
-                                "basis_name": basis["basis_name"],
-                                "direction_name": direction_name,
-                                "base_step": float(base_step),
-                            },
+                            gradient,
+                            direction,
                         )
-                        window_results.append(
-                            _regression_diagnostic_for_direction(
-                                contexts,
+                        for base_step in base_steps:
+                            _write_progress(
                                 args,
-                                theta0,
-                                gradient,
-                                direction,
-                                basis_name=basis["basis_name"],
-                                direction_name=direction_name,
-                                base_step=base_step,
+                                start=start,
+                                stage="fd_window_started",
+                                completed=completed_progress,
+                                current={
+                                    "basis_name": basis["basis_name"],
+                                    "direction_name": direction_name,
+                                    "base_step": float(base_step),
+                                },
                             )
-                        )
-                        completed_progress.append(
+                            window_results.append(
+                                _regression_diagnostic_for_direction(
+                                    contexts,
+                                    args,
+                                    theta0,
+                                    gradient,
+                                    direction,
+                                    basis_name=basis["basis_name"],
+                                    direction_name=direction_name,
+                                    base_step=base_step,
+                                )
+                            )
+                            completed_progress.append(
+                                {
+                                    "basis_name": basis["basis_name"],
+                                    "direction_name": direction_name,
+                                    "base_step": float(base_step),
+                                    "regression_slope": float(
+                                        window_results[-1]["regression_slope"]
+                                    ),
+                                    "ad_minus_regression_slope": float(
+                                        window_results[-1]["ad_minus_regression_slope"]
+                                    ),
+                                }
+                            )
+                            _write_progress(
+                                args,
+                                start=start,
+                                stage="fd_window_complete",
+                                completed=completed_progress,
+                                current=None,
+                            )
+                        direction_results.append(
                             {
-                                "basis_name": basis["basis_name"],
                                 "direction_name": direction_name,
-                                "base_step": float(base_step),
-                                "regression_slope": float(
-                                    window_results[-1]["regression_slope"]
-                                ),
-                                "ad_minus_regression_slope": float(
-                                    window_results[-1]["ad_minus_regression_slope"]
-                                ),
+                                "direction_original_theta": [
+                                    float(item) for item in matrix[:, index].numpy().tolist()
+                                ],
+                                "base_step_selection": step_selection,
+                                "ad_directional_derivative": window_results[0][
+                                    "ad_directional_derivative"
+                                ],
+                                "window_results": window_results,
+                                "plateau_summary": _plateau_summary(window_results),
                             }
                         )
-                        _write_progress(
-                            args,
-                            start=start,
-                            stage="fd_window_complete",
-                            completed=completed_progress,
-                            current=None,
-                        )
-                    direction_results.append(
-                        {
-                            "direction_name": direction_name,
-                            "direction_original_theta": [
-                                float(item) for item in matrix[:, index].numpy().tolist()
-                            ],
-                            "base_step_selection": step_selection,
-                            "ad_directional_derivative": window_results[0][
-                                "ad_directional_derivative"
-                            ],
-                            "window_results": window_results,
-                            "plateau_summary": _plateau_summary(window_results),
-                        }
+                    basis_record = dict(basis)
+                    basis_record["matrix_columns"] = p8p._to_float_matrix(matrix)
+                    basis_record["direction_results"] = direction_results
+                    basis_results.append(basis_record)
+                if args.direction_filter_values and not any(
+                    basis["direction_results"] for basis in basis_results
+                ):
+                    raise ValueError(
+                        "direction-filter did not match any direction in the selected basis set: "
+                        + ",".join(args.direction_filter_values)
                     )
-                basis_record = dict(basis)
-                basis_record["matrix_columns"] = p8p._to_float_matrix(matrix)
-                basis_record["direction_results"] = direction_results
-                basis_results.append(basis_record)
-            if args.direction_filter_values and not any(
-                basis["direction_results"] for basis in basis_results
-            ):
-                raise ValueError(
-                    "direction-filter did not match any direction in the selected basis set: "
-                    + ",".join(args.direction_filter_values)
-                )
+    finally:
+        memory_stop.set()
+        if memory_thread is not None:
+            memory_thread.join(timeout=5.0)
+        if args.memory_sample_output:
+            _append_memory_sample(
+                args,
+                start=start,
+                samples=memory_samples,
+                lock=memory_lock,
+                stage="final",
+            )
     elapsed = time.perf_counter() - start
+    memory_after = p8p._gpu_memory_info()
     output_devices = _validate_device((objective, gradient), args.expect_device_kind)
+    contract_metadata = _result_contract_metadata(
+        args,
+        objective=objective,
+        gradient=gradient,
+        per_seed_gradient=per_seed_gradient,
+        gradients_connected=bool(gradient_diag["gradients_connected"]),
+    )
+    manual_score_decomposition = gradient_diag.get("manual_score_decomposition")
+    if manual_score_decomposition is None:
+        manual_score_decomposition_record = {
+            "checked": False,
+            "reason": "manual-score-decomposition flag was not enabled",
+        }
+    else:
+        component_names = list(manual_score_decomposition["component_names"])
+        component_tensor = tf.convert_to_tensor(
+            manual_score_decomposition["components"],
+            dtype=p8p.DTYPE,
+        )
+        component_mean = tf.convert_to_tensor(
+            manual_score_decomposition["component_mean"],
+            dtype=p8p.DTYPE,
+        )
+        component_sum = tf.convert_to_tensor(
+            manual_score_decomposition["component_sum"],
+            dtype=p8p.DTYPE,
+        )
+        reconstruction_delta = tf.convert_to_tensor(
+            manual_score_decomposition["component_sum_reconstruction_max_abs_delta"],
+            dtype=p8p.DTYPE,
+        )
+        manual_score_decomposition_record = {
+            "checked": True,
+            "component_names": component_names,
+            "component_means": {
+                name: dict(
+                    zip(
+                        p8p.PARAMETER_NAMES,
+                        [float(item) for item in component_mean[index].numpy().tolist()],
+                        strict=True,
+                    )
+                )
+                for index, name in enumerate(component_names)
+            },
+            "component_sums_per_seed": p8p._to_float_matrix(component_sum),
+            "per_seed_components": {
+                name: p8p._to_float_matrix(component_tensor[index])
+                for index, name in enumerate(component_names)
+            },
+            "component_sum_reconstruction_max_abs_delta": float(
+                reconstruction_delta.numpy()
+            ),
+            "component_sum_reconstructs_per_seed_gradient": bool(
+                reconstruction_delta.numpy() <= 1.0e-4
+            ),
+            "parameter_order": list(p8p.PARAMETER_NAMES),
+        }
     result = {
         "schema_version": "filter_bench.p8p_regression_fd_reparameterization.v1",
         "timestamp_utc": _dt.datetime.now(tz=_dt.timezone.utc).isoformat(),
@@ -1002,9 +1453,14 @@ def main() -> None:
         "tensorflow_version": tf.__version__,
         "git_commit": p8p._git_commit(),
         "phase": args.phase_label,
+        "status": contract_metadata["status"],
         "elapsed_seconds": elapsed,
         "physical_gpus": physical_gpus,
         "logical_gpus": logical_gpus,
+        "gpu_memory_info_before": memory_before,
+        "gpu_memory_info_after": memory_after,
+        "gpu_memory_samples": list(memory_samples),
+        "memory_sample_output": args.memory_sample_output or None,
         "device": args.device,
         "device_scope": args.device_scope,
         "expect_device_kind": args.expect_device_kind,
@@ -1021,17 +1477,37 @@ def main() -> None:
             "seed_microbatch_count": len(contexts),
             "ad_evaluation_mode": args.ad_evaluation_mode,
         },
+        "compiler": gradient_diag.get(
+            "compiler",
+            {
+                "mode": "diagnostic-autodiff-default",
+                "tf_function": False,
+                "jit_compile": False,
+                "compiled_unit": None,
+            },
+        ),
         "sir_semantics": sir_semantics,
+        "batch_seeds": contract_metadata["batch_seeds"],
         "theta": dict(zip(p8p.PARAMETER_NAMES, [float(x) for x in args.theta_values], strict=True)),
         "parameter_order": list(p8p.PARAMETER_NAMES),
         "objective": float(objective.numpy()),
-        "gradient": dict(zip(p8p.PARAMETER_NAMES, p8p._to_float_list(gradient), strict=True)),
+        "objective_finite": contract_metadata["objective_finite"],
+        "gradient": dict(zip(p8p.PARAMETER_NAMES, contract_metadata["gradient_values"], strict=True)),
+        "gradient_values": contract_metadata["gradient_values"],
+        "gradient_finite": contract_metadata["gradient_finite"],
         "per_seed_gradient_contributions": p8p._to_float_matrix(per_seed_gradient),
-        "monte_carlo_gradient_noise": p8p._mc_noise_summary(per_seed_gradient),
+        "manual_score_decomposition": manual_score_decomposition_record,
+        "monte_carlo_gradient_noise": contract_metadata["monte_carlo_gradient_noise"],
+        "monte_carlo_gradient_noise_mcse_finite": contract_metadata[
+            "monte_carlo_gradient_noise_mcse_finite"
+        ],
+        "gradients_connected": contract_metadata["gradients_connected"],
         "seed_gradient_geometry": geometry,
         "regression_fd": {
             "method": "ordinary least squares fit f(theta0 + x direction) = intercept + slope * x",
+            "fd_mode": args.fd_mode,
             "ad_evaluation_mode": args.ad_evaluation_mode,
+            "manual_score_decomposition": bool(args.manual_score_decomposition),
             "base_step": float(args.base_step),
             "base_step_ladder": [float(item) for item in args.base_step_ladder_values],
             "base_step_mode": args.base_step_mode,
@@ -1040,23 +1516,15 @@ def main() -> None:
             "min_adaptive_base_step": float(args.min_adaptive_base_step),
             "max_adaptive_base_step": float(args.max_adaptive_base_step),
             "offsets": [float(item) for item in args.regression_offsets_values],
+            "trim_extreme_offsets": int(args.trim_extreme_offsets),
+            "trim_extreme_mode": args.trim_extreme_mode,
             "basis_set": args.basis_set,
             "basis_results": basis_results,
         },
         "transport_policy": args.transport_policy,
-        "transport": {
-            "value_core_mode": "streaming",
-            "transport_plan_mode": args.transport_plan_mode,
-            "transport_ad_mode": args.transport_ad_mode,
-            "gradient_mode": "raw",
-            "row_chunk_size": args.row_chunk_size,
-            "col_chunk_size": args.col_chunk_size,
-            "particle_chunk_size": args.particle_chunk_size,
-            "sinkhorn_iterations": args.sinkhorn_iterations,
-            "sinkhorn_epsilon": args.sinkhorn_epsilon,
-            "annealed_scaling": args.annealed_scaling,
-            "annealed_convergence_threshold": args.annealed_convergence_threshold,
-        },
+        "transport": _transport_metadata(args),
+        "primary_pass": contract_metadata["primary_pass"],
+        "primary_pass_criterion": contract_metadata["primary_pass_criterion"],
         "nonclaims": list(p8p.NONCLAIMS)
         + [
             "regression FD diagnostic only",

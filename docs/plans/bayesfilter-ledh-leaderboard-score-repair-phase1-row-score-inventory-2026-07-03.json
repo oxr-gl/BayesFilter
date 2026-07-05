@@ -1,0 +1,171 @@
+{
+  "date": "2026-07-03",
+  "status": "phase1_inventory",
+  "source_leaderboard": "docs/plans/bayesfilter-two-lane-highdim-ledh-inclusive-leaderboard-results-2026-07-03.json",
+  "score_definition": "total_derivative_of_stated_leaderboard_log_likelihood_target",
+  "current_global_ledh_score_status": "no_ledh_leaderboard_score_row_admitted",
+  "first_score_repair_target": "benchmark_lgssm_exact_oracle_m3_T50",
+  "rows": [
+    {
+      "row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+      "row_scope": "main_observed_data_filtering_row",
+      "current_ledh_status": "executed_value_only_score_blocked",
+      "current_ledh_value_status": "executed_same_target_value",
+      "current_ledh_score_status": "blocked_score_same_target_total_derivative_not_implemented",
+      "score_target_classification": "ready_for_score_repair",
+      "parameter_coordinates": "p8d_lgssm_theta",
+      "target_metadata": {
+        "state_dim": 3,
+        "obs_dim": 3,
+        "time_steps": 50,
+        "dataset_seed": 81100,
+        "theta": [
+          0.72,
+          0.55,
+          0.35,
+          0.35,
+          0.45
+        ]
+      },
+      "comparator": {
+        "type": "exact_kalman_value_and_score",
+        "exact_total_log_likelihood": -136.0759748579247,
+        "exact_average_log_likelihood": -2.721519497158494,
+        "exact_score": [
+          5.655446876369503,
+          -3.83505645148858,
+          0.3023616684162056,
+          -1.9171806685717399,
+          4.354265155260018
+        ]
+      },
+      "forbidden_evidence": [
+        "Contract E LGSSM D=2,T=10 route evidence",
+        "value-only LEDH N=10000 artifact as score evidence",
+        "partial derivative through stopped transport as score"
+      ],
+      "next_action": "Phase 2 same-target LGSSM total-derivative score repair"
+    },
+    {
+      "row_id": "zhao_cui_sv_actual_nongaussian_T1000",
+      "row_scope": "main_observed_data_filtering_row",
+      "current_ledh_status": "blocked",
+      "current_ledh_value_status": "blocked_no_reviewed_current_gpu_xla_ledh_row_adapter",
+      "current_ledh_score_status": "blocked_score",
+      "score_target_classification": "needs_adapter",
+      "parameter_coordinates": "not_admitted_for_ledh_row_yet",
+      "comparator": {
+        "type": "same_target_adapter_then_exact_or_same_scalar_fd_required",
+        "note": "Existing non-LEDH score rows do not prove LEDH score correctness."
+      },
+      "forbidden_evidence": [
+        "actual-SV diagnostic route without same-target LEDH adapter",
+        "KSC or auxiliary SV evidence as actual-SV row evidence",
+        "partial derivative as score"
+      ],
+      "next_action": "Phase 5 same-target LEDH adapter admission before score repair"
+    },
+    {
+      "row_id": "zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000",
+      "row_scope": "main_observed_data_filtering_row",
+      "current_ledh_status": "blocked",
+      "current_ledh_value_status": "blocked_no_ledh_ksc_row_adapter",
+      "current_ledh_score_status": "blocked_score",
+      "score_target_classification": "needs_adapter",
+      "parameter_coordinates": "not_admitted_for_ledh_row_yet",
+      "comparator": {
+        "type": "same_target_adapter_then_exact_or_same_scalar_fd_required",
+        "note": "KSC row requires its own transformed-mixture target adapter."
+      },
+      "forbidden_evidence": [
+        "actual-SV evidence as KSC row evidence",
+        "auxiliary or native-oracle SV evidence as source-row evidence",
+        "partial derivative as score"
+      ],
+      "next_action": "Phase 5 KSC LEDH adapter admission before score repair"
+    },
+    {
+      "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+      "row_scope": "main_observed_data_filtering_row",
+      "current_ledh_status": "executed_value_only_score_blocked",
+      "current_ledh_value_status": "executed_fixed_sir_value_only",
+      "current_ledh_score_status": "blocked_score_for_full_leaderboard_row",
+      "score_target_classification": "no_free_theta",
+      "parameter_coordinates": "not_declared_for_current_fixed_row",
+      "comparator": {
+        "type": "no_score_comparator_until_parameter_target_is_declared",
+        "note": "Current fixed row can remain value-only; Phase 4 decides whether an explicit free-theta target exists."
+      },
+      "forbidden_evidence": [
+        "scoped P8p local complete-data score as full observed-data SIR score",
+        "parameterized SIR component row as fixed-row score",
+        "partial derivative as score"
+      ],
+      "next_action": "Phase 4 target decision; do not invent a score for a fixed row"
+    },
+    {
+      "row_id": "zhao_cui_spatial_sir_austria_j9_T20_parameterized_logscale",
+      "row_scope": "scoped_component_row",
+      "current_ledh_status": "scoped_component_status_only",
+      "current_ledh_value_status": "scoped_or_diagnostic_only",
+      "current_ledh_score_status": "scoped_score_diagnostic_not_full_observed_data_score",
+      "score_target_classification": "scoped_diagnostic_only",
+      "parameter_coordinates": "parameterized_logscale_component_coordinates",
+      "comparator": {
+        "type": "scoped_component_only",
+        "note": "This is not a full observed-data/filtering leaderboard LEDH score row."
+      },
+      "forbidden_evidence": [
+        "promotion to full observed-data SIR score without target review",
+        "runtime or HMC readiness claim",
+        "partial derivative as score"
+      ],
+      "next_action": "Keep scoped unless a separate human-approved target changes the row"
+    },
+    {
+      "row_id": "zhao_cui_predator_prey_T20",
+      "row_scope": "main_observed_data_filtering_row",
+      "current_ledh_status": "blocked",
+      "current_ledh_value_status": "blocked_no_reviewed_current_gpu_xla_ledh_row_adapter",
+      "current_ledh_score_status": "blocked_score",
+      "score_target_classification": "needs_adapter",
+      "parameter_coordinates": "not_admitted_for_ledh_row_yet",
+      "comparator": {
+        "type": "same_target_adapter_then_exact_or_same_scalar_fd_required",
+        "note": "The available lower-rung or model-specific diagnostics are not this T20 row."
+      },
+      "forbidden_evidence": [
+        "two-observation lower-rung evidence as T20 row evidence",
+        "UKF autodiff diagnostic as LEDH score evidence",
+        "partial derivative as score"
+      ],
+      "next_action": "Phase 5 same-target predator-prey LEDH adapter admission"
+    },
+    {
+      "row_id": "zhao_cui_generalized_sv_synthetic_from_estimated_values",
+      "row_scope": "main_observed_data_filtering_row",
+      "current_ledh_status": "blocked",
+      "current_ledh_value_status": "blocked_no_reviewed_same_target_ledh_row_adapter",
+      "current_ledh_score_status": "blocked_score",
+      "score_target_classification": "needs_adapter",
+      "parameter_coordinates": "not_admitted_for_ledh_row_yet",
+      "comparator": {
+        "type": "same_target_adapter_then_exact_or_same_scalar_fd_required",
+        "note": "Native-oracle, precursor, auxiliary, actual-SV, and KSC evidence are not source-row admission evidence."
+      },
+      "forbidden_evidence": [
+        "native-oracle or precursor evidence as source-row evidence",
+        "actual-SV or KSC evidence as generalized-SV row evidence",
+        "partial derivative as score"
+      ],
+      "next_action": "Phase 5 same-target generalized-SV LEDH adapter admission"
+    }
+  ],
+  "phase2_handoff": {
+    "row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+    "required_target_metadata": "D=3,T=50,dataset_seed=81100,theta=[0.72,0.55,0.35,0.35,0.45]",
+    "required_comparator": "exact_kalman_value_and_score",
+    "required_route": "trusted_gpu_xla_tf32_ledh_total_derivative",
+    "forbidden_route": "Contract_E_or_stopped_partial_derivative"
+  }
+}
