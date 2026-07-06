@@ -393,3 +393,80 @@ Gate status:
 Next action:
 
 - Execute Phase 3 fixed SIR forward scalar reconfirmation.
+
+### 2026-07-07 - Phase 3 - FIXED_SIR_FORWARD_SCALAR_LOCAL_PASS
+
+Evidence contract:
+
+- Question: Can the fixed SIR row produce or preserve an executable same-target
+  observed-data log likelihood artifact under the shared schema and amended
+  free-parameter target?
+- Target scalar: `observed_data_log_likelihood_estimator`, reported as
+  `log_likelihood`.
+- Primary criterion: canonical fixed SIR artifact validates with
+  `require_admitted=True`, finite `log_likelihood_by_seed`, full-row scale,
+  `sir_log_scale_theta`, theta `[0,0,0]`, and target-density correction.
+- Veto diagnostics: old `no_free_theta` admission, missing likelihood vector,
+  theta mismatch, missing target-density correction, score evidence used for
+  value admission, or runtime-only admission.
+- Nonclaims: not old `no_free_theta` admission, not predator-prey/SV evidence,
+  no score admission, no score correctness, no leaderboard rebuild, no new GPU
+  model evidence, no exact nonlinear likelihood correctness, no Zhao-Cui
+  TT/SIRT source-faithfulness, no HMC readiness, no posterior correctness, no
+  scientific superiority, and no runtime ranking.
+
+Actions:
+
+- Normalized the existing fixed SIR N=10000 value artifact into the Phase 1
+  canonical executable artifact schema.
+- Validated the canonical artifact with
+  `validate_ledh_forward_scalar_artifact(..., require_admitted=True)`.
+- Added mandatory fixed SIR artifact replay tests.
+- Ran focused and combined local checks.
+- Wrote Phase 3 result.
+- Drafted Phase 4 predator-prey subplan.
+
+Artifacts:
+
+- `docs/plans/ledh-phase3-fixed-sir-forward-scalar-artifact-2026-07-07.json`
+- `docs/plans/ledh-phase3-fixed-sir-forward-scalar-artifact-2026-07-07.md`
+- `tests/highdim/test_ledh_phase3_fixed_sir_forward_scalar_artifact.py`
+- `docs/plans/bayesfilter-ledh-forward-scalar-per-model-phase3-fixed-sir-result-2026-07-07.md`
+- `docs/plans/bayesfilter-ledh-forward-scalar-per-model-phase4-predator-prey-subplan-2026-07-07.md`
+
+Local checks:
+
+```text
+CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp python -m pytest \
+  tests/highdim/test_ledh_phase3_fixed_sir_forward_scalar_artifact.py -q
+```
+
+Result:
+
+```text
+2 passed, 2 warnings in 2.50s
+```
+
+```text
+CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp python -m pytest \
+  tests/highdim/test_ledh_phase3_forward_admission.py \
+  tests/highdim/test_ledh_forward_contract_phase2.py \
+  tests/highdim/test_ledh_forward_scalar_admission_guard.py \
+  tests/highdim/test_ledh_phase2_lgssm_forward_scalar_artifact.py \
+  tests/highdim/test_ledh_phase3_fixed_sir_forward_scalar_artifact.py -q
+```
+
+Result:
+
+```text
+28 passed, 2 warnings in 2.57s
+```
+
+Gate status:
+
+- `IN_PROGRESS_PENDING_PHASE3_PHASE4_REVIEW`
+
+Next action:
+
+- Run bounded read-only review of Phase 3 result and Phase 4 predator-prey
+  subplan.
