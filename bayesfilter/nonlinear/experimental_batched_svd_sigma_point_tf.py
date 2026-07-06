@@ -50,6 +50,10 @@ TFBatchedSVDBackend = Literal[
     "tf_svd_cut4",
     "tf_principal_sqrt_ukf",
 ]
+TFPrincipalSqrtBackend = Literal[
+    "compiled_custom_op",
+    "tensorflow_eigh",
+]
 
 _PRINCIPAL_SQRT_ROUNDOFF_TOLERANCE = 1.0e-14
 _PRINCIPAL_SQRT_MAX_ABS_ENTRY_FOR_REPAIR = 1.0e8
@@ -248,6 +252,33 @@ class TFBatchedStructuralFirstDerivatives:
 
 
 @dataclass(frozen=True)
+class TFBatchedStructuralLinearizations:
+    """State/innovation Jacobians for reverse-mode sigma-point cotangents."""
+
+    transition_state_jacobian_fn: TFBatchedTransitionStateJacobianFn
+    transition_innovation_jacobian_fn: TFBatchedTransitionInnovationJacobianFn
+    observation_state_jacobian_fn: TFBatchedObservationStateJacobianFn
+    name: str = "tf_batched_structural_linearizations"
+
+
+@dataclass(frozen=True)
+class TFBatchedSigmaPointOutputCotangents:
+    """Value plus cotangents for model-owned sigma-point hook outputs."""
+
+    value: tf.Tensor
+    transition_previous_points: tf.Tensor
+    transition_innovation_points: tf.Tensor
+    transition_output_cotangent: tf.Tensor
+    observation_state_points: tf.Tensor
+    observation_output_cotangent: tf.Tensor
+    initial_mean_cotangent: tf.Tensor
+    initial_covariance_cotangent: tf.Tensor
+    innovation_covariance_cotangent: tf.Tensor
+    observation_covariance_cotangent: tf.Tensor
+    diagnostics: Mapping[str, tf.Tensor]
+
+
+@dataclass(frozen=True)
 class TFBatchedSmoothEighFactorFirstDerivatives:
     eigenvalues: tf.Tensor
     floored_eigenvalues: tf.Tensor
@@ -437,11 +468,8 @@ def _principal_sqrt_covariance_classification(
         tf.maximum(eigenvalues, repair_floor),
         tf.fill(tf.shape(eigenvalues), repair_floor),
     )
-    repaired_covariance = _symmetrize(
-        covariance
-        + tf.eye(int(covariance.shape[-1]), dtype=tf.float64)[tf.newaxis, :, :]
-        * tf.maximum(repair_floor - min_eigenvalue, 0.0)[:, tf.newaxis, tf.newaxis]
-    )
+    repair_identity = tf.eye(int(covariance.shape[-1]), dtype=tf.float64)[tf.newaxis, :, :]
+    repaired_covariance = _symmetrize(covariance + repair_identity * repair_floor)
     valid_or_repaired_covariance = tf.where(
         roundoff_repaired[:, tf.newaxis, tf.newaxis],
         repaired_covariance,
@@ -499,6 +527,56 @@ def _batched_eigh_solve(
 
 def _batched_eigh_logdet(eigenvalues: tf.Tensor) -> tf.Tensor:
     return tf.reduce_sum(tf.math.log(eigenvalues), axis=-1)
+
+
+def _tensorflow_native_principal_sqrt(covariance: tf.Tensor) -> tf.Tensor:
+    values, vectors = tf.linalg.eigh(_symmetrize(covariance))
+    safe_values = tf.maximum(values, tf.constant(0.0, dtype=tf.float64))
+    factor = (
+        vectors
+        @ tf.linalg.diag(tf.sqrt(safe_values))
+        @ tf.linalg.matrix_transpose(vectors)
+    )
+    return _symmetrize(factor)
+
+
+def _tensorflow_native_symmetric_sylvester_solve(
+    symmetric_factor: tf.Tensor,
+    rhs: tf.Tensor,
+) -> tf.Tensor:
+    symmetric_factor = _symmetrize(symmetric_factor)
+    rhs = _symmetrize(tf.convert_to_tensor(rhs, dtype=tf.float64))
+    values, vectors = tf.linalg.eigh(symmetric_factor)
+    projected = tf.einsum("bia,bpij,bjc->bpac", vectors, rhs, vectors)
+    denominator = values[:, :, tf.newaxis] + values[:, tf.newaxis, :]
+    scaled = projected / denominator[:, tf.newaxis, :, :]
+    solved = tf.einsum("bia,bpac,bjc->bpij", vectors, scaled, vectors)
+    return _symmetrize(solved)
+
+
+def _principal_sqrt_factor(
+    covariance: tf.Tensor,
+    *,
+    factor_backend: TFPrincipalSqrtBackend,
+) -> tf.Tensor:
+    if factor_backend == "compiled_custom_op":
+        return _symmetrize(symmetric_principal_sqrt(covariance))
+    if factor_backend == "tensorflow_eigh":
+        return _tensorflow_native_principal_sqrt(covariance)
+    raise ValueError(f"unknown principal sqrt backend: {factor_backend!r}")
+
+
+def _symmetric_sylvester_factor_solve(
+    factor: tf.Tensor,
+    rhs: tf.Tensor,
+    *,
+    factor_backend: TFPrincipalSqrtBackend,
+) -> tf.Tensor:
+    if factor_backend == "compiled_custom_op":
+        return _symmetrize(symmetric_sylvester_solve(factor, rhs))
+    if factor_backend == "tensorflow_eigh":
+        return _tensorflow_native_symmetric_sylvester_solve(factor, rhs)
+    raise ValueError(f"unknown principal sqrt backend: {factor_backend!r}")
 
 
 def _batched_cholesky_solve(cholesky_factor: tf.Tensor, rhs: tf.Tensor) -> tf.Tensor:
@@ -722,6 +800,7 @@ def _checked_batched_principal_sqrt_factor_first_derivatives(
     fixed_null_tolerance: tf.Tensor,
     label: str,
     lyapunov_tolerance: tf.Tensor | float = 1.0e-10,
+    factor_backend: TFPrincipalSqrtBackend = "compiled_custom_op",
 ) -> TFBatchedSmoothEighFactorFirstDerivatives:
     covariance = _symmetrize(covariance)
     d_covariance = _symmetrize(d_covariance)
@@ -826,13 +905,20 @@ def _checked_batched_principal_sqrt_factor_first_derivatives(
     covariance_valid_or_repaired_mask = tf.logical_not(classified_invalid)
     valid_derivative_mask = tf.logical_not(combined_classified_invalid)
     valid_derivative_parameter_mask = valid_derivative_mask[:, tf.newaxis]
-    factor = _symmetrize(symmetric_principal_sqrt(safe_covariance))
+    factor = _principal_sqrt_factor(
+        safe_covariance,
+        factor_backend=factor_backend,
+    )
     safe_d_covariance = tf.where(
         combined_classified_invalid[:, tf.newaxis, tf.newaxis, tf.newaxis],
         tf.zeros_like(d_covariance),
         tf.where(tf.math.is_finite(d_covariance), d_covariance, tf.zeros_like(d_covariance)),
     )
-    d_factor = _symmetrize(symmetric_sylvester_solve(factor, safe_d_covariance))
+    d_factor = _symmetric_sylvester_factor_solve(
+        factor,
+        safe_d_covariance,
+        factor_backend=factor_backend,
+    )
     implemented_covariance = _symmetrize(factor @ tf.linalg.matrix_transpose(factor))
     psd_projection_residual = tf.linalg.norm(
         implemented_covariance - covariance,
@@ -942,6 +1028,654 @@ def _weighted_covariance_first_derivatives(
 
 def _matvec_points(jacobian: tf.Tensor, vectors: tf.Tensor) -> tf.Tensor:
     return tf.einsum("broi,bpri->bpro", jacobian, vectors)
+
+
+def _principal_sqrt_vjp(
+    factor: tf.Tensor,
+    factor_cotangent: tf.Tensor,
+    *,
+    factor_backend: TFPrincipalSqrtBackend = "compiled_custom_op",
+) -> tf.Tensor:
+    """VJP for ``factor = sqrt(covariance)`` on the strict-SPD branch."""
+
+    rhs = _symmetrize(tf.convert_to_tensor(factor_cotangent, dtype=tf.float64))
+    solved = _symmetric_sylvester_factor_solve(
+        tf.convert_to_tensor(factor, dtype=tf.float64),
+        rhs[:, tf.newaxis, :, :],
+        factor_backend=factor_backend,
+    )[:, 0]
+    return _symmetrize(solved)
+
+
+def _reverse_weighted_covariance_cotangent(
+    centered: tf.Tensor,
+    covariance_cotangent: tf.Tensor,
+    weights: tf.Tensor,
+) -> tf.Tensor:
+    sym_cotangent = _symmetrize(covariance_cotangent)
+    return 2.0 * tf.einsum("r,bij,brj->bri", weights, sym_cotangent, centered)
+
+
+def tf_batched_svd_sigma_point_value_and_output_cotangents(
+    observations: tf.Tensor,
+    model: TFBatchedStructuralStateSpace,
+    linearizations: TFBatchedStructuralLinearizations,
+    *,
+    sigma_rule: TFSigmaPointRule | None = None,
+    backend: TFBatchedSVDBackend = "tf_principal_sqrt_ukf",
+    placement_floor: tf.Tensor | float = 0.0,
+    innovation_floor: tf.Tensor | float = 1.0e-12,
+    rank_tolerance: tf.Tensor | float = 1.0e-12,
+    fixed_null_tolerance: tf.Tensor | float = 1.0e-10,
+    principal_sqrt_reconstruction_tolerance: tf.Tensor | float = 1.0e-10,
+    principal_sqrt_backend: TFPrincipalSqrtBackend = "compiled_custom_op",
+    jitter: tf.Tensor | float = 0.0,
+) -> TFBatchedSigmaPointOutputCotangents:
+    """Return value and reverse-mode cotangents for model hook outputs.
+
+    This API preserves BayesFilter ownership of the sigma-point recursion while
+    letting model adapters consume output cotangents with model-owned VJPs.  It
+    is currently scoped to the batch-native current-state principal-sqrt UKF
+    route.
+    """
+
+    if backend != "tf_principal_sqrt_ukf":
+        raise ValueError(
+            "output-cotangent API currently requires backend='tf_principal_sqrt_ukf'"
+        )
+    if model.has_lagged_observation_contract():
+        raise ValueError("output-cotangent API does not yet support lagged observations")
+
+    y = _as_observation_matrix(observations)
+    n_timesteps = int(y.shape[0])
+    batch_dim = model.batch_dim
+    state_dim = model.state_dim
+    innovation_dim = model.innovation_dim
+    observation_dim = model.observation_dim
+    if None in (batch_dim, state_dim, innovation_dim, observation_dim):
+        raise ValueError("output-cotangent API requires static model dimensions")
+    batch_dim = int(batch_dim)
+    state_dim = int(state_dim)
+    innovation_dim = int(innovation_dim)
+    observation_dim = int(observation_dim)
+    aug_dim = state_dim + innovation_dim
+    if sigma_rule is None:
+        sigma_rule, backend_name = _rule_for_backend(backend, aug_dim)
+    else:
+        backend_name = backend
+    if sigma_rule.dim != aug_dim:
+        raise ValueError("sigma_rule dimension must equal state_dim + innovation_dim")
+    point_count = int(sigma_rule.point_count)
+
+    mean = tf.convert_to_tensor(model.initial_mean, dtype=tf.float64)
+    covariance = _symmetrize(model.initial_covariance)
+    innovation_covariance = _symmetrize(model.innovation_covariance)
+    observation_covariance = _symmetrize(model.observation_covariance)
+    placement_floor = tf.convert_to_tensor(placement_floor, dtype=tf.float64)
+    innovation_floor = tf.convert_to_tensor(innovation_floor, dtype=tf.float64)
+    rank_tolerance = tf.convert_to_tensor(rank_tolerance, dtype=tf.float64)
+    fixed_null_tolerance = tf.convert_to_tensor(fixed_null_tolerance, dtype=tf.float64)
+    principal_sqrt_reconstruction_tolerance = tf.convert_to_tensor(
+        principal_sqrt_reconstruction_tolerance,
+        dtype=tf.float64,
+    )
+    jitter = tf.convert_to_tensor(jitter, dtype=tf.float64)
+    obs_identity = tf.eye(observation_dim, dtype=tf.float64)[tf.newaxis, :, :]
+    two_pi = tf.constant(2.0 * math.pi, dtype=tf.float64)
+    log_likelihood = tf.zeros([batch_dim], dtype=tf.float64)
+    max_placement_classified_invalid_count = tf.zeros([batch_dim], dtype=tf.int32)
+    max_innovation_classified_invalid_count = tf.zeros([batch_dim], dtype=tf.int32)
+    max_placement_roundoff_repair_count = tf.zeros([batch_dim], dtype=tf.int32)
+    max_innovation_roundoff_repair_count = tf.zeros([batch_dim], dtype=tf.int32)
+
+    previous_ta = tf.TensorArray(
+        dtype=tf.float64,
+        size=n_timesteps,
+        element_shape=tf.TensorShape([batch_dim, point_count, state_dim]),
+        clear_after_read=False,
+    )
+    innovation_ta = tf.TensorArray(
+        dtype=tf.float64,
+        size=n_timesteps,
+        element_shape=tf.TensorShape([batch_dim, point_count, innovation_dim]),
+        clear_after_read=False,
+    )
+    predicted_ta = tf.TensorArray(
+        dtype=tf.float64,
+        size=n_timesteps,
+        element_shape=tf.TensorShape([batch_dim, point_count, state_dim]),
+        clear_after_read=False,
+    )
+    observation_ta = tf.TensorArray(
+        dtype=tf.float64,
+        size=n_timesteps,
+        element_shape=tf.TensorShape([batch_dim, point_count, observation_dim]),
+    )
+    implemented_innovation_covariance_ta = tf.TensorArray(
+        dtype=tf.float64,
+        size=n_timesteps,
+        element_shape=tf.TensorShape([batch_dim, observation_dim, observation_dim]),
+    )
+    placement_factor_ta = tf.TensorArray(
+        dtype=tf.float64,
+        size=n_timesteps,
+        element_shape=tf.TensorShape([batch_dim, aug_dim, aug_dim]),
+    )
+
+    n_timesteps_tensor = tf.constant(n_timesteps, dtype=tf.int32)
+
+    def forward_body(
+        t,
+        mean,
+        covariance,
+        log_likelihood,
+        max_placement_classified_invalid_count,
+        max_innovation_classified_invalid_count,
+        max_placement_roundoff_repair_count,
+        max_innovation_roundoff_repair_count,
+        previous_ta,
+        innovation_ta,
+        predicted_ta,
+        observation_ta,
+        implemented_innovation_covariance_ta,
+        placement_factor_ta,
+    ):
+        aug_mean = tf.concat(
+            [mean, tf.zeros([batch_dim, innovation_dim], dtype=tf.float64)],
+            axis=1,
+        )
+        upper = tf.concat(
+            [
+                covariance,
+                tf.zeros([batch_dim, state_dim, innovation_dim], dtype=tf.float64),
+            ],
+            axis=2,
+        )
+        lower = tf.concat(
+            [
+                tf.zeros([batch_dim, innovation_dim, state_dim], dtype=tf.float64),
+                innovation_covariance,
+            ],
+            axis=2,
+        )
+        aug_covariance = tf.concat([upper, lower], axis=1)
+        zero_aug_derivative = tf.zeros(
+            [batch_dim, 1, aug_dim, aug_dim],
+            dtype=tf.float64,
+        )
+        placement = _checked_batched_principal_sqrt_factor_first_derivatives(
+            aug_covariance,
+            zero_aug_derivative,
+            singular_floor=placement_floor,
+            fixed_null_tolerance=fixed_null_tolerance,
+            lyapunov_tolerance=principal_sqrt_reconstruction_tolerance,
+            factor_backend=principal_sqrt_backend,
+            label="principal-sqrt sigma-point placement cotangent",
+        )
+        point_offsets = tf.einsum("ra,bda->brd", sigma_rule.offsets, placement.factor)
+        aug_points = aug_mean[:, tf.newaxis, :] + point_offsets
+        previous_points = aug_points[:, :, :state_dim]
+        innovation_points = aug_points[:, :, state_dim:]
+
+        predicted_points = model.transition(previous_points, innovation_points)
+        observation_points = model.observe(predicted_points)
+
+        predicted_mean = tf.einsum(
+            "r,brn->bn",
+            sigma_rule.mean_weights,
+            predicted_points,
+        )
+        centered_x = predicted_points - predicted_mean[:, tf.newaxis, :]
+        predicted_covariance = _weighted_covariance(
+            centered_x,
+            sigma_rule.covariance_weights,
+        )
+        observation_mean = tf.einsum(
+            "r,brm->bm",
+            sigma_rule.mean_weights,
+            observation_points,
+        )
+        centered_y = observation_points - observation_mean[:, tf.newaxis, :]
+        raw_innovation_covariance = _symmetrize(
+            _weighted_covariance(centered_y, sigma_rule.covariance_weights)
+            + observation_covariance
+            + jitter * obs_identity
+        )
+        zero_observation_derivative = tf.zeros(
+            [batch_dim, 1, observation_dim, observation_dim],
+            dtype=tf.float64,
+        )
+        innovation_factor = _checked_batched_principal_sqrt_factor_first_derivatives(
+            raw_innovation_covariance,
+            zero_observation_derivative,
+            singular_floor=innovation_floor,
+            fixed_null_tolerance=fixed_null_tolerance,
+            lyapunov_tolerance=principal_sqrt_reconstruction_tolerance,
+            factor_backend=principal_sqrt_backend,
+            label="principal-sqrt sigma-point innovation cotangent",
+        )
+        implemented_innovation_covariance = innovation_factor.implemented_covariance
+        cross_covariance = tf.einsum(
+            "brn,r,brm->bnm",
+            centered_x,
+            sigma_rule.covariance_weights,
+            centered_y,
+        )
+        innovation = y[t][tf.newaxis, :] - observation_mean
+        innovation_cholesky = tf.linalg.cholesky(implemented_innovation_covariance)
+        solve_innovation = _batched_cholesky_solve(innovation_cholesky, innovation)
+        innovation_precision = _batched_cholesky_solve(
+            innovation_cholesky,
+            tf.tile(obs_identity, [batch_dim, 1, 1]),
+        )
+        log_det = _batched_cholesky_logdet(innovation_cholesky)
+        mahalanobis = tf.reduce_sum(innovation * solve_innovation, axis=-1)
+        contribution = -0.5 * (
+            tf.cast(observation_dim, tf.float64) * tf.math.log(two_pi)
+            + log_det
+            + mahalanobis
+        )
+        kalman_gain = tf.matmul(cross_covariance, innovation_precision)
+        mean = predicted_mean + tf.einsum("bnm,bm->bn", kalman_gain, innovation)
+        covariance = _symmetrize(
+            predicted_covariance
+            - kalman_gain
+            @ implemented_innovation_covariance
+            @ tf.linalg.matrix_transpose(kalman_gain)
+        )
+        return (
+            t + tf.constant(1, dtype=tf.int32),
+            mean,
+            covariance,
+            log_likelihood + contribution,
+            tf.maximum(
+                max_placement_classified_invalid_count,
+                placement.classified_invalid_count,
+            ),
+            tf.maximum(
+                max_innovation_classified_invalid_count,
+                innovation_factor.classified_invalid_count,
+            ),
+            tf.maximum(
+                max_placement_roundoff_repair_count,
+                placement.roundoff_repair_count,
+            ),
+            tf.maximum(
+                max_innovation_roundoff_repair_count,
+                innovation_factor.roundoff_repair_count,
+            ),
+            previous_ta.write(t, previous_points),
+            innovation_ta.write(t, innovation_points),
+            predicted_ta.write(t, predicted_points),
+            observation_ta.write(t, observation_points),
+            implemented_innovation_covariance_ta.write(
+                t,
+                implemented_innovation_covariance,
+            ),
+            placement_factor_ta.write(t, placement.factor),
+        )
+
+    (
+        _t,
+        _mean,
+        _covariance,
+        log_likelihood,
+        max_placement_classified_invalid_count,
+        max_innovation_classified_invalid_count,
+        max_placement_roundoff_repair_count,
+        max_innovation_roundoff_repair_count,
+        previous_ta,
+        innovation_ta,
+        predicted_ta,
+        observation_ta,
+        implemented_innovation_covariance_ta,
+        placement_factor_ta,
+    ) = tf.while_loop(
+        lambda t, *_unused: t < n_timesteps_tensor,
+        forward_body,
+        (
+            tf.constant(0, dtype=tf.int32),
+            mean,
+            covariance,
+            log_likelihood,
+            max_placement_classified_invalid_count,
+            max_innovation_classified_invalid_count,
+            max_placement_roundoff_repair_count,
+            max_innovation_roundoff_repair_count,
+            previous_ta,
+            innovation_ta,
+            predicted_ta,
+            observation_ta,
+            implemented_innovation_covariance_ta,
+            placement_factor_ta,
+        ),
+        parallel_iterations=1,
+    )
+
+    transition_cotangent_ta = tf.TensorArray(
+        dtype=tf.float64,
+        size=n_timesteps,
+        element_shape=tf.TensorShape([batch_dim, point_count, state_dim]),
+    )
+    observation_cotangent_ta = tf.TensorArray(
+        dtype=tf.float64,
+        size=n_timesteps,
+        element_shape=tf.TensorShape([batch_dim, point_count, observation_dim]),
+    )
+
+    def reverse_body(
+        k,
+        mean_cotangent,
+        covariance_cotangent,
+        innovation_covariance_cotangent,
+        observation_covariance_cotangent,
+        transition_cotangent_ta,
+        observation_cotangent_ta,
+    ):
+        t = n_timesteps_tensor - tf.constant(1, dtype=tf.int32) - k
+        previous_points = previous_ta.read(t)
+        innovation_points = innovation_ta.read(t)
+        predicted_points = predicted_ta.read(t)
+        observation_points = observation_ta.read(t)
+        implemented_innovation_covariance = implemented_innovation_covariance_ta.read(t)
+        placement_factor = placement_factor_ta.read(t)
+
+        predicted_mean = tf.einsum(
+            "r,brn->bn",
+            sigma_rule.mean_weights,
+            predicted_points,
+        )
+        centered_x = predicted_points - predicted_mean[:, tf.newaxis, :]
+        predicted_covariance = _weighted_covariance(
+            centered_x,
+            sigma_rule.covariance_weights,
+        )
+        del predicted_covariance
+        observation_mean = tf.einsum(
+            "r,brm->bm",
+            sigma_rule.mean_weights,
+            observation_points,
+        )
+        centered_y = observation_points - observation_mean[:, tf.newaxis, :]
+        cross_covariance = tf.einsum(
+            "brn,r,brm->bnm",
+            centered_x,
+            sigma_rule.covariance_weights,
+            centered_y,
+        )
+        innovation = y[t][tf.newaxis, :] - observation_mean
+        innovation_cholesky = tf.linalg.cholesky(implemented_innovation_covariance)
+        solve_innovation = _batched_cholesky_solve(innovation_cholesky, innovation)
+        innovation_precision = _batched_cholesky_solve(
+            innovation_cholesky,
+            tf.tile(obs_identity, [batch_dim, 1, 1]),
+        )
+        kalman_gain = tf.matmul(cross_covariance, innovation_precision)
+
+        covariance_cotangent = _symmetrize(covariance_cotangent)
+        innovation_covariance_cotangent_local = (
+            -0.5 * innovation_precision
+            + 0.5 * tf.einsum("bm,bn->bmn", solve_innovation, solve_innovation)
+        )
+        innovation_cotangent = -solve_innovation
+
+        predicted_mean_cotangent = mean_cotangent
+        kalman_gain_cotangent = tf.einsum(
+            "bn,bm->bnm",
+            mean_cotangent,
+            innovation,
+        )
+        innovation_cotangent = innovation_cotangent + tf.einsum(
+            "bnm,bn->bm",
+            kalman_gain,
+            mean_cotangent,
+        )
+
+        predicted_covariance_cotangent = covariance_cotangent
+        kalman_gain_cotangent = kalman_gain_cotangent - 2.0 * tf.matmul(
+            tf.matmul(covariance_cotangent, kalman_gain),
+            implemented_innovation_covariance,
+        )
+        innovation_covariance_cotangent_local = (
+            innovation_covariance_cotangent_local
+            - tf.matmul(
+                kalman_gain,
+                tf.matmul(covariance_cotangent, kalman_gain),
+                transpose_a=True,
+            )
+        )
+
+        cross_covariance_cotangent = tf.matmul(
+            kalman_gain_cotangent,
+            innovation_precision,
+        )
+        innovation_covariance_cotangent_local = (
+            innovation_covariance_cotangent_local
+            - tf.matmul(
+                tf.matmul(kalman_gain, kalman_gain_cotangent, transpose_a=True),
+                innovation_precision,
+            )
+        )
+        innovation_covariance_cotangent_local = _symmetrize(
+            innovation_covariance_cotangent_local
+        )
+
+        centered_y_cotangent = _reverse_weighted_covariance_cotangent(
+            centered_y,
+            innovation_covariance_cotangent_local,
+            sigma_rule.covariance_weights,
+        )
+        observation_covariance_cotangent = observation_covariance_cotangent + (
+            innovation_covariance_cotangent_local
+        )
+        centered_x_cotangent = tf.einsum(
+            "r,bnm,brm->brn",
+            sigma_rule.covariance_weights,
+            cross_covariance_cotangent,
+            centered_y,
+        )
+        centered_y_cotangent = centered_y_cotangent + tf.einsum(
+            "r,bnm,brn->brm",
+            sigma_rule.covariance_weights,
+            cross_covariance_cotangent,
+            centered_x,
+        )
+        observation_mean_cotangent = -innovation_cotangent
+        observation_points_cotangent = centered_y_cotangent
+        observation_mean_cotangent = observation_mean_cotangent - tf.reduce_sum(
+            centered_y_cotangent,
+            axis=1,
+        )
+        observation_points_cotangent = observation_points_cotangent + tf.einsum(
+            "r,bm->brm",
+            sigma_rule.mean_weights,
+            observation_mean_cotangent,
+        )
+
+        centered_x_cotangent = centered_x_cotangent + (
+            _reverse_weighted_covariance_cotangent(
+                centered_x,
+                predicted_covariance_cotangent,
+                sigma_rule.covariance_weights,
+            )
+        )
+        predicted_points_cotangent = centered_x_cotangent
+        predicted_mean_cotangent = predicted_mean_cotangent - tf.reduce_sum(
+            centered_x_cotangent,
+            axis=1,
+        )
+        predicted_points_cotangent = predicted_points_cotangent + tf.einsum(
+            "r,bn->brn",
+            sigma_rule.mean_weights,
+            predicted_mean_cotangent,
+        )
+
+        observation_state_jacobian = linearizations.observation_state_jacobian_fn(
+            predicted_points,
+        )
+        _validate_static_shape(
+            observation_state_jacobian,
+            (batch_dim, point_count, observation_dim, state_dim),
+            "observation_state_jacobian",
+        )
+        predicted_points_cotangent = predicted_points_cotangent + tf.einsum(
+            "brom,bro->brm",
+            observation_state_jacobian,
+            observation_points_cotangent,
+        )
+
+        transition_state_jacobian = linearizations.transition_state_jacobian_fn(
+            previous_points,
+            innovation_points,
+        )
+        transition_innovation_jacobian = (
+            linearizations.transition_innovation_jacobian_fn(
+                previous_points,
+                innovation_points,
+            )
+        )
+        _validate_static_shape(
+            transition_state_jacobian,
+            (batch_dim, point_count, state_dim, state_dim),
+            "transition_state_jacobian",
+        )
+        _validate_static_shape(
+            transition_innovation_jacobian,
+            (batch_dim, point_count, state_dim, innovation_dim),
+            "transition_innovation_jacobian",
+        )
+        previous_points_cotangent = tf.einsum(
+            "broi,bro->bri",
+            transition_state_jacobian,
+            predicted_points_cotangent,
+        )
+        innovation_points_cotangent = tf.einsum(
+            "broa,bro->bra",
+            transition_innovation_jacobian,
+            predicted_points_cotangent,
+        )
+        aug_points_cotangent = tf.concat(
+            [previous_points_cotangent, innovation_points_cotangent],
+            axis=2,
+        )
+        aug_mean_cotangent = tf.reduce_sum(aug_points_cotangent, axis=1)
+        placement_factor_cotangent = tf.einsum(
+            "brd,ra->bda",
+            aug_points_cotangent,
+            sigma_rule.offsets,
+        )
+        aug_covariance_cotangent = _principal_sqrt_vjp(
+            placement_factor,
+            placement_factor_cotangent,
+            factor_backend=principal_sqrt_backend,
+        )
+        mean_cotangent = aug_mean_cotangent[:, :state_dim]
+        covariance_cotangent = _symmetrize(
+            aug_covariance_cotangent[:, :state_dim, :state_dim]
+        )
+        innovation_covariance_cotangent = innovation_covariance_cotangent + (
+            _symmetrize(aug_covariance_cotangent[:, state_dim:, state_dim:])
+        )
+        return (
+            k + tf.constant(1, dtype=tf.int32),
+            mean_cotangent,
+            covariance_cotangent,
+            innovation_covariance_cotangent,
+            observation_covariance_cotangent,
+            transition_cotangent_ta.write(t, predicted_points_cotangent),
+            observation_cotangent_ta.write(t, observation_points_cotangent),
+        )
+
+    (
+        _k,
+        initial_mean_cotangent,
+        initial_covariance_cotangent,
+        innovation_covariance_cotangent,
+        observation_covariance_cotangent,
+        transition_cotangent_ta,
+        observation_cotangent_ta,
+    ) = tf.while_loop(
+        lambda k, *_unused: k < n_timesteps_tensor,
+        reverse_body,
+        (
+            tf.constant(0, dtype=tf.int32),
+            tf.zeros([batch_dim, state_dim], dtype=tf.float64),
+            tf.zeros([batch_dim, state_dim, state_dim], dtype=tf.float64),
+            tf.zeros([batch_dim, innovation_dim, innovation_dim], dtype=tf.float64),
+            tf.zeros([batch_dim, observation_dim, observation_dim], dtype=tf.float64),
+            transition_cotangent_ta,
+            observation_cotangent_ta,
+        ),
+        parallel_iterations=1,
+    )
+
+    classified_invalid_count = (
+        max_placement_classified_invalid_count
+        + max_innovation_classified_invalid_count
+    )
+    valid_mask = classified_invalid_count <= 0
+    checked_value = tf.where(
+        valid_mask,
+        log_likelihood,
+        tf.fill(
+            tf.shape(log_likelihood),
+            tf.constant(_PRINCIPAL_SQRT_CLASSIFIED_INVALID_LOG_PROB, tf.float64),
+        ),
+    )
+    checked_value = tf.where(
+        tf.math.is_finite(checked_value),
+        checked_value,
+        tf.fill(
+            tf.shape(checked_value),
+            tf.constant(_PRINCIPAL_SQRT_CLASSIFIED_INVALID_LOG_PROB, tf.float64),
+        ),
+    )
+    valid_float = tf.cast(valid_mask, tf.float64)
+    transition_output_cotangent = (
+        transition_cotangent_ta.stack() * valid_float[tf.newaxis, :, tf.newaxis, tf.newaxis]
+    )
+    observation_output_cotangent = (
+        observation_cotangent_ta.stack() * valid_float[tf.newaxis, :, tf.newaxis, tf.newaxis]
+    )
+    initial_mean_cotangent = initial_mean_cotangent * valid_float[:, tf.newaxis]
+    initial_covariance_cotangent = (
+        initial_covariance_cotangent * valid_float[:, tf.newaxis, tf.newaxis]
+    )
+    innovation_covariance_cotangent = (
+        innovation_covariance_cotangent * valid_float[:, tf.newaxis, tf.newaxis]
+    )
+    observation_covariance_cotangent = (
+        observation_covariance_cotangent * valid_float[:, tf.newaxis, tf.newaxis]
+    )
+    diagnostics = {
+        "backend": tf.constant(backend_name),
+        "rule": tf.constant(sigma_rule.name),
+        "cotangent_api": tf.constant(
+            "tf_batched_svd_sigma_point_value_and_output_cotangents"
+        ),
+        "cotangent_authority": tf.constant(
+            "manual_reverse_principal_sqrt_sigma_point"
+        ),
+        "time_recursion": tf.constant("tf.while_loop_forward_and_reverse"),
+        "observation_contract": tf.constant("current_predicted_state"),
+        "placement_roundoff_repair_count": max_placement_roundoff_repair_count,
+        "innovation_roundoff_repair_count": max_innovation_roundoff_repair_count,
+        "principal_sqrt_target_classified_invalid_count": classified_invalid_count,
+        "filter_autodiff_allowed_for_hmc": tf.constant(False),
+    }
+    return TFBatchedSigmaPointOutputCotangents(
+        value=checked_value,
+        transition_previous_points=previous_ta.stack(),
+        transition_innovation_points=innovation_ta.stack(),
+        transition_output_cotangent=transition_output_cotangent,
+        observation_state_points=predicted_ta.stack(),
+        observation_output_cotangent=observation_output_cotangent,
+        initial_mean_cotangent=initial_mean_cotangent,
+        initial_covariance_cotangent=initial_covariance_cotangent,
+        innovation_covariance_cotangent=innovation_covariance_cotangent,
+        observation_covariance_cotangent=observation_covariance_cotangent,
+        diagnostics=diagnostics,
+    )
 
 
 def _rule_for_backend(
