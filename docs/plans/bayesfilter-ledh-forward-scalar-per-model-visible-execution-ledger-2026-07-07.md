@@ -185,3 +185,164 @@ Gate status:
 Next action:
 
 - Execute Phase 1 shared executable artifact schema guard.
+
+### 2026-07-07 - Phase 1 - SCHEMA_GUARD_PASSED
+
+Evidence contract:
+
+- Question: Is there a shared executable artifact schema/validator that
+  prevents metadata-only, callback-only, wrong-target, and actual-SV/KSC
+  cross-use admission?
+- Target scalar: `observed_data_log_likelihood_estimator`, reported as
+  `log_likelihood`.
+- Primary criterion: local validator/tests reject artifacts without executable
+  `log_likelihood` evidence and reject target/flow ambiguity before row
+  admission.
+- Veto diagnostics: metadata-only contract passes; callback-only evidence
+  passes; proposal scalar passes; target density correction missing; tiny
+  artifact is admitted; actual-SV/KSC cross-use passes; theta mismatch passes.
+- Nonclaims: no model row admission, score admission, score correctness, GPU
+  evidence, leaderboard rebuild, HMC readiness, posterior correctness,
+  scientific superiority, or runtime ranking.
+
+Actions:
+
+- Added `validate_ledh_forward_scalar_artifact(...)`.
+- Added canonical executable schema version:
+  `bayesfilter.highdim.ledh_forward_scalar_artifact.v1`.
+- Added focused schema/admission guard tests.
+- Ran Phase 1 required local checks.
+- Wrote Phase 1 result.
+- Drafted Phase 2 LGSSM subplan.
+- Ran bounded Claude read-only Phase 1 handoff review.
+- Review returned `VERDICT=REVISE` because theta values were not enforced
+  against forward-contract `truth_theta`.
+- Patched validator, tests, Phase 1 result, and Phase 2 stop conditions.
+- Reran focused and required Phase 1 checks.
+- Ran bounded Claude read-only repair review.
+
+Artifacts:
+
+- `bayesfilter/highdim/ledh_forward_contract.py`
+- `tests/highdim/test_ledh_forward_scalar_admission_guard.py`
+- `docs/plans/bayesfilter-ledh-forward-scalar-per-model-phase1-runner-schema-result-2026-07-07.md`
+- `docs/plans/bayesfilter-ledh-forward-scalar-per-model-phase2-lgssm-subplan-2026-07-07.md`
+- `docs/reviews/bayesfilter-ledh-forward-scalar-per-model-phase1-review-bundle-2026-07-07.md`
+- `docs/reviews/bayesfilter-ledh-forward-scalar-per-model-phase1-repair1-review-bundle-2026-07-07.md`
+
+Local checks:
+
+```text
+CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp python -m pytest \
+  tests/highdim/test_ledh_forward_scalar_admission_guard.py -q
+```
+
+Result:
+
+```text
+12 passed, 2 warnings in 3.23s
+```
+
+```text
+CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp python -m pytest \
+  tests/highdim/test_ledh_phase3_forward_admission.py \
+  tests/highdim/test_ledh_forward_contract_phase2.py \
+  tests/highdim/test_ledh_forward_scalar_admission_guard.py -q
+```
+
+Result:
+
+```text
+24 passed, 2 warnings in 2.72s
+```
+
+Review:
+
+- Initial review run dir:
+  `/home/chakwong/BayesFilter/.claude_reviews/20260707-032055-ledh-forward-scalar-per-model-phase1-phase2-handoff`
+- Initial status: `REVIEW_STATUS=revise`, `VERDICT=REVISE`.
+- Repair review run dir:
+  `/home/chakwong/BayesFilter/.claude_reviews/20260707-033721-ledh-forward-scalar-per-model-phase1-repair1`
+- Repair status: `REVIEW_STATUS=agreed`, `VERDICT=AGREE`.
+
+Gate status:
+
+- `PASSED_PHASE1_PHASE2_HANDOFF_PHASE2_MAY_START`
+
+Next action:
+
+- Execute Phase 2 LGSSM forward scalar reconfirmation.
+
+### 2026-07-07 - Phase 2 - LGSSM_FORWARD_SCALAR_LOCAL_PASS
+
+Evidence contract:
+
+- Question: Can the LGSSM row produce or preserve an executable same-target
+  observed-data log likelihood artifact under the shared schema?
+- Target scalar: `observed_data_log_likelihood_estimator`, reported as
+  `log_likelihood`.
+- Primary criterion: canonical LGSSM artifact validates with
+  `require_admitted=True`, finite `log_likelihood_by_seed`, full-row scale, and
+  exact Kalman target identity.
+- Veto diagnostics: missing likelihood vector, wrong target scalar, wrong
+  exact comparator, theta mismatch, failed schema validation, score evidence
+  used for value admission, or runtime-only admission.
+- Nonclaims: not nonlinear-row evidence, no score admission, no score
+  correctness, no leaderboard rebuild, no new GPU model evidence, no HMC
+  readiness, no posterior correctness, no scientific superiority, and no
+  runtime ranking.
+
+Actions:
+
+- Normalized the existing LGSSM N=10000 value artifact into the Phase 1
+  canonical executable artifact schema.
+- Validated the canonical artifact with
+  `validate_ledh_forward_scalar_artifact(..., require_admitted=True)`.
+- Added Phase 2 LGSSM artifact replay tests.
+- Ran focused and combined local checks.
+- Wrote Phase 2 result.
+- Drafted Phase 3 fixed SIR subplan.
+
+Artifacts:
+
+- `docs/plans/ledh-phase2-lgssm-forward-scalar-artifact-2026-07-07.json`
+- `docs/plans/ledh-phase2-lgssm-forward-scalar-artifact-2026-07-07.md`
+- `tests/highdim/test_ledh_phase2_lgssm_forward_scalar_artifact.py`
+- `docs/plans/bayesfilter-ledh-forward-scalar-per-model-phase2-lgssm-result-2026-07-07.md`
+- `docs/plans/bayesfilter-ledh-forward-scalar-per-model-phase3-fixed-sir-subplan-2026-07-07.md`
+
+Local checks:
+
+```text
+CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp python -m pytest \
+  tests/highdim/test_ledh_phase2_lgssm_forward_scalar_artifact.py -q
+```
+
+Result:
+
+```text
+2 passed, 2 warnings in 2.55s
+```
+
+```text
+CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp python -m pytest \
+  tests/highdim/test_ledh_phase3_forward_admission.py \
+  tests/highdim/test_ledh_forward_contract_phase2.py \
+  tests/highdim/test_ledh_forward_scalar_admission_guard.py \
+  tests/highdim/test_ledh_phase2_lgssm_forward_scalar_artifact.py -q
+```
+
+Result:
+
+```text
+26 passed, 2 warnings in 2.77s
+```
+
+Gate status:
+
+- `IN_PROGRESS_PENDING_PHASE2_PHASE3_REVIEW`
+
+Next action:
+
+- Run bounded read-only review of Phase 2 result and Phase 3 fixed SIR
+  subplan.

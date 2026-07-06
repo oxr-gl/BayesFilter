@@ -109,6 +109,7 @@ The tests assert:
 - a proposal scalar cannot replace the target scalar;
 - `target_density_used_for_correction != true` fails;
 - ambiguous flow/target observation policy fails;
+- theta values must match forward-contract `truth_theta`;
 - tiny executed artifacts validate as diagnostics but cannot satisfy
   `require_admitted=True`;
 - admitted status requires full-row scale;
@@ -155,6 +156,21 @@ Result:
 23 passed, 2 warnings in 2.72s
 ```
 
+Review repair 1 rerun after adding theta-value equality enforcement:
+
+```text
+CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp python -m pytest \
+  tests/highdim/test_ledh_phase3_forward_admission.py \
+  tests/highdim/test_ledh_forward_contract_phase2.py \
+  tests/highdim/test_ledh_forward_scalar_admission_guard.py -q
+```
+
+Result:
+
+```text
+24 passed, 2 warnings in 2.72s
+```
+
 This was a deliberate CPU-hidden schema/contract check. It is not GPU evidence
 and is not model execution evidence.
 
@@ -168,6 +184,10 @@ existing LGSSM N=10000 value artifact into the canonical schema only if the
 normalization preserves the row target, exact Kalman comparator identity,
 theta, seed list, horizon, particle count, target density fields, proposal
 correction fields, and finite `log_likelihood_by_seed`.
+
+Review repair 1 added validator enforcement that `theta_values` must match the
+forward-contract `truth_theta`, and added theta mismatch as a Phase 2 stop
+condition.
 
 ## Nonclaims
 

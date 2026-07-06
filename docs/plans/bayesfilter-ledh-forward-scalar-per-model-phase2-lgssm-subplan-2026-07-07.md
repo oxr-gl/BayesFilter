@@ -124,6 +124,7 @@ Stop and update the visible stop handoff if:
 - the old LGSSM artifact cannot be normalized without changing target identity;
 - `total_log_likelihood_by_seed` is missing or nonfinite;
 - exact Kalman comparator identity is missing or wrong;
+- theta values differ from forward-contract `truth_theta`;
 - the canonical artifact fails Phase 1 validation;
 - the phase would need score work;
 - a human approval boundary is reached.
