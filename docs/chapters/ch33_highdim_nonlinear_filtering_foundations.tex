@@ -777,6 +777,285 @@ An automatic-differentiation tape through an approximate filter is a different
 object unless it differentiates exactly the same scalar displayed to the
 sampler.
 
+\section{Compact Sensitivity Score For Finite LEDH--PFPF--OT}
+\label{sec:bf-hd-ledh-compact-sensitivity-score}
+
+This section specializes the preceding sensitivity principle to the finite
+LEDH--PFPF--OT scalar used by the benchmark code.  The object is not the exact
+Kalman likelihood and not the derivative of an ideal infinite-iteration
+transport solve.  It is the derivative of the finite computation actually run:
+fixed base random numbers, a fixed resampling mask, finitely many LEDH flow
+steps, finitely many Sinkhorn balancing steps, and the displayed accumulated
+log normalizers.  A partial derivative that treats the transport
+normalization, scale, Sinkhorn potentials, or transported particles as fixed
+when they change with \(\theta\) is not the score of this finite scalar.
+
+Let \(\theta\in\R^p\), and let \(r_{0,i}\) and \(r_{t,i}\) be the fixed
+standard-normal base draws used to form the initial particles and transition
+noise.  The compact method carries, at each time \(t\),
+\[
+  X_t=\{x_{t,i}\}_{i=1}^N,\qquad
+  \lambda_t=\{\lambda_{t,i}\}_{i=1}^N,\qquad
+  \dot X_t=\partial_\theta X_t,\qquad
+  \dot\lambda_t=\partial_\theta \lambda_t,
+\]
+where \(\lambda_t\) are normalized log weights.  It does not store the full
+history of LEDH matrices or transport plans.  For a diagonal LGSSM row with
+\[
+  A_\theta=\operatorname{diag}(\phi_1,\ldots,\phi_d),\qquad
+  Q_\theta=q^2 I,\qquad
+  R_\theta=r^2 I,
+\]
+the fixed-randomness prediction is
+\begin{align}
+  m_{t,i} &= A_\theta x_{t-1,i},&
+  x^-_{t,i} &= m_{t,i}+q\,r_{t,i},&
+  \dot m_{t,i} &= A_\theta\dot x_{t-1,i}
+    +(\partial_\theta A_\theta)x_{t-1,i},&
+  \dot x^-_{t,i} &= \dot m_{t,i}+(\partial_\theta q)r_{t,i}.
+  \label{eq:bf-hd-ledh-compact-prediction-sensitivity}
+\end{align}
+These are total derivatives under the fixed base draws.  They are not
+derivatives after redrawing the particles.
+
+For a linear observation \(y_t=H x_t+\epsilon_t\), the LEDH affine map used in
+the row can be written
+\begin{align}
+  P_\theta &= Q_\theta^{-1},&
+  S_\theta &= R_\theta^{-1},&
+  \Lambda_\theta &= P_\theta+H^\top S_\theta H,&
+  C_\theta &= \Lambda_\theta^{-1},
+  \label{eq:bf-hd-ledh-compact-ledh-matrices}\\
+  \mu_{t,i} &= C_\theta\{P_\theta m_{t,i}+H^\top S_\theta y_t\},&
+  B_\theta &= \operatorname{chol}(C_\theta)\operatorname{chol}(Q_\theta)^{-1},&
+  z_{t,i} &= \mu_{t,i}+B_\theta(x^-_{t,i}-m_{t,i}).
+  \label{eq:bf-hd-ledh-compact-ledh-map}
+\end{align}
+Here \(Q_\theta\) and \(R_\theta\) are positive definite, so
+\(P_\theta\), \(S_\theta\), \(\Lambda_\theta\), \(C_\theta\), the Cholesky
+factors, and the log determinant below are well defined.  If a numerical
+implementation adds jitter or projects a covariance to a positive-definite
+matrix, the derivative is the derivative of that jittered or projected finite
+operation, not of the unjittered formula.
+The tangent of this map is obtained by differentiating these matrix equations:
+\begin{align}
+  \dot P_\theta &=-P_\theta\dot Q_\theta P_\theta,&
+  \dot S_\theta &=-S_\theta\dot R_\theta S_\theta,&
+  \dot\Lambda_\theta&=\dot P_\theta+H^\top\dot S_\theta H,&
+  \dot C_\theta&=-C_\theta\dot\Lambda_\theta C_\theta,
+  \label{eq:bf-hd-ledh-compact-matrix-sensitivity}\\
+  \dot\mu_{t,i}
+    &=\dot C_\theta\{P_\theta m_{t,i}+H^\top S_\theta y_t\}
+      +C_\theta\{\dot P_\theta m_{t,i}
+      +P_\theta\dot m_{t,i}+H^\top\dot S_\theta y_t\},\\
+  \dot z_{t,i}
+    &=\dot\mu_{t,i}
+      +\dot B_\theta(x^-_{t,i}-m_{t,i})
+      +B_\theta(\dot x^-_{t,i}-\dot m_{t,i}).
+  \label{eq:bf-hd-ledh-compact-ledh-sensitivity}
+\end{align}
+For \(L=\operatorname{chol}(C_\theta)\), the Cholesky tangent is defined by
+\[
+  E=L^{-1}\dot C_\theta L^{-\top},\qquad
+  M_{ij}=
+  \begin{cases}
+    E_{ij}, & i>j,\\
+    E_{ii}/2, & i=j,\\
+    0, & i<j,
+  \end{cases}
+  \qquad
+  \dot L=LM.
+  \label{eq:bf-hd-ledh-compact-cholesky-jvp}
+\]
+Thus \(\dot B_\theta=\dot L\operatorname{chol}(Q_\theta)^{-1}
+ +L\,\partial_\theta\{\operatorname{chol}(Q_\theta)^{-1}\}\).
+
+The log-weight correction is differentiated in the same forward pass.  With
+\[
+  c_{t,i}
+  =\lambda_{t-1,i}
+   +\log f_\theta(z_{t,i}\mid x_{t-1,i})
+   +\log g_\theta(y_t\mid z_{t,i})
+   -\log f_\theta(x^-_{t,i}\mid x_{t-1,i})
+   +\log|\det B_\theta|,
+  \label{eq:bf-hd-ledh-compact-corrected-weight}
+\]
+define \(a_t=\operatorname{logsumexp}_i c_{t,i}\) and
+\(\lambda^+_{t,i}=c_{t,i}-a_t\).  The one-step likelihood contribution and
+normalized-log-weight tangent are
+\begin{align}
+  \dot a_t &= \sum_{i=1}^N \omega^+_{t,i}\dot c_{t,i},&
+  \dot\lambda^+_{t,i} &= \dot c_{t,i}-\dot a_t,&
+  \omega^+_{t,i}&=\exp(\lambda^+_{t,i}).
+  \label{eq:bf-hd-ledh-compact-normalize-sensitivity}
+\end{align}
+If an implementation floors normalized weights by replacing
+\(\omega^+_{t,i}\) with \(\max(\omega^+_{t,i},\epsilon_{\mathrm{floor}})\),
+then the derivative must include that branch: active floored entries have zero
+tangent for the displayed floored log weight.  Ignoring this branch is again a
+different derivative.
+
+It remains to differentiate the finite Sinkhorn equal-weighting map.  Write the
+streaming softmin used by the code as
+\begin{equation}
+  \operatorname{sm}_\varepsilon(q;K,v)
+  =
+  -\varepsilon\log\sum_j
+    \exp\{v_j-\|q-k_j\|^2/(2\varepsilon)\}.
+  \label{eq:bf-hd-ledh-compact-softmin}
+\end{equation}
+For tangents \((\dot q,\dot K,\dot v,\dot\varepsilon)\), define
+\[
+  \pi_j(q)
+  =
+  \frac{\exp\{v_j-\|q-k_j\|^2/(2\varepsilon)\}}
+       {\sum_l\exp\{v_l-\|q-k_l\|^2/(2\varepsilon)\}} .
+\]
+The softmin tangent is
+\begin{align}
+  \partial\operatorname{sm}_\varepsilon
+  &=
+  -\dot\varepsilon\log\sum_j
+    \exp\{v_j-\|q-k_j\|^2/(2\varepsilon)\}
+  -\varepsilon\sum_j\pi_j(q)\dot h_j,
+  \label{eq:bf-hd-ledh-compact-softmin-jvp}\\
+  \dot h_j
+  &=
+  \dot v_j
+  -\frac{(q-k_j)^\top(\dot q-\dot k_j)}{\varepsilon}
+  +\frac{\|q-k_j\|^2}{2\varepsilon^2}\dot\varepsilon .
+  \nonumber
+\end{align}
+This equation is local and can be evaluated in blocks.  It does not require a
+dense \(N\times N\) matrix to be stored.
+
+The finite Sinkhorn potentials are a fixed composition of the softmin
+\eqref{eq:bf-hd-ledh-compact-softmin}.  With source log weights
+\(\alpha=\lambda^+_t\), target log weights \(\beta=-\log N\), scaled particles
+\(u_i=(z_{t,i}-\bar z_t)/s_t\), and deterministic annealing values
+\(\varepsilon_k\), the executed code carries four potentials.  Starting from
+the cold-start softmins, one finite balancing step has the form
+\begin{align}
+  a_y^{k+1} &=\frac12\left[
+    a_y^k+\operatorname{sm}_{\varepsilon_k}
+      (u;u,\alpha+b_x^k/\varepsilon_k)\right],\\
+  b_x^{k+1} &=\frac12\left[
+    b_x^k+\operatorname{sm}_{\varepsilon_k}
+      (u;u,\beta+a_y^k/\varepsilon_k)\right],\\
+  a_x^{k+1} &=\frac12\left[
+    a_x^k+\operatorname{sm}_{\varepsilon_k}
+      (u;u,\alpha+a_x^k/\varepsilon_k)\right],\\
+  b_y^{k+1} &=\frac12\left[
+    b_y^k+\operatorname{sm}_{\varepsilon_k}
+      (u;u,\beta+b_y^k/\varepsilon_k)\right].
+  \label{eq:bf-hd-ledh-compact-sinkhorn-recursion}
+\end{align}
+After the declared finite number of balancing steps, the transport application
+uses \(a=\operatorname{sm}_{\varepsilon}(u;u,\alpha+b_x/\varepsilon)\) and
+\(b=\operatorname{sm}_{\varepsilon}(u;u,\beta+a_y/\varepsilon)\).
+The tangent recursion is exactly the derivative of
+\eqref{eq:bf-hd-ledh-compact-sinkhorn-recursion}, using
+\eqref{eq:bf-hd-ledh-compact-softmin-jvp} at each finite iteration.  The scale
+and initial annealing value are part of the same derivative:
+\begin{align}
+  \bar z_t &= N^{-1}\sum_i z_{t,i},&
+  u_{t,i}&=(z_{t,i}-\bar z_t)/s_t,&
+  \dot u_{t,i}
+    &=\frac{\dot z_{t,i}-\dot{\bar z}_t}{s_t}
+      -\frac{z_{t,i}-\bar z_t}{s_t^2}\dot s_t,\\
+  \varepsilon_0&=\max\{(\max_{i,j}u_{t,ij}-\min_{i,j}u_{t,ij})^2,10^{-6}\}.
+  \label{eq:bf-hd-ledh-compact-scale-epsilon-sensitivity}
+\end{align}
+When the max or min is tied, the implementation must choose and document a
+subgradient convention.  Away from ties, this is the ordinary derivative.
+
+Given final finite potentials \(a,b\), the barycentric transport row is
+\begin{equation}
+  \tilde z_{t,i}
+  =
+  \sum_j
+  \exp\left\{
+    \frac{a_i+b_j-\|u_i-u_j\|^2/2}{\varepsilon}
+    -\rho_j+\log N+\lambda^+_{t,j}
+  \right\}z_{t,j},
+  \label{eq:bf-hd-ledh-compact-transport-application}
+\end{equation}
+where \(\rho_j\) is the column log normalizer for the same finite potentials.
+Its tangent is the direct product rule:
+\begin{equation}
+  \dot{\tilde z}_{t,i}
+  =
+  \sum_j T_{ij}\left[
+    \dot z_{t,j}
+    + z_{t,j}
+      \left(
+        \dot\eta_{ij}-\dot\rho_j+\dot\lambda^+_{t,j}
+      \right)
+  \right],
+  \label{eq:bf-hd-ledh-compact-transport-jvp}
+\end{equation}
+where \(T_{ij}\) is the finite transport weight in
+\eqref{eq:bf-hd-ledh-compact-transport-application} and
+\[
+  \eta_{ij}
+  =
+  \frac{a_i+b_j-\|u_i-u_j\|^2/2}{\varepsilon}.
+\]
+The column-normalizer tangent is the softmax average of \(\dot\eta_{ij}\) over
+rows \(i\).  Equation~\eqref{eq:bf-hd-ledh-compact-transport-jvp} is the
+forward-mode counterpart of a manual VJP.  It computes the same total
+derivative of the same finite Sinkhorn map, but it carries tangents forward in
+time and therefore does not need the full filtering history.
+
+\begin{proposition}[Compact finite LEDH--PFPF--OT score recursion]
+\label{prop:bf-hd-ledh-compact-sensitivity-score}
+Assume \(Q_\theta\) and \(R_\theta\) are positive definite with the stated
+dimensions, every jittered or projected matrix used by the finite code remains
+positive definite, and the parameter point is away from nondifferentiable max,
+floor, active-resampling, covariance-projection, and Cholesky-boundary ties.
+Assume also that the finite LEDH and Sinkhorn operations above are executed with
+fixed base random numbers and a fixed resampling mask.  If the filter loop carries
+\((X_t,\lambda_t,\dot X_t,\dot\lambda_t)\) and updates the tangents by
+\eqref{eq:bf-hd-ledh-compact-prediction-sensitivity}--
+\eqref{eq:bf-hd-ledh-compact-transport-jvp}, then
+\[
+  \dot{\widehat\ell}_T(\theta)
+  =
+  \sum_{t=1}^T \dot a_t
+  \label{eq:bf-hd-ledh-compact-score}
+\]
+is the total derivative of the finite scalar
+\(\widehat\ell_T(\theta)=\sum_{t=1}^T a_t(\theta)\) computed by that same
+fixed-randomness LEDH--PFPF--OT run.
+\end{proposition}
+
+\begin{proof}
+Each displayed update is a differentiable finite-dimensional operation away
+from the stated branch boundaries: matrix inverse, Cholesky, affine maps,
+Gaussian log densities, logsumexp normalization, softmin, a fixed finite
+composition of Sinkhorn updates, column log normalization, and barycentric
+transport.  Equations
+\eqref{eq:bf-hd-ledh-compact-prediction-sensitivity}--
+\eqref{eq:bf-hd-ledh-compact-transport-jvp} are the chain rule applied to this
+finite composition in the same order as the value computation.  The scalar
+reported by the filter is the sum of the log normalizers \(a_t\).  Therefore
+the carried scalar tangent is the sum of their tangents, which is
+\eqref{eq:bf-hd-ledh-compact-score}.  No reverse-time cotangent or stored
+history is required for this forward-mode proof.
+\end{proof}
+
+The memory difference is simple.  The full-history reverse route stores
+time-indexed LEDH auxiliaries, transported states, and weights before scanning
+backward.  The compact sensitivity route stores only the current state and its
+\(p\) parameter tangents.  Its leading state memory is
+\[
+  O(BNDp+BNp+D^2p)
+\]
+plus local streaming blocks for Sinkhorn, rather than a time-multiplied
+history.  This is the right route for a small parameter dimension such as the
+LGSSM row.  For very large \(p\), a checkpointed adjoint may be cheaper, but it
+must still differentiate the same finite scalar.
+
 \paragraph{Reader checkpoint.}
 What should now be clear: the likelihood gradient is not a separate numerical
 decoration.  It is the derivative of the same normalizers that define

@@ -1,8 +1,10 @@
-"""Same-target LEDH-PFPF-OT value runner for the highdim LGSSM row.
+"""Same-target LEDH-PFPF-OT value/score runner for the highdim LGSSM row.
 
-This runner is intentionally value-only.  It targets the existing leaderboard
-row ``benchmark_lgssm_exact_oracle_m3_T50`` with ``D=3``, ``T=50``, dataset
-seed ``81100``, and theta ``[0.72, 0.55, 0.35, 0.35, 0.45]``.
+This runner targets the existing leaderboard row
+``benchmark_lgssm_exact_oracle_m3_T50`` with ``D=3``, ``T=50``, dataset seed
+``81100``, and theta ``[0.72, 0.55, 0.35, 0.35, 0.45]``.  The admitted score
+route is the compact no-autodiff forward-sensitivity derivative of the same
+LEDH-PFPF-OT scalar computed by the value path.
 
 It must not import ``benchmark_two_lane_highdim_leaderboard.py`` because that
 module hides CUDA devices at import time.
@@ -41,6 +43,9 @@ if str(ROOT) not in sys.path:
 import tensorflow as tf
 
 from bayesfilter.linear.kalman_tf import tf_kalman_log_likelihood
+from bayesfilter.highdim.ledh_forward_contract import (
+    make_lgssm_m3_t50_forward_contract,
+)
 from experiments.dpf_implementation.tf_tfp.filters import (
     experimental_batched_ledh_pfpf_ot_streaming_tf as streaming_tf,
 )
@@ -58,15 +63,25 @@ ROW_ID = "benchmark_lgssm_exact_oracle_m3_T50"
 DATASET_SEED = 81100
 TRUTH_THETA = [0.72, 0.55, 0.35, 0.35, 0.45]
 PARAMETER_NAMES = ("phi1", "phi2", "phi3", "q_scale", "r_scale")
+FULL_ROW_BATCH_SEEDS = (81120, 81121, 81122, 81123, 81124)
+FULL_ROW_NUM_PARTICLES = 1000
 FULL_ROW_TIME_STEPS = 50
+FULL_ROW_TRANSPORT_POLICY = "active-all"
+FULL_ROW_SINKHORN_ITERATIONS = 10
+FULL_ROW_SINKHORN_EPSILON = 0.5
 STATE_DIM = 3
 OBS_DIM = 3
 DTYPE = tf.float32
-MANUAL_SCORE_ROUTE_ID = "manual_reverse_scan_no_autodiff_same_scalar_lgssm_ledh_pfpf_ot"
+HISTORICAL_MANUAL_SCORE_ROUTE_ID = (
+    "historical_diagnostic_manual_reverse_scan_no_autodiff_same_scalar_lgssm_ledh_pfpf_ot"
+)
+MANUAL_SCORE_ROUTE_ID = HISTORICAL_MANUAL_SCORE_ROUTE_ID
+COMPACT_SCORE_ROUTE_ID = (
+    "compact_forward_sensitivity_no_autodiff_same_scalar_lgssm_ledh_pfpf_ot"
+)
 SAME_SCALAR_ROUTE_ID = "same_target_lgssm_m3_t50_ledh_pfpf_ot_streaming_manual_total"
 NONCLAIMS = (
-    "value-only LEDH row evidence",
-    "score is blocked because same-target total derivative is not implemented here",
+    "not exact Kalman score evidence",
     "not HMC/NUTS readiness evidence",
     "not posterior correctness evidence",
     "not runtime-rankable against frozen non-LEDH rows",
@@ -83,16 +98,16 @@ def _parse_int_csv(value: str) -> list[int]:
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__, allow_abbrev=False)
-    parser.add_argument("--batch-seeds", default="81120,81121,81122,81123,81124")
-    parser.add_argument("--num-particles", type=int, default=1000)
+    parser.add_argument("--batch-seeds", default=",".join(str(seed) for seed in FULL_ROW_BATCH_SEEDS))
+    parser.add_argument("--num-particles", type=int, default=FULL_ROW_NUM_PARTICLES)
     parser.add_argument("--time-steps", type=int, default=FULL_ROW_TIME_STEPS)
     parser.add_argument(
         "--transport-policy",
         choices=("active-all", "active-odd", "no-resampling"),
-        default="active-all",
+        default=FULL_ROW_TRANSPORT_POLICY,
     )
-    parser.add_argument("--sinkhorn-iterations", type=int, default=10)
-    parser.add_argument("--sinkhorn-epsilon", type=float, default=0.5)
+    parser.add_argument("--sinkhorn-iterations", type=int, default=FULL_ROW_SINKHORN_ITERATIONS)
+    parser.add_argument("--sinkhorn-epsilon", type=float, default=FULL_ROW_SINKHORN_EPSILON)
     parser.add_argument("--annealed-scaling", type=float, default=0.9)
     parser.add_argument("--annealed-convergence-threshold", type=float, default=1.0e-3)
     parser.add_argument(
@@ -114,10 +129,10 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--particle-chunk-size", type=int, default=256)
     parser.add_argument(
         "--score-mode",
-        choices=("none", "manual-reverse"),
+        choices=("none", "compact-sensitivity", "manual-reverse"),
         default="none",
     )
-    parser.add_argument("--score-fd-step", type=float, default=1.0e-4)
+    parser.add_argument("--score-fd-step", type=float, default=None)
     parser.add_argument("--score-fd-atol", type=float, default=5.0e-3)
     parser.add_argument("--score-fd-rtol", type=float, default=5.0e-3)
     parser.add_argument(
@@ -151,16 +166,20 @@ def _parse_args() -> argparse.Namespace:
         raise ValueError("chunk sizes must be positive")
     if args.warmups < 0 or args.repeats <= 0:
         raise ValueError("warmups must be nonnegative and repeats must be positive")
-    if args.score_mode == "manual-reverse":
+    if args.score_mode in {"compact-sensitivity", "manual-reverse"}:
+        if args.score_fd_step is None:
+            args.score_fd_step = 1.0e-5 if args.dtype == "float64" else 1.0e-3
         if args.transport_gradient_mode != core_tf.MANUAL_STREAMING_FINITE_TRANSPORT_GRADIENT_MODE:
             raise ValueError(
-                "manual-reverse score requires "
+                f"{args.score_mode} score requires "
                 f"transport-gradient-mode={core_tf.MANUAL_STREAMING_FINITE_TRANSPORT_GRADIENT_MODE}"
             )
         if args.transport_ad_mode != "full":
-            raise ValueError("manual-reverse score requires transport-ad-mode=full")
+            raise ValueError(f"{args.score_mode} score requires transport-ad-mode=full")
         if args.score_fd_step <= 0.0:
             raise ValueError("score-fd-step must be positive")
+    elif args.score_fd_step is None:
+        args.score_fd_step = 1.0e-5 if args.dtype == "float64" else 1.0e-3
     return args
 
 
@@ -277,6 +296,155 @@ def _batched_gaussian_logpdf(residuals: tf.Tensor, covariance: tf.Tensor) -> tf.
     )
 
 
+def _batched_gaussian_logpdf_jvp(
+    residuals: tf.Tensor,
+    covariance: tf.Tensor,
+    d_residuals: tf.Tensor,
+    d_covariance: tf.Tensor,
+) -> tuple[tf.Tensor, tf.Tensor]:
+    residuals = tf.convert_to_tensor(residuals, dtype=DTYPE)
+    covariance = tf.convert_to_tensor(covariance, dtype=DTYPE)
+    d_residuals = tf.convert_to_tensor(d_residuals, dtype=DTYPE)
+    d_covariance = tf.convert_to_tensor(d_covariance, dtype=DTYPE)
+    chol = tf.linalg.cholesky(covariance)
+    precision = tf.linalg.cholesky_solve(
+        chol,
+        tf.eye(int(covariance.shape[-1]), dtype=DTYPE)[tf.newaxis, :, :],
+    )
+    solved = tf.einsum("bij,bnj->bni", precision, residuals)
+    value = _batched_gaussian_logpdf(residuals, covariance)
+    precision_residual_outer = tf.einsum("bni,bnj->bnij", solved, solved)
+    covariance_bar_per_particle = 0.5 * (
+        precision_residual_outer - precision[:, tf.newaxis, :, :]
+    )
+    tangent = (
+        -tf.reduce_sum(solved[:, :, :, tf.newaxis] * d_residuals, axis=2)
+        + tf.reduce_sum(
+            covariance_bar_per_particle[:, :, :, :, tf.newaxis]
+            * d_covariance[:, tf.newaxis, :, :, :],
+            axis=[2, 3],
+        )
+    )
+    return value, tangent
+
+
+def _normalize_log_weights_jvp(
+    corrected_log_weights: tf.Tensor,
+    d_corrected_log_weights: tf.Tensor,
+) -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
+    corrected_log_weights = tf.convert_to_tensor(corrected_log_weights, dtype=DTYPE)
+    d_corrected_log_weights = tf.convert_to_tensor(d_corrected_log_weights, dtype=DTYPE)
+    weights, incremental = core_tf._normalize_log_weights(corrected_log_weights)  # noqa: SLF001
+    d_incremental = tf.reduce_sum(weights[:, :, None] * d_corrected_log_weights, axis=1)
+    normalized_log_weights = tf.math.log(
+        tf.maximum(weights, core_tf._log_weight_floor())  # noqa: SLF001
+    )
+    floor_active = weights <= core_tf._log_weight_floor()  # noqa: SLF001
+    d_normalized = tf.where(
+        floor_active[:, :, None],
+        tf.zeros_like(d_corrected_log_weights),
+        d_corrected_log_weights - d_incremental[:, None, :],
+    )
+    return normalized_log_weights, d_normalized, incremental, d_incremental
+
+
+def _cholesky_jvp_matrix(matrix: tf.Tensor, d_matrix: tf.Tensor) -> tuple[tf.Tensor, tf.Tensor]:
+    matrix = tf.convert_to_tensor(matrix, dtype=DTYPE)
+    d_matrix = tf.convert_to_tensor(d_matrix, dtype=DTYPE)
+    chol = tf.linalg.cholesky(matrix)
+    tangent_columns = []
+    param_dim = int(d_matrix.shape[-1])
+    for index in range(param_dim):
+        tangent = d_matrix[..., index]
+        inner = tf.linalg.triangular_solve(
+            chol,
+            tangent,
+            lower=True,
+        )
+        inner = tf.linalg.triangular_solve(
+            chol,
+            tf.linalg.matrix_transpose(inner),
+            lower=True,
+        )
+        inner = tf.linalg.matrix_transpose(inner)
+        lower = tf.linalg.band_part(inner, -1, 0)
+        diag = tf.linalg.diag(tf.linalg.diag_part(lower) * 0.5)
+        phi = lower - tf.linalg.diag(tf.linalg.diag_part(lower)) + diag
+        tangent_columns.append(tf.matmul(chol, phi))
+    return chol, tf.stack(tangent_columns, axis=-1)
+
+
+def _lgssm_component_tangents(theta: tf.Tensor, batch_size: int) -> dict[str, tf.Tensor]:
+    theta = tf.reshape(tf.convert_to_tensor(theta, dtype=DTYPE), [len(PARAMETER_NAMES)])
+    phi = theta[:3]
+    q_scale = theta[3]
+    r_scale = theta[4]
+    param_dim = len(PARAMETER_NAMES)
+    eye_state = tf.eye(STATE_DIM, dtype=DTYPE)
+    eye_obs = tf.eye(OBS_DIM, dtype=DTYPE)
+    d_transition_matrix_single = tf.stack(
+        [tf.linalg.diag(tf.one_hot(index, STATE_DIM, dtype=DTYPE)) for index in range(STATE_DIM)]
+        + [tf.zeros([STATE_DIM, STATE_DIM], dtype=DTYPE), tf.zeros([STATE_DIM, STATE_DIM], dtype=DTYPE)],
+        axis=-1,
+    )
+    d_transition_covariance_single = tf.stack(
+        [
+            tf.zeros([STATE_DIM, STATE_DIM], dtype=DTYPE),
+            tf.zeros([STATE_DIM, STATE_DIM], dtype=DTYPE),
+            tf.zeros([STATE_DIM, STATE_DIM], dtype=DTYPE),
+            2.0 * q_scale * eye_state,
+            tf.zeros([STATE_DIM, STATE_DIM], dtype=DTYPE),
+        ],
+        axis=-1,
+    )
+    d_observation_covariance_single = tf.stack(
+        [
+            tf.zeros([OBS_DIM, OBS_DIM], dtype=DTYPE),
+            tf.zeros([OBS_DIM, OBS_DIM], dtype=DTYPE),
+            tf.zeros([OBS_DIM, OBS_DIM], dtype=DTYPE),
+            tf.zeros([OBS_DIM, OBS_DIM], dtype=DTYPE),
+            2.0 * r_scale * eye_obs,
+        ],
+        axis=-1,
+    )
+    initial_std = q_scale / tf.sqrt(1.0 - tf.square(phi))
+    d_initial_std = tf.zeros([STATE_DIM, param_dim], dtype=DTYPE)
+    phi_derivative = q_scale * phi / tf.pow(1.0 - tf.square(phi), 1.5)
+    d_initial_std += tf.concat(
+        [
+            tf.linalg.diag(phi_derivative),
+            tf.zeros([STATE_DIM, 2], dtype=DTYPE),
+        ],
+        axis=1,
+    )
+    q_derivative = 1.0 / tf.sqrt(1.0 - tf.square(phi))
+    d_initial_std += tf.concat(
+        [
+            tf.zeros([STATE_DIM, 3], dtype=DTYPE),
+            q_derivative[:, None],
+            tf.zeros([STATE_DIM, 1], dtype=DTYPE),
+        ],
+        axis=1,
+    )
+    d_transition_scale = tf.constant([0.0, 0.0, 0.0, 1.0, 0.0], dtype=DTYPE)
+    return {
+        "d_transition_matrix": tf.tile(
+            d_transition_matrix_single[tf.newaxis, :, :, :],
+            [batch_size, 1, 1, 1],
+        ),
+        "d_transition_covariance": tf.tile(
+            d_transition_covariance_single[tf.newaxis, :, :, :],
+            [batch_size, 1, 1, 1],
+        ),
+        "d_observation_covariance": tf.tile(
+            d_observation_covariance_single[tf.newaxis, :, :, :],
+            [batch_size, 1, 1, 1],
+        ),
+        "d_initial_std": d_initial_std,
+        "d_transition_scale": d_transition_scale,
+    }
+
+
 def _lgssm_components(theta: tf.Tensor, batch_size: int) -> dict[str, tf.Tensor]:
     theta = tf.reshape(tf.convert_to_tensor(theta, dtype=DTYPE), [len(PARAMETER_NAMES)])
     phi = theta[:3]
@@ -375,6 +543,69 @@ def _filterflow_scale_vjp(
     return (2.0 / num_particles) * centered * d_variance[:, None, :]
 
 
+def _filterflow_scale_jvp(
+    particles: tf.Tensor,
+    d_particles: tf.Tensor,
+) -> tf.Tensor:
+    particles = tf.convert_to_tensor(particles, dtype=DTYPE)
+    d_particles = tf.convert_to_tensor(d_particles, dtype=DTYPE)
+    num_particles = tf.cast(tf.shape(particles)[1], DTYPE)
+    dimension = tf.cast(tf.shape(particles)[2], DTYPE)
+    mean = tf.reduce_mean(particles, axis=1, keepdims=True)
+    d_mean = tf.reduce_mean(d_particles, axis=1, keepdims=True)
+    centered = particles - mean
+    d_centered = d_particles - d_mean
+    variance = tf.reduce_mean(centered * centered, axis=1)
+    d_variance = (2.0 / num_particles) * tf.reduce_sum(
+        centered[:, :, :, None] * d_centered,
+        axis=1,
+    )
+    std = tf.sqrt(variance)
+    safe_std = tf.where(std > 0.0, std, tf.ones_like(std))
+    d_std = tf.where(
+        std[:, :, None] > 0.0,
+        d_variance / (2.0 * safe_std[:, :, None]),
+        tf.zeros_like(d_variance),
+    )
+    diameter = tf.reduce_max(std, axis=1)
+    max_mask = tf.cast(std == diameter[:, None], DTYPE)
+    max_count = tf.reduce_sum(max_mask, axis=1, keepdims=True)
+    d_diameter = tf.reduce_sum(
+        d_std * max_mask[:, :, None] / max_count[:, :, None],
+        axis=1,
+    )
+    active = tf.cast(diameter != 0.0, DTYPE)
+    return tf.sqrt(dimension) * d_diameter * active[:, None]
+
+
+def _filterflow_epsilon_start_jvp(
+    scaled_x: tf.Tensor,
+    d_scaled_x: tf.Tensor,
+) -> tf.Tensor:
+    scaled_x = tf.convert_to_tensor(scaled_x, dtype=DTYPE)
+    d_scaled_x = tf.convert_to_tensor(d_scaled_x, dtype=DTYPE)
+    max_value = tf.reduce_max(scaled_x, axis=[1, 2])
+    min_value = tf.reduce_min(scaled_x, axis=[1, 2])
+    coordinate_range = max_value - min_value
+    max_mask = tf.cast(scaled_x == max_value[:, None, None], DTYPE)
+    min_mask = tf.cast(scaled_x == min_value[:, None, None], DTYPE)
+    max_count = tf.reduce_sum(max_mask, axis=[1, 2], keepdims=True)
+    min_count = tf.reduce_sum(min_mask, axis=[1, 2], keepdims=True)
+    d_max = tf.reduce_sum(
+        d_scaled_x * max_mask[:, :, :, None] / max_count[:, :, :, None],
+        axis=[1, 2],
+    )
+    d_min = tf.reduce_sum(
+        d_scaled_x * min_mask[:, :, :, None] / min_count[:, :, :, None],
+        axis=[1, 2],
+    )
+    active = tf.cast(
+        coordinate_range * coordinate_range >= tf.constant(1.0e-6, DTYPE),
+        DTYPE,
+    )
+    return 2.0 * coordinate_range[:, None] * (d_max - d_min) * active[:, None]
+
+
 def _scaled_centered_particles_vjp(
     particles: tf.Tensor,
     center: tf.Tensor,
@@ -438,6 +669,71 @@ def _manual_forward_transport_tf(
     next_particles = tf.where(mask[:, None, None], transported, post_flow)
     next_log_weights = tf.where(mask[:, None], uniform_log_weights, normalized_log_weights)
     return next_particles, next_log_weights
+
+
+def _compact_forward_transport_jvp_tf(
+    *,
+    post_flow: tf.Tensor,
+    normalized_log_weights: tf.Tensor,
+    d_post_flow: tf.Tensor,
+    d_normalized_log_weights: tf.Tensor,
+    mask: tf.Tensor,
+    args: argparse.Namespace,
+) -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
+    if args.transport_policy == "no-resampling":
+        return post_flow, normalized_log_weights, d_post_flow, d_normalized_log_weights
+    if args.transport_gradient_mode != core_tf.MANUAL_STREAMING_FINITE_TRANSPORT_GRADIENT_MODE:
+        raise ValueError("compact LGSSM score requires manual streaming finite transport")
+    if args.transport_ad_mode != "full":
+        raise ValueError("compact LGSSM score requires transport_ad_mode='full'")
+    batch_size, num_particles, _state_dim = core_tf._static_shape(  # noqa: SLF001
+        post_flow,
+        "post_flow",
+    )
+    center = tf.reduce_mean(post_flow, axis=1, keepdims=True)
+    d_center = tf.reduce_mean(d_post_flow, axis=1, keepdims=True)
+    scale = annealed_transport_tf._filterflow_scale(post_flow)  # noqa: SLF001
+    d_scale = _filterflow_scale_jvp(post_flow, d_post_flow)
+    scaled_x = (post_flow - center) / scale[:, None, None]
+    d_scaled_x = (
+        (d_post_flow - d_center) / scale[:, None, None, None]
+        - (post_flow - center)[:, :, :, None]
+        * d_scale[:, None, None, :]
+        / (scale[:, None, None, None] * scale[:, None, None, None])
+    )
+    epsilon = tf.convert_to_tensor(args.sinkhorn_epsilon, dtype=DTYPE)
+    epsilon0 = annealed_transport_tf._filterflow_epsilon_start(scaled_x)  # noqa: SLF001
+    d_epsilon0 = _filterflow_epsilon_start_jvp(scaled_x, d_scaled_x)
+    scaling = tf.convert_to_tensor(args.annealed_scaling, dtype=DTYPE)
+    steps = core_tf._manual_dense_finite_steps(args.sinkhorn_iterations)  # noqa: SLF001
+    transported, d_transported, _row_residual = (
+        annealed_transport_tf._filterflow_manual_streaming_finite_transport_value_and_jvp_total(  # noqa: SLF001
+            scaled_x,
+            post_flow,
+            normalized_log_weights,
+            d_scaled_x,
+            d_post_flow,
+            d_normalized_log_weights,
+            d_epsilon0,
+            epsilon,
+            epsilon0,
+            scaling,
+            steps=steps,
+            row_chunk_size=args.row_chunk_size,
+            col_chunk_size=args.col_chunk_size,
+        )
+    )
+    uniform_log_weights = core_tf.uniform_log_weights(batch_size, num_particles)
+    d_uniform = tf.zeros_like(d_normalized_log_weights)
+    next_particles = tf.where(mask[:, None, None], transported, post_flow)
+    next_log_weights = tf.where(mask[:, None], uniform_log_weights, normalized_log_weights)
+    next_d_particles = tf.where(mask[:, None, None, None], d_transported, d_post_flow)
+    next_d_log_weights = tf.where(
+        mask[:, None, None],
+        d_uniform,
+        d_normalized_log_weights,
+    )
+    return next_particles, next_log_weights, next_d_particles, next_d_log_weights
 
 
 def _manual_transport_vjp_tf(
@@ -523,6 +819,19 @@ def _build_lgssm_tensors(args: argparse.Namespace) -> tuple[dict[str, tf.Tensor]
     model = _lgssm_benchmark_model()
     observations64 = tf.convert_to_tensor(dataset["observations"], dtype=tf.float64)[: args.time_steps]
     batch_size = len(args.batch_seeds)
+    full_leaderboard_row = (
+        tuple(args.batch_seeds) == FULL_ROW_BATCH_SEEDS
+        and args.num_particles == FULL_ROW_NUM_PARTICLES
+        and args.time_steps == FULL_ROW_TIME_STEPS
+        and args.transport_policy == FULL_ROW_TRANSPORT_POLICY
+        and args.sinkhorn_iterations == FULL_ROW_SINKHORN_ITERATIONS
+        and math.isclose(
+            float(args.sinkhorn_epsilon),
+            FULL_ROW_SINKHORN_EPSILON,
+            rel_tol=0.0,
+            abs_tol=1.0e-12,
+        )
+    )
     transition_matrix = tf.cast(model.transition_matrix, DTYPE)
     transition_covariance = tf.cast(model.transition_covariance, DTYPE)
     observation_matrix = tf.cast(model.observation_matrix, DTYPE)
@@ -566,18 +875,44 @@ def _build_lgssm_tensors(args: argparse.Namespace) -> tuple[dict[str, tf.Tensor]
     }
     exact_total_value = _exact_kalman_value(observations64)
     exact_average_value = exact_total_value / float(args.time_steps)
+    forward_contract = make_lgssm_m3_t50_forward_contract(
+        truth_theta=TRUTH_THETA,
+        time_steps=args.time_steps,
+        num_particles=args.num_particles,
+        batch_seeds=args.batch_seeds,
+        full_leaderboard_row=full_leaderboard_row,
+    ).to_manifest()
     target_identity = {
         "row_id": ROW_ID,
         "row_scope": "main_observed_data_filtering_row",
+        "forward_contract": forward_contract,
+        "target_scalar": forward_contract["target_scalar"],
+        "target_output_tensor_field": forward_contract["output_tensor_field"],
+        "target_density_fields": forward_contract["target_density_fields"],
+        "proposal_flow_fields": forward_contract["proposal_flow_fields"],
+        "correction_formula": forward_contract["correction_formula"],
         "dataset_seed": DATASET_SEED,
         "truth_theta": list(TRUTH_THETA),
         "time_steps": args.time_steps,
+        "num_particles": args.num_particles,
+        "batch_seeds": [int(seed) for seed in args.batch_seeds],
+        "transport_policy": args.transport_policy,
+        "sinkhorn_iterations": args.sinkhorn_iterations,
+        "sinkhorn_epsilon": args.sinkhorn_epsilon,
+        "full_row_expected": {
+            "batch_seeds": list(FULL_ROW_BATCH_SEEDS),
+            "num_particles": FULL_ROW_NUM_PARTICLES,
+            "time_steps": FULL_ROW_TIME_STEPS,
+            "transport_policy": FULL_ROW_TRANSPORT_POLICY,
+            "sinkhorn_iterations": FULL_ROW_SINKHORN_ITERATIONS,
+            "sinkhorn_epsilon": FULL_ROW_SINKHORN_EPSILON,
+        },
         "state_dim": STATE_DIM,
         "obs_dim": OBS_DIM,
-        "full_leaderboard_row": args.time_steps == FULL_ROW_TIME_STEPS,
+        "full_leaderboard_row": full_leaderboard_row,
         "same_target_status": (
-            "same_target_value_only"
-            if args.time_steps == FULL_ROW_TIME_STEPS
+            "same_target_ledh_value_score_capable"
+            if full_leaderboard_row
             else "prefix_diagnostic_not_full_leaderboard_row"
         ),
         "dataset_source": (
@@ -591,7 +926,7 @@ def _build_lgssm_tensors(args: argparse.Namespace) -> tuple[dict[str, tf.Tensor]
         "exact_value_comparator": "tf_kalman_log_likelihood on same observations/model",
         "exact_total_log_likelihood": exact_total_value,
         "exact_average_log_likelihood": exact_average_value,
-        "score_status": "blocked_score_same_target_total_derivative_not_implemented",
+        "score_status": "not_run_score_mode_none",
     }
     return tensors, target_identity
 
@@ -1042,18 +1377,307 @@ def _manual_value_and_score_from_components(
     }
 
 
+def _compact_value_and_score_from_components(
+    tensors: dict[str, tf.Tensor],
+    args: argparse.Namespace,
+    theta: tf.Tensor,
+) -> dict[str, tf.Tensor]:
+    if args.transport_gradient_mode != core_tf.MANUAL_STREAMING_FINITE_TRANSPORT_GRADIENT_MODE:
+        raise ValueError("compact LGSSM score requires manual streaming finite transport")
+    if args.transport_ad_mode != "full":
+        raise ValueError("compact LGSSM score requires transport_ad_mode='full'")
+    theta = tf.reshape(tf.convert_to_tensor(theta, dtype=DTYPE), [len(PARAMETER_NAMES)])
+    observations = tf.convert_to_tensor(tensors["observations"], dtype=DTYPE)
+    fixed_resampling_mask = tf.convert_to_tensor(tensors["fixed_resampling_mask"], dtype=tf.bool)
+    initial_particles = tf.convert_to_tensor(tensors["initial_particles"], dtype=DTYPE)
+    initial_noise = tf.convert_to_tensor(tensors["initial_noise"], dtype=DTYPE)
+    transition_noise = tf.convert_to_tensor(tensors["transition_noise"], dtype=DTYPE)
+    batch_size, num_particles, state_dim = core_tf._static_shape(  # noqa: SLF001
+        initial_particles,
+        "initial_particles",
+    )
+    time_steps_tensor = tf.shape(observations)[0]
+    param_dim = len(PARAMETER_NAMES)
+    components = _lgssm_components(theta, batch_size)
+    tangents = _lgssm_component_tangents(theta, batch_size)
+    transition_matrix = components["transition_matrix"]
+    transition_covariance = components["transition_covariance"]
+    observation_covariance = components["observation_covariance"]
+    observation_matrix = components["observation_matrix"]
+    h_jac_full = tf.tile(
+        observation_matrix[tf.newaxis, tf.newaxis, :, :],
+        [batch_size, num_particles, 1, 1],
+    )
+    transition_scale = components["q_scale"]
+    d_transition_matrix = tangents["d_transition_matrix"]
+    d_transition_covariance = tangents["d_transition_covariance"]
+    d_observation_covariance = tangents["d_observation_covariance"]
+    d_transition_scale = tangents["d_transition_scale"]
+
+    d_initial_particles = initial_noise[:, :, :, None] * tangents["d_initial_std"][
+        None,
+        None,
+        :,
+        :,
+    ]
+
+    prior_chol = tf.linalg.cholesky(transition_covariance)
+    prior_precision = tf.linalg.cholesky_solve(
+        prior_chol,
+        tf.eye(state_dim, dtype=DTYPE)[tf.newaxis, :, :],
+    )
+    obs_chol = tf.linalg.cholesky(observation_covariance)
+    obs_precision = tf.linalg.cholesky_solve(
+        obs_chol,
+        tf.eye(OBS_DIM, dtype=DTYPE)[tf.newaxis, :, :],
+    )
+    d_prior_precision = -tf.einsum(
+        "bij,bjkq,bkl->bilq",
+        prior_precision,
+        d_transition_covariance,
+        prior_precision,
+    )
+    d_obs_precision = -tf.einsum(
+        "bij,bjkq,bkl->bilq",
+        obs_precision,
+        d_observation_covariance,
+        obs_precision,
+    )
+    base_post_precision = prior_precision[:, None, :, :] + tf.einsum(
+        "od,boq,qe->bde",
+        observation_matrix,
+        obs_precision,
+        observation_matrix,
+    )[:, None, :, :]
+    post_covariance = tf.linalg.inv(base_post_precision)
+    d_post_precision = d_prior_precision[:, None, :, :, :] + tf.einsum(
+        "od,boqk,qe->bdek",
+        observation_matrix,
+        d_obs_precision,
+        observation_matrix,
+    )[:, None, :, :, :]
+    d_post_covariance = -tf.einsum(
+        "bnij,bnjkq,bnkl->bnilq",
+        post_covariance,
+        d_post_precision,
+        post_covariance,
+    )
+    post_covariance = tf.tile(post_covariance, [1, num_particles, 1, 1])
+    d_post_covariance = tf.tile(d_post_covariance, [1, num_particles, 1, 1, 1])
+    post_chol, d_post_chol = _cholesky_jvp_matrix(post_covariance, d_post_covariance)
+    prior_inv = tf.linalg.triangular_solve(
+        prior_chol,
+        tf.eye(state_dim, dtype=DTYPE)[tf.newaxis, :, :],
+    )
+    d_prior_chol = tf.zeros([batch_size, state_dim, state_dim, param_dim], dtype=DTYPE)
+    d_prior_chol += tf.concat(
+        [
+            tf.zeros([batch_size, state_dim, state_dim, 3], dtype=DTYPE),
+            tf.eye(state_dim, dtype=DTYPE)[tf.newaxis, :, :, None]
+            * tf.ones([batch_size, 1, 1, 1], dtype=DTYPE),
+            tf.zeros([batch_size, state_dim, state_dim, 1], dtype=DTYPE),
+        ],
+        axis=-1,
+    )
+    d_prior_inv = -tf.einsum(
+        "bij,bjkq,bkl->bilq",
+        prior_inv,
+        d_prior_chol,
+        prior_inv,
+    )
+    affine_transform = tf.einsum("bnij,bjk->bnik", post_chol, prior_inv)
+    d_affine_transform = (
+        tf.einsum("bnijq,bjk->bnikq", d_post_chol, prior_inv)
+        + tf.einsum("bnij,bjkq->bnikq", post_chol, d_prior_inv)
+    )
+    logdet_prior_chol = tf.reduce_sum(tf.math.log(tf.linalg.diag_part(prior_chol)), axis=-1)
+    d_logdet_prior_chol = tf.reduce_sum(
+        tf.einsum("biiq->biq", d_prior_chol)
+        / tf.linalg.diag_part(prior_chol)[:, :, None],
+        axis=1,
+    )
+    logdet_post_chol = tf.reduce_sum(tf.math.log(tf.linalg.diag_part(post_chol)), axis=-1)
+    d_logdet_post_chol = tf.reduce_sum(
+        tf.einsum("bniiq->bniq", d_post_chol)
+        / tf.linalg.diag_part(post_chol)[:, :, :, None],
+        axis=2,
+    )
+    forward_log_det = logdet_post_chol - logdet_prior_chol[:, None]
+    d_forward_log_det = d_logdet_post_chol - d_logdet_prior_chol[:, None, :]
+
+    def forward_body(
+        time_index: tf.Tensor,
+        running_particles: tf.Tensor,
+        running_log_weights: tf.Tensor,
+        running_d_particles: tf.Tensor,
+        running_d_log_weights: tf.Tensor,
+        running_log_likelihood: tf.Tensor,
+        running_d_log_likelihood: tf.Tensor,
+    ):
+        observation = observations[time_index]
+        ancestors = running_particles
+        d_ancestors = running_d_particles
+        prior_means = tf.einsum("bnj,bdj->bnd", ancestors, transition_matrix)
+        d_prior_means = (
+            tf.einsum("bnjq,bdj->bndq", d_ancestors, transition_matrix)
+            + tf.einsum("bnj,bdjq->bndq", ancestors, d_transition_matrix)
+        )
+        noise = transition_noise[:, time_index, :, :]
+        pre_flow = prior_means + noise * transition_scale
+        d_pre_flow = d_prior_means + noise[:, :, :, None] * d_transition_scale[
+            None,
+            None,
+            None,
+            :,
+        ]
+        predicted_pre_flow = tf.einsum("md,bnd->bnm", observation_matrix, pre_flow)
+        residual = observation[tf.newaxis, tf.newaxis, :] - predicted_pre_flow
+        d_residual = -tf.einsum("md,bndq->bnmq", observation_matrix, d_pre_flow)
+        pseudo_observation = tf.einsum("md,bnd->bnm", observation_matrix, pre_flow) + residual
+        d_pseudo_observation = tf.einsum("md,bndq->bnmq", observation_matrix, d_pre_flow) + d_residual
+        info = tf.einsum("bde,bne->bnd", prior_precision, prior_means) + tf.einsum(
+            "bnod,boq,bnq->bnd",
+            h_jac_full,
+            obs_precision,
+            pseudo_observation,
+        )
+        d_info = (
+            tf.einsum("bdeq,bne->bndq", d_prior_precision, prior_means)
+            + tf.einsum("bde,bneq->bndq", prior_precision, d_prior_means)
+            + tf.einsum("bnod,boqk,bnq->bndk", h_jac_full, d_obs_precision, pseudo_observation)
+            + tf.einsum("bnod,boq,bnqk->bndk", h_jac_full, obs_precision, d_pseudo_observation)
+        )
+        post_mean = tf.einsum("bnde,bne->bnd", post_covariance, info)
+        d_post_mean = (
+            tf.einsum("bndeq,bne->bndq", d_post_covariance, info)
+            + tf.einsum("bnde,bneq->bndq", post_covariance, d_info)
+        )
+        delta = pre_flow - prior_means
+        d_delta = d_pre_flow - d_prior_means
+        post_flow = post_mean + tf.einsum("bnij,bnj->bni", affine_transform, delta)
+        d_post_flow = (
+            d_post_mean
+            + tf.einsum("bnijq,bnj->bniq", d_affine_transform, delta)
+            + tf.einsum("bnij,bnjq->bniq", affine_transform, d_delta)
+        )
+        transition_log_density, d_transition_log_density = _batched_gaussian_logpdf_jvp(
+            post_flow - prior_means,
+            transition_covariance,
+            d_post_flow - d_prior_means,
+            d_transition_covariance,
+        )
+        pre_flow_log_density, d_pre_flow_log_density = _batched_gaussian_logpdf_jvp(
+            pre_flow - prior_means,
+            transition_covariance,
+            d_pre_flow - d_prior_means,
+            d_transition_covariance,
+        )
+        predicted_observation = tf.einsum("md,bnd->bnm", observation_matrix, post_flow)
+        d_predicted_observation = tf.einsum("md,bndq->bnmq", observation_matrix, d_post_flow)
+        observation_log_density, d_observation_log_density = _batched_gaussian_logpdf_jvp(
+            predicted_observation - observation[tf.newaxis, tf.newaxis, :],
+            observation_covariance,
+            d_predicted_observation,
+            d_observation_covariance,
+        )
+        corrected_log_weights = (
+            running_log_weights
+            + transition_log_density
+            + observation_log_density
+            - pre_flow_log_density
+            + forward_log_det
+        )
+        d_corrected_log_weights = (
+            running_d_log_weights
+            + d_transition_log_density
+            + d_observation_log_density
+            - d_pre_flow_log_density
+            + d_forward_log_det
+        )
+        (
+            normalized_log_weights,
+            d_normalized_log_weights,
+            incremental,
+            d_incremental,
+        ) = _normalize_log_weights_jvp(corrected_log_weights, d_corrected_log_weights)
+        mask = fixed_resampling_mask[:, time_index]
+        next_particles, next_log_weights, next_d_particles, next_d_log_weights = (
+            _compact_forward_transport_jvp_tf(
+                post_flow=post_flow,
+                normalized_log_weights=normalized_log_weights,
+                d_post_flow=d_post_flow,
+                d_normalized_log_weights=d_normalized_log_weights,
+                mask=mask,
+                args=args,
+            )
+        )
+        return (
+            time_index + 1,
+            next_particles,
+            next_log_weights,
+            next_d_particles,
+            next_d_log_weights,
+            running_log_likelihood + incremental,
+            running_d_log_likelihood + d_incremental,
+        )
+
+    (
+        _,
+        _particles,
+        _log_weights,
+        _d_particles,
+        _d_log_weights,
+        log_likelihood,
+        per_seed_score,
+    ) = tf.while_loop(
+        lambda time_index, *_: time_index < time_steps_tensor,
+        forward_body,
+        (
+            tf.constant(0, dtype=tf.int32),
+            initial_particles,
+            core_tf.uniform_log_weights(batch_size, num_particles),
+            d_initial_particles,
+            tf.zeros([batch_size, num_particles, param_dim], dtype=DTYPE),
+            tf.zeros([batch_size], dtype=DTYPE),
+            tf.zeros([batch_size, param_dim], dtype=DTYPE),
+        ),
+    )
+    return {
+        "objective": tf.reduce_mean(log_likelihood),
+        "log_likelihood": log_likelihood,
+        "gradient_tensor": tf.reduce_mean(per_seed_score, axis=0),
+        "per_seed_gradient": per_seed_score,
+        "score_route": tf.constant(COMPACT_SCORE_ROUTE_ID),
+    }
+
+
 def _manual_score_diagnostic(
     args: argparse.Namespace,
     theta: tf.Tensor,
 ) -> dict[str, Any]:
     tensors = _build_lgssm_manual_tensors(args, theta)
-    manual = _manual_value_and_score_from_components(tensors, args, theta)
+    if args.score_mode == "manual-reverse":
+        manual = _manual_value_and_score_from_components(tensors, args, theta)
+        score_mode = "manual-reverse"
+        score_route = MANUAL_SCORE_ROUTE_ID
+        derivative_provenance = "historical_diagnostic_manual_total_reverse_scan_no_tape_same_scalar_fd_checked"
+    else:
+        manual = _compact_value_and_score_from_components(tensors, args, theta)
+        score_mode = "compact-sensitivity"
+        score_route = COMPACT_SCORE_ROUTE_ID
+        derivative_provenance = "compact_forward_sensitivity_no_tape_same_scalar_fd_checked"
     step = tf.convert_to_tensor(args.score_fd_step, dtype=DTYPE)
     theta = tf.reshape(tf.convert_to_tensor(theta, dtype=DTYPE), [len(PARAMETER_NAMES)])
 
     def value_at(candidate: tf.Tensor) -> tf.Tensor:
         candidate_tensors = _build_lgssm_manual_tensors(args, candidate)
-        return _manual_value_and_score_from_components(
+        if args.score_mode == "manual-reverse":
+            return _manual_value_and_score_from_components(
+                candidate_tensors,
+                args,
+                candidate,
+            )["objective"]
+        return _compact_value_and_score_from_components(
             candidate_tensors,
             args,
             candidate,
@@ -1094,14 +1718,25 @@ def _manual_score_diagnostic(
         max_abs_error <= float(args.score_fd_atol)
         or max_relative_error <= float(args.score_fd_rtol)
     )
+    score_output_devices = sorted(
+        {
+            manual["objective"].device,
+            manual["log_likelihood"].device,
+            manual["gradient_tensor"].device,
+            manual["per_seed_gradient"].device,
+        }
+    )
     return {
-        "score_mode": "manual-reverse",
-        "score_route": MANUAL_SCORE_ROUTE_ID,
+        "score_mode": score_mode,
+        "score_route": score_route,
         "value_route_id": SAME_SCALAR_ROUTE_ID,
         "score_route_id": SAME_SCALAR_ROUTE_ID,
         "value_score_route_status": "same_route_value_score",
         "value_score_same_transport_algorithm": True,
-        "score_derivative_provenance": "manual_total_reverse_scan_no_tape_same_scalar_fd_checked",
+        "score_derivative_provenance": derivative_provenance,
+        "old_full_history_route_status": (
+            "historical_diagnostic_only" if args.score_mode != "manual-reverse" else "executed_historical_diagnostic"
+        ),
         "parameter_names": list(PARAMETER_NAMES),
         "objective": float(manual["objective"].numpy()),
         "log_likelihood_by_seed": [
@@ -1109,6 +1744,7 @@ def _manual_score_diagnostic(
         ],
         "score": [float(value) for value in manual["gradient_tensor"].numpy().reshape(-1)],
         "per_seed_score": manual["per_seed_gradient"].numpy().tolist(),
+        "score_output_devices": score_output_devices,
         "same_scalar_fd": {
             "status": "pass" if fd_pass else "fail",
             "step": float(args.score_fd_step),
@@ -1128,6 +1764,57 @@ def _manual_score_diagnostic(
             "annealed_scaling": args.annealed_scaling,
         },
     }
+
+
+def _score_admission_decision(
+    *,
+    score_mode: str,
+    fd_status: str,
+    same_target_full_row: bool,
+    runtime_gate_applicable: bool,
+) -> dict[str, str]:
+    if score_mode == "compact-sensitivity":
+        if fd_status == "pass" and same_target_full_row and runtime_gate_applicable:
+            return {
+                "score_status": "executed_same_target_compact_score_fd_pass_gpu_material",
+                "score_admission_status": "admitted_same_target_compact_score",
+                "nonclaim": (
+                    "score evidence is for the LEDH-PFPF-OT scalar, not the exact Kalman likelihood"
+                ),
+            }
+        if fd_status == "pass":
+            return {
+                "score_status": "executed_compact_score_fd_pass_but_material_gate_blocked",
+                "score_admission_status": "blocked_material_gate_not_full_gpu_row",
+                "nonclaim": (
+                    "compact total score passed same-scalar FD on this run but is not admitted "
+                    "as a full GPU leaderboard score"
+                ),
+            }
+        return {
+            "score_status": "blocked_compact_score_same_scalar_fd_failed",
+            "score_admission_status": "blocked_same_scalar_fd_failed",
+            "nonclaim": (
+                "compact total score ran but is blocked because the same-scalar FD check failed"
+            ),
+        }
+    if score_mode == "manual-reverse":
+        if fd_status == "pass":
+            return {
+                "score_status": "executed_historical_manual_reverse_score_fd_pass_not_admitted",
+                "score_admission_status": "blocked_historical_manual_reverse_not_default",
+                "nonclaim": (
+                    "historical manual-reverse score passed same-scalar FD but is diagnostic only"
+                ),
+            }
+        return {
+            "score_status": "blocked_historical_manual_reverse_score_same_scalar_fd_failed",
+            "score_admission_status": "blocked_same_scalar_fd_failed",
+            "nonclaim": (
+                "historical manual-reverse score ran but is blocked because the same-scalar FD check failed"
+            ),
+        }
+    raise ValueError(f"unsupported score mode for admission decision: {score_mode}")
 
 
 def _make_lgssm_callbacks(
@@ -1346,34 +2033,33 @@ def main() -> None:
     score_derivative_provenance = None
     value_score_route_status = "value_only_score_not_run"
     score_admission_status = "blocked_score_not_run"
+    score_runtime_gate_applicable = False
     result_nonclaims = list(NONCLAIMS)
-    if args.score_mode == "manual-reverse":
-        result_nonclaims = [
-            claim
-            for claim in result_nonclaims
-            if "score is blocked because same-target total derivative is not implemented here"
-            not in claim
-        ]
-        score_diagnostic = _manual_score_diagnostic(args, tf.constant(TRUTH_THETA, dtype=DTYPE))
+    if args.score_mode in {"compact-sensitivity", "manual-reverse"}:
+        with tf.device(args.device):
+            score_diagnostic = _manual_score_diagnostic(
+                args,
+                tf.constant(TRUTH_THETA, dtype=DTYPE),
+            )
         fd_status = score_diagnostic["same_scalar_fd"]["status"]
         value_score_route_status = score_diagnostic["value_score_route_status"]
         score_derivative_provenance = score_diagnostic["score_derivative_provenance"]
-        if fd_status == "pass" and same_target_full_row and runtime_gate_applicable:
-            score_status = "executed_same_target_manual_total_score_fd_pass_gpu_material"
-            score_admission_status = "admitted_same_target_manual_total_score"
-            result_nonclaims.append("score evidence is for the LEDH-PFPF-OT scalar, not the exact Kalman likelihood")
-        elif fd_status == "pass":
-            score_status = "executed_manual_total_score_fd_pass_but_material_gate_blocked"
-            score_admission_status = "blocked_material_gate_not_full_gpu_row"
-            result_nonclaims.append(
-                "manual total score passed same-scalar FD on this run but is not admitted as a full GPU leaderboard score"
+        score_runtime_gate_applicable = bool(
+            args.expect_device_kind == "gpu"
+            and all(
+                "GPU" in device.upper()
+                for device in score_diagnostic["score_output_devices"]
             )
-        else:
-            score_status = "blocked_manual_total_score_same_scalar_fd_failed"
-            score_admission_status = "blocked_same_scalar_fd_failed"
-            result_nonclaims.append(
-                "manual total score ran but is blocked because the same-scalar FD check failed"
-            )
+        )
+        decision = _score_admission_decision(
+            score_mode=args.score_mode,
+            fd_status=fd_status,
+            same_target_full_row=same_target_full_row,
+            runtime_gate_applicable=runtime_gate_applicable and score_runtime_gate_applicable,
+        )
+        score_status = decision["score_status"]
+        score_admission_status = decision["score_admission_status"]
+        result_nonclaims.append(decision["nonclaim"])
         target_identity = {
             **target_identity,
             "score_status": score_status,
@@ -1390,7 +2076,7 @@ def main() -> None:
         "algorithm_id": "ledh_pfpf_ot",
         "comparison_status": (
             "executed_value_score"
-            if score_admission_status == "admitted_same_target_manual_total_score"
+            if score_admission_status == "admitted_same_target_compact_score"
             else "executed_value_only_score_blocked"
             if same_target_full_row
             else "executed_prefix_value_diagnostic_score_blocked"
@@ -1416,6 +2102,10 @@ def main() -> None:
         "score": score_diagnostic["score"] if score_diagnostic is not None else None,
         "score_parameter_names": list(PARAMETER_NAMES) if score_diagnostic is not None else None,
         "manual_score_diagnostic": score_diagnostic,
+        "score_runtime_gate_applicable": score_runtime_gate_applicable,
+        "score_output_devices": (
+            score_diagnostic["score_output_devices"] if score_diagnostic is not None else None
+        ),
         "runtime_rankable_with_frozen_non_ledh": False,
         "target_identity": target_identity,
         "cuda_visible_devices": os.environ.get("CUDA_VISIBLE_DEVICES"),

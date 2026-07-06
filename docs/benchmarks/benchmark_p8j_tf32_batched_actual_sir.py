@@ -36,6 +36,9 @@ if str(ROOT) not in sys.path:
 import tensorflow as tf
 
 from bayesfilter import highdim
+from bayesfilter.highdim.ledh_forward_contract import (
+    make_fixed_sir_logscale_forward_contract,
+)
 from experiments.dpf_implementation.tf_tfp.filters import (
     experimental_batched_ledh_pfpf_ot_streaming_tf as streaming_tf,
 )
@@ -542,6 +545,19 @@ def main() -> None:
             and tf.reduce_all(tf.math.is_finite(filtered_variances)).numpy()
             and tf.reduce_all(tf.math.is_finite(ess_by_time)).numpy()
         )
+    forward_contract = make_fixed_sir_logscale_forward_contract(
+        time_steps=args.time_steps,
+        num_particles=args.num_particles,
+        batch_seeds=args.batch_seeds,
+        full_leaderboard_row=(
+            args.time_steps == 20
+            and args.num_particles == 10000
+            and tuple(args.batch_seeds) == (81120, 81121, 81122, 81123, 81124)
+            and args.transport_policy == "active-all"
+            and args.sinkhorn_iterations == 10
+            and float(args.sinkhorn_epsilon) == 1.0
+        ),
+    ).to_manifest()
     result: dict[str, Any] = {
         "schema_version": "filter_bench.p8j_tf32_batched_actual_sir_probe.v1",
         "timestamp_utc": _dt.datetime.now(tz=_dt.timezone.utc).isoformat(),
@@ -568,6 +584,12 @@ def main() -> None:
         "full_batched_evaluation_per_warm_call": True,
         "history_mode": args.history_mode,
         "return_history": history_returned,
+        "forward_contract": forward_contract,
+        "target_scalar": forward_contract["target_scalar"],
+        "target_output_tensor_field": forward_contract["output_tensor_field"],
+        "target_density_fields": forward_contract["target_density_fields"],
+        "proposal_flow_fields": forward_contract["proposal_flow_fields"],
+        "correction_formula": forward_contract["correction_formula"],
         "sir_semantics": sir_semantics,
         "transport_policy": args.transport_policy,
         "transport": {

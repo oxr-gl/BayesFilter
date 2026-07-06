@@ -1,0 +1,85 @@
+{
+  "backend": "tensorflow_tensorflow_probability",
+  "budget_metrics": {
+    "3": {
+      "budget_regime": "discriminating",
+      "evaluation_tolerance": 0.0001,
+      "heldout_example_count": 9,
+      "max_student_residual": 9.235355983475135e-06,
+      "max_student_teacher_cloud_rmse": 6.200847866533109e-05,
+      "max_zero_residual": 8.84896418257286e-06,
+      "max_zero_teacher_cloud_rmse": 6.621255521340725e-05,
+      "mean_student_teacher_cloud_rmse": 2.3100041940378835e-05,
+      "mean_zero_teacher_cloud_rmse": 1.874332835605115e-05,
+      "student_better_or_equal_count": 2
+    },
+    "5": {
+      "budget_regime": "discriminating",
+      "evaluation_tolerance": 1e-05,
+      "heldout_example_count": 9,
+      "max_student_residual": 1.6740328373510138e-08,
+      "max_student_teacher_cloud_rmse": 1.2012301978352905e-07,
+      "max_zero_residual": 1.789469133983701e-08,
+      "max_zero_teacher_cloud_rmse": 1.3074969452427602e-07,
+      "mean_student_teacher_cloud_rmse": 3.25421936105301e-08,
+      "mean_zero_teacher_cloud_rmse": 2.654403186315857e-08,
+      "student_better_or_equal_count": 2
+    }
+  },
+  "created_at_utc": "2026-07-04T20:46:27Z",
+  "decision": "RETAINED_TEACHER_SINKHORN_AUSTRIA_SIR_D18_EXPANDED_NON_PROMOTED_ON_DISCRIMINATING_BUDGETS",
+  "input_teacher_data_json": "experiments/dpf_implementation/reports/outputs/retained_teacher_sinkhorn_teacher_data_austria_sir_d18_expanded_2026-07-05.json",
+  "losses": {
+    "final_train_loss": 2.6407463834022455,
+    "heldout_log_u_loss": 1.7692212843971982,
+    "initial_train_loss": 2.7834074252343526
+  },
+  "non_implications": [
+    "No large-particle or N=10000 claim is concluded.",
+    "No GPU scaling claim is concluded.",
+    "No production-readiness claim is concluded.",
+    "No parameterized-SIR claim is concluded."
+  ],
+  "plan_path": "docs/plans/bayesfilter-neural-ot-austria-sir-d18-retained-teacher-nonpromotion-disambiguation-plan-2026-07-05.md",
+  "question": "On the expanded Austria SIR d18 heldout teacher-data artifact, does donor-aligned one-half retained Sinkhorn beat zero-init on the discriminating budgets?",
+  "reproducibility_digest": "b003fa9c12134ffcd948d695feaa8c6a19ef114fd928770744dbc6f611ca5d9c",
+  "run_manifest": {
+    "branch": "zhaocui-fixed-branch-derivative-validation",
+    "command": "CUDA_VISIBLE_DEVICES=-1 python -m experiments.dpf_implementation.tf_tfp.runners.run_retained_teacher_sinkhorn_low_budget_eval_austria_sir_d18_expanded_tf",
+    "commit": "8e66819af4235d6a4a9c68eb49ce9eb9fdc9feef",
+    "cpu_only": true,
+    "cuda_visible_devices": "-1",
+    "dirty_state_summary": "?? docs/plans/bayesfilter-neural-ot-austria-sir-d18-retained-teacher-expanded-teacher-data-result-2026-07-05.md\n?? docs/plans/bayesfilter-neural-ot-austria-sir-d18-retained-teacher-expanded-zero-init-probe-result-2026-07-05.md\n?? experiments/dpf_implementation/reports/outputs/retained_teacher_sinkhorn_teacher_data_austria_sir_d18_expanded_2026-07-05.json\n?? experiments/dpf_implementation/reports/outputs/retained_teacher_sinkhorn_zero_init_budget_probe_austria_sir_d18_expanded_2026-07-05.json\n?? experiments/dpf_implementation/reports/retained-teacher-sinkhorn-teacher-data-austria-sir-d18-expanded-2026-07-05.md\n?? experiments/dpf_implementation/reports/retained-teacher-sinkhorn-zero-init-budget-probe-austria-sir-d18-expanded-2026-07-05.md\n?? experiments/dpf_implementation/tf_tfp/runners/run_retained_teacher_sinkhorn_low_budget_eval_austria_sir_d18_expanded_tf.py\n?? experiments/dpf_implementation/tf_tfp/runners/run_retained_teacher_sinkhorn_teacher_data_austria_sir_d18_expanded_tf.py\n?? experiments/dpf_implementation/tf_tfp/runners/run_retained_teacher_sinkhorn_zero_init_budget_probe_austria_sir_d18_expanded_tf.py",
+    "gpu_devices_visible": [],
+    "package_versions": {
+      "tensorflow": "2.19.1",
+      "tensorflow_probability": "0.25.0"
+    },
+    "pre_import_cuda_visible_devices": "-1",
+    "python_version": "3.11.14",
+    "wall_time_seconds": 22.055108736036345
+  },
+  "scalar_id": "retained_teacher_sinkhorn_low_budget_teacher_cloud_fidelity_austria_sir_d18_expanded_tf",
+  "teacher_data_reproducibility_digest": "40fcce2ce6cddb6b62ecb91349739488cb9bc9878b1ccb321de965bd82fe1d67",
+  "training_contract": {
+    "budget_tolerance_floors": {
+      "3": 0.0001,
+      "5": 1e-05
+    },
+    "epochs": 250,
+    "explanatory_budgets": [],
+    "heldout_examples": 9,
+    "learning_rate": 0.01,
+    "loss_route": "meta_ot_log_u_dual_objective_plus_teacher_log_u",
+    "optimizer": "Adam",
+    "prediction_head": "meta_ot_log_u",
+    "primary_budgets": [
+      3,
+      5
+    ],
+    "teacher_epsilon": 1469.9514166365689,
+    "teacher_tolerance": 1e-06,
+    "train_examples": 9,
+    "training_seed": 20260705
+  }
+}

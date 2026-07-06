@@ -38,6 +38,9 @@ if str(ROOT) not in sys.path:
 import tensorflow as tf
 
 from bayesfilter import highdim
+from bayesfilter.highdim.ledh_forward_contract import (
+    make_parameterized_sir_diagnostic_forward_contract,
+)
 from docs.benchmarks import benchmark_p8j_tf32_batched_actual_sir as p8j_sir
 from experiments.dpf_implementation.tf_tfp.filters import (
     experimental_batched_ledh_pfpf_ot_streaming_tf as streaming_tf,
@@ -2909,6 +2912,11 @@ def main() -> None:
     relaxed_sinkhorn_ot_used = args.transport_policy != "no-resampling"
     resampling_mask_fixed = True
     random_streams_fixed = True
+    forward_contract = make_parameterized_sir_diagnostic_forward_contract(
+        time_steps=args.time_steps,
+        num_particles=args.num_particles,
+        batch_seeds=args.batch_seeds,
+    ).to_manifest()
     primary_pass = bool(
         parity["checked"]
         and parity["pass"]
@@ -2950,6 +2958,13 @@ def main() -> None:
             "obs_dim": 9,
             "parameter_dim": 3,
         },
+        "forward_contract": forward_contract,
+        "target_scope": forward_contract["row_scope"],
+        "target_scalar": forward_contract["target_scalar"],
+        "target_output_tensor_field": forward_contract["output_tensor_field"],
+        "target_density_fields": forward_contract["target_density_fields"],
+        "proposal_flow_fields": forward_contract["proposal_flow_fields"],
+        "correction_formula": forward_contract["correction_formula"],
         "sir_semantics": sir_semantics,
         "theta": dict(zip(PARAMETER_NAMES, [float(x) for x in args.theta_values], strict=True)),
         "theta_transform": {

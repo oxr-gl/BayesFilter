@@ -1,0 +1,2194 @@
+{
+  "benchmark": "bayesfilter_two_lane_highdim_ledh_inclusive_leaderboard_results",
+  "comparator_mode": "frozen_non_ledh_baseline_plus_fresh_ledh",
+  "comparison_algorithm_ids": [
+    "fixed_sgqf",
+    "ukf",
+    "zhao_cui_scalar_or_multistate",
+    "ledh_pfpf_ot"
+  ],
+  "manifest": {
+    "baseline_artifact": "docs/plans/bayesfilter-two-lane-highdim-leaderboard-results-2026-07-03.json",
+    "execution_mode": "frozen_non_ledh_baseline_plus_fresh_ledh_phase6_value_score",
+    "fresh_ledh_execution": true,
+    "frozen_non_ledh_rows": true,
+    "ledh_admission_ledger": "docs/plans/bayesfilter-ledh-inclusive-highdim-leaderboard-phase1-row-admission-ledger-2026-07-03.json",
+    "lgssm_ledh_score_artifact": "docs/plans/ledh-phase5-lgssm-score-memory-n10000-2026-07-06.json",
+    "lgssm_ledh_value_artifact": "docs/plans/bayesfilter-ledh-inclusive-highdim-leaderboard-phase4-lgssm-m3-t50-same-target-value-ladder-N10000-2026-07-03.json",
+    "phase5_score_memory_rows": [
+      "benchmark_lgssm_exact_oracle_m3_T50",
+      "zhao_cui_spatial_sir_austria_j9_T20"
+    ],
+    "sir_ledh_score_artifact": "docs/plans/ledh-phase5-fixed-sir-score-memory-n10000-2026-07-06.json",
+    "sir_ledh_value_artifact": "docs/plans/bayesfilter-ledh-inclusive-highdim-leaderboard-phase4-fixed-sir-value-ladder-N10000-2026-07-03.json"
+  },
+  "metadata_date": "2026-07-06",
+  "nonclaims": [
+    "Frozen non-LEDH rows are copied from the July 3 baseline and were not rerun.",
+    "Runtime cross-ranking between frozen non-LEDH rows and fresh LEDH rows is forbidden.",
+    "LEDH LGSSM and fixed spatial SIR have Phase 5 same-target no-tape score-memory evidence.",
+    "LEDH fixed spatial SIR score does not establish exact nonlinear likelihood correctness.",
+    "HMC readiness, posterior correctness, and scientific superiority are not claimed."
+  ],
+  "row_summary": [
+    {
+      "blocked_or_missing_algorithms": [],
+      "comparison_algorithm_count": 4,
+      "comparison_algorithms": [
+        "fixed_sgqf",
+        "ukf",
+        "zhao_cui_scalar_or_multistate",
+        "ledh_pfpf_ot"
+      ],
+      "executed_algorithms": [
+        "fixed_sgqf",
+        "ukf",
+        "zhao_cui_scalar_or_multistate",
+        "ledh_pfpf_ot"
+      ],
+      "full_four_way_score_ready": true,
+      "full_four_way_value_ready": true,
+      "ledh_runtime_rankable": false,
+      "ledh_score_status": "admitted_same_target_no_tape_score_n10000",
+      "ledh_status": "executed_value_score",
+      "ledh_value_status": "executed_same_target_value",
+      "row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+      "row_scope": "main_observed_data_filtering_row",
+      "score_admitted_algorithms": [
+        "fixed_sgqf",
+        "ukf",
+        "zhao_cui_scalar_or_multistate",
+        "ledh_pfpf_ot"
+      ]
+    },
+    {
+      "blocked_or_missing_algorithms": [
+        "ledh_pfpf_ot"
+      ],
+      "comparison_algorithm_count": 4,
+      "comparison_algorithms": [
+        "fixed_sgqf",
+        "ukf",
+        "zhao_cui_scalar_or_multistate",
+        "ledh_pfpf_ot"
+      ],
+      "executed_algorithms": [
+        "fixed_sgqf",
+        "ukf",
+        "zhao_cui_scalar_or_multistate"
+      ],
+      "full_four_way_score_ready": false,
+      "full_four_way_value_ready": false,
+      "ledh_runtime_rankable": false,
+      "ledh_score_status": "blocked_score",
+      "ledh_status": "blocked",
+      "ledh_value_status": "blocked_no_reviewed_current_gpu_xla_ledh_row_adapter",
+      "row_id": "zhao_cui_sv_actual_nongaussian_T1000",
+      "row_scope": "main_observed_data_filtering_row",
+      "score_admitted_algorithms": [
+        "fixed_sgqf",
+        "ukf",
+        "zhao_cui_scalar_or_multistate"
+      ]
+    },
+    {
+      "blocked_or_missing_algorithms": [
+        "ledh_pfpf_ot"
+      ],
+      "comparison_algorithm_count": 4,
+      "comparison_algorithms": [
+        "fixed_sgqf",
+        "ukf",
+        "zhao_cui_scalar_or_multistate",
+        "ledh_pfpf_ot"
+      ],
+      "executed_algorithms": [
+        "fixed_sgqf",
+        "ukf",
+        "zhao_cui_scalar_or_multistate"
+      ],
+      "full_four_way_score_ready": false,
+      "full_four_way_value_ready": false,
+      "ledh_runtime_rankable": false,
+      "ledh_score_status": "blocked_score",
+      "ledh_status": "blocked",
+      "ledh_value_status": "blocked_no_ledh_ksc_row_adapter",
+      "row_id": "zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000",
+      "row_scope": "main_observed_data_filtering_row",
+      "score_admitted_algorithms": [
+        "fixed_sgqf",
+        "ukf",
+        "zhao_cui_scalar_or_multistate"
+      ]
+    },
+    {
+      "blocked_or_missing_algorithms": [
+        "fixed_sgqf",
+        "zhao_cui_scalar_or_multistate"
+      ],
+      "comparison_algorithm_count": 4,
+      "comparison_algorithms": [
+        "fixed_sgqf",
+        "ukf",
+        "zhao_cui_scalar_or_multistate",
+        "ledh_pfpf_ot"
+      ],
+      "executed_algorithms": [
+        "ukf",
+        "ledh_pfpf_ot"
+      ],
+      "full_four_way_score_ready": false,
+      "full_four_way_value_ready": false,
+      "ledh_runtime_rankable": false,
+      "ledh_score_status": "admitted_same_target_no_tape_score_n10000",
+      "ledh_status": "executed_value_score",
+      "ledh_value_status": "executed_fixed_sir_value_only",
+      "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+      "row_scope": "main_observed_data_filtering_row",
+      "score_admitted_algorithms": [
+        "ledh_pfpf_ot"
+      ]
+    },
+    {
+      "blocked_or_missing_algorithms": [
+        "fixed_sgqf",
+        "ukf",
+        "ledh_pfpf_ot"
+      ],
+      "comparison_algorithm_count": 4,
+      "comparison_algorithms": [
+        "fixed_sgqf",
+        "ukf",
+        "zhao_cui_scalar_or_multistate",
+        "ledh_pfpf_ot"
+      ],
+      "executed_algorithms": [
+        "zhao_cui_scalar_or_multistate"
+      ],
+      "full_four_way_score_ready": false,
+      "full_four_way_value_ready": false,
+      "ledh_runtime_rankable": false,
+      "ledh_score_status": "scoped_score_diagnostic_not_full_observed_data_score",
+      "ledh_status": "scoped_component_status_only",
+      "ledh_value_status": "scoped_or_diagnostic_only",
+      "row_id": "zhao_cui_spatial_sir_austria_j9_T20_parameterized_logscale",
+      "row_scope": "scoped_component_row",
+      "score_admitted_algorithms": [
+        "zhao_cui_scalar_or_multistate"
+      ]
+    },
+    {
+      "blocked_or_missing_algorithms": [
+        "fixed_sgqf",
+        "zhao_cui_scalar_or_multistate",
+        "ledh_pfpf_ot"
+      ],
+      "comparison_algorithm_count": 4,
+      "comparison_algorithms": [
+        "fixed_sgqf",
+        "ukf",
+        "zhao_cui_scalar_or_multistate",
+        "ledh_pfpf_ot"
+      ],
+      "executed_algorithms": [
+        "ukf"
+      ],
+      "full_four_way_score_ready": false,
+      "full_four_way_value_ready": false,
+      "ledh_runtime_rankable": false,
+      "ledh_score_status": "blocked_score",
+      "ledh_status": "blocked",
+      "ledh_value_status": "blocked_no_reviewed_current_gpu_xla_ledh_row_adapter",
+      "row_id": "zhao_cui_predator_prey_T20",
+      "row_scope": "main_observed_data_filtering_row",
+      "score_admitted_algorithms": []
+    },
+    {
+      "blocked_or_missing_algorithms": [
+        "fixed_sgqf",
+        "zhao_cui_scalar_or_multistate",
+        "ledh_pfpf_ot"
+      ],
+      "comparison_algorithm_count": 4,
+      "comparison_algorithms": [
+        "fixed_sgqf",
+        "ukf",
+        "zhao_cui_scalar_or_multistate",
+        "ledh_pfpf_ot"
+      ],
+      "executed_algorithms": [
+        "ukf"
+      ],
+      "full_four_way_score_ready": false,
+      "full_four_way_value_ready": false,
+      "ledh_runtime_rankable": false,
+      "ledh_score_status": "blocked_score",
+      "ledh_status": "blocked",
+      "ledh_value_status": "blocked_no_reviewed_same_target_ledh_row_adapter",
+      "row_id": "zhao_cui_generalized_sv_synthetic_from_estimated_values",
+      "row_scope": "main_observed_data_filtering_row",
+      "score_admitted_algorithms": []
+    }
+  ],
+  "rows": [
+    {
+      "absolute_value_gap_to_kalman": 0.0,
+      "algorithm_id": "fixed_sgqf",
+      "average_log_likelihood": -2.721519497158494,
+      "comparator_provenance": "frozen_non_ledh_baseline",
+      "comparison_status": "executed_value_score",
+      "lane": "highdim_source_scope",
+      "log_likelihood": -136.0759748579247,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "direct affine SGQF value plus analytical fixed-branch score route",
+        "not a production-GPU timing result",
+        "frozen non-LEDH baseline row copied for status/value context",
+        "not rerun under the LEDH GPU/XLA harness",
+        "not runtime-rankable against fresh LEDH rows"
+      ],
+      "numeric_execution_status": "executed_direct_affine_sgqf_value_score",
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_claimed_no_reviewed_batched_main_row_evaluator",
+        "cpu_timing_status": "not_measured_in_phase7",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_claimed_no_trusted_row_specific_gpu_xla_manifest",
+        "nonclaims": [
+          "no row-specific batched main evaluator claim",
+          "no row-specific GPU/XLA timing claim",
+          "not ranked by Phase 7 timing"
+        ],
+        "reason": "Phase 7 did not run or admit a row-specific batched/GPU/XLA main leaderboard benchmark for this value/score cell.",
+        "scope": "main_leaderboard_row",
+        "timing_rank_status": "not_ranked_by_phase7_timing"
+      },
+      "reason": null,
+      "reason_codes": [
+        "DIRECT_AFFINE_SGQF_LGSSM_VALUE_SCORE_ROUTE"
+      ],
+      "reference_log_likelihood": -136.0759748579247,
+      "row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+      "runtime_rankable_with_ledh": false,
+      "runtime_seconds": null,
+      "score": [
+        5.655446880394385,
+        -3.835056458864437,
+        0.3023616838294101,
+        -1.9171802706081804,
+        4.35426591901195
+      ],
+      "score_coordinate_system": "p8d_lgssm_theta",
+      "score_derivative_provenance": "fixed_sgqf_analytic_first_order_fixed_branch_affine_lgssm_score",
+      "score_l2_norm": 8.331768835665498,
+      "score_status": "analytical_score_emitted",
+      "score_status_reason": "SGQF score vector emitted by reviewed analytical fixed-branch score path",
+      "source_baseline": "docs/plans/bayesfilter-two-lane-highdim-leaderboard-results-2026-07-03.json",
+      "target_contract_status": "target_compatible_direct_affine_sgqf"
+    },
+    {
+      "absolute_score_l2_gap_to_kalman": 0.0,
+      "absolute_value_gap_to_kalman": 4.838057066081092e-09,
+      "algorithm_id": "ukf",
+      "average_log_likelihood": -2.721519497158494,
+      "comparator_provenance": "frozen_non_ledh_baseline",
+      "comparison_status": "executed_value_score",
+      "lane": "highdim_source_scope",
+      "log_likelihood": -136.0759748579247,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "LGSSM affine-equivalence differentiated-Kalman score, not native sigma-point placement derivative",
+        "physical-coordinate score, not canonical unconstrained phi",
+        "not a nonlinear benchmark ranking",
+        "frozen non-LEDH baseline row copied for status/value context",
+        "not rerun under the LEDH GPU/XLA harness",
+        "not runtime-rankable against fresh LEDH rows"
+      ],
+      "numeric_execution_status": "executed_numeric_lgssm_score",
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_claimed_no_reviewed_batched_main_row_evaluator",
+        "cpu_timing_status": "not_measured_in_phase7",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_claimed_no_trusted_row_specific_gpu_xla_manifest",
+        "nonclaims": [
+          "no row-specific batched main evaluator claim",
+          "no row-specific GPU/XLA timing claim",
+          "not ranked by Phase 7 timing"
+        ],
+        "reason": "Phase 7 did not run or admit a row-specific batched/GPU/XLA main leaderboard benchmark for this value/score cell.",
+        "scope": "main_leaderboard_row",
+        "timing_rank_status": "not_ranked_by_phase7_timing"
+      },
+      "reason": null,
+      "reason_codes": [
+        "P8D_NUMERIC_EXECUTED_LGSSM_DIFFERENTIATED_KALMAN_AFFINE_VALUE_SCORE_HESSIAN"
+      ],
+      "reference_log_likelihood": -136.07597485308665,
+      "reference_score": [
+        5.655446876369503,
+        -3.83505645148858,
+        0.3023616684162056,
+        -1.9171806685717399,
+        4.354265155260018
+      ],
+      "row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+      "runtime_rankable_with_ledh": false,
+      "runtime_seconds": null,
+      "score": [
+        5.655446876369503,
+        -3.83505645148858,
+        0.3023616684162056,
+        -1.9171806685717399,
+        4.354265155260018
+      ],
+      "score_coordinate_system": "physical_theta",
+      "score_derivative_provenance": "ukf_lgssm_affine_equivalence_to_tf_covariance_differentiated_kalman_reference_cholesky_solve_physical_theta",
+      "score_l2_norm": 8.331768521408039,
+      "score_status": null,
+      "score_status_reason": null,
+      "source_baseline": "docs/plans/bayesfilter-two-lane-highdim-leaderboard-results-2026-07-03.json",
+      "target_contract_status": "target_compatible"
+    },
+    {
+      "absolute_score_l2_gap_to_kalman": 0.0,
+      "absolute_value_gap_to_kalman": 4.838057066081092e-09,
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "average_log_likelihood": -2.721519497061733,
+      "comparator_provenance": "frozen_non_ledh_baseline",
+      "comparison_status": "executed_value_score",
+      "lane": "highdim_source_scope",
+      "log_likelihood": -136.07597485308665,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "user-amended exact-oracle LGSSM adapter; not Zhao-Cui MATLAB rng(0) reproduction",
+        "not paper-scale Zhao-Cui TT-cross/SIRT training",
+        "no historical ALS training used",
+        "physical-coordinate score, not canonical unconstrained phi",
+        "not a nonlinear benchmark ranking",
+        "frozen non-LEDH baseline row copied for status/value context",
+        "not rerun under the LEDH GPU/XLA harness",
+        "not runtime-rankable against fresh LEDH rows"
+      ],
+      "numeric_execution_status": "executed_lgssm_exact_oracle_adapter_value_score",
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_claimed_no_reviewed_batched_main_row_evaluator",
+        "cpu_timing_status": "not_measured_in_phase7",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_claimed_no_trusted_row_specific_gpu_xla_manifest",
+        "nonclaims": [
+          "no row-specific batched main evaluator claim",
+          "no row-specific GPU/XLA timing claim",
+          "not ranked by Phase 7 timing"
+        ],
+        "reason": "Phase 7 did not run or admit a row-specific batched/GPU/XLA main leaderboard benchmark for this value/score cell.",
+        "scope": "main_leaderboard_row",
+        "timing_rank_status": "not_ranked_by_phase7_timing"
+      },
+      "reason": null,
+      "reason_codes": [
+        "ZHAO_CUI_LGSSM_SOURCE_ROW_SUPERSEDED_BY_USER_AMENDED_EXACT_ORACLE_ADAPTER",
+        "P8D_NUMERIC_EXECUTED_LGSSM_DIFFERENTIATED_KALMAN_AFFINE_VALUE_SCORE_HESSIAN"
+      ],
+      "reference_log_likelihood": -136.0759748579247,
+      "reference_score": [
+        5.655446876369503,
+        -3.83505645148858,
+        0.3023616684162056,
+        -1.9171806685717399,
+        4.354265155260018
+      ],
+      "row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+      "runtime_rankable_with_ledh": false,
+      "runtime_seconds": null,
+      "score": [
+        5.655446876369503,
+        -3.83505645148858,
+        0.3023616684162056,
+        -1.9171806685717399,
+        4.354265155260018
+      ],
+      "score_coordinate_system": "physical_theta",
+      "score_derivative_provenance": "zhao_cui_lgssm_user_amended_exact_oracle_affine_adapter_to_tf_covariance_differentiated_kalman_reference_cholesky_solve_physical_theta",
+      "score_l2_norm": 8.331768521408039,
+      "source_baseline": "docs/plans/bayesfilter-two-lane-highdim-leaderboard-results-2026-07-03.json",
+      "target_contract_status": "target_compatible_user_amended_lgssm_exact_oracle_adapter"
+    },
+    {
+      "algorithm_id": "ledh_pfpf_ot",
+      "average_log_likelihood": -2.719201477050781,
+      "comparator_provenance": "fresh_ledh_phase4",
+      "comparison_status": "executed_value_score",
+      "compile_and_first_call_seconds": 27.142047179979272,
+      "correction_formula": "transition_log_density + observation_log_density - pre_flow_log_density + forward_log_det",
+      "device_provenance": "fresh_ledh_gpu_xla_tf32_phase4",
+      "ess_min_by_seed": [
+        2905.80859375,
+        2898.070068359375,
+        2912.672119140625,
+        3003.672607421875,
+        2872.838623046875
+      ],
+      "exact_value_comparison": {
+        "average_absolute_delta": 0.0023180201077130924,
+        "average_delta_mean_minus_exact": 0.0023180201077130924,
+        "average_relative_error_abs": 0.0008517374614193686,
+        "exact_average_log_likelihood": -2.721519497158494,
+        "exact_total_log_likelihood": -136.0759748579247,
+        "total_absolute_delta": 0.11590100538563775,
+        "total_delta_mean_minus_exact": 0.11590100538563775,
+        "total_relative_error_abs": 0.0008517374614192446
+      },
+      "forward_contract": {
+        "correction_formula": "transition_log_density + observation_log_density - pre_flow_log_density + forward_log_det",
+        "estimator_kind": "finite_N_fixed_randomness_ledh_log_likelihood_estimator",
+        "full_leaderboard_row": true,
+        "metadata": {
+          "batch_seeds": [
+            81120,
+            81121,
+            81122,
+            81123,
+            81124
+          ],
+          "num_particles": 10000,
+          "time_steps": 50
+        },
+        "nonclaims": [
+          "metadata alone is not row admission",
+          "metadata alone is not score evidence"
+        ],
+        "output_tensor_field": "log_likelihood",
+        "proposal_flow_fields": [
+          "pre_flow_log_density",
+          "forward_log_det",
+          "proposal_observation_surface"
+        ],
+        "row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+        "row_scope": "main_observed_data_filtering_row",
+        "schema_version": "bayesfilter.highdim.ledh_forward_contract.v1",
+        "score_status": "score_requires_no_tape_same_scalar_gate",
+        "target_density_fields": [
+          "transition_log_density",
+          "observation_log_density"
+        ],
+        "target_scalar": "observed_data_log_likelihood_estimator",
+        "theta_contract": {
+          "nonclaims": [],
+          "parameter_order": [
+            "phi1",
+            "phi2",
+            "phi3",
+            "q_scale",
+            "r_scale"
+          ],
+          "row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+          "source_classification": "benchmark_exact_oracle_row",
+          "theta_coordinate_system": "physical_benchmark_exact_oracle",
+          "theta_dimension": 5,
+          "theta_status": "phase1_frozen",
+          "truth_theta": [
+            0.72,
+            0.55,
+            0.35,
+            0.35,
+            0.45
+          ]
+        },
+        "value_status": "same_target_value_metadata_present"
+      },
+      "lane": "highdim_source_scope",
+      "log_likelihood": -135.96007385253907,
+      "mc_standard_deviation": 0.0002653499995926837,
+      "mc_standard_error": 0.00011866812738375645,
+      "nonclaims": [
+        "value-only LEDH row evidence",
+        "score is blocked because same-target total derivative is not implemented here",
+        "not HMC/NUTS readiness evidence",
+        "not posterior correctness evidence",
+        "not runtime-rankable against frozen non-LEDH rows",
+        "not evidence for nonlinear rows",
+        "not runtime-rankable against frozen non-LEDH rows",
+        "not HMC readiness evidence",
+        "not posterior correctness evidence"
+      ],
+      "particle_count": 10000,
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "fresh_ledh_phase4_batched_value_run",
+        "cpu_timing_status": "not_run_cpu_not_default_ledh_target",
+        "evidence_paths": [
+          "docs/plans/bayesfilter-ledh-inclusive-highdim-leaderboard-phase4-lgssm-m3-t50-same-target-value-ladder-N10000-2026-07-03.json"
+        ],
+        "gpu_xla_status": "executed_gpu_xla_tf32_value_only",
+        "nonclaims": [
+          "not runtime-rankable against frozen non-LEDH rows",
+          "not score evidence",
+          "not HMC readiness evidence"
+        ],
+        "reason": "Fresh LEDH GPU/XLA/TF32 value timing is recorded for diagnostics, but non-LEDH rows are frozen baseline rows and were not rerun in the same harness.",
+        "scope": "main_observed_data_filtering_row",
+        "timing_rank_status": "not_rankable_frozen_non_ledh_baseline"
+      },
+      "proposal_flow_fields": [
+        "pre_flow_log_density",
+        "forward_log_det",
+        "proposal_observation_surface"
+      ],
+      "reason": "same-target LEDH value and no-tape score executed at N=10000",
+      "row_admission_status": "executed_same_target_value_score_phase5_pass",
+      "row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+      "row_scope": "main_observed_data_filtering_row",
+      "runtime_rankable": false,
+      "runtime_rankable_with_non_ledh": false,
+      "runtime_seconds": 15.810666500008665,
+      "score": [
+        4.208085587610736,
+        -0.3581815687179415,
+        0.010309887507222504,
+        4.628948101466079,
+        11.065219890558737
+      ],
+      "score_coordinate_system": "theta=(phi1,phi2,phi3,q_scale,r_scale)",
+      "score_derivative_provenance": "compact_forward_sensitivity_no_autodiff_same_scalar_lgssm_ledh_pfpf_ot",
+      "score_evidence_artifact": "docs/plans/ledh-phase5-lgssm-score-memory-n10000-2026-07-06.json",
+      "score_fd_abs_error": 4.5494946698809713e-10,
+      "score_fd_rel_error": 1.202675980538481e-09,
+      "score_l2_norm": 12.71623515019638,
+      "score_memory_peak_mib": 197.2001953125,
+      "score_status": "admitted_same_target_no_tape_score_n10000",
+      "score_status_reason": "Phase 5 trusted GPU N=10000 same-scalar no-tape score-memory gate passed",
+      "seeds": [
+        81120,
+        81121,
+        81122,
+        81123,
+        81124
+      ],
+      "source_artifact": "docs/plans/bayesfilter-ledh-inclusive-highdim-leaderboard-phase4-lgssm-m3-t50-same-target-value-ladder-N10000-2026-07-03.json",
+      "target_contract_status": "same_target_value_score",
+      "target_density_fields": [
+        "transition_log_density",
+        "observation_log_density"
+      ],
+      "target_match_status": "same_target_value_score",
+      "target_output_tensor_field": "log_likelihood",
+      "target_scalar": "observed_data_log_likelihood_estimator",
+      "target_scope": "main_observed_data_filtering_row",
+      "total_log_likelihood_mc_standard_deviation": 0.013267499979632216,
+      "total_log_likelihood_mc_standard_error": 0.005933406369186942,
+      "value_status": "executed_same_target_value"
+    },
+    {
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "fixed_sgqf",
+      "average_log_likelihood": -2.3009108495009922,
+      "comparator_provenance": "frozen_non_ledh_baseline",
+      "comparison_status": "executed_value_score",
+      "lane": "highdim_source_scope",
+      "log_likelihood": -2300.9108495009923,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "direct exact-transformed SGQF actual-SV value plus manual forward-sensitivity score route executed",
+        "not KSC Gaussian mixture approximation",
+        "not augmented-noise Gaussian-closure route",
+        "score differentiates the fixed-SGQF approximate value target, not an exact-likelihood oracle",
+        "not a production-GPU timing result",
+        "frozen non-LEDH baseline row copied for status/value context",
+        "not rerun under the LEDH GPU/XLA harness",
+        "not runtime-rankable against fresh LEDH rows"
+      ],
+      "numeric_execution_status": "executed_direct_exact_transformed_sv_sgqf_value_score",
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_claimed_no_reviewed_batched_main_row_evaluator",
+        "cpu_timing_status": "not_measured_in_phase7",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_claimed_no_trusted_row_specific_gpu_xla_manifest",
+        "nonclaims": [
+          "no row-specific batched main evaluator claim",
+          "no row-specific GPU/XLA timing claim",
+          "not ranked by Phase 7 timing"
+        ],
+        "reason": "Phase 7 did not run or admit a row-specific batched/GPU/XLA main leaderboard benchmark for this value/score cell.",
+        "scope": "main_leaderboard_row",
+        "timing_rank_status": "not_ranked_by_phase7_timing"
+      },
+      "reason": null,
+      "reason_codes": [
+        "DIRECT_EXACT_TRANSFORMED_SV_SGQF_VALUE_SCORE_ROUTE"
+      ],
+      "reference_log_likelihood": null,
+      "row_id": "zhao_cui_sv_actual_nongaussian_T1000",
+      "runtime_rankable_with_ledh": false,
+      "runtime_seconds": null,
+      "score": [
+        25.92680758701344,
+        29.605825646547327
+      ],
+      "score_coordinate_system": "theta=[probit_gamma, log_beta] per coordinate",
+      "score_derivative_provenance": "fixed_sgqf_exact_transformed_sv_manual_forward_sensitivity_analytical_recurrence",
+      "score_l2_norm": 39.35358006417938,
+      "score_status": "analytical_score_emitted",
+      "score_status_reason": "SGQF score vector emitted by reviewed analytical fixed-branch score path",
+      "source_baseline": "docs/plans/bayesfilter-two-lane-highdim-leaderboard-results-2026-07-03.json",
+      "target_contract_status": "target_compatible_direct_exact_transformed_sv_sgqf_value_score"
+    },
+    {
+      "absolute_score_l2_gap_to_kalman": null,
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "ukf",
+      "average_log_likelihood": -1.4607021961950382,
+      "comparator_provenance": "frozen_non_ledh_baseline",
+      "comparison_status": "executed_value_score",
+      "lane": "highdim_source_scope",
+      "log_likelihood": -1460.7021961950381,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "actual-SV augmented-noise Gaussian-closure surrogate, not exact transformed same-target likelihood",
+        "factor-propagating SR-UKF analytical score route; historical SVD UKF and GradientTape score routes are not used",
+        "score-at-true gamma consistency is weak evidence because the cubature SR-UKF surrogate can make gamma score nearly zero structurally",
+        "not KSC Gaussian mixture approximation",
+        "not coupled multivariate Zhao-Cui TT",
+        "not a production-GPU timing result",
+        "not HMC readiness evidence",
+        "frozen non-LEDH baseline row copied for status/value context",
+        "not rerun under the LEDH GPU/XLA harness",
+        "not runtime-rankable against fresh LEDH rows"
+      ],
+      "numeric_execution_status": "executed_actual_sv_augmented_noise_srukf_value_score",
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_claimed_no_reviewed_batched_main_row_evaluator",
+        "cpu_timing_status": "source_runtime_reused_explanatory_only",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_claimed_no_trusted_row_specific_gpu_xla_manifest",
+        "nonclaims": [
+          "no row-specific batched main evaluator claim",
+          "no row-specific GPU/XLA timing claim",
+          "not ranked by Phase 7 timing"
+        ],
+        "reason": "Phase 7 did not run or admit a row-specific batched/GPU/XLA main leaderboard benchmark for this value/score cell.",
+        "scope": "main_leaderboard_row",
+        "timing_rank_status": "not_ranked_by_phase7_timing"
+      },
+      "reason": null,
+      "reason_codes": [
+        "ACTUAL_SV_AUGMENTED_NOISE_SRUKF_VALUE_SCORE_ROUTE"
+      ],
+      "reference_log_likelihood": null,
+      "reference_score": null,
+      "row_id": "zhao_cui_sv_actual_nongaussian_T1000",
+      "runtime_rankable_with_ledh": false,
+      "runtime_seconds": 12.251309720915742,
+      "score": [
+        1.9062172143125377e-19,
+        1916.1087897290417
+      ],
+      "score_coordinate_system": "theta=[probit_gamma,log_beta]",
+      "score_derivative_provenance": "actual_sv_augmented_noise_factor_propagating_srukf_manual_score",
+      "score_l2_norm": 1916.1087897290417,
+      "score_status": "analytical_score_emitted",
+      "score_status_reason": "actual-SV raw augmented-noise Gaussian-closure score emitted by reviewed factor-propagating SR-UKF manual route",
+      "source_baseline": "docs/plans/bayesfilter-two-lane-highdim-leaderboard-results-2026-07-03.json",
+      "target_contract_status": "target_compatible_actual_sv_augmented_noise_srukf_gaussian_closure"
+    },
+    {
+      "absolute_score_l2_gap_to_kalman": null,
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "average_log_likelihood": -2.286226025206944,
+      "comparator_provenance": "frozen_non_ledh_baseline",
+      "comparison_status": "executed_value_score",
+      "lane": "highdim_source_scope",
+      "log_likelihood": -2286.226025206944,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "exact transformed SV target z=log(y^2), not raw-observation native SV likelihood",
+        "fixed-design scalar TT route, not adaptive MATLAB TT-cross/SIRT reproduction",
+        "manual parameter-score methods only; reverse-mode tape fallback is not admitted",
+        "not coupled multivariate Zhao-Cui TT",
+        "not a production-GPU timing result",
+        "frozen non-LEDH baseline row copied for status/value context",
+        "not rerun under the LEDH GPU/XLA harness",
+        "not runtime-rankable against fresh LEDH rows"
+      ],
+      "numeric_execution_status": "executed_zhao_cui_exact_transformed_sv_fixed_branch_tt_value_score",
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_claimed_no_reviewed_batched_main_row_evaluator",
+        "cpu_timing_status": "source_runtime_reused_explanatory_only",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_claimed_no_trusted_row_specific_gpu_xla_manifest",
+        "nonclaims": [
+          "no row-specific batched main evaluator claim",
+          "no row-specific GPU/XLA timing claim",
+          "not ranked by Phase 7 timing"
+        ],
+        "reason": "Phase 7 did not run or admit a row-specific batched/GPU/XLA main leaderboard benchmark for this value/score cell.",
+        "scope": "main_leaderboard_row",
+        "timing_rank_status": "not_ranked_by_phase7_timing"
+      },
+      "reason": null,
+      "reason_codes": [
+        "ZHAO_CUI_EXACT_TRANSFORMED_SV_MANUAL_TT_VALUE_SCORE_ROUTE"
+      ],
+      "reference_log_likelihood": null,
+      "reference_score": null,
+      "row_id": "zhao_cui_sv_actual_nongaussian_T1000",
+      "runtime_rankable_with_ledh": false,
+      "runtime_seconds": 779.0544941129629,
+      "score": [
+        5.664976797079538,
+        -2.565685746163207
+      ],
+      "score_coordinate_system": "theta=[probit_gamma,log_beta]",
+      "score_derivative_provenance": "zhao_cui_scalar_fixed_branch_tt_exact_transformed_sv_manual_parameter_score_methods_only",
+      "score_l2_norm": 6.21889905526007,
+      "score_status": "analytical_score_emitted",
+      "score_status_reason": "Zhao-Cui exact-transformed SV score emitted by scalar fixed-branch TT manual parameter-score adapter",
+      "source_baseline": "docs/plans/bayesfilter-two-lane-highdim-leaderboard-results-2026-07-03.json",
+      "target_contract_status": "target_compatible_exact_transformed_sv_fixed_branch_tt"
+    },
+    {
+      "algorithm_id": "ledh_pfpf_ot",
+      "average_log_likelihood": null,
+      "comparator_provenance": "fresh_ledh_status_from_phase1_ledger",
+      "comparison_status": "blocked",
+      "current_adapter_evidence": [
+        "scripts/filtering_value_gradient_benchmark_run_p8d_numeric.py:_dpf_sv_callbacks contains a legacy DPF callback route",
+        "the legacy callback uses a transformed observation for LEDH flow and raw SV observation density for correction"
+      ],
+      "device_provenance": "not_run_blocked_or_scoped",
+      "forbidden_claims": [
+        "do not treat a flow-only transformed observation as a proof of target equality",
+        "do not use legacy DPF route existence as current GPU/XLA leaderboard admission"
+      ],
+      "lane": "highdim_source_scope",
+      "log_likelihood": null,
+      "mc_standard_deviation": null,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "not LEDH value execution",
+        "not LEDH score execution",
+        "not HMC readiness evidence",
+        "not runtime ranking evidence"
+      ],
+      "particle_count": null,
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_run_blocked_or_scoped",
+        "cpu_timing_status": "not_run",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_run",
+        "nonclaims": [
+          "not runtime evidence",
+          "not value correctness evidence",
+          "not score correctness evidence"
+        ],
+        "reason": "No reviewed current LEDH-inclusive leaderboard adapter proves that the GPU/XLA TF32 route computes the exact requested actual-SV row target.; value_status=blocked_no_reviewed_current_gpu_xla_ledh_row_adapter; score_status=blocked_score",
+        "scope": "main_observed_data_filtering_row",
+        "timing_rank_status": "not_rankable_no_fresh_value_row"
+      },
+      "reason": "No reviewed current LEDH-inclusive leaderboard adapter proves that the GPU/XLA TF32 route computes the exact requested actual-SV row target.; value_status=blocked_no_reviewed_current_gpu_xla_ledh_row_adapter; score_status=blocked_score",
+      "required_phase2_work": [
+        "either prove and wire the legacy SV callback as the same requested row target under the current runner",
+        "or keep the row blocked in the LEDH-inclusive artifact"
+      ],
+      "required_score_admission_artifact": "blocked until value target is admitted; then exact derivation or trusted same-target fixed-randomness finite difference",
+      "row_admission_status": "blocked_value",
+      "row_id": "zhao_cui_sv_actual_nongaussian_T1000",
+      "row_scope": "main_observed_data_filtering_row",
+      "runtime_rankable": false,
+      "runtime_rankable_with_non_ledh": false,
+      "runtime_seconds": null,
+      "score": null,
+      "score_coordinate_system": null,
+      "score_derivative_provenance": null,
+      "score_l2_norm": null,
+      "score_status": "blocked_score",
+      "score_status_reason": "blocked until value target is admitted; then exact derivation or trusted same-target fixed-randomness finite difference",
+      "seeds": null,
+      "source_ledger": "docs/plans/bayesfilter-ledh-inclusive-highdim-leaderboard-phase1-row-admission-ledger-2026-07-03.json",
+      "target_contract_status": "not_admitted",
+      "target_match_status": "not_admitted",
+      "target_scope": "main_observed_data_filtering_row",
+      "value_status": "blocked_no_reviewed_current_gpu_xla_ledh_row_adapter"
+    },
+    {
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "fixed_sgqf",
+      "average_log_likelihood": -2.2846321465997916,
+      "comparator_provenance": "frozen_non_ledh_baseline",
+      "comparison_status": "executed_value_score",
+      "lane": "highdim_source_scope",
+      "log_likelihood": -2284.6321465997917,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "source-scope KSC SGQF value plus analytical component-score route executed",
+        "declared KSC Gaussian-mixture surrogate target only",
+        "frozen non-LEDH baseline row copied for status/value context",
+        "not rerun under the LEDH GPU/XLA harness",
+        "not runtime-rankable against fresh LEDH rows"
+      ],
+      "numeric_execution_status": "executed_source_scope_ksc_sgqf_value_score",
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_claimed_no_reviewed_batched_main_row_evaluator",
+        "cpu_timing_status": "not_measured_in_phase7",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_claimed_no_trusted_row_specific_gpu_xla_manifest",
+        "nonclaims": [
+          "no row-specific batched main evaluator claim",
+          "no row-specific GPU/XLA timing claim",
+          "not ranked by Phase 7 timing"
+        ],
+        "reason": "Phase 7 did not run or admit a row-specific batched/GPU/XLA main leaderboard benchmark for this value/score cell.",
+        "scope": "main_leaderboard_row",
+        "timing_rank_status": "not_ranked_by_phase7_timing"
+      },
+      "reason": null,
+      "reason_codes": [
+        "DIRECT_KSC_SOURCE_SCOPE_SGQF_VALUE_SCORE_ROUTE"
+      ],
+      "reference_log_likelihood": null,
+      "row_id": "zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000",
+      "runtime_rankable_with_ledh": false,
+      "runtime_seconds": null,
+      "score": [
+        4.884234590243841,
+        -2.386899529323978
+      ],
+      "score_coordinate_system": "p8_truth_theta_coordinate",
+      "score_derivative_provenance": "fixed_sgqf_independent_panel_transformed_sv_gaussian_mixture_analytic_component_score_logsumexp_aggregation",
+      "score_l2_norm": 5.436270495074859,
+      "score_status": "analytical_score_emitted",
+      "score_status_reason": "SGQF score vector emitted by reviewed analytical fixed-branch score path",
+      "source_baseline": "docs/plans/bayesfilter-two-lane-highdim-leaderboard-results-2026-07-03.json",
+      "target_contract_status": "target_compatible_declared_ksc_surrogate_value_score"
+    },
+    {
+      "absolute_score_l2_gap_to_kalman": null,
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "ukf",
+      "average_log_likelihood": -2.2846321465997916,
+      "comparator_provenance": "frozen_non_ledh_baseline",
+      "comparison_status": "executed_value_score",
+      "lane": "highdim_source_scope",
+      "log_likelihood": -2284.6321465997917,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "principal-square-root UKF analytical score route; historical SVD UKF score route is not used",
+        "KSC transformed Gaussian-mixture surrogate row, not exact native SV likelihood",
+        "not a production-GPU timing result",
+        "frozen non-LEDH baseline row copied for status/value context",
+        "not rerun under the LEDH GPU/XLA harness",
+        "not runtime-rankable against fresh LEDH rows"
+      ],
+      "numeric_execution_status": "executed_principal_sqrt_ukf_ksc_mixture_value_score",
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_claimed_no_reviewed_batched_main_row_evaluator",
+        "cpu_timing_status": "source_runtime_reused_explanatory_only",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_claimed_no_trusted_row_specific_gpu_xla_manifest",
+        "nonclaims": [
+          "no row-specific batched main evaluator claim",
+          "no row-specific GPU/XLA timing claim",
+          "not ranked by Phase 7 timing"
+        ],
+        "reason": "Phase 7 did not run or admit a row-specific batched/GPU/XLA main leaderboard benchmark for this value/score cell.",
+        "scope": "main_leaderboard_row",
+        "timing_rank_status": "not_ranked_by_phase7_timing"
+      },
+      "reason": null,
+      "reason_codes": [
+        "DIRECT_KSC_MIXTURE_PRINCIPAL_SQRT_UKF_VALUE_SCORE_ROUTE"
+      ],
+      "reference_log_likelihood": null,
+      "reference_score": null,
+      "row_id": "zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000",
+      "runtime_rankable_with_ledh": false,
+      "runtime_seconds": 107.68176158005372,
+      "score": [
+        4.884234590243924,
+        -2.386899529323502
+      ],
+      "score_coordinate_system": "theta=[probit_gamma,log_beta]",
+      "score_derivative_provenance": "principal_sqrt_ukf_independent_panel_transformed_sv_gaussian_mixture_analytical_component_score_logsumexp_aggregation",
+      "score_l2_norm": 5.436270495074725,
+      "score_status": "analytical_score_emitted",
+      "score_status_reason": "UKF score vector emitted by reviewed principal-square-root analytical component score path",
+      "source_baseline": "docs/plans/bayesfilter-two-lane-highdim-leaderboard-results-2026-07-03.json",
+      "target_contract_status": "target_compatible_direct_principal_sqrt_ukf_ksc_mixture"
+    },
+    {
+      "absolute_score_l2_gap_to_kalman": null,
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "average_log_likelihood": -2.2844313590049508,
+      "comparator_provenance": "frozen_non_ledh_baseline",
+      "comparison_status": "executed_value_score",
+      "lane": "highdim_source_scope",
+      "log_likelihood": -2284.4313590049505,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "declared KSC Gaussian-mixture transformed-SV target, not exact native SV likelihood",
+        "fixed-design scalar TT route, not adaptive MATLAB TT-cross/SIRT reproduction",
+        "manual parameter-score methods only; reverse-mode tape fallback is not admitted",
+        "not coupled multivariate Zhao-Cui TT",
+        "not a production-GPU timing result",
+        "frozen non-LEDH baseline row copied for status/value context",
+        "not rerun under the LEDH GPU/XLA harness",
+        "not runtime-rankable against fresh LEDH rows"
+      ],
+      "numeric_execution_status": "executed_zhao_cui_ksc_fixed_branch_tt_value_score",
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_claimed_no_reviewed_batched_main_row_evaluator",
+        "cpu_timing_status": "source_runtime_reused_explanatory_only",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_claimed_no_trusted_row_specific_gpu_xla_manifest",
+        "nonclaims": [
+          "no row-specific batched main evaluator claim",
+          "no row-specific GPU/XLA timing claim",
+          "not ranked by Phase 7 timing"
+        ],
+        "reason": "Phase 7 did not run or admit a row-specific batched/GPU/XLA main leaderboard benchmark for this value/score cell.",
+        "scope": "main_leaderboard_row",
+        "timing_rank_status": "not_ranked_by_phase7_timing"
+      },
+      "reason": null,
+      "reason_codes": [
+        "ZHAO_CUI_KSC_MANUAL_TT_VALUE_SCORE_ROUTE"
+      ],
+      "reference_log_likelihood": null,
+      "reference_score": null,
+      "row_id": "zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000",
+      "runtime_rankable_with_ledh": false,
+      "runtime_seconds": 811.6524984900607,
+      "score": [
+        4.880417582574909,
+        -2.515938368614356
+      ],
+      "score_coordinate_system": "theta=[probit_gamma,log_beta]",
+      "score_derivative_provenance": "zhao_cui_scalar_fixed_branch_tt_ksc_mixture_manual_parameter_score_methods_only",
+      "score_l2_norm": 5.4907578397678565,
+      "score_status": "analytical_score_emitted",
+      "score_status_reason": "Zhao-Cui KSC transformed-mixture score emitted by scalar fixed-branch TT manual parameter-score adapter",
+      "source_baseline": "docs/plans/bayesfilter-two-lane-highdim-leaderboard-results-2026-07-03.json",
+      "target_contract_status": "target_compatible_ksc_transformed_sv_fixed_branch_tt"
+    },
+    {
+      "algorithm_id": "ledh_pfpf_ot",
+      "average_log_likelihood": null,
+      "comparator_provenance": "fresh_ledh_status_from_phase1_ledger",
+      "comparison_status": "blocked",
+      "current_adapter_evidence": [
+        "current p8d DPF callback registry does not expose a KSC-specific LEDH row route"
+      ],
+      "device_provenance": "not_run_blocked_or_scoped",
+      "forbidden_claims": [
+        "do not reuse actual-SV raw callbacks as KSC row evidence"
+      ],
+      "lane": "highdim_source_scope",
+      "log_likelihood": null,
+      "mc_standard_deviation": null,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "not LEDH value execution",
+        "not LEDH score execution",
+        "not HMC readiness evidence",
+        "not runtime ranking evidence"
+      ],
+      "particle_count": null,
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_run_blocked_or_scoped",
+        "cpu_timing_status": "not_run",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_run",
+        "nonclaims": [
+          "not runtime evidence",
+          "not value correctness evidence",
+          "not score correctness evidence"
+        ],
+        "reason": "No reviewed LEDH adapter exists for the KSC transformed-mixture row target.; value_status=blocked_no_ledh_ksc_row_adapter; score_status=blocked_score",
+        "scope": "main_observed_data_filtering_row",
+        "timing_rank_status": "not_rankable_no_fresh_value_row"
+      },
+      "reason": "No reviewed LEDH adapter exists for the KSC transformed-mixture row target.; value_status=blocked_no_ledh_ksc_row_adapter; score_status=blocked_score",
+      "required_phase2_work": [
+        "define and review a same-target KSC LEDH adapter before execution",
+        "otherwise preserve blocked row"
+      ],
+      "required_score_admission_artifact": "blocked until same-target value adapter exists",
+      "row_admission_status": "blocked_value",
+      "row_id": "zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000",
+      "row_scope": "main_observed_data_filtering_row",
+      "runtime_rankable": false,
+      "runtime_rankable_with_non_ledh": false,
+      "runtime_seconds": null,
+      "score": null,
+      "score_coordinate_system": null,
+      "score_derivative_provenance": null,
+      "score_l2_norm": null,
+      "score_status": "blocked_score",
+      "score_status_reason": "blocked until same-target value adapter exists",
+      "seeds": null,
+      "source_ledger": "docs/plans/bayesfilter-ledh-inclusive-highdim-leaderboard-phase1-row-admission-ledger-2026-07-03.json",
+      "target_contract_status": "not_admitted",
+      "target_match_status": "not_admitted",
+      "target_scope": "main_observed_data_filtering_row",
+      "value_status": "blocked_no_ledh_ksc_row_adapter"
+    },
+    {
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "fixed_sgqf",
+      "average_log_likelihood": null,
+      "comparator_provenance": "frozen_non_ledh_baseline",
+      "comparison_status": "blocked",
+      "lane": "highdim_source_scope",
+      "log_likelihood": null,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "not executed in the current source-scope leaderboard lane",
+        "no SGQF broad high-dimensional admission is implied",
+        "frozen non-LEDH baseline row copied for status/value context",
+        "not rerun under the LEDH GPU/XLA harness",
+        "not runtime-rankable against fresh LEDH rows"
+      ],
+      "numeric_execution_status": "blocked_by_two_lane_contract_or_missing_source_scope_evaluator",
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_applicable_until_value_score_row_exists",
+        "cpu_timing_status": "not_applicable_until_value_score_row_exists",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_applicable_until_value_score_row_exists",
+        "nonclaims": [
+          "no batch/GPU/XLA readiness claim while value/score gate remains open",
+          "not ranked by timing"
+        ],
+        "reason": "Value/score row is not admitted, so timing cannot rank or rescue this cell.",
+        "scope": "main_leaderboard_row",
+        "timing_rank_status": "not_rankable_correctness_gate_open"
+      },
+      "reason": "no reviewed SGQF source-scope spatial SIR route is wired",
+      "reason_codes": [
+        "TWO_LANE_FIXED_SGQF_BLOCK_OR_MISSING_EVALUATOR"
+      ],
+      "reference_log_likelihood": null,
+      "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+      "runtime_rankable_with_ledh": false,
+      "runtime_seconds": null,
+      "score": null,
+      "score_coordinate_system": null,
+      "score_derivative_provenance": null,
+      "score_l2_norm": null,
+      "score_status": "blocked_no_free_theta",
+      "score_status_reason": "row has no free theta and no reviewed SGQF source-scope route",
+      "source_baseline": "docs/plans/bayesfilter-two-lane-highdim-leaderboard-results-2026-07-03.json",
+      "target_contract_status": "blocked_fixed_sgqf_current_scope"
+    },
+    {
+      "absolute_score_l2_gap_to_kalman": null,
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "ukf",
+      "average_log_likelihood": -36.832007416195985,
+      "comparator_provenance": "frozen_non_ledh_baseline",
+      "comparison_status": "executed_value_only",
+      "lane": "highdim_source_scope",
+      "log_likelihood": -736.6401483239197,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "spatial SIR P8 source row has no free theta",
+        "value-only sigma-point approximation",
+        "value-only cell because the P8 source row has no free theta",
+        "frozen non-LEDH baseline row copied for status/value context",
+        "not rerun under the LEDH GPU/XLA harness",
+        "not runtime-rankable against fresh LEDH rows"
+      ],
+      "numeric_execution_status": "executed_numeric_value_only_no_free_theta",
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_applicable_until_value_score_row_exists",
+        "cpu_timing_status": "not_applicable_until_value_score_row_exists",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_applicable_until_value_score_row_exists",
+        "nonclaims": [
+          "no batch/GPU/XLA readiness claim while value/score gate remains open",
+          "not ranked by timing"
+        ],
+        "reason": "Value/score row is not admitted, so timing cannot rank or rescue this cell.",
+        "scope": "main_leaderboard_row",
+        "timing_rank_status": "not_rankable_correctness_gate_open"
+      },
+      "reason": null,
+      "reason_codes": [
+        "P8D_EXECUTED_DETERMINISTIC_VALUE_ONLY_NO_FREE_THETA"
+      ],
+      "reference_log_likelihood": null,
+      "reference_score": null,
+      "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+      "runtime_rankable_with_ledh": false,
+      "runtime_seconds": 0.684872,
+      "score": null,
+      "score_coordinate_system": "no_free_theta",
+      "score_derivative_provenance": "not_applicable_no_free_theta",
+      "score_l2_norm": null,
+      "score_status": null,
+      "score_status_reason": null,
+      "source_baseline": "docs/plans/bayesfilter-two-lane-highdim-leaderboard-results-2026-07-03.json",
+      "target_contract_status": "target_compatible"
+    },
+    {
+      "absolute_score_l2_gap_to_kalman": null,
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "average_log_likelihood": null,
+      "comparator_provenance": "frozen_non_ledh_baseline",
+      "comparison_status": "blocked_or_status_only",
+      "lane": "highdim_source_scope",
+      "log_likelihood": null,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "not a numeric benchmark result for this cell",
+        "no silent N/A: cell remains explicit structured blocker or not-applicable",
+        "not full observed-data/filtering score identity",
+        "not full source-route FD derivative readiness",
+        "not exact likelihood correctness",
+        "not posterior correctness or convergence",
+        "frozen non-LEDH baseline row copied for status/value context",
+        "not rerun under the LEDH GPU/XLA harness",
+        "not runtime-rankable against fresh LEDH rows"
+      ],
+      "numeric_execution_status": "blocked_full_filtering_evaluator_pending_p91_local_component_ready",
+      "p91_scoped_evidence": {
+        "benchmark_status": "PASS_P91_PHASE6_PERFORMANCE_BENCHMARK",
+        "evidence_paths": [
+          "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase9-final-decision-result-2026-06-29.md",
+          "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase4-score-identity-manifest-2026-06-29.json",
+          "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase5-gpu-xla-jit-manifest-2026-06-29.json",
+          "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase6-performance-benchmark-2026-06-29.json",
+          "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase7-hmc-smoke-2026-06-29.json"
+        ],
+        "gpu_xla_status": "PASS_P91_PHASE5_GPU_XLA_JIT_LOCAL_COMPLETE_DATA",
+        "hmc_smoke_status": "PASS_P91_PHASE7_HMC_SMOKE",
+        "nonclaims": [
+          "not full observed-data/filtering score identity",
+          "not full source-route FD derivative readiness",
+          "not exact likelihood correctness",
+          "not posterior correctness or convergence"
+        ],
+        "phase7_sidecar_performance": {
+          "admission_scope": "sidecar_only_not_full_observed_data_filtering_row",
+          "evidence_paths": [
+            "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase6-performance-benchmark-2026-06-29.json",
+            "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase6-performance-benchmark-cpu-2026-06-29.json",
+            "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase6-performance-benchmark-gpu-2026-06-29.json"
+          ],
+          "excluded_from_main_leaderboard_ranking": true,
+          "main_row_admission_status": "not_full_observed_data_filtering_evidence",
+          "namespace": "p91_scoped_local_complete_data_sidecar",
+          "nonclaims": [
+            "not full observed-data/filtering SIR timing",
+            "not full observed-data/filtering SIR score admission",
+            "not part of main leaderboard timing ranking"
+          ],
+          "scope": "local_complete_data_zhao_cui_sir_d18_component",
+          "status": "PASS_P91_PHASE6_PERFORMANCE_BENCHMARK",
+          "timing_by_target": {
+            "cpu": {
+              "actual_xla_status": false,
+              "checks": {
+                "cpu_batched": {
+                  "first_call_seconds": 1.258851503022015,
+                  "gpu_output_devices": false,
+                  "passed": true,
+                  "post_warmup_retrace_detected": false,
+                  "steady_mean_seconds": 0.003697521169669926,
+                  "steady_per_item_seconds": 0.0009243802924174815
+                },
+                "cpu_looped_single": {
+                  "first_call_seconds": 0.7271717760013416,
+                  "gpu_output_devices": false,
+                  "passed": true,
+                  "post_warmup_retrace_detected": false,
+                  "steady_mean_seconds": 0.0034192421939224006,
+                  "steady_per_item_seconds": 0.0034192421939224006
+                }
+              },
+              "manifest_path": "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase6-performance-benchmark-cpu-2026-06-29.json",
+              "status": "PASS_P91_PHASE6_CPU_BENCHMARK"
+            },
+            "gpu_xla": {
+              "actual_xla_status": true,
+              "checks": {
+                "gpu_xla_batched": {
+                  "first_call_seconds": 5.666246789041907,
+                  "gpu_output_devices": true,
+                  "passed": true,
+                  "post_warmup_retrace_detected": false,
+                  "steady_mean_seconds": 0.0017791393911466002,
+                  "steady_per_item_seconds": 0.00044478484778665006
+                },
+                "gpu_xla_looped_single": {
+                  "first_call_seconds": 1.809944199048914,
+                  "gpu_output_devices": true,
+                  "passed": true,
+                  "post_warmup_retrace_detected": false,
+                  "steady_mean_seconds": 0.0009009486064314842,
+                  "steady_per_item_seconds": 0.0009009486064314842
+                }
+              },
+              "manifest_path": "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase6-performance-benchmark-gpu-2026-06-29.json",
+              "status": "PASS_P91_PHASE6_GPU_XLA_BENCHMARK"
+            }
+          }
+        },
+        "scope": "local_complete_data_zhao_cui_sir_d18_component",
+        "score_identity_status": "PASS_P91_PHASE4_LOCAL_COMPONENT_SCORE_IDENTITY",
+        "status": "P91_SCOPED_PRODUCTION_READY_CLOSED"
+      },
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_applicable_until_value_score_row_exists",
+        "cpu_timing_status": "not_applicable_until_value_score_row_exists",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_applicable_until_value_score_row_exists",
+        "nonclaims": [
+          "no batch/GPU/XLA readiness claim while value/score gate remains open",
+          "not ranked by timing"
+        ],
+        "reason": "Value/score row is not admitted, so timing cannot rank or rescue this cell.",
+        "scope": "main_leaderboard_row",
+        "timing_rank_status": "not_rankable_correctness_gate_open"
+      },
+      "reason": "P91 closes the scoped local complete-data SIR d18 component route, but the full observed-data/filtering leaderboard evaluator remains blocked by preserved source-route derivative/evaluator gaps.",
+      "reason_codes": [
+        "P8D_MODEL_SPECIFIC_NUMERIC_EVALUATOR_ADAPTER_REQUIRED",
+        "P91_SCOPED_LOCAL_COMPLETE_DATA_READY",
+        "FULL_FILTERING_LEADERBOARD_CELL_STILL_BLOCKED"
+      ],
+      "reference_log_likelihood": null,
+      "reference_score": null,
+      "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+      "runtime_rankable_with_ledh": false,
+      "runtime_seconds": null,
+      "score": null,
+      "score_coordinate_system": null,
+      "score_derivative_provenance": null,
+      "score_l2_norm": null,
+      "score_status": null,
+      "score_status_reason": null,
+      "source_baseline": "docs/plans/bayesfilter-two-lane-highdim-leaderboard-results-2026-07-03.json",
+      "target_contract_status": "full_filtering_blocked_local_complete_data_component_ready"
+    },
+    {
+      "algorithm_id": "ledh_pfpf_ot",
+      "average_log_likelihood": -45.14150756835937,
+      "comparator_provenance": "fresh_ledh_phase4",
+      "comparison_status": "executed_value_score",
+      "compile_and_first_call_seconds": 20.351158048026264,
+      "correction_formula": "transition_log_density + observation_log_density - pre_flow_log_density + forward_log_det",
+      "device_provenance": "fresh_ledh_gpu_xla_tf32_phase4",
+      "ess_min_by_seed": [
+        6441.296875,
+        6432.78173828125,
+        6482.1669921875,
+        6511.61083984375,
+        6437.65673828125
+      ],
+      "forward_contract": {
+        "correction_formula": "transition_log_density + observation_log_density - pre_flow_log_density + forward_log_det",
+        "estimator_kind": "finite_N_fixed_randomness_ledh_log_likelihood_estimator",
+        "full_leaderboard_row": true,
+        "metadata": {
+          "batch_seeds": [
+            81120,
+            81121,
+            81122,
+            81123,
+            81124
+          ],
+          "num_particles": 10000,
+          "time_steps": 20
+        },
+        "nonclaims": [
+          "metadata alone is not fixed-SIR value admission",
+          "metadata alone is not fixed-SIR score evidence"
+        ],
+        "output_tensor_field": "log_likelihood",
+        "proposal_flow_fields": [
+          "pre_flow_log_density",
+          "forward_log_det",
+          "proposal_observation_surface"
+        ],
+        "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+        "row_scope": "main_observed_data_filtering_row",
+        "schema_version": "bayesfilter.highdim.ledh_forward_contract.v1",
+        "score_status": "blocked_score_until_same_target_no_tape_gate",
+        "target_density_fields": [
+          "transition_log_density",
+          "observation_log_density"
+        ],
+        "target_scalar": "observed_data_log_likelihood_estimator",
+        "theta_contract": {
+          "nonclaims": [
+            "not Zhao-Cui author-source free-theta faithfulness",
+            "not fixed-SIR score admission"
+          ],
+          "parameter_order": [
+            "log_kappa_scale",
+            "log_nu_scale",
+            "log_obs_noise_scale"
+          ],
+          "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+          "source_classification": "source_base_with_logscale_theta_extension",
+          "theta_coordinate_system": "sir_log_scale_theta",
+          "theta_dimension": 3,
+          "theta_status": "phase1_frozen",
+          "truth_theta": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "value_status": "amended_sir_log_scale_theta_value_metadata_present"
+      },
+      "lane": "highdim_source_scope",
+      "log_likelihood": -902.8301513671875,
+      "mc_standard_deviation": 0.023279939813037148,
+      "mc_standard_error": 0.010411105586810961,
+      "nonclaims": [
+        "actual SIR d18 TF32/GPU feasibility probe only",
+        "production/default target by owner directive",
+        "not SIR d18 particle-count adequacy evidence",
+        "not leaderboard completion",
+        "not MC-SE adequacy evidence",
+        "not exact likelihood correctness",
+        "not DPF gradient correctness",
+        "not HMC/NUTS readiness",
+        "not Zhao-Cui TT/SIRT or MATLAB parity",
+        "not exact nonlinear likelihood correctness evidence",
+        "not runtime-rankable against frozen non-LEDH rows",
+        "not Zhao-Cui TT/SIRT source-faithfulness evidence"
+      ],
+      "particle_count": 10000,
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "fresh_ledh_phase4_batched_value_run",
+        "cpu_timing_status": "not_run_cpu_not_default_ledh_target",
+        "evidence_paths": [
+          "docs/plans/bayesfilter-ledh-inclusive-highdim-leaderboard-phase4-fixed-sir-value-ladder-N10000-2026-07-03.json"
+        ],
+        "gpu_xla_status": "executed_gpu_xla_tf32_value_only",
+        "nonclaims": [
+          "not runtime-rankable against frozen non-LEDH rows",
+          "not score evidence",
+          "not HMC readiness evidence"
+        ],
+        "reason": "Fresh LEDH GPU/XLA/TF32 value timing is recorded for diagnostics, but non-LEDH rows are frozen baseline rows and were not rerun in the same harness.",
+        "scope": "main_observed_data_filtering_row",
+        "timing_rank_status": "not_rankable_frozen_non_ledh_baseline"
+      },
+      "proposal_flow_fields": [
+        "pre_flow_log_density",
+        "forward_log_det",
+        "proposal_observation_surface"
+      ],
+      "reason": "fixed spatial SIR LEDH value and no-tape score executed at N=10000 under the amended sir_log_scale_theta row",
+      "row_admission_status": "executed_same_target_value_score_phase5_pass",
+      "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+      "row_scope": "main_observed_data_filtering_row",
+      "runtime_rankable": false,
+      "runtime_rankable_with_non_ledh": false,
+      "runtime_seconds": 6.914703471004032,
+      "score": [
+        -9.561392784118652,
+        3.501729726791382,
+        4.6841230392456055
+      ],
+      "score_coordinate_system": "theta=(log_kappa_scale,log_nu_scale,log_obs_noise_scale)",
+      "score_derivative_provenance": "manual_total_vjp_no_autodiff_same_scalar_fixed_sir_logscale_ledh_pfpf_ot",
+      "score_evidence_artifact": "docs/plans/ledh-phase5-fixed-sir-score-memory-n10000-2026-07-06.json",
+      "score_fd_abs_error": 0.001092374324798584,
+      "score_fd_rel_error": 0.001272708410397172,
+      "score_l2_norm": 11.208182354801432,
+      "score_memory_peak_mib": 3166.76904296875,
+      "score_status": "admitted_same_target_no_tape_score_n10000",
+      "score_status_reason": "Phase 5 trusted GPU N=10000 same-scalar no-tape score-memory gate passed",
+      "seeds": [
+        81120,
+        81121,
+        81122,
+        81123,
+        81124
+      ],
+      "source_artifact": "docs/plans/bayesfilter-ledh-inclusive-highdim-leaderboard-phase4-fixed-sir-value-ladder-N10000-2026-07-03.json",
+      "target_contract_status": "amended_sir_log_scale_theta_observed_data_value_score",
+      "target_density_fields": [
+        "transition_log_density",
+        "observation_log_density"
+      ],
+      "target_match_status": "sir_log_scale_theta_observed_data_value_score",
+      "target_output_tensor_field": "log_likelihood",
+      "target_scalar": "observed_data_log_likelihood_estimator",
+      "target_scope": "main_observed_data_filtering_row",
+      "total_log_likelihood_mc_standard_deviation": 0.4655987962607672,
+      "total_log_likelihood_mc_standard_error": 0.20822211173623006,
+      "value_status": "executed_fixed_sir_value_only"
+    },
+    {
+      "absolute_score_l2_gap_to_kalman": null,
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "fixed_sgqf",
+      "average_log_likelihood": null,
+      "comparator_provenance": "frozen_non_ledh_baseline",
+      "comparison_status": "blocked",
+      "lane": "highdim_source_scope",
+      "log_likelihood": null,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "not a fixed-SGQF or UKF full-filtering comparison row",
+        "not ranked as a full three-algorithm observed-data/filtering row",
+        "frozen non-LEDH baseline row copied for status/value context",
+        "not rerun under the LEDH GPU/XLA harness",
+        "not runtime-rankable against fresh LEDH rows"
+      ],
+      "numeric_execution_status": "blocked_not_applicable_to_scoped_zhao_cui_component_row",
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_applicable_until_value_score_row_exists",
+        "cpu_timing_status": "not_applicable_until_value_score_row_exists",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_applicable_until_value_score_row_exists",
+        "nonclaims": [
+          "no batch/GPU/XLA readiness claim while value/score gate remains open",
+          "not ranked by timing"
+        ],
+        "reason": "Value/score row is not admitted, so timing cannot rank or rescue this cell.",
+        "scope": "main_leaderboard_row",
+        "timing_rank_status": "not_rankable_correctness_gate_open"
+      },
+      "reason": "fixed_sgqf is not admitted for the scoped Zhao-Cui parameterized SIR local complete-data component row; the scoped row is a fixed-variant Zhao-Cui manual-score component cell.",
+      "reason_codes": [
+        "SCOPED_COMPONENT_ROW_ZHAO_CUI_ONLY",
+        "FULL_FILTERING_LEADERBOARD_CELL_STILL_NOT_CLAIMED"
+      ],
+      "reference_log_likelihood": null,
+      "reference_score": null,
+      "retained_grid_leaderboard_admission": "not_admitted_for_production_leaderboard_use_fixed_variant_zhao_cui",
+      "retained_grid_route_role": "diagnostic_historical_retained_grid",
+      "route_role": "not_applicable_to_scoped_component_row",
+      "row_admission_status": "not_applicable_to_scoped_component_row",
+      "row_id": "zhao_cui_spatial_sir_austria_j9_T20_parameterized_logscale",
+      "runtime_rankable_with_ledh": false,
+      "runtime_seconds": null,
+      "score": null,
+      "score_coordinate_system": null,
+      "score_derivative_provenance": null,
+      "score_l2_norm": null,
+      "score_status": "not_applicable_to_scoped_component_row",
+      "score_status_reason": "fixed_sgqf is not admitted for the scoped Zhao-Cui parameterized SIR local complete-data component row; the scoped row is a fixed-variant Zhao-Cui manual-score component cell.",
+      "source_baseline": "docs/plans/bayesfilter-two-lane-highdim-leaderboard-results-2026-07-03.json",
+      "target_contract_status": "not_applicable_to_scoped_zhao_cui_component_row",
+      "target_scope": "local_complete_data_zhao_cui_sir_d18_component"
+    },
+    {
+      "absolute_score_l2_gap_to_kalman": null,
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "ukf",
+      "average_log_likelihood": null,
+      "comparator_provenance": "frozen_non_ledh_baseline",
+      "comparison_status": "blocked",
+      "lane": "highdim_source_scope",
+      "log_likelihood": null,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "not a fixed-SGQF or UKF full-filtering comparison row",
+        "not ranked as a full three-algorithm observed-data/filtering row",
+        "frozen non-LEDH baseline row copied for status/value context",
+        "not rerun under the LEDH GPU/XLA harness",
+        "not runtime-rankable against fresh LEDH rows"
+      ],
+      "numeric_execution_status": "blocked_not_applicable_to_scoped_zhao_cui_component_row",
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_applicable_until_value_score_row_exists",
+        "cpu_timing_status": "not_applicable_until_value_score_row_exists",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_applicable_until_value_score_row_exists",
+        "nonclaims": [
+          "no batch/GPU/XLA readiness claim while value/score gate remains open",
+          "not ranked by timing"
+        ],
+        "reason": "Value/score row is not admitted, so timing cannot rank or rescue this cell.",
+        "scope": "main_leaderboard_row",
+        "timing_rank_status": "not_rankable_correctness_gate_open"
+      },
+      "reason": "ukf is not admitted for the scoped Zhao-Cui parameterized SIR local complete-data component row; the scoped row is a fixed-variant Zhao-Cui manual-score component cell.",
+      "reason_codes": [
+        "SCOPED_COMPONENT_ROW_ZHAO_CUI_ONLY",
+        "FULL_FILTERING_LEADERBOARD_CELL_STILL_NOT_CLAIMED"
+      ],
+      "reference_log_likelihood": null,
+      "reference_score": null,
+      "retained_grid_leaderboard_admission": "not_admitted_for_production_leaderboard_use_fixed_variant_zhao_cui",
+      "retained_grid_route_role": "diagnostic_historical_retained_grid",
+      "route_role": null,
+      "row_admission_status": "not_applicable_to_scoped_component_row",
+      "row_id": "zhao_cui_spatial_sir_austria_j9_T20_parameterized_logscale",
+      "runtime_rankable_with_ledh": false,
+      "runtime_seconds": null,
+      "score": null,
+      "score_coordinate_system": null,
+      "score_derivative_provenance": null,
+      "score_l2_norm": null,
+      "score_status": "not_applicable_to_scoped_component_row",
+      "score_status_reason": "ukf is not admitted for the scoped Zhao-Cui parameterized SIR local complete-data component row; the scoped row is a fixed-variant Zhao-Cui manual-score component cell.",
+      "source_baseline": "docs/plans/bayesfilter-two-lane-highdim-leaderboard-results-2026-07-03.json",
+      "target_contract_status": "not_applicable_to_scoped_zhao_cui_component_row",
+      "target_scope": "local_complete_data_zhao_cui_sir_d18_component"
+    },
+    {
+      "absolute_score_l2_gap_to_kalman": null,
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "average_log_likelihood": -60.44641064507831,
+      "comparator_provenance": "frozen_non_ledh_baseline",
+      "comparison_status": "executed_value_score",
+      "lane": "highdim_source_scope",
+      "log_likelihood": -1208.9282129015662,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "scoped local complete-data component row, not full observed-data/filtering SIR likelihood",
+        "row id encodes parameterization only; target_scope metadata carries the local-complete-data boundary",
+        "not source-faithful as an inference-theta parameterization",
+        "not exact likelihood correctness",
+        "not posterior correctness or convergence",
+        "P91 sidecar timing is not main-row full-filtering timing",
+        "retained-grid route remains diagnostic/historical and is not selected for production leaderboard admission",
+        "not full observed-data/filtering score identity",
+        "not full source-route FD derivative readiness",
+        "not exact likelihood correctness",
+        "not posterior correctness or convergence",
+        "frozen non-LEDH baseline row copied for status/value context",
+        "not rerun under the LEDH GPU/XLA harness",
+        "not runtime-rankable against fresh LEDH rows"
+      ],
+      "numeric_execution_status": "executed_zhao_cui_parameterized_sir_t20_local_complete_data_value_score",
+      "p91_scoped_evidence": {
+        "benchmark_status": "PASS_P91_PHASE6_PERFORMANCE_BENCHMARK",
+        "evidence_paths": [
+          "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase9-final-decision-result-2026-06-29.md",
+          "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase4-score-identity-manifest-2026-06-29.json",
+          "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase5-gpu-xla-jit-manifest-2026-06-29.json",
+          "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase6-performance-benchmark-2026-06-29.json",
+          "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase7-hmc-smoke-2026-06-29.json"
+        ],
+        "gpu_xla_status": "PASS_P91_PHASE5_GPU_XLA_JIT_LOCAL_COMPLETE_DATA",
+        "hmc_smoke_status": "PASS_P91_PHASE7_HMC_SMOKE",
+        "nonclaims": [
+          "not full observed-data/filtering score identity",
+          "not full source-route FD derivative readiness",
+          "not exact likelihood correctness",
+          "not posterior correctness or convergence"
+        ],
+        "phase7_sidecar_performance": {
+          "admission_scope": "sidecar_only_not_full_observed_data_filtering_row",
+          "evidence_paths": [
+            "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase6-performance-benchmark-2026-06-29.json",
+            "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase6-performance-benchmark-cpu-2026-06-29.json",
+            "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase6-performance-benchmark-gpu-2026-06-29.json"
+          ],
+          "excluded_from_main_leaderboard_ranking": true,
+          "main_row_admission_status": "not_full_observed_data_filtering_evidence",
+          "namespace": "p91_scoped_local_complete_data_sidecar",
+          "nonclaims": [
+            "not full observed-data/filtering SIR timing",
+            "not full observed-data/filtering SIR score admission",
+            "not part of main leaderboard timing ranking"
+          ],
+          "scope": "local_complete_data_zhao_cui_sir_d18_component",
+          "status": "PASS_P91_PHASE6_PERFORMANCE_BENCHMARK",
+          "timing_by_target": {
+            "cpu": {
+              "actual_xla_status": false,
+              "checks": {
+                "cpu_batched": {
+                  "first_call_seconds": 1.258851503022015,
+                  "gpu_output_devices": false,
+                  "passed": true,
+                  "post_warmup_retrace_detected": false,
+                  "steady_mean_seconds": 0.003697521169669926,
+                  "steady_per_item_seconds": 0.0009243802924174815
+                },
+                "cpu_looped_single": {
+                  "first_call_seconds": 0.7271717760013416,
+                  "gpu_output_devices": false,
+                  "passed": true,
+                  "post_warmup_retrace_detected": false,
+                  "steady_mean_seconds": 0.0034192421939224006,
+                  "steady_per_item_seconds": 0.0034192421939224006
+                }
+              },
+              "manifest_path": "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase6-performance-benchmark-cpu-2026-06-29.json",
+              "status": "PASS_P91_PHASE6_CPU_BENCHMARK"
+            },
+            "gpu_xla": {
+              "actual_xla_status": true,
+              "checks": {
+                "gpu_xla_batched": {
+                  "first_call_seconds": 5.666246789041907,
+                  "gpu_output_devices": true,
+                  "passed": true,
+                  "post_warmup_retrace_detected": false,
+                  "steady_mean_seconds": 0.0017791393911466002,
+                  "steady_per_item_seconds": 0.00044478484778665006
+                },
+                "gpu_xla_looped_single": {
+                  "first_call_seconds": 1.809944199048914,
+                  "gpu_output_devices": true,
+                  "passed": true,
+                  "post_warmup_retrace_detected": false,
+                  "steady_mean_seconds": 0.0009009486064314842,
+                  "steady_per_item_seconds": 0.0009009486064314842
+                }
+              },
+              "manifest_path": "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase6-performance-benchmark-gpu-2026-06-29.json",
+              "status": "PASS_P91_PHASE6_GPU_XLA_BENCHMARK"
+            }
+          }
+        },
+        "scope": "local_complete_data_zhao_cui_sir_d18_component",
+        "score_identity_status": "PASS_P91_PHASE4_LOCAL_COMPONENT_SCORE_IDENTITY",
+        "status": "P91_SCOPED_PRODUCTION_READY_CLOSED"
+      },
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "p91_sidecar_batched_evidence_scoped_component_only",
+        "cpu_timing_status": "p91_sidecar_cpu_timing_scoped_component_only",
+        "evidence_paths": [
+          "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase9-final-decision-result-2026-06-29.md",
+          "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase4-score-identity-manifest-2026-06-29.json",
+          "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase5-gpu-xla-jit-manifest-2026-06-29.json",
+          "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase6-performance-benchmark-2026-06-29.json",
+          "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase7-hmc-smoke-2026-06-29.json"
+        ],
+        "gpu_xla_status": "p91_sidecar_gpu_xla_scoped_component_only",
+        "nonclaims": [
+          "not full observed-data/filtering SIR timing",
+          "not ranked as a full three-algorithm observed-data/filtering row"
+        ],
+        "reason": "Scoped local complete-data component row; P91 timing/GPU evidence is supporting sidecar evidence only and is not full observed-data/filtering timing.",
+        "scope": "scoped_component_row",
+        "timing_rank_status": "not_ranked_as_full_filtering_row"
+      },
+      "reason": null,
+      "reason_codes": [
+        "ZHAO_CUI_PARAMETERIZED_SIR_T20_SCOPED_LOCAL_COMPLETE_DATA_VALUE_SCORE",
+        "P91_SCOPED_LOCAL_COMPLETE_DATA_READY",
+        "FULL_FILTERING_LEADERBOARD_CELL_STILL_NOT_CLAIMED",
+        "RETAINED_GRID_ROUTE_NOT_ADMITTED_FOR_PRODUCTION"
+      ],
+      "reference_log_likelihood": null,
+      "reference_score": null,
+      "retained_grid_leaderboard_admission": "not_admitted_for_production_leaderboard_use_fixed_variant_zhao_cui",
+      "retained_grid_route_role": "diagnostic_historical_retained_grid",
+      "route_role": "fixed_variant_zhao_cui_source_route",
+      "row_admission_status": "scoped_component_row_admitted",
+      "row_id": "zhao_cui_spatial_sir_austria_j9_T20_parameterized_logscale",
+      "runtime_rankable_with_ledh": false,
+      "runtime_seconds": 1.427447821944952,
+      "score": [
+        1163.1499331099205,
+        -508.7932467308049,
+        21.10862132639743
+      ],
+      "score_coordinate_system": "theta=(log_kappa_scale,log_nu_scale,log_obs_noise_scale)",
+      "score_derivative_provenance": "zhao_cui_sir_d18_local_complete_data_manual_parameter_score_methods",
+      "score_l2_norm": 1269.7377322529198,
+      "score_status": "analytical_score_emitted",
+      "score_status_reason": "Zhao-Cui parameterized SIR T20 local complete-data score emitted by manual parameter-score methods",
+      "source_baseline": "docs/plans/bayesfilter-two-lane-highdim-leaderboard-results-2026-07-03.json",
+      "target_contract_status": "target_compatible_scoped_local_complete_data_component",
+      "target_scope": "local_complete_data_zhao_cui_sir_d18_component"
+    },
+    {
+      "algorithm_id": "ledh_pfpf_ot",
+      "average_log_likelihood": null,
+      "comparator_provenance": "fresh_ledh_status_from_phase1_ledger",
+      "comparison_status": "scoped_component_status_only",
+      "current_adapter_evidence": [
+        "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py implements parameterized SIR LEDH diagnostics",
+        "current July 3 leaderboard labels parameterized SIR as local complete-data component evidence"
+      ],
+      "device_provenance": "not_run_blocked_or_scoped",
+      "forbidden_claims": [
+        "do not use scoped local-complete-data evidence as full observed-data filtering evidence"
+      ],
+      "lane": "highdim_source_scope",
+      "log_likelihood": null,
+      "mc_standard_deviation": null,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "not LEDH value execution",
+        "not LEDH score execution",
+        "not HMC readiness evidence",
+        "not runtime ranking evidence"
+      ],
+      "particle_count": null,
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_run_blocked_or_scoped",
+        "cpu_timing_status": "not_run",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_run",
+        "nonclaims": [
+          "not runtime evidence",
+          "not value correctness evidence",
+          "not score correctness evidence"
+        ],
+        "reason": "The parameterized SIR row is not a full observed-data/filtering row in the current baseline.; value_status=scoped_or_diagnostic_only; score_status=scoped_score_diagnostic_not_full_observed_data_score",
+        "scope": "scoped_component_row",
+        "timing_rank_status": "not_rankable_no_fresh_value_row"
+      },
+      "reason": "The parameterized SIR row is not a full observed-data/filtering row in the current baseline.; value_status=scoped_or_diagnostic_only; score_status=scoped_score_diagnostic_not_full_observed_data_score",
+      "required_phase2_work": [
+        "include this row only with scoped-component metadata",
+        "do not compare it as a full observed-data filtering row"
+      ],
+      "required_score_admission_artifact": "if included as a scoped diagnostic, cite the total-derivative diagnostic artifact separately from full-row score evidence",
+      "row_admission_status": "scoped_component_row",
+      "row_id": "zhao_cui_spatial_sir_austria_j9_T20_parameterized_logscale",
+      "row_scope": "scoped_component_row",
+      "runtime_rankable": false,
+      "runtime_rankable_with_non_ledh": false,
+      "runtime_seconds": null,
+      "score": null,
+      "score_coordinate_system": null,
+      "score_derivative_provenance": null,
+      "score_l2_norm": null,
+      "score_status": "scoped_score_diagnostic_not_full_observed_data_score",
+      "score_status_reason": "if included as a scoped diagnostic, cite the total-derivative diagnostic artifact separately from full-row score evidence",
+      "seeds": null,
+      "source_ledger": "docs/plans/bayesfilter-ledh-inclusive-highdim-leaderboard-phase1-row-admission-ledger-2026-07-03.json",
+      "target_contract_status": "not_full_observed_data_filtering_row",
+      "target_match_status": "not_full_observed_data_filtering_row",
+      "target_scope": "scoped_component_row_in_current_baseline",
+      "value_status": "scoped_or_diagnostic_only"
+    },
+    {
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "fixed_sgqf",
+      "average_log_likelihood": null,
+      "comparator_provenance": "frozen_non_ledh_baseline",
+      "comparison_status": "blocked",
+      "lane": "highdim_source_scope",
+      "log_likelihood": null,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "no fixed-SGQF T20 predator-prey value emitted in this phase",
+        "P47 two-observation lower-rung SGQF diagnostic is not reported as the T20 source-scope row",
+        "not a production-GPU timing result",
+        "frozen non-LEDH baseline row copied for status/value context",
+        "not rerun under the LEDH GPU/XLA harness",
+        "not runtime-rankable against fresh LEDH rows"
+      ],
+      "numeric_execution_status": "blocked_predator_prey_sgqf_value",
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_applicable_until_value_score_row_exists",
+        "cpu_timing_status": "not_applicable_until_value_score_row_exists",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_applicable_until_value_score_row_exists",
+        "nonclaims": [
+          "no batch/GPU/XLA readiness claim while value/score gate remains open",
+          "not ranked by timing"
+        ],
+        "reason": "Value/score row is not admitted, so timing cannot rank or rescue this cell.",
+        "scope": "main_leaderboard_row",
+        "timing_rank_status": "not_rankable_correctness_gate_open"
+      },
+      "reason": "blocked_target_alignment: no reviewed fixed-SGQF evaluator is wired for the source-scope T20 predator-prey observations; the available P47 two-observation lower-rung value is diagnostic-only and is not reported as this T20 row",
+      "reason_codes": [
+        "PREDATOR_PREY_T20_FIXED_SGQF_EVALUATOR_REQUIRED"
+      ],
+      "reference_log_likelihood": null,
+      "row_id": "zhao_cui_predator_prey_T20",
+      "runtime_rankable_with_ledh": false,
+      "runtime_seconds": null,
+      "score": null,
+      "score_coordinate_system": null,
+      "score_derivative_provenance": null,
+      "score_l2_norm": null,
+      "score_status": "blocked_target_alignment",
+      "score_status_reason": "no reviewed fixed-SGQF evaluator is wired for the source-scope T20 predator-prey observations; the P47 two-observation lower-rung diagnostic is not reported as this T20 row",
+      "source_baseline": "docs/plans/bayesfilter-two-lane-highdim-leaderboard-results-2026-07-03.json",
+      "target_contract_status": "blocked_missing_t20_fixed_sgqf_evaluator"
+    },
+    {
+      "absolute_score_l2_gap_to_kalman": null,
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "ukf",
+      "average_log_likelihood": -8.56827587430274,
+      "comparator_provenance": "frozen_non_ledh_baseline",
+      "comparison_status": "executed_value_only",
+      "lane": "highdim_source_scope",
+      "log_likelihood": -171.3655174860548,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "additive-Gaussian predator-prey structural approximation",
+        "predict-then-observe filter convention",
+        "P8c is a partial comparator-only baseline, not full scientific truth",
+        "no filter ranking or Bayesian-estimation readiness claim",
+        "autodiff score provenance is diagnostic only and is not admitted as a leaderboard gradient benchmark",
+        "analytical gradient accuracy is the benchmarked score standard",
+        "frozen non-LEDH baseline row copied for status/value context",
+        "not rerun under the LEDH GPU/XLA harness",
+        "not runtime-rankable against fresh LEDH rows"
+      ],
+      "numeric_execution_status": "executed_numeric_value_only_autodiff_score_not_admitted",
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_applicable_until_value_score_row_exists",
+        "cpu_timing_status": "not_applicable_until_value_score_row_exists",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_applicable_until_value_score_row_exists",
+        "nonclaims": [
+          "no batch/GPU/XLA readiness claim while value/score gate remains open",
+          "not ranked by timing"
+        ],
+        "reason": "Value/score row is not admitted, so timing cannot rank or rescue this cell.",
+        "scope": "main_leaderboard_row",
+        "timing_rank_status": "not_rankable_correctness_gate_open"
+      },
+      "reason": "autodiff score provenance is diagnostic only; analytical gradient accuracy is the leaderboard benchmark",
+      "reason_codes": [
+        "P8D_EXECUTED_DETERMINISTIC_VALUE_AND_TF_AUTODIFF_SCORE"
+      ],
+      "reference_log_likelihood": null,
+      "reference_score": null,
+      "row_id": "zhao_cui_predator_prey_T20",
+      "runtime_rankable_with_ledh": false,
+      "runtime_seconds": 5.479427,
+      "score": null,
+      "score_coordinate_system": null,
+      "score_derivative_provenance": "ukf_predator_prey_structural_sigma_point_tf_autodiff_score",
+      "score_l2_norm": null,
+      "score_status": "blocked_autodiff_not_admitted",
+      "score_status_reason": "autodiff score provenance is diagnostic only; analytical gradient accuracy is the leaderboard benchmark",
+      "source_baseline": "docs/plans/bayesfilter-two-lane-highdim-leaderboard-results-2026-07-03.json",
+      "target_contract_status": "target_compatible"
+    },
+    {
+      "absolute_score_l2_gap_to_kalman": null,
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "average_log_likelihood": null,
+      "comparator_provenance": "frozen_non_ledh_baseline",
+      "comparison_status": "blocked_or_status_only",
+      "lane": "highdim_source_scope",
+      "log_likelihood": null,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "not a numeric benchmark result for this cell",
+        "no silent N/A: cell remains explicit structured blocker or not-applicable",
+        "frozen non-LEDH baseline row copied for status/value context",
+        "not rerun under the LEDH GPU/XLA harness",
+        "not runtime-rankable against fresh LEDH rows"
+      ],
+      "numeric_execution_status": "blocked_model_specific_evaluator_adapter_required",
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_applicable_until_value_score_row_exists",
+        "cpu_timing_status": "not_applicable_until_value_score_row_exists",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_applicable_until_value_score_row_exists",
+        "nonclaims": [
+          "no batch/GPU/XLA readiness claim while value/score gate remains open",
+          "not ranked by timing"
+        ],
+        "reason": "Value/score row is not admitted, so timing cannot rank or rescue this cell.",
+        "scope": "main_leaderboard_row",
+        "timing_rank_status": "not_rankable_correctness_gate_open"
+      },
+      "reason": "P8D_MODEL_SPECIFIC_NUMERIC_EVALUATOR_ADAPTER_REQUIRED",
+      "reason_codes": [
+        "P8D_MODEL_SPECIFIC_NUMERIC_EVALUATOR_ADAPTER_REQUIRED"
+      ],
+      "reference_log_likelihood": null,
+      "reference_score": null,
+      "row_id": "zhao_cui_predator_prey_T20",
+      "runtime_rankable_with_ledh": false,
+      "runtime_seconds": null,
+      "score": null,
+      "score_coordinate_system": null,
+      "score_derivative_provenance": null,
+      "score_l2_norm": null,
+      "score_status": null,
+      "score_status_reason": null,
+      "source_baseline": "docs/plans/bayesfilter-two-lane-highdim-leaderboard-results-2026-07-03.json",
+      "target_contract_status": "target_compatible"
+    },
+    {
+      "algorithm_id": "ledh_pfpf_ot",
+      "average_log_likelihood": null,
+      "comparator_provenance": "fresh_ledh_status_from_phase1_ledger",
+      "comparison_status": "blocked",
+      "current_adapter_evidence": [
+        "scripts/filtering_value_gradient_benchmark_run_p8d_numeric.py:_dpf_predator_prey_callbacks contains a legacy DPF callback route"
+      ],
+      "device_provenance": "not_run_blocked_or_scoped",
+      "forbidden_claims": [
+        "do not use UKF value-only status or legacy DPF callback existence as LEDH score evidence"
+      ],
+      "lane": "highdim_source_scope",
+      "log_likelihood": null,
+      "mc_standard_deviation": null,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "not LEDH value execution",
+        "not LEDH score execution",
+        "not HMC readiness evidence",
+        "not runtime ranking evidence"
+      ],
+      "particle_count": null,
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_run_blocked_or_scoped",
+        "cpu_timing_status": "not_run",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_run",
+        "nonclaims": [
+          "not runtime evidence",
+          "not value correctness evidence",
+          "not score correctness evidence"
+        ],
+        "reason": "No reviewed current LEDH-inclusive runner adapter proves same-target predator-prey T20 execution on the GPU/XLA TF32 route.; value_status=blocked_no_reviewed_current_gpu_xla_ledh_row_adapter; score_status=blocked_score",
+        "scope": "main_observed_data_filtering_row",
+        "timing_rank_status": "not_rankable_no_fresh_value_row"
+      },
+      "reason": "No reviewed current LEDH-inclusive runner adapter proves same-target predator-prey T20 execution on the GPU/XLA TF32 route.; value_status=blocked_no_reviewed_current_gpu_xla_ledh_row_adapter; score_status=blocked_score",
+      "required_phase2_work": [
+        "prove and wire same-target predator-prey adapter or keep blocked",
+        "do not rely on legacy callback existence alone"
+      ],
+      "required_score_admission_artifact": "blocked until value target is admitted; then exact derivation or trusted same-target finite difference",
+      "row_admission_status": "blocked_value",
+      "row_id": "zhao_cui_predator_prey_T20",
+      "row_scope": "main_observed_data_filtering_row",
+      "runtime_rankable": false,
+      "runtime_rankable_with_non_ledh": false,
+      "runtime_seconds": null,
+      "score": null,
+      "score_coordinate_system": null,
+      "score_derivative_provenance": null,
+      "score_l2_norm": null,
+      "score_status": "blocked_score",
+      "score_status_reason": "blocked until value target is admitted; then exact derivation or trusted same-target finite difference",
+      "seeds": null,
+      "source_ledger": "docs/plans/bayesfilter-ledh-inclusive-highdim-leaderboard-phase1-row-admission-ledger-2026-07-03.json",
+      "target_contract_status": "not_admitted",
+      "target_match_status": "not_admitted",
+      "target_scope": "main_observed_data_filtering_row",
+      "value_status": "blocked_no_reviewed_current_gpu_xla_ledh_row_adapter"
+    },
+    {
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "fixed_sgqf",
+      "average_log_likelihood": null,
+      "comparator_provenance": "frozen_non_ledh_baseline",
+      "comparison_status": "blocked",
+      "lane": "highdim_source_scope",
+      "log_likelihood": null,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "not executed in the current source-scope leaderboard lane",
+        "native dense oracle, precursor, auxiliary, actual-SV, and KSC evidence may inform debugging only and do not admit this fixed-SGQF source-row cell",
+        "frozen non-LEDH baseline row copied for status/value context",
+        "not rerun under the LEDH GPU/XLA harness",
+        "not runtime-rankable against fresh LEDH rows"
+      ],
+      "numeric_execution_status": "blocked_generalized_sv_fixed_sgqf_source_row_evaluator_missing",
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_applicable_until_value_score_row_exists",
+        "cpu_timing_status": "not_applicable_until_value_score_row_exists",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_applicable_until_value_score_row_exists",
+        "nonclaims": [
+          "no batch/GPU/XLA readiness claim while value/score gate remains open",
+          "not ranked by timing"
+        ],
+        "reason": "Value/score row is not admitted, so timing cannot rank or rescue this cell.",
+        "scope": "main_leaderboard_row",
+        "timing_rank_status": "not_rankable_correctness_gate_open"
+      },
+      "reason": "blocked_source_row_evaluator_missing: no reviewed fixed-SGQF exact-row evaluator is wired for zhao_cui_generalized_sv_synthetic_from_estimated_values; native-oracle, precursor, auxiliary, actual-SV, and KSC evidence are not source-row admission evidence",
+      "reason_codes": [
+        "GENERALIZED_SV_EXACT_SOURCE_ROW_FIXED_SGQF_EVALUATOR_REQUIRED",
+        "PRECURSOR_NATIVE_ORACLE_AUXILIARY_ACTUAL_SV_KSC_NOT_ADMISSION_EVIDENCE"
+      ],
+      "reference_log_likelihood": null,
+      "row_id": "zhao_cui_generalized_sv_synthetic_from_estimated_values",
+      "runtime_rankable_with_ledh": false,
+      "runtime_seconds": null,
+      "score": null,
+      "score_coordinate_system": null,
+      "score_derivative_provenance": null,
+      "score_l2_norm": null,
+      "score_status": "blocked_exact_source_row_evaluator_missing",
+      "score_status_reason": "no reviewed fixed-SGQF exact-row evaluator or derivative route exists for zhao_cui_generalized_sv_synthetic_from_estimated_values",
+      "source_baseline": "docs/plans/bayesfilter-two-lane-highdim-leaderboard-results-2026-07-03.json",
+      "target_contract_status": "blocked_exact_source_row_evaluator_missing"
+    },
+    {
+      "absolute_score_l2_gap_to_kalman": null,
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "ukf",
+      "average_log_likelihood": -1.428934153339374,
+      "comparator_provenance": "frozen_non_ledh_baseline",
+      "comparison_status": "executed_value_only",
+      "lane": "highdim_source_scope",
+      "log_likelihood": -1440.365626566089,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "prior-mean generalized-SV synthetic row",
+        "sigma-point approximation with observation-noise augmentation",
+        "P8c is a partial comparator-only baseline, not full scientific truth",
+        "no filter ranking or Bayesian-estimation readiness claim",
+        "autodiff score provenance is diagnostic only and is not admitted as a leaderboard gradient benchmark",
+        "analytical gradient accuracy is the benchmarked score standard",
+        "frozen non-LEDH baseline row copied for status/value context",
+        "not rerun under the LEDH GPU/XLA harness",
+        "not runtime-rankable against fresh LEDH rows"
+      ],
+      "numeric_execution_status": "executed_numeric_value_only_autodiff_score_not_admitted",
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_applicable_until_value_score_row_exists",
+        "cpu_timing_status": "not_applicable_until_value_score_row_exists",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_applicable_until_value_score_row_exists",
+        "nonclaims": [
+          "no batch/GPU/XLA readiness claim while value/score gate remains open",
+          "not ranked by timing"
+        ],
+        "reason": "Value/score row is not admitted, so timing cannot rank or rescue this cell.",
+        "scope": "main_leaderboard_row",
+        "timing_rank_status": "not_rankable_correctness_gate_open"
+      },
+      "reason": "autodiff score provenance is diagnostic only; analytical gradient accuracy is the leaderboard benchmark",
+      "reason_codes": [
+        "P8D_EXECUTED_DETERMINISTIC_VALUE_AND_TF_AUTODIFF_SCORE"
+      ],
+      "reference_log_likelihood": null,
+      "reference_score": null,
+      "row_id": "zhao_cui_generalized_sv_synthetic_from_estimated_values",
+      "runtime_rankable_with_ledh": false,
+      "runtime_seconds": 15.095921,
+      "score": null,
+      "score_coordinate_system": null,
+      "score_derivative_provenance": "ukf_generalized_sv_augmented_noise_sigma_point_tf_autodiff_score",
+      "score_l2_norm": null,
+      "score_status": "blocked_autodiff_not_admitted",
+      "score_status_reason": "autodiff score provenance is diagnostic only; analytical gradient accuracy is the leaderboard benchmark",
+      "source_baseline": "docs/plans/bayesfilter-two-lane-highdim-leaderboard-results-2026-07-03.json",
+      "target_contract_status": "target_compatible"
+    },
+    {
+      "absolute_score_l2_gap_to_kalman": null,
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "average_log_likelihood": null,
+      "comparator_provenance": "frozen_non_ledh_baseline",
+      "comparison_status": "blocked_or_status_only",
+      "lane": "highdim_source_scope",
+      "log_likelihood": null,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "not a numeric benchmark result for this cell",
+        "no silent N/A: cell remains explicit structured blocker or not-applicable",
+        "native dense oracle, precursor, auxiliary, actual-SV, and KSC evidence may inform debugging only and do not admit this Zhao-Cui source-row cell",
+        "not source-row value execution",
+        "not source-row score execution",
+        "frozen non-LEDH baseline row copied for status/value context",
+        "not rerun under the LEDH GPU/XLA harness",
+        "not runtime-rankable against fresh LEDH rows"
+      ],
+      "numeric_execution_status": "blocked_generalized_sv_zhao_cui_source_row_evaluator_adapter_required",
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_applicable_until_value_score_row_exists",
+        "cpu_timing_status": "not_applicable_until_value_score_row_exists",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_applicable_until_value_score_row_exists",
+        "nonclaims": [
+          "no batch/GPU/XLA readiness claim while value/score gate remains open",
+          "not ranked by timing"
+        ],
+        "reason": "Value/score row is not admitted, so timing cannot rank or rescue this cell.",
+        "scope": "main_leaderboard_row",
+        "timing_rank_status": "not_rankable_correctness_gate_open"
+      },
+      "reason": "blocked_source_row_evaluator_missing: no reviewed Zhao-Cui exact-row evaluator is wired for zhao_cui_generalized_sv_synthetic_from_estimated_values; native-oracle, precursor, auxiliary, actual-SV, and KSC evidence are not source-row admission evidence.",
+      "reason_codes": [
+        "GENERALIZED_SV_EXACT_SOURCE_ROW_ZHAO_CUI_EVALUATOR_REQUIRED",
+        "PRECURSOR_NATIVE_ORACLE_AUXILIARY_ACTUAL_SV_KSC_NOT_ADMISSION_EVIDENCE"
+      ],
+      "reference_log_likelihood": null,
+      "reference_score": null,
+      "row_id": "zhao_cui_generalized_sv_synthetic_from_estimated_values",
+      "runtime_rankable_with_ledh": false,
+      "runtime_seconds": null,
+      "score": null,
+      "score_coordinate_system": null,
+      "score_derivative_provenance": null,
+      "score_l2_norm": null,
+      "score_status": null,
+      "score_status_reason": null,
+      "source_baseline": "docs/plans/bayesfilter-two-lane-highdim-leaderboard-results-2026-07-03.json",
+      "target_contract_status": "blocked_exact_source_row_evaluator_missing"
+    },
+    {
+      "algorithm_id": "ledh_pfpf_ot",
+      "average_log_likelihood": null,
+      "comparator_provenance": "fresh_ledh_status_from_phase1_ledger",
+      "comparison_status": "blocked",
+      "current_adapter_evidence": [
+        "scripts/filtering_value_gradient_benchmark_run_p8d_numeric.py:_dpf_generalized_sv_callbacks contains a legacy DPF callback route",
+        "the callback itself labels its LEDH observation adapter as not same-target transformed-SV evidence"
+      ],
+      "device_provenance": "not_run_blocked_or_scoped",
+      "forbidden_claims": [
+        "do not call generalized-SV LEDH value evidence same-target without a row-target proof"
+      ],
+      "lane": "highdim_source_scope",
+      "log_likelihood": null,
+      "mc_standard_deviation": null,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "not LEDH value execution",
+        "not LEDH score execution",
+        "not HMC readiness evidence",
+        "not runtime ranking evidence"
+      ],
+      "particle_count": null,
+      "phase7_batch_gpu_xla_status": {
+        "batch_status": "not_run_blocked_or_scoped",
+        "cpu_timing_status": "not_run",
+        "evidence_paths": [],
+        "gpu_xla_status": "not_run",
+        "nonclaims": [
+          "not runtime evidence",
+          "not value correctness evidence",
+          "not score correctness evidence"
+        ],
+        "reason": "No reviewed LEDH adapter proves the requested generalized-SV source-row target.; value_status=blocked_no_reviewed_same_target_ledh_row_adapter; score_status=blocked_score",
+        "scope": "main_observed_data_filtering_row",
+        "timing_rank_status": "not_rankable_no_fresh_value_row"
+      },
+      "reason": "No reviewed LEDH adapter proves the requested generalized-SV source-row target.; value_status=blocked_no_reviewed_same_target_ledh_row_adapter; score_status=blocked_score",
+      "required_phase2_work": [
+        "prove exact target match before execution or preserve blocked row",
+        "do not use native-oracle, precursor, auxiliary, actual-SV, or KSC evidence as this source-row admission evidence"
+      ],
+      "required_score_admission_artifact": "blocked until same-target value adapter exists",
+      "row_admission_status": "blocked_value",
+      "row_id": "zhao_cui_generalized_sv_synthetic_from_estimated_values",
+      "row_scope": "main_observed_data_filtering_row",
+      "runtime_rankable": false,
+      "runtime_rankable_with_non_ledh": false,
+      "runtime_seconds": null,
+      "score": null,
+      "score_coordinate_system": null,
+      "score_derivative_provenance": null,
+      "score_l2_norm": null,
+      "score_status": "blocked_score",
+      "score_status_reason": "blocked until same-target value adapter exists",
+      "seeds": null,
+      "source_ledger": "docs/plans/bayesfilter-ledh-inclusive-highdim-leaderboard-phase1-row-admission-ledger-2026-07-03.json",
+      "target_contract_status": "not_admitted",
+      "target_match_status": "not_admitted",
+      "target_scope": "main_observed_data_filtering_row",
+      "value_status": "blocked_no_reviewed_same_target_ledh_row_adapter"
+    }
+  ],
+  "runtime_cross_ranking_allowed": false
+}

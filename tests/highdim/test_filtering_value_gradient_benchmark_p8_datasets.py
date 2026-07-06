@@ -109,24 +109,47 @@ def test_p8_dataset_manifest_generates_sir_raw_synthetic_but_not_source_route_su
     assert row["dataset_status"] == "generated"
     assert row["horizon"] == 20
     assert row["seed"] == 81103
-    assert row["truth_theta_coordinate"] == "no_free_theta"
-    assert row["truth_theta"] == []
+    assert row["truth_theta_coordinate"] == "sir_log_scale_theta"
+    assert row["truth_theta"] == [0.0, 0.0, 0.0]
+    assert row["truth_theta_semantics"] == (
+        "log-scale origin reproducing fixed source SIR base parameters"
+    )
+    assert row["parameter_order"] == [
+        "log_kappa_scale",
+        "log_nu_scale",
+        "log_obs_noise_scale",
+    ]
+    assert row["theta_domain"] == {
+        "log_kappa_scale": [-0.5, 0.5],
+        "log_nu_scale": [-0.5, 0.5],
+        "log_obs_noise_scale": [-0.5, 0.5],
+    }
     assert row["truth_physical"]["kappa"] == [0.1] * 9
     assert row["truth_physical"]["nu"] == [18.0] * 9
+    assert row["truth_physical"]["observation_standard_deviation"] == 10.0
     _assert_finite_summary(row["observation_summary"], [20, 9])
     _assert_finite_summary(row["state_summary"], [20, 18])
     assert row["domain_diagnostics"]["has_negative_state"] is False
+    assert row["model_manifest"]["family"] == "ParameterizedZhaoCuiSIRSSM"
     assert row["model_manifest"]["state_dimension"] == 18
-    assert "production_tt_sirt_sir_filtering" in row["model_manifest"]["what_is_not_claimed"]
+    assert row["model_manifest"]["parameter_dimension"] == 3
+    assert row["model_manifest"]["leaderboard_score_provenance_requirement"] == (
+        "analytical_manual_only"
+    )
+    assert (
+        "production_tt_sirt_sir_filtering"
+        in row["model_manifest"]["base_model_manifest"]["what_is_not_claimed"]
+    )
+    assert "not score admission evidence" in row["nonclaims"]
 
 
-def test_p8_dataset_manifest_generates_parameterized_sir_without_mutating_fixed_row() -> None:
+def test_p8_dataset_manifest_generates_parameterized_sir_as_legacy_duplicate_surface() -> None:
     rows = _rows_by_id()
     fixed = rows["zhao_cui_spatial_sir_austria_j9_T20"]
     row = rows["zhao_cui_spatial_sir_austria_j9_T20_parameterized_logscale"]
 
-    assert fixed["truth_theta_coordinate"] == "no_free_theta"
-    assert fixed["truth_theta"] == []
+    assert fixed["truth_theta_coordinate"] == "sir_log_scale_theta"
+    assert fixed["truth_theta"] == [0.0, 0.0, 0.0]
 
     assert row["dataset_status"] == "generated"
     assert row["horizon"] == 20
@@ -168,7 +191,7 @@ def test_p8_dataset_manifest_generates_parameterized_sir_without_mutating_fixed_
     )
     assert "not score admission evidence" in row["nonclaims"]
     assert (
-        "not a replacement for the fixed no-free-theta source-parity row"
+        "legacy/scoped diagnostic duplicate of the fixed-row log-scale theta surface"
         in row["nonclaims"]
     )
 

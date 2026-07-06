@@ -12,6 +12,30 @@ is allowed for explicit reference checks, small smoke tests, debugging, and
 sandbox-safe diagnostics, but it must not be described as the default
 production target unless a reviewed plan explicitly changes this policy.
 
+## NeuTra Execution Target Policy
+
+BayesFilter NeuTra training is a GPU workload by owner directive.  Any
+BayesFilter-owned learned NeuTra transport training, including affine,
+dense-IAF, normalizing-flow, or future learned transport families, must plan for
+GPU execution by default and must run with trusted/escalated GPU access under
+the local GPU/CUDA sandbox policy.
+
+CPU-only NeuTra training is allowed only as an explicitly labeled tiny smoke,
+reference, or sandbox-diagnostic exception under a reviewed plan.  Such an
+exception must not be described as the default, serious, production, or
+preferred NeuTra training route, and it must not support claims about learned
+transport quality, HMC readiness, posterior correctness, production readiness,
+or scientific validity.
+
+NeuTra sample generation is a separate execution lane.  Pre-generating replay
+samples, target/evaluation samples, proposal clouds, or training datasets should
+use multicore CPU parallelism by default, with worker count, seeds, target
+signature, and output artifact hashes recorded.  Independent CPU sample
+generation must not be conflated with GPU NeuTra training.  In-graph random
+noise needed inside a GPU training step may remain part of the GPU training
+graph, but external sample/dataset generation should be planned as multicore
+CPU work unless a reviewed plan justifies otherwise.
+
 For DPF transport work, the default production algorithm target is the
 GPU-oriented LEDH-PFPF-OT TF32 route: TensorFlow/TFP implementation, `float32`
 tensors, TensorFlow TF32 execution enabled, streaming/chunked transport where

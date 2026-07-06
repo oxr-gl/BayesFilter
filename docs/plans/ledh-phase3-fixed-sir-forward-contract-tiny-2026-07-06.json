@@ -1,0 +1,204 @@
+{
+  "batch_seeds": [
+    81120
+  ],
+  "compile_and_first_call_seconds": 8.214400461874902,
+  "correction_formula": "transition_log_density + observation_log_density - pre_flow_log_density + forward_log_det",
+  "cuda_visible_devices": "-1",
+  "device": "/CPU:0",
+  "device_scope": "cpu",
+  "ess_min_by_seed": null,
+  "ess_summary_available": false,
+  "expect_device_kind": "cpu",
+  "finite_output": true,
+  "forward_contract": {
+    "correction_formula": "transition_log_density + observation_log_density - pre_flow_log_density + forward_log_det",
+    "estimator_kind": "finite_N_fixed_randomness_ledh_log_likelihood_estimator",
+    "full_leaderboard_row": false,
+    "metadata": {
+      "batch_seeds": [
+        81120
+      ],
+      "num_particles": 4,
+      "time_steps": 1
+    },
+    "nonclaims": [
+      "metadata alone is not fixed-SIR value admission",
+      "metadata alone is not fixed-SIR score evidence"
+    ],
+    "output_tensor_field": "log_likelihood",
+    "proposal_flow_fields": [
+      "pre_flow_log_density",
+      "forward_log_det",
+      "proposal_observation_surface"
+    ],
+    "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+    "row_scope": "main_observed_data_filtering_row",
+    "schema_version": "bayesfilter.highdim.ledh_forward_contract.v1",
+    "score_status": "blocked_score_until_same_target_no_tape_gate",
+    "target_density_fields": [
+      "transition_log_density",
+      "observation_log_density"
+    ],
+    "target_scalar": "observed_data_log_likelihood_estimator",
+    "theta_contract": {
+      "nonclaims": [
+        "not Zhao-Cui author-source free-theta faithfulness",
+        "not fixed-SIR score admission"
+      ],
+      "parameter_order": [
+        "log_kappa_scale",
+        "log_nu_scale",
+        "log_obs_noise_scale"
+      ],
+      "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+      "source_classification": "source_base_with_logscale_theta_extension",
+      "theta_coordinate_system": "sir_log_scale_theta",
+      "theta_dimension": 3,
+      "theta_status": "phase1_frozen",
+      "truth_theta": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "value_status": "amended_sir_log_scale_theta_value_metadata_present"
+  },
+  "full_batched_evaluation_per_warm_call": true,
+  "git_commit": "4cc31f0b936c01e9effcc35384ae22eef29401d9",
+  "gpu_memory_info_after": {
+    "status": "unavailable"
+  },
+  "gpu_memory_info_before": {
+    "status": "unavailable"
+  },
+  "history_mode": "value-only",
+  "history_shapes": {
+    "ess_by_time": [
+      0,
+      1
+    ],
+    "filtered_means": [
+      0,
+      1,
+      18
+    ],
+    "filtered_variances": [
+      0,
+      1,
+      18
+    ]
+  },
+  "host": "DESKTOP-RF1Q5IJ",
+  "log_likelihood": [
+    -36.35576248168945
+  ],
+  "logical_gpus": [],
+  "nonclaims": [
+    "actual SIR d18 TF32/GPU feasibility probe only",
+    "production/default target by owner directive",
+    "not SIR d18 particle-count adequacy evidence",
+    "not leaderboard completion",
+    "not MC-SE adequacy evidence",
+    "not exact likelihood correctness",
+    "not DPF gradient correctness",
+    "not HMC/NUTS readiness",
+    "not Zhao-Cui TT/SIRT or MATLAB parity"
+  ],
+  "output_devices": [
+    "/job:localhost/replica:0/task:0/device:CPU:0"
+  ],
+  "output_shape": [
+    1
+  ],
+  "physical_gpus": [],
+  "precision": {
+    "active_dtype": "float32",
+    "default_algorithm_target": "ledh_pfpf_ot_tf32",
+    "default_dtype": "float32",
+    "default_execution_target": "gpu",
+    "default_route_acceptance": "accepted_default_use_whenever_possible",
+    "default_route_guidance": "use for BayesFilter DPF LEDH-PFPF-OT work whenever GPU execution and the streaming fixed-branch contract are applicable",
+    "default_route_rationale": "streaming GPU TF32 LEDH-PFPF-OT avoids dense transport/history storage for large-particle DPF transport while preserving explicit reference and fallback arms",
+    "default_target_status": "production_default_by_owner_directive",
+    "default_tf32_mode": "enabled",
+    "dtype": "float32",
+    "fp64_reference_requires_explicit_dtype": true,
+    "historical_module_path": "experiments/dpf_implementation",
+    "precision_default_policy": "production_ledh_pfpf_ot_gpu_tf32",
+    "public_api_exposure": "separately_gated",
+    "scope": "production_ledh_pfpf_ot_gpu_tf32_default_lane",
+    "tf32_execution_enabled": false,
+    "tf32_mode": "disabled",
+    "tf_dtype": "float32"
+  },
+  "primary_pass_5x_runtime_gate": false,
+  "proposal_flow_fields": [
+    "pre_flow_log_density",
+    "forward_log_det",
+    "proposal_observation_surface"
+  ],
+  "python_version": "3.11.14",
+  "repeats": 1,
+  "return_history": false,
+  "runtime_gate_applicable": false,
+  "scalar_comparator_runtime_seconds": 789.755664,
+  "scalar_comparator_scope": "P8j Phase 5d scalar actual-SIR adaptive LEDH OT N=64 five-seed trusted-GPU run",
+  "schema_version": "filter_bench.p8j_tf32_batched_actual_sir_probe.v1",
+  "shape": {
+    "batch_seed_count": 1,
+    "batch_size": 1,
+    "num_particles": 4,
+    "obs_dim": 9,
+    "state_dim": 18,
+    "time_steps": 1
+  },
+  "sir_semantics": {
+    "actual_sir_callback_usage": "initial_sample, process/observation covariance callbacks, observation metadata, and route metadata",
+    "actual_sir_callbacks_used": true,
+    "adapter_classification": "BayesFilter DPF adapter for fixed-parameter SIR; not Zhao-Cui TT/SIRT source-faithfulness evidence",
+    "experimental_streaming_adapter_route": "batched nonlinear-prior LEDH-PFPF-OT streaming adapter with fixed process covariance, not scalar Li-Coates Algorithm 1 UKF covariance lifecycle parity",
+    "flow_observation_contract": "same_observation_gaussian_sir_infectious_components",
+    "graph_compatible_sir_transition_copy_used": true,
+    "graph_compatible_sir_transition_source": "bayesfilter.highdim.zhao_cui_sir_austria_model RK4 zhao_cui_sir_step equations, copied into TensorFlow graph form because the model validation path uses eager .numpy() checks",
+    "nonlinear_prior_mean_hook_used": true,
+    "observation_dimension": 9,
+    "process_noise_policy": "clip_susceptible_after_noise",
+    "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+    "scalar_algorithm1_ukf_covariance_lifecycle_parity_claim": false,
+    "state_dimension": 18,
+    "target_density_used_for_correction": true
+  },
+  "speedup_vs_scalar_comparator_mean_warm_call": null,
+  "target_density_fields": [
+    "transition_log_density",
+    "observation_log_density"
+  ],
+  "target_output_tensor_field": "log_likelihood",
+  "target_scalar": "observed_data_log_likelihood_estimator",
+  "tensorflow_version": "2.19.1",
+  "timestamp_utc": "2026-07-06T09:38:37.135399+00:00",
+  "transport": {
+    "annealed_convergence_threshold": 0.001,
+    "annealed_scaling": 0.9,
+    "col_chunk_size": 4,
+    "dense_transport_matrix_materialized": false,
+    "gradient_mode": "raw",
+    "particle_chunk_size": 4,
+    "plan_mode": "streaming",
+    "row_chunk_size": 4,
+    "sinkhorn_epsilon": 1.0,
+    "sinkhorn_iterations": 1
+  },
+  "transport_policy": "active-all",
+  "warm_call_timing_summary_seconds": {
+    "max": 0.0018852399662137032,
+    "mean": 0.0018852399662137032,
+    "median": 0.0018852399662137032,
+    "min": 0.0018852399662137032
+  },
+  "warm_call_timings_seconds": [
+    0.0018852399662137032
+  ],
+  "warmups": 0
+}

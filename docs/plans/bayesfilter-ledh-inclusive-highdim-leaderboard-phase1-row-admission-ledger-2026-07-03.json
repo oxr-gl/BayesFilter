@@ -15,7 +15,7 @@
   "ledh_algorithm_id": "ledh_pfpf_ot",
   "row_status_meaning": {
     "in_scope_for_later_full_value_score_only_after_gates": "LGSSM can become a full observed-data value+score row only after same-target value execution and total-derivative score gates pass.",
-    "fixed_spatial_sir_value_arm_candidate_only": "Fixed spatial SIR has a candidate same-target value route only; score and source-faithfulness claims remain blocked.",
+    "amended_sir_log_scale_theta_full_row_candidate": "Fixed spatial SIR has the 2026-07-06 human-amended sir_log_scale_theta model-parameter surface; value and score admission still require same-target gates.",
     "scoped_component_row": "The row computes a component or different target and must not be compared as a full observed-data filtering row.",
     "blocked_value": "No admitted current LEDH value route for the requested row target yet.",
     "blocked_score": "No admitted total-derivative score artifact for the requested row target yet."
@@ -88,22 +88,35 @@
     {
       "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
       "requested_row_scope": "main_observed_data_filtering_row",
-      "ledh_row_scope_decision": "fixed_spatial_sir_value_arm_candidate_only",
+      "ledh_row_scope_decision": "amended_sir_log_scale_theta_full_row_candidate",
       "value_status": "candidate_value_arm_existing_p8j_p8o_streaming_gpu_tf32_requires_phase4_ladder_or_explicit_carry_forward",
-      "score_status": "blocked_score_for_full_leaderboard_row",
-      "target_match_status": "fixed_parameter_sir_observed_data_value_target_candidate_not_parameterized_sir_component",
+      "score_status": "blocked_score_until_same_target_no_tape_gate",
+      "target_match_status": "amended_sir_log_scale_theta_observed_data_value_target_candidate",
+      "theta_coordinate_system": "sir_log_scale_theta",
+      "theta_dimension": 3,
+      "parameter_order": [
+        "log_kappa_scale",
+        "log_nu_scale",
+        "log_obs_noise_scale"
+      ],
+      "truth_theta": [
+        0.0,
+        0.0,
+        0.0
+      ],
       "current_adapter_evidence": [
         "docs/benchmarks/benchmark_p8j_tf32_batched_actual_sir.py builds the streaming SIR LEDH value tensors",
         "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8o-sir-d18-dpf-leaderboard-cell-2026-06-18.md selects N=10000 value-only evidence"
       ],
       "required_phase2_work": [
-        "wire fixed SIR value route into LEDH-inclusive runner",
+        "wire fixed SIR value route into LEDH-inclusive runner under sir_log_scale_theta metadata",
         "carry P8o value-only evidence or rerun under the Phase 4 ladder",
         "keep score status separate"
       ],
-      "required_score_admission_artifact": "blocked unless a full-row total-derivative score target is defined and checked; no score execution in Phase 2",
+      "required_score_admission_artifact": "blocked unless the full-row same-target total-derivative score is implemented with no tape and checked; no score execution in Phase 2",
       "forbidden_claims": [
         "do not claim Zhao-Cui TT/SIRT source-faithfulness from the LEDH adapter",
+        "do not claim the author fixed-parameter example had free inference theta",
         "do not claim HMC readiness from value-only SIR evidence"
       ]
     },
@@ -174,7 +187,7 @@
     "runner_must_emit_all_requested_rows": true,
     "runner_must_preserve_statuses": [
       "in_scope_for_later_full_value_score_only_after_gates",
-      "fixed_spatial_sir_value_arm_candidate_only",
+      "amended_sir_log_scale_theta_full_row_candidate",
       "scoped_component_row",
       "blocked_value",
       "blocked_score"

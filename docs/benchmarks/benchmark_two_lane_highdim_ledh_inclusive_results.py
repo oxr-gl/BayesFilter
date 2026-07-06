@@ -5,18 +5,30 @@ import argparse
 import json
 import math
 import statistics
+import sys
 from pathlib import Path
 from typing import Any
 
-
 ROOT = Path(__file__).resolve().parents[2]
-DATE = "2026-07-03"
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from bayesfilter.highdim.ledh_forward_contract import (
+    FIXED_SIR_AUSTRIA_ROW_ID,
+    LGSSM_M3_T50_ROW_ID,
+    make_fixed_sir_logscale_forward_contract,
+    make_lgssm_m3_t50_forward_contract,
+)
+
+DATE = "2026-07-06"
 BASELINE_PATH = ROOT / "docs/plans/bayesfilter-two-lane-highdim-leaderboard-results-2026-07-03.json"
 LEDGER_PATH = ROOT / "docs/plans/bayesfilter-ledh-inclusive-highdim-leaderboard-phase1-row-admission-ledger-2026-07-03.json"
 LGSSM_LEDGER_PATH = ROOT / "docs/plans/bayesfilter-ledh-inclusive-highdim-leaderboard-phase4-lgssm-m3-t50-same-target-value-ladder-N10000-2026-07-03.json"
 SIR_LEDGER_PATH = ROOT / "docs/plans/bayesfilter-ledh-inclusive-highdim-leaderboard-phase4-fixed-sir-value-ladder-N10000-2026-07-03.json"
-DEFAULT_JSON = ROOT / "docs/plans/bayesfilter-two-lane-highdim-ledh-inclusive-leaderboard-results-2026-07-03.json"
-DEFAULT_MD = ROOT / "docs/plans/bayesfilter-two-lane-highdim-ledh-inclusive-leaderboard-results-2026-07-03.md"
+LGSSM_SCORE_PATH = ROOT / "docs/plans/ledh-phase5-lgssm-score-memory-n10000-2026-07-06.json"
+SIR_SCORE_PATH = ROOT / "docs/plans/ledh-phase5-fixed-sir-score-memory-n10000-2026-07-06.json"
+DEFAULT_JSON = ROOT / "docs/plans/bayesfilter-two-lane-highdim-ledh-inclusive-leaderboard-results-2026-07-06.json"
+DEFAULT_MD = ROOT / "docs/plans/bayesfilter-two-lane-highdim-ledh-inclusive-leaderboard-results-2026-07-06.md"
 
 LEDH_ALGORITHM_ID = "ledh_pfpf_ot"
 COMPARATOR_MODE = "frozen_non_ledh_baseline_plus_fresh_ledh"
@@ -77,6 +89,29 @@ def _sample_summary(values: list[float]) -> dict[str, float | None]:
     return {"mean": mean, "sample_sd": sample_sd, "mcse": sample_sd / math.sqrt(len(values))}
 
 
+def _lgssm_forward_contract_from_artifact(artifact: dict[str, Any]) -> dict[str, Any]:
+    target_identity = artifact.get("target_identity", {})
+    forward_contract = target_identity.get("forward_contract")
+    if forward_contract is not None:
+        return dict(forward_contract)
+    return make_lgssm_m3_t50_forward_contract(
+        truth_theta=target_identity.get("truth_theta", [0.72, 0.55, 0.35, 0.35, 0.45]),
+        time_steps=artifact.get("shape", {}).get("time_steps"),
+        num_particles=artifact.get("shape", {}).get("num_particles"),
+        batch_seeds=artifact.get("batch_seeds", ()),
+        full_leaderboard_row=bool(target_identity.get("full_leaderboard_row", False)),
+    ).to_manifest()
+
+
+def _fixed_sir_forward_contract_from_artifact(artifact: dict[str, Any]) -> dict[str, Any]:
+    return make_fixed_sir_logscale_forward_contract(
+        time_steps=artifact.get("shape", {}).get("time_steps"),
+        num_particles=artifact.get("shape", {}).get("num_particles"),
+        batch_seeds=artifact.get("batch_seeds", ()),
+        full_leaderboard_row=True,
+    ).to_manifest()
+
+
 def _copy_baseline_row(row: dict[str, Any], *, baseline_path: Path) -> dict[str, Any]:
     copied = dict(row)
     copied["comparator_provenance"] = "frozen_non_ledh_baseline"
@@ -128,32 +163,121 @@ def _blocked_phase7_status(row_scope: str, reason: str) -> dict[str, Any]:
     }
 
 
-def _lgssm_ledh_row(artifact: dict[str, Any], *, artifact_path: Path) -> dict[str, Any]:
+def _score_payload(
+    score_artifact: dict[str, Any] | None,
+    *,
+    expected_row_id: str,
+) -> dict[str, Any] | None:
+    if score_artifact is None:
+        return None
+    if score_artifact.get("row_id") != expected_row_id:
+        raise ValueError(f"score artifact row mismatch for {expected_row_id}")
+    if score_artifact.get("primary_pass") is not True:
+        raise ValueError(f"score artifact did not pass for {expected_row_id}")
+    score_route = score_artifact.get("score_route")
+    if not score_route:
+        raise ValueError(f"score artifact missing score_route for {expected_row_id}")
+    return score_artifact
+
+
+def _score_row_fields(
+    score_artifact: dict[str, Any] | None,
+    *,
+    coordinate_system: str,
+    blocked_reason: str,
+    score_path: Path | None,
+) -> dict[str, Any]:
+    if score_artifact is None:
+        return {
+            "comparison_status": "executed_value_only_score_blocked",
+            "row_admission_status": "executed_same_target_value_score_blocked",
+            "score": None,
+            "score_l2_norm": None,
+            "score_status": "blocked_score_until_same_target_no_tape_gate",
+            "score_status_reason": blocked_reason,
+            "score_derivative_provenance": None,
+            "score_coordinate_system": coordinate_system,
+            "score_evidence_artifact": None,
+            "score_memory_peak_mib": None,
+            "score_fd_abs_error": None,
+            "score_fd_rel_error": None,
+        }
+    score_value = score_artifact.get("score")
+    score_l2 = None
+    if score_value is not None:
+        score_l2 = math.sqrt(sum(float(value) * float(value) for value in score_value))
+    return {
+        "comparison_status": "executed_value_score",
+        "row_admission_status": "executed_same_target_value_score_phase5_pass",
+        "score": score_value,
+        "score_l2_norm": score_l2,
+        "score_status": "admitted_same_target_no_tape_score_n10000",
+        "score_status_reason": (
+            "Phase 5 trusted GPU N=10000 same-scalar no-tape score-memory gate passed"
+        ),
+        "score_derivative_provenance": score_artifact["score_route"],
+        "score_coordinate_system": coordinate_system,
+        "score_evidence_artifact": _rel(score_path) if score_path is not None else None,
+        "score_memory_peak_mib": score_artifact.get("gpu_memory_peak_mib"),
+        "score_fd_abs_error": score_artifact.get("abs_error"),
+        "score_fd_rel_error": score_artifact.get("rel_error"),
+    }
+
+
+def _lgssm_ledh_row(
+    artifact: dict[str, Any],
+    *,
+    artifact_path: Path,
+    score_artifact: dict[str, Any] | None = None,
+    score_path: Path | None = None,
+) -> dict[str, Any]:
     avg = artifact["average_log_likelihood_estimate"]
     total = artifact["total_log_likelihood_estimate"]
     evidence = [_rel(artifact_path)]
+    forward_contract = _lgssm_forward_contract_from_artifact(artifact)
+    score_artifact = _score_payload(score_artifact, expected_row_id=LGSSM_M3_T50_ROW_ID)
+    score_fields = _score_row_fields(
+        score_artifact,
+        coordinate_system="theta=(phi1,phi2,phi3,q_scale,r_scale)",
+        blocked_reason="same-target total derivative not implemented in Phase 4 value runner",
+        score_path=score_path,
+    )
     return {
         "algorithm_id": LEDH_ALGORITHM_ID,
-        "row_id": "benchmark_lgssm_exact_oracle_m3_T50",
-        "comparison_status": "executed_value_only_score_blocked",
+        "row_id": LGSSM_M3_T50_ROW_ID,
+        "comparison_status": score_fields["comparison_status"],
         "lane": "highdim_source_scope",
         "row_scope": "main_observed_data_filtering_row",
         "target_scope": "main_observed_data_filtering_row",
-        "target_contract_status": "same_target_value_only",
-        "target_match_status": artifact["target_identity"]["same_target_status"],
-        "row_admission_status": "executed_same_target_value_score_blocked",
+        "target_contract_status": "same_target_value_score",
+        "target_match_status": (
+            "same_target_value_score"
+            if score_artifact is not None
+            else artifact["target_identity"]["same_target_status"]
+        ),
+        "forward_contract": forward_contract,
+        "target_scalar": forward_contract["target_scalar"],
+        "target_output_tensor_field": forward_contract["output_tensor_field"],
+        "target_density_fields": forward_contract["target_density_fields"],
+        "proposal_flow_fields": forward_contract["proposal_flow_fields"],
+        "correction_formula": forward_contract["correction_formula"],
+        "row_admission_status": score_fields["row_admission_status"],
         "average_log_likelihood": avg["mean"],
         "log_likelihood": total["mean"],
         "mc_standard_error": avg["mcse"],
         "mc_standard_deviation": avg["sample_sd"],
         "total_log_likelihood_mc_standard_error": total["mcse"],
         "total_log_likelihood_mc_standard_deviation": total["sample_sd"],
-        "score": None,
-        "score_l2_norm": None,
-        "score_status": artifact["score_status"],
-        "score_status_reason": "same-target total derivative not implemented in Phase 4 value runner",
-        "score_derivative_provenance": None,
-        "score_coordinate_system": None,
+        "score": score_fields["score"],
+        "score_l2_norm": score_fields["score_l2_norm"],
+        "score_status": score_fields["score_status"],
+        "score_status_reason": score_fields["score_status_reason"],
+        "score_derivative_provenance": score_fields["score_derivative_provenance"],
+        "score_coordinate_system": score_fields["score_coordinate_system"],
+        "score_evidence_artifact": score_fields["score_evidence_artifact"],
+        "score_memory_peak_mib": score_fields["score_memory_peak_mib"],
+        "score_fd_abs_error": score_fields["score_fd_abs_error"],
+        "score_fd_rel_error": score_fields["score_fd_rel_error"],
         "value_status": artifact["value_status"],
         "particle_count": artifact["shape"]["num_particles"],
         "seeds": artifact["batch_seeds"],
@@ -171,45 +295,76 @@ def _lgssm_ledh_row(artifact: dict[str, Any], *, artifact_path: Path) -> dict[st
             evidence,
             "executed_gpu_xla_tf32_value_only",
         ),
-        "reason": "same-target LEDH value executed at N=10000; score remains blocked",
+        "reason": (
+            "same-target LEDH value and no-tape score executed at N=10000"
+            if score_artifact is not None
+            else "same-target LEDH value executed at N=10000; score remains blocked"
+        ),
         "nonclaims": list(artifact["nonclaims"])
         + [
-            "not LEDH score evidence",
             "not runtime-rankable against frozen non-LEDH rows",
-            "Contract E LGSSM fixture is not used as leaderboard score evidence",
+            "not HMC readiness evidence",
+            "not posterior correctness evidence",
         ],
     }
 
 
-def _sir_ledh_row(artifact: dict[str, Any], *, artifact_path: Path) -> dict[str, Any]:
+def _sir_ledh_row(
+    artifact: dict[str, Any],
+    *,
+    artifact_path: Path,
+    score_artifact: dict[str, Any] | None = None,
+    score_path: Path | None = None,
+) -> dict[str, Any]:
     total_values = [float(value) for value in artifact["log_likelihood"]]
     time_steps = int(artifact["shape"]["time_steps"])
     total_summary = _sample_summary(total_values)
     average_values = [value / float(time_steps) for value in total_values]
     average_summary = _sample_summary(average_values)
     evidence = [_rel(artifact_path)]
+    forward_contract = _fixed_sir_forward_contract_from_artifact(artifact)
+    score_artifact = _score_payload(score_artifact, expected_row_id=FIXED_SIR_AUSTRIA_ROW_ID)
+    score_fields = _score_row_fields(
+        score_artifact,
+        coordinate_system="theta=(log_kappa_scale,log_nu_scale,log_obs_noise_scale)",
+        blocked_reason=(
+            "fixed SIR now has sir_log_scale_theta, but the full-row "
+            "same-target total-derivative score is not implemented or checked"
+        ),
+        score_path=score_path,
+    )
     return {
         "algorithm_id": LEDH_ALGORITHM_ID,
-        "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
-        "comparison_status": "executed_value_only_score_blocked",
+        "row_id": FIXED_SIR_AUSTRIA_ROW_ID,
+        "comparison_status": score_fields["comparison_status"],
         "lane": "highdim_source_scope",
         "row_scope": "main_observed_data_filtering_row",
         "target_scope": "main_observed_data_filtering_row",
-        "target_contract_status": "fixed_parameter_sir_observed_data_value_target_candidate",
-        "target_match_status": "fixed_parameter_sir_observed_data_value_only",
-        "row_admission_status": "executed_fixed_sir_value_score_blocked",
+        "target_contract_status": "amended_sir_log_scale_theta_observed_data_value_score",
+        "target_match_status": "sir_log_scale_theta_observed_data_value_score",
+        "forward_contract": forward_contract,
+        "target_scalar": forward_contract["target_scalar"],
+        "target_output_tensor_field": forward_contract["output_tensor_field"],
+        "target_density_fields": forward_contract["target_density_fields"],
+        "proposal_flow_fields": forward_contract["proposal_flow_fields"],
+        "correction_formula": forward_contract["correction_formula"],
+        "row_admission_status": score_fields["row_admission_status"],
         "average_log_likelihood": average_summary["mean"],
         "log_likelihood": total_summary["mean"],
         "mc_standard_error": average_summary["mcse"],
         "mc_standard_deviation": average_summary["sample_sd"],
         "total_log_likelihood_mc_standard_error": total_summary["mcse"],
         "total_log_likelihood_mc_standard_deviation": total_summary["sample_sd"],
-        "score": None,
-        "score_l2_norm": None,
-        "score_status": "blocked_score_for_full_leaderboard_row",
-        "score_status_reason": "full-row total-derivative score target not implemented or checked",
-        "score_derivative_provenance": None,
-        "score_coordinate_system": "no_free_theta_for_fixed_sir_value_row",
+        "score": score_fields["score"],
+        "score_l2_norm": score_fields["score_l2_norm"],
+        "score_status": score_fields["score_status"],
+        "score_status_reason": score_fields["score_status_reason"],
+        "score_derivative_provenance": score_fields["score_derivative_provenance"],
+        "score_coordinate_system": score_fields["score_coordinate_system"],
+        "score_evidence_artifact": score_fields["score_evidence_artifact"],
+        "score_memory_peak_mib": score_fields["score_memory_peak_mib"],
+        "score_fd_abs_error": score_fields["score_fd_abs_error"],
+        "score_fd_rel_error": score_fields["score_fd_rel_error"],
         "value_status": "executed_fixed_sir_value_only",
         "particle_count": artifact["shape"]["num_particles"],
         "seeds": artifact["batch_seeds"],
@@ -226,11 +381,19 @@ def _sir_ledh_row(artifact: dict[str, Any], *, artifact_path: Path) -> dict[str,
             evidence,
             "executed_gpu_xla_tf32_value_only",
         ),
-        "reason": "fixed spatial SIR LEDH value executed at N=10000; score remains blocked",
+        "reason": (
+            "fixed spatial SIR LEDH value and no-tape score executed at N=10000 "
+            "under the amended sir_log_scale_theta row"
+            if score_artifact is not None
+            else (
+                "fixed spatial SIR LEDH value executed at N=10000 under the "
+                "amended sir_log_scale_theta row; score remains blocked until "
+                "same-target no-tape evidence passes"
+            )
+        ),
         "nonclaims": list(artifact["nonclaims"])
         + [
             "not exact nonlinear likelihood correctness evidence",
-            "not LEDH score evidence",
             "not runtime-rankable against frozen non-LEDH rows",
             "not Zhao-Cui TT/SIRT source-faithfulness evidence",
         ],
@@ -306,13 +469,27 @@ def _ledh_row_for(
     ledger_path: Path,
     lgssm_artifact: dict[str, Any],
     lgssm_path: Path,
+    lgssm_score_artifact: dict[str, Any] | None,
+    lgssm_score_path: Path | None,
     sir_artifact: dict[str, Any],
     sir_path: Path,
+    sir_score_artifact: dict[str, Any] | None,
+    sir_score_path: Path | None,
 ) -> dict[str, Any]:
     if ledger_row["row_id"] == "benchmark_lgssm_exact_oracle_m3_T50":
-        return _lgssm_ledh_row(lgssm_artifact, artifact_path=lgssm_path)
+        return _lgssm_ledh_row(
+            lgssm_artifact,
+            artifact_path=lgssm_path,
+            score_artifact=lgssm_score_artifact,
+            score_path=lgssm_score_path,
+        )
     if ledger_row["row_id"] == "zhao_cui_spatial_sir_austria_j9_T20":
-        return _sir_ledh_row(sir_artifact, artifact_path=sir_path)
+        return _sir_ledh_row(
+            sir_artifact,
+            artifact_path=sir_path,
+            score_artifact=sir_score_artifact,
+            score_path=sir_score_path,
+        )
     return _ledger_blocked_ledh_row(ledger_row, ledger_path=ledger_path)
 
 
@@ -382,18 +559,20 @@ def _validate_payload(payload: dict[str, Any]) -> None:
         if row["row_id"] == "benchmark_lgssm_exact_oracle_m3_T50"
         and row["algorithm_id"] == LEDH_ALGORITHM_ID
     )
-    if lg["score"] is not None or not str(lg["score_status"]).startswith("blocked_score"):
-        raise ValueError("LGSSM LEDH score must remain blocked")
-    if lg["target_match_status"] != "same_target_value_only":
-        raise ValueError("LGSSM LEDH row must be same-target value-only")
+    if lg["score_status"] != "admitted_same_target_no_tape_score_n10000":
+        raise ValueError("LGSSM LEDH score must be Phase 5 admitted")
+    if lg["target_match_status"] != "same_target_value_score":
+        raise ValueError("LGSSM LEDH row must preserve same-target value/score identity")
     sir = next(
         row
         for row in rows
         if row["row_id"] == "zhao_cui_spatial_sir_austria_j9_T20"
         and row["algorithm_id"] == LEDH_ALGORITHM_ID
     )
-    if sir["score"] is not None or not str(sir["score_status"]).startswith("blocked_score"):
-        raise ValueError("SIR LEDH score must remain blocked")
+    if sir["score_status"] != "admitted_same_target_no_tape_score_n10000":
+        raise ValueError("SIR LEDH score must be Phase 5 admitted")
+    if sir["target_match_status"] != "sir_log_scale_theta_observed_data_value_score":
+        raise ValueError("SIR LEDH row must preserve sir_log_scale_theta value/score identity")
 
 
 def build_artifact(
@@ -402,11 +581,15 @@ def build_artifact(
     ledger_path: Path = LEDGER_PATH,
     lgssm_path: Path = LGSSM_LEDGER_PATH,
     sir_path: Path = SIR_LEDGER_PATH,
+    lgssm_score_path: Path = LGSSM_SCORE_PATH,
+    sir_score_path: Path = SIR_SCORE_PATH,
 ) -> dict[str, Any]:
     baseline = _load(baseline_path)
     ledger = _load(ledger_path)
     lgssm_artifact = _load(lgssm_path)
     sir_artifact = _load(sir_path)
+    lgssm_score_artifact = _load(lgssm_score_path)
+    sir_score_artifact = _load(sir_score_path)
     ledger_by_row = {row["row_id"]: row for row in ledger["rows"]}
     if set(ledger_by_row) != set(HIGHDIM_ROWS):
         raise ValueError("ledger rows do not match highdim rows")
@@ -430,8 +613,12 @@ def build_artifact(
                 ledger_path=ledger_path,
                 lgssm_artifact=lgssm_artifact,
                 lgssm_path=lgssm_path,
+                lgssm_score_artifact=lgssm_score_artifact,
+                lgssm_score_path=lgssm_score_path,
                 sir_artifact=sir_artifact,
                 sir_path=sir_path,
+                sir_score_artifact=sir_score_artifact,
+                sir_score_path=sir_score_path,
             )
         )
 
@@ -446,19 +633,23 @@ def build_artifact(
             "ledh_admission_ledger": _rel(ledger_path),
             "lgssm_ledh_value_artifact": _rel(lgssm_path),
             "sir_ledh_value_artifact": _rel(sir_path),
-            "execution_mode": "frozen_non_ledh_baseline_plus_fresh_ledh_phase4_value_only",
+            "lgssm_ledh_score_artifact": _rel(lgssm_score_path),
+            "sir_ledh_score_artifact": _rel(sir_score_path),
+            "execution_mode": "frozen_non_ledh_baseline_plus_fresh_ledh_phase6_value_score",
             "frozen_non_ledh_rows": True,
             "fresh_ledh_execution": True,
-            "contract_e_lgssm_score_status": "route_evidence_only_not_merged_as_leaderboard_score",
+            "phase5_score_memory_rows": [
+                LGSSM_M3_T50_ROW_ID,
+                FIXED_SIR_AUSTRIA_ROW_ID,
+            ],
         },
         "rows": rows,
         "row_summary": _row_summary(rows),
         "nonclaims": [
             "Frozen non-LEDH rows are copied from the July 3 baseline and were not rerun.",
             "Runtime cross-ranking between frozen non-LEDH rows and fresh LEDH rows is forbidden.",
-            "LEDH LGSSM is value-only; same-target total-derivative score is blocked.",
-            "Contract E LGSSM route evidence is not merged as the leaderboard LGSSM score.",
-            "LEDH fixed spatial SIR is value-only; score and exact nonlinear likelihood correctness are not claimed.",
+            "LEDH LGSSM and fixed spatial SIR have Phase 5 same-target no-tape score-memory evidence.",
+            "LEDH fixed spatial SIR score does not establish exact nonlinear likelihood correctness.",
             "HMC readiness, posterior correctness, and scientific superiority are not claimed.",
         ],
     }
@@ -519,6 +710,8 @@ def main() -> None:
     parser.add_argument("--ledger", type=Path, default=LEDGER_PATH)
     parser.add_argument("--lgssm-ledh", type=Path, default=LGSSM_LEDGER_PATH)
     parser.add_argument("--sir-ledh", type=Path, default=SIR_LEDGER_PATH)
+    parser.add_argument("--lgssm-score", type=Path, default=LGSSM_SCORE_PATH)
+    parser.add_argument("--sir-score", type=Path, default=SIR_SCORE_PATH)
     parser.add_argument("--output", type=Path, default=DEFAULT_JSON)
     parser.add_argument("--markdown-output", type=Path, default=DEFAULT_MD)
     args = parser.parse_args()
@@ -527,6 +720,8 @@ def main() -> None:
         ledger_path=args.ledger,
         lgssm_path=args.lgssm_ledh,
         sir_path=args.sir_ledh,
+        lgssm_score_path=args.lgssm_score,
+        sir_score_path=args.sir_score,
     )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")

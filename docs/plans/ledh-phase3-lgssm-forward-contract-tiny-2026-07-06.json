@@ -1,0 +1,277 @@
+{
+  "algorithm_id": "ledh_pfpf_ot",
+  "average_log_likelihood_by_seed": [
+    -4.587783660156947
+  ],
+  "average_log_likelihood_estimate": {
+    "mcse": null,
+    "mean": -4.587783660156947,
+    "sample_sd": null,
+    "seed_count": 1
+  },
+  "batch_seeds": [
+    81120
+  ],
+  "comparison_status": "executed_prefix_value_diagnostic_score_blocked",
+  "compile_and_first_call_seconds": 6.599855561973527,
+  "compiled_unit": "streaming_batched_ledh_pfpf_ot_value_core_tf",
+  "cuda_visible_devices": "-1",
+  "device": "/CPU:0",
+  "device_scope": "cpu",
+  "ess_min_by_seed": null,
+  "ess_summary_available": false,
+  "exact_value_comparison": {
+    "average_absolute_delta": 0.15670841297964966,
+    "average_delta_mean_minus_exact": -0.15670841297964966,
+    "average_relative_error_abs": 0.03536577562736646,
+    "exact_average_log_likelihood": -4.431075247177297,
+    "exact_total_log_likelihood": -8.862150494354594,
+    "total_absolute_delta": 0.3134168259592993,
+    "total_delta_mean_minus_exact": -0.3134168259592993,
+    "total_relative_error_abs": 0.03536577562736646
+  },
+  "expect_device_kind": "cpu",
+  "finite_output": true,
+  "git_commit": "4cc31f0b936c01e9effcc35384ae22eef29401d9",
+  "gpu_memory_info_after": {
+    "status": "unavailable"
+  },
+  "gpu_memory_info_before": {
+    "status": "unavailable"
+  },
+  "history_mode": "value-only",
+  "history_shapes": {
+    "ess_by_time": [
+      0,
+      1
+    ],
+    "filtered_means": [
+      0,
+      1,
+      3
+    ],
+    "filtered_variances": [
+      0,
+      1,
+      3
+    ],
+    "final_particles": [
+      1,
+      4,
+      3
+    ]
+  },
+  "host": "DESKTOP-RF1Q5IJ",
+  "jit_compile": true,
+  "logical_gpus": [],
+  "manual_score_diagnostic": null,
+  "max_column_residual": 0.0,
+  "max_row_residual": 0.2865382615787144,
+  "nonclaims": [
+    "not exact Kalman score evidence",
+    "not HMC/NUTS readiness evidence",
+    "not posterior correctness evidence",
+    "not runtime-rankable against frozen non-LEDH rows",
+    "not evidence for nonlinear rows"
+  ],
+  "output_devices": [
+    "/job:localhost/replica:0/task:0/device:CPU:0"
+  ],
+  "output_shape": [
+    1
+  ],
+  "physical_gpus": [],
+  "precision": {
+    "active_dtype": "float64",
+    "default_algorithm_target": "ledh_pfpf_ot_tf32",
+    "default_dtype": "float32",
+    "default_execution_target": "gpu",
+    "default_route_acceptance": "accepted_default_use_whenever_possible",
+    "default_route_guidance": "use for BayesFilter DPF LEDH-PFPF-OT work whenever GPU execution and the streaming fixed-branch contract are applicable",
+    "default_route_rationale": "streaming GPU TF32 LEDH-PFPF-OT avoids dense transport/history storage for large-particle DPF transport while preserving explicit reference and fallback arms",
+    "default_target_status": "production_default_by_owner_directive",
+    "default_tf32_mode": "enabled",
+    "dtype": "float64",
+    "fp64_reference_requires_explicit_dtype": true,
+    "historical_module_path": "experiments/dpf_implementation",
+    "precision_default_policy": "production_ledh_pfpf_ot_gpu_tf32",
+    "public_api_exposure": "separately_gated",
+    "scope": "production_ledh_pfpf_ot_gpu_tf32_default_lane",
+    "tf32_execution_enabled": false,
+    "tf32_mode": "disabled",
+    "tf_dtype": "float64"
+  },
+  "primary_pass_same_target_value_execution": false,
+  "python_version": "3.11.14",
+  "repeats": 1,
+  "return_history": false,
+  "row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+  "runtime_gate_applicable": false,
+  "runtime_rankable_with_frozen_non_ledh": false,
+  "schema_version": "filter_bench.ledh_same_target_lgssm_m3_t50_value.v2",
+  "score": null,
+  "score_admission_status": "blocked_score_not_run",
+  "score_derivative_provenance": null,
+  "score_output_devices": null,
+  "score_parameter_names": null,
+  "score_route": null,
+  "score_route_id": null,
+  "score_runtime_gate_applicable": false,
+  "score_status": "not_run_score_mode_none",
+  "shape": {
+    "batch_seed_count": 1,
+    "batch_size": 1,
+    "num_particles": 4,
+    "obs_dim": 3,
+    "state_dim": 3,
+    "time_steps": 2
+  },
+  "target_identity": {
+    "batch_seeds": [
+      81120
+    ],
+    "correction_formula": "transition_log_density + observation_log_density - pre_flow_log_density + forward_log_det",
+    "dataset_seed": 81100,
+    "dataset_source": "scripts/filtering_value_gradient_benchmark_generate_p8_datasets.py:_lgssm_dataset",
+    "exact_average_log_likelihood": -4.431075247177297,
+    "exact_total_log_likelihood": -8.862150494354594,
+    "exact_value_comparator": "tf_kalman_log_likelihood on same observations/model",
+    "forward_contract": {
+      "correction_formula": "transition_log_density + observation_log_density - pre_flow_log_density + forward_log_det",
+      "estimator_kind": "finite_N_fixed_randomness_ledh_log_likelihood_estimator",
+      "full_leaderboard_row": false,
+      "metadata": {
+        "batch_seeds": [
+          81120
+        ],
+        "num_particles": 4,
+        "time_steps": 2
+      },
+      "nonclaims": [
+        "metadata alone is not row admission",
+        "metadata alone is not score evidence"
+      ],
+      "output_tensor_field": "log_likelihood",
+      "proposal_flow_fields": [
+        "pre_flow_log_density",
+        "forward_log_det",
+        "proposal_observation_surface"
+      ],
+      "row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+      "row_scope": "main_observed_data_filtering_row",
+      "schema_version": "bayesfilter.highdim.ledh_forward_contract.v1",
+      "score_status": "score_requires_no_tape_same_scalar_gate",
+      "target_density_fields": [
+        "transition_log_density",
+        "observation_log_density"
+      ],
+      "target_scalar": "observed_data_log_likelihood_estimator",
+      "theta_contract": {
+        "nonclaims": [],
+        "parameter_order": [
+          "phi1",
+          "phi2",
+          "phi3",
+          "q_scale",
+          "r_scale"
+        ],
+        "row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+        "source_classification": "benchmark_exact_oracle_row",
+        "theta_coordinate_system": "physical_benchmark_exact_oracle",
+        "theta_dimension": 5,
+        "theta_status": "phase1_frozen",
+        "truth_theta": [
+          0.72,
+          0.55,
+          0.35,
+          0.35,
+          0.45
+        ]
+      },
+      "value_status": "same_target_value_metadata_present"
+    },
+    "full_leaderboard_row": false,
+    "full_row_expected": {
+      "batch_seeds": [
+        81120,
+        81121,
+        81122,
+        81123,
+        81124
+      ],
+      "num_particles": 1000,
+      "sinkhorn_epsilon": 0.5,
+      "sinkhorn_iterations": 10,
+      "time_steps": 50,
+      "transport_policy": "active-all"
+    },
+    "model_source": "scripts/filtering_value_gradient_benchmark_generate_p8_datasets.py:_lgssm_benchmark_model",
+    "num_particles": 4,
+    "obs_dim": 3,
+    "proposal_flow_fields": [
+      "pre_flow_log_density",
+      "forward_log_det",
+      "proposal_observation_surface"
+    ],
+    "row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+    "row_scope": "main_observed_data_filtering_row",
+    "same_target_status": "prefix_diagnostic_not_full_leaderboard_row",
+    "score_status": "not_run_score_mode_none",
+    "sinkhorn_epsilon": 0.5,
+    "sinkhorn_iterations": 2,
+    "state_dim": 3,
+    "target_density_fields": [
+      "transition_log_density",
+      "observation_log_density"
+    ],
+    "target_output_tensor_field": "log_likelihood",
+    "target_scalar": "observed_data_log_likelihood_estimator",
+    "time_steps": 2,
+    "transport_policy": "active-all",
+    "truth_theta": [
+      0.72,
+      0.55,
+      0.35,
+      0.35,
+      0.45
+    ]
+  },
+  "tensorflow_version": "2.19.1",
+  "timestamp_utc": "2026-07-06T09:25:07.391771+00:00",
+  "total_log_likelihood_by_seed": [
+    -9.175567320313894
+  ],
+  "total_log_likelihood_estimate": {
+    "mcse": null,
+    "mean": -9.175567320313894,
+    "sample_sd": null,
+    "seed_count": 1
+  },
+  "transport": {
+    "ad_mode": "stabilized",
+    "annealed_convergence_threshold": 0.001,
+    "annealed_scaling": 0.9,
+    "col_chunk_size": 4,
+    "dense_transport_matrix_materialized": false,
+    "gradient_mode": "raw",
+    "particle_chunk_size": 4,
+    "plan_mode": "streaming",
+    "row_chunk_size": 4,
+    "sinkhorn_epsilon": 0.5,
+    "sinkhorn_iterations": 2
+  },
+  "transport_policy": "active-all",
+  "value_route_id": null,
+  "value_score_route_status": "value_only_score_not_run",
+  "value_status": "executed_prefix_value_not_full_row",
+  "warm_call_timing_summary_seconds": {
+    "max": 0.0011230569798499346,
+    "mean": 0.0011230569798499346,
+    "median": 0.0011230569798499346,
+    "min": 0.0011230569798499346
+  },
+  "warm_call_timings_seconds": [
+    0.0011230569798499346
+  ],
+  "warmups": 0
+}

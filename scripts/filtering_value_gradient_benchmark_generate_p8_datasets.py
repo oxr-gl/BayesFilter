@@ -212,15 +212,54 @@ def _sv_dataset(seed: int) -> dict[str, Any]:
 
 
 def _sir_dataset(seed: int) -> dict[str, Any]:
-    model = zhao_cui_sir_austria_model()
+    parameterized = parameterized_zhao_cui_sir_austria_model()
+    theta = tf.zeros([parameterized.parameter_dim()], dtype=tf.float64)
+    model = parameterized.scaled_model(theta)
     states, observations = model.simulate(final_time=19, seed=seed)
     return {
-        "truth_theta_coordinate": "no_free_theta",
-        "truth_physical": {"kappa": [0.1] * 9, "nu": [18.0] * 9},
-        "truth_theta": [],
+        "truth_theta_coordinate": "sir_log_scale_theta",
+        "truth_theta_semantics": (
+            "log-scale origin reproducing fixed source SIR base parameters"
+        ),
+        "theta_domain": {
+            "log_kappa_scale": [-0.5, 0.5],
+            "log_nu_scale": [-0.5, 0.5],
+            "log_obs_noise_scale": [-0.5, 0.5],
+        },
+        "parameter_order": [
+            "log_kappa_scale",
+            "log_nu_scale",
+            "log_obs_noise_scale",
+        ],
+        "truth_physical": {
+            "kappa": [0.1] * 9,
+            "nu": [18.0] * 9,
+            "observation_standard_deviation": 10.0,
+        },
+        "truth_theta": [float(x) for x in theta.numpy().tolist()],
         "states": states,
         "observations": observations,
-        "model_manifest": model.manifest_payload(),
+        "model_manifest": parameterized.manifest_payload()
+        | {
+            "target_contract": (
+                "docs/plans/"
+                "bayesfilter-ledh-same-target-forward-score-phase1-row-target-theta-contract-2026-07-06.md"
+            ),
+            "human_amendment": (
+                "2026-07-06 fixed SIR row uses model parameters as free "
+                "theta for LEDH score coverage"
+            ),
+            "source_adaptation_classification": "extension_or_invention",
+            "truth_theta_semantics": (
+                "log-scale origin reproducing fixed source SIR base parameters"
+            ),
+            "theta_domain": {
+                "log_kappa_scale": [-0.5, 0.5],
+                "log_nu_scale": [-0.5, 0.5],
+                "log_obs_noise_scale": [-0.5, 0.5],
+            },
+            "leaderboard_score_provenance_requirement": "analytical_manual_only",
+        },
         "domain_diagnostics": model.domain_diagnostics(states),
     }
 
@@ -474,17 +513,30 @@ def _dataset_record(row: dict[str, Any], generated: dict[str, dict[str, Any]]) -
                 "not an ordinary finite-mean claim for sigma_squared_or_beta",
             ]
         )
-    if row_id == "zhao_cui_spatial_sir_austria_j9_T20_parameterized_logscale":
+    if row_id in (
+        "zhao_cui_spatial_sir_austria_j9_T20",
+        "zhao_cui_spatial_sir_austria_j9_T20_parameterized_logscale",
+    ):
         record["truth_theta_semantics"] = payload["truth_theta_semantics"]
         record["theta_domain"] = payload["theta_domain"]
         record["parameter_order"] = payload["parameter_order"]
+    if row_id == "zhao_cui_spatial_sir_austria_j9_T20":
+        record["nonclaims"].extend(
+            [
+                "not source-faithful as an inference-theta parameterization",
+                "not exact likelihood evidence",
+                "not score admission evidence",
+                "not a claim that the author fixed-parameter example had free inference theta",
+            ]
+        )
+    if row_id == "zhao_cui_spatial_sir_austria_j9_T20_parameterized_logscale":
         record["fixed_base_model_row_id"] = payload["fixed_base_model_row_id"]
         record["nonclaims"].extend(
             [
                 "not source-faithful as an inference-theta parameterization",
                 "not exact likelihood evidence",
                 "not score admission evidence",
-                "not a replacement for the fixed no-free-theta source-parity row",
+                "legacy/scoped diagnostic duplicate of the fixed-row log-scale theta surface",
             ]
         )
     if "domain_diagnostics" in payload:
@@ -554,7 +606,7 @@ def _write_csv(path: Path, records: list[dict[str, Any]]) -> None:
         "reason",
     ]
     with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=columns)
+        writer = csv.DictWriter(handle, fieldnames=columns, lineterminator="\n")
         writer.writeheader()
         for record in records:
             obs = record.get("observation_summary") or {}
