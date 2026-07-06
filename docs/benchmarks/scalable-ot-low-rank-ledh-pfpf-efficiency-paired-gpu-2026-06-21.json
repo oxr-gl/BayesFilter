@@ -1,0 +1,2131 @@
+{
+  "algorithm_family": "low_rank_solver_route_ledh_pfpf_ot_efficiency",
+  "algorithm_under_test": "LEDH/PFPF-OT with streaming transport versus P = Q diag(1/g) R^T lazy low-rank resampling",
+  "candidate_classification": {
+    "directly_anchored_components": [
+      "Q diag(1/g) R^T factor form",
+      "lazy low-rank apply",
+      "factor marginal diagnostics"
+    ],
+    "extension_or_invention": [
+      "cost-nudged assignment kernel",
+      "diagnostic simplified solver objective/stabilization"
+    ],
+    "fixed_hmc_adaptation": [
+      "deterministic rank",
+      "deterministic assignment epsilon",
+      "fixed projection schedule"
+    ]
+  },
+  "hard_vetoes": [],
+  "mode": "paired-gpu",
+  "nonclaims": [
+    "bounded resource-proxy efficiency harness only",
+    "no posterior correctness claim",
+    "no HMC readiness claim",
+    "no public API readiness claim",
+    "no production/default readiness claim",
+    "no dense Sinkhorn equivalence claim",
+    "no broad scalable-OT selection claim",
+    "no statistical ranking claim",
+    "no streaming superiority claim at unpaired large-N rows"
+  ],
+  "paired_efficiency": {
+    "adjacent_resource_proxy_support": true,
+    "claim_status": "SUPPORTED_BOUNDED",
+    "envelope_rows": [
+      {
+        "low_rank_hard_vetoes": [],
+        "low_rank_status": "PASS",
+        "particle_count": 32768,
+        "streaming_hard_vetoes": [
+          "row_timeout"
+        ],
+        "streaming_status": "TIMEOUT",
+        "support": "executable_envelope_for_that_row_only"
+      }
+    ],
+    "executable_envelope_support": true,
+    "paired_rows": [
+      {
+        "comparability": {
+          "hard_vetoes": [],
+          "state_mean_absolute_l2": 9.081317501744502e-06,
+          "state_mean_relative_l2": 0.0001686003090068711,
+          "status": "PASS",
+          "thresholds": {
+            "ess_fraction_min": 0.01,
+            "log_weight_normalization": 1e-06,
+            "state_mean_absolute_l2": 1.0,
+            "state_mean_relative_l2": 0.5
+          }
+        },
+        "memory_improvement_ratio": 0.9967218689427687,
+        "memory_screen_pass": false,
+        "particle_count": 1024,
+        "resource_proxy_screen_pass": false,
+        "speed_improvement_ratio": 0.6736114889888446,
+        "speed_screen_pass": false
+      },
+      {
+        "comparability": {
+          "hard_vetoes": [],
+          "state_mean_absolute_l2": 1.0498878325767167e-05,
+          "state_mean_relative_l2": 0.00019242408007101957,
+          "status": "PASS",
+          "thresholds": {
+            "ess_fraction_min": 0.01,
+            "log_weight_normalization": 1e-06,
+            "state_mean_absolute_l2": 1.0,
+            "state_mean_relative_l2": 0.5
+          }
+        },
+        "memory_improvement_ratio": 0.9939944304002812,
+        "memory_screen_pass": false,
+        "particle_count": 2048,
+        "resource_proxy_screen_pass": true,
+        "speed_improvement_ratio": 1.431858814015146,
+        "speed_screen_pass": true
+      },
+      {
+        "comparability": {
+          "hard_vetoes": [],
+          "state_mean_absolute_l2": 1.5214176350099407e-05,
+          "state_mean_relative_l2": 0.0002802493118873245,
+          "status": "PASS",
+          "thresholds": {
+            "ess_fraction_min": 0.01,
+            "log_weight_normalization": 1e-06,
+            "state_mean_absolute_l2": 1.0,
+            "state_mean_relative_l2": 0.5
+          }
+        },
+        "memory_improvement_ratio": 0.9923867312559714,
+        "memory_screen_pass": false,
+        "particle_count": 4096,
+        "resource_proxy_screen_pass": true,
+        "speed_improvement_ratio": 2.6680060117189646,
+        "speed_screen_pass": true
+      },
+      {
+        "comparability": {
+          "hard_vetoes": [],
+          "state_mean_absolute_l2": 1.0352082419906603e-05,
+          "state_mean_relative_l2": 0.00019173664403675266,
+          "status": "PASS",
+          "thresholds": {
+            "ess_fraction_min": 0.01,
+            "log_weight_normalization": 1e-06,
+            "state_mean_absolute_l2": 1.0,
+            "state_mean_relative_l2": 0.5
+          }
+        },
+        "memory_improvement_ratio": 0.9807197521626695,
+        "memory_screen_pass": false,
+        "particle_count": 8192,
+        "resource_proxy_screen_pass": true,
+        "speed_improvement_ratio": 3.6249536797346003,
+        "speed_screen_pass": true
+      },
+      {
+        "comparability": {
+          "hard_vetoes": [],
+          "state_mean_absolute_l2": 1.325075899424386e-05,
+          "state_mean_relative_l2": 0.00024511004061537466,
+          "status": "PASS",
+          "thresholds": {
+            "ess_fraction_min": 0.01,
+            "log_weight_normalization": 1e-06,
+            "state_mean_absolute_l2": 1.0,
+            "state_mean_relative_l2": 0.5
+          }
+        },
+        "memory_improvement_ratio": 0.9778087665854533,
+        "memory_screen_pass": false,
+        "particle_count": 16384,
+        "resource_proxy_screen_pass": true,
+        "speed_improvement_ratio": 13.87941958824491,
+        "speed_screen_pass": true
+      },
+      {
+        "comparability": {
+          "hard_vetoes": [
+            "route_not_passed"
+          ],
+          "status": "NOT_EVALUATED"
+        },
+        "memory_improvement_ratio": null,
+        "memory_screen_pass": false,
+        "particle_count": 32768,
+        "resource_proxy_screen_pass": false,
+        "speed_improvement_ratio": null,
+        "speed_screen_pass": false
+      }
+    ],
+    "thresholds": {
+      "memory_improvement_factor": 2.0,
+      "speed_improvement_factor": 1.25
+    }
+  },
+  "phase": "LOW_RANK_LEDH_EFFICIENCY_P02",
+  "rows": [
+    {
+      "active_resampling_batch_entries": 2,
+      "active_resampling_mask_count": 2,
+      "compile_and_first_call_seconds": 5.173161360900849,
+      "error": null,
+      "ess_by_time_preview": [
+        1023.9869384765625,
+        1023.999755859375
+      ],
+      "ess_fraction_min": 0.9999872446060181,
+      "ess_min": 1023.9869384765625,
+      "filtered_means_preview": [
+        0.0058493297547101974,
+        0.008808678947389126,
+        0.016399666666984558,
+        0.01692403294146061,
+        0.020014021545648575,
+        0.020527945831418037,
+        0.013367604464292526,
+        0.013869335874915123
+      ],
+      "filtered_variances_preview": [
+        0.0008813801687210798,
+        0.0010878865141421556,
+        0.0009646861581131816,
+        0.0009598899632692337,
+        0.0011028737062588334,
+        0.0009577872697263956,
+        0.0015386184677481651,
+        0.0015450215432792902
+      ],
+      "final_log_weights_preview": [
+        -6.931471824645996,
+        -6.931471824645996,
+        -6.931471824645996,
+        -6.931471824645996,
+        -6.931471824645996,
+        -6.931471824645996,
+        -6.931471824645996,
+        -6.931471824645996
+      ],
+      "final_particles_preview": [
+        0.01808577962219715,
+        0.025059614330530167,
+        0.029894055798649788,
+        0.025171134620904922,
+        0.01841384544968605,
+        0.008540707640349865,
+        0.0007431846461258829,
+        -0.00016698837862350047
+      ],
+      "finite_output": true,
+      "fixture_id": "ledh_lgssm_efficiency_common_v1",
+      "hard_vetoes": [],
+      "log_likelihood_preview": [
+        -7.487049102783203
+      ],
+      "memory_current_delta_bytes": 99840,
+      "memory_info_after": {
+        "current": 139776,
+        "peak": 75075072
+      },
+      "memory_info_before": {
+        "current": 39936,
+        "peak": 39936
+      },
+      "memory_maxrss_kb": 1042432,
+      "memory_peak_delta_bytes": 75035136,
+      "memory_stats_reset": {
+        "status": "reset"
+      },
+      "output_devices": [
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0"
+      ],
+      "output_log_weight_normalization_residual": 0.0,
+      "particle_count": 1024,
+      "repeats": 1,
+      "route": "streaming",
+      "row_subprocess": {
+        "json": "docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n1024.json",
+        "markdown": "docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n1024.md",
+        "status": "reused_existing"
+      },
+      "shape": {
+        "batch_size": 1,
+        "num_particles": 1024,
+        "obs_dim": 6,
+        "state_dim": 8,
+        "time_steps": 2
+      },
+      "state_mean": [
+        [
+          0.01840955950319767,
+          0.02540445700287819,
+          0.029982205480337143,
+          0.024998048320412636,
+          0.01800614595413208,
+          0.008290396071970463,
+          -5.777441037935205e-05,
+          0.0003653599414974451
+        ]
+      ],
+      "state_mean_norm": 0.05386299639940262,
+      "status": "PASS",
+      "timeout_policy_seconds": 900,
+      "timeout_status": "completed_within_timeout",
+      "transport_invocations": 2,
+      "transport_matrix_materialized": false,
+      "transport_matrix_shapes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "wall_time_seconds": 7.781612780876458,
+      "warm_call_timing_summary_seconds": {
+        "max": 1.3083033449947834,
+        "mean": 1.3083033449947834,
+        "median": 1.3083033449947834,
+        "min": 1.3083033449947834
+      },
+      "warm_call_timings_seconds": [
+        1.3083033449947834
+      ],
+      "warmups": 0
+    },
+    {
+      "active_resampling_batch_entries": 2,
+      "active_resampling_mask_count": 2,
+      "all_finite_factors": true,
+      "all_finite_particles": true,
+      "all_nonnegative_factors": true,
+      "all_positive_g": true,
+      "compile_and_first_call_seconds": 6.077913357876241,
+      "error": null,
+      "ess_by_time_preview": [
+        1023.9869384765625,
+        1023.999267578125
+      ],
+      "ess_fraction_min": 0.9999872446060181,
+      "ess_min": 1023.9869384765625,
+      "filtered_means_preview": [
+        0.0058493297547101974,
+        0.008808678947389126,
+        0.016399666666984558,
+        0.01692403294146061,
+        0.020014021545648575,
+        0.020527945831418037,
+        0.013367604464292526,
+        0.013869335874915123
+      ],
+      "filtered_variances_preview": [
+        0.0008813801687210798,
+        0.0010878865141421556,
+        0.0009646861581131816,
+        0.0009598899632692337,
+        0.0011028737062588334,
+        0.0009577872697263956,
+        0.0015386184677481651,
+        0.0015450215432792902
+      ],
+      "final_log_weights_preview": [
+        -6.931471824645996,
+        -6.931471824645996,
+        -6.931471824645996,
+        -6.931471824645996,
+        -6.931471824645996,
+        -6.931471824645996,
+        -6.931471824645996,
+        -6.931471824645996
+      ],
+      "final_particles_preview": [
+        0.01427459716796875,
+        0.030120849609375,
+        0.032745361328125,
+        0.05072021484375,
+        0.0261077880859375,
+        0.01483917236328125,
+        -0.0006499288720078766,
+        -0.006095886696130037
+      ],
+      "finite_output": true,
+      "fixture_id": "ledh_lgssm_efficiency_common_v1",
+      "hard_vetoes": [],
+      "log_likelihood_preview": [
+        -7.487279415130615
+      ],
+      "low_rank_resampling_invocations": 2,
+      "max_factor_marginal_residual": 1.4901161193847656e-08,
+      "max_induced_column_residual": 1.430511474609375e-06,
+      "max_induced_row_residual": 1.430511474609375e-06,
+      "memory_current_delta_bytes": 108288,
+      "memory_info_after": {
+        "current": 148224,
+        "peak": 75321856
+      },
+      "memory_info_before": {
+        "current": 39936,
+        "peak": 39936
+      },
+      "memory_maxrss_kb": 1054720,
+      "memory_peak_delta_bytes": 75281920,
+      "memory_stats_reset": {
+        "status": "reset"
+      },
+      "output_devices": [
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0"
+      ],
+      "output_log_weight_normalization_residual": 0.0,
+      "particle_count": 1024,
+      "projection_iterations_used_max": 176.0,
+      "repeats": 1,
+      "route": "low_rank",
+      "row_subprocess": {
+        "json": "docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n1024.json",
+        "markdown": "docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n1024.md",
+        "status": "reused_existing"
+      },
+      "shape": {
+        "batch_size": 1,
+        "num_particles": 1024,
+        "obs_dim": 6,
+        "state_dim": 8,
+        "time_steps": 2
+      },
+      "state_mean": [
+        [
+          0.01841242052614689,
+          0.02540654130280018,
+          0.029989661648869514,
+          0.025001496076583862,
+          0.01800626888871193,
+          0.008290844969451427,
+          -5.922267519054003e-05,
+          0.0003649791469797492
+        ]
+      ],
+      "state_mean_norm": 0.05387081578373909,
+      "status": "PASS",
+      "timeout_policy_seconds": 900,
+      "timeout_status": "completed_within_timeout",
+      "transport_invocations": 2,
+      "transport_matrix_materialized": false,
+      "transport_matrix_shapes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "wall_time_seconds": 10.002945313928649,
+      "warm_call_timing_summary_seconds": {
+        "max": 1.9422224329318851,
+        "mean": 1.9422224329318851,
+        "median": 1.9422224329318851,
+        "min": 1.9422224329318851
+      },
+      "warm_call_timings_seconds": [
+        1.9422224329318851
+      ],
+      "warmups": 0
+    },
+    {
+      "active_resampling_batch_entries": 2,
+      "active_resampling_mask_count": 2,
+      "compile_and_first_call_seconds": 6.947928372072056,
+      "error": null,
+      "ess_by_time_preview": [
+        2047.97509765625,
+        2047.999755859375
+      ],
+      "ess_fraction_min": 0.9999878406524658,
+      "ess_min": 2047.97509765625,
+      "filtered_means_preview": [
+        0.0053527927957475185,
+        0.010616019368171692,
+        0.016071997582912445,
+        0.01792142167687416,
+        0.020308010280132294,
+        0.02102838084101677,
+        0.014973979443311691,
+        0.013200156390666962
+      ],
+      "filtered_variances_preview": [
+        0.0008504784782417119,
+        0.0009825038723647594,
+        0.0009471502853557467,
+        0.0009721406968310475,
+        0.0009955451823771,
+        0.0010011345148086548,
+        0.001457293052226305,
+        0.0015760761452838778
+      ],
+      "final_log_weights_preview": [
+        -7.624619007110596,
+        -7.624619007110596,
+        -7.624619007110596,
+        -7.624619007110596,
+        -7.624619007110596,
+        -7.624619007110596,
+        -7.624619007110596,
+        -7.624619007110596
+      ],
+      "final_particles_preview": [
+        0.017873000353574753,
+        0.025994794443249702,
+        0.029105354100465775,
+        0.02494780346751213,
+        0.01755911111831665,
+        0.007939048111438751,
+        -9.357419912703335e-05,
+        -0.002168757375329733
+      ],
+      "finite_output": true,
+      "fixture_id": "ledh_lgssm_efficiency_common_v1",
+      "hard_vetoes": [],
+      "log_likelihood_preview": [
+        -7.486813068389893
+      ],
+      "memory_current_delta_bytes": 212480,
+      "memory_info_after": {
+        "current": 289280,
+        "peak": 75370240
+      },
+      "memory_info_before": {
+        "current": 76800,
+        "peak": 76800
+      },
+      "memory_maxrss_kb": 1058816,
+      "memory_peak_delta_bytes": 75293440,
+      "memory_stats_reset": {
+        "status": "reset"
+      },
+      "output_devices": [
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0"
+      ],
+      "output_log_weight_normalization_residual": 0.0,
+      "particle_count": 2048,
+      "repeats": 1,
+      "route": "streaming",
+      "row_subprocess": {
+        "json": "docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n2048.json",
+        "markdown": "docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n2048.md",
+        "status": "reused_existing"
+      },
+      "shape": {
+        "batch_size": 1,
+        "num_particles": 2048,
+        "obs_dim": 6,
+        "state_dim": 8,
+        "time_steps": 2
+      },
+      "state_mean": [
+        [
+          0.01809951849281788,
+          0.02650313638150692,
+          0.029757758602499962,
+          0.025613274425268173,
+          0.01817465014755726,
+          0.008584790863096714,
+          0.0011433670297265053,
+          -0.00014829177234787494
+        ]
+      ],
+      "state_mean_norm": 0.05456114560365677,
+      "status": "PASS",
+      "timeout_policy_seconds": 900,
+      "timeout_status": "completed_within_timeout",
+      "transport_invocations": 2,
+      "transport_matrix_materialized": false,
+      "transport_matrix_shapes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "wall_time_seconds": 13.146187420934439,
+      "warm_call_timing_summary_seconds": {
+        "max": 3.1174110020510852,
+        "mean": 3.1174110020510852,
+        "median": 3.1174110020510852,
+        "min": 3.1174110020510852
+      },
+      "warm_call_timings_seconds": [
+        3.1174110020510852
+      ],
+      "warmups": 0
+    },
+    {
+      "active_resampling_batch_entries": 2,
+      "active_resampling_mask_count": 2,
+      "all_finite_factors": true,
+      "all_finite_particles": true,
+      "all_nonnegative_factors": true,
+      "all_positive_g": true,
+      "compile_and_first_call_seconds": 6.2057726660277694,
+      "error": null,
+      "ess_by_time_preview": [
+        2047.97509765625,
+        2047.999267578125
+      ],
+      "ess_fraction_min": 0.9999878406524658,
+      "ess_min": 2047.97509765625,
+      "filtered_means_preview": [
+        0.0053527927957475185,
+        0.010616019368171692,
+        0.016071997582912445,
+        0.01792142167687416,
+        0.020308010280132294,
+        0.02102838084101677,
+        0.014973979443311691,
+        0.013200156390666962
+      ],
+      "filtered_variances_preview": [
+        0.0008504784782417119,
+        0.0009825038723647594,
+        0.0009471502853557467,
+        0.0009721406968310475,
+        0.0009955451823771,
+        0.0010011345148086548,
+        0.001457293052226305,
+        0.0015760761452838778
+      ],
+      "final_log_weights_preview": [
+        -7.624619007110596,
+        -7.624619007110596,
+        -7.624619007110596,
+        -7.624619007110596,
+        -7.624619007110596,
+        -7.624619007110596,
+        -7.624619007110596,
+        -7.624619007110596
+      ],
+      "final_particles_preview": [
+        0.01177978515625,
+        0.01561737060546875,
+        0.028350830078125,
+        0.031524658203125,
+        0.0154266357421875,
+        0.02264404296875,
+        0.0020084381103515625,
+        -0.021881103515625
+      ],
+      "finite_output": true,
+      "fixture_id": "ledh_lgssm_efficiency_common_v1",
+      "hard_vetoes": [],
+      "log_likelihood_preview": [
+        -7.487030029296875
+      ],
+      "low_rank_resampling_invocations": 2,
+      "max_factor_marginal_residual": 1.4901161193847656e-08,
+      "max_induced_column_residual": 1.5497207641601562e-06,
+      "max_induced_row_residual": 1.6689300537109375e-06,
+      "memory_current_delta_bytes": 175616,
+      "memory_info_after": {
+        "current": 252416,
+        "peak": 75825152
+      },
+      "memory_info_before": {
+        "current": 76800,
+        "peak": 76800
+      },
+      "memory_maxrss_kb": 1054720,
+      "memory_peak_delta_bytes": 75748352,
+      "memory_stats_reset": {
+        "status": "reset"
+      },
+      "output_devices": [
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0"
+      ],
+      "output_log_weight_normalization_residual": 0.0,
+      "particle_count": 2048,
+      "projection_iterations_used_max": 173.0,
+      "repeats": 1,
+      "route": "low_rank",
+      "row_subprocess": {
+        "json": "docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n2048.json",
+        "markdown": "docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n2048.md",
+        "status": "reused_existing"
+      },
+      "shape": {
+        "batch_size": 1,
+        "num_particles": 2048,
+        "obs_dim": 6,
+        "state_dim": 8,
+        "time_steps": 2
+      },
+      "state_mean": [
+        [
+          0.01810097135603428,
+          0.026510026305913925,
+          0.029763152822852135,
+          0.025615276768803596,
+          0.018175158649683,
+          0.008582310751080513,
+          0.0011419313959777355,
+          -0.00014392519369721413
+        ]
+      ],
+      "state_mean_norm": 0.05456859618425369,
+      "status": "PASS",
+      "timeout_policy_seconds": 900,
+      "timeout_status": "completed_within_timeout",
+      "transport_invocations": 2,
+      "transport_matrix_materialized": false,
+      "transport_matrix_shapes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "wall_time_seconds": 10.671993807889521,
+      "warm_call_timing_summary_seconds": {
+        "max": 2.177177645964548,
+        "mean": 2.177177645964548,
+        "median": 2.177177645964548,
+        "min": 2.177177645964548
+      },
+      "warm_call_timings_seconds": [
+        2.177177645964548
+      ],
+      "warmups": 0
+    },
+    {
+      "active_resampling_batch_entries": 2,
+      "active_resampling_mask_count": 2,
+      "compile_and_first_call_seconds": 13.22737192409113,
+      "error": null,
+      "ess_by_time_preview": [
+        4095.94775390625,
+        4095.9970703125
+      ],
+      "ess_fraction_min": 0.9999872446060181,
+      "ess_min": 4095.94775390625,
+      "filtered_means_preview": [
+        0.004931255709379911,
+        0.010989837348461151,
+        0.015254033729434013,
+        0.01833115518093109,
+        0.019427109509706497,
+        0.02133433148264885,
+        0.013771023601293564,
+        0.013830281794071198
+      ],
+      "filtered_variances_preview": [
+        0.0008516244124621153,
+        0.0010025438386946917,
+        0.0009863455779850483,
+        0.0009177786996588111,
+        0.001007923623546958,
+        0.0010096768382936716,
+        0.0014060491230338812,
+        0.0015399170806631446
+      ],
+      "final_log_weights_preview": [
+        -8.317766189575195,
+        -8.317766189575195,
+        -8.317766189575195,
+        -8.317766189575195,
+        -8.317766189575195,
+        -8.317766189575195,
+        -8.317766189575195,
+        -8.317766189575195
+      ],
+      "final_particles_preview": [
+        0.01753910630941391,
+        0.02606973424553871,
+        0.0285281240940094,
+        0.02538393810391426,
+        0.017388150095939636,
+        0.009133894927799702,
+        0.001707831397652626,
+        0.0024147566873580217
+      ],
+      "finite_output": true,
+      "fixture_id": "ledh_lgssm_efficiency_common_v1",
+      "hard_vetoes": [],
+      "log_likelihood_preview": [
+        -7.486872673034668
+      ],
+      "memory_current_delta_bytes": 340224,
+      "memory_info_after": {
+        "current": 490752,
+        "peak": 75932672
+      },
+      "memory_info_before": {
+        "current": 150528,
+        "peak": 150528
+      },
+      "memory_maxrss_kb": 1060864,
+      "memory_peak_delta_bytes": 75782144,
+      "memory_stats_reset": {
+        "status": "reset"
+      },
+      "output_devices": [
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0"
+      ],
+      "output_log_weight_normalization_residual": 0.0,
+      "particle_count": 4096,
+      "repeats": 1,
+      "route": "streaming",
+      "row_subprocess": {
+        "json": "docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n4096.json",
+        "markdown": "docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n4096.md",
+        "status": "reused_existing"
+      },
+      "shape": {
+        "batch_size": 1,
+        "num_particles": 4096,
+        "obs_dim": 6,
+        "state_dim": 8,
+        "time_steps": 2
+      },
+      "state_mean": [
+        [
+          0.017844337970018387,
+          0.02673957124352455,
+          0.029254373162984848,
+          0.02588016726076603,
+          0.017624428495764732,
+          0.008796356618404388,
+          0.00023398653138428926,
+          0.00033167959190905094
+        ]
+      ],
+      "state_mean_norm": 0.05428800359368324,
+      "status": "PASS",
+      "timeout_policy_seconds": 900,
+      "timeout_status": "completed_within_timeout",
+      "transport_invocations": 2,
+      "transport_matrix_materialized": false,
+      "transport_matrix_shapes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "wall_time_seconds": 31.892519406042993,
+      "warm_call_timing_summary_seconds": {
+        "max": 9.249396051978692,
+        "mean": 9.249396051978692,
+        "median": 9.249396051978692,
+        "min": 9.249396051978692
+      },
+      "warm_call_timings_seconds": [
+        9.249396051978692
+      ],
+      "warmups": 0
+    },
+    {
+      "active_resampling_batch_entries": 2,
+      "active_resampling_mask_count": 2,
+      "all_finite_factors": true,
+      "all_finite_particles": true,
+      "all_nonnegative_factors": true,
+      "all_positive_g": true,
+      "compile_and_first_call_seconds": 7.2501514030154794,
+      "error": null,
+      "ess_by_time_preview": [
+        4095.94775390625,
+        4095.99462890625
+      ],
+      "ess_fraction_min": 0.9999872446060181,
+      "ess_min": 4095.94775390625,
+      "filtered_means_preview": [
+        0.004931255709379911,
+        0.010989837348461151,
+        0.015254033729434013,
+        0.01833115518093109,
+        0.019427109509706497,
+        0.02133433148264885,
+        0.013771023601293564,
+        0.013830281794071198
+      ],
+      "filtered_variances_preview": [
+        0.0008516244124621153,
+        0.0010025438386946917,
+        0.0009863455779850483,
+        0.0009177786996588111,
+        0.001007923623546958,
+        0.0010096768382936716,
+        0.0014060491230338812,
+        0.0015399170806631446
+      ],
+      "final_log_weights_preview": [
+        -8.317766189575195,
+        -8.317766189575195,
+        -8.317766189575195,
+        -8.317766189575195,
+        -8.317766189575195,
+        -8.317766189575195,
+        -8.317766189575195,
+        -8.317766189575195
+      ],
+      "final_particles_preview": [
+        0.021240234375,
+        0.0211181640625,
+        0.01343536376953125,
+        0.0247802734375,
+        0.0193634033203125,
+        0.0196380615234375,
+        0.005184173583984375,
+        0.01454925537109375
+      ],
+      "finite_output": true,
+      "fixture_id": "ledh_lgssm_efficiency_common_v1",
+      "hard_vetoes": [],
+      "log_likelihood_preview": [
+        -7.487112045288086
+      ],
+      "low_rank_resampling_invocations": 2,
+      "max_factor_marginal_residual": 1.4901161193847656e-08,
+      "max_induced_column_residual": 3.3855438232421875e-05,
+      "max_induced_row_residual": 3.409385681152344e-05,
+      "memory_current_delta_bytes": 408576,
+      "memory_info_after": {
+        "current": 559104,
+        "peak": 76514048
+      },
+      "memory_info_before": {
+        "current": 150528,
+        "peak": 150528
+      },
+      "memory_maxrss_kb": 1056768,
+      "memory_peak_delta_bytes": 76363520,
+      "memory_stats_reset": {
+        "status": "reset"
+      },
+      "output_devices": [
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0"
+      ],
+      "output_log_weight_normalization_residual": 0.0,
+      "particle_count": 4096,
+      "projection_iterations_used_max": 240.0,
+      "repeats": 1,
+      "route": "low_rank",
+      "row_subprocess": {
+        "json": "docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n4096.json",
+        "markdown": "docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n4096.md",
+        "status": "reused_existing"
+      },
+      "shape": {
+        "batch_size": 1,
+        "num_particles": 4096,
+        "obs_dim": 6,
+        "state_dim": 8,
+        "time_steps": 2
+      },
+      "state_mean": [
+        [
+          0.017846236005425453,
+          0.026747306808829308,
+          0.029262108728289604,
+          0.0258879866451025,
+          0.017630914226174355,
+          0.008794497698545456,
+          0.00023315363796427846,
+          0.00033076640102081
+        ]
+      ],
+      "state_mean_norm": 0.05430213361978531,
+      "status": "PASS",
+      "timeout_policy_seconds": 900,
+      "timeout_status": "completed_within_timeout",
+      "transport_invocations": 2,
+      "transport_matrix_materialized": false,
+      "transport_matrix_shapes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "wall_time_seconds": 13.979098652955145,
+      "warm_call_timing_summary_seconds": {
+        "max": 3.4667823128402233,
+        "mean": 3.4667823128402233,
+        "median": 3.4667823128402233,
+        "min": 3.4667823128402233
+      },
+      "warm_call_timings_seconds": [
+        3.4667823128402233
+      ],
+      "warmups": 0
+    },
+    {
+      "active_resampling_batch_entries": 2,
+      "active_resampling_mask_count": 2,
+      "compile_and_first_call_seconds": 35.555517283966765,
+      "error": null,
+      "ess_by_time_preview": [
+        8191.8916015625,
+        8192.0009765625
+      ],
+      "ess_fraction_min": 0.9999867677688599,
+      "ess_min": 8191.8916015625,
+      "filtered_means_preview": [
+        0.005308179184794426,
+        0.010681837797164917,
+        0.014519263990223408,
+        0.017822416499257088,
+        0.019842153415083885,
+        0.021421466022729874,
+        0.013917169533669949,
+        0.012278919108211994
+      ],
+      "filtered_variances_preview": [
+        0.0008416366181336343,
+        0.0010026763193309307,
+        0.0009734015911817551,
+        0.0009613822330720723,
+        0.0010187821462750435,
+        0.0010274234227836132,
+        0.0014979785773903131,
+        0.0015604746295139194
+      ],
+      "final_log_weights_preview": [
+        -9.010913848876953,
+        -9.010913848876953,
+        -9.010913848876953,
+        -9.010913848876953,
+        -9.010913848876953,
+        -9.010913848876953,
+        -9.010913848876953,
+        -9.010913848876953
+      ],
+      "final_particles_preview": [
+        0.018066713586449623,
+        0.026420066133141518,
+        0.028436843305826187,
+        0.024884335696697235,
+        0.01680680364370346,
+        0.007555978838354349,
+        -0.0024411457125097513,
+        -0.0034879609011113644
+      ],
+      "finite_output": true,
+      "fixture_id": "ledh_lgssm_efficiency_common_v1",
+      "hard_vetoes": [],
+      "log_likelihood_preview": [
+        -7.486946105957031
+      ],
+      "memory_current_delta_bytes": 803584,
+      "memory_info_after": {
+        "current": 1101568,
+        "peak": 76801280
+      },
+      "memory_info_before": {
+        "current": 297984,
+        "peak": 297984
+      },
+      "memory_maxrss_kb": 1060864,
+      "memory_peak_delta_bytes": 76503296,
+      "memory_stats_reset": {
+        "status": "reset"
+      },
+      "output_devices": [
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0"
+      ],
+      "output_log_weight_normalization_residual": 0.0,
+      "particle_count": 8192,
+      "repeats": 1,
+      "route": "streaming",
+      "row_subprocess": {
+        "json": "docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n8192.json",
+        "markdown": "docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n8192.md",
+        "status": "reused_existing"
+      },
+      "shape": {
+        "batch_size": 1,
+        "num_particles": 8192,
+        "obs_dim": 6,
+        "state_dim": 8,
+        "time_steps": 2
+      },
+      "state_mean": [
+        [
+          0.018072310835123062,
+          0.026554599404335022,
+          0.02881464920938015,
+          0.02557418681681156,
+          0.01788596250116825,
+          0.008844542317092419,
+          0.0003384433512110263,
+          -0.0008474845672026277
+        ]
+      ],
+      "state_mean_norm": 0.053991153836250305,
+      "status": "PASS",
+      "timeout_policy_seconds": 900,
+      "timeout_status": "completed_within_timeout",
+      "transport_invocations": 2,
+      "transport_matrix_materialized": false,
+      "transport_matrix_shapes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "wall_time_seconds": 99.63817304000258,
+      "warm_call_timing_summary_seconds": {
+        "max": 31.58525244309567,
+        "mean": 31.58525244309567,
+        "median": 31.58525244309567,
+        "min": 31.58525244309567
+      },
+      "warm_call_timings_seconds": [
+        31.58525244309567
+      ],
+      "warmups": 0
+    },
+    {
+      "active_resampling_batch_entries": 2,
+      "active_resampling_mask_count": 2,
+      "all_finite_factors": true,
+      "all_finite_particles": true,
+      "all_nonnegative_factors": true,
+      "all_positive_g": true,
+      "compile_and_first_call_seconds": 8.764649136923254,
+      "error": null,
+      "ess_by_time_preview": [
+        8191.8916015625,
+        8191.990234375
+      ],
+      "ess_fraction_min": 0.9999867677688599,
+      "ess_min": 8191.8916015625,
+      "filtered_means_preview": [
+        0.005308179184794426,
+        0.010681837797164917,
+        0.014519263990223408,
+        0.017822416499257088,
+        0.019842153415083885,
+        0.021421466022729874,
+        0.013917169533669949,
+        0.012278919108211994
+      ],
+      "filtered_variances_preview": [
+        0.0008416366181336343,
+        0.0010026763193309307,
+        0.0009734015911817551,
+        0.0009613822330720723,
+        0.0010187821462750435,
+        0.0010274234227836132,
+        0.0014979785773903131,
+        0.0015604746295139194
+      ],
+      "final_log_weights_preview": [
+        -9.010913848876953,
+        -9.010913848876953,
+        -9.010913848876953,
+        -9.010913848876953,
+        -9.010913848876953,
+        -9.010913848876953,
+        -9.010913848876953,
+        -9.010913848876953
+      ],
+      "final_particles_preview": [
+        0.017534252256155014,
+        0.029750652611255646,
+        0.028413811698555946,
+        0.02932659536600113,
+        0.02460608072578907,
+        0.016292894259095192,
+        -0.015275998041033745,
+        -0.028591850772500038
+      ],
+      "finite_output": true,
+      "fixture_id": "ledh_lgssm_efficiency_common_v1",
+      "hard_vetoes": [],
+      "log_likelihood_preview": [
+        -7.487160682678223
+      ],
+      "low_rank_resampling_invocations": 2,
+      "max_factor_marginal_residual": 4.470348358154297e-08,
+      "max_induced_column_residual": 1.8477439880371094e-06,
+      "max_induced_row_residual": 1.8477439880371094e-06,
+      "memory_current_delta_bytes": 623616,
+      "memory_info_after": {
+        "current": 921600,
+        "peak": 78305280
+      },
+      "memory_info_before": {
+        "current": 297984,
+        "peak": 297984
+      },
+      "memory_maxrss_kb": 1058816,
+      "memory_peak_delta_bytes": 78007296,
+      "memory_stats_reset": {
+        "status": "reset"
+      },
+      "output_devices": [
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0"
+      ],
+      "output_log_weight_normalization_residual": 0.0,
+      "particle_count": 8192,
+      "projection_iterations_used_max": 240.0,
+      "repeats": 1,
+      "route": "low_rank",
+      "row_subprocess": {
+        "json": "docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n8192.json",
+        "markdown": "docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n8192.md",
+        "status": "reused_existing"
+      },
+      "shape": {
+        "batch_size": 1,
+        "num_particles": 8192,
+        "obs_dim": 6,
+        "state_dim": 8,
+        "time_steps": 2
+      },
+      "state_mean": [
+        [
+          0.01807807758450508,
+          0.026560574769973755,
+          0.028818894177675247,
+          0.025577928870916367,
+          0.017887195572257042,
+          0.008846171200275421,
+          0.00033842428820207715,
+          -0.0008460673852823675
+        ]
+      ],
+      "state_mean_norm": 0.05400071293115616,
+      "status": "PASS",
+      "timeout_policy_seconds": 900,
+      "timeout_status": "completed_within_timeout",
+      "transport_invocations": 2,
+      "transport_matrix_materialized": false,
+      "transport_matrix_shapes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "wall_time_seconds": 28.346352052874863,
+      "warm_call_timing_summary_seconds": {
+        "max": 8.713284426135942,
+        "mean": 8.713284426135942,
+        "median": 8.713284426135942,
+        "min": 8.713284426135942
+      },
+      "warm_call_timings_seconds": [
+        8.713284426135942
+      ],
+      "warmups": 0
+    },
+    {
+      "active_resampling_batch_entries": 2,
+      "active_resampling_mask_count": 2,
+      "compile_and_first_call_seconds": 122.82103663403541,
+      "error": null,
+      "ess_by_time_preview": [
+        16383.80078125,
+        16384.00390625
+      ],
+      "ess_fraction_min": 0.9999878406524658,
+      "ess_min": 16383.80078125,
+      "filtered_means_preview": [
+        0.005060125142335892,
+        0.01064145565032959,
+        0.01486662495881319,
+        0.017992321401834488,
+        0.019662151113152504,
+        0.021551206707954407,
+        0.013866734690964222,
+        0.013372424989938736
+      ],
+      "filtered_variances_preview": [
+        0.0008668873924762011,
+        0.0009858947014436126,
+        0.000999778974801302,
+        0.0009488423820585012,
+        0.0009897220879793167,
+        0.0010238386457785964,
+        0.0014604530297219753,
+        0.001512662973254919
+      ],
+      "final_log_weights_preview": [
+        -9.704060554504395,
+        -9.704060554504395,
+        -9.704060554504395,
+        -9.704060554504395,
+        -9.704060554504395,
+        -9.704060554504395,
+        -9.704060554504395,
+        -9.704060554504395
+      ],
+      "final_particles_preview": [
+        0.01765560917556286,
+        0.025833750143647194,
+        0.02801571600139141,
+        0.024762563407421112,
+        0.017147766426205635,
+        0.008616111241281033,
+        0.0005493455100804567,
+        0.000793450279161334
+      ],
+      "finite_output": true,
+      "fixture_id": "ledh_lgssm_efficiency_common_v1",
+      "hard_vetoes": [],
+      "log_likelihood_preview": [
+        -7.4869279861450195
+      ],
+      "memory_current_delta_bytes": 1311232,
+      "memory_info_after": {
+        "current": 1904128,
+        "peak": 79395584
+      },
+      "memory_info_before": {
+        "current": 592896,
+        "peak": 592896
+      },
+      "memory_maxrss_kb": 1054720,
+      "memory_peak_delta_bytes": 78802688,
+      "memory_stats_reset": {
+        "status": "reset"
+      },
+      "output_devices": [
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0"
+      ],
+      "output_log_weight_normalization_residual": 0.0,
+      "particle_count": 16384,
+      "repeats": 1,
+      "route": "streaming",
+      "row_subprocess": {
+        "json": "docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n16384.json",
+        "markdown": "docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n16384.md",
+        "status": "reused_existing"
+      },
+      "shape": {
+        "batch_size": 1,
+        "num_particles": 16384,
+        "obs_dim": 6,
+        "state_dim": 8,
+        "time_steps": 2
+      },
+      "state_mean": [
+        [
+          0.017923947423696518,
+          0.02653070166707039,
+          0.029025433585047722,
+          0.02567601390182972,
+          0.017772339284420013,
+          0.00892778392881155,
+          0.000301744497846812,
+          -1.6838421288412064e-05
+        ]
+      ],
+      "state_mean_norm": 0.054060447961091995,
+      "status": "PASS",
+      "timeout_policy_seconds": 900,
+      "timeout_status": "completed_within_timeout",
+      "transport_invocations": 2,
+      "transport_matrix_materialized": false,
+      "transport_matrix_shapes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "wall_time_seconds": 351.116727556102,
+      "warm_call_timing_summary_seconds": {
+        "max": 114.00965318712406,
+        "mean": 114.00965318712406,
+        "median": 114.00965318712406,
+        "min": 114.00965318712406
+      },
+      "warm_call_timings_seconds": [
+        114.00965318712406
+      ],
+      "warmups": 0
+    },
+    {
+      "active_resampling_batch_entries": 2,
+      "active_resampling_mask_count": 2,
+      "all_finite_factors": true,
+      "all_finite_particles": true,
+      "all_nonnegative_factors": true,
+      "all_positive_g": true,
+      "compile_and_first_call_seconds": 11.677166684996337,
+      "error": null,
+      "ess_by_time_preview": [
+        16383.80078125,
+        16383.9921875
+      ],
+      "ess_fraction_min": 0.9999878406524658,
+      "ess_min": 16383.80078125,
+      "filtered_means_preview": [
+        0.005060125142335892,
+        0.01064145565032959,
+        0.01486662495881319,
+        0.017992321401834488,
+        0.019662151113152504,
+        0.021551206707954407,
+        0.013866734690964222,
+        0.013372424989938736
+      ],
+      "filtered_variances_preview": [
+        0.0008668873924762011,
+        0.0009858947014436126,
+        0.000999778974801302,
+        0.0009488423820585012,
+        0.0009897220879793167,
+        0.0010238386457785964,
+        0.0014604530297219753,
+        0.001512662973254919
+      ],
+      "final_log_weights_preview": [
+        -9.704060554504395,
+        -9.704060554504395,
+        -9.704060554504395,
+        -9.704060554504395,
+        -9.704060554504395,
+        -9.704060554504395,
+        -9.704060554504395,
+        -9.704060554504395
+      ],
+      "final_particles_preview": [
+        0.016418473795056343,
+        0.02040102332830429,
+        0.02101138047873974,
+        0.02116396464407444,
+        0.018112201243638992,
+        0.022109990939497948,
+        0.013786276802420616,
+        -0.005897556431591511
+      ],
+      "finite_output": true,
+      "fixture_id": "ledh_lgssm_efficiency_common_v1",
+      "hard_vetoes": [],
+      "log_likelihood_preview": [
+        -7.487170219421387
+      ],
+      "low_rank_resampling_invocations": 2,
+      "max_factor_marginal_residual": 1.4901161193847656e-08,
+      "max_induced_column_residual": 1.5139579772949219e-05,
+      "max_induced_row_residual": 1.5974044799804688e-05,
+      "memory_current_delta_bytes": 1188864,
+      "memory_info_after": {
+        "current": 1781760,
+        "peak": 81184000
+      },
+      "memory_info_before": {
+        "current": 592896,
+        "peak": 592896
+      },
+      "memory_maxrss_kb": 1044480,
+      "memory_peak_delta_bytes": 80591104,
+      "memory_stats_reset": {
+        "status": "reset"
+      },
+      "output_devices": [
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0"
+      ],
+      "output_log_weight_normalization_residual": 0.0,
+      "particle_count": 16384,
+      "projection_iterations_used_max": 240.0,
+      "repeats": 1,
+      "route": "low_rank",
+      "row_subprocess": {
+        "json": "docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n16384.json",
+        "markdown": "docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n16384.md",
+        "status": "reused_existing"
+      },
+      "shape": {
+        "batch_size": 1,
+        "num_particles": 16384,
+        "obs_dim": 6,
+        "state_dim": 8,
+        "time_steps": 2
+      },
+      "state_mean": [
+        [
+          0.01792827807366848,
+          0.02653939463198185,
+          0.029031937941908836,
+          0.02568051964044571,
+          0.017775706946849823,
+          0.008925646543502808,
+          0.0003028553328476846,
+          -1.5610175978508778e-05
+        ]
+      ],
+      "state_mean_norm": 0.0540725439786911,
+      "status": "PASS",
+      "timeout_policy_seconds": 900,
+      "timeout_status": "completed_within_timeout",
+      "transport_invocations": 2,
+      "transport_matrix_materialized": false,
+      "transport_matrix_shapes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "wall_time_seconds": 28.066000365884975,
+      "warm_call_timing_summary_seconds": {
+        "max": 8.214295451063663,
+        "mean": 8.214295451063663,
+        "median": 8.214295451063663,
+        "min": 8.214295451063663
+      },
+      "warm_call_timings_seconds": [
+        8.214295451063663
+      ],
+      "warmups": 0
+    },
+    {
+      "error": "TimeoutExpired: exceeded 900s",
+      "fixture_id": "ledh_lgssm_efficiency_common_v1",
+      "hard_vetoes": [
+        "row_timeout"
+      ],
+      "particle_count": 32768,
+      "route": "streaming",
+      "row_subprocess": {
+        "json": "docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n32768.json",
+        "markdown": "docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n32768.md",
+        "status": "reused_existing"
+      },
+      "shape": {
+        "batch_size": 1,
+        "num_particles": 32768,
+        "obs_dim": 6,
+        "state_dim": 8,
+        "time_steps": 2
+      },
+      "status": "TIMEOUT",
+      "timeout_policy_seconds": 900,
+      "timeout_status": "timeout_enforced",
+      "wall_time_seconds": 900.2983539740089
+    },
+    {
+      "active_resampling_batch_entries": 2,
+      "active_resampling_mask_count": 2,
+      "all_finite_factors": true,
+      "all_finite_particles": true,
+      "all_nonnegative_factors": true,
+      "all_positive_g": true,
+      "compile_and_first_call_seconds": 17.39110754802823,
+      "error": null,
+      "ess_by_time_preview": [
+        32767.6015625,
+        32767.9609375
+      ],
+      "ess_fraction_min": 0.9999878406524658,
+      "ess_min": 32767.6015625,
+      "filtered_means_preview": [
+        0.005410492420196533,
+        0.01079393457621336,
+        0.014773000031709671,
+        0.017897771671414375,
+        0.02013537660241127,
+        0.021113628521561623,
+        0.01348162442445755,
+        0.013180796056985855
+      ],
+      "filtered_variances_preview": [
+        0.0008521840791217983,
+        0.0009961063042283058,
+        0.0009845548775047064,
+        0.0009579501347616315,
+        0.0010216007940471172,
+        0.001033269101753831,
+        0.001462971093133092,
+        0.00153059558942914
+      ],
+      "final_log_weights_preview": [
+        -10.397207260131836,
+        -10.397207260131836,
+        -10.397207260131836,
+        -10.397207260131836,
+        -10.397207260131836,
+        -10.397207260131836,
+        -10.397207260131836,
+        -10.397207260131836
+      ],
+      "final_particles_preview": [
+        0.020599365234375,
+        0.01214599609375,
+        0.034881591796875,
+        0.027435302734375,
+        0.01385498046875,
+        0.0140228271484375,
+        0.0101776123046875,
+        -0.0299530029296875
+      ],
+      "finite_output": true,
+      "fixture_id": "ledh_lgssm_efficiency_common_v1",
+      "hard_vetoes": [],
+      "log_likelihood_preview": [
+        -7.487180709838867
+      ],
+      "low_rank_resampling_invocations": 2,
+      "max_factor_marginal_residual": 1.4901161193847656e-08,
+      "max_induced_column_residual": 5.7220458984375e-06,
+      "max_induced_row_residual": 5.7220458984375e-06,
+      "memory_current_delta_bytes": 2368512,
+      "memory_info_after": {
+        "current": 4598272,
+        "peak": 88599296
+      },
+      "memory_info_before": {
+        "current": 2229760,
+        "peak": 2229760
+      },
+      "memory_maxrss_kb": 1054288,
+      "memory_peak_delta_bytes": 86369536,
+      "memory_stats_reset": {
+        "status": "reset"
+      },
+      "output_devices": [
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0"
+      ],
+      "output_log_weight_normalization_residual": 0.0,
+      "particle_count": 32768,
+      "projection_iterations_used_max": 240.0,
+      "repeats": 1,
+      "route": "low_rank",
+      "row_subprocess": {
+        "json": "docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n32768.json",
+        "markdown": "docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n32768.md",
+        "status": "reused_existing"
+      },
+      "shape": {
+        "batch_size": 1,
+        "num_particles": 32768,
+        "obs_dim": 6,
+        "state_dim": 8,
+        "time_steps": 2
+      },
+      "state_mean": [
+        [
+          0.018139010295271873,
+          0.02662881650030613,
+          0.02897718921303749,
+          0.0256189052015543,
+          0.018073152750730515,
+          0.008654516190290451,
+          1.8548180378274992e-05,
+          -0.00015885959146544337
+        ]
+      ],
+      "state_mean_norm": 0.05418199300765991,
+      "status": "PASS",
+      "timeout_policy_seconds": 900,
+      "timeout_status": "completed_within_timeout",
+      "transport_invocations": 2,
+      "transport_matrix_materialized": false,
+      "transport_matrix_shapes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "wall_time_seconds": 44.14273727987893,
+      "warm_call_timing_summary_seconds": {
+        "max": 13.422581671969965,
+        "mean": 13.422581671969965,
+        "median": 13.422581671969965,
+        "min": 13.422581671969965
+      },
+      "warm_call_timings_seconds": [
+        13.422581671969965
+      ],
+      "warmups": 0
+    },
+    {
+      "hard_vetoes": [],
+      "particle_count": 50000,
+      "route": "streaming",
+      "skip_reason": "streaming_stopped_after_first_failure",
+      "status": "SKIPPED"
+    },
+    {
+      "active_resampling_batch_entries": 2,
+      "active_resampling_mask_count": 2,
+      "all_finite_factors": true,
+      "all_finite_particles": true,
+      "all_nonnegative_factors": true,
+      "all_positive_g": true,
+      "compile_and_first_call_seconds": 23.280014797113836,
+      "error": null,
+      "ess_by_time_preview": [
+        49999.3203125,
+        49999.953125
+      ],
+      "ess_fraction_min": 0.9999864101409912,
+      "ess_min": 49999.3203125,
+      "filtered_means_preview": [
+        0.005404232069849968,
+        0.010589759796857834,
+        0.014620274305343628,
+        0.018234945833683014,
+        0.019920583814382553,
+        0.021406717598438263,
+        0.01349642500281334,
+        0.0132386963814497
+      ],
+      "filtered_variances_preview": [
+        0.0008549747290089726,
+        0.0009970103856176138,
+        0.000977188115939498,
+        0.0009594820439815521,
+        0.0010109106078743935,
+        0.0010221973061561584,
+        0.0014683892950415611,
+        0.0015336057404056191
+      ],
+      "final_log_weights_preview": [
+        -10.819778442382812,
+        -10.819778442382812,
+        -10.819778442382812,
+        -10.819778442382812,
+        -10.819778442382812,
+        -10.819778442382812,
+        -10.819778442382812,
+        -10.819778442382812
+      ],
+      "final_particles_preview": [
+        0.023953134194016457,
+        0.03152049332857132,
+        0.02766053006052971,
+        0.036951906979084015,
+        0.028911586850881577,
+        0.019284561276435852,
+        0.020993320271372795,
+        -0.009237976744771004
+      ],
+      "finite_output": true,
+      "fixture_id": "ledh_lgssm_efficiency_common_v1",
+      "hard_vetoes": [],
+      "log_likelihood_preview": [
+        -7.487153053283691
+      ],
+      "low_rank_resampling_invocations": 2,
+      "max_factor_marginal_residual": 1.4901161193847656e-08,
+      "max_induced_column_residual": 0.00010579824447631836,
+      "max_induced_row_residual": 0.00010752677917480469,
+      "memory_current_delta_bytes": 4008448,
+      "memory_info_after": {
+        "current": 6307328,
+        "peak": 94929408
+      },
+      "memory_info_before": {
+        "current": 2298880,
+        "peak": 2298880
+      },
+      "memory_maxrss_kb": 1054512,
+      "memory_peak_delta_bytes": 92630528,
+      "memory_stats_reset": {
+        "status": "reset"
+      },
+      "output_devices": [
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0"
+      ],
+      "output_log_weight_normalization_residual": 0.0,
+      "particle_count": 50000,
+      "projection_iterations_used_max": 240.0,
+      "repeats": 1,
+      "route": "low_rank",
+      "row_subprocess": {
+        "json": "docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n50000.json",
+        "markdown": "docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n50000.md",
+        "status": "reused_existing"
+      },
+      "shape": {
+        "batch_size": 1,
+        "num_particles": 50000,
+        "obs_dim": 6,
+        "state_dim": 8,
+        "time_steps": 2
+      },
+      "state_mean": [
+        [
+          0.018127838149666786,
+          0.02649880386888981,
+          0.028873249888420105,
+          0.025827525183558464,
+          0.017933059483766556,
+          0.008838911540806293,
+          1.852958303061314e-05,
+          -0.0001159238163381815
+        ]
+      ],
+      "state_mean_norm": 0.05414116010069847,
+      "status": "PASS",
+      "timeout_policy_seconds": 900,
+      "timeout_status": "completed_within_timeout",
+      "transport_invocations": 2,
+      "transport_matrix_materialized": false,
+      "transport_matrix_shapes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "wall_time_seconds": 61.41093045915477,
+      "warm_call_timing_summary_seconds": {
+        "max": 19.07510154112242,
+        "mean": 19.07510154112242,
+        "median": 19.07510154112242,
+        "min": 19.07510154112242
+      },
+      "warm_call_timings_seconds": [
+        19.07510154112242
+      ],
+      "warmups": 0
+    },
+    {
+      "hard_vetoes": [],
+      "particle_count": 100000,
+      "route": "streaming",
+      "skip_reason": "streaming_stopped_after_first_failure",
+      "status": "SKIPPED"
+    },
+    {
+      "active_resampling_batch_entries": 2,
+      "active_resampling_mask_count": 2,
+      "all_finite_factors": true,
+      "all_finite_particles": true,
+      "all_nonnegative_factors": true,
+      "all_positive_g": true,
+      "compile_and_first_call_seconds": 43.41180943278596,
+      "error": null,
+      "ess_by_time_preview": [
+        99998.6171875,
+        100000.0078125
+      ],
+      "ess_fraction_min": 0.9999861717224121,
+      "ess_min": 99998.6171875,
+      "filtered_means_preview": [
+        0.005059128627181053,
+        0.010565523989498615,
+        0.014842608943581581,
+        0.017855841666460037,
+        0.020000437274575233,
+        0.021364184096455574,
+        0.013493722304701805,
+        0.013149026781320572
+      ],
+      "filtered_variances_preview": [
+        0.0008430562447756529,
+        0.0009928270010277629,
+        0.0009747209260240197,
+        0.0009573235874995589,
+        0.0010106245754286647,
+        0.0010280217975378036,
+        0.0014658516738563776,
+        0.0015355865471065044
+      ],
+      "final_log_weights_preview": [
+        -11.512925148010254,
+        -11.512925148010254,
+        -11.512925148010254,
+        -11.512925148010254,
+        -11.512925148010254,
+        -11.512925148010254,
+        -11.512925148010254,
+        -11.512925148010254
+      ],
+      "final_particles_preview": [
+        0.014699901454150677,
+        0.02055087499320507,
+        0.024120958521962166,
+        0.029369289055466652,
+        0.011770603246986866,
+        0.008795530535280704,
+        -0.002969348570331931,
+        -0.009962674230337143
+      ],
+      "finite_output": true,
+      "fixture_id": "ledh_lgssm_efficiency_common_v1",
+      "hard_vetoes": [],
+      "log_likelihood_preview": [
+        -7.487165451049805
+      ],
+      "low_rank_resampling_invocations": 2,
+      "max_factor_marginal_residual": 4.470348358154297e-08,
+      "max_induced_column_residual": 5.066394805908203e-05,
+      "max_induced_row_residual": 5.042552947998047e-05,
+      "memory_current_delta_bytes": 8770304,
+      "memory_info_after": {
+        "current": 13367808,
+        "peak": 114145536
+      },
+      "memory_info_before": {
+        "current": 4597504,
+        "peak": 4597504
+      },
+      "memory_maxrss_kb": 1062592,
+      "memory_peak_delta_bytes": 109548032,
+      "memory_stats_reset": {
+        "status": "reset"
+      },
+      "output_devices": [
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0",
+        "/job:localhost/replica:0/task:0/device:GPU:0"
+      ],
+      "output_log_weight_normalization_residual": 0.0,
+      "particle_count": 100000,
+      "projection_iterations_used_max": 240.0,
+      "repeats": 1,
+      "route": "low_rank",
+      "row_subprocess": {
+        "json": "docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n100000.json",
+        "markdown": "docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n100000.md",
+        "status": "reused_existing"
+      },
+      "shape": {
+        "batch_size": 1,
+        "num_particles": 100000,
+        "obs_dim": 6,
+        "state_dim": 8,
+        "time_steps": 2
+      },
+      "state_mean": [
+        [
+          0.017925351858139038,
+          0.026473047211766243,
+          0.029013589024543762,
+          0.02558470517396927,
+          0.01798379048705101,
+          0.00880975741893053,
+          1.872055872809142e-05,
+          -0.0001853436988312751
+        ]
+      ],
+      "state_mean_norm": 0.05403303727507591,
+      "status": "PASS",
+      "timeout_policy_seconds": 900,
+      "timeout_status": "completed_within_timeout",
+      "transport_invocations": 2,
+      "transport_matrix_materialized": false,
+      "transport_matrix_shapes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "wall_time_seconds": 121.73724477598444,
+      "warm_call_timing_summary_seconds": {
+        "max": 39.08503817790188,
+        "mean": 39.08503817790188,
+        "median": 39.08503817790188,
+        "min": 39.08503817790188
+      },
+      "warm_call_timings_seconds": [
+        39.08503817790188
+      ],
+      "warmups": 0
+    }
+  ],
+  "run_manifest": {
+    "assignment_epsilon": 0.015625,
+    "batch_size": 1,
+    "command": "docs/benchmarks/scalable_ot_low_rank_ledh_pfpf_efficiency.py --mode paired-gpu --cuda-visible-devices 1 --reuse-existing-row-artifacts --output docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21.json --markdown-output docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21.md --quiet",
+    "cuda_visible_devices": "1",
+    "device": "/GPU:0",
+    "device_scope": "visible",
+    "dtype": "float32",
+    "ended_at": "2026-06-20T21:30:06.990050+00:00",
+    "expect_device_kind": "gpu",
+    "fixture_id": "ledh_lgssm_efficiency_common_v1",
+    "git_commit": "43bcb2015127712705d7ac77d3f0c9b01d349733",
+    "git_status_short": "M bayesfilter/inference/hmc.py\n M memory.md\n M tests/test_experimental_batched_benchmark_harness.py\n M tests/test_hmc_fixed_mass_step_tuning.py\n M tests/test_nonlinear_ssm_phase4_full_chain_hmc.py\n?? docs/benchmarks/benchmark_experimental_batched_ledh_pfpf_ot_large_particle_efficiency.py\n?? docs/benchmarks/compare_experimental_batched_ledh_pfpf_ot_streaming_quality.py\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-impact-p01-correctness-cpu-2026-06-20.json\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-impact-p01-correctness-cpu-2026-06-20.md\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-impact-p02-precision-gpu-2026-06-20.json\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-impact-p02-precision-gpu-2026-06-20.md\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-impact-p02-precision-gpu-children-2026-06-20/\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-impact-p03-target-gpu-2026-06-20.json\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-impact-p03-target-gpu-2026-06-20.md\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-impact-p05-hmc-mechanics-cpu-2026-06-20.json\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-impact-p05-hmc-mechanics-cpu-2026-06-20.md\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-2026-06-20.json\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-2026-06-20.md\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-children-2026-06-20/\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-large-particle-efficiency-p03-streaming-large-n-gpu-children-2026-06-21/\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n100000.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n100000.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n1024.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n1024.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n16384.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n16384.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n2048.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n2048.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n32768.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n32768.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n4096.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n4096.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n50000.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n50000.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n8192.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n8192.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n1024.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n1024.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n16384.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n16384.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n2048.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n2048.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n32768.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n32768.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n4096.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n4096.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n8192.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n8192.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-pilot-2026-06-21.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-pilot-2026-06-21.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-small-2026-06-21.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-small-2026-06-21.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-integration-gpu-scale-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-integration-gpu-scale-2026-06-20.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-integration-medium-cpu-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-integration-medium-cpu-2026-06-20.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-integration-small-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-integration-small-2026-06-20.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-integration-tuning-cpu-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-integration-tuning-cpu-2026-06-20.md\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-focused-tuning-cpu-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-focused-tuning-cpu-2026-06-20.md\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-gpu-scale-tuned-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-gpu-scale-tuned-2026-06-20.md\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-medium-cpu-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-medium-cpu-2026-06-20.md\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-medium-cpu-tuned-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-medium-cpu-tuned-2026-06-20.md\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-small-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-small-2026-06-20.md\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-tuning-cpu-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-tuning-cpu-2026-06-20.md\n?? docs/benchmarks/scalable_ot_low_rank_ledh_pfpf_efficiency.py\n?? docs/benchmarks/scalable_ot_low_rank_ledh_pfpf_integration_smoke.py\n?? docs/benchmarks/scalable_ot_low_rank_tf32_scale_smoke.py\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-claude-review-ledger-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-master-program-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p00-governance-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p00-governance-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p01-correctness-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p01-correctness-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p02-precision-gpu-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p02-precision-gpu-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p03-target-gpu-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p03-target-gpu-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p04-performance-memory-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p04-performance-memory-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p05-hmc-mechanics-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p05-hmc-mechanics-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p06-closeout-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-visible-execution-ledger-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-visible-gated-execution-runbook-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-visible-stop-handoff-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-claude-review-ledger-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-master-program-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-next-target-shape-repeated-stability-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-p00-governance-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-p00-governance-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-p01-harness-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-p01-harness-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-p02-medium-gpu-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-p02-medium-gpu-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-p03-closeout-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-visible-execution-ledger-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-visible-gated-execution-runbook-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-visible-stop-handoff-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-large-particle-efficiency-claude-review-ledger-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-large-particle-efficiency-master-program-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-large-particle-efficiency-p00-governance-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-large-particle-efficiency-p00-governance-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-large-particle-efficiency-p01-harness-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-large-particle-efficiency-p01-harness-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-large-particle-efficiency-p02-gpu-selection-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-large-particle-efficiency-p02-gpu-selection-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-large-particle-efficiency-p03-streaming-large-n-ladder-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-large-particle-efficiency-p03-streaming-large-n-ladder-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-large-particle-efficiency-p04-tf32-vs-fp32-runtime-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-large-particle-efficiency-p05-dense-breakpoint-context-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-large-particle-efficiency-p06-closeout-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-large-particle-efficiency-visible-execution-ledger-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-large-particle-efficiency-visible-gated-execution-runbook-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-large-particle-efficiency-visible-stop-handoff-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-claude-review-ledger-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-master-program-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-p00-governance-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-p00-governance-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-p01-harness-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-p01-harness-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-p02-paired-gpu-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-p02-paired-gpu-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-p03-large-n-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-p04-closeout-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-visible-execution-ledger-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-visible-gated-execution-plan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-visible-stop-handoff-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-claude-review-ledger-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-master-program-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p00-governance-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p00-governance-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p01-harness-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p01-harness-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p02-tuning-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p02-tuning-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p03-medium-cpu-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p03-medium-cpu-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p04-trusted-gpu-scale-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p04-trusted-gpu-scale-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p05-closeout-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-visible-execution-ledger-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-visible-gated-execution-plan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-visible-stop-handoff-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-claude-review-ledger-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-master-program-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p00-governance-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p00-governance-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p01-harness-invariants-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p01-harness-invariants-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p02-medium-cpu-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p02-medium-cpu-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p02a-tuning-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p02a-tuning-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p02b-focused-tuning-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p02b-focused-tuning-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p02c-medium-cpu-tuned-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p02c-medium-cpu-tuned-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p03-trusted-gpu-scale-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p03-trusted-gpu-scale-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p04-closeout-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-visible-execution-ledger-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-visible-gated-execution-plan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-visible-stop-handoff-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-two-lane-gpu-coordination-record-2026-06-21.md\n?? docs/plans/bayesfilter_hmc_fixed_mass_dual_averaging_xla_probe_result_2026_06_20.md\n?? docs/plans/bayesfilter_hmc_fixed_mass_dual_averaging_xla_probe_review_ledger_2026_06_20.md\n?? docs/plans/bayesfilter_hmc_fixed_mass_dual_averaging_xla_probe_subplan_2026_06_20.md\n?? scripts/monitor_large_particle_p03_gpu1.sh\n?? tests/test_low_rank_ledh_pfpf_efficiency.py\n?? tests/test_low_rank_ledh_pfpf_integration_smoke.py\n?? tests/test_low_rank_tf32_scale_smoke.py",
+    "logical_gpus": [
+      "LogicalDevice(name='/device:GPU:0', device_type='GPU')"
+    ],
+    "obs_dim": 6,
+    "particle_counts": [
+      1024,
+      2048,
+      4096,
+      8192,
+      16384,
+      32768,
+      50000,
+      100000
+    ],
+    "phase_result_path": "docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-p02-paired-gpu-result-2026-06-21.md",
+    "physical_gpus": [
+      "PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')"
+    ],
+    "plan_path": "docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-master-program-2026-06-21.md",
+    "platform": "Linux-6.8.0-111-generic-x86_64-with-glibc2.35",
+    "python_executable": "/home/ubuntu/anaconda3/envs/tfgpu/bin/python",
+    "python_version": "3.13.13 | packaged by Anaconda, Inc. | (main, Apr 14 2026, 06:19:41) [GCC 14.3.0]",
+    "rank": 16,
+    "routes": "both",
+    "row_subprocess_timeouts": true,
+    "row_timeout_seconds": 900,
+    "same_physical_gpu_required_for_paired_claim": true,
+    "selected_physical_gpu_policy": "GPU1 preferred; GPU0 only if GPU1 busy/unavailable/unsuitable",
+    "started_at": "2026-06-20T21:30:06.987706+00:00",
+    "state_dim": 8,
+    "tensorflow_probability_version": "0.25.0",
+    "tensorflow_version": "2.20.0",
+    "tf32_execution_recorded": true,
+    "tf32_hard_gate": true,
+    "tf32_requested": "enabled",
+    "tf_dtype": "float32",
+    "time_steps": 2,
+    "trust_context": "trusted_gpu_required",
+    "wall_time_seconds": 0.0023256568238139153,
+    "working_directory": "/home/ubuntu/python/BayesFilter"
+  },
+  "status": "PASS",
+  "thresholds": {
+    "ess_fraction": 0.01,
+    "factor_residual": 0.005,
+    "log_weight_normalization": 1e-06,
+    "memory_improvement_factor": 2.0,
+    "p02_row_timeout_seconds": 900,
+    "p03_row_timeout_seconds": 1200,
+    "speed_improvement_factor": 1.25,
+    "state_mean_absolute_l2": 1.0,
+    "state_mean_relative_l2": 0.5
+  }
+}

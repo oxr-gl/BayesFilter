@@ -49,4 +49,3 @@ or
 ```text
 VERDICT: REVISE
 ```
-

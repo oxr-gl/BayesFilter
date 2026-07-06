@@ -1,0 +1,2016 @@
+{
+  "artifact_dir": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-children-2026-06-20",
+  "child_script": "/home/ubuntu/python/BayesFilter/docs/benchmarks/compare_experimental_batched_ledh_pfpf_ot_streaming_precision.py",
+  "child_timeout_seconds": 900,
+  "cuda_visible_devices_arg": "0",
+  "default_arm_id": "fp32_tf32_enabled",
+  "device": "/GPU:0",
+  "device_scope": "visible",
+  "diagnostic_arm_id": "fp32_tf32_disabled",
+  "expect_device_kind": "gpu",
+  "expected_default_metadata": {
+    "active_dtype": "float32",
+    "default_algorithm_target": "ledh_pfpf_ot_tf32",
+    "default_dtype": "float32",
+    "default_execution_target": "gpu",
+    "default_target_status": "production_default_by_owner_directive",
+    "default_tf32_mode": "enabled",
+    "precision_default_policy": "production_ledh_pfpf_ot_gpu_tf32",
+    "tf32_execution_enabled": true,
+    "tf32_mode": "enabled"
+  },
+  "host": "ubuntu-MZ72-HB2-00",
+  "nonclaims": [
+    "medium synthetic LGSSM-shaped quality screen only",
+    "FP64 is a numerical comparator, not an exact posterior oracle",
+    "three paired seeds do not support statistical ranking",
+    "runtime and memory are descriptive only",
+    "no posterior correctness claim",
+    "no HMC readiness or sampler-convergence claim",
+    "no speedup claim",
+    "no dense Sinkhorn equivalence claim",
+    "no public API readiness claim"
+  ],
+  "overall_passed": true,
+  "precision_wrapper_timeout_seconds": 3600,
+  "python_executable": "/home/ubuntu/anaconda3/envs/tfgpu/bin/python",
+  "python_version": "3.13.13",
+  "reference_arm_id": "fp64_reference",
+  "repeats": 1,
+  "rows": [
+    {
+      "artifact_exists": true,
+      "children": [
+        {
+          "arm_id": "fp64_reference",
+          "compile_and_first_call_seconds": 10.3835364789702,
+          "finite_output": true,
+          "json_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-children-2026-06-20/seed-20260620/children/fp64_reference.json",
+          "logical_gpus": [
+            "LogicalDevice(name='/device:GPU:0', device_type='GPU')"
+          ],
+          "markdown_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-children-2026-06-20/seed-20260620/children/fp64_reference.md",
+          "output_devices": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "passed": true,
+          "physical_gpus": [
+            "PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')"
+          ],
+          "precision": {
+            "active_dtype": "float64",
+            "default_algorithm_target": "ledh_pfpf_ot_tf32",
+            "default_dtype": "float32",
+            "default_execution_target": "gpu",
+            "default_target_status": "production_default_by_owner_directive",
+            "default_tf32_mode": "enabled",
+            "dtype": "float64",
+            "fp64_reference_requires_explicit_dtype": true,
+            "historical_module_path": "experiments/dpf_implementation",
+            "precision_default_policy": "production_ledh_pfpf_ot_gpu_tf32",
+            "public_api_exposure": "separately_gated",
+            "scope": "production_ledh_pfpf_ot_gpu_tf32_default_lane",
+            "tf32_execution_enabled": false,
+            "tf32_mode": "disabled",
+            "tf_dtype": "float64"
+          },
+          "proposal_mode": "callback",
+          "reason": null,
+          "return_history": true,
+          "returncode": 0,
+          "seed": 20260620,
+          "shape": {
+            "batch_size": 1,
+            "num_particles": 128,
+            "obs_dim": 6,
+            "state_dim": 6,
+            "time_steps": 12
+          },
+          "spec": {
+            "arm_id": "fp64_reference",
+            "dtype": "float64",
+            "tf32_mode": "disabled"
+          },
+          "stderr_tail": "WARNING: All log messages before absl::InitializeLog() is called are written to STDERR\nI0000 00:00:1781945647.346338 3578221 gpu_device.cc:2020] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 29266 MB memory:  -> device: 0, name: NVIDIA GeForce RTX 4080 SUPER, pci bus id: 0000:41:00.0, compute capability: 8.9\nI0000 00:00:1781945657.580272 3578221 device_compiler.h:196] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.\n",
+          "stdout_tail": "8361701777033e-06,\n          6.563268703205381e-06,\n          6.435623442003717e-06\n        ]\n      ],\n      [\n        [\n          1.182141342373523e-05,\n          1.7730961989492393e-05,\n          2.2917708720039582e-05,\n          2.835856845765994e-05,\n          3.781273245700399e-05,\n          4.5069713120703844e-05\n        ]\n      ],\n      [\n        [\n          6.863012029067815e-06,\n          1.0383700098349099e-05,\n          1.3899219364595418e-05,\n          1.7841745507772053e-05,\n          2.3898596868652146e-05,\n          2.9453807572036726e-05\n        ]\n      ],\n      [\n        [\n          3.431080119404065e-06,\n          5.33023198282664e-06,\n          7.385501096349587e-06,\n          9.809467763895208e-06,\n          1.3304968988793167e-05,\n          1.684320441507961e-05\n        ]\n      ],\n      [\n        [\n          1.6145958781106952e-06,\n          2.6049233141065312e-06,\n          3.7357933839556295e-06,\n          5.122233640857034e-06,\n          7.0584377823831605e-06,\n          9.153786420247545e-06\n        ]\n      ],\n      [\n        [\n          9.749335476159291e-07,\n          1.63221321318084e-06,\n          2.4155021514560966e-06,\n          3.3962481375686808e-06,\n          4.712020490317532e-06,\n          6.197160605749457e-06\n        ]\n      ],\n      [\n        [\n          8.41480222086335e-07,\n          1.4562532729685545e-06,\n          2.2094169219234703e-06,\n          3.1507046807022295e-06,\n          4.3462160505045635e-06,\n          5.705275499060328e-06\n        ]\n      ],\n      [\n        [\n          8.42481503150253e-07,\n          1.5074998399315013e-06,\n          2.3318084010391377e-06,\n          3.348476622218408e-06,\n          4.574233998376836e-06,\n          5.939375979571394e-06\n        ]\n      ],\n      [\n        [\n          8.520659011129271e-07,\n          1.5768105502827701e-06,\n          2.476501407311504e-06,\n          3.566358987444317e-06,\n          4.819938401812235e-06,\n          6.1620902715068525e-06\n        ]\n      ]\n    ],\n    \"log_likelihood\": [\n      14.803852377700569\n    ]\n  },\n  \"output_devices\": [\n    \"/job:localhost/replica:0/task:0/device:GPU:0\"\n  ],\n  \"output_shape\": [\n    1\n  ],\n  \"particle_chunk_size\": 64,\n  \"physical_gpus\": [\n    \"PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')\"\n  ],\n  \"precision\": {\n    \"active_dtype\": \"float64\",\n    \"default_algorithm_target\": \"ledh_pfpf_ot_tf32\",\n    \"default_dtype\": \"float32\",\n    \"default_execution_target\": \"gpu\",\n    \"default_target_status\": \"production_default_by_owner_directive\",\n    \"default_tf32_mode\": \"enabled\",\n    \"dtype\": \"float64\",\n    \"fp64_reference_requires_explicit_dtype\": true,\n    \"historical_module_path\": \"experiments/dpf_implementation\",\n    \"precision_default_policy\": \"production_ledh_pfpf_ot_gpu_tf32\",\n    \"public_api_exposure\": \"separately_gated\",\n    \"scope\": \"production_ledh_pfpf_ot_gpu_tf32_default_lane\",\n    \"tf32_execution_enabled\": false,\n    \"tf32_mode\": \"disabled\",\n    \"tf_dtype\": \"float64\"\n  },\n  \"proposal_mode\": \"callback\",\n  \"python_version\": \"3.13.13\",\n  \"repeats\": 1,\n  \"return_history\": true,\n  \"seed\": 20260620,\n  \"shape\": {\n    \"batch_size\": 1,\n    \"num_particles\": 128,\n    \"obs_dim\": 6,\n    \"state_dim\": 6,\n    \"time_steps\": 12\n  },\n  \"stores_full_pre_flow_particles\": false,\n  \"tensorflow_version\": \"2.20.0\",\n  \"timestamp_utc\": \"2026-06-20T08:54:17.915394+00:00\",\n  \"transport\": {\n    \"annealed_convergence_threshold\": 0.001,\n    \"annealed_scaling\": 0.9,\n    \"col_chunk_size\": 64,\n    \"dense_transport_matrix_materialized\": false,\n    \"gradient_mode\": \"raw\",\n    \"plan_mode\": \"streaming\",\n    \"row_chunk_size\": 64,\n    \"sinkhorn_epsilon\": 0.5,\n    \"sinkhorn_iterations\": 3\n  },\n  \"transport_policy\": \"active-all\",\n  \"warm_call_timing_summary_seconds\": {\n    \"max\": 0.09951867279596627,\n    \"mean\": 0.09951867279596627,\n    \"median\": 0.09951867279596627,\n    \"min\": 0.09951867279596627\n  },\n  \"warm_call_timings_seconds\": [\n    0.09951867279596627\n  ],\n  \"warmstart_mode\": \"none\",\n  \"warmups\": 0\n}\n",
+          "stores_full_pre_flow_particles": false,
+          "transport": {
+            "annealed_convergence_threshold": 0.001,
+            "annealed_scaling": 0.9,
+            "col_chunk_size": 64,
+            "dense_transport_matrix_materialized": false,
+            "gradient_mode": "raw",
+            "plan_mode": "streaming",
+            "row_chunk_size": 64,
+            "sinkhorn_epsilon": 0.5,
+            "sinkhorn_iterations": 3
+          },
+          "transport_policy": "active-all",
+          "warm_call_timing_summary_seconds": {
+            "max": 0.09951867279596627,
+            "mean": 0.09951867279596627,
+            "median": 0.09951867279596627,
+            "min": 0.09951867279596627
+          }
+        },
+        {
+          "arm_id": "fp32_tf32_disabled",
+          "compile_and_first_call_seconds": 9.888926413841546,
+          "finite_output": true,
+          "json_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-children-2026-06-20/seed-20260620/children/fp32_tf32_disabled.json",
+          "logical_gpus": [
+            "LogicalDevice(name='/device:GPU:0', device_type='GPU')"
+          ],
+          "markdown_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-children-2026-06-20/seed-20260620/children/fp32_tf32_disabled.md",
+          "output_devices": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "passed": true,
+          "physical_gpus": [
+            "PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')"
+          ],
+          "precision": {
+            "active_dtype": "float32",
+            "default_algorithm_target": "ledh_pfpf_ot_tf32",
+            "default_dtype": "float32",
+            "default_execution_target": "gpu",
+            "default_target_status": "production_default_by_owner_directive",
+            "default_tf32_mode": "enabled",
+            "dtype": "float32",
+            "fp64_reference_requires_explicit_dtype": true,
+            "historical_module_path": "experiments/dpf_implementation",
+            "precision_default_policy": "production_ledh_pfpf_ot_gpu_tf32",
+            "public_api_exposure": "separately_gated",
+            "scope": "production_ledh_pfpf_ot_gpu_tf32_default_lane",
+            "tf32_execution_enabled": false,
+            "tf32_mode": "disabled",
+            "tf_dtype": "float32"
+          },
+          "proposal_mode": "callback",
+          "reason": null,
+          "return_history": true,
+          "returncode": 0,
+          "seed": 20260620,
+          "shape": {
+            "batch_size": 1,
+            "num_particles": 128,
+            "obs_dim": 6,
+            "state_dim": 6,
+            "time_steps": 12
+          },
+          "spec": {
+            "arm_id": "fp32_tf32_disabled",
+            "dtype": "float32",
+            "tf32_mode": "disabled"
+          },
+          "stderr_tail": "WARNING: All log messages before absl::InitializeLog() is called are written to STDERR\nI0000 00:00:1781945661.297378 3579816 gpu_device.cc:2020] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 29269 MB memory:  -> device: 0, name: NVIDIA GeForce RTX 4080 SUPER, pci bus id: 0000:41:00.0, compute capability: 8.9\nI0000 00:00:1781945671.052618 3579816 device_compiler.h:196] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.\n",
+          "stdout_tail": "3221382e-06,\n          6.563328497577459e-06,\n          6.4356631810369436e-06\n        ]\n      ],\n      [\n        [\n          1.1821381121990271e-05,\n          1.7730886611388996e-05,\n          2.2917627575225197e-05,\n          2.835843770299107e-05,\n          3.781266786972992e-05,\n          4.5069500629324466e-05\n        ]\n      ],\n      [\n        [\n          6.862993359391112e-06,\n          1.0383655535406433e-05,\n          1.3899162695452105e-05,\n          1.7841661247075535e-05,\n          2.3898564904811792e-05,\n          2.9453658498823643e-05\n        ]\n      ],\n      [\n        [\n          3.4310398859815905e-06,\n          5.330166004569037e-06,\n          7.385403478110675e-06,\n          9.809331459109671e-06,\n          1.3304839740158059e-05,\n          1.684297967585735e-05\n        ]\n      ],\n      [\n        [\n          1.6145493191288551e-06,\n          2.60484603131772e-06,\n          3.7356794564402662e-06,\n          5.122084075992461e-06,\n          7.0582664193352684e-06,\n          9.153524842986371e-06\n        ]\n      ],\n      [\n        [\n          9.749209084475297e-07,\n          1.6321874909408507e-06,\n          2.4154605853254907e-06,\n          3.3961955523409415e-06,\n          4.7119706323428545e-06,\n          6.1970586102688685e-06\n        ]\n      ],\n      [\n        [\n          8.414736498707498e-07,\n          1.4562363048753468e-06,\n          2.209393642260693e-06,\n          3.1506724553764798e-06,\n          4.34619096267852e-06,\n          5.705207968276227e-06\n        ]\n      ],\n      [\n        [\n          8.424780162386014e-07,\n          1.5074908787937602e-06,\n          2.3317954855883727e-06,\n          3.3484598134236876e-06,\n          4.574232207232853e-06,\n          5.939338734606281e-06\n        ]\n      ],\n      [\n        [\n          8.520663641320425e-07,\n          1.5768073353683576e-06,\n          2.4764949557720684e-06,\n          3.566351551853586e-06,\n          4.819948117074091e-06,\n          6.162070349091664e-06\n        ]\n      ]\n    ],\n    \"log_likelihood\": [\n      14.803861618041992\n    ]\n  },\n  \"output_devices\": [\n    \"/job:localhost/replica:0/task:0/device:GPU:0\"\n  ],\n  \"output_shape\": [\n    1\n  ],\n  \"particle_chunk_size\": 64,\n  \"physical_gpus\": [\n    \"PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')\"\n  ],\n  \"precision\": {\n    \"active_dtype\": \"float32\",\n    \"default_algorithm_target\": \"ledh_pfpf_ot_tf32\",\n    \"default_dtype\": \"float32\",\n    \"default_execution_target\": \"gpu\",\n    \"default_target_status\": \"production_default_by_owner_directive\",\n    \"default_tf32_mode\": \"enabled\",\n    \"dtype\": \"float32\",\n    \"fp64_reference_requires_explicit_dtype\": true,\n    \"historical_module_path\": \"experiments/dpf_implementation\",\n    \"precision_default_policy\": \"production_ledh_pfpf_ot_gpu_tf32\",\n    \"public_api_exposure\": \"separately_gated\",\n    \"scope\": \"production_ledh_pfpf_ot_gpu_tf32_default_lane\",\n    \"tf32_execution_enabled\": false,\n    \"tf32_mode\": \"disabled\",\n    \"tf_dtype\": \"float32\"\n  },\n  \"proposal_mode\": \"callback\",\n  \"python_version\": \"3.13.13\",\n  \"repeats\": 1,\n  \"return_history\": true,\n  \"seed\": 20260620,\n  \"shape\": {\n    \"batch_size\": 1,\n    \"num_particles\": 128,\n    \"obs_dim\": 6,\n    \"state_dim\": 6,\n    \"time_steps\": 12\n  },\n  \"stores_full_pre_flow_particles\": false,\n  \"tensorflow_version\": \"2.20.0\",\n  \"timestamp_utc\": \"2026-06-20T08:54:31.326314+00:00\",\n  \"transport\": {\n    \"annealed_convergence_threshold\": 0.001,\n    \"annealed_scaling\": 0.9,\n    \"col_chunk_size\": 64,\n    \"dense_transport_matrix_materialized\": false,\n    \"gradient_mode\": \"raw\",\n    \"plan_mode\": \"streaming\",\n    \"row_chunk_size\": 64,\n    \"sinkhorn_epsilon\": 0.5,\n    \"sinkhorn_iterations\": 3\n  },\n  \"transport_policy\": \"active-all\",\n  \"warm_call_timing_summary_seconds\": {\n    \"max\": 0.07220645900815725,\n    \"mean\": 0.07220645900815725,\n    \"median\": 0.07220645900815725,\n    \"min\": 0.07220645900815725\n  },\n  \"warm_call_timings_seconds\": [\n    0.07220645900815725\n  ],\n  \"warmstart_mode\": \"none\",\n  \"warmups\": 0\n}\n",
+          "stores_full_pre_flow_particles": false,
+          "transport": {
+            "annealed_convergence_threshold": 0.001,
+            "annealed_scaling": 0.9,
+            "col_chunk_size": 64,
+            "dense_transport_matrix_materialized": false,
+            "gradient_mode": "raw",
+            "plan_mode": "streaming",
+            "row_chunk_size": 64,
+            "sinkhorn_epsilon": 0.5,
+            "sinkhorn_iterations": 3
+          },
+          "transport_policy": "active-all",
+          "warm_call_timing_summary_seconds": {
+            "max": 0.07220645900815725,
+            "mean": 0.07220645900815725,
+            "median": 0.07220645900815725,
+            "min": 0.07220645900815725
+          }
+        },
+        {
+          "arm_id": "fp32_tf32_enabled",
+          "compile_and_first_call_seconds": 10.7030902558472,
+          "finite_output": true,
+          "json_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-children-2026-06-20/seed-20260620/children/fp32_tf32_enabled.json",
+          "logical_gpus": [
+            "LogicalDevice(name='/device:GPU:0', device_type='GPU')"
+          ],
+          "markdown_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-children-2026-06-20/seed-20260620/children/fp32_tf32_enabled.md",
+          "output_devices": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "passed": true,
+          "physical_gpus": [
+            "PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')"
+          ],
+          "precision": {
+            "active_dtype": "float32",
+            "default_algorithm_target": "ledh_pfpf_ot_tf32",
+            "default_dtype": "float32",
+            "default_execution_target": "gpu",
+            "default_target_status": "production_default_by_owner_directive",
+            "default_tf32_mode": "enabled",
+            "dtype": "float32",
+            "fp64_reference_requires_explicit_dtype": true,
+            "historical_module_path": "experiments/dpf_implementation",
+            "precision_default_policy": "production_ledh_pfpf_ot_gpu_tf32",
+            "public_api_exposure": "separately_gated",
+            "scope": "production_ledh_pfpf_ot_gpu_tf32_default_lane",
+            "tf32_execution_enabled": true,
+            "tf32_mode": "enabled",
+            "tf_dtype": "float32"
+          },
+          "proposal_mode": "callback",
+          "reason": null,
+          "return_history": true,
+          "returncode": 0,
+          "seed": 20260620,
+          "shape": {
+            "batch_size": 1,
+            "num_particles": 128,
+            "obs_dim": 6,
+            "state_dim": 6,
+            "time_steps": 12
+          },
+          "spec": {
+            "arm_id": "fp32_tf32_enabled",
+            "dtype": "float32",
+            "tf32_mode": "enabled"
+          },
+          "stderr_tail": "WARNING: All log messages before absl::InitializeLog() is called are written to STDERR\nI0000 00:00:1781945674.467954 3581262 gpu_device.cc:2020] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 29269 MB memory:  -> device: 0, name: NVIDIA GeForce RTX 4080 SUPER, pci bus id: 0000:41:00.0, compute capability: 8.9\nI0000 00:00:1781945685.092222 3581262 device_compiler.h:196] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.\n",
+          "stdout_tail": "5931851831265e-06,\n          6.371232302626595e-06,\n          6.246715656743618e-06\n        ]\n      ],\n      [\n        [\n          1.1800165339082014e-05,\n          1.770805465639569e-05,\n          2.2859103410155512e-05,\n          2.8292977731325664e-05,\n          3.768780152313411e-05,\n          4.5034714275971055e-05\n        ]\n      ],\n      [\n        [\n          6.954288437555078e-06,\n          1.0537967682466842e-05,\n          1.4073688362259418e-05,\n          1.8066555639961734e-05,\n          2.418385338387452e-05,\n          2.9917408028268255e-05\n        ]\n      ],\n      [\n        [\n          3.615850573623902e-06,\n          5.616185717371991e-06,\n          7.773614015604835e-06,\n          1.0311602636647876e-05,\n          1.3939220480096992e-05,\n          1.7745027435012162e-05\n        ]\n      ],\n      [\n        [\n          1.8179606513513136e-06,\n          2.931456037913449e-06,\n          4.213695319776889e-06,\n          5.766778940596851e-06,\n          7.901640856289305e-06,\n          1.0270013262925204e-05\n        ]\n      ],\n      [\n        [\n          1.0745795862021623e-06,\n          1.7971286752072047e-06,\n          2.659723577380646e-06,\n          3.737743099918589e-06,\n          5.137086191098206e-06,\n          6.831406608398538e-06\n        ]\n      ],\n      [\n        [\n          8.740214525460033e-07,\n          1.5104501471796539e-06,\n          2.2858175725559704e-06,\n          3.280663804616779e-06,\n          4.479733433981892e-06,\n          5.9989238252455834e-06\n        ]\n      ],\n      [\n        [\n          8.764696985963383e-07,\n          1.5686874803577666e-06,\n          2.41279258261784e-06,\n          3.484766011752072e-06,\n          4.739733412861824e-06,\n          6.2175977291190065e-06\n        ]\n      ],\n      [\n        [\n          8.851977781887399e-07,\n          1.6294329725496937e-06,\n          2.5511571948300116e-06,\n          3.6763774460268905e-06,\n          4.99240468343487e-06,\n          6.396722710633185e-06\n        ]\n      ]\n    ],\n    \"log_likelihood\": [\n      14.801948547363281\n    ]\n  },\n  \"output_devices\": [\n    \"/job:localhost/replica:0/task:0/device:GPU:0\"\n  ],\n  \"output_shape\": [\n    1\n  ],\n  \"particle_chunk_size\": 64,\n  \"physical_gpus\": [\n    \"PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')\"\n  ],\n  \"precision\": {\n    \"active_dtype\": \"float32\",\n    \"default_algorithm_target\": \"ledh_pfpf_ot_tf32\",\n    \"default_dtype\": \"float32\",\n    \"default_execution_target\": \"gpu\",\n    \"default_target_status\": \"production_default_by_owner_directive\",\n    \"default_tf32_mode\": \"enabled\",\n    \"dtype\": \"float32\",\n    \"fp64_reference_requires_explicit_dtype\": true,\n    \"historical_module_path\": \"experiments/dpf_implementation\",\n    \"precision_default_policy\": \"production_ledh_pfpf_ot_gpu_tf32\",\n    \"public_api_exposure\": \"separately_gated\",\n    \"scope\": \"production_ledh_pfpf_ot_gpu_tf32_default_lane\",\n    \"tf32_execution_enabled\": true,\n    \"tf32_mode\": \"enabled\",\n    \"tf_dtype\": \"float32\"\n  },\n  \"proposal_mode\": \"callback\",\n  \"python_version\": \"3.13.13\",\n  \"repeats\": 1,\n  \"return_history\": true,\n  \"seed\": 20260620,\n  \"shape\": {\n    \"batch_size\": 1,\n    \"num_particles\": 128,\n    \"obs_dim\": 6,\n    \"state_dim\": 6,\n    \"time_steps\": 12\n  },\n  \"stores_full_pre_flow_particles\": false,\n  \"tensorflow_version\": \"2.20.0\",\n  \"timestamp_utc\": \"2026-06-20T08:54:45.308653+00:00\",\n  \"transport\": {\n    \"annealed_convergence_threshold\": 0.001,\n    \"annealed_scaling\": 0.9,\n    \"col_chunk_size\": 64,\n    \"dense_transport_matrix_materialized\": false,\n    \"gradient_mode\": \"raw\",\n    \"plan_mode\": \"streaming\",\n    \"row_chunk_size\": 64,\n    \"sinkhorn_epsilon\": 0.5,\n    \"sinkhorn_iterations\": 3\n  },\n  \"transport_policy\": \"active-all\",\n  \"warm_call_timing_summary_seconds\": {\n    \"max\": 0.07445378415286541,\n    \"mean\": 0.07445378415286541,\n    \"median\": 0.07445378415286541,\n    \"min\": 0.07445378415286541\n  },\n  \"warm_call_timings_seconds\": [\n    0.07445378415286541\n  ],\n  \"warmstart_mode\": \"none\",\n  \"warmups\": 0\n}\n",
+          "stores_full_pre_flow_particles": false,
+          "transport": {
+            "annealed_convergence_threshold": 0.001,
+            "annealed_scaling": 0.9,
+            "col_chunk_size": 64,
+            "dense_transport_matrix_materialized": false,
+            "gradient_mode": "raw",
+            "plan_mode": "streaming",
+            "row_chunk_size": 64,
+            "sinkhorn_epsilon": 0.5,
+            "sinkhorn_iterations": 3
+          },
+          "transport_policy": "active-all",
+          "warm_call_timing_summary_seconds": {
+            "max": 0.07445378415286541,
+            "mean": 0.07445378415286541,
+            "median": 0.07445378415286541,
+            "min": 0.07445378415286541
+          }
+        }
+      ],
+      "command": [
+        "/home/ubuntu/anaconda3/envs/tfgpu/bin/python",
+        "/home/ubuntu/python/BayesFilter/docs/benchmarks/compare_experimental_batched_ledh_pfpf_ot_streaming_precision.py",
+        "--device-scope",
+        "visible",
+        "--device",
+        "/GPU:0",
+        "--expect-device-kind",
+        "gpu",
+        "--batch-size",
+        "1",
+        "--time-steps",
+        "12",
+        "--num-particles",
+        "128",
+        "--state-dim",
+        "6",
+        "--obs-dim",
+        "6",
+        "--transport-policy",
+        "active-all",
+        "--proposal-mode",
+        "callback",
+        "--sinkhorn-iterations",
+        "3",
+        "--sinkhorn-epsilon",
+        "0.5",
+        "--annealed-scaling",
+        "0.9",
+        "--annealed-convergence-threshold",
+        "0.001",
+        "--row-chunk-size",
+        "64",
+        "--col-chunk-size",
+        "64",
+        "--particle-chunk-size",
+        "64",
+        "--warmups",
+        "0",
+        "--repeats",
+        "1",
+        "--seed",
+        "20260620",
+        "--child-timeout-seconds",
+        "900",
+        "--artifact-dir",
+        "docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-children-2026-06-20/seed-20260620/children",
+        "--output",
+        "docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-children-2026-06-20/seed-20260620/streaming-precision.json",
+        "--markdown-output",
+        "docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-children-2026-06-20/seed-20260620/streaming-precision.md",
+        "--cuda-visible-devices",
+        "0"
+      ],
+      "comparisons": [
+        {
+          "arm_id": "fp32_tf32_disabled",
+          "compile_and_first_call_seconds": 9.888926413841546,
+          "drift_vs_fp64": {
+            "ess_by_time": {
+              "max_abs": 6.682217758680054e-05,
+              "max_relative_to_max1_abs_reference": 5.220483632605252e-07,
+              "rms_abs": 3.864205762865775e-05,
+              "shape": [
+                12,
+                1
+              ]
+            },
+            "filtered_means": {
+              "max_abs": 7.644137120510486e-08,
+              "max_relative_to_max1_abs_reference": 7.644137120510486e-08,
+              "rms_abs": 2.2140737510884e-08,
+              "shape": [
+                12,
+                1,
+                6
+              ]
+            },
+            "filtered_variances": {
+              "max_abs": 2.1527796095245633e-09,
+              "max_relative_to_max1_abs_reference": 2.1527796095245633e-09,
+              "rms_abs": 3.1817496237637887e-10,
+              "shape": [
+                12,
+                1,
+                6
+              ]
+            },
+            "log_likelihood": {
+              "max_abs": 9.240341423577547e-06,
+              "max_relative_to_max1_abs_reference": 6.241849207775481e-07,
+              "rms_abs": 9.240341423577547e-06,
+              "shape": [
+                1
+              ]
+            }
+          },
+          "finite_output": true,
+          "precision": {
+            "active_dtype": "float32",
+            "default_algorithm_target": "ledh_pfpf_ot_tf32",
+            "default_dtype": "float32",
+            "default_execution_target": "gpu",
+            "default_target_status": "production_default_by_owner_directive",
+            "default_tf32_mode": "enabled",
+            "dtype": "float32",
+            "fp64_reference_requires_explicit_dtype": true,
+            "historical_module_path": "experiments/dpf_implementation",
+            "precision_default_policy": "production_ledh_pfpf_ot_gpu_tf32",
+            "public_api_exposure": "separately_gated",
+            "scope": "production_ledh_pfpf_ot_gpu_tf32_default_lane",
+            "tf32_execution_enabled": false,
+            "tf32_mode": "disabled",
+            "tf_dtype": "float32"
+          },
+          "warm_call_timing_summary_seconds": {
+            "max": 0.07220645900815725,
+            "mean": 0.07220645900815725,
+            "median": 0.07220645900815725,
+            "min": 0.07220645900815725
+          },
+          "warm_median_seconds_ratio_to_fp64": 0.7255568927872996
+        },
+        {
+          "arm_id": "fp32_tf32_enabled",
+          "compile_and_first_call_seconds": 10.7030902558472,
+          "drift_vs_fp64": {
+            "ess_by_time": {
+              "max_abs": 0.00012004183831493265,
+              "max_relative_to_max1_abs_reference": 9.378317958211904e-07,
+              "rms_abs": 5.847686511677639e-05,
+              "shape": [
+                12,
+                1
+              ]
+            },
+            "filtered_means": {
+              "max_abs": 4.222283782952252e-05,
+              "max_relative_to_max1_abs_reference": 4.222283782952252e-05,
+              "rms_abs": 1.3737147168627742e-05,
+              "shape": [
+                12,
+                1,
+                6
+              ]
+            },
+            "filtered_variances": {
+              "max_abs": 1.4077849679440882e-06,
+              "max_relative_to_max1_abs_reference": 1.4077849679440882e-06,
+              "rms_abs": 4.2313278728860033e-07,
+              "shape": [
+                12,
+                1,
+                6
+              ]
+            },
+            "log_likelihood": {
+              "max_abs": 0.00190383033728736,
+              "max_relative_to_max1_abs_reference": 0.00012860370994749646,
+              "rms_abs": 0.00190383033728736,
+              "shape": [
+                1
+              ]
+            }
+          },
+          "finite_output": true,
+          "precision": {
+            "active_dtype": "float32",
+            "default_algorithm_target": "ledh_pfpf_ot_tf32",
+            "default_dtype": "float32",
+            "default_execution_target": "gpu",
+            "default_target_status": "production_default_by_owner_directive",
+            "default_tf32_mode": "enabled",
+            "dtype": "float32",
+            "fp64_reference_requires_explicit_dtype": true,
+            "historical_module_path": "experiments/dpf_implementation",
+            "precision_default_policy": "production_ledh_pfpf_ot_gpu_tf32",
+            "public_api_exposure": "separately_gated",
+            "scope": "production_ledh_pfpf_ot_gpu_tf32_default_lane",
+            "tf32_execution_enabled": true,
+            "tf32_mode": "enabled",
+            "tf_dtype": "float32"
+          },
+          "warm_call_timing_summary_seconds": {
+            "max": 0.07445378415286541,
+            "mean": 0.07445378415286541,
+            "median": 0.07445378415286541,
+            "min": 0.07445378415286541
+          },
+          "warm_median_seconds_ratio_to_fp64": 0.7481388372764071
+        }
+      ],
+      "default_arm_id": "fp32_tf32_enabled",
+      "default_metadata_assertions": {
+        "expected": {
+          "active_dtype": "float32",
+          "default_algorithm_target": "ledh_pfpf_ot_tf32",
+          "default_dtype": "float32",
+          "default_execution_target": "gpu",
+          "default_target_status": "production_default_by_owner_directive",
+          "default_tf32_mode": "enabled",
+          "precision_default_policy": "production_ledh_pfpf_ot_gpu_tf32",
+          "tf32_execution_enabled": true,
+          "tf32_mode": "enabled"
+        },
+        "fields": {
+          "active_dtype": {
+            "actual": "float32",
+            "expected": "float32",
+            "passed": true
+          },
+          "default_algorithm_target": {
+            "actual": "ledh_pfpf_ot_tf32",
+            "expected": "ledh_pfpf_ot_tf32",
+            "passed": true
+          },
+          "default_dtype": {
+            "actual": "float32",
+            "expected": "float32",
+            "passed": true
+          },
+          "default_execution_target": {
+            "actual": "gpu",
+            "expected": "gpu",
+            "passed": true
+          },
+          "default_target_status": {
+            "actual": "production_default_by_owner_directive",
+            "expected": "production_default_by_owner_directive",
+            "passed": true
+          },
+          "default_tf32_mode": {
+            "actual": "enabled",
+            "expected": "enabled",
+            "passed": true
+          },
+          "precision_default_policy": {
+            "actual": "production_ledh_pfpf_ot_gpu_tf32",
+            "expected": "production_ledh_pfpf_ot_gpu_tf32",
+            "passed": true
+          },
+          "tf32_execution_enabled": {
+            "actual": true,
+            "expected": true,
+            "passed": true
+          },
+          "tf32_mode": {
+            "actual": "enabled",
+            "expected": "enabled",
+            "passed": true
+          }
+        },
+        "passed": true
+      },
+      "default_tolerance_screen": {
+        "missing_outputs": [],
+        "passed": true,
+        "per_output": {
+          "ess_by_time": {
+            "max_abs": 0.00012004183831493265,
+            "max_relative_to_max1_abs_reference": 9.378317958211904e-07,
+            "passed": true,
+            "rms_abs": 5.847686511677639e-05,
+            "shape": [
+              12,
+              1
+            ],
+            "tolerance": 0.01
+          },
+          "filtered_means": {
+            "max_abs": 4.222283782952252e-05,
+            "max_relative_to_max1_abs_reference": 4.222283782952252e-05,
+            "passed": true,
+            "rms_abs": 1.3737147168627742e-05,
+            "shape": [
+              12,
+              1,
+              6
+            ],
+            "tolerance": 0.01
+          },
+          "filtered_variances": {
+            "max_abs": 1.4077849679440882e-06,
+            "max_relative_to_max1_abs_reference": 1.4077849679440882e-06,
+            "passed": true,
+            "rms_abs": 4.2313278728860033e-07,
+            "shape": [
+              12,
+              1,
+              6
+            ],
+            "tolerance": 0.01
+          },
+          "log_likelihood": {
+            "max_abs": 0.00190383033728736,
+            "max_relative_to_max1_abs_reference": 0.00012860370994749646,
+            "passed": true,
+            "rms_abs": 0.00190383033728736,
+            "shape": [
+              1
+            ],
+            "tolerance": 0.01
+          }
+        },
+        "required_outputs": [
+          "log_likelihood",
+          "filtered_means",
+          "filtered_variances",
+          "ess_by_time"
+        ],
+        "worst": {
+          "max_relative_to_max1_abs_reference": 0.00012860370994749646,
+          "output": "log_likelihood",
+          "tolerance": 0.01
+        }
+      },
+      "device_screen": {
+        "devices_by_arm": {
+          "fp32_tf32_disabled": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "fp32_tf32_enabled": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "fp64_reference": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ]
+        },
+        "passed": true
+      },
+      "diagnostic_arm_id": "fp32_tf32_disabled",
+      "hard_screen": {
+        "arrays_present": {
+          "fp32_tf32_disabled": true,
+          "fp32_tf32_enabled": true,
+          "fp64_reference": true
+        },
+        "config_matches": {
+          "fp32_tf32_disabled": true,
+          "fp32_tf32_enabled": true,
+          "fp64_reference": true
+        },
+        "finite_outputs": {
+          "fp32_tf32_disabled": true,
+          "fp32_tf32_enabled": true,
+          "fp64_reference": true
+        },
+        "reference_config": {
+          "particle_chunk_size": 64,
+          "proposal_mode": "callback",
+          "return_history": true,
+          "seed": 20260620,
+          "shape": {
+            "batch_size": 1,
+            "num_particles": 128,
+            "obs_dim": 6,
+            "state_dim": 6,
+            "time_steps": 12
+          },
+          "stores_full_pre_flow_particles": false,
+          "transport": {
+            "annealed_convergence_threshold": 0.001,
+            "annealed_scaling": 0.9,
+            "col_chunk_size": 64,
+            "dense_transport_matrix_materialized": false,
+            "gradient_mode": "raw",
+            "plan_mode": "streaming",
+            "row_chunk_size": 64,
+            "sinkhorn_epsilon": 0.5,
+            "sinkhorn_iterations": 3
+          },
+          "transport_policy": "active-all"
+        }
+      },
+      "json_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-children-2026-06-20/seed-20260620/streaming-precision.json",
+      "markdown_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-children-2026-06-20/seed-20260620/streaming-precision.md",
+      "output_arrays_screen": {
+        "arrays_present": {
+          "fp32_tf32_disabled": true,
+          "fp32_tf32_enabled": true,
+          "fp64_reference": true
+        },
+        "passed": true
+      },
+      "passed": true,
+      "precision_wrapper_overall_passed": true,
+      "precision_wrapper_seed": 20260620,
+      "proposal_mode": "callback",
+      "reference_arm_id": "fp64_reference",
+      "returncode": 0,
+      "returncode_ok": true,
+      "seed": 20260620,
+      "seed_matches_request": true,
+      "shape": {
+        "batch_size": 1,
+        "num_particles": 128,
+        "obs_dim": 6,
+        "state_dim": 6,
+        "time_steps": 12
+      },
+      "stderr_tail": "",
+      "stdout_tail": "         \"shape\": [\n            12,\n            1\n          ]\n        },\n        \"filtered_means\": {\n          \"max_abs\": 4.222283782952252e-05,\n          \"max_relative_to_max1_abs_reference\": 4.222283782952252e-05,\n          \"rms_abs\": 1.3737147168627742e-05,\n          \"shape\": [\n            12,\n            1,\n            6\n          ]\n        },\n        \"filtered_variances\": {\n          \"max_abs\": 1.4077849679440882e-06,\n          \"max_relative_to_max1_abs_reference\": 1.4077849679440882e-06,\n          \"rms_abs\": 4.2313278728860033e-07,\n          \"shape\": [\n            12,\n            1,\n            6\n          ]\n        },\n        \"log_likelihood\": {\n          \"max_abs\": 0.00190383033728736,\n          \"max_relative_to_max1_abs_reference\": 0.00012860370994749646,\n          \"rms_abs\": 0.00190383033728736,\n          \"shape\": [\n            1\n          ]\n        }\n      },\n      \"finite_output\": true,\n      \"precision\": {\n        \"active_dtype\": \"float32\",\n        \"default_algorithm_target\": \"ledh_pfpf_ot_tf32\",\n        \"default_dtype\": \"float32\",\n        \"default_execution_target\": \"gpu\",\n        \"default_target_status\": \"production_default_by_owner_directive\",\n        \"default_tf32_mode\": \"enabled\",\n        \"dtype\": \"float32\",\n        \"fp64_reference_requires_explicit_dtype\": true,\n        \"historical_module_path\": \"experiments/dpf_implementation\",\n        \"precision_default_policy\": \"production_ledh_pfpf_ot_gpu_tf32\",\n        \"public_api_exposure\": \"separately_gated\",\n        \"scope\": \"production_ledh_pfpf_ot_gpu_tf32_default_lane\",\n        \"tf32_execution_enabled\": true,\n        \"tf32_mode\": \"enabled\",\n        \"tf_dtype\": \"float32\"\n      },\n      \"warm_call_timing_summary_seconds\": {\n        \"max\": 0.07445378415286541,\n        \"mean\": 0.07445378415286541,\n        \"median\": 0.07445378415286541,\n        \"min\": 0.07445378415286541\n      },\n      \"warm_median_seconds_ratio_to_fp64\": 0.7481388372764071\n    }\n  ],\n  \"cuda_visible_devices_arg\": \"0\",\n  \"device\": \"/GPU:0\",\n  \"device_scope\": \"visible\",\n  \"expect_device_kind\": \"gpu\",\n  \"hard_screen\": {\n    \"arrays_present\": {\n      \"fp32_tf32_disabled\": true,\n      \"fp32_tf32_enabled\": true,\n      \"fp64_reference\": true\n    },\n    \"config_matches\": {\n      \"fp32_tf32_disabled\": true,\n      \"fp32_tf32_enabled\": true,\n      \"fp64_reference\": true\n    },\n    \"finite_outputs\": {\n      \"fp32_tf32_disabled\": true,\n      \"fp32_tf32_enabled\": true,\n      \"fp64_reference\": true\n    },\n    \"reference_config\": {\n      \"particle_chunk_size\": 64,\n      \"proposal_mode\": \"callback\",\n      \"return_history\": true,\n      \"seed\": 20260620,\n      \"shape\": {\n        \"batch_size\": 1,\n        \"num_particles\": 128,\n        \"obs_dim\": 6,\n        \"state_dim\": 6,\n        \"time_steps\": 12\n      },\n      \"stores_full_pre_flow_particles\": false,\n      \"transport\": {\n        \"annealed_convergence_threshold\": 0.001,\n        \"annealed_scaling\": 0.9,\n        \"col_chunk_size\": 64,\n        \"dense_transport_matrix_materialized\": false,\n        \"gradient_mode\": \"raw\",\n        \"plan_mode\": \"streaming\",\n        \"row_chunk_size\": 64,\n        \"sinkhorn_epsilon\": 0.5,\n        \"sinkhorn_iterations\": 3\n      },\n      \"transport_policy\": \"active-all\"\n    }\n  },\n  \"host\": \"ubuntu-MZ72-HB2-00\",\n  \"nonclaims\": [\n    \"single deterministic LGSSM-shaped fixture only\",\n    \"production/default target by owner directive\",\n    \"no posterior validity claim\",\n    \"no HMC readiness or energy-conservation claim\",\n    \"no statistical ranking from single-run timings\",\n    \"TF32 flag is recorded as requested; not every TensorFlow op necessarily uses TF32\"\n  ],\n  \"overall_passed\": true,\n  \"proposal_mode\": \"callback\",\n  \"python_executable\": \"/home/ubuntu/anaconda3/envs/tfgpu/bin/python\",\n  \"python_version\": \"3.13.13\",\n  \"seed\": 20260620,\n  \"shape\": {\n    \"batch_size\": 1,\n    \"num_particles\": 128,\n    \"obs_dim\": 6,\n    \"state_dim\": 6,\n    \"time_steps\": 12\n  },\n  \"timestamp_utc\": \"2026-06-20T08:54:46.298834+00:00\",\n  \"transport_policy\": \"active-all\"\n}\n",
+      "transport_policy": "active-all"
+    },
+    {
+      "artifact_exists": true,
+      "children": [
+        {
+          "arm_id": "fp64_reference",
+          "compile_and_first_call_seconds": 10.273838876048103,
+          "finite_output": true,
+          "json_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-children-2026-06-20/seed-20261629/children/fp64_reference.json",
+          "logical_gpus": [
+            "LogicalDevice(name='/device:GPU:0', device_type='GPU')"
+          ],
+          "markdown_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-children-2026-06-20/seed-20261629/children/fp64_reference.md",
+          "output_devices": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "passed": true,
+          "physical_gpus": [
+            "PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')"
+          ],
+          "precision": {
+            "active_dtype": "float64",
+            "default_algorithm_target": "ledh_pfpf_ot_tf32",
+            "default_dtype": "float32",
+            "default_execution_target": "gpu",
+            "default_target_status": "production_default_by_owner_directive",
+            "default_tf32_mode": "enabled",
+            "dtype": "float64",
+            "fp64_reference_requires_explicit_dtype": true,
+            "historical_module_path": "experiments/dpf_implementation",
+            "precision_default_policy": "production_ledh_pfpf_ot_gpu_tf32",
+            "public_api_exposure": "separately_gated",
+            "scope": "production_ledh_pfpf_ot_gpu_tf32_default_lane",
+            "tf32_execution_enabled": false,
+            "tf32_mode": "disabled",
+            "tf_dtype": "float64"
+          },
+          "proposal_mode": "callback",
+          "reason": null,
+          "return_history": true,
+          "returncode": 0,
+          "seed": 20261629,
+          "shape": {
+            "batch_size": 1,
+            "num_particles": 128,
+            "obs_dim": 6,
+            "state_dim": 6,
+            "time_steps": 12
+          },
+          "spec": {
+            "arm_id": "fp64_reference",
+            "dtype": "float64",
+            "tf32_mode": "disabled"
+          },
+          "stderr_tail": "WARNING: All log messages before absl::InitializeLog() is called are written to STDERR\nI0000 00:00:1781945688.643634 3582616 gpu_device.cc:2020] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 29267 MB memory:  -> device: 0, name: NVIDIA GeForce RTX 4080 SUPER, pci bus id: 0000:41:00.0, compute capability: 8.9\nI0000 00:00:1781945698.771965 3582616 device_compiler.h:196] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.\n",
+          "stdout_tail": "    5.179467991968666e-06,\n          1.234328683760134e-05,\n          1.5167369421770114e-05\n        ]\n      ],\n      [\n        [\n          4.867373843199747e-06,\n          6.498420491681766e-06,\n          9.918372682908848e-06,\n          1.0249903204697646e-05,\n          1.748315281918318e-05,\n          2.242114908780955e-05\n        ]\n      ],\n      [\n        [\n          3.418507669597901e-06,\n          4.785367724190653e-06,\n          7.11765448501706e-06,\n          8.162950427116673e-06,\n          1.283987667335894e-05,\n          1.6676216773892267e-05\n        ]\n      ],\n      [\n        [\n          1.7858698295826755e-06,\n          2.637009266071366e-06,\n          3.960574330899469e-06,\n          4.874730034645533e-06,\n          7.470112909030975e-06,\n          9.875850884292974e-06\n        ]\n      ],\n      [\n        [\n          1.2812374477720543e-06,\n          1.993033172635506e-06,\n          3.0136503656891925e-06,\n          3.9509983470419e-06,\n          5.835690302797023e-06,\n          7.765150442481997e-06\n        ]\n      ],\n      [\n        [\n          1.931630765319242e-06,\n          3.1340812031014808e-06,\n          4.729883381815079e-06,\n          6.4715088088511745e-06,\n          9.048255807181702e-06,\n          1.182817772275222e-05\n        ]\n      ],\n      [\n        [\n          4.64582845883283e-06,\n          7.815657159575924e-06,\n          1.1841096487195772e-05,\n          1.648482536616175e-05,\n          2.2178349636723067e-05,\n          2.8267642605537445e-05\n        ]\n      ],\n      [\n        [\n          5.161849718573988e-06,\n          9.047862473230379e-06,\n          1.3927013066363677e-05,\n          1.9621808719878388e-05,\n          2.6186589214212187e-05,\n          3.305903777103386e-05\n        ]\n      ],\n      [\n        [\n          4.910857844998657e-06,\n          8.934483930834071e-06,\n          1.393868520035771e-05,\n          1.973618462727787e-05,\n          2.6095815716374066e-05,\n          3.245839753972929e-05\n        ]\n      ]\n    ],\n    \"log_likelihood\": [\n      14.779567698241262\n    ]\n  },\n  \"output_devices\": [\n    \"/job:localhost/replica:0/task:0/device:GPU:0\"\n  ],\n  \"output_shape\": [\n    1\n  ],\n  \"particle_chunk_size\": 64,\n  \"physical_gpus\": [\n    \"PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')\"\n  ],\n  \"precision\": {\n    \"active_dtype\": \"float64\",\n    \"default_algorithm_target\": \"ledh_pfpf_ot_tf32\",\n    \"default_dtype\": \"float32\",\n    \"default_execution_target\": \"gpu\",\n    \"default_target_status\": \"production_default_by_owner_directive\",\n    \"default_tf32_mode\": \"enabled\",\n    \"dtype\": \"float64\",\n    \"fp64_reference_requires_explicit_dtype\": true,\n    \"historical_module_path\": \"experiments/dpf_implementation\",\n    \"precision_default_policy\": \"production_ledh_pfpf_ot_gpu_tf32\",\n    \"public_api_exposure\": \"separately_gated\",\n    \"scope\": \"production_ledh_pfpf_ot_gpu_tf32_default_lane\",\n    \"tf32_execution_enabled\": false,\n    \"tf32_mode\": \"disabled\",\n    \"tf_dtype\": \"float64\"\n  },\n  \"proposal_mode\": \"callback\",\n  \"python_version\": \"3.13.13\",\n  \"repeats\": 1,\n  \"return_history\": true,\n  \"seed\": 20261629,\n  \"shape\": {\n    \"batch_size\": 1,\n    \"num_particles\": 128,\n    \"obs_dim\": 6,\n    \"state_dim\": 6,\n    \"time_steps\": 12\n  },\n  \"stores_full_pre_flow_particles\": false,\n  \"tensorflow_version\": \"2.20.0\",\n  \"timestamp_utc\": \"2026-06-20T08:54:59.095936+00:00\",\n  \"transport\": {\n    \"annealed_convergence_threshold\": 0.001,\n    \"annealed_scaling\": 0.9,\n    \"col_chunk_size\": 64,\n    \"dense_transport_matrix_materialized\": false,\n    \"gradient_mode\": \"raw\",\n    \"plan_mode\": \"streaming\",\n    \"row_chunk_size\": 64,\n    \"sinkhorn_epsilon\": 0.5,\n    \"sinkhorn_iterations\": 3\n  },\n  \"transport_policy\": \"active-all\",\n  \"warm_call_timing_summary_seconds\": {\n    \"max\": 0.09380283509381115,\n    \"mean\": 0.09380283509381115,\n    \"median\": 0.09380283509381115,\n    \"min\": 0.09380283509381115\n  },\n  \"warm_call_timings_seconds\": [\n    0.09380283509381115\n  ],\n  \"warmstart_mode\": \"none\",\n  \"warmups\": 0\n}\n",
+          "stores_full_pre_flow_particles": false,
+          "transport": {
+            "annealed_convergence_threshold": 0.001,
+            "annealed_scaling": 0.9,
+            "col_chunk_size": 64,
+            "dense_transport_matrix_materialized": false,
+            "gradient_mode": "raw",
+            "plan_mode": "streaming",
+            "row_chunk_size": 64,
+            "sinkhorn_epsilon": 0.5,
+            "sinkhorn_iterations": 3
+          },
+          "transport_policy": "active-all",
+          "warm_call_timing_summary_seconds": {
+            "max": 0.09380283509381115,
+            "mean": 0.09380283509381115,
+            "median": 0.09380283509381115,
+            "min": 0.09380283509381115
+          }
+        },
+        {
+          "arm_id": "fp32_tf32_disabled",
+          "compile_and_first_call_seconds": 9.86076489300467,
+          "finite_output": true,
+          "json_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-children-2026-06-20/seed-20261629/children/fp32_tf32_disabled.json",
+          "logical_gpus": [
+            "LogicalDevice(name='/device:GPU:0', device_type='GPU')"
+          ],
+          "markdown_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-children-2026-06-20/seed-20261629/children/fp32_tf32_disabled.md",
+          "output_devices": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "passed": true,
+          "physical_gpus": [
+            "PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')"
+          ],
+          "precision": {
+            "active_dtype": "float32",
+            "default_algorithm_target": "ledh_pfpf_ot_tf32",
+            "default_dtype": "float32",
+            "default_execution_target": "gpu",
+            "default_target_status": "production_default_by_owner_directive",
+            "default_tf32_mode": "enabled",
+            "dtype": "float32",
+            "fp64_reference_requires_explicit_dtype": true,
+            "historical_module_path": "experiments/dpf_implementation",
+            "precision_default_policy": "production_ledh_pfpf_ot_gpu_tf32",
+            "public_api_exposure": "separately_gated",
+            "scope": "production_ledh_pfpf_ot_gpu_tf32_default_lane",
+            "tf32_execution_enabled": false,
+            "tf32_mode": "disabled",
+            "tf_dtype": "float32"
+          },
+          "proposal_mode": "callback",
+          "reason": null,
+          "return_history": true,
+          "returncode": 0,
+          "seed": 20261629,
+          "shape": {
+            "batch_size": 1,
+            "num_particles": 128,
+            "obs_dim": 6,
+            "state_dim": 6,
+            "time_steps": 12
+          },
+          "spec": {
+            "arm_id": "fp32_tf32_disabled",
+            "dtype": "float32",
+            "tf32_mode": "disabled"
+          },
+          "stderr_tail": "WARNING: All log messages before absl::InitializeLog() is called are written to STDERR\nI0000 00:00:1781945702.314660 3583702 gpu_device.cc:2020] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 29264 MB memory:  -> device: 0, name: NVIDIA GeForce RTX 4080 SUPER, pci bus id: 0000:41:00.0, compute capability: 8.9\nI0000 00:00:1781945712.047182 3583702 device_compiler.h:196] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.\n",
+          "stdout_tail": "   5.179428626433946e-06,\n          1.234323553944705e-05,\n          1.5167254787229467e-05\n        ]\n      ],\n      [\n        [\n          4.867402367381146e-06,\n          6.498448783531785e-06,\n          9.91841261566151e-06,\n          1.0249942533846479e-05,\n          1.7483260307926685e-05,\n          2.2421205358114094e-05\n        ]\n      ],\n      [\n        [\n          3.418519099795958e-06,\n          4.785375040228246e-06,\n          7.117667337297462e-06,\n          8.162961421476211e-06,\n          1.2839933333452791e-05,\n          1.6676223822287284e-05\n        ]\n      ],\n      [\n        [\n          1.785864583325747e-06,\n          2.6369989427621476e-06,\n          3.9605570236744825e-06,\n          4.874707428825786e-06,\n          7.470111540897051e-06,\n          9.875802788883448e-06\n        ]\n      ],\n      [\n        [\n          1.2812197383027524e-06,\n          1.9930032522097463e-06,\n          3.0136050099827116e-06,\n          3.950936843466479e-06,\n          5.835629053763114e-06,\n          7.765038390061818e-06\n        ]\n      ],\n      [\n        [\n          1.93161554307153e-06,\n          3.134049620712176e-06,\n          4.729839474748587e-06,\n          6.471440883615287e-06,\n          9.048202628036961e-06,\n          1.1828055903606582e-05\n        ]\n      ],\n      [\n        [\n          4.645873559638858e-06,\n          7.8157127063605e-06,\n          1.1841186278616078e-05,\n          1.6484940715599805e-05,\n          2.2178570361575112e-05,\n          2.82678083749488e-05\n        ]\n      ],\n      [\n        [\n          5.161871740710922e-06,\n          9.04788430489134e-06,\n          1.3927050531492569e-05,\n          1.9621860701590776e-05,\n          2.618673534016125e-05,\n          3.305909558548592e-05\n        ]\n      ],\n      [\n        [\n          4.91073660668917e-06,\n          8.93424112291541e-06,\n          1.3938328265794553e-05,\n          1.9735673049581237e-05,\n          2.6095251087099314e-05,\n          3.245759944547899e-05\n        ]\n      ]\n    ],\n    \"log_likelihood\": [\n      14.779579162597656\n    ]\n  },\n  \"output_devices\": [\n    \"/job:localhost/replica:0/task:0/device:GPU:0\"\n  ],\n  \"output_shape\": [\n    1\n  ],\n  \"particle_chunk_size\": 64,\n  \"physical_gpus\": [\n    \"PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')\"\n  ],\n  \"precision\": {\n    \"active_dtype\": \"float32\",\n    \"default_algorithm_target\": \"ledh_pfpf_ot_tf32\",\n    \"default_dtype\": \"float32\",\n    \"default_execution_target\": \"gpu\",\n    \"default_target_status\": \"production_default_by_owner_directive\",\n    \"default_tf32_mode\": \"enabled\",\n    \"dtype\": \"float32\",\n    \"fp64_reference_requires_explicit_dtype\": true,\n    \"historical_module_path\": \"experiments/dpf_implementation\",\n    \"precision_default_policy\": \"production_ledh_pfpf_ot_gpu_tf32\",\n    \"public_api_exposure\": \"separately_gated\",\n    \"scope\": \"production_ledh_pfpf_ot_gpu_tf32_default_lane\",\n    \"tf32_execution_enabled\": false,\n    \"tf32_mode\": \"disabled\",\n    \"tf_dtype\": \"float32\"\n  },\n  \"proposal_mode\": \"callback\",\n  \"python_version\": \"3.13.13\",\n  \"repeats\": 1,\n  \"return_history\": true,\n  \"seed\": 20261629,\n  \"shape\": {\n    \"batch_size\": 1,\n    \"num_particles\": 128,\n    \"obs_dim\": 6,\n    \"state_dim\": 6,\n    \"time_steps\": 12\n  },\n  \"stores_full_pre_flow_particles\": false,\n  \"tensorflow_version\": \"2.20.0\",\n  \"timestamp_utc\": \"2026-06-20T08:55:12.319183+00:00\",\n  \"transport\": {\n    \"annealed_convergence_threshold\": 0.001,\n    \"annealed_scaling\": 0.9,\n    \"col_chunk_size\": 64,\n    \"dense_transport_matrix_materialized\": false,\n    \"gradient_mode\": \"raw\",\n    \"plan_mode\": \"streaming\",\n    \"row_chunk_size\": 64,\n    \"sinkhorn_epsilon\": 0.5,\n    \"sinkhorn_iterations\": 3\n  },\n  \"transport_policy\": \"active-all\",\n  \"warm_call_timing_summary_seconds\": {\n    \"max\": 0.07577653811313212,\n    \"mean\": 0.07577653811313212,\n    \"median\": 0.07577653811313212,\n    \"min\": 0.07577653811313212\n  },\n  \"warm_call_timings_seconds\": [\n    0.07577653811313212\n  ],\n  \"warmstart_mode\": \"none\",\n  \"warmups\": 0\n}\n",
+          "stores_full_pre_flow_particles": false,
+          "transport": {
+            "annealed_convergence_threshold": 0.001,
+            "annealed_scaling": 0.9,
+            "col_chunk_size": 64,
+            "dense_transport_matrix_materialized": false,
+            "gradient_mode": "raw",
+            "plan_mode": "streaming",
+            "row_chunk_size": 64,
+            "sinkhorn_epsilon": 0.5,
+            "sinkhorn_iterations": 3
+          },
+          "transport_policy": "active-all",
+          "warm_call_timing_summary_seconds": {
+            "max": 0.07577653811313212,
+            "mean": 0.07577653811313212,
+            "median": 0.07577653811313212,
+            "min": 0.07577653811313212
+          }
+        },
+        {
+          "arm_id": "fp32_tf32_enabled",
+          "compile_and_first_call_seconds": 10.896982291946188,
+          "finite_output": true,
+          "json_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-children-2026-06-20/seed-20261629/children/fp32_tf32_enabled.json",
+          "logical_gpus": [
+            "LogicalDevice(name='/device:GPU:0', device_type='GPU')"
+          ],
+          "markdown_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-children-2026-06-20/seed-20261629/children/fp32_tf32_enabled.md",
+          "output_devices": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "passed": true,
+          "physical_gpus": [
+            "PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')"
+          ],
+          "precision": {
+            "active_dtype": "float32",
+            "default_algorithm_target": "ledh_pfpf_ot_tf32",
+            "default_dtype": "float32",
+            "default_execution_target": "gpu",
+            "default_target_status": "production_default_by_owner_directive",
+            "default_tf32_mode": "enabled",
+            "dtype": "float32",
+            "fp64_reference_requires_explicit_dtype": true,
+            "historical_module_path": "experiments/dpf_implementation",
+            "precision_default_policy": "production_ledh_pfpf_ot_gpu_tf32",
+            "public_api_exposure": "separately_gated",
+            "scope": "production_ledh_pfpf_ot_gpu_tf32_default_lane",
+            "tf32_execution_enabled": true,
+            "tf32_mode": "enabled",
+            "tf_dtype": "float32"
+          },
+          "proposal_mode": "callback",
+          "reason": null,
+          "return_history": true,
+          "returncode": 0,
+          "seed": 20261629,
+          "shape": {
+            "batch_size": 1,
+            "num_particles": 128,
+            "obs_dim": 6,
+            "state_dim": 6,
+            "time_steps": 12
+          },
+          "spec": {
+            "arm_id": "fp32_tf32_enabled",
+            "dtype": "float32",
+            "tf32_mode": "enabled"
+          },
+          "stderr_tail": "WARNING: All log messages before absl::InitializeLog() is called are written to STDERR\nI0000 00:00:1781945715.386008 3584629 gpu_device.cc:2020] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 29263 MB memory:  -> device: 0, name: NVIDIA GeForce RTX 4080 SUPER, pci bus id: 0000:41:00.0, compute capability: 8.9\nI0000 00:00:1781945726.228405 3584629 device_compiler.h:196] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.\n",
+          "stdout_tail": "   5.20304365636548e-06,\n          1.237361993844388e-05,\n          1.5257480299624149e-05\n        ]\n      ],\n      [\n        [\n          4.849749984714435e-06,\n          6.482267053797841e-06,\n          9.88291412795661e-06,\n          1.0206701517745387e-05,\n          1.7399983335053548e-05,\n          2.239615969301667e-05\n        ]\n      ],\n      [\n        [\n          3.4188815334346145e-06,\n          4.788161277247127e-06,\n          7.110963451850694e-06,\n          8.162778613041155e-06,\n          1.279869866266381e-05,\n          1.668923687248025e-05\n        ]\n      ],\n      [\n        [\n          1.7832041976362234e-06,\n          2.6367481495981338e-06,\n          3.956413820560556e-06,\n          4.858152351516765e-06,\n          7.4376339398440905e-06,\n          9.867446351563558e-06\n        ]\n      ],\n      [\n        [\n          1.253397272193979e-06,\n          1.9593460365285864e-06,\n          2.959383209599764e-06,\n          3.880796612065751e-06,\n          5.723499725718284e-06,\n          7.650879524589982e-06\n        ]\n      ],\n      [\n        [\n          1.8571448663351475e-06,\n          3.0263840926636476e-06,\n          4.562782578432234e-06,\n          6.24985113972798e-06,\n          8.722577149455901e-06,\n          1.1483768503239844e-05\n        ]\n      ],\n      [\n        [\n          4.681167411035858e-06,\n          7.890135748311877e-06,\n          1.1932448614970781e-05,\n          1.6607022189418785e-05,\n          2.229732672276441e-05,\n          2.857948129530996e-05\n        ]\n      ],\n      [\n        [\n          5.288808097247966e-06,\n          9.287882676289883e-06,\n          1.4258864212024491e-05,\n          2.0116542145842686e-05,\n          2.6769570467877202e-05,\n          3.390702840988524e-05\n        ]\n      ],\n      [\n        [\n          5.450368462334154e-06,\n          9.923731340677477e-06,\n          1.5435383829753846e-05,\n          2.184385448344983e-05,\n          2.877142105717212e-05,\n          3.577920142561197e-05\n        ]\n      ]\n    ],\n    \"log_likelihood\": [\n      14.777643203735352\n    ]\n  },\n  \"output_devices\": [\n    \"/job:localhost/replica:0/task:0/device:GPU:0\"\n  ],\n  \"output_shape\": [\n    1\n  ],\n  \"particle_chunk_size\": 64,\n  \"physical_gpus\": [\n    \"PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')\"\n  ],\n  \"precision\": {\n    \"active_dtype\": \"float32\",\n    \"default_algorithm_target\": \"ledh_pfpf_ot_tf32\",\n    \"default_dtype\": \"float32\",\n    \"default_execution_target\": \"gpu\",\n    \"default_target_status\": \"production_default_by_owner_directive\",\n    \"default_tf32_mode\": \"enabled\",\n    \"dtype\": \"float32\",\n    \"fp64_reference_requires_explicit_dtype\": true,\n    \"historical_module_path\": \"experiments/dpf_implementation\",\n    \"precision_default_policy\": \"production_ledh_pfpf_ot_gpu_tf32\",\n    \"public_api_exposure\": \"separately_gated\",\n    \"scope\": \"production_ledh_pfpf_ot_gpu_tf32_default_lane\",\n    \"tf32_execution_enabled\": true,\n    \"tf32_mode\": \"enabled\",\n    \"tf_dtype\": \"float32\"\n  },\n  \"proposal_mode\": \"callback\",\n  \"python_version\": \"3.13.13\",\n  \"repeats\": 1,\n  \"return_history\": true,\n  \"seed\": 20261629,\n  \"shape\": {\n    \"batch_size\": 1,\n    \"num_particles\": 128,\n    \"obs_dim\": 6,\n    \"state_dim\": 6,\n    \"time_steps\": 12\n  },\n  \"stores_full_pre_flow_particles\": false,\n  \"tensorflow_version\": \"2.20.0\",\n  \"timestamp_utc\": \"2026-06-20T08:55:26.446430+00:00\",\n  \"transport\": {\n    \"annealed_convergence_threshold\": 0.001,\n    \"annealed_scaling\": 0.9,\n    \"col_chunk_size\": 64,\n    \"dense_transport_matrix_materialized\": false,\n    \"gradient_mode\": \"raw\",\n    \"plan_mode\": \"streaming\",\n    \"row_chunk_size\": 64,\n    \"sinkhorn_epsilon\": 0.5,\n    \"sinkhorn_iterations\": 3\n  },\n  \"transport_policy\": \"active-all\",\n  \"warm_call_timing_summary_seconds\": {\n    \"max\": 0.07358131906948984,\n    \"mean\": 0.07358131906948984,\n    \"median\": 0.07358131906948984,\n    \"min\": 0.07358131906948984\n  },\n  \"warm_call_timings_seconds\": [\n    0.07358131906948984\n  ],\n  \"warmstart_mode\": \"none\",\n  \"warmups\": 0\n}\n",
+          "stores_full_pre_flow_particles": false,
+          "transport": {
+            "annealed_convergence_threshold": 0.001,
+            "annealed_scaling": 0.9,
+            "col_chunk_size": 64,
+            "dense_transport_matrix_materialized": false,
+            "gradient_mode": "raw",
+            "plan_mode": "streaming",
+            "row_chunk_size": 64,
+            "sinkhorn_epsilon": 0.5,
+            "sinkhorn_iterations": 3
+          },
+          "transport_policy": "active-all",
+          "warm_call_timing_summary_seconds": {
+            "max": 0.07358131906948984,
+            "mean": 0.07358131906948984,
+            "median": 0.07358131906948984,
+            "min": 0.07358131906948984
+          }
+        }
+      ],
+      "command": [
+        "/home/ubuntu/anaconda3/envs/tfgpu/bin/python",
+        "/home/ubuntu/python/BayesFilter/docs/benchmarks/compare_experimental_batched_ledh_pfpf_ot_streaming_precision.py",
+        "--device-scope",
+        "visible",
+        "--device",
+        "/GPU:0",
+        "--expect-device-kind",
+        "gpu",
+        "--batch-size",
+        "1",
+        "--time-steps",
+        "12",
+        "--num-particles",
+        "128",
+        "--state-dim",
+        "6",
+        "--obs-dim",
+        "6",
+        "--transport-policy",
+        "active-all",
+        "--proposal-mode",
+        "callback",
+        "--sinkhorn-iterations",
+        "3",
+        "--sinkhorn-epsilon",
+        "0.5",
+        "--annealed-scaling",
+        "0.9",
+        "--annealed-convergence-threshold",
+        "0.001",
+        "--row-chunk-size",
+        "64",
+        "--col-chunk-size",
+        "64",
+        "--particle-chunk-size",
+        "64",
+        "--warmups",
+        "0",
+        "--repeats",
+        "1",
+        "--seed",
+        "20261629",
+        "--child-timeout-seconds",
+        "900",
+        "--artifact-dir",
+        "docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-children-2026-06-20/seed-20261629/children",
+        "--output",
+        "docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-children-2026-06-20/seed-20261629/streaming-precision.json",
+        "--markdown-output",
+        "docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-children-2026-06-20/seed-20261629/streaming-precision.md",
+        "--cuda-visible-devices",
+        "0"
+      ],
+      "comparisons": [
+        {
+          "arm_id": "fp32_tf32_disabled",
+          "compile_and_first_call_seconds": 9.86076489300467,
+          "drift_vs_fp64": {
+            "ess_by_time": {
+              "max_abs": 5.314640546316696e-05,
+              "max_relative_to_max1_abs_reference": 4.152118107668857e-07,
+              "rms_abs": 3.253731446816647e-05,
+              "shape": [
+                12,
+                1
+              ]
+            },
+            "filtered_means": {
+              "max_abs": 6.979000148621406e-08,
+              "max_relative_to_max1_abs_reference": 6.979000148621406e-08,
+              "rms_abs": 2.065004210507801e-08,
+              "shape": [
+                12,
+                1,
+                6
+              ]
+            },
+            "filtered_variances": {
+              "max_abs": 1.7955165470748269e-09,
+              "max_relative_to_max1_abs_reference": 1.7955165470748269e-09,
+              "rms_abs": 2.981006931199513e-10,
+              "shape": [
+                12,
+                1,
+                6
+              ]
+            },
+            "log_likelihood": {
+              "max_abs": 1.1464356393986463e-05,
+              "max_relative_to_max1_abs_reference": 7.756895619721474e-07,
+              "rms_abs": 1.1464356393986463e-05,
+              "shape": [
+                1
+              ]
+            }
+          },
+          "finite_output": true,
+          "precision": {
+            "active_dtype": "float32",
+            "default_algorithm_target": "ledh_pfpf_ot_tf32",
+            "default_dtype": "float32",
+            "default_execution_target": "gpu",
+            "default_target_status": "production_default_by_owner_directive",
+            "default_tf32_mode": "enabled",
+            "dtype": "float32",
+            "fp64_reference_requires_explicit_dtype": true,
+            "historical_module_path": "experiments/dpf_implementation",
+            "precision_default_policy": "production_ledh_pfpf_ot_gpu_tf32",
+            "public_api_exposure": "separately_gated",
+            "scope": "production_ledh_pfpf_ot_gpu_tf32_default_lane",
+            "tf32_execution_enabled": false,
+            "tf32_mode": "disabled",
+            "tf_dtype": "float32"
+          },
+          "warm_call_timing_summary_seconds": {
+            "max": 0.07577653811313212,
+            "mean": 0.07577653811313212,
+            "median": 0.07577653811313212,
+            "min": 0.07577653811313212
+          },
+          "warm_median_seconds_ratio_to_fp64": 0.8078278021911477
+        },
+        {
+          "arm_id": "fp32_tf32_enabled",
+          "compile_and_first_call_seconds": 10.896982291946188,
+          "drift_vs_fp64": {
+            "ess_by_time": {
+              "max_abs": 0.0006108129488211489,
+              "max_relative_to_max1_abs_reference": 4.772058632153245e-06,
+              "rms_abs": 0.00019105066958940016,
+              "shape": [
+                12,
+                1
+              ]
+            },
+            "filtered_means": {
+              "max_abs": 3.6114774129472615e-05,
+              "max_relative_to_max1_abs_reference": 3.6114774129472615e-05,
+              "rms_abs": 1.3031830797548083e-05,
+              "shape": [
+                12,
+                1,
+                6
+              ]
+            },
+            "filtered_variances": {
+              "max_abs": 3.3208038858826812e-06,
+              "max_relative_to_max1_abs_reference": 3.3208038858826812e-06,
+              "rms_abs": 7.21584520423168e-07,
+              "shape": [
+                12,
+                1,
+                6
+              ]
+            },
+            "log_likelihood": {
+              "max_abs": 0.001924494505910701,
+              "max_relative_to_max1_abs_reference": 0.0001302131797900768,
+              "rms_abs": 0.001924494505910701,
+              "shape": [
+                1
+              ]
+            }
+          },
+          "finite_output": true,
+          "precision": {
+            "active_dtype": "float32",
+            "default_algorithm_target": "ledh_pfpf_ot_tf32",
+            "default_dtype": "float32",
+            "default_execution_target": "gpu",
+            "default_target_status": "production_default_by_owner_directive",
+            "default_tf32_mode": "enabled",
+            "dtype": "float32",
+            "fp64_reference_requires_explicit_dtype": true,
+            "historical_module_path": "experiments/dpf_implementation",
+            "precision_default_policy": "production_ledh_pfpf_ot_gpu_tf32",
+            "public_api_exposure": "separately_gated",
+            "scope": "production_ledh_pfpf_ot_gpu_tf32_default_lane",
+            "tf32_execution_enabled": true,
+            "tf32_mode": "enabled",
+            "tf_dtype": "float32"
+          },
+          "warm_call_timing_summary_seconds": {
+            "max": 0.07358131906948984,
+            "mean": 0.07358131906948984,
+            "median": 0.07358131906948984,
+            "min": 0.07358131906948984
+          },
+          "warm_median_seconds_ratio_to_fp64": 0.7844253214298054
+        }
+      ],
+      "default_arm_id": "fp32_tf32_enabled",
+      "default_metadata_assertions": {
+        "expected": {
+          "active_dtype": "float32",
+          "default_algorithm_target": "ledh_pfpf_ot_tf32",
+          "default_dtype": "float32",
+          "default_execution_target": "gpu",
+          "default_target_status": "production_default_by_owner_directive",
+          "default_tf32_mode": "enabled",
+          "precision_default_policy": "production_ledh_pfpf_ot_gpu_tf32",
+          "tf32_execution_enabled": true,
+          "tf32_mode": "enabled"
+        },
+        "fields": {
+          "active_dtype": {
+            "actual": "float32",
+            "expected": "float32",
+            "passed": true
+          },
+          "default_algorithm_target": {
+            "actual": "ledh_pfpf_ot_tf32",
+            "expected": "ledh_pfpf_ot_tf32",
+            "passed": true
+          },
+          "default_dtype": {
+            "actual": "float32",
+            "expected": "float32",
+            "passed": true
+          },
+          "default_execution_target": {
+            "actual": "gpu",
+            "expected": "gpu",
+            "passed": true
+          },
+          "default_target_status": {
+            "actual": "production_default_by_owner_directive",
+            "expected": "production_default_by_owner_directive",
+            "passed": true
+          },
+          "default_tf32_mode": {
+            "actual": "enabled",
+            "expected": "enabled",
+            "passed": true
+          },
+          "precision_default_policy": {
+            "actual": "production_ledh_pfpf_ot_gpu_tf32",
+            "expected": "production_ledh_pfpf_ot_gpu_tf32",
+            "passed": true
+          },
+          "tf32_execution_enabled": {
+            "actual": true,
+            "expected": true,
+            "passed": true
+          },
+          "tf32_mode": {
+            "actual": "enabled",
+            "expected": "enabled",
+            "passed": true
+          }
+        },
+        "passed": true
+      },
+      "default_tolerance_screen": {
+        "missing_outputs": [],
+        "passed": true,
+        "per_output": {
+          "ess_by_time": {
+            "max_abs": 0.0006108129488211489,
+            "max_relative_to_max1_abs_reference": 4.772058632153245e-06,
+            "passed": true,
+            "rms_abs": 0.00019105066958940016,
+            "shape": [
+              12,
+              1
+            ],
+            "tolerance": 0.01
+          },
+          "filtered_means": {
+            "max_abs": 3.6114774129472615e-05,
+            "max_relative_to_max1_abs_reference": 3.6114774129472615e-05,
+            "passed": true,
+            "rms_abs": 1.3031830797548083e-05,
+            "shape": [
+              12,
+              1,
+              6
+            ],
+            "tolerance": 0.01
+          },
+          "filtered_variances": {
+            "max_abs": 3.3208038858826812e-06,
+            "max_relative_to_max1_abs_reference": 3.3208038858826812e-06,
+            "passed": true,
+            "rms_abs": 7.21584520423168e-07,
+            "shape": [
+              12,
+              1,
+              6
+            ],
+            "tolerance": 0.01
+          },
+          "log_likelihood": {
+            "max_abs": 0.001924494505910701,
+            "max_relative_to_max1_abs_reference": 0.0001302131797900768,
+            "passed": true,
+            "rms_abs": 0.001924494505910701,
+            "shape": [
+              1
+            ],
+            "tolerance": 0.01
+          }
+        },
+        "required_outputs": [
+          "log_likelihood",
+          "filtered_means",
+          "filtered_variances",
+          "ess_by_time"
+        ],
+        "worst": {
+          "max_relative_to_max1_abs_reference": 0.0001302131797900768,
+          "output": "log_likelihood",
+          "tolerance": 0.01
+        }
+      },
+      "device_screen": {
+        "devices_by_arm": {
+          "fp32_tf32_disabled": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "fp32_tf32_enabled": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "fp64_reference": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ]
+        },
+        "passed": true
+      },
+      "diagnostic_arm_id": "fp32_tf32_disabled",
+      "hard_screen": {
+        "arrays_present": {
+          "fp32_tf32_disabled": true,
+          "fp32_tf32_enabled": true,
+          "fp64_reference": true
+        },
+        "config_matches": {
+          "fp32_tf32_disabled": true,
+          "fp32_tf32_enabled": true,
+          "fp64_reference": true
+        },
+        "finite_outputs": {
+          "fp32_tf32_disabled": true,
+          "fp32_tf32_enabled": true,
+          "fp64_reference": true
+        },
+        "reference_config": {
+          "particle_chunk_size": 64,
+          "proposal_mode": "callback",
+          "return_history": true,
+          "seed": 20261629,
+          "shape": {
+            "batch_size": 1,
+            "num_particles": 128,
+            "obs_dim": 6,
+            "state_dim": 6,
+            "time_steps": 12
+          },
+          "stores_full_pre_flow_particles": false,
+          "transport": {
+            "annealed_convergence_threshold": 0.001,
+            "annealed_scaling": 0.9,
+            "col_chunk_size": 64,
+            "dense_transport_matrix_materialized": false,
+            "gradient_mode": "raw",
+            "plan_mode": "streaming",
+            "row_chunk_size": 64,
+            "sinkhorn_epsilon": 0.5,
+            "sinkhorn_iterations": 3
+          },
+          "transport_policy": "active-all"
+        }
+      },
+      "json_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-children-2026-06-20/seed-20261629/streaming-precision.json",
+      "markdown_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-children-2026-06-20/seed-20261629/streaming-precision.md",
+      "output_arrays_screen": {
+        "arrays_present": {
+          "fp32_tf32_disabled": true,
+          "fp32_tf32_enabled": true,
+          "fp64_reference": true
+        },
+        "passed": true
+      },
+      "passed": true,
+      "precision_wrapper_overall_passed": true,
+      "precision_wrapper_seed": 20261629,
+      "proposal_mode": "callback",
+      "reference_arm_id": "fp64_reference",
+      "returncode": 0,
+      "returncode_ok": true,
+      "seed": 20261629,
+      "seed_matches_request": true,
+      "shape": {
+        "batch_size": 1,
+        "num_particles": 128,
+        "obs_dim": 6,
+        "state_dim": 6,
+        "time_steps": 12
+      },
+      "stderr_tail": "",
+      "stdout_tail": "        \"shape\": [\n            12,\n            1\n          ]\n        },\n        \"filtered_means\": {\n          \"max_abs\": 3.6114774129472615e-05,\n          \"max_relative_to_max1_abs_reference\": 3.6114774129472615e-05,\n          \"rms_abs\": 1.3031830797548083e-05,\n          \"shape\": [\n            12,\n            1,\n            6\n          ]\n        },\n        \"filtered_variances\": {\n          \"max_abs\": 3.3208038858826812e-06,\n          \"max_relative_to_max1_abs_reference\": 3.3208038858826812e-06,\n          \"rms_abs\": 7.21584520423168e-07,\n          \"shape\": [\n            12,\n            1,\n            6\n          ]\n        },\n        \"log_likelihood\": {\n          \"max_abs\": 0.001924494505910701,\n          \"max_relative_to_max1_abs_reference\": 0.0001302131797900768,\n          \"rms_abs\": 0.001924494505910701,\n          \"shape\": [\n            1\n          ]\n        }\n      },\n      \"finite_output\": true,\n      \"precision\": {\n        \"active_dtype\": \"float32\",\n        \"default_algorithm_target\": \"ledh_pfpf_ot_tf32\",\n        \"default_dtype\": \"float32\",\n        \"default_execution_target\": \"gpu\",\n        \"default_target_status\": \"production_default_by_owner_directive\",\n        \"default_tf32_mode\": \"enabled\",\n        \"dtype\": \"float32\",\n        \"fp64_reference_requires_explicit_dtype\": true,\n        \"historical_module_path\": \"experiments/dpf_implementation\",\n        \"precision_default_policy\": \"production_ledh_pfpf_ot_gpu_tf32\",\n        \"public_api_exposure\": \"separately_gated\",\n        \"scope\": \"production_ledh_pfpf_ot_gpu_tf32_default_lane\",\n        \"tf32_execution_enabled\": true,\n        \"tf32_mode\": \"enabled\",\n        \"tf_dtype\": \"float32\"\n      },\n      \"warm_call_timing_summary_seconds\": {\n        \"max\": 0.07358131906948984,\n        \"mean\": 0.07358131906948984,\n        \"median\": 0.07358131906948984,\n        \"min\": 0.07358131906948984\n      },\n      \"warm_median_seconds_ratio_to_fp64\": 0.7844253214298054\n    }\n  ],\n  \"cuda_visible_devices_arg\": \"0\",\n  \"device\": \"/GPU:0\",\n  \"device_scope\": \"visible\",\n  \"expect_device_kind\": \"gpu\",\n  \"hard_screen\": {\n    \"arrays_present\": {\n      \"fp32_tf32_disabled\": true,\n      \"fp32_tf32_enabled\": true,\n      \"fp64_reference\": true\n    },\n    \"config_matches\": {\n      \"fp32_tf32_disabled\": true,\n      \"fp32_tf32_enabled\": true,\n      \"fp64_reference\": true\n    },\n    \"finite_outputs\": {\n      \"fp32_tf32_disabled\": true,\n      \"fp32_tf32_enabled\": true,\n      \"fp64_reference\": true\n    },\n    \"reference_config\": {\n      \"particle_chunk_size\": 64,\n      \"proposal_mode\": \"callback\",\n      \"return_history\": true,\n      \"seed\": 20261629,\n      \"shape\": {\n        \"batch_size\": 1,\n        \"num_particles\": 128,\n        \"obs_dim\": 6,\n        \"state_dim\": 6,\n        \"time_steps\": 12\n      },\n      \"stores_full_pre_flow_particles\": false,\n      \"transport\": {\n        \"annealed_convergence_threshold\": 0.001,\n        \"annealed_scaling\": 0.9,\n        \"col_chunk_size\": 64,\n        \"dense_transport_matrix_materialized\": false,\n        \"gradient_mode\": \"raw\",\n        \"plan_mode\": \"streaming\",\n        \"row_chunk_size\": 64,\n        \"sinkhorn_epsilon\": 0.5,\n        \"sinkhorn_iterations\": 3\n      },\n      \"transport_policy\": \"active-all\"\n    }\n  },\n  \"host\": \"ubuntu-MZ72-HB2-00\",\n  \"nonclaims\": [\n    \"single deterministic LGSSM-shaped fixture only\",\n    \"production/default target by owner directive\",\n    \"no posterior validity claim\",\n    \"no HMC readiness or energy-conservation claim\",\n    \"no statistical ranking from single-run timings\",\n    \"TF32 flag is recorded as requested; not every TensorFlow op necessarily uses TF32\"\n  ],\n  \"overall_passed\": true,\n  \"proposal_mode\": \"callback\",\n  \"python_executable\": \"/home/ubuntu/anaconda3/envs/tfgpu/bin/python\",\n  \"python_version\": \"3.13.13\",\n  \"seed\": 20261629,\n  \"shape\": {\n    \"batch_size\": 1,\n    \"num_particles\": 128,\n    \"obs_dim\": 6,\n    \"state_dim\": 6,\n    \"time_steps\": 12\n  },\n  \"timestamp_utc\": \"2026-06-20T08:55:27.626549+00:00\",\n  \"transport_policy\": \"active-all\"\n}\n",
+      "transport_policy": "active-all"
+    },
+    {
+      "artifact_exists": true,
+      "children": [
+        {
+          "arm_id": "fp64_reference",
+          "compile_and_first_call_seconds": 10.414365265052766,
+          "finite_output": true,
+          "json_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-children-2026-06-20/seed-20262638/children/fp64_reference.json",
+          "logical_gpus": [
+            "LogicalDevice(name='/device:GPU:0', device_type='GPU')"
+          ],
+          "markdown_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-children-2026-06-20/seed-20262638/children/fp64_reference.md",
+          "output_devices": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "passed": true,
+          "physical_gpus": [
+            "PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')"
+          ],
+          "precision": {
+            "active_dtype": "float64",
+            "default_algorithm_target": "ledh_pfpf_ot_tf32",
+            "default_dtype": "float32",
+            "default_execution_target": "gpu",
+            "default_target_status": "production_default_by_owner_directive",
+            "default_tf32_mode": "enabled",
+            "dtype": "float64",
+            "fp64_reference_requires_explicit_dtype": true,
+            "historical_module_path": "experiments/dpf_implementation",
+            "precision_default_policy": "production_ledh_pfpf_ot_gpu_tf32",
+            "public_api_exposure": "separately_gated",
+            "scope": "production_ledh_pfpf_ot_gpu_tf32_default_lane",
+            "tf32_execution_enabled": false,
+            "tf32_mode": "disabled",
+            "tf_dtype": "float64"
+          },
+          "proposal_mode": "callback",
+          "reason": null,
+          "return_history": true,
+          "returncode": 0,
+          "seed": 20262638,
+          "shape": {
+            "batch_size": 1,
+            "num_particles": 128,
+            "obs_dim": 6,
+            "state_dim": 6,
+            "time_steps": 12
+          },
+          "spec": {
+            "arm_id": "fp64_reference",
+            "dtype": "float64",
+            "tf32_mode": "disabled"
+          },
+          "stderr_tail": "WARNING: All log messages before absl::InitializeLog() is called are written to STDERR\nI0000 00:00:1781945729.975563 3585912 gpu_device.cc:2020] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 29260 MB memory:  -> device: 0, name: NVIDIA GeForce RTX 4080 SUPER, pci bus id: 0000:41:00.0, compute capability: 8.9\nI0000 00:00:1781945740.283584 3585912 device_compiler.h:196] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.\n",
+          "stdout_tail": "2298715397e-05,\n          1.6814964006859895e-05,\n          2.3970188270156215e-05\n        ]\n      ],\n      [\n        [\n          4.0952041226399e-06,\n          4.963794808550762e-06,\n          8.2742026310692e-06,\n          9.754291907518589e-06,\n          1.270917724863983e-05,\n          1.7259882479158513e-05\n        ]\n      ],\n      [\n        [\n          1.8608253369545115e-06,\n          2.41047117714108e-06,\n          3.886192667192294e-06,\n          4.761074542952408e-06,\n          6.298765185963416e-06,\n          8.530693509149728e-06\n        ]\n      ],\n      [\n        [\n          9.104795936512833e-07,\n          1.2561872794384732e-06,\n          1.9822957708064937e-06,\n          2.518037509988402e-06,\n          3.3700158401188046e-06,\n          4.554934856998971e-06\n        ]\n      ],\n      [\n        [\n          5.419589288138457e-07,\n          7.962477511874055e-07,\n          1.2332033180778591e-06,\n          1.620276070007187e-06,\n          2.1810951088887915e-06,\n          2.9261459398661603e-06\n        ]\n      ],\n      [\n        [\n          4.0941253494162376e-07,\n          6.38523281559378e-07,\n          9.772522297416199e-07,\n          1.3203488784004007e-06,\n          1.7769938945350404e-06,\n          2.3527320669481894e-06\n        ]\n      ],\n      [\n        [\n          4.1233683260024243e-07,\n          6.788528641325085e-07,\n          1.0354602112624788e-06,\n          1.4266264873688402e-06,\n          1.9079468376768936e-06,\n          2.477394115047252e-06\n        ]\n      ],\n      [\n        [\n          4.2776455721549717e-07,\n          7.382818843572107e-07,\n          1.1330348717532698e-06,\n          1.5804057449986648e-06,\n          2.0997910970124594e-06,\n          2.6785004641616374e-06\n        ]\n      ],\n      [\n        [\n          4.6425899300645333e-07,\n          8.348625012797009e-07,\n          1.2926251907699375e-06,\n          1.8134462925878634e-06,\n          2.3865770803602914e-06,\n          2.9830294829777133e-06\n        ]\n      ]\n    ],\n    \"log_likelihood\": [\n      14.784108846197642\n    ]\n  },\n  \"output_devices\": [\n    \"/job:localhost/replica:0/task:0/device:GPU:0\"\n  ],\n  \"output_shape\": [\n    1\n  ],\n  \"particle_chunk_size\": 64,\n  \"physical_gpus\": [\n    \"PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')\"\n  ],\n  \"precision\": {\n    \"active_dtype\": \"float64\",\n    \"default_algorithm_target\": \"ledh_pfpf_ot_tf32\",\n    \"default_dtype\": \"float32\",\n    \"default_execution_target\": \"gpu\",\n    \"default_target_status\": \"production_default_by_owner_directive\",\n    \"default_tf32_mode\": \"enabled\",\n    \"dtype\": \"float64\",\n    \"fp64_reference_requires_explicit_dtype\": true,\n    \"historical_module_path\": \"experiments/dpf_implementation\",\n    \"precision_default_policy\": \"production_ledh_pfpf_ot_gpu_tf32\",\n    \"public_api_exposure\": \"separately_gated\",\n    \"scope\": \"production_ledh_pfpf_ot_gpu_tf32_default_lane\",\n    \"tf32_execution_enabled\": false,\n    \"tf32_mode\": \"disabled\",\n    \"tf_dtype\": \"float64\"\n  },\n  \"proposal_mode\": \"callback\",\n  \"python_version\": \"3.13.13\",\n  \"repeats\": 1,\n  \"return_history\": true,\n  \"seed\": 20262638,\n  \"shape\": {\n    \"batch_size\": 1,\n    \"num_particles\": 128,\n    \"obs_dim\": 6,\n    \"state_dim\": 6,\n    \"time_steps\": 12\n  },\n  \"stores_full_pre_flow_particles\": false,\n  \"tensorflow_version\": \"2.20.0\",\n  \"timestamp_utc\": \"2026-06-20T08:55:40.580911+00:00\",\n  \"transport\": {\n    \"annealed_convergence_threshold\": 0.001,\n    \"annealed_scaling\": 0.9,\n    \"col_chunk_size\": 64,\n    \"dense_transport_matrix_materialized\": false,\n    \"gradient_mode\": \"raw\",\n    \"plan_mode\": \"streaming\",\n    \"row_chunk_size\": 64,\n    \"sinkhorn_epsilon\": 0.5,\n    \"sinkhorn_iterations\": 3\n  },\n  \"transport_policy\": \"active-all\",\n  \"warm_call_timing_summary_seconds\": {\n    \"max\": 0.09607788198627532,\n    \"mean\": 0.09607788198627532,\n    \"median\": 0.09607788198627532,\n    \"min\": 0.09607788198627532\n  },\n  \"warm_call_timings_seconds\": [\n    0.09607788198627532\n  ],\n  \"warmstart_mode\": \"none\",\n  \"warmups\": 0\n}\n",
+          "stores_full_pre_flow_particles": false,
+          "transport": {
+            "annealed_convergence_threshold": 0.001,
+            "annealed_scaling": 0.9,
+            "col_chunk_size": 64,
+            "dense_transport_matrix_materialized": false,
+            "gradient_mode": "raw",
+            "plan_mode": "streaming",
+            "row_chunk_size": 64,
+            "sinkhorn_epsilon": 0.5,
+            "sinkhorn_iterations": 3
+          },
+          "transport_policy": "active-all",
+          "warm_call_timing_summary_seconds": {
+            "max": 0.09607788198627532,
+            "mean": 0.09607788198627532,
+            "median": 0.09607788198627532,
+            "min": 0.09607788198627532
+          }
+        },
+        {
+          "arm_id": "fp32_tf32_disabled",
+          "compile_and_first_call_seconds": 9.880594328977168,
+          "finite_output": true,
+          "json_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-children-2026-06-20/seed-20262638/children/fp32_tf32_disabled.json",
+          "logical_gpus": [
+            "LogicalDevice(name='/device:GPU:0', device_type='GPU')"
+          ],
+          "markdown_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-children-2026-06-20/seed-20262638/children/fp32_tf32_disabled.md",
+          "output_devices": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "passed": true,
+          "physical_gpus": [
+            "PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')"
+          ],
+          "precision": {
+            "active_dtype": "float32",
+            "default_algorithm_target": "ledh_pfpf_ot_tf32",
+            "default_dtype": "float32",
+            "default_execution_target": "gpu",
+            "default_target_status": "production_default_by_owner_directive",
+            "default_tf32_mode": "enabled",
+            "dtype": "float32",
+            "fp64_reference_requires_explicit_dtype": true,
+            "historical_module_path": "experiments/dpf_implementation",
+            "precision_default_policy": "production_ledh_pfpf_ot_gpu_tf32",
+            "public_api_exposure": "separately_gated",
+            "scope": "production_ledh_pfpf_ot_gpu_tf32_default_lane",
+            "tf32_execution_enabled": false,
+            "tf32_mode": "disabled",
+            "tf_dtype": "float32"
+          },
+          "proposal_mode": "callback",
+          "reason": null,
+          "return_history": true,
+          "returncode": 0,
+          "seed": 20262638,
+          "shape": {
+            "batch_size": 1,
+            "num_particles": 128,
+            "obs_dim": 6,
+            "state_dim": 6,
+            "time_steps": 12
+          },
+          "spec": {
+            "arm_id": "fp32_tf32_disabled",
+            "dtype": "float32",
+            "tf32_mode": "disabled"
+          },
+          "stderr_tail": "WARNING: All log messages before absl::InitializeLog() is called are written to STDERR\nI0000 00:00:1781945743.860812 3587393 gpu_device.cc:2020] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 29264 MB memory:  -> device: 0, name: NVIDIA GeForce RTX 4080 SUPER, pci bus id: 0000:41:00.0, compute capability: 8.9\nI0000 00:00:1781945753.593357 3587393 device_compiler.h:196] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.\n",
+          "stdout_tail": "22061234532157e-05,\n          1.6815019989735447e-05,\n          2.397019852651283e-05\n        ]\n      ],\n      [\n        [\n          4.0952154449769296e-06,\n          4.96380016556941e-06,\n          8.27421808935469e-06,\n          9.754299753694795e-06,\n          1.2709228940366302e-05,\n          1.725989204715006e-05\n        ]\n      ],\n      [\n        [\n          1.8608320715429727e-06,\n          2.4104756448650733e-06,\n          3.8862021938257385e-06,\n          4.7610838009859435e-06,\n          6.298798325587995e-06,\n          8.530701961717568e-06\n        ]\n      ],\n      [\n        [\n          9.10479400317854e-07,\n          1.256183281839185e-06,\n          1.9822891772491857e-06,\n          2.5180313514283625e-06,\n          3.3700212043186184e-06,\n          4.554918632493354e-06\n        ]\n      ],\n      [\n        [\n          5.419576041276741e-07,\n          7.96243284639786e-07,\n          1.2331964853729005e-06,\n          1.6202666301978752e-06,\n          2.1810938051203266e-06,\n          2.926129127445165e-06\n        ]\n      ],\n      [\n        [\n          4.094139569588151e-07,\n          6.385242272699543e-07,\n          9.772531939233886e-07,\n          1.3203491562308045e-06,\n          1.7770036038200487e-06,\n          2.352730689381133e-06\n        ]\n      ],\n      [\n        [\n          4.1233386127714766e-07,\n          6.788484370190417e-07,\n          1.0354522146371892e-06,\n          1.426614289812278e-06,\n          1.9079388948739506e-06,\n          2.4773707991698757e-06\n        ]\n      ],\n      [\n        [\n          4.2776048303494463e-07,\n          7.382735702776699e-07,\n          1.1330213283144985e-06,\n          1.5803875612618867e-06,\n          2.0997765659558354e-06,\n          2.67846507995273e-06\n        ]\n      ],\n      [\n        [\n          4.642529631837533e-07,\n          8.348486630893603e-07,\n          1.2926032013638178e-06,\n          1.813411927287234e-06,\n          2.386542973908945e-06,\n          2.982974137921701e-06\n        ]\n      ]\n    ],\n    \"log_likelihood\": [\n      14.78411865234375\n    ]\n  },\n  \"output_devices\": [\n    \"/job:localhost/replica:0/task:0/device:GPU:0\"\n  ],\n  \"output_shape\": [\n    1\n  ],\n  \"particle_chunk_size\": 64,\n  \"physical_gpus\": [\n    \"PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')\"\n  ],\n  \"precision\": {\n    \"active_dtype\": \"float32\",\n    \"default_algorithm_target\": \"ledh_pfpf_ot_tf32\",\n    \"default_dtype\": \"float32\",\n    \"default_execution_target\": \"gpu\",\n    \"default_target_status\": \"production_default_by_owner_directive\",\n    \"default_tf32_mode\": \"enabled\",\n    \"dtype\": \"float32\",\n    \"fp64_reference_requires_explicit_dtype\": true,\n    \"historical_module_path\": \"experiments/dpf_implementation\",\n    \"precision_default_policy\": \"production_ledh_pfpf_ot_gpu_tf32\",\n    \"public_api_exposure\": \"separately_gated\",\n    \"scope\": \"production_ledh_pfpf_ot_gpu_tf32_default_lane\",\n    \"tf32_execution_enabled\": false,\n    \"tf32_mode\": \"disabled\",\n    \"tf_dtype\": \"float32\"\n  },\n  \"proposal_mode\": \"callback\",\n  \"python_version\": \"3.13.13\",\n  \"repeats\": 1,\n  \"return_history\": true,\n  \"seed\": 20262638,\n  \"shape\": {\n    \"batch_size\": 1,\n    \"num_particles\": 128,\n    \"obs_dim\": 6,\n    \"state_dim\": 6,\n    \"time_steps\": 12\n  },\n  \"stores_full_pre_flow_particles\": false,\n  \"tensorflow_version\": \"2.20.0\",\n  \"timestamp_utc\": \"2026-06-20T08:55:53.881093+00:00\",\n  \"transport\": {\n    \"annealed_convergence_threshold\": 0.001,\n    \"annealed_scaling\": 0.9,\n    \"col_chunk_size\": 64,\n    \"dense_transport_matrix_materialized\": false,\n    \"gradient_mode\": \"raw\",\n    \"plan_mode\": \"streaming\",\n    \"row_chunk_size\": 64,\n    \"sinkhorn_epsilon\": 0.5,\n    \"sinkhorn_iterations\": 3\n  },\n  \"transport_policy\": \"active-all\",\n  \"warm_call_timing_summary_seconds\": {\n    \"max\": 0.07476754114031792,\n    \"mean\": 0.07476754114031792,\n    \"median\": 0.07476754114031792,\n    \"min\": 0.07476754114031792\n  },\n  \"warm_call_timings_seconds\": [\n    0.07476754114031792\n  ],\n  \"warmstart_mode\": \"none\",\n  \"warmups\": 0\n}\n",
+          "stores_full_pre_flow_particles": false,
+          "transport": {
+            "annealed_convergence_threshold": 0.001,
+            "annealed_scaling": 0.9,
+            "col_chunk_size": 64,
+            "dense_transport_matrix_materialized": false,
+            "gradient_mode": "raw",
+            "plan_mode": "streaming",
+            "row_chunk_size": 64,
+            "sinkhorn_epsilon": 0.5,
+            "sinkhorn_iterations": 3
+          },
+          "transport_policy": "active-all",
+          "warm_call_timing_summary_seconds": {
+            "max": 0.07476754114031792,
+            "mean": 0.07476754114031792,
+            "median": 0.07476754114031792,
+            "min": 0.07476754114031792
+          }
+        },
+        {
+          "arm_id": "fp32_tf32_enabled",
+          "compile_and_first_call_seconds": 10.81694386806339,
+          "finite_output": true,
+          "json_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-children-2026-06-20/seed-20262638/children/fp32_tf32_enabled.json",
+          "logical_gpus": [
+            "LogicalDevice(name='/device:GPU:0', device_type='GPU')"
+          ],
+          "markdown_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-children-2026-06-20/seed-20262638/children/fp32_tf32_enabled.md",
+          "output_devices": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "passed": true,
+          "physical_gpus": [
+            "PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')"
+          ],
+          "precision": {
+            "active_dtype": "float32",
+            "default_algorithm_target": "ledh_pfpf_ot_tf32",
+            "default_dtype": "float32",
+            "default_execution_target": "gpu",
+            "default_target_status": "production_default_by_owner_directive",
+            "default_tf32_mode": "enabled",
+            "dtype": "float32",
+            "fp64_reference_requires_explicit_dtype": true,
+            "historical_module_path": "experiments/dpf_implementation",
+            "precision_default_policy": "production_ledh_pfpf_ot_gpu_tf32",
+            "public_api_exposure": "separately_gated",
+            "scope": "production_ledh_pfpf_ot_gpu_tf32_default_lane",
+            "tf32_execution_enabled": true,
+            "tf32_mode": "enabled",
+            "tf_dtype": "float32"
+          },
+          "proposal_mode": "callback",
+          "reason": null,
+          "return_history": true,
+          "returncode": 0,
+          "seed": 20262638,
+          "shape": {
+            "batch_size": 1,
+            "num_particles": 128,
+            "obs_dim": 6,
+            "state_dim": 6,
+            "time_steps": 12
+          },
+          "spec": {
+            "arm_id": "fp32_tf32_enabled",
+            "dtype": "float32",
+            "tf32_mode": "enabled"
+          },
+          "stderr_tail": "WARNING: All log messages before absl::InitializeLog() is called are written to STDERR\nI0000 00:00:1781945757.502917 3588602 gpu_device.cc:2020] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 29265 MB memory:  -> device: 0, name: NVIDIA GeForce RTX 4080 SUPER, pci bus id: 0000:41:00.0, compute capability: 8.9\nI0000 00:00:1781945768.231208 3588602 device_compiler.h:196] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.\n",
+          "stdout_tail": "882404037e-05,\n          1.6730777133489028e-05,\n          2.3921649699332193e-05\n        ]\n      ],\n      [\n        [\n          4.079561222170014e-06,\n          4.9548571041668765e-06,\n          8.24345897854073e-06,\n          9.707518984214403e-06,\n          1.264403726963792e-05,\n          1.724589310470037e-05\n        ]\n      ],\n      [\n        [\n          1.8646034050107119e-06,\n          2.419432803435484e-06,\n          3.8947532630118076e-06,\n          4.758061550091952e-06,\n          6.299772394413594e-06,\n          8.57733357406687e-06\n        ]\n      ],\n      [\n        [\n          9.217644105774525e-07,\n          1.2777841220668051e-06,\n          1.99433634406887e-06,\n          2.5451263354625553e-06,\n          3.394442501303274e-06,\n          4.6152345021255314e-06\n        ]\n      ],\n      [\n        [\n          5.566143954638392e-07,\n          8.174908430191863e-07,\n          1.2506859548011562e-06,\n          1.6479614259878872e-06,\n          2.2116109903436154e-06,\n          2.9906163945270237e-06\n        ]\n      ],\n      [\n        [\n          4.244843694323208e-07,\n          6.595623744942714e-07,\n          1.0012786333390977e-06,\n          1.3564491609940887e-06,\n          1.824873947953165e-06,\n          2.4037813091126736e-06\n        ]\n      ],\n      [\n        [\n          4.0716571447774186e-07,\n          6.749465910615982e-07,\n          1.0251178537146188e-06,\n          1.4059388604437117e-06,\n          1.8859275314753177e-06,\n          2.434066800560686e-06\n        ]\n      ],\n      [\n        [\n          4.164692768426903e-07,\n          7.218138193820778e-07,\n          1.1063077636208618e-06,\n          1.5358336895587854e-06,\n          2.0459485767787555e-06,\n          2.6052703105960973e-06\n        ]\n      ],\n      [\n        [\n          4.4836298229711247e-07,\n          8.099415822471201e-07,\n          1.2408283964759903e-06,\n          1.7400971046299674e-06,\n          2.2988706405158155e-06,\n          2.8841645871580113e-06\n        ]\n      ]\n    ],\n    \"log_likelihood\": [\n      14.782381057739258\n    ]\n  },\n  \"output_devices\": [\n    \"/job:localhost/replica:0/task:0/device:GPU:0\"\n  ],\n  \"output_shape\": [\n    1\n  ],\n  \"particle_chunk_size\": 64,\n  \"physical_gpus\": [\n    \"PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')\"\n  ],\n  \"precision\": {\n    \"active_dtype\": \"float32\",\n    \"default_algorithm_target\": \"ledh_pfpf_ot_tf32\",\n    \"default_dtype\": \"float32\",\n    \"default_execution_target\": \"gpu\",\n    \"default_target_status\": \"production_default_by_owner_directive\",\n    \"default_tf32_mode\": \"enabled\",\n    \"dtype\": \"float32\",\n    \"fp64_reference_requires_explicit_dtype\": true,\n    \"historical_module_path\": \"experiments/dpf_implementation\",\n    \"precision_default_policy\": \"production_ledh_pfpf_ot_gpu_tf32\",\n    \"public_api_exposure\": \"separately_gated\",\n    \"scope\": \"production_ledh_pfpf_ot_gpu_tf32_default_lane\",\n    \"tf32_execution_enabled\": true,\n    \"tf32_mode\": \"enabled\",\n    \"tf_dtype\": \"float32\"\n  },\n  \"proposal_mode\": \"callback\",\n  \"python_version\": \"3.13.13\",\n  \"repeats\": 1,\n  \"return_history\": true,\n  \"seed\": 20262638,\n  \"shape\": {\n    \"batch_size\": 1,\n    \"num_particles\": 128,\n    \"obs_dim\": 6,\n    \"state_dim\": 6,\n    \"time_steps\": 12\n  },\n  \"stores_full_pre_flow_particles\": false,\n  \"tensorflow_version\": \"2.20.0\",\n  \"timestamp_utc\": \"2026-06-20T08:56:08.468360+00:00\",\n  \"transport\": {\n    \"annealed_convergence_threshold\": 0.001,\n    \"annealed_scaling\": 0.9,\n    \"col_chunk_size\": 64,\n    \"dense_transport_matrix_materialized\": false,\n    \"gradient_mode\": \"raw\",\n    \"plan_mode\": \"streaming\",\n    \"row_chunk_size\": 64,\n    \"sinkhorn_epsilon\": 0.5,\n    \"sinkhorn_iterations\": 3\n  },\n  \"transport_policy\": \"active-all\",\n  \"warm_call_timing_summary_seconds\": {\n    \"max\": 0.06988768116571009,\n    \"mean\": 0.06988768116571009,\n    \"median\": 0.06988768116571009,\n    \"min\": 0.06988768116571009\n  },\n  \"warm_call_timings_seconds\": [\n    0.06988768116571009\n  ],\n  \"warmstart_mode\": \"none\",\n  \"warmups\": 0\n}\n",
+          "stores_full_pre_flow_particles": false,
+          "transport": {
+            "annealed_convergence_threshold": 0.001,
+            "annealed_scaling": 0.9,
+            "col_chunk_size": 64,
+            "dense_transport_matrix_materialized": false,
+            "gradient_mode": "raw",
+            "plan_mode": "streaming",
+            "row_chunk_size": 64,
+            "sinkhorn_epsilon": 0.5,
+            "sinkhorn_iterations": 3
+          },
+          "transport_policy": "active-all",
+          "warm_call_timing_summary_seconds": {
+            "max": 0.06988768116571009,
+            "mean": 0.06988768116571009,
+            "median": 0.06988768116571009,
+            "min": 0.06988768116571009
+          }
+        }
+      ],
+      "command": [
+        "/home/ubuntu/anaconda3/envs/tfgpu/bin/python",
+        "/home/ubuntu/python/BayesFilter/docs/benchmarks/compare_experimental_batched_ledh_pfpf_ot_streaming_precision.py",
+        "--device-scope",
+        "visible",
+        "--device",
+        "/GPU:0",
+        "--expect-device-kind",
+        "gpu",
+        "--batch-size",
+        "1",
+        "--time-steps",
+        "12",
+        "--num-particles",
+        "128",
+        "--state-dim",
+        "6",
+        "--obs-dim",
+        "6",
+        "--transport-policy",
+        "active-all",
+        "--proposal-mode",
+        "callback",
+        "--sinkhorn-iterations",
+        "3",
+        "--sinkhorn-epsilon",
+        "0.5",
+        "--annealed-scaling",
+        "0.9",
+        "--annealed-convergence-threshold",
+        "0.001",
+        "--row-chunk-size",
+        "64",
+        "--col-chunk-size",
+        "64",
+        "--particle-chunk-size",
+        "64",
+        "--warmups",
+        "0",
+        "--repeats",
+        "1",
+        "--seed",
+        "20262638",
+        "--child-timeout-seconds",
+        "900",
+        "--artifact-dir",
+        "docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-children-2026-06-20/seed-20262638/children",
+        "--output",
+        "docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-children-2026-06-20/seed-20262638/streaming-precision.json",
+        "--markdown-output",
+        "docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-children-2026-06-20/seed-20262638/streaming-precision.md",
+        "--cuda-visible-devices",
+        "0"
+      ],
+      "comparisons": [
+        {
+          "arm_id": "fp32_tf32_disabled",
+          "compile_and_first_call_seconds": 9.880594328977168,
+          "drift_vs_fp64": {
+            "ess_by_time": {
+              "max_abs": 6.206118787588366e-05,
+              "max_relative_to_max1_abs_reference": 4.84853034166861e-07,
+              "rms_abs": 4.0557830169004176e-05,
+              "shape": [
+                12,
+                1
+              ]
+            },
+            "filtered_means": {
+              "max_abs": 7.223356052188379e-08,
+              "max_relative_to_max1_abs_reference": 7.223356052188379e-08,
+              "rms_abs": 2.3185238195624266e-08,
+              "shape": [
+                12,
+                1,
+                6
+              ]
+            },
+            "filtered_variances": {
+              "max_abs": 2.03190030512862e-09,
+              "max_relative_to_max1_abs_reference": 2.03190030512862e-09,
+              "rms_abs": 3.2581252006138486e-10,
+              "shape": [
+                12,
+                1,
+                6
+              ]
+            },
+            "log_likelihood": {
+              "max_abs": 9.806146108459757e-06,
+              "max_relative_to_max1_abs_reference": 6.632896314871101e-07,
+              "rms_abs": 9.806146108459757e-06,
+              "shape": [
+                1
+              ]
+            }
+          },
+          "finite_output": true,
+          "precision": {
+            "active_dtype": "float32",
+            "default_algorithm_target": "ledh_pfpf_ot_tf32",
+            "default_dtype": "float32",
+            "default_execution_target": "gpu",
+            "default_target_status": "production_default_by_owner_directive",
+            "default_tf32_mode": "enabled",
+            "dtype": "float32",
+            "fp64_reference_requires_explicit_dtype": true,
+            "historical_module_path": "experiments/dpf_implementation",
+            "precision_default_policy": "production_ledh_pfpf_ot_gpu_tf32",
+            "public_api_exposure": "separately_gated",
+            "scope": "production_ledh_pfpf_ot_gpu_tf32_default_lane",
+            "tf32_execution_enabled": false,
+            "tf32_mode": "disabled",
+            "tf_dtype": "float32"
+          },
+          "warm_call_timing_summary_seconds": {
+            "max": 0.07476754114031792,
+            "mean": 0.07476754114031792,
+            "median": 0.07476754114031792,
+            "min": 0.07476754114031792
+          },
+          "warm_median_seconds_ratio_to_fp64": 0.7781972249450547
+        },
+        {
+          "arm_id": "fp32_tf32_enabled",
+          "compile_and_first_call_seconds": 10.81694386806339,
+          "drift_vs_fp64": {
+            "ess_by_time": {
+              "max_abs": 0.00018172598802834727,
+              "max_relative_to_max1_abs_reference": 1.4368136036416082e-06,
+              "rms_abs": 5.86730642968715e-05,
+              "shape": [
+                12,
+                1
+              ]
+            },
+            "filtered_means": {
+              "max_abs": 3.493925829761019e-05,
+              "max_relative_to_max1_abs_reference": 3.493925829761019e-05,
+              "rms_abs": 1.336011146712841e-05,
+              "shape": [
+                12,
+                1,
+                6
+              ]
+            },
+            "filtered_variances": {
+              "max_abs": 1.764803439062261e-06,
+              "max_relative_to_max1_abs_reference": 1.764803439062261e-06,
+              "rms_abs": 3.490571603871848e-07,
+              "shape": [
+                12,
+                1,
+                6
+              ]
+            },
+            "log_likelihood": {
+              "max_abs": 0.0017277884583837277,
+              "max_relative_to_max1_abs_reference": 0.00011686794762932915,
+              "rms_abs": 0.0017277884583837277,
+              "shape": [
+                1
+              ]
+            }
+          },
+          "finite_output": true,
+          "precision": {
+            "active_dtype": "float32",
+            "default_algorithm_target": "ledh_pfpf_ot_tf32",
+            "default_dtype": "float32",
+            "default_execution_target": "gpu",
+            "default_target_status": "production_default_by_owner_directive",
+            "default_tf32_mode": "enabled",
+            "dtype": "float32",
+            "fp64_reference_requires_explicit_dtype": true,
+            "historical_module_path": "experiments/dpf_implementation",
+            "precision_default_policy": "production_ledh_pfpf_ot_gpu_tf32",
+            "public_api_exposure": "separately_gated",
+            "scope": "production_ledh_pfpf_ot_gpu_tf32_default_lane",
+            "tf32_execution_enabled": true,
+            "tf32_mode": "enabled",
+            "tf_dtype": "float32"
+          },
+          "warm_call_timing_summary_seconds": {
+            "max": 0.06988768116571009,
+            "mean": 0.06988768116571009,
+            "median": 0.06988768116571009,
+            "min": 0.06988768116571009
+          },
+          "warm_median_seconds_ratio_to_fp64": 0.727406555191272
+        }
+      ],
+      "default_arm_id": "fp32_tf32_enabled",
+      "default_metadata_assertions": {
+        "expected": {
+          "active_dtype": "float32",
+          "default_algorithm_target": "ledh_pfpf_ot_tf32",
+          "default_dtype": "float32",
+          "default_execution_target": "gpu",
+          "default_target_status": "production_default_by_owner_directive",
+          "default_tf32_mode": "enabled",
+          "precision_default_policy": "production_ledh_pfpf_ot_gpu_tf32",
+          "tf32_execution_enabled": true,
+          "tf32_mode": "enabled"
+        },
+        "fields": {
+          "active_dtype": {
+            "actual": "float32",
+            "expected": "float32",
+            "passed": true
+          },
+          "default_algorithm_target": {
+            "actual": "ledh_pfpf_ot_tf32",
+            "expected": "ledh_pfpf_ot_tf32",
+            "passed": true
+          },
+          "default_dtype": {
+            "actual": "float32",
+            "expected": "float32",
+            "passed": true
+          },
+          "default_execution_target": {
+            "actual": "gpu",
+            "expected": "gpu",
+            "passed": true
+          },
+          "default_target_status": {
+            "actual": "production_default_by_owner_directive",
+            "expected": "production_default_by_owner_directive",
+            "passed": true
+          },
+          "default_tf32_mode": {
+            "actual": "enabled",
+            "expected": "enabled",
+            "passed": true
+          },
+          "precision_default_policy": {
+            "actual": "production_ledh_pfpf_ot_gpu_tf32",
+            "expected": "production_ledh_pfpf_ot_gpu_tf32",
+            "passed": true
+          },
+          "tf32_execution_enabled": {
+            "actual": true,
+            "expected": true,
+            "passed": true
+          },
+          "tf32_mode": {
+            "actual": "enabled",
+            "expected": "enabled",
+            "passed": true
+          }
+        },
+        "passed": true
+      },
+      "default_tolerance_screen": {
+        "missing_outputs": [],
+        "passed": true,
+        "per_output": {
+          "ess_by_time": {
+            "max_abs": 0.00018172598802834727,
+            "max_relative_to_max1_abs_reference": 1.4368136036416082e-06,
+            "passed": true,
+            "rms_abs": 5.86730642968715e-05,
+            "shape": [
+              12,
+              1
+            ],
+            "tolerance": 0.01
+          },
+          "filtered_means": {
+            "max_abs": 3.493925829761019e-05,
+            "max_relative_to_max1_abs_reference": 3.493925829761019e-05,
+            "passed": true,
+            "rms_abs": 1.336011146712841e-05,
+            "shape": [
+              12,
+              1,
+              6
+            ],
+            "tolerance": 0.01
+          },
+          "filtered_variances": {
+            "max_abs": 1.764803439062261e-06,
+            "max_relative_to_max1_abs_reference": 1.764803439062261e-06,
+            "passed": true,
+            "rms_abs": 3.490571603871848e-07,
+            "shape": [
+              12,
+              1,
+              6
+            ],
+            "tolerance": 0.01
+          },
+          "log_likelihood": {
+            "max_abs": 0.0017277884583837277,
+            "max_relative_to_max1_abs_reference": 0.00011686794762932915,
+            "passed": true,
+            "rms_abs": 0.0017277884583837277,
+            "shape": [
+              1
+            ],
+            "tolerance": 0.01
+          }
+        },
+        "required_outputs": [
+          "log_likelihood",
+          "filtered_means",
+          "filtered_variances",
+          "ess_by_time"
+        ],
+        "worst": {
+          "max_relative_to_max1_abs_reference": 0.00011686794762932915,
+          "output": "log_likelihood",
+          "tolerance": 0.01
+        }
+      },
+      "device_screen": {
+        "devices_by_arm": {
+          "fp32_tf32_disabled": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "fp32_tf32_enabled": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ],
+          "fp64_reference": [
+            "/job:localhost/replica:0/task:0/device:GPU:0"
+          ]
+        },
+        "passed": true
+      },
+      "diagnostic_arm_id": "fp32_tf32_disabled",
+      "hard_screen": {
+        "arrays_present": {
+          "fp32_tf32_disabled": true,
+          "fp32_tf32_enabled": true,
+          "fp64_reference": true
+        },
+        "config_matches": {
+          "fp32_tf32_disabled": true,
+          "fp32_tf32_enabled": true,
+          "fp64_reference": true
+        },
+        "finite_outputs": {
+          "fp32_tf32_disabled": true,
+          "fp32_tf32_enabled": true,
+          "fp64_reference": true
+        },
+        "reference_config": {
+          "particle_chunk_size": 64,
+          "proposal_mode": "callback",
+          "return_history": true,
+          "seed": 20262638,
+          "shape": {
+            "batch_size": 1,
+            "num_particles": 128,
+            "obs_dim": 6,
+            "state_dim": 6,
+            "time_steps": 12
+          },
+          "stores_full_pre_flow_particles": false,
+          "transport": {
+            "annealed_convergence_threshold": 0.001,
+            "annealed_scaling": 0.9,
+            "col_chunk_size": 64,
+            "dense_transport_matrix_materialized": false,
+            "gradient_mode": "raw",
+            "plan_mode": "streaming",
+            "row_chunk_size": 64,
+            "sinkhorn_epsilon": 0.5,
+            "sinkhorn_iterations": 3
+          },
+          "transport_policy": "active-all"
+        }
+      },
+      "json_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-children-2026-06-20/seed-20262638/streaming-precision.json",
+      "markdown_path": "docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-children-2026-06-20/seed-20262638/streaming-precision.md",
+      "output_arrays_screen": {
+        "arrays_present": {
+          "fp32_tf32_disabled": true,
+          "fp32_tf32_enabled": true,
+          "fp64_reference": true
+        },
+        "passed": true
+      },
+      "passed": true,
+      "precision_wrapper_overall_passed": true,
+      "precision_wrapper_seed": 20262638,
+      "proposal_mode": "callback",
+      "reference_arm_id": "fp64_reference",
+      "returncode": 0,
+      "returncode_ok": true,
+      "seed": 20262638,
+      "seed_matches_request": true,
+      "shape": {
+        "batch_size": 1,
+        "num_particles": 128,
+        "obs_dim": 6,
+        "state_dim": 6,
+        "time_steps": 12
+      },
+      "stderr_tail": "",
+      "stdout_tail": "          \"shape\": [\n            12,\n            1\n          ]\n        },\n        \"filtered_means\": {\n          \"max_abs\": 3.493925829761019e-05,\n          \"max_relative_to_max1_abs_reference\": 3.493925829761019e-05,\n          \"rms_abs\": 1.336011146712841e-05,\n          \"shape\": [\n            12,\n            1,\n            6\n          ]\n        },\n        \"filtered_variances\": {\n          \"max_abs\": 1.764803439062261e-06,\n          \"max_relative_to_max1_abs_reference\": 1.764803439062261e-06,\n          \"rms_abs\": 3.490571603871848e-07,\n          \"shape\": [\n            12,\n            1,\n            6\n          ]\n        },\n        \"log_likelihood\": {\n          \"max_abs\": 0.0017277884583837277,\n          \"max_relative_to_max1_abs_reference\": 0.00011686794762932915,\n          \"rms_abs\": 0.0017277884583837277,\n          \"shape\": [\n            1\n          ]\n        }\n      },\n      \"finite_output\": true,\n      \"precision\": {\n        \"active_dtype\": \"float32\",\n        \"default_algorithm_target\": \"ledh_pfpf_ot_tf32\",\n        \"default_dtype\": \"float32\",\n        \"default_execution_target\": \"gpu\",\n        \"default_target_status\": \"production_default_by_owner_directive\",\n        \"default_tf32_mode\": \"enabled\",\n        \"dtype\": \"float32\",\n        \"fp64_reference_requires_explicit_dtype\": true,\n        \"historical_module_path\": \"experiments/dpf_implementation\",\n        \"precision_default_policy\": \"production_ledh_pfpf_ot_gpu_tf32\",\n        \"public_api_exposure\": \"separately_gated\",\n        \"scope\": \"production_ledh_pfpf_ot_gpu_tf32_default_lane\",\n        \"tf32_execution_enabled\": true,\n        \"tf32_mode\": \"enabled\",\n        \"tf_dtype\": \"float32\"\n      },\n      \"warm_call_timing_summary_seconds\": {\n        \"max\": 0.06988768116571009,\n        \"mean\": 0.06988768116571009,\n        \"median\": 0.06988768116571009,\n        \"min\": 0.06988768116571009\n      },\n      \"warm_median_seconds_ratio_to_fp64\": 0.727406555191272\n    }\n  ],\n  \"cuda_visible_devices_arg\": \"0\",\n  \"device\": \"/GPU:0\",\n  \"device_scope\": \"visible\",\n  \"expect_device_kind\": \"gpu\",\n  \"hard_screen\": {\n    \"arrays_present\": {\n      \"fp32_tf32_disabled\": true,\n      \"fp32_tf32_enabled\": true,\n      \"fp64_reference\": true\n    },\n    \"config_matches\": {\n      \"fp32_tf32_disabled\": true,\n      \"fp32_tf32_enabled\": true,\n      \"fp64_reference\": true\n    },\n    \"finite_outputs\": {\n      \"fp32_tf32_disabled\": true,\n      \"fp32_tf32_enabled\": true,\n      \"fp64_reference\": true\n    },\n    \"reference_config\": {\n      \"particle_chunk_size\": 64,\n      \"proposal_mode\": \"callback\",\n      \"return_history\": true,\n      \"seed\": 20262638,\n      \"shape\": {\n        \"batch_size\": 1,\n        \"num_particles\": 128,\n        \"obs_dim\": 6,\n        \"state_dim\": 6,\n        \"time_steps\": 12\n      },\n      \"stores_full_pre_flow_particles\": false,\n      \"transport\": {\n        \"annealed_convergence_threshold\": 0.001,\n        \"annealed_scaling\": 0.9,\n        \"col_chunk_size\": 64,\n        \"dense_transport_matrix_materialized\": false,\n        \"gradient_mode\": \"raw\",\n        \"plan_mode\": \"streaming\",\n        \"row_chunk_size\": 64,\n        \"sinkhorn_epsilon\": 0.5,\n        \"sinkhorn_iterations\": 3\n      },\n      \"transport_policy\": \"active-all\"\n    }\n  },\n  \"host\": \"ubuntu-MZ72-HB2-00\",\n  \"nonclaims\": [\n    \"single deterministic LGSSM-shaped fixture only\",\n    \"production/default target by owner directive\",\n    \"no posterior validity claim\",\n    \"no HMC readiness or energy-conservation claim\",\n    \"no statistical ranking from single-run timings\",\n    \"TF32 flag is recorded as requested; not every TensorFlow op necessarily uses TF32\"\n  ],\n  \"overall_passed\": true,\n  \"proposal_mode\": \"callback\",\n  \"python_executable\": \"/home/ubuntu/anaconda3/envs/tfgpu/bin/python\",\n  \"python_version\": \"3.13.13\",\n  \"seed\": 20262638,\n  \"shape\": {\n    \"batch_size\": 1,\n    \"num_particles\": 128,\n    \"obs_dim\": 6,\n    \"state_dim\": 6,\n    \"time_steps\": 12\n  },\n  \"timestamp_utc\": \"2026-06-20T08:56:09.442934+00:00\",\n  \"transport_policy\": \"active-all\"\n}\n",
+      "transport_policy": "active-all"
+    }
+  ],
+  "seed_plan": {
+    "base_seed": 20260620,
+    "num_seeds": 3,
+    "seed_stride": 1009,
+    "seeds": [
+      20260620,
+      20261629,
+      20262638
+    ]
+  },
+  "shape": {
+    "batch_size": 1,
+    "num_particles": 128,
+    "obs_dim": 6,
+    "state_dim": 6,
+    "time_steps": 12
+  },
+  "summary": {
+    "all_default_metadata_assertions_passed": true,
+    "all_default_tolerance_screens_passed": true,
+    "all_device_screens_passed": true,
+    "all_output_arrays_screens_passed": true,
+    "all_precision_wrappers_passed": true,
+    "all_rows_passed": true,
+    "all_seed_matches_passed": true,
+    "drift_formula": "max(abs(candidate - reference) / max(1.0, abs(reference))) per output array and paired seed",
+    "expected_paired_seed_count": 3,
+    "max_relative_tolerance": 0.01,
+    "paired_seed_count": 3,
+    "paired_seeds": [
+      20260620,
+      20261629,
+      20262638
+    ],
+    "required_outputs": [
+      "log_likelihood",
+      "filtered_means",
+      "filtered_variances",
+      "ess_by_time"
+    ],
+    "worst_default_drift_by_output": {
+      "ess_by_time": {
+        "max_relative_to_max1_abs_reference": 4.772058632153245e-06,
+        "output": "ess_by_time",
+        "passed": true,
+        "seed": 20261629,
+        "tolerance": 0.01
+      },
+      "filtered_means": {
+        "max_relative_to_max1_abs_reference": 4.222283782952252e-05,
+        "output": "filtered_means",
+        "passed": true,
+        "seed": 20260620,
+        "tolerance": 0.01
+      },
+      "filtered_variances": {
+        "max_relative_to_max1_abs_reference": 3.3208038858826812e-06,
+        "output": "filtered_variances",
+        "passed": true,
+        "seed": 20261629,
+        "tolerance": 0.01
+      },
+      "log_likelihood": {
+        "max_relative_to_max1_abs_reference": 0.0001302131797900768,
+        "output": "log_likelihood",
+        "passed": true,
+        "seed": 20261629,
+        "tolerance": 0.01
+      }
+    },
+    "worst_default_drift_overall": {
+      "max_relative_to_max1_abs_reference": 0.0001302131797900768,
+      "output": "log_likelihood",
+      "passed": true,
+      "seed": 20261629,
+      "tolerance": 0.01
+    }
+  },
+  "timestamp_utc": "2026-06-20T08:56:09.479832+00:00",
+  "tolerance_contract": {
+    "drift_formula": "max(abs(candidate - reference) / max(1.0, abs(reference))) per output array and paired seed",
+    "max_relative_tolerance": 0.01,
+    "required_outputs": [
+      "log_likelihood",
+      "filtered_means",
+      "filtered_variances",
+      "ess_by_time"
+    ],
+    "threshold_role": "gross_engineering_sanity_screen_only"
+  },
+  "transport": {
+    "annealed_convergence_threshold": 0.001,
+    "annealed_scaling": 0.9,
+    "col_chunk_size": 64,
+    "particle_chunk_size": 64,
+    "policy": "active-all",
+    "proposal_mode": "callback",
+    "row_chunk_size": 64,
+    "sinkhorn_epsilon": 0.5,
+    "sinkhorn_iterations": 3
+  },
+  "warmups": 0
+}

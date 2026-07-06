@@ -1,0 +1,62 @@
+{
+  "algorithm_family": "low_rank_solver_route_ledh_pfpf_ot_efficiency",
+  "artifact_role": "parent_enforced_row_timeout_sidecar",
+  "hard_vetoes": [
+    "row_timeout"
+  ],
+  "mode": "paired-gpu",
+  "nonclaims": [
+    "bounded resource-proxy efficiency harness only",
+    "no posterior correctness claim",
+    "no HMC readiness claim",
+    "no public API readiness claim",
+    "no production/default readiness claim",
+    "no dense Sinkhorn equivalence claim",
+    "no broad scalable-OT selection claim",
+    "no statistical ranking claim",
+    "no streaming superiority claim at unpaired large-N rows"
+  ],
+  "phase": "paired-gpu:row:streaming:N=32768",
+  "rows": [
+    {
+      "error": "TimeoutExpired: exceeded 900s",
+      "fixture_id": "ledh_lgssm_efficiency_common_v1",
+      "hard_vetoes": [
+        "row_timeout"
+      ],
+      "particle_count": 32768,
+      "route": "streaming",
+      "row_subprocess": {
+        "json": "docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n32768.json",
+        "status": "timeout",
+        "stderr_tail": "",
+        "stdout_tail": ""
+      },
+      "shape": {
+        "batch_size": 1,
+        "num_particles": 32768,
+        "obs_dim": 6,
+        "state_dim": 8,
+        "time_steps": 2
+      },
+      "status": "TIMEOUT",
+      "timeout_policy_seconds": 900,
+      "timeout_status": "timeout_enforced",
+      "wall_time_seconds": 900.2983539740089
+    }
+  ],
+  "run_manifest": {
+    "command": "docs/benchmarks/scalable_ot_low_rank_ledh_pfpf_efficiency.py --mode paired-gpu --routes streaming --particle-counts 32768 --cuda-visible-devices 1 --row-timeout-seconds 900 --output docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21.json --markdown-output docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21.md --quiet",
+    "cuda_visible_devices": "1",
+    "device": "/GPU:0",
+    "device_scope": "visible",
+    "expect_device_kind": "gpu",
+    "fixture_id": "ledh_lgssm_efficiency_common_v1",
+    "phase_result_path": "docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-p02-paired-gpu-result-2026-06-21.md",
+    "plan_path": "docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-master-program-2026-06-21.md",
+    "row_subprocess_timeouts": true,
+    "row_timeout_seconds": 900,
+    "trust_context": "trusted_gpu_required"
+  },
+  "status": "FAIL"
+}

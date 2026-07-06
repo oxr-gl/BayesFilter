@@ -123,3 +123,65 @@ Gate status:
 Next action:
 
 - Launch Phase 0 only.
+
+### 2026-07-07 - Phase 0 - BASELINE_GUARD_PASSED
+
+Evidence contract:
+
+- Question: Does the current repo state distinguish metadata-only forward
+  contracts from executable same-target scalar admission, and what is the exact
+  admitted/blocked baseline?
+- Target scalar: `observed_data_log_likelihood_estimator`, reported as
+  `log_likelihood`.
+- Primary criterion: local focused checks pass and Phase 0 records exactly two
+  value-admitted rows and four value-blocked rows.
+- Veto diagnostics: metadata-only row promotion, blocked-row promotion, score
+  work, or target redefinition.
+- Nonclaims: no new value admission, score admission, score correctness, GPU
+  evidence, leaderboard rebuild, HMC readiness, posterior correctness,
+  scientific superiority, or runtime ranking.
+
+Actions:
+
+- Ran focused local Phase 0 checks.
+- Wrote Phase 0 result.
+- Drafted Phase 1 shared runner schema subplan.
+- Patched the Phase 0/Phase 1 review bundle so the bounded packet states the
+  target scalar explicitly.
+- Patched Phase 1 nonclaims to include score correctness explicitly.
+- Ran bounded Claude read-only review of the Phase 0 result and Phase 1
+  subplan handoff.
+
+Artifacts:
+
+- `docs/plans/bayesfilter-ledh-forward-scalar-per-model-phase0-baseline-guard-result-2026-07-07.md`
+- `docs/plans/bayesfilter-ledh-forward-scalar-per-model-phase1-runner-schema-subplan-2026-07-07.md`
+- `docs/reviews/bayesfilter-ledh-forward-scalar-per-model-phase0-result-phase1-subplan-review-bundle-2026-07-07.md`
+
+Local checks:
+
+```text
+CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp python -m pytest \
+  tests/highdim/test_ledh_phase3_forward_admission.py \
+  tests/highdim/test_ledh_forward_contract_phase2.py -q
+```
+
+Result:
+
+```text
+12 passed, 2 warnings in 2.74s
+```
+
+Review:
+
+- Run dir:
+  `/home/chakwong/BayesFilter/.claude_reviews/20260707-025112-ledh-forward-scalar-per-model-phase0-phase1-handoff`
+- `REVIEW_STATUS=agreed`, `VERDICT=AGREE`.
+
+Gate status:
+
+- `PASSED_PHASE0_PHASE1_HANDOFF_PHASE1_MAY_START`
+
+Next action:
+
+- Execute Phase 1 shared executable artifact schema guard.

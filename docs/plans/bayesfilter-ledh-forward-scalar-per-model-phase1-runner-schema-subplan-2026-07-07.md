@@ -71,7 +71,7 @@ Required review:
 | Primary criterion | A validator or tests reject artifacts without executable `log_likelihood` evidence and reject target/flow ambiguity before any model phase can admit a row. |
 | Veto diagnostics | Schema validation alone admits a row; callback-only evidence can pass; actual-SV/KSC artifacts can be cross-used; proposal objective can be target scalar; score fields are required for value admission. |
 | Explanatory diagnostics | Existing tiny artifacts, old N=10000 artifacts, and legacy callback inventories. |
-| Not concluded | No model row admission, score admission, HMC readiness, posterior correctness, scientific superiority, or runtime ranking. |
+| Not concluded | No model row admission, score admission, score correctness, HMC readiness, posterior correctness, scientific superiority, or runtime ranking. |
 | Artifact | Phase 1 result, schema/validator/tests, Phase 2 subplan. |
 
 ## Forbidden Claims/Actions

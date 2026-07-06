@@ -459,6 +459,7 @@ class FixedTransportValueScoreAdapter:
         evidence_path: str | None = None,
         xla_hmc_ready: bool = False,
         full_chain_xla_diagnostic_ready: bool = False,
+        batch_native: bool | None = None,
         require_batch_native: bool = True,
         nonclaims: tuple[str, ...] = FIXED_TRANSPORT_NONCLAIMS,
     ) -> None:
@@ -474,29 +475,41 @@ class FixedTransportValueScoreAdapter:
         self.evidence_path = evidence_path
         self.xla_hmc_ready = bool(xla_hmc_ready)
         self.full_chain_xla_diagnostic_ready = bool(full_chain_xla_diagnostic_ready)
-        self.require_batch_native = bool(require_batch_native)
+        self.require_batch_native = (
+            bool(require_batch_native) if batch_native is None else bool(batch_native)
+        )
+        self.batch_native = self.require_batch_native
         self.nonclaims = tuple(str(item) for item in nonclaims) or FIXED_TRANSPORT_NONCLAIMS
         self._transport_manifest = _transport_manifest_payload(transport)
         self._transport_manifest_hash = _stable_json_hash(self._transport_manifest)
+        _require_transport_method(transport, "forward")
+        _require_transport_method(transport, "log_abs_det_jacobian")
+        if self.require_batch_native:
+            _require_transport_method(transport, "forward_batch")
+            _require_transport_method(transport, "log_abs_det_jacobian_batch")
 
     @property
     def transport_manifest_hash(self) -> str:
         return self._transport_manifest_hash
 
     def adapter_signature(self) -> str:
+        return _stable_json_hash(self.adapter_signature_payload())
+
+    def adapter_signature_payload(self) -> Mapping[str, Any]:
         base_signature = _stable_adapter_signature(self.base_adapter)
         base_capability = value_score_capability(self.base_adapter)
-        return _stable_json_hash(
-            {
-                "schema": "bayesfilter.fixed_transport_value_score_adapter.v1",
-                "base_adapter_signature": base_signature,
-                "fixed_transport_manifest_hash": self.transport_manifest_hash,
-                "fixed_transport_parameter_dim": self.parameter_dim,
-                "target_scope": self.target_scope,
-                "value_score_authority": base_capability.value_score_authority,
-                "batch_native_required": self.require_batch_native,
-            }
-        )
+        return {
+            "schema": "bayesfilter.fixed_transport_value_score_adapter.v1",
+            "base_adapter_signature": base_signature,
+            "fixed_transport_manifest_hash": self.transport_manifest_hash,
+            "fixed_transport_parameter_dim": self.parameter_dim,
+            "fixed_transport_parameter_dimension": self.parameter_dim,
+            "target_scope": self.target_scope,
+            "base_target_scope": base_capability.target_scope,
+            "value_score_authority": base_capability.value_score_authority,
+            "batch_native": self.batch_native,
+            "batch_native_required": self.require_batch_native,
+        }
 
     def manifest_payload(self) -> Mapping[str, Any]:
         base_capability = value_score_capability(self.base_adapter)
@@ -513,6 +526,7 @@ class FixedTransportValueScoreAdapter:
                 self.value_score_capability().full_chain_xla_diagnostic_ready
             ),
             "batch_native_required": self.require_batch_native,
+            "batch_native": self.batch_native,
             "nonclaims": self.nonclaims,
         }
 
@@ -521,6 +535,7 @@ class FixedTransportValueScoreAdapter:
         graph_native_base = base_capability.value_score_authority in _GRAPH_NATIVE_AUTHORITIES
         xla_ready = bool(
             self.xla_hmc_ready
+            and self.require_batch_native
             and graph_native_base
             and base_capability.is_accepted_xla_hmc_authority
         )
@@ -531,6 +546,7 @@ class FixedTransportValueScoreAdapter:
         )
         nonclaims = self.nonclaims + (
             f"base value/score authority: {base_capability.value_score_authority}",
+            f"base target scope: {base_capability.target_scope}",
             "fixed transport wrapper cannot promote fallback base authority",
         )
         return ValueScoreCapability(
@@ -549,7 +565,8 @@ class FixedTransportValueScoreAdapter:
     def latent_to_position(self, z: Any) -> tf.Tensor:
         z_tensor = self._validate_z_tensor(z, allow_sample_axes=True)
         if z_tensor.shape.rank == 1:
-            return tf.convert_to_tensor(self.transport.forward(z_tensor), dtype=z_tensor.dtype)
+            forward = _require_transport_method(self.transport, "forward")
+            return tf.convert_to_tensor(forward(z_tensor), dtype=z_tensor.dtype)
         forward_batch = getattr(self.transport, "forward_batch", None)
         if callable(forward_batch):
             return tf.convert_to_tensor(
@@ -558,17 +575,16 @@ class FixedTransportValueScoreAdapter:
             )
         if self.require_batch_native:
             raise TypeError("fixed transport must expose forward_batch")
+        forward = _require_transport_method(self.transport, "forward")
         return tf.vectorized_map(
-            lambda row: tf.convert_to_tensor(self.transport.forward(row), dtype=z_tensor.dtype),
+            lambda row: tf.convert_to_tensor(forward(row), dtype=z_tensor.dtype),
             z_tensor,
         )
 
     def log_abs_det_jacobian(self, z: Any) -> tf.Tensor:
         z_tensor = self._validate_z_tensor(z, allow_sample_axes=False)
         if z_tensor.shape.rank == 1:
-            logdet = getattr(self.transport, "log_abs_det_jacobian", None)
-            if not callable(logdet):
-                raise TypeError("fixed transport must expose log_abs_det_jacobian")
+            logdet = _require_transport_method(self.transport, "log_abs_det_jacobian")
             return tf.convert_to_tensor(
                 logdet(z_tensor),
                 dtype=z_tensor.dtype,
@@ -577,9 +593,7 @@ class FixedTransportValueScoreAdapter:
         if not callable(logdet_batch):
             if self.require_batch_native:
                 raise TypeError("fixed transport must expose log_abs_det_jacobian_batch")
-            logdet = getattr(self.transport, "log_abs_det_jacobian", None)
-            if not callable(logdet):
-                raise TypeError("fixed transport must expose log_abs_det_jacobian")
+            logdet = _require_transport_method(self.transport, "log_abs_det_jacobian")
             return tf.vectorized_map(
                 lambda row: tf.convert_to_tensor(
                     logdet(row),
@@ -594,6 +608,8 @@ class FixedTransportValueScoreAdapter:
 
     def log_prob_and_grad(self, z: Any) -> tuple[tf.Tensor, tf.Tensor]:
         z_tensor = self._validate_z_tensor(z)
+        if z_tensor.shape.rank == 2 and not self.require_batch_native:
+            raise ValueError("batch-native transport is required for rank 2 z")
         with tf.GradientTape(persistent=True) as tape:
             tape.watch(z_tensor)
             u_tensor = self.latent_to_position(z_tensor)
@@ -624,9 +640,11 @@ class FixedTransportValueScoreAdapter:
         return value_z, score_z
 
     def log_prob_and_grad_batch(self, z_batch: Any) -> tuple[tf.Tensor, tf.Tensor]:
+        if not self.require_batch_native:
+            raise ValueError("batch-native transport is required for rank 2 z")
         z_tensor = self._validate_z_tensor(z_batch)
         if z_tensor.shape.rank != 2:
-            raise ValueError("fixed transport batch target requires rank 2 input")
+            raise ValueError("fixed transport batch target requires rank 2 z")
         return self.log_prob_and_grad(z_tensor)
 
     def target_status_telemetry(self, z: Any) -> Mapping[str, Any]:
@@ -694,6 +712,13 @@ def _transport_manifest_payload(transport: Any) -> Mapping[str, Any]:
     if not isinstance(payload, Mapping):
         raise TypeError("fixed transport manifest_payload must return a mapping")
     return _json_safe(payload)
+
+
+def _require_transport_method(transport: Any, name: str) -> Callable[..., Any]:
+    method = getattr(transport, name, None)
+    if not callable(method):
+        raise TypeError(f"fixed transport must expose {name}")
+    return method
 
 
 def _stable_adapter_signature(adapter: Any) -> str:

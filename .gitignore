@@ -35,6 +35,13 @@ build/
 .mypy_cache/
 .ruff_cache/
 
+# Generated JSON outputs. Small promotion/verification benchmark artifacts under
+# docs/benchmarks are intentionally tracked when committed with their Markdown
+# summaries and plan/result notes.
+*.json
+!docs/benchmarks/*.json
+!docs/benchmarks/**/*.json
+
 # OS metadata from local/vendored snapshots
 .DS_Store
 Icon?

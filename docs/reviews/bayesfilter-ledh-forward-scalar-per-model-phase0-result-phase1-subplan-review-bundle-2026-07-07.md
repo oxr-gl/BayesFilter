@@ -26,6 +26,9 @@ Check whether Phase 0 correctly closes as a baseline/admission-guard phase and
 whether the Phase 1 subplan safely hands off to shared executable artifact
 schema work.
 
+Target scalar: `observed_data_log_likelihood_estimator`, reported in artifacts
+as `log_likelihood`.
+
 ## Local Check Evidence
 
 Phase 0 ran:

@@ -1,0 +1,158 @@
+{
+  "evidence_role": "tiny smoke only; no promotion, speedup, posterior, HMC, API, default, or production claim",
+  "hard_vetoes": [],
+  "next_phase_handoff": "P03 allowed only because both routes execute on actual-SIR rows with finite outputs, route-fired evidence, nonmaterialized low-rank transport, valid factors, and no hard vetoes.",
+  "phase": "P02_TINY_ACTUAL_SIR_ROUTE_SMOKE",
+  "rows": [
+    {
+      "active_resampling_mask_count": 3,
+      "actual_sir_semantics_pass": true,
+      "artifact": "docs/benchmarks/actual-sir-low-rank-route-validation-smoke-2026-06-21-row-b1-t3-n128.json",
+      "ess_fraction_min_low_rank": 0.6771839261054993,
+      "final_logsumexp_residual_low_rank": 0.0,
+      "hard_vetoes": [],
+      "low_rank_all_finite_factors": true,
+      "low_rank_all_nonnegative_factors": true,
+      "low_rank_all_positive_g": true,
+      "low_rank_invocations": 3,
+      "low_rank_max_factor_marginal_residual": 2.2398307919502258e-07,
+      "low_rank_status": "PASS",
+      "low_rank_transport_matrix_materialized": false,
+      "markdown_artifact": "docs/benchmarks/actual-sir-low-rank-route-validation-smoke-2026-06-21-row-b1-t3-n128.md",
+      "paired_comparability_explanatory": {
+        "filtered_mean_relative_l2": 5.845478549533545e-05,
+        "filtered_mean_rms": 0.018881554881414193,
+        "filtered_variance_relative_l2": 0.03281563916662742,
+        "filtered_variance_rms": 0.07344523922773324,
+        "final_particle_mean_abs_l2": 0.12284254625354407,
+        "final_particle_mean_relative_l2": 9.537557740864923e-05,
+        "log_likelihood_delta_by_seed": [
+          0.00728607177734375
+        ],
+        "log_likelihood_max_abs_delta": 0.00728607177734375,
+        "log_likelihood_mean_abs_delta": 0.00728607177734375,
+        "role": "diagnostic_until_p03_aggregate_enforces_support_rows",
+        "thresholds": {
+          "filtered_mean_relative_l2": 0.2,
+          "filtered_mean_rms": 2.5,
+          "filtered_variance_relative_l2": 0.75,
+          "filtered_variance_rms": 25.0,
+          "final_particle_mean_abs_l2": 25.0,
+          "final_particle_mean_relative_l2": 0.2,
+          "log_likelihood_max_abs_delta": 10.0,
+          "log_likelihood_mean_abs_delta": 5.0,
+          "warm_median_streaming_over_low_rank": 1.25
+        },
+        "warm_median_streaming_over_low_rank": 2.490910313095381
+      },
+      "paired_comparability_pass_components": {
+        "filtered_mean": true,
+        "filtered_variance": true,
+        "final_particle_mean": true,
+        "log_likelihood": true
+      },
+      "run_manifest_excerpt": {
+        "cuda_visible_devices": "-1",
+        "device_scope": "cpu",
+        "selected_physical_gpu": {
+          "index": null,
+          "name": null,
+          "status": "cpu_hidden",
+          "uuid": null
+        },
+        "tf32_execution_enabled": false
+      },
+      "runtime_explanatory": {
+        "low_rank_warm_median_seconds": 0.4825797490775585,
+        "streaming_over_low_rank_warm_median": 2.490910313095381,
+        "streaming_warm_median_seconds": 1.2020628738682717
+      },
+      "shape": {
+        "batch_size": 1,
+        "num_particles": 128,
+        "obs_dim": 9,
+        "state_dim": 18,
+        "time_steps": 3
+      },
+      "status": "PASS",
+      "streaming_invocations": 3,
+      "streaming_status": "PASS"
+    },
+    {
+      "active_resampling_mask_count": 20,
+      "actual_sir_semantics_pass": true,
+      "artifact": "docs/benchmarks/actual-sir-low-rank-route-validation-smoke-2026-06-21-row-b1-t20-n256.json",
+      "ess_fraction_min_low_rank": 0.23121842741966248,
+      "final_logsumexp_residual_low_rank": 0.0,
+      "hard_vetoes": [],
+      "low_rank_all_finite_factors": true,
+      "low_rank_all_nonnegative_factors": true,
+      "low_rank_all_positive_g": true,
+      "low_rank_invocations": 20,
+      "low_rank_max_factor_marginal_residual": 4.6868808567523956e-07,
+      "low_rank_status": "PASS",
+      "low_rank_transport_matrix_materialized": false,
+      "markdown_artifact": "docs/benchmarks/actual-sir-low-rank-route-validation-smoke-2026-06-21-row-b1-t20-n256.md",
+      "paired_comparability_explanatory": {
+        "filtered_mean_relative_l2": 0.003008538449022366,
+        "filtered_mean_rms": 0.512424541405573,
+        "filtered_variance_relative_l2": 0.8380132643930995,
+        "filtered_variance_rms": 1.0544851615597268,
+        "final_particle_mean_abs_l2": 0.308313355943584,
+        "final_particle_mean_relative_l2": 0.002545863819893611,
+        "log_likelihood_delta_by_seed": [
+          2.3004150390625
+        ],
+        "log_likelihood_max_abs_delta": 2.3004150390625,
+        "log_likelihood_mean_abs_delta": 2.3004150390625,
+        "role": "diagnostic_until_p03_aggregate_enforces_support_rows",
+        "thresholds": {
+          "filtered_mean_relative_l2": 0.2,
+          "filtered_mean_rms": 2.5,
+          "filtered_variance_relative_l2": 0.75,
+          "filtered_variance_rms": 25.0,
+          "final_particle_mean_abs_l2": 25.0,
+          "final_particle_mean_relative_l2": 0.2,
+          "log_likelihood_max_abs_delta": 10.0,
+          "log_likelihood_mean_abs_delta": 5.0,
+          "warm_median_streaming_over_low_rank": 1.25
+        },
+        "warm_median_streaming_over_low_rank": 1.8547515193146573
+      },
+      "paired_comparability_pass_components": {
+        "filtered_mean": true,
+        "filtered_variance": true,
+        "final_particle_mean": true,
+        "log_likelihood": true
+      },
+      "run_manifest_excerpt": {
+        "cuda_visible_devices": "-1",
+        "device_scope": "cpu",
+        "selected_physical_gpu": {
+          "index": null,
+          "name": null,
+          "status": "cpu_hidden",
+          "uuid": null
+        },
+        "tf32_execution_enabled": false
+      },
+      "runtime_explanatory": {
+        "low_rank_warm_median_seconds": 4.46750571206212,
+        "streaming_over_low_rank_warm_median": 1.8547515193146573,
+        "streaming_warm_median_seconds": 8.286113006994128
+      },
+      "shape": {
+        "batch_size": 1,
+        "num_particles": 256,
+        "obs_dim": 9,
+        "state_dim": 18,
+        "time_steps": 20
+      },
+      "status": "PASS",
+      "streaming_invocations": 20,
+      "streaming_status": "PASS"
+    }
+  ],
+  "schema_version": "actual_sir_low_rank_route_validation_smoke_aggregate.v1",
+  "status": "PASS"
+}

@@ -199,4 +199,3 @@ Checked risks:
 Proceed only with Phase 0 after this master program, Phase 0 subplan, Phase 1
 subplan, and visible runbook pass local consistency checks and read-only review
 or produce a documented blocker.
-

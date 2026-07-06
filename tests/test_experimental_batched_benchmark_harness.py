@@ -544,3 +544,83 @@ def test_streaming_ledh_pfpf_ot_precision_comparison_tiny_cpu_json() -> None:
     for comparison in result["comparisons"]:
         assert comparison["finite_output"] is True
         assert "log_likelihood" in comparison["drift_vs_fp64"]
+
+
+def test_large_particle_efficiency_parent_wrapper_tiny_cpu_json() -> None:
+    output = Path("/tmp") / "experimental-ledh-pfpf-ot-large-particle-efficiency-tiny.json"
+    artifact_dir = (
+        Path("/tmp") / "experimental-ledh-pfpf-ot-large-particle-efficiency-tiny-children"
+    )
+    if output.exists():
+        output.unlink()
+    env = os.environ.copy()
+    env["CUDA_VISIBLE_DEVICES"] = "-1"
+    env["PYTHONDONTWRITEBYTECODE"] = "1"
+    command = [
+        PYTHON,
+        str(
+            ROOT
+            / "docs/benchmarks/benchmark_experimental_batched_ledh_pfpf_ot_large_particle_efficiency.py"
+        ),
+        "--run-kind",
+        "streaming-ladder",
+        "--device-scope",
+        "cpu",
+        "--device",
+        "/CPU:0",
+        "--expect-device-kind",
+        "cpu",
+        "--particle-counts",
+        "4",
+        "--batch-size",
+        "1",
+        "--time-steps",
+        "3",
+        "--state-dim",
+        "2",
+        "--obs-dim",
+        "2",
+        "--transport-policy",
+        "active-odd",
+        "--proposal-mode",
+        "callback",
+        "--sinkhorn-iterations",
+        "4",
+        "--row-chunk-size",
+        "2",
+        "--col-chunk-size",
+        "2",
+        "--particle-chunk-size",
+        "2",
+        "--warmups",
+        "0",
+        "--repeats",
+        "1",
+        "--child-timeout-seconds",
+        "300",
+        "--selected-physical-gpu",
+        "cpu-hidden",
+        "--gpu-selection-reason",
+        "tiny_cpu_unit_test",
+        "--artifact-dir",
+        str(artifact_dir),
+        "--output",
+        str(output),
+    ]
+    subprocess.run(command, check=True, cwd=ROOT, env=env, capture_output=True, text=True)
+    result = json.loads(output.read_text(encoding="utf-8"))
+
+    assert result["overall_passed"] is True
+    assert result["run_kind"] == "streaming-ladder"
+    assert result["mandatory_particle_counts"] == [4]
+    assert result["gpu_selection"]["selected_physical_gpu"] == "cpu-hidden"
+    assert len(result["children"]) == 1
+    child = result["children"][0]
+    assert child["hard_gate"]["passed"] is True
+    checks = child["hard_gate"]["checks"]
+    assert checks["finite_output"] is True
+    assert checks["device_kind"] is True
+    assert checks["no_dense_transport_matrix"] is True
+    assert checks["no_full_pre_flow_storage"] is True
+    assert checks["no_return_history"] is True
+    assert checks["precision_metadata"] is True

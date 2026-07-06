@@ -174,4 +174,3 @@ At completion or stop, update the stop handoff with:
 - unresolved blockers;
 - commands run and where logs live;
 - next exact action.
-

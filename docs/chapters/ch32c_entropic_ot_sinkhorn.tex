@@ -194,6 +194,37 @@ below matters: once the teacher object has been rewritten as a scaling problem, 
 can see clearly which later routes merely change execution strategy and which ones
 change the transport object itself.
 
+\subsection{Exact teacher versus exact engineering route}
+\label{sec:bf-eot-teacher-versus-engineering}
+
+The scalable-OT survey suggests a useful extra distinction before moving on to
+finite Sinkhorn iterations.  There are two different senses in which a route may
+still be called ``exact'' for the entropic OT object.
+
+First, there is the mathematical teacher object
+\(\Pi_\varepsilon^\star\) from \eqref{eq:bf-eot-primal}.  That is the exact
+minimizer of the entropically regularized problem.  Second, there is an
+engineering route that preserves that same entropic object while changing how the
+matrix-scaling updates are executed in memory or on hardware.  Exact online,
+streaming, and GPU Sinkhorn methods belong to this second category: they do not
+change the entropic teacher problem, but they avoid materializing the full cost,
+kernel, or coupling whenever possible.
+
+This distinction matters for the BayesFilter transport lane.  A method that
+recomputes the same entropic scaling updates through blocked reductions or
+streamed kernel application is still on the semantics-preserving reference lane.
+By contrast, a method that replaces the kernel, truncates the coupling family, or
+changes the transport objective has moved to a different approximation class even
+if it is motivated by scalability.  The reader should therefore keep separate:
+\begin{enumerate}[label=(\roman*)]
+  \item the exact entropic teacher object,
+  \item the finite numerical object produced by a declared Sinkhorn execution
+    path,
+  \item the engineering strategy used to realize that numerical path.
+\end{enumerate}
+The next sections fix the second object explicitly and later staged chapters will
+discuss scalability routes that either preserve or alter it.
+
 \section{Why the optimizer factorizes}
 \label{sec:bf-eot-factorization}
 
@@ -403,6 +434,9 @@ engineering variants of the same entropic reference lane.  Later staged chapters
 on retained-teacher approximations will take up the different case where the
 transport object itself is compressed, factorized, or otherwise altered for
 scalability.
+
+This is the chapter’s main callable procedure.  A reader who implements only one
+OT route from the monograph should be able to implement this one.
 
 \subsection{Sparse, screened, stabilized, and accelerated Sinkhorn variants}
 \label{sec:bf-eot-solver-variant-boundary}

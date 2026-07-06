@@ -699,6 +699,7 @@ class WindowedMassAdaptationResult:
     final_mass_artifact_signature: str
     step_size_trace: tuple[float, ...]
     acceptance_trace: tuple[float, ...]
+    final_mass_artifact: Any | None = None
     target_failure_classification: Mapping[str, Any] | None = None
     passed: bool = True
     nonclaims: tuple[str, ...] = (
@@ -744,6 +745,15 @@ class WindowedMassAdaptationResult:
         object.__setattr__(self, "mass_updates", updates)
         object.__setattr__(self, "final_mass_artifact_payload", dict(self.final_mass_artifact_payload))
         object.__setattr__(self, "final_mass_artifact_signature", final_signature)
+        final_artifact = self.final_mass_artifact
+        if final_artifact is not None:
+            final_payload = _mass_artifact_payload(final_artifact)
+            final_artifact_signature = _mass_artifact_signature(final_artifact)
+            if dict(final_payload) != dict(self.final_mass_artifact_payload):
+                raise ValueError("final_mass_artifact payload mismatch")
+            if final_artifact_signature != final_signature:
+                raise ValueError("final_mass_artifact signature mismatch")
+        object.__setattr__(self, "final_mass_artifact", final_artifact)
         object.__setattr__(self, "step_size_trace", step_trace)
         object.__setattr__(self, "acceptance_trace", accept_trace)
         object.__setattr__(self, "target_failure_classification", target_failure)
@@ -1541,6 +1551,7 @@ def run_windowed_mass_adaptation_diagnostic(
         final_mass_artifact_signature=current_signature,
         step_size_trace=tuple(step_trace),
         acceptance_trace=tuple(float(item) for item in acceptance),
+        final_mass_artifact=current_mass_artifact,
         target_failure_classification=target_failure,
         passed=not (
             target_failure is not None

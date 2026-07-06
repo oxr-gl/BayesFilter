@@ -1,0 +1,103 @@
+{
+  "created_at": "2026-06-24T21:28:34+00:00",
+  "decision_table": {
+    "decision": "P04_FAIL_OPTIONAL_OR_REPAIR",
+    "main_uncertainty": "Only the first P04 nonlinear Gaussian seed was run because the frozen zero-exceedance gate failed immediately; this identifies a quality-gate failure for the locked candidate, not a broad statistical ranking.",
+    "next_justified_action": "Review and execute a bounded P04A range-bearing failure diagnostic before deciding whether to stop as repair-required or open a new candidate-freeze lane.",
+    "not_concluded": "No default promotion, no posterior correctness, no statistical superiority, no HMC readiness, and no broad nonlinear validity.",
+    "primary_criterion_status": "FAIL: seed 84000 exceeded the frozen normalized log-likelihood delta threshold.",
+    "veto_diagnostic_status": "PASS for deterministic route validity: both routes produced finite GPU/TF32 outputs and passed residual, log-weight, ESS, and metadata checks."
+  },
+  "deterministic_gate": {
+    "all_routes_pass": true,
+    "hard_vetoes": [],
+    "nystrom_final_logsumexp_residual": 0.0,
+    "nystrom_final_logsumexp_residual_threshold": 1e-05,
+    "nystrom_finite_factors": true,
+    "nystrom_finite_particles": true,
+    "nystrom_max_column_residual": 0.002088785171508789,
+    "nystrom_max_column_residual_threshold": 0.05,
+    "nystrom_max_row_residual": 0.009805679321289062,
+    "nystrom_max_row_residual_threshold": 0.05,
+    "streaming_ess_fraction_min": 0.253101110458374,
+    "nystrom_ess_fraction_min": 0.253101110458374,
+    "ess_fraction_min_threshold": 0.005
+  },
+  "gate": {
+    "decision": "P04_FAIL_OPTIONAL_OR_REPAIR",
+    "exceedances": 1,
+    "rows_run": 1,
+    "rows_planned": 6,
+    "seeds_run": [
+      84000
+    ],
+    "seeds_not_run_after_first_exceedance": [
+      84001,
+      84002,
+      84003,
+      84004,
+      84005
+    ],
+    "tau_component": 0.05,
+    "tau_total": 2.0,
+    "time_steps": 20,
+    "obs_dim": 2,
+    "zero_exceedance_rule_status": "FAIL"
+  },
+  "row": {
+    "artifact": "docs/benchmarks/svd-nystrom-nohmc-promotion-p04-range-bearing-seed84000-r32-eps0p5-2026-06-25.json",
+    "log_artifact": "docs/plans/logs/svd-nystrom-nohmc-promotion-2026-06-25/svd-nystrom-nohmc-promotion-p04-range-bearing-seed84000-r32-eps0p5.log",
+    "markdown_artifact": "docs/benchmarks/svd-nystrom-nohmc-promotion-p04-range-bearing-seed84000-r32-eps0p5-2026-06-25.md",
+    "status": "FAIL",
+    "hard_vetoes": [
+      "paired:paired_normalized_log_likelihood_delta"
+    ],
+    "seed": 84000,
+    "streaming_log_likelihood": 27.30160140991211,
+    "nystrom_log_likelihood": 23.511123657226562,
+    "log_likelihood_delta": -3.790477752685547,
+    "normalized_abs_delta_per_observation_component": 0.09476194381713868,
+    "threshold": 0.05,
+    "exceeds_threshold": true,
+    "selected_physical_gpu": {
+      "index": "1",
+      "memory_used_mib": "30693",
+      "name": "NVIDIA GeForce RTX 4080 SUPER",
+      "status": "selected",
+      "utilization_gpu_percent": "0",
+      "uuid": "GPU-a1ea1946-07c0-8ed5-2ba1-d96f82c89cd3"
+    },
+    "tf32_execution_enabled": true,
+    "transport": {
+      "col_chunk_size": 512,
+      "nystrom_core_rcond": 1e-06,
+      "nystrom_core_solver": "svd_truncated",
+      "nystrom_diagnostics_enabled": true,
+      "nystrom_epsilon": 0.5,
+      "nystrom_kernel_mode": "raw",
+      "nystrom_rank": 32,
+      "nystrom_scaling_normalization": "none",
+      "particle_chunk_size": 512,
+      "row_chunk_size": 512,
+      "transport_policy": "active-all"
+    },
+    "wall_time_seconds": 95.3574289989192
+  },
+  "inference_status": {
+    "hard_veto_screen": "PASS for deterministic validity, FAIL for P04 paired quality threshold",
+    "statistically_supported_ranking": "NO",
+    "descriptive_only_differences": "Runtime, factor/core diagnostics, and the magnitude of the one failed seed's delta are descriptive diagnostics.",
+    "default_readiness": "NO",
+    "next_evidence_needed": "P04A reproducibility/tuning diagnostic or owner decision to stop as repair-required."
+  },
+  "nonclaims": [
+    "P04 range-bearing nonlinear Gaussian quality gate failed for the locked candidate",
+    "no default promotion claim",
+    "no posterior correctness claim",
+    "no statistical superiority claim",
+    "no HMC readiness claim",
+    "no broad nonlinear validity claim"
+  ],
+  "phase": "SVD-NYSTROM-NOHMC-PROMOTION-P04-RANGE-BEARING",
+  "result": "docs/plans/bayesfilter-dpf-ledh-pfpf-ot-svd-nystrom-nohmc-promotion-p04-nonlinear-gaussian-result-2026-06-25.md"
+}

@@ -1,0 +1,169 @@
+{
+  "algorithm_family": "low_rank_coupling_solver_route_scale_smoke",
+  "algorithm_under_test": "P = Q diag(1/g) R^T lazy low-rank solver-route resampling",
+  "fixture_contract": {
+    "batch_offset_abs_bound": 0.1,
+    "fixture_id": "bounded_smooth_v1",
+    "log_weight_logit_abs_bound": 1.25,
+    "particle_coordinate_abs_bound": 1.0
+  },
+  "hard_vetoes": [],
+  "mode": "small",
+  "nonclaims": [
+    "low-rank TF32 scale-smoke diagnostic only",
+    "no speedup claim",
+    "no ranking claim",
+    "no superiority claim",
+    "no posterior correctness claim",
+    "no HMC readiness claim",
+    "no public API readiness claim",
+    "no production/default readiness claim",
+    "no dense Sinkhorn equivalence claim",
+    "no full low-rank Sinkhorn solver-fidelity claim",
+    "no broad scalable-OT selection claim",
+    "no TF32-help claim"
+  ],
+  "phase": "LR-TF32-1",
+  "rows": [
+    {
+      "batch_size": 2,
+      "dense_materialization_role": "tiny_invariant_only",
+      "dense_transport_materialized": true,
+      "dtype": "float64",
+      "finite_factors": true,
+      "finite_particles": true,
+      "fixture_id": "bounded_smooth_v1",
+      "g_shape": [
+        2,
+        8
+      ],
+      "hard_vetoes": [],
+      "max_factor_marginal_residual": 2.6095782496710074e-08,
+      "max_induced_column_residual": 8.034103933240999e-07,
+      "max_induced_row_residual": 8.350650400057447e-07,
+      "memory_maxrss_kb_explanatory": 473088,
+      "min_g_explanatory": 0.09198831342053213,
+      "min_q_explanatory": 1.7022964794593386e-05,
+      "min_r_explanatory": 6.226779317215348e-06,
+      "moment_threshold_role": "explanatory_in_small_mode",
+      "naive_uniform_mean_abs_error_explanatory": 0.19225778993125556,
+      "naive_uniform_second_moment_abs_error_explanatory": 0.06924037390327073,
+      "nonnegative_factors": true,
+      "output_log_weight_normalization_residual": 0.0,
+      "particle_count": 32,
+      "particles_shape": [
+        2,
+        32,
+        4
+      ],
+      "positive_g": true,
+      "projection_error_explanatory": 5.569390346552364e-07,
+      "projection_floor_hits_explanatory": 0.0,
+      "projection_iterations_used": 12,
+      "projection_min_denominator_explanatory": 0.04936466830622388,
+      "q_shape": [
+        2,
+        32,
+        8
+      ],
+      "r_shape": [
+        2,
+        32,
+        8
+      ],
+      "rank": 8,
+      "solver_fidelity": "diagnostic_solver_route_not_full_lowrank_sinkhorn_fidelity",
+      "source_route": "extension_or_invention",
+      "source_route_components": {
+        "cost_nudged_assignment_kernel": "extension_or_invention",
+        "deterministic_initialization": "fixed_hmc_adaptation",
+        "dykstra_style_projection": "source_faithful",
+        "factor_marginal_diagnostics": "source_faithful",
+        "factored_coupling_parameterization": "source_faithful",
+        "fixed_iteration_schedule": "fixed_hmc_adaptation",
+        "low_rank_lazy_apply": "source_faithful",
+        "phase1_scaled_transport_adapter": "fixed_hmc_adaptation"
+      },
+      "state_dim": 4,
+      "status": "PASS",
+      "tiny_materialized_apply_parity": 1.6653345369377348e-16,
+      "tiny_materialized_column_residual": 8.034103933240999e-07,
+      "tiny_materialized_row_residual": 8.35065040116767e-07,
+      "transport_matrix_materialized_by_solver": false,
+      "transport_matrix_shape": [
+        2,
+        0,
+        0
+      ],
+      "transport_object_kind": "low_rank_coupling_factors",
+      "wall_time_seconds_explanatory": 0.061953924130648375,
+      "weighted_mean_abs_error": 6.994832352918978e-08,
+      "weighted_second_moment_abs_error": 0.28594539075338404
+    }
+  ],
+  "run_manifest": {
+    "artifact_paths": {
+      "json": "docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-small-2026-06-20.json",
+      "markdown": "docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-small-2026-06-20.md"
+    },
+    "batch_size": 2,
+    "command": "docs/benchmarks/scalable_ot_low_rank_tf32_scale_smoke.py --mode small --output docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-small-2026-06-20.json --markdown-output docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-small-2026-06-20.md",
+    "cpu_gpu_trust_context": "cpu_hidden_local",
+    "cuda_visible_devices": "-1",
+    "device": "/CPU:0",
+    "device_mode": "small",
+    "device_scope": "cpu",
+    "dtype": "float64",
+    "ended_at": "2026-06-19T20:00:28.149483+00:00",
+    "fixture_id": "bounded_smooth_v1",
+    "git_commit": "3b11bb1b4848eeeafdd60671f476ba90d54b4caa",
+    "git_status_short": "?? docs/benchmarks/scalable_ot_low_rank_tf32_scale_smoke.py\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-claude-review-ledger-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-master-program-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p00-governance-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p00-governance-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p01-harness-invariants-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p02-medium-cpu-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p03-trusted-gpu-scale-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p04-closeout-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-visible-execution-ledger-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-visible-gated-execution-plan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-visible-stop-handoff-2026-06-20.md\n?? tests/test_low_rank_tf32_scale_smoke.py",
+    "gpu0_memory_info": null,
+    "gpu_devices": [],
+    "particle_counts": [
+      32
+    ],
+    "phase_result_path": "docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p01-harness-invariants-result-2026-06-20.md",
+    "plan_path": "docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-master-program-2026-06-20.md",
+    "platform": "Linux-6.8.0-111-generic-x86_64-with-glibc2.35",
+    "python_executable": "/home/ubuntu/anaconda3/envs/tfgpu/bin/python",
+    "python_version": "3.13.13 | packaged by Anaconda, Inc. | (main, Apr 14 2026, 06:19:41) [GCC 14.3.0]",
+    "rank": 8,
+    "seed": 20260620,
+    "started_at": "2026-06-19T20:00:27.922102+00:00",
+    "state_dim": 4,
+    "tensorflow_probability_version": "0.25.0",
+    "tensorflow_version": "2.20.0",
+    "tf32_execution_recorded": true,
+    "tf32_requested": "default",
+    "visible_logical_gpus": [],
+    "wall_time_seconds": 0.22737234109081328,
+    "working_directory": "/home/ubuntu/python/BayesFilter"
+  },
+  "status": "PASS",
+  "summary": {
+    "max_factor_marginal_residual": 2.6095782496710074e-08,
+    "max_induced_column_residual": 8.034103933240999e-07,
+    "max_induced_row_residual": 8.350650400057447e-07,
+    "max_memory_maxrss_kb_explanatory": 473088,
+    "max_output_log_weight_normalization_residual": 0.0,
+    "max_tiny_materialized_apply_parity": 1.6653345369377348e-16,
+    "max_wall_time_seconds_explanatory": 0.061953924130648375,
+    "max_weighted_mean_abs_error": 6.994832352918978e-08,
+    "max_weighted_second_moment_abs_error": 0.28594539075338404,
+    "num_executed_rows": 1,
+    "num_hard_vetoes": 0,
+    "num_rows": 1,
+    "total_wall_time_seconds_explanatory": 0.22737234109081328
+  },
+  "thresholds": {
+    "factor_marginal_residual": 0.005,
+    "induced_column_residual": 0.005,
+    "induced_row_residual": 0.005,
+    "output_log_weight_normalization_residual": 1e-06,
+    "runtime_memory_tf32_role": "explanatory_only",
+    "tiny_materialized_apply_parity": 1e-10,
+    "weighted_mean_abs_error": 0.025,
+    "weighted_second_moment_abs_error": 0.075
+  }
+}

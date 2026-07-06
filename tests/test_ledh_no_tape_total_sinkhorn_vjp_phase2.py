@@ -253,4 +253,3 @@ def test_stopped_route_fails_unstopped_total_derivative_target() -> None:
 
 if __name__ == "__main__":
     print(json.dumps(collect_phase2_diagnostics(), indent=2, sort_keys=True))
-

@@ -6,11 +6,14 @@ import numpy as np
 
 import bayesfilter
 from bayesfilter.inference import (
+    GenericHMCFixedGridScaleSelection,
     GenericHMCCandidateResult,
     GenericHMCTuningConfig,
     GenericHMCTuningResult,
     PrecomputedMassArtifact,
+    classify_hmc_fixed_grid_acceptance,
     run_generic_hmc_tuning_orchestration,
+    select_hmc_fixed_grid_scale,
 )
 from bayesfilter.inference.fixed_trajectory_hmc_tuning_v2 import (
     run_tiny_gaussian_fixed_trajectory_hmc_tuning_v2,
@@ -119,3 +122,92 @@ def test_generic_hmc_tuning_is_exported_and_not_private_v2_fixture():
     assert run_generic_hmc_tuning_orchestration is not (
         run_tiny_gaussian_fixed_trajectory_hmc_tuning_v2
     )
+
+
+def test_fixed_grid_scale_selector_expands_grid_until_acceptance_not_too_high():
+    selection = select_hmc_fixed_grid_scale(
+        base_step_size_candidates=(0.05, 0.075, 0.1, 0.15, 0.2, 0.3, 0.5),
+        num_leapfrog_step_candidates=(1, 2, 3, 4, 8, 16, 32),
+        scale_candidates=(1.0, 2.0, 4.0, 8.0),
+        pilot_acceptance_rates=(0.97, 0.91, 0.82, 0.60),
+        acceptance_band=(0.65, 0.75),
+        fallback_acceptance_max=0.85,
+        pilot_base_step_size=0.5,
+        pilot_num_leapfrog_steps=8,
+    )
+
+    assert isinstance(selection, GenericHMCFixedGridScaleSelection)
+    assert selection.passed is True
+    assert selection.selected_scale == 4.0
+    assert selection.status == "scale_selected_warning_band"
+    assert selection.scaled_step_size_candidates == (
+        0.2, 0.3, 0.4, 0.6, 0.8, 1.2, 2.0)
+    payload = selection.payload()
+    assert payload["artifact_type"] == "bayesfilter_hmc_fixed_grid_scale_selection"
+    assert payload["probes"][0]["acceptance_class"] == "too_high"
+    assert payload["probes"][2]["pilot_step_size"] == 2.0
+    assert payload["passed"] is True
+    assert "no posterior convergence claim" in payload["nonclaims"]
+
+
+def test_fixed_grid_scale_selector_fails_closed_when_all_pilots_too_high():
+    selection = select_hmc_fixed_grid_scale(
+        base_step_size_candidates=(0.05, 0.5),
+        num_leapfrog_step_candidates=(8,),
+        scale_candidates=(1.0, 2.0, 4.0),
+        pilot_acceptance_rates=(0.98, 0.96, 0.91),
+    )
+
+    assert selection.passed is False
+    assert selection.selected_scale is None
+    assert selection.scaled_step_size_candidates == ()
+    assert selection.status == "scale_search_failed_high_acceptance"
+    assert selection.vetoes == (
+        "all_pilot_acceptance_rates_above_fallback_max_or_invalid",)
+
+
+def test_fixed_grid_scale_selector_reports_finite_domain_ceiling():
+    selection = select_hmc_fixed_grid_scale(
+        base_step_size_candidates=(0.05, 0.075, 0.1, 0.15, 0.2, 0.3, 0.5),
+        num_leapfrog_step_candidates=(1, 2, 3, 4, 8, 16, 25),
+        scale_candidates=(1.0, 2.0, 4.0, 8.0, 16.0),
+        pilot_acceptance_rates=(0.8984375, None, None, None, None),
+        acceptance_band=(0.65, 0.75),
+        fallback_acceptance_max=0.85,
+        pilot_base_step_size=0.5,
+        pilot_num_leapfrog_steps=8,
+    )
+
+    assert selection.passed is False
+    assert selection.selected_scale is None
+    assert selection.scaled_step_size_candidates == ()
+    assert selection.status == "scale_search_failed_finite_domain_ceiling"
+    assert selection.vetoes == (
+        "pilot_scale_expansion_hit_finite_domain_ceiling",)
+    assert selection.payload()["probes"][0]["acceptance_class"] == "too_high"
+    assert selection.payload()["probes"][1]["acceptance_class"] == "invalid"
+
+
+def test_fixed_grid_scale_selector_does_not_overclassify_unordered_invalids():
+    selection = select_hmc_fixed_grid_scale(
+        base_step_size_candidates=(0.05, 0.5),
+        num_leapfrog_step_candidates=(8,),
+        scale_candidates=(1.0, 2.0, 4.0),
+        pilot_acceptance_rates=(None, 0.96, 0.95),
+    )
+
+    assert selection.passed is False
+    assert selection.status == "scale_search_failed_high_acceptance"
+    assert selection.vetoes == (
+        "all_pilot_acceptance_rates_above_fallback_max_or_invalid",)
+
+
+def test_fixed_grid_scale_selector_is_public_and_classifies_boundaries():
+    assert bayesfilter.select_hmc_fixed_grid_scale is select_hmc_fixed_grid_scale
+    assert bayesfilter.classify_hmc_fixed_grid_acceptance is (
+        classify_hmc_fixed_grid_acceptance
+    )
+    assert classify_hmc_fixed_grid_acceptance(0.65) == "in_band"
+    assert classify_hmc_fixed_grid_acceptance(0.75) == "in_band"
+    assert classify_hmc_fixed_grid_acceptance(0.8501) == "too_high"
+    assert classify_hmc_fixed_grid_acceptance(None) == "invalid"

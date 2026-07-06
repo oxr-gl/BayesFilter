@@ -337,6 +337,54 @@ def test_batched_ledh_flow_core_matches_scalar_rows() -> None:
     )
 
 
+def test_batched_ledh_flow_core_handles_ill_conditioned_posterior_precision() -> None:
+    dtype = DTYPE
+    fixture = {
+        "pre_flow_particles": tf.constant(
+            [[[1.0e-4, 2.0], [2.0e-4, -1.0]]],
+            dtype=dtype,
+        ),
+        "ancestors": tf.constant(
+            [[[1.0e-4, 2.0], [2.0e-4, -1.0]]],
+            dtype=dtype,
+        ),
+        "observation": tf.constant([[0.0]], dtype=dtype),
+        "transition_matrix": tf.eye(2, batch_shape=[1], dtype=dtype),
+        "transition_covariance": tf.constant(
+            [[[1.0e12, 0.0], [0.0, 1.0]]],
+            dtype=dtype,
+        ),
+        "observation_covariance": tf.constant([[[1.0]]], dtype=dtype),
+    }
+
+    def observation_fn(points: tf.Tensor) -> tf.Tensor:
+        return points[..., :1]
+
+    def observation_jacobian_fn(points: tf.Tensor) -> tf.Tensor:
+        del points
+        return tf.constant([[[[1.0, 0.0]], [[1.0, 0.0]]]], dtype=dtype)
+
+    def observation_residual_fn(h_ref: tf.Tensor, observation: tf.Tensor) -> tf.Tensor:
+        return observation[:, None, :] - h_ref
+
+    result = batched_ledh_flow_core_tf(
+        **fixture,
+        observation_fn=observation_fn,
+        observation_jacobian_fn=observation_jacobian_fn,
+        observation_residual_fn=observation_residual_fn,
+    )
+
+    assert bool(tf.reduce_all(tf.math.is_finite(result.post_flow_particles)).numpy())
+    assert bool(tf.reduce_all(tf.math.is_finite(result.local_posterior_covariances)).numpy())
+    covariance = result.local_posterior_covariances.numpy()
+    np.testing.assert_allclose(
+        covariance,
+        np.swapaxes(covariance, -1, -2),
+        atol=1.0e-10,
+    )
+    assert np.min(np.linalg.eigvalsh(covariance)) > 0.0
+
+
 def test_batched_annealed_transport_core_uses_fixed_mask_without_ess_branch() -> None:
     particles = tf.constant(
         [

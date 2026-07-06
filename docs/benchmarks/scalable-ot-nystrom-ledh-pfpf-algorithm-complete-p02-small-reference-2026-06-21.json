@@ -1,0 +1,4258 @@
+{
+  "algorithm_family": "fixed_rank_nystrom_kernel_sinkhorn_ledh_pfpf_ot_diagnostic",
+  "baseline_comparator": "dense_tensorflow_annealed_transport_small_reference_only",
+  "details": {
+    "fixtures": {
+      "high_dim_low_rank": {
+        "dense_reference": {
+          "finite_particles": true,
+          "finite_transport_matrix": true,
+          "max_column_residual": 4.440892098500626e-16,
+          "max_row_residual": 0.00047216280426065627,
+          "particles_shape": [
+            1,
+            32,
+            32
+          ],
+          "transport_matrix_materialized": true,
+          "transport_matrix_shape": [
+            1,
+            32,
+            32
+          ],
+          "transport_object_kind": "dense_matrix",
+          "wall_time_seconds_explanatory": 0.3042551358230412
+        },
+        "input_shape": {
+          "log_weights": [
+            1,
+            32
+          ],
+          "particles": [
+            1,
+            32,
+            32
+          ]
+        },
+        "nystrom": [
+          {
+            "dense_reference_max_abs_particle_error": 0.08564275772586204,
+            "dense_reference_rms_particle_error": 0.025503050482044487,
+            "diagnostics": {
+              "backend": "tensorflow",
+              "cholesky_jitter": 1e-08,
+              "component_id": "fixed_rank_nystrom_transport_tf",
+              "convergence_threshold": 0.0001,
+              "denominator_floor": 1e-30,
+              "denominator_floor_hits": 0.0,
+              "epsilon": 0.5,
+              "eta_map": "eta=1/(2*epsilon) for exp(-0.5*||x-y||^2/epsilon)",
+              "factor_shapes": {
+                "A_inv": [
+                  1,
+                  2,
+                  2
+                ],
+                "V": [
+                  1,
+                  32,
+                  2
+                ],
+                "scaling_u": [
+                  1,
+                  32
+                ],
+                "scaling_v": [
+                  1,
+                  32
+                ]
+              },
+              "finite_factors": true,
+              "finite_particles": true,
+              "iterations_used": 3,
+              "landmark_indices": [
+                0,
+                31
+              ],
+              "landmark_rule": "deterministic_evenly_spaced_indices",
+              "mathematical_object": "approximate_kernel_nystrom_transport",
+              "max_column_residual": 1.1102230246251565e-16,
+              "max_factor_diag_error": 0.625126004697974,
+              "max_iterations": 160,
+              "max_row_residual": 2.9893476441111844e-05,
+              "min_factor_diagonal": 0.37487399530202603,
+              "min_kernel_denominator": 0.8652752044745279,
+              "nonclaims": [
+                "experimental scalable OT candidate only",
+                "no speedup claim",
+                "no ranking claim",
+                "no production default change",
+                "no posterior correctness claim"
+              ],
+              "not_materialized_reason": "kernel_factors_nonmaterialized",
+              "orientation": "source_rows_target_columns",
+              "rank": 2,
+              "reg_sigma_map": "sigma=sqrt(epsilon) for POT exp(-dist/(2*sigma^2)) convention",
+              "semantic_class": "approximate_kernel",
+              "source_route": "fixed_hmc_adaptation",
+              "source_route_components": {
+                "cholesky_jitter": "fixed_hmc_adaptation",
+                "deterministic_landmarks": "fixed_hmc_adaptation",
+                "filterflow_cost_scaling_adapter": "fixed_hmc_adaptation",
+                "low_rank_scaling": "source_faithful",
+                "nystrom_factors": "source_faithful"
+              },
+              "source_status": "source_locked",
+              "transport_matrix_materialized": false,
+              "transport_object_kind": "kernel_factors"
+            },
+            "factor_shapes": {
+              "A_inv": [
+                1,
+                2,
+                2
+              ],
+              "V": [
+                1,
+                32,
+                2
+              ],
+              "scaling_u": [
+                1,
+                32
+              ],
+              "scaling_v": [
+                1,
+                32
+              ]
+            },
+            "finite_factors": true,
+            "finite_particles": true,
+            "fixture": "high_dim_low_rank",
+            "hard_vetoes": [
+              "dense_reference_max_error_threshold"
+            ],
+            "landmark_indices": [
+              0,
+              31
+            ],
+            "max_column_residual": 1.1102230246251565e-16,
+            "max_row_residual": 2.9893476441111844e-05,
+            "memory_maxrss_kb_explanatory": 515872,
+            "particles_shape": [
+              1,
+              32,
+              32
+            ],
+            "rank": 2,
+            "status": "FAIL",
+            "transport_matrix_materialized": false,
+            "transport_matrix_shape": [
+              1,
+              0,
+              0
+            ],
+            "transport_object_kind": "kernel_factors",
+            "wall_time_seconds_explanatory": 0.01163927000015974
+          },
+          {
+            "dense_reference_max_abs_particle_error": 0.005010762618737341,
+            "dense_reference_rms_particle_error": 0.0014989090383905179,
+            "diagnostics": {
+              "backend": "tensorflow",
+              "cholesky_jitter": 1e-08,
+              "component_id": "fixed_rank_nystrom_transport_tf",
+              "convergence_threshold": 0.0001,
+              "denominator_floor": 1e-30,
+              "denominator_floor_hits": 0.0,
+              "epsilon": 0.5,
+              "eta_map": "eta=1/(2*epsilon) for exp(-0.5*||x-y||^2/epsilon)",
+              "factor_shapes": {
+                "A_inv": [
+                  1,
+                  4,
+                  4
+                ],
+                "V": [
+                  1,
+                  32,
+                  4
+                ],
+                "scaling_u": [
+                  1,
+                  32
+                ],
+                "scaling_v": [
+                  1,
+                  32
+                ]
+              },
+              "finite_factors": true,
+              "finite_particles": true,
+              "iterations_used": 4,
+              "landmark_indices": [
+                0,
+                10,
+                21,
+                31
+              ],
+              "landmark_rule": "deterministic_evenly_spaced_indices",
+              "mathematical_object": "approximate_kernel_nystrom_transport",
+              "max_column_residual": 2.220446049250313e-16,
+              "max_factor_diag_error": 0.07795897425769693,
+              "max_iterations": 160,
+              "max_row_residual": 4.383282823938739e-05,
+              "min_factor_diagonal": 0.9220410257423031,
+              "min_kernel_denominator": 0.8454627951867242,
+              "nonclaims": [
+                "experimental scalable OT candidate only",
+                "no speedup claim",
+                "no ranking claim",
+                "no production default change",
+                "no posterior correctness claim"
+              ],
+              "not_materialized_reason": "kernel_factors_nonmaterialized",
+              "orientation": "source_rows_target_columns",
+              "rank": 4,
+              "reg_sigma_map": "sigma=sqrt(epsilon) for POT exp(-dist/(2*sigma^2)) convention",
+              "semantic_class": "approximate_kernel",
+              "source_route": "fixed_hmc_adaptation",
+              "source_route_components": {
+                "cholesky_jitter": "fixed_hmc_adaptation",
+                "deterministic_landmarks": "fixed_hmc_adaptation",
+                "filterflow_cost_scaling_adapter": "fixed_hmc_adaptation",
+                "low_rank_scaling": "source_faithful",
+                "nystrom_factors": "source_faithful"
+              },
+              "source_status": "source_locked",
+              "transport_matrix_materialized": false,
+              "transport_object_kind": "kernel_factors"
+            },
+            "factor_shapes": {
+              "A_inv": [
+                1,
+                4,
+                4
+              ],
+              "V": [
+                1,
+                32,
+                4
+              ],
+              "scaling_u": [
+                1,
+                32
+              ],
+              "scaling_v": [
+                1,
+                32
+              ]
+            },
+            "finite_factors": true,
+            "finite_particles": true,
+            "fixture": "high_dim_low_rank",
+            "hard_vetoes": [],
+            "landmark_indices": [
+              0,
+              10,
+              21,
+              31
+            ],
+            "max_column_residual": 2.220446049250313e-16,
+            "max_row_residual": 4.383282823938739e-05,
+            "memory_maxrss_kb_explanatory": 515872,
+            "particles_shape": [
+              1,
+              32,
+              32
+            ],
+            "rank": 4,
+            "status": "PASS",
+            "transport_matrix_materialized": false,
+            "transport_matrix_shape": [
+              1,
+              0,
+              0
+            ],
+            "transport_object_kind": "kernel_factors",
+            "wall_time_seconds_explanatory": 0.011927329003810883
+          },
+          {
+            "dense_reference_max_abs_particle_error": 8.37116401308513e-05,
+            "dense_reference_rms_particle_error": 2.109209611847634e-05,
+            "diagnostics": {
+              "backend": "tensorflow",
+              "cholesky_jitter": 1e-08,
+              "component_id": "fixed_rank_nystrom_transport_tf",
+              "convergence_threshold": 0.0001,
+              "denominator_floor": 1e-30,
+              "denominator_floor_hits": 0.0,
+              "epsilon": 0.5,
+              "eta_map": "eta=1/(2*epsilon) for exp(-0.5*||x-y||^2/epsilon)",
+              "factor_shapes": {
+                "A_inv": [
+                  1,
+                  8,
+                  8
+                ],
+                "V": [
+                  1,
+                  32,
+                  8
+                ],
+                "scaling_u": [
+                  1,
+                  32
+                ],
+                "scaling_v": [
+                  1,
+                  32
+                ]
+              },
+              "finite_factors": true,
+              "finite_particles": true,
+              "iterations_used": 4,
+              "landmark_indices": [
+                0,
+                4,
+                9,
+                13,
+                18,
+                22,
+                27,
+                31
+              ],
+              "landmark_rule": "deterministic_evenly_spaced_indices",
+              "mathematical_object": "approximate_kernel_nystrom_transport",
+              "max_column_residual": 0.0,
+              "max_factor_diag_error": 0.0008551773051977962,
+              "max_iterations": 160,
+              "max_row_residual": 4.9666325111941134e-05,
+              "min_factor_diagonal": 0.9991448226948022,
+              "min_kernel_denominator": 0.841766490874635,
+              "nonclaims": [
+                "experimental scalable OT candidate only",
+                "no speedup claim",
+                "no ranking claim",
+                "no production default change",
+                "no posterior correctness claim"
+              ],
+              "not_materialized_reason": "kernel_factors_nonmaterialized",
+              "orientation": "source_rows_target_columns",
+              "rank": 8,
+              "reg_sigma_map": "sigma=sqrt(epsilon) for POT exp(-dist/(2*sigma^2)) convention",
+              "semantic_class": "approximate_kernel",
+              "source_route": "fixed_hmc_adaptation",
+              "source_route_components": {
+                "cholesky_jitter": "fixed_hmc_adaptation",
+                "deterministic_landmarks": "fixed_hmc_adaptation",
+                "filterflow_cost_scaling_adapter": "fixed_hmc_adaptation",
+                "low_rank_scaling": "source_faithful",
+                "nystrom_factors": "source_faithful"
+              },
+              "source_status": "source_locked",
+              "transport_matrix_materialized": false,
+              "transport_object_kind": "kernel_factors"
+            },
+            "factor_shapes": {
+              "A_inv": [
+                1,
+                8,
+                8
+              ],
+              "V": [
+                1,
+                32,
+                8
+              ],
+              "scaling_u": [
+                1,
+                32
+              ],
+              "scaling_v": [
+                1,
+                32
+              ]
+            },
+            "finite_factors": true,
+            "finite_particles": true,
+            "fixture": "high_dim_low_rank",
+            "hard_vetoes": [],
+            "landmark_indices": [
+              0,
+              4,
+              9,
+              13,
+              18,
+              22,
+              27,
+              31
+            ],
+            "max_column_residual": 0.0,
+            "max_row_residual": 4.9666325111941134e-05,
+            "memory_maxrss_kb_explanatory": 515872,
+            "particles_shape": [
+              1,
+              32,
+              32
+            ],
+            "rank": 8,
+            "status": "PASS",
+            "transport_matrix_materialized": false,
+            "transport_matrix_shape": [
+              1,
+              0,
+              0
+            ],
+            "transport_object_kind": "kernel_factors",
+            "wall_time_seconds_explanatory": 0.011988468002527952
+          },
+          {
+            "dense_reference_max_abs_particle_error": 7.080026602812595e-05,
+            "dense_reference_rms_particle_error": 1.9292644296265673e-05,
+            "diagnostics": {
+              "backend": "tensorflow",
+              "cholesky_jitter": 1e-08,
+              "component_id": "fixed_rank_nystrom_transport_tf",
+              "convergence_threshold": 0.0001,
+              "denominator_floor": 1e-30,
+              "denominator_floor_hits": 0.0,
+              "epsilon": 0.5,
+              "eta_map": "eta=1/(2*epsilon) for exp(-0.5*||x-y||^2/epsilon)",
+              "factor_shapes": {
+                "A_inv": [
+                  1,
+                  16,
+                  16
+                ],
+                "V": [
+                  1,
+                  32,
+                  16
+                ],
+                "scaling_u": [
+                  1,
+                  32
+                ],
+                "scaling_v": [
+                  1,
+                  32
+                ]
+              },
+              "finite_factors": true,
+              "finite_particles": true,
+              "iterations_used": 4,
+              "landmark_indices": [
+                0,
+                2,
+                4,
+                6,
+                8,
+                10,
+                12,
+                14,
+                17,
+                19,
+                21,
+                23,
+                25,
+                27,
+                29,
+                31
+              ],
+              "landmark_rule": "deterministic_evenly_spaced_indices",
+              "mathematical_object": "approximate_kernel_nystrom_transport",
+              "max_column_residual": 0.0,
+              "max_factor_diag_error": 3.274772057970665e-07,
+              "max_iterations": 160,
+              "max_row_residual": 4.9690458262974246e-05,
+              "min_factor_diagonal": 0.9999996725227942,
+              "min_kernel_denominator": 0.8417609680042077,
+              "nonclaims": [
+                "experimental scalable OT candidate only",
+                "no speedup claim",
+                "no ranking claim",
+                "no production default change",
+                "no posterior correctness claim"
+              ],
+              "not_materialized_reason": "kernel_factors_nonmaterialized",
+              "orientation": "source_rows_target_columns",
+              "rank": 16,
+              "reg_sigma_map": "sigma=sqrt(epsilon) for POT exp(-dist/(2*sigma^2)) convention",
+              "semantic_class": "approximate_kernel",
+              "source_route": "fixed_hmc_adaptation",
+              "source_route_components": {
+                "cholesky_jitter": "fixed_hmc_adaptation",
+                "deterministic_landmarks": "fixed_hmc_adaptation",
+                "filterflow_cost_scaling_adapter": "fixed_hmc_adaptation",
+                "low_rank_scaling": "source_faithful",
+                "nystrom_factors": "source_faithful"
+              },
+              "source_status": "source_locked",
+              "transport_matrix_materialized": false,
+              "transport_object_kind": "kernel_factors"
+            },
+            "factor_shapes": {
+              "A_inv": [
+                1,
+                16,
+                16
+              ],
+              "V": [
+                1,
+                32,
+                16
+              ],
+              "scaling_u": [
+                1,
+                32
+              ],
+              "scaling_v": [
+                1,
+                32
+              ]
+            },
+            "finite_factors": true,
+            "finite_particles": true,
+            "fixture": "high_dim_low_rank",
+            "hard_vetoes": [],
+            "landmark_indices": [
+              0,
+              2,
+              4,
+              6,
+              8,
+              10,
+              12,
+              14,
+              17,
+              19,
+              21,
+              23,
+              25,
+              27,
+              29,
+              31
+            ],
+            "max_column_residual": 0.0,
+            "max_row_residual": 4.9690458262974246e-05,
+            "memory_maxrss_kb_explanatory": 515872,
+            "particles_shape": [
+              1,
+              32,
+              32
+            ],
+            "rank": 16,
+            "status": "PASS",
+            "transport_matrix_materialized": false,
+            "transport_matrix_shape": [
+              1,
+              0,
+              0
+            ],
+            "transport_object_kind": "kernel_factors",
+            "wall_time_seconds_explanatory": 0.011923528043553233
+          },
+          {
+            "dense_reference_max_abs_particle_error": 7.080342960219532e-05,
+            "dense_reference_rms_particle_error": 1.9292050204601995e-05,
+            "diagnostics": {
+              "backend": "tensorflow",
+              "cholesky_jitter": 1e-08,
+              "component_id": "fixed_rank_nystrom_transport_tf",
+              "convergence_threshold": 0.0001,
+              "denominator_floor": 1e-30,
+              "denominator_floor_hits": 0.0,
+              "epsilon": 0.5,
+              "eta_map": "eta=1/(2*epsilon) for exp(-0.5*||x-y||^2/epsilon)",
+              "factor_shapes": {
+                "A_inv": [
+                  1,
+                  32,
+                  32
+                ],
+                "V": [
+                  1,
+                  32,
+                  32
+                ],
+                "scaling_u": [
+                  1,
+                  32
+                ],
+                "scaling_v": [
+                  1,
+                  32
+                ]
+              },
+              "finite_factors": true,
+              "finite_particles": true,
+              "iterations_used": 4,
+              "landmark_indices": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12,
+                13,
+                14,
+                15,
+                16,
+                17,
+                18,
+                19,
+                20,
+                21,
+                22,
+                23,
+                24,
+                25,
+                26,
+                27,
+                28,
+                29,
+                30,
+                31
+              ],
+              "landmark_rule": "deterministic_evenly_spaced_indices",
+              "mathematical_object": "approximate_kernel_nystrom_transport",
+              "max_column_residual": 1.1102230246251565e-16,
+              "max_factor_diag_error": 3.964866279737578e-08,
+              "max_iterations": 160,
+              "max_row_residual": 4.9603402864750734e-05,
+              "min_factor_diagonal": 0.9999999694726954,
+              "min_kernel_denominator": 0.841761136462653,
+              "nonclaims": [
+                "experimental scalable OT candidate only",
+                "no speedup claim",
+                "no ranking claim",
+                "no production default change",
+                "no posterior correctness claim"
+              ],
+              "not_materialized_reason": "kernel_factors_nonmaterialized",
+              "orientation": "source_rows_target_columns",
+              "rank": 32,
+              "reg_sigma_map": "sigma=sqrt(epsilon) for POT exp(-dist/(2*sigma^2)) convention",
+              "semantic_class": "approximate_kernel",
+              "source_route": "fixed_hmc_adaptation",
+              "source_route_components": {
+                "cholesky_jitter": "fixed_hmc_adaptation",
+                "deterministic_landmarks": "fixed_hmc_adaptation",
+                "filterflow_cost_scaling_adapter": "fixed_hmc_adaptation",
+                "low_rank_scaling": "source_faithful",
+                "nystrom_factors": "source_faithful"
+              },
+              "source_status": "source_locked",
+              "transport_matrix_materialized": false,
+              "transport_object_kind": "kernel_factors"
+            },
+            "factor_shapes": {
+              "A_inv": [
+                1,
+                32,
+                32
+              ],
+              "V": [
+                1,
+                32,
+                32
+              ],
+              "scaling_u": [
+                1,
+                32
+              ],
+              "scaling_v": [
+                1,
+                32
+              ]
+            },
+            "finite_factors": true,
+            "finite_particles": true,
+            "fixture": "high_dim_low_rank",
+            "hard_vetoes": [],
+            "landmark_indices": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31
+            ],
+            "max_column_residual": 1.1102230246251565e-16,
+            "max_row_residual": 4.9603402864750734e-05,
+            "memory_maxrss_kb_explanatory": 515872,
+            "particles_shape": [
+              1,
+              32,
+              32
+            ],
+            "rank": 32,
+            "status": "PASS",
+            "transport_matrix_materialized": false,
+            "transport_matrix_shape": [
+              1,
+              0,
+              0
+            ],
+            "transport_object_kind": "kernel_factors",
+            "wall_time_seconds_explanatory": 0.012081338092684746
+          }
+        ],
+        "planned_particle_count": 32,
+        "rank_grid": [
+          2,
+          4,
+          8,
+          16,
+          32
+        ]
+      },
+      "ledh_specific_smoke": {
+        "dense_reference": {
+          "finite_particles": true,
+          "finite_transport_matrix": true,
+          "max_column_residual": 4.440892098500626e-16,
+          "max_row_residual": 0.026920401518454762,
+          "particles_shape": [
+            1,
+            32,
+            12
+          ],
+          "transport_matrix_materialized": true,
+          "transport_matrix_shape": [
+            1,
+            32,
+            32
+          ],
+          "transport_object_kind": "dense_matrix",
+          "wall_time_seconds_explanatory": 0.14814715599641204
+        },
+        "input_shape": {
+          "log_weights": [
+            1,
+            32
+          ],
+          "particles": [
+            1,
+            32,
+            12
+          ]
+        },
+        "nystrom": [
+          {
+            "dense_reference_max_abs_particle_error": 0.05964056912650698,
+            "dense_reference_rms_particle_error": 0.018561042314718168,
+            "diagnostics": {
+              "backend": "tensorflow",
+              "cholesky_jitter": 1e-08,
+              "component_id": "fixed_rank_nystrom_transport_tf",
+              "convergence_threshold": 0.0001,
+              "denominator_floor": 1e-30,
+              "denominator_floor_hits": 0.0,
+              "epsilon": 0.5,
+              "eta_map": "eta=1/(2*epsilon) for exp(-0.5*||x-y||^2/epsilon)",
+              "factor_shapes": {
+                "A_inv": [
+                  1,
+                  4,
+                  4
+                ],
+                "V": [
+                  1,
+                  32,
+                  4
+                ],
+                "scaling_u": [
+                  1,
+                  32
+                ],
+                "scaling_v": [
+                  1,
+                  32
+                ]
+              },
+              "finite_factors": true,
+              "finite_particles": true,
+              "iterations_used": 9,
+              "landmark_indices": [
+                0,
+                10,
+                21,
+                31
+              ],
+              "landmark_rule": "deterministic_evenly_spaced_indices",
+              "mathematical_object": "approximate_kernel_nystrom_transport",
+              "max_column_residual": 1.1102230246251565e-16,
+              "max_factor_diag_error": 0.6573208250988449,
+              "max_iterations": 160,
+              "max_row_residual": 6.0194807598890065e-05,
+              "min_factor_diagonal": 0.34267917490115507,
+              "min_kernel_denominator": 0.5222172819472987,
+              "nonclaims": [
+                "experimental scalable OT candidate only",
+                "no speedup claim",
+                "no ranking claim",
+                "no production default change",
+                "no posterior correctness claim"
+              ],
+              "not_materialized_reason": "kernel_factors_nonmaterialized",
+              "orientation": "source_rows_target_columns",
+              "rank": 4,
+              "reg_sigma_map": "sigma=sqrt(epsilon) for POT exp(-dist/(2*sigma^2)) convention",
+              "semantic_class": "approximate_kernel",
+              "source_route": "fixed_hmc_adaptation",
+              "source_route_components": {
+                "cholesky_jitter": "fixed_hmc_adaptation",
+                "deterministic_landmarks": "fixed_hmc_adaptation",
+                "filterflow_cost_scaling_adapter": "fixed_hmc_adaptation",
+                "low_rank_scaling": "source_faithful",
+                "nystrom_factors": "source_faithful"
+              },
+              "source_status": "source_locked",
+              "transport_matrix_materialized": false,
+              "transport_object_kind": "kernel_factors"
+            },
+            "factor_shapes": {
+              "A_inv": [
+                1,
+                4,
+                4
+              ],
+              "V": [
+                1,
+                32,
+                4
+              ],
+              "scaling_u": [
+                1,
+                32
+              ],
+              "scaling_v": [
+                1,
+                32
+              ]
+            },
+            "finite_factors": true,
+            "finite_particles": true,
+            "fixture": "ledh_specific_smoke",
+            "hard_vetoes": [],
+            "landmark_indices": [
+              0,
+              10,
+              21,
+              31
+            ],
+            "max_column_residual": 1.1102230246251565e-16,
+            "max_row_residual": 6.0194807598890065e-05,
+            "memory_maxrss_kb_explanatory": 519968,
+            "particles_shape": [
+              1,
+              32,
+              12
+            ],
+            "rank": 4,
+            "status": "PASS",
+            "transport_matrix_materialized": false,
+            "transport_matrix_shape": [
+              1,
+              0,
+              0
+            ],
+            "transport_object_kind": "kernel_factors",
+            "wall_time_seconds_explanatory": 0.019067357061430812
+          },
+          {
+            "dense_reference_max_abs_particle_error": 0.016749752181481226,
+            "dense_reference_rms_particle_error": 0.0036999039283321564,
+            "diagnostics": {
+              "backend": "tensorflow",
+              "cholesky_jitter": 1e-08,
+              "component_id": "fixed_rank_nystrom_transport_tf",
+              "convergence_threshold": 0.0001,
+              "denominator_floor": 1e-30,
+              "denominator_floor_hits": 0.0,
+              "epsilon": 0.5,
+              "eta_map": "eta=1/(2*epsilon) for exp(-0.5*||x-y||^2/epsilon)",
+              "factor_shapes": {
+                "A_inv": [
+                  1,
+                  8,
+                  8
+                ],
+                "V": [
+                  1,
+                  32,
+                  8
+                ],
+                "scaling_u": [
+                  1,
+                  32
+                ],
+                "scaling_v": [
+                  1,
+                  32
+                ]
+              },
+              "finite_factors": true,
+              "finite_particles": true,
+              "iterations_used": 9,
+              "landmark_indices": [
+                0,
+                4,
+                9,
+                13,
+                18,
+                22,
+                27,
+                31
+              ],
+              "landmark_rule": "deterministic_evenly_spaced_indices",
+              "mathematical_object": "approximate_kernel_nystrom_transport",
+              "max_column_residual": 2.220446049250313e-16,
+              "max_factor_diag_error": 0.07096081179408853,
+              "max_iterations": 160,
+              "max_row_residual": 8.65669471270536e-05,
+              "min_factor_diagonal": 0.9290391882059115,
+              "min_kernel_denominator": 0.4249647326513359,
+              "nonclaims": [
+                "experimental scalable OT candidate only",
+                "no speedup claim",
+                "no ranking claim",
+                "no production default change",
+                "no posterior correctness claim"
+              ],
+              "not_materialized_reason": "kernel_factors_nonmaterialized",
+              "orientation": "source_rows_target_columns",
+              "rank": 8,
+              "reg_sigma_map": "sigma=sqrt(epsilon) for POT exp(-dist/(2*sigma^2)) convention",
+              "semantic_class": "approximate_kernel",
+              "source_route": "fixed_hmc_adaptation",
+              "source_route_components": {
+                "cholesky_jitter": "fixed_hmc_adaptation",
+                "deterministic_landmarks": "fixed_hmc_adaptation",
+                "filterflow_cost_scaling_adapter": "fixed_hmc_adaptation",
+                "low_rank_scaling": "source_faithful",
+                "nystrom_factors": "source_faithful"
+              },
+              "source_status": "source_locked",
+              "transport_matrix_materialized": false,
+              "transport_object_kind": "kernel_factors"
+            },
+            "factor_shapes": {
+              "A_inv": [
+                1,
+                8,
+                8
+              ],
+              "V": [
+                1,
+                32,
+                8
+              ],
+              "scaling_u": [
+                1,
+                32
+              ],
+              "scaling_v": [
+                1,
+                32
+              ]
+            },
+            "finite_factors": true,
+            "finite_particles": true,
+            "fixture": "ledh_specific_smoke",
+            "hard_vetoes": [],
+            "landmark_indices": [
+              0,
+              4,
+              9,
+              13,
+              18,
+              22,
+              27,
+              31
+            ],
+            "max_column_residual": 2.220446049250313e-16,
+            "max_row_residual": 8.65669471270536e-05,
+            "memory_maxrss_kb_explanatory": 519968,
+            "particles_shape": [
+              1,
+              32,
+              12
+            ],
+            "rank": 8,
+            "status": "PASS",
+            "transport_matrix_materialized": false,
+            "transport_matrix_shape": [
+              1,
+              0,
+              0
+            ],
+            "transport_object_kind": "kernel_factors",
+            "wall_time_seconds_explanatory": 0.020200002007186413
+          },
+          {
+            "dense_reference_max_abs_particle_error": 0.013161355498723215,
+            "dense_reference_rms_particle_error": 0.002562981632898809,
+            "diagnostics": {
+              "backend": "tensorflow",
+              "cholesky_jitter": 1e-08,
+              "component_id": "fixed_rank_nystrom_transport_tf",
+              "convergence_threshold": 0.0001,
+              "denominator_floor": 1e-30,
+              "denominator_floor_hits": 0.0,
+              "epsilon": 0.5,
+              "eta_map": "eta=1/(2*epsilon) for exp(-0.5*||x-y||^2/epsilon)",
+              "factor_shapes": {
+                "A_inv": [
+                  1,
+                  16,
+                  16
+                ],
+                "V": [
+                  1,
+                  32,
+                  16
+                ],
+                "scaling_u": [
+                  1,
+                  32
+                ],
+                "scaling_v": [
+                  1,
+                  32
+                ]
+              },
+              "finite_factors": true,
+              "finite_particles": true,
+              "iterations_used": 9,
+              "landmark_indices": [
+                0,
+                2,
+                4,
+                6,
+                8,
+                10,
+                12,
+                14,
+                17,
+                19,
+                21,
+                23,
+                25,
+                27,
+                29,
+                31
+              ],
+              "landmark_rule": "deterministic_evenly_spaced_indices",
+              "mathematical_object": "approximate_kernel_nystrom_transport",
+              "max_column_residual": 2.220446049250313e-16,
+              "max_factor_diag_error": 0.001315421198822997,
+              "max_iterations": 160,
+              "max_row_residual": 8.937221444971222e-05,
+              "min_factor_diagonal": 0.998684578801177,
+              "min_kernel_denominator": 0.42311254084174166,
+              "nonclaims": [
+                "experimental scalable OT candidate only",
+                "no speedup claim",
+                "no ranking claim",
+                "no production default change",
+                "no posterior correctness claim"
+              ],
+              "not_materialized_reason": "kernel_factors_nonmaterialized",
+              "orientation": "source_rows_target_columns",
+              "rank": 16,
+              "reg_sigma_map": "sigma=sqrt(epsilon) for POT exp(-dist/(2*sigma^2)) convention",
+              "semantic_class": "approximate_kernel",
+              "source_route": "fixed_hmc_adaptation",
+              "source_route_components": {
+                "cholesky_jitter": "fixed_hmc_adaptation",
+                "deterministic_landmarks": "fixed_hmc_adaptation",
+                "filterflow_cost_scaling_adapter": "fixed_hmc_adaptation",
+                "low_rank_scaling": "source_faithful",
+                "nystrom_factors": "source_faithful"
+              },
+              "source_status": "source_locked",
+              "transport_matrix_materialized": false,
+              "transport_object_kind": "kernel_factors"
+            },
+            "factor_shapes": {
+              "A_inv": [
+                1,
+                16,
+                16
+              ],
+              "V": [
+                1,
+                32,
+                16
+              ],
+              "scaling_u": [
+                1,
+                32
+              ],
+              "scaling_v": [
+                1,
+                32
+              ]
+            },
+            "finite_factors": true,
+            "finite_particles": true,
+            "fixture": "ledh_specific_smoke",
+            "hard_vetoes": [],
+            "landmark_indices": [
+              0,
+              2,
+              4,
+              6,
+              8,
+              10,
+              12,
+              14,
+              17,
+              19,
+              21,
+              23,
+              25,
+              27,
+              29,
+              31
+            ],
+            "max_column_residual": 2.220446049250313e-16,
+            "max_row_residual": 8.937221444971222e-05,
+            "memory_maxrss_kb_explanatory": 519968,
+            "particles_shape": [
+              1,
+              32,
+              12
+            ],
+            "rank": 16,
+            "status": "PASS",
+            "transport_matrix_materialized": false,
+            "transport_matrix_shape": [
+              1,
+              0,
+              0
+            ],
+            "transport_object_kind": "kernel_factors",
+            "wall_time_seconds_explanatory": 0.02037930185906589
+          },
+          {
+            "dense_reference_max_abs_particle_error": 0.01316147673587198,
+            "dense_reference_rms_particle_error": 0.0025627606727071806,
+            "diagnostics": {
+              "backend": "tensorflow",
+              "cholesky_jitter": 1e-08,
+              "component_id": "fixed_rank_nystrom_transport_tf",
+              "convergence_threshold": 0.0001,
+              "denominator_floor": 1e-30,
+              "denominator_floor_hits": 0.0,
+              "epsilon": 0.5,
+              "eta_map": "eta=1/(2*epsilon) for exp(-0.5*||x-y||^2/epsilon)",
+              "factor_shapes": {
+                "A_inv": [
+                  1,
+                  32,
+                  32
+                ],
+                "V": [
+                  1,
+                  32,
+                  32
+                ],
+                "scaling_u": [
+                  1,
+                  32
+                ],
+                "scaling_v": [
+                  1,
+                  32
+                ]
+              },
+              "finite_factors": true,
+              "finite_particles": true,
+              "iterations_used": 9,
+              "landmark_indices": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12,
+                13,
+                14,
+                15,
+                16,
+                17,
+                18,
+                19,
+                20,
+                21,
+                22,
+                23,
+                24,
+                25,
+                26,
+                27,
+                28,
+                29,
+                30,
+                31
+              ],
+              "landmark_rule": "deterministic_evenly_spaced_indices",
+              "mathematical_object": "approximate_kernel_nystrom_transport",
+              "max_column_residual": 2.220446049250313e-16,
+              "max_factor_diag_error": 1.4804320658257097e-08,
+              "max_iterations": 160,
+              "max_row_residual": 8.938865505481175e-05,
+              "min_factor_diagonal": 0.9999999851956793,
+              "min_kernel_denominator": 0.42311082082098467,
+              "nonclaims": [
+                "experimental scalable OT candidate only",
+                "no speedup claim",
+                "no ranking claim",
+                "no production default change",
+                "no posterior correctness claim"
+              ],
+              "not_materialized_reason": "kernel_factors_nonmaterialized",
+              "orientation": "source_rows_target_columns",
+              "rank": 32,
+              "reg_sigma_map": "sigma=sqrt(epsilon) for POT exp(-dist/(2*sigma^2)) convention",
+              "semantic_class": "approximate_kernel",
+              "source_route": "fixed_hmc_adaptation",
+              "source_route_components": {
+                "cholesky_jitter": "fixed_hmc_adaptation",
+                "deterministic_landmarks": "fixed_hmc_adaptation",
+                "filterflow_cost_scaling_adapter": "fixed_hmc_adaptation",
+                "low_rank_scaling": "source_faithful",
+                "nystrom_factors": "source_faithful"
+              },
+              "source_status": "source_locked",
+              "transport_matrix_materialized": false,
+              "transport_object_kind": "kernel_factors"
+            },
+            "factor_shapes": {
+              "A_inv": [
+                1,
+                32,
+                32
+              ],
+              "V": [
+                1,
+                32,
+                32
+              ],
+              "scaling_u": [
+                1,
+                32
+              ],
+              "scaling_v": [
+                1,
+                32
+              ]
+            },
+            "finite_factors": true,
+            "finite_particles": true,
+            "fixture": "ledh_specific_smoke",
+            "hard_vetoes": [],
+            "landmark_indices": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31
+            ],
+            "max_column_residual": 2.220446049250313e-16,
+            "max_row_residual": 8.938865505481175e-05,
+            "memory_maxrss_kb_explanatory": 519968,
+            "particles_shape": [
+              1,
+              32,
+              12
+            ],
+            "rank": 32,
+            "status": "PASS",
+            "transport_matrix_materialized": false,
+            "transport_matrix_shape": [
+              1,
+              0,
+              0
+            ],
+            "transport_object_kind": "kernel_factors",
+            "wall_time_seconds_explanatory": 0.024289244087412953
+          }
+        ],
+        "planned_particle_count": 32,
+        "rank_grid": [
+          4,
+          8,
+          16,
+          32
+        ]
+      },
+      "small_parity": {
+        "dense_reference": {
+          "finite_particles": true,
+          "finite_transport_matrix": true,
+          "max_column_residual": 4.440892098500626e-16,
+          "max_row_residual": 0.03049983547115731,
+          "particles_shape": [
+            2,
+            8,
+            5
+          ],
+          "transport_matrix_materialized": true,
+          "transport_matrix_shape": [
+            2,
+            8,
+            8
+          ],
+          "transport_object_kind": "dense_matrix",
+          "wall_time_seconds_explanatory": 0.3149068201892078
+        },
+        "input_shape": {
+          "log_weights": [
+            2,
+            8
+          ],
+          "particles": [
+            2,
+            8,
+            5
+          ]
+        },
+        "nystrom": [
+          {
+            "dense_reference_max_abs_particle_error": 0.03443605007438879,
+            "dense_reference_rms_particle_error": 0.02032195150695004,
+            "diagnostics": {
+              "backend": "tensorflow",
+              "cholesky_jitter": 1e-08,
+              "component_id": "fixed_rank_nystrom_transport_tf",
+              "convergence_threshold": 0.0001,
+              "denominator_floor": 1e-30,
+              "denominator_floor_hits": 0.0,
+              "epsilon": 0.5,
+              "eta_map": "eta=1/(2*epsilon) for exp(-0.5*||x-y||^2/epsilon)",
+              "factor_shapes": {
+                "A_inv": [
+                  2,
+                  2,
+                  2
+                ],
+                "V": [
+                  2,
+                  8,
+                  2
+                ],
+                "scaling_u": [
+                  2,
+                  8
+                ],
+                "scaling_v": [
+                  2,
+                  8
+                ]
+              },
+              "finite_factors": true,
+              "finite_particles": true,
+              "iterations_used": 7,
+              "landmark_indices": [
+                0,
+                7
+              ],
+              "landmark_rule": "deterministic_evenly_spaced_indices",
+              "mathematical_object": "approximate_kernel_nystrom_transport",
+              "max_column_residual": 0.0,
+              "max_factor_diag_error": 0.9634758180068184,
+              "max_iterations": 160,
+              "max_row_residual": 9.436508849869352e-05,
+              "min_factor_diagonal": 0.03652418199318169,
+              "min_kernel_denominator": 0.4207469356129844,
+              "nonclaims": [
+                "experimental scalable OT candidate only",
+                "no speedup claim",
+                "no ranking claim",
+                "no production default change",
+                "no posterior correctness claim"
+              ],
+              "not_materialized_reason": "kernel_factors_nonmaterialized",
+              "orientation": "source_rows_target_columns",
+              "rank": 2,
+              "reg_sigma_map": "sigma=sqrt(epsilon) for POT exp(-dist/(2*sigma^2)) convention",
+              "semantic_class": "approximate_kernel",
+              "source_route": "fixed_hmc_adaptation",
+              "source_route_components": {
+                "cholesky_jitter": "fixed_hmc_adaptation",
+                "deterministic_landmarks": "fixed_hmc_adaptation",
+                "filterflow_cost_scaling_adapter": "fixed_hmc_adaptation",
+                "low_rank_scaling": "source_faithful",
+                "nystrom_factors": "source_faithful"
+              },
+              "source_status": "source_locked",
+              "transport_matrix_materialized": false,
+              "transport_object_kind": "kernel_factors"
+            },
+            "factor_shapes": {
+              "A_inv": [
+                2,
+                2,
+                2
+              ],
+              "V": [
+                2,
+                8,
+                2
+              ],
+              "scaling_u": [
+                2,
+                8
+              ],
+              "scaling_v": [
+                2,
+                8
+              ]
+            },
+            "finite_factors": true,
+            "finite_particles": true,
+            "fixture": "small_parity",
+            "hard_vetoes": [],
+            "landmark_indices": [
+              0,
+              7
+            ],
+            "max_column_residual": 0.0,
+            "max_row_residual": 9.436508849869352e-05,
+            "memory_maxrss_kb_explanatory": 507904,
+            "particles_shape": [
+              2,
+              8,
+              5
+            ],
+            "rank": 2,
+            "status": "PASS",
+            "transport_matrix_materialized": false,
+            "transport_matrix_shape": [
+              2,
+              0,
+              0
+            ],
+            "transport_object_kind": "kernel_factors",
+            "wall_time_seconds_explanatory": 0.016827057115733624
+          },
+          {
+            "dense_reference_max_abs_particle_error": 0.013549860012208842,
+            "dense_reference_rms_particle_error": 0.005107672937634993,
+            "diagnostics": {
+              "backend": "tensorflow",
+              "cholesky_jitter": 1e-08,
+              "component_id": "fixed_rank_nystrom_transport_tf",
+              "convergence_threshold": 0.0001,
+              "denominator_floor": 1e-30,
+              "denominator_floor_hits": 0.0,
+              "epsilon": 0.5,
+              "eta_map": "eta=1/(2*epsilon) for exp(-0.5*||x-y||^2/epsilon)",
+              "factor_shapes": {
+                "A_inv": [
+                  2,
+                  4,
+                  4
+                ],
+                "V": [
+                  2,
+                  8,
+                  4
+                ],
+                "scaling_u": [
+                  2,
+                  8
+                ],
+                "scaling_v": [
+                  2,
+                  8
+                ]
+              },
+              "finite_factors": true,
+              "finite_particles": true,
+              "iterations_used": 12,
+              "landmark_indices": [
+                0,
+                2,
+                5,
+                7
+              ],
+              "landmark_rule": "deterministic_evenly_spaced_indices",
+              "mathematical_object": "approximate_kernel_nystrom_transport",
+              "max_column_residual": 1.1102230246251565e-16,
+              "max_factor_diag_error": 0.44089277243196556,
+              "max_iterations": 160,
+              "max_row_residual": 6.463268846501613e-05,
+              "min_factor_diagonal": 0.5591072275680344,
+              "min_kernel_denominator": 0.8116362550236428,
+              "nonclaims": [
+                "experimental scalable OT candidate only",
+                "no speedup claim",
+                "no ranking claim",
+                "no production default change",
+                "no posterior correctness claim"
+              ],
+              "not_materialized_reason": "kernel_factors_nonmaterialized",
+              "orientation": "source_rows_target_columns",
+              "rank": 4,
+              "reg_sigma_map": "sigma=sqrt(epsilon) for POT exp(-dist/(2*sigma^2)) convention",
+              "semantic_class": "approximate_kernel",
+              "source_route": "fixed_hmc_adaptation",
+              "source_route_components": {
+                "cholesky_jitter": "fixed_hmc_adaptation",
+                "deterministic_landmarks": "fixed_hmc_adaptation",
+                "filterflow_cost_scaling_adapter": "fixed_hmc_adaptation",
+                "low_rank_scaling": "source_faithful",
+                "nystrom_factors": "source_faithful"
+              },
+              "source_status": "source_locked",
+              "transport_matrix_materialized": false,
+              "transport_object_kind": "kernel_factors"
+            },
+            "factor_shapes": {
+              "A_inv": [
+                2,
+                4,
+                4
+              ],
+              "V": [
+                2,
+                8,
+                4
+              ],
+              "scaling_u": [
+                2,
+                8
+              ],
+              "scaling_v": [
+                2,
+                8
+              ]
+            },
+            "finite_factors": true,
+            "finite_particles": true,
+            "fixture": "small_parity",
+            "hard_vetoes": [],
+            "landmark_indices": [
+              0,
+              2,
+              5,
+              7
+            ],
+            "max_column_residual": 1.1102230246251565e-16,
+            "max_row_residual": 6.463268846501613e-05,
+            "memory_maxrss_kb_explanatory": 507904,
+            "particles_shape": [
+              2,
+              8,
+              5
+            ],
+            "rank": 4,
+            "status": "PASS",
+            "transport_matrix_materialized": false,
+            "transport_matrix_shape": [
+              2,
+              0,
+              0
+            ],
+            "transport_object_kind": "kernel_factors",
+            "wall_time_seconds_explanatory": 0.021989773958921432
+          },
+          {
+            "dense_reference_max_abs_particle_error": 0.00597720123656359,
+            "dense_reference_rms_particle_error": 0.0015547754761044612,
+            "diagnostics": {
+              "backend": "tensorflow",
+              "cholesky_jitter": 1e-08,
+              "component_id": "fixed_rank_nystrom_transport_tf",
+              "convergence_threshold": 0.0001,
+              "denominator_floor": 1e-30,
+              "denominator_floor_hits": 0.0,
+              "epsilon": 0.5,
+              "eta_map": "eta=1/(2*epsilon) for exp(-0.5*||x-y||^2/epsilon)",
+              "factor_shapes": {
+                "A_inv": [
+                  2,
+                  8,
+                  8
+                ],
+                "V": [
+                  2,
+                  8,
+                  8
+                ],
+                "scaling_u": [
+                  2,
+                  8
+                ],
+                "scaling_v": [
+                  2,
+                  8
+                ]
+              },
+              "finite_factors": true,
+              "finite_particles": true,
+              "iterations_used": 13,
+              "landmark_indices": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+              ],
+              "landmark_rule": "deterministic_evenly_spaced_indices",
+              "mathematical_object": "approximate_kernel_nystrom_transport",
+              "max_column_residual": 0.0,
+              "max_factor_diag_error": 1.0000000494336803e-08,
+              "max_iterations": 160,
+              "max_row_residual": 5.491017766423578e-05,
+              "min_factor_diagonal": 0.9999999899999995,
+              "min_kernel_denominator": 0.7980850374202122,
+              "nonclaims": [
+                "experimental scalable OT candidate only",
+                "no speedup claim",
+                "no ranking claim",
+                "no production default change",
+                "no posterior correctness claim"
+              ],
+              "not_materialized_reason": "kernel_factors_nonmaterialized",
+              "orientation": "source_rows_target_columns",
+              "rank": 8,
+              "reg_sigma_map": "sigma=sqrt(epsilon) for POT exp(-dist/(2*sigma^2)) convention",
+              "semantic_class": "approximate_kernel",
+              "source_route": "fixed_hmc_adaptation",
+              "source_route_components": {
+                "cholesky_jitter": "fixed_hmc_adaptation",
+                "deterministic_landmarks": "fixed_hmc_adaptation",
+                "filterflow_cost_scaling_adapter": "fixed_hmc_adaptation",
+                "low_rank_scaling": "source_faithful",
+                "nystrom_factors": "source_faithful"
+              },
+              "source_status": "source_locked",
+              "transport_matrix_materialized": false,
+              "transport_object_kind": "kernel_factors"
+            },
+            "factor_shapes": {
+              "A_inv": [
+                2,
+                8,
+                8
+              ],
+              "V": [
+                2,
+                8,
+                8
+              ],
+              "scaling_u": [
+                2,
+                8
+              ],
+              "scaling_v": [
+                2,
+                8
+              ]
+            },
+            "finite_factors": true,
+            "finite_particles": true,
+            "fixture": "small_parity",
+            "hard_vetoes": [],
+            "landmark_indices": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "max_column_residual": 0.0,
+            "max_row_residual": 5.491017766423578e-05,
+            "memory_maxrss_kb_explanatory": 507904,
+            "particles_shape": [
+              2,
+              8,
+              5
+            ],
+            "rank": 8,
+            "status": "PASS",
+            "transport_matrix_materialized": false,
+            "transport_matrix_shape": [
+              2,
+              0,
+              0
+            ],
+            "transport_object_kind": "kernel_factors",
+            "wall_time_seconds_explanatory": 0.023538707057014108
+          }
+        ],
+        "planned_particle_count": 8,
+        "rank_grid": [
+          2,
+          4,
+          8
+        ]
+      },
+      "tiny_manual": {
+        "dense_reference": {
+          "finite_particles": true,
+          "finite_transport_matrix": true,
+          "max_column_residual": 4.440892098500626e-16,
+          "max_row_residual": 0.0060515827660972965,
+          "particles_shape": [
+            1,
+            4,
+            3
+          ],
+          "transport_matrix_materialized": true,
+          "transport_matrix_shape": [
+            1,
+            4,
+            4
+          ],
+          "transport_object_kind": "dense_matrix",
+          "wall_time_seconds_explanatory": 0.8912274139001966
+        },
+        "input_shape": {
+          "log_weights": [
+            1,
+            4
+          ],
+          "particles": [
+            1,
+            4,
+            3
+          ]
+        },
+        "nystrom": [
+          {
+            "dense_reference_max_abs_particle_error": 0.046072075360535814,
+            "dense_reference_rms_particle_error": 0.026235230425731913,
+            "diagnostics": {
+              "backend": "tensorflow",
+              "cholesky_jitter": 1e-08,
+              "component_id": "fixed_rank_nystrom_transport_tf",
+              "convergence_threshold": 0.0001,
+              "denominator_floor": 1e-30,
+              "denominator_floor_hits": 0.0,
+              "epsilon": 0.5,
+              "eta_map": "eta=1/(2*epsilon) for exp(-0.5*||x-y||^2/epsilon)",
+              "factor_shapes": {
+                "A_inv": [
+                  1,
+                  2,
+                  2
+                ],
+                "V": [
+                  1,
+                  4,
+                  2
+                ],
+                "scaling_u": [
+                  1,
+                  4
+                ],
+                "scaling_v": [
+                  1,
+                  4
+                ]
+              },
+              "finite_factors": true,
+              "finite_particles": true,
+              "iterations_used": 7,
+              "landmark_indices": [
+                0,
+                3
+              ],
+              "landmark_rule": "deterministic_evenly_spaced_indices",
+              "mathematical_object": "approximate_kernel_nystrom_transport",
+              "max_column_residual": 0.0,
+              "max_factor_diag_error": 0.7491450240671389,
+              "max_iterations": 160,
+              "max_row_residual": 3.423223794640773e-05,
+              "min_factor_diagonal": 0.2508549759328611,
+              "min_kernel_denominator": 0.7624078572504487,
+              "nonclaims": [
+                "experimental scalable OT candidate only",
+                "no speedup claim",
+                "no ranking claim",
+                "no production default change",
+                "no posterior correctness claim"
+              ],
+              "not_materialized_reason": "kernel_factors_nonmaterialized",
+              "orientation": "source_rows_target_columns",
+              "rank": 2,
+              "reg_sigma_map": "sigma=sqrt(epsilon) for POT exp(-dist/(2*sigma^2)) convention",
+              "semantic_class": "approximate_kernel",
+              "source_route": "fixed_hmc_adaptation",
+              "source_route_components": {
+                "cholesky_jitter": "fixed_hmc_adaptation",
+                "deterministic_landmarks": "fixed_hmc_adaptation",
+                "filterflow_cost_scaling_adapter": "fixed_hmc_adaptation",
+                "low_rank_scaling": "source_faithful",
+                "nystrom_factors": "source_faithful"
+              },
+              "source_status": "source_locked",
+              "transport_matrix_materialized": false,
+              "transport_object_kind": "kernel_factors"
+            },
+            "factor_shapes": {
+              "A_inv": [
+                1,
+                2,
+                2
+              ],
+              "V": [
+                1,
+                4,
+                2
+              ],
+              "scaling_u": [
+                1,
+                4
+              ],
+              "scaling_v": [
+                1,
+                4
+              ]
+            },
+            "finite_factors": true,
+            "finite_particles": true,
+            "fixture": "tiny_manual",
+            "hard_vetoes": [],
+            "landmark_indices": [
+              0,
+              3
+            ],
+            "max_column_residual": 0.0,
+            "max_row_residual": 3.423223794640773e-05,
+            "memory_maxrss_kb_explanatory": 497664,
+            "particles_shape": [
+              1,
+              4,
+              3
+            ],
+            "rank": 2,
+            "status": "PASS",
+            "transport_matrix_materialized": false,
+            "transport_matrix_shape": [
+              1,
+              0,
+              0
+            ],
+            "transport_object_kind": "kernel_factors",
+            "wall_time_seconds_explanatory": 0.04033642495051026
+          },
+          {
+            "dense_reference_max_abs_particle_error": 0.026505075334772796,
+            "dense_reference_rms_particle_error": 0.013287482363855133,
+            "diagnostics": {
+              "backend": "tensorflow",
+              "cholesky_jitter": 1e-08,
+              "component_id": "fixed_rank_nystrom_transport_tf",
+              "convergence_threshold": 0.0001,
+              "denominator_floor": 1e-30,
+              "denominator_floor_hits": 0.0,
+              "epsilon": 0.5,
+              "eta_map": "eta=1/(2*epsilon) for exp(-0.5*||x-y||^2/epsilon)",
+              "factor_shapes": {
+                "A_inv": [
+                  1,
+                  3,
+                  3
+                ],
+                "V": [
+                  1,
+                  4,
+                  3
+                ],
+                "scaling_u": [
+                  1,
+                  4
+                ],
+                "scaling_v": [
+                  1,
+                  4
+                ]
+              },
+              "finite_factors": true,
+              "finite_particles": true,
+              "iterations_used": 7,
+              "landmark_indices": [
+                0,
+                2,
+                3
+              ],
+              "landmark_rule": "deterministic_evenly_spaced_indices",
+              "mathematical_object": "approximate_kernel_nystrom_transport",
+              "max_column_residual": 0.0,
+              "max_factor_diag_error": 0.5494413217608616,
+              "max_iterations": 160,
+              "max_row_residual": 9.902792837324093e-05,
+              "min_factor_diagonal": 0.4505586782391384,
+              "min_kernel_denominator": 0.8377207895731291,
+              "nonclaims": [
+                "experimental scalable OT candidate only",
+                "no speedup claim",
+                "no ranking claim",
+                "no production default change",
+                "no posterior correctness claim"
+              ],
+              "not_materialized_reason": "kernel_factors_nonmaterialized",
+              "orientation": "source_rows_target_columns",
+              "rank": 3,
+              "reg_sigma_map": "sigma=sqrt(epsilon) for POT exp(-dist/(2*sigma^2)) convention",
+              "semantic_class": "approximate_kernel",
+              "source_route": "fixed_hmc_adaptation",
+              "source_route_components": {
+                "cholesky_jitter": "fixed_hmc_adaptation",
+                "deterministic_landmarks": "fixed_hmc_adaptation",
+                "filterflow_cost_scaling_adapter": "fixed_hmc_adaptation",
+                "low_rank_scaling": "source_faithful",
+                "nystrom_factors": "source_faithful"
+              },
+              "source_status": "source_locked",
+              "transport_matrix_materialized": false,
+              "transport_object_kind": "kernel_factors"
+            },
+            "factor_shapes": {
+              "A_inv": [
+                1,
+                3,
+                3
+              ],
+              "V": [
+                1,
+                4,
+                3
+              ],
+              "scaling_u": [
+                1,
+                4
+              ],
+              "scaling_v": [
+                1,
+                4
+              ]
+            },
+            "finite_factors": true,
+            "finite_particles": true,
+            "fixture": "tiny_manual",
+            "hard_vetoes": [],
+            "landmark_indices": [
+              0,
+              2,
+              3
+            ],
+            "max_column_residual": 0.0,
+            "max_row_residual": 9.902792837324093e-05,
+            "memory_maxrss_kb_explanatory": 497664,
+            "particles_shape": [
+              1,
+              4,
+              3
+            ],
+            "rank": 3,
+            "status": "PASS",
+            "transport_matrix_materialized": false,
+            "transport_matrix_shape": [
+              1,
+              0,
+              0
+            ],
+            "transport_object_kind": "kernel_factors",
+            "wall_time_seconds_explanatory": 0.015793161001056433
+          },
+          {
+            "dense_reference_max_abs_particle_error": 0.0012440674291325227,
+            "dense_reference_rms_particle_error": 0.0005027272131684107,
+            "diagnostics": {
+              "backend": "tensorflow",
+              "cholesky_jitter": 1e-08,
+              "component_id": "fixed_rank_nystrom_transport_tf",
+              "convergence_threshold": 0.0001,
+              "denominator_floor": 1e-30,
+              "denominator_floor_hits": 0.0,
+              "epsilon": 0.5,
+              "eta_map": "eta=1/(2*epsilon) for exp(-0.5*||x-y||^2/epsilon)",
+              "factor_shapes": {
+                "A_inv": [
+                  1,
+                  4,
+                  4
+                ],
+                "V": [
+                  1,
+                  4,
+                  4
+                ],
+                "scaling_u": [
+                  1,
+                  4
+                ],
+                "scaling_v": [
+                  1,
+                  4
+                ]
+              },
+              "finite_factors": true,
+              "finite_particles": true,
+              "iterations_used": 8,
+              "landmark_indices": [
+                0,
+                1,
+                2,
+                3
+              ],
+              "landmark_rule": "deterministic_evenly_spaced_indices",
+              "mathematical_object": "approximate_kernel_nystrom_transport",
+              "max_column_residual": 2.220446049250313e-16,
+              "max_factor_diag_error": 1.0000000161269895e-08,
+              "max_iterations": 160,
+              "max_row_residual": 3.891248824050564e-05,
+              "min_factor_diagonal": 0.9999999899999998,
+              "min_kernel_denominator": 0.7667695807563671,
+              "nonclaims": [
+                "experimental scalable OT candidate only",
+                "no speedup claim",
+                "no ranking claim",
+                "no production default change",
+                "no posterior correctness claim"
+              ],
+              "not_materialized_reason": "kernel_factors_nonmaterialized",
+              "orientation": "source_rows_target_columns",
+              "rank": 4,
+              "reg_sigma_map": "sigma=sqrt(epsilon) for POT exp(-dist/(2*sigma^2)) convention",
+              "semantic_class": "approximate_kernel",
+              "source_route": "fixed_hmc_adaptation",
+              "source_route_components": {
+                "cholesky_jitter": "fixed_hmc_adaptation",
+                "deterministic_landmarks": "fixed_hmc_adaptation",
+                "filterflow_cost_scaling_adapter": "fixed_hmc_adaptation",
+                "low_rank_scaling": "source_faithful",
+                "nystrom_factors": "source_faithful"
+              },
+              "source_status": "source_locked",
+              "transport_matrix_materialized": false,
+              "transport_object_kind": "kernel_factors"
+            },
+            "factor_shapes": {
+              "A_inv": [
+                1,
+                4,
+                4
+              ],
+              "V": [
+                1,
+                4,
+                4
+              ],
+              "scaling_u": [
+                1,
+                4
+              ],
+              "scaling_v": [
+                1,
+                4
+              ]
+            },
+            "finite_factors": true,
+            "finite_particles": true,
+            "fixture": "tiny_manual",
+            "hard_vetoes": [],
+            "landmark_indices": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "max_column_residual": 2.220446049250313e-16,
+            "max_row_residual": 3.891248824050564e-05,
+            "memory_maxrss_kb_explanatory": 497664,
+            "particles_shape": [
+              1,
+              4,
+              3
+            ],
+            "rank": 4,
+            "status": "PASS",
+            "transport_matrix_materialized": false,
+            "transport_matrix_shape": [
+              1,
+              0,
+              0
+            ],
+            "transport_object_kind": "kernel_factors",
+            "wall_time_seconds_explanatory": 0.016770627116784453
+          }
+        ],
+        "planned_particle_count": 4,
+        "rank_grid": [
+          2,
+          3,
+          4
+        ]
+      }
+    }
+  },
+  "hard_vetoes": [],
+  "mode": "small-reference",
+  "nonclaims": [
+    "Nystrom LEDH/PFPF-OT diagnostic only",
+    "no speedup claim",
+    "no ranking claim",
+    "no superiority claim",
+    "no production/default readiness claim",
+    "no production/default route change",
+    "no posterior correctness claim",
+    "no HMC readiness claim",
+    "no public API readiness claim",
+    "no dense Sinkhorn equivalence claim beyond checked small fixtures",
+    "no broad scalable-OT leaderboard claim"
+  ],
+  "phase": "P02",
+  "rows": [
+    {
+      "dense_reference_max_abs_particle_error": 0.046072075360535814,
+      "dense_reference_rms_particle_error": 0.026235230425731913,
+      "diagnostics": {
+        "backend": "tensorflow",
+        "cholesky_jitter": 1e-08,
+        "component_id": "fixed_rank_nystrom_transport_tf",
+        "convergence_threshold": 0.0001,
+        "denominator_floor": 1e-30,
+        "denominator_floor_hits": 0.0,
+        "epsilon": 0.5,
+        "eta_map": "eta=1/(2*epsilon) for exp(-0.5*||x-y||^2/epsilon)",
+        "factor_shapes": {
+          "A_inv": [
+            1,
+            2,
+            2
+          ],
+          "V": [
+            1,
+            4,
+            2
+          ],
+          "scaling_u": [
+            1,
+            4
+          ],
+          "scaling_v": [
+            1,
+            4
+          ]
+        },
+        "finite_factors": true,
+        "finite_particles": true,
+        "iterations_used": 7,
+        "landmark_indices": [
+          0,
+          3
+        ],
+        "landmark_rule": "deterministic_evenly_spaced_indices",
+        "mathematical_object": "approximate_kernel_nystrom_transport",
+        "max_column_residual": 0.0,
+        "max_factor_diag_error": 0.7491450240671389,
+        "max_iterations": 160,
+        "max_row_residual": 3.423223794640773e-05,
+        "min_factor_diagonal": 0.2508549759328611,
+        "min_kernel_denominator": 0.7624078572504487,
+        "nonclaims": [
+          "experimental scalable OT candidate only",
+          "no speedup claim",
+          "no ranking claim",
+          "no production default change",
+          "no posterior correctness claim"
+        ],
+        "not_materialized_reason": "kernel_factors_nonmaterialized",
+        "orientation": "source_rows_target_columns",
+        "rank": 2,
+        "reg_sigma_map": "sigma=sqrt(epsilon) for POT exp(-dist/(2*sigma^2)) convention",
+        "semantic_class": "approximate_kernel",
+        "source_route": "fixed_hmc_adaptation",
+        "source_route_components": {
+          "cholesky_jitter": "fixed_hmc_adaptation",
+          "deterministic_landmarks": "fixed_hmc_adaptation",
+          "filterflow_cost_scaling_adapter": "fixed_hmc_adaptation",
+          "low_rank_scaling": "source_faithful",
+          "nystrom_factors": "source_faithful"
+        },
+        "source_status": "source_locked",
+        "transport_matrix_materialized": false,
+        "transport_object_kind": "kernel_factors"
+      },
+      "factor_shapes": {
+        "A_inv": [
+          1,
+          2,
+          2
+        ],
+        "V": [
+          1,
+          4,
+          2
+        ],
+        "scaling_u": [
+          1,
+          4
+        ],
+        "scaling_v": [
+          1,
+          4
+        ]
+      },
+      "finite_factors": true,
+      "finite_particles": true,
+      "fixture": "tiny_manual",
+      "hard_vetoes": [],
+      "landmark_indices": [
+        0,
+        3
+      ],
+      "max_column_residual": 0.0,
+      "max_row_residual": 3.423223794640773e-05,
+      "memory_maxrss_kb_explanatory": 497664,
+      "particles_shape": [
+        1,
+        4,
+        3
+      ],
+      "rank": 2,
+      "status": "PASS",
+      "transport_matrix_materialized": false,
+      "transport_matrix_shape": [
+        1,
+        0,
+        0
+      ],
+      "transport_object_kind": "kernel_factors",
+      "wall_time_seconds_explanatory": 0.04033642495051026
+    },
+    {
+      "dense_reference_max_abs_particle_error": 0.026505075334772796,
+      "dense_reference_rms_particle_error": 0.013287482363855133,
+      "diagnostics": {
+        "backend": "tensorflow",
+        "cholesky_jitter": 1e-08,
+        "component_id": "fixed_rank_nystrom_transport_tf",
+        "convergence_threshold": 0.0001,
+        "denominator_floor": 1e-30,
+        "denominator_floor_hits": 0.0,
+        "epsilon": 0.5,
+        "eta_map": "eta=1/(2*epsilon) for exp(-0.5*||x-y||^2/epsilon)",
+        "factor_shapes": {
+          "A_inv": [
+            1,
+            3,
+            3
+          ],
+          "V": [
+            1,
+            4,
+            3
+          ],
+          "scaling_u": [
+            1,
+            4
+          ],
+          "scaling_v": [
+            1,
+            4
+          ]
+        },
+        "finite_factors": true,
+        "finite_particles": true,
+        "iterations_used": 7,
+        "landmark_indices": [
+          0,
+          2,
+          3
+        ],
+        "landmark_rule": "deterministic_evenly_spaced_indices",
+        "mathematical_object": "approximate_kernel_nystrom_transport",
+        "max_column_residual": 0.0,
+        "max_factor_diag_error": 0.5494413217608616,
+        "max_iterations": 160,
+        "max_row_residual": 9.902792837324093e-05,
+        "min_factor_diagonal": 0.4505586782391384,
+        "min_kernel_denominator": 0.8377207895731291,
+        "nonclaims": [
+          "experimental scalable OT candidate only",
+          "no speedup claim",
+          "no ranking claim",
+          "no production default change",
+          "no posterior correctness claim"
+        ],
+        "not_materialized_reason": "kernel_factors_nonmaterialized",
+        "orientation": "source_rows_target_columns",
+        "rank": 3,
+        "reg_sigma_map": "sigma=sqrt(epsilon) for POT exp(-dist/(2*sigma^2)) convention",
+        "semantic_class": "approximate_kernel",
+        "source_route": "fixed_hmc_adaptation",
+        "source_route_components": {
+          "cholesky_jitter": "fixed_hmc_adaptation",
+          "deterministic_landmarks": "fixed_hmc_adaptation",
+          "filterflow_cost_scaling_adapter": "fixed_hmc_adaptation",
+          "low_rank_scaling": "source_faithful",
+          "nystrom_factors": "source_faithful"
+        },
+        "source_status": "source_locked",
+        "transport_matrix_materialized": false,
+        "transport_object_kind": "kernel_factors"
+      },
+      "factor_shapes": {
+        "A_inv": [
+          1,
+          3,
+          3
+        ],
+        "V": [
+          1,
+          4,
+          3
+        ],
+        "scaling_u": [
+          1,
+          4
+        ],
+        "scaling_v": [
+          1,
+          4
+        ]
+      },
+      "finite_factors": true,
+      "finite_particles": true,
+      "fixture": "tiny_manual",
+      "hard_vetoes": [],
+      "landmark_indices": [
+        0,
+        2,
+        3
+      ],
+      "max_column_residual": 0.0,
+      "max_row_residual": 9.902792837324093e-05,
+      "memory_maxrss_kb_explanatory": 497664,
+      "particles_shape": [
+        1,
+        4,
+        3
+      ],
+      "rank": 3,
+      "status": "PASS",
+      "transport_matrix_materialized": false,
+      "transport_matrix_shape": [
+        1,
+        0,
+        0
+      ],
+      "transport_object_kind": "kernel_factors",
+      "wall_time_seconds_explanatory": 0.015793161001056433
+    },
+    {
+      "dense_reference_max_abs_particle_error": 0.0012440674291325227,
+      "dense_reference_rms_particle_error": 0.0005027272131684107,
+      "diagnostics": {
+        "backend": "tensorflow",
+        "cholesky_jitter": 1e-08,
+        "component_id": "fixed_rank_nystrom_transport_tf",
+        "convergence_threshold": 0.0001,
+        "denominator_floor": 1e-30,
+        "denominator_floor_hits": 0.0,
+        "epsilon": 0.5,
+        "eta_map": "eta=1/(2*epsilon) for exp(-0.5*||x-y||^2/epsilon)",
+        "factor_shapes": {
+          "A_inv": [
+            1,
+            4,
+            4
+          ],
+          "V": [
+            1,
+            4,
+            4
+          ],
+          "scaling_u": [
+            1,
+            4
+          ],
+          "scaling_v": [
+            1,
+            4
+          ]
+        },
+        "finite_factors": true,
+        "finite_particles": true,
+        "iterations_used": 8,
+        "landmark_indices": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "landmark_rule": "deterministic_evenly_spaced_indices",
+        "mathematical_object": "approximate_kernel_nystrom_transport",
+        "max_column_residual": 2.220446049250313e-16,
+        "max_factor_diag_error": 1.0000000161269895e-08,
+        "max_iterations": 160,
+        "max_row_residual": 3.891248824050564e-05,
+        "min_factor_diagonal": 0.9999999899999998,
+        "min_kernel_denominator": 0.7667695807563671,
+        "nonclaims": [
+          "experimental scalable OT candidate only",
+          "no speedup claim",
+          "no ranking claim",
+          "no production default change",
+          "no posterior correctness claim"
+        ],
+        "not_materialized_reason": "kernel_factors_nonmaterialized",
+        "orientation": "source_rows_target_columns",
+        "rank": 4,
+        "reg_sigma_map": "sigma=sqrt(epsilon) for POT exp(-dist/(2*sigma^2)) convention",
+        "semantic_class": "approximate_kernel",
+        "source_route": "fixed_hmc_adaptation",
+        "source_route_components": {
+          "cholesky_jitter": "fixed_hmc_adaptation",
+          "deterministic_landmarks": "fixed_hmc_adaptation",
+          "filterflow_cost_scaling_adapter": "fixed_hmc_adaptation",
+          "low_rank_scaling": "source_faithful",
+          "nystrom_factors": "source_faithful"
+        },
+        "source_status": "source_locked",
+        "transport_matrix_materialized": false,
+        "transport_object_kind": "kernel_factors"
+      },
+      "factor_shapes": {
+        "A_inv": [
+          1,
+          4,
+          4
+        ],
+        "V": [
+          1,
+          4,
+          4
+        ],
+        "scaling_u": [
+          1,
+          4
+        ],
+        "scaling_v": [
+          1,
+          4
+        ]
+      },
+      "finite_factors": true,
+      "finite_particles": true,
+      "fixture": "tiny_manual",
+      "hard_vetoes": [],
+      "landmark_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "max_column_residual": 2.220446049250313e-16,
+      "max_row_residual": 3.891248824050564e-05,
+      "memory_maxrss_kb_explanatory": 497664,
+      "particles_shape": [
+        1,
+        4,
+        3
+      ],
+      "rank": 4,
+      "status": "PASS",
+      "transport_matrix_materialized": false,
+      "transport_matrix_shape": [
+        1,
+        0,
+        0
+      ],
+      "transport_object_kind": "kernel_factors",
+      "wall_time_seconds_explanatory": 0.016770627116784453
+    },
+    {
+      "dense_reference_max_abs_particle_error": 0.03443605007438879,
+      "dense_reference_rms_particle_error": 0.02032195150695004,
+      "diagnostics": {
+        "backend": "tensorflow",
+        "cholesky_jitter": 1e-08,
+        "component_id": "fixed_rank_nystrom_transport_tf",
+        "convergence_threshold": 0.0001,
+        "denominator_floor": 1e-30,
+        "denominator_floor_hits": 0.0,
+        "epsilon": 0.5,
+        "eta_map": "eta=1/(2*epsilon) for exp(-0.5*||x-y||^2/epsilon)",
+        "factor_shapes": {
+          "A_inv": [
+            2,
+            2,
+            2
+          ],
+          "V": [
+            2,
+            8,
+            2
+          ],
+          "scaling_u": [
+            2,
+            8
+          ],
+          "scaling_v": [
+            2,
+            8
+          ]
+        },
+        "finite_factors": true,
+        "finite_particles": true,
+        "iterations_used": 7,
+        "landmark_indices": [
+          0,
+          7
+        ],
+        "landmark_rule": "deterministic_evenly_spaced_indices",
+        "mathematical_object": "approximate_kernel_nystrom_transport",
+        "max_column_residual": 0.0,
+        "max_factor_diag_error": 0.9634758180068184,
+        "max_iterations": 160,
+        "max_row_residual": 9.436508849869352e-05,
+        "min_factor_diagonal": 0.03652418199318169,
+        "min_kernel_denominator": 0.4207469356129844,
+        "nonclaims": [
+          "experimental scalable OT candidate only",
+          "no speedup claim",
+          "no ranking claim",
+          "no production default change",
+          "no posterior correctness claim"
+        ],
+        "not_materialized_reason": "kernel_factors_nonmaterialized",
+        "orientation": "source_rows_target_columns",
+        "rank": 2,
+        "reg_sigma_map": "sigma=sqrt(epsilon) for POT exp(-dist/(2*sigma^2)) convention",
+        "semantic_class": "approximate_kernel",
+        "source_route": "fixed_hmc_adaptation",
+        "source_route_components": {
+          "cholesky_jitter": "fixed_hmc_adaptation",
+          "deterministic_landmarks": "fixed_hmc_adaptation",
+          "filterflow_cost_scaling_adapter": "fixed_hmc_adaptation",
+          "low_rank_scaling": "source_faithful",
+          "nystrom_factors": "source_faithful"
+        },
+        "source_status": "source_locked",
+        "transport_matrix_materialized": false,
+        "transport_object_kind": "kernel_factors"
+      },
+      "factor_shapes": {
+        "A_inv": [
+          2,
+          2,
+          2
+        ],
+        "V": [
+          2,
+          8,
+          2
+        ],
+        "scaling_u": [
+          2,
+          8
+        ],
+        "scaling_v": [
+          2,
+          8
+        ]
+      },
+      "finite_factors": true,
+      "finite_particles": true,
+      "fixture": "small_parity",
+      "hard_vetoes": [],
+      "landmark_indices": [
+        0,
+        7
+      ],
+      "max_column_residual": 0.0,
+      "max_row_residual": 9.436508849869352e-05,
+      "memory_maxrss_kb_explanatory": 507904,
+      "particles_shape": [
+        2,
+        8,
+        5
+      ],
+      "rank": 2,
+      "status": "PASS",
+      "transport_matrix_materialized": false,
+      "transport_matrix_shape": [
+        2,
+        0,
+        0
+      ],
+      "transport_object_kind": "kernel_factors",
+      "wall_time_seconds_explanatory": 0.016827057115733624
+    },
+    {
+      "dense_reference_max_abs_particle_error": 0.013549860012208842,
+      "dense_reference_rms_particle_error": 0.005107672937634993,
+      "diagnostics": {
+        "backend": "tensorflow",
+        "cholesky_jitter": 1e-08,
+        "component_id": "fixed_rank_nystrom_transport_tf",
+        "convergence_threshold": 0.0001,
+        "denominator_floor": 1e-30,
+        "denominator_floor_hits": 0.0,
+        "epsilon": 0.5,
+        "eta_map": "eta=1/(2*epsilon) for exp(-0.5*||x-y||^2/epsilon)",
+        "factor_shapes": {
+          "A_inv": [
+            2,
+            4,
+            4
+          ],
+          "V": [
+            2,
+            8,
+            4
+          ],
+          "scaling_u": [
+            2,
+            8
+          ],
+          "scaling_v": [
+            2,
+            8
+          ]
+        },
+        "finite_factors": true,
+        "finite_particles": true,
+        "iterations_used": 12,
+        "landmark_indices": [
+          0,
+          2,
+          5,
+          7
+        ],
+        "landmark_rule": "deterministic_evenly_spaced_indices",
+        "mathematical_object": "approximate_kernel_nystrom_transport",
+        "max_column_residual": 1.1102230246251565e-16,
+        "max_factor_diag_error": 0.44089277243196556,
+        "max_iterations": 160,
+        "max_row_residual": 6.463268846501613e-05,
+        "min_factor_diagonal": 0.5591072275680344,
+        "min_kernel_denominator": 0.8116362550236428,
+        "nonclaims": [
+          "experimental scalable OT candidate only",
+          "no speedup claim",
+          "no ranking claim",
+          "no production default change",
+          "no posterior correctness claim"
+        ],
+        "not_materialized_reason": "kernel_factors_nonmaterialized",
+        "orientation": "source_rows_target_columns",
+        "rank": 4,
+        "reg_sigma_map": "sigma=sqrt(epsilon) for POT exp(-dist/(2*sigma^2)) convention",
+        "semantic_class": "approximate_kernel",
+        "source_route": "fixed_hmc_adaptation",
+        "source_route_components": {
+          "cholesky_jitter": "fixed_hmc_adaptation",
+          "deterministic_landmarks": "fixed_hmc_adaptation",
+          "filterflow_cost_scaling_adapter": "fixed_hmc_adaptation",
+          "low_rank_scaling": "source_faithful",
+          "nystrom_factors": "source_faithful"
+        },
+        "source_status": "source_locked",
+        "transport_matrix_materialized": false,
+        "transport_object_kind": "kernel_factors"
+      },
+      "factor_shapes": {
+        "A_inv": [
+          2,
+          4,
+          4
+        ],
+        "V": [
+          2,
+          8,
+          4
+        ],
+        "scaling_u": [
+          2,
+          8
+        ],
+        "scaling_v": [
+          2,
+          8
+        ]
+      },
+      "finite_factors": true,
+      "finite_particles": true,
+      "fixture": "small_parity",
+      "hard_vetoes": [],
+      "landmark_indices": [
+        0,
+        2,
+        5,
+        7
+      ],
+      "max_column_residual": 1.1102230246251565e-16,
+      "max_row_residual": 6.463268846501613e-05,
+      "memory_maxrss_kb_explanatory": 507904,
+      "particles_shape": [
+        2,
+        8,
+        5
+      ],
+      "rank": 4,
+      "status": "PASS",
+      "transport_matrix_materialized": false,
+      "transport_matrix_shape": [
+        2,
+        0,
+        0
+      ],
+      "transport_object_kind": "kernel_factors",
+      "wall_time_seconds_explanatory": 0.021989773958921432
+    },
+    {
+      "dense_reference_max_abs_particle_error": 0.00597720123656359,
+      "dense_reference_rms_particle_error": 0.0015547754761044612,
+      "diagnostics": {
+        "backend": "tensorflow",
+        "cholesky_jitter": 1e-08,
+        "component_id": "fixed_rank_nystrom_transport_tf",
+        "convergence_threshold": 0.0001,
+        "denominator_floor": 1e-30,
+        "denominator_floor_hits": 0.0,
+        "epsilon": 0.5,
+        "eta_map": "eta=1/(2*epsilon) for exp(-0.5*||x-y||^2/epsilon)",
+        "factor_shapes": {
+          "A_inv": [
+            2,
+            8,
+            8
+          ],
+          "V": [
+            2,
+            8,
+            8
+          ],
+          "scaling_u": [
+            2,
+            8
+          ],
+          "scaling_v": [
+            2,
+            8
+          ]
+        },
+        "finite_factors": true,
+        "finite_particles": true,
+        "iterations_used": 13,
+        "landmark_indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "landmark_rule": "deterministic_evenly_spaced_indices",
+        "mathematical_object": "approximate_kernel_nystrom_transport",
+        "max_column_residual": 0.0,
+        "max_factor_diag_error": 1.0000000494336803e-08,
+        "max_iterations": 160,
+        "max_row_residual": 5.491017766423578e-05,
+        "min_factor_diagonal": 0.9999999899999995,
+        "min_kernel_denominator": 0.7980850374202122,
+        "nonclaims": [
+          "experimental scalable OT candidate only",
+          "no speedup claim",
+          "no ranking claim",
+          "no production default change",
+          "no posterior correctness claim"
+        ],
+        "not_materialized_reason": "kernel_factors_nonmaterialized",
+        "orientation": "source_rows_target_columns",
+        "rank": 8,
+        "reg_sigma_map": "sigma=sqrt(epsilon) for POT exp(-dist/(2*sigma^2)) convention",
+        "semantic_class": "approximate_kernel",
+        "source_route": "fixed_hmc_adaptation",
+        "source_route_components": {
+          "cholesky_jitter": "fixed_hmc_adaptation",
+          "deterministic_landmarks": "fixed_hmc_adaptation",
+          "filterflow_cost_scaling_adapter": "fixed_hmc_adaptation",
+          "low_rank_scaling": "source_faithful",
+          "nystrom_factors": "source_faithful"
+        },
+        "source_status": "source_locked",
+        "transport_matrix_materialized": false,
+        "transport_object_kind": "kernel_factors"
+      },
+      "factor_shapes": {
+        "A_inv": [
+          2,
+          8,
+          8
+        ],
+        "V": [
+          2,
+          8,
+          8
+        ],
+        "scaling_u": [
+          2,
+          8
+        ],
+        "scaling_v": [
+          2,
+          8
+        ]
+      },
+      "finite_factors": true,
+      "finite_particles": true,
+      "fixture": "small_parity",
+      "hard_vetoes": [],
+      "landmark_indices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "max_column_residual": 0.0,
+      "max_row_residual": 5.491017766423578e-05,
+      "memory_maxrss_kb_explanatory": 507904,
+      "particles_shape": [
+        2,
+        8,
+        5
+      ],
+      "rank": 8,
+      "status": "PASS",
+      "transport_matrix_materialized": false,
+      "transport_matrix_shape": [
+        2,
+        0,
+        0
+      ],
+      "transport_object_kind": "kernel_factors",
+      "wall_time_seconds_explanatory": 0.023538707057014108
+    },
+    {
+      "dense_reference_max_abs_particle_error": 0.08564275772586204,
+      "dense_reference_rms_particle_error": 0.025503050482044487,
+      "diagnostics": {
+        "backend": "tensorflow",
+        "cholesky_jitter": 1e-08,
+        "component_id": "fixed_rank_nystrom_transport_tf",
+        "convergence_threshold": 0.0001,
+        "denominator_floor": 1e-30,
+        "denominator_floor_hits": 0.0,
+        "epsilon": 0.5,
+        "eta_map": "eta=1/(2*epsilon) for exp(-0.5*||x-y||^2/epsilon)",
+        "factor_shapes": {
+          "A_inv": [
+            1,
+            2,
+            2
+          ],
+          "V": [
+            1,
+            32,
+            2
+          ],
+          "scaling_u": [
+            1,
+            32
+          ],
+          "scaling_v": [
+            1,
+            32
+          ]
+        },
+        "finite_factors": true,
+        "finite_particles": true,
+        "iterations_used": 3,
+        "landmark_indices": [
+          0,
+          31
+        ],
+        "landmark_rule": "deterministic_evenly_spaced_indices",
+        "mathematical_object": "approximate_kernel_nystrom_transport",
+        "max_column_residual": 1.1102230246251565e-16,
+        "max_factor_diag_error": 0.625126004697974,
+        "max_iterations": 160,
+        "max_row_residual": 2.9893476441111844e-05,
+        "min_factor_diagonal": 0.37487399530202603,
+        "min_kernel_denominator": 0.8652752044745279,
+        "nonclaims": [
+          "experimental scalable OT candidate only",
+          "no speedup claim",
+          "no ranking claim",
+          "no production default change",
+          "no posterior correctness claim"
+        ],
+        "not_materialized_reason": "kernel_factors_nonmaterialized",
+        "orientation": "source_rows_target_columns",
+        "rank": 2,
+        "reg_sigma_map": "sigma=sqrt(epsilon) for POT exp(-dist/(2*sigma^2)) convention",
+        "semantic_class": "approximate_kernel",
+        "source_route": "fixed_hmc_adaptation",
+        "source_route_components": {
+          "cholesky_jitter": "fixed_hmc_adaptation",
+          "deterministic_landmarks": "fixed_hmc_adaptation",
+          "filterflow_cost_scaling_adapter": "fixed_hmc_adaptation",
+          "low_rank_scaling": "source_faithful",
+          "nystrom_factors": "source_faithful"
+        },
+        "source_status": "source_locked",
+        "transport_matrix_materialized": false,
+        "transport_object_kind": "kernel_factors"
+      },
+      "factor_shapes": {
+        "A_inv": [
+          1,
+          2,
+          2
+        ],
+        "V": [
+          1,
+          32,
+          2
+        ],
+        "scaling_u": [
+          1,
+          32
+        ],
+        "scaling_v": [
+          1,
+          32
+        ]
+      },
+      "finite_factors": true,
+      "finite_particles": true,
+      "fixture": "high_dim_low_rank",
+      "hard_vetoes": [
+        "dense_reference_max_error_threshold"
+      ],
+      "landmark_indices": [
+        0,
+        31
+      ],
+      "max_column_residual": 1.1102230246251565e-16,
+      "max_row_residual": 2.9893476441111844e-05,
+      "memory_maxrss_kb_explanatory": 515872,
+      "particles_shape": [
+        1,
+        32,
+        32
+      ],
+      "rank": 2,
+      "status": "FAIL",
+      "transport_matrix_materialized": false,
+      "transport_matrix_shape": [
+        1,
+        0,
+        0
+      ],
+      "transport_object_kind": "kernel_factors",
+      "wall_time_seconds_explanatory": 0.01163927000015974
+    },
+    {
+      "dense_reference_max_abs_particle_error": 0.005010762618737341,
+      "dense_reference_rms_particle_error": 0.0014989090383905179,
+      "diagnostics": {
+        "backend": "tensorflow",
+        "cholesky_jitter": 1e-08,
+        "component_id": "fixed_rank_nystrom_transport_tf",
+        "convergence_threshold": 0.0001,
+        "denominator_floor": 1e-30,
+        "denominator_floor_hits": 0.0,
+        "epsilon": 0.5,
+        "eta_map": "eta=1/(2*epsilon) for exp(-0.5*||x-y||^2/epsilon)",
+        "factor_shapes": {
+          "A_inv": [
+            1,
+            4,
+            4
+          ],
+          "V": [
+            1,
+            32,
+            4
+          ],
+          "scaling_u": [
+            1,
+            32
+          ],
+          "scaling_v": [
+            1,
+            32
+          ]
+        },
+        "finite_factors": true,
+        "finite_particles": true,
+        "iterations_used": 4,
+        "landmark_indices": [
+          0,
+          10,
+          21,
+          31
+        ],
+        "landmark_rule": "deterministic_evenly_spaced_indices",
+        "mathematical_object": "approximate_kernel_nystrom_transport",
+        "max_column_residual": 2.220446049250313e-16,
+        "max_factor_diag_error": 0.07795897425769693,
+        "max_iterations": 160,
+        "max_row_residual": 4.383282823938739e-05,
+        "min_factor_diagonal": 0.9220410257423031,
+        "min_kernel_denominator": 0.8454627951867242,
+        "nonclaims": [
+          "experimental scalable OT candidate only",
+          "no speedup claim",
+          "no ranking claim",
+          "no production default change",
+          "no posterior correctness claim"
+        ],
+        "not_materialized_reason": "kernel_factors_nonmaterialized",
+        "orientation": "source_rows_target_columns",
+        "rank": 4,
+        "reg_sigma_map": "sigma=sqrt(epsilon) for POT exp(-dist/(2*sigma^2)) convention",
+        "semantic_class": "approximate_kernel",
+        "source_route": "fixed_hmc_adaptation",
+        "source_route_components": {
+          "cholesky_jitter": "fixed_hmc_adaptation",
+          "deterministic_landmarks": "fixed_hmc_adaptation",
+          "filterflow_cost_scaling_adapter": "fixed_hmc_adaptation",
+          "low_rank_scaling": "source_faithful",
+          "nystrom_factors": "source_faithful"
+        },
+        "source_status": "source_locked",
+        "transport_matrix_materialized": false,
+        "transport_object_kind": "kernel_factors"
+      },
+      "factor_shapes": {
+        "A_inv": [
+          1,
+          4,
+          4
+        ],
+        "V": [
+          1,
+          32,
+          4
+        ],
+        "scaling_u": [
+          1,
+          32
+        ],
+        "scaling_v": [
+          1,
+          32
+        ]
+      },
+      "finite_factors": true,
+      "finite_particles": true,
+      "fixture": "high_dim_low_rank",
+      "hard_vetoes": [],
+      "landmark_indices": [
+        0,
+        10,
+        21,
+        31
+      ],
+      "max_column_residual": 2.220446049250313e-16,
+      "max_row_residual": 4.383282823938739e-05,
+      "memory_maxrss_kb_explanatory": 515872,
+      "particles_shape": [
+        1,
+        32,
+        32
+      ],
+      "rank": 4,
+      "status": "PASS",
+      "transport_matrix_materialized": false,
+      "transport_matrix_shape": [
+        1,
+        0,
+        0
+      ],
+      "transport_object_kind": "kernel_factors",
+      "wall_time_seconds_explanatory": 0.011927329003810883
+    },
+    {
+      "dense_reference_max_abs_particle_error": 8.37116401308513e-05,
+      "dense_reference_rms_particle_error": 2.109209611847634e-05,
+      "diagnostics": {
+        "backend": "tensorflow",
+        "cholesky_jitter": 1e-08,
+        "component_id": "fixed_rank_nystrom_transport_tf",
+        "convergence_threshold": 0.0001,
+        "denominator_floor": 1e-30,
+        "denominator_floor_hits": 0.0,
+        "epsilon": 0.5,
+        "eta_map": "eta=1/(2*epsilon) for exp(-0.5*||x-y||^2/epsilon)",
+        "factor_shapes": {
+          "A_inv": [
+            1,
+            8,
+            8
+          ],
+          "V": [
+            1,
+            32,
+            8
+          ],
+          "scaling_u": [
+            1,
+            32
+          ],
+          "scaling_v": [
+            1,
+            32
+          ]
+        },
+        "finite_factors": true,
+        "finite_particles": true,
+        "iterations_used": 4,
+        "landmark_indices": [
+          0,
+          4,
+          9,
+          13,
+          18,
+          22,
+          27,
+          31
+        ],
+        "landmark_rule": "deterministic_evenly_spaced_indices",
+        "mathematical_object": "approximate_kernel_nystrom_transport",
+        "max_column_residual": 0.0,
+        "max_factor_diag_error": 0.0008551773051977962,
+        "max_iterations": 160,
+        "max_row_residual": 4.9666325111941134e-05,
+        "min_factor_diagonal": 0.9991448226948022,
+        "min_kernel_denominator": 0.841766490874635,
+        "nonclaims": [
+          "experimental scalable OT candidate only",
+          "no speedup claim",
+          "no ranking claim",
+          "no production default change",
+          "no posterior correctness claim"
+        ],
+        "not_materialized_reason": "kernel_factors_nonmaterialized",
+        "orientation": "source_rows_target_columns",
+        "rank": 8,
+        "reg_sigma_map": "sigma=sqrt(epsilon) for POT exp(-dist/(2*sigma^2)) convention",
+        "semantic_class": "approximate_kernel",
+        "source_route": "fixed_hmc_adaptation",
+        "source_route_components": {
+          "cholesky_jitter": "fixed_hmc_adaptation",
+          "deterministic_landmarks": "fixed_hmc_adaptation",
+          "filterflow_cost_scaling_adapter": "fixed_hmc_adaptation",
+          "low_rank_scaling": "source_faithful",
+          "nystrom_factors": "source_faithful"
+        },
+        "source_status": "source_locked",
+        "transport_matrix_materialized": false,
+        "transport_object_kind": "kernel_factors"
+      },
+      "factor_shapes": {
+        "A_inv": [
+          1,
+          8,
+          8
+        ],
+        "V": [
+          1,
+          32,
+          8
+        ],
+        "scaling_u": [
+          1,
+          32
+        ],
+        "scaling_v": [
+          1,
+          32
+        ]
+      },
+      "finite_factors": true,
+      "finite_particles": true,
+      "fixture": "high_dim_low_rank",
+      "hard_vetoes": [],
+      "landmark_indices": [
+        0,
+        4,
+        9,
+        13,
+        18,
+        22,
+        27,
+        31
+      ],
+      "max_column_residual": 0.0,
+      "max_row_residual": 4.9666325111941134e-05,
+      "memory_maxrss_kb_explanatory": 515872,
+      "particles_shape": [
+        1,
+        32,
+        32
+      ],
+      "rank": 8,
+      "status": "PASS",
+      "transport_matrix_materialized": false,
+      "transport_matrix_shape": [
+        1,
+        0,
+        0
+      ],
+      "transport_object_kind": "kernel_factors",
+      "wall_time_seconds_explanatory": 0.011988468002527952
+    },
+    {
+      "dense_reference_max_abs_particle_error": 7.080026602812595e-05,
+      "dense_reference_rms_particle_error": 1.9292644296265673e-05,
+      "diagnostics": {
+        "backend": "tensorflow",
+        "cholesky_jitter": 1e-08,
+        "component_id": "fixed_rank_nystrom_transport_tf",
+        "convergence_threshold": 0.0001,
+        "denominator_floor": 1e-30,
+        "denominator_floor_hits": 0.0,
+        "epsilon": 0.5,
+        "eta_map": "eta=1/(2*epsilon) for exp(-0.5*||x-y||^2/epsilon)",
+        "factor_shapes": {
+          "A_inv": [
+            1,
+            16,
+            16
+          ],
+          "V": [
+            1,
+            32,
+            16
+          ],
+          "scaling_u": [
+            1,
+            32
+          ],
+          "scaling_v": [
+            1,
+            32
+          ]
+        },
+        "finite_factors": true,
+        "finite_particles": true,
+        "iterations_used": 4,
+        "landmark_indices": [
+          0,
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          17,
+          19,
+          21,
+          23,
+          25,
+          27,
+          29,
+          31
+        ],
+        "landmark_rule": "deterministic_evenly_spaced_indices",
+        "mathematical_object": "approximate_kernel_nystrom_transport",
+        "max_column_residual": 0.0,
+        "max_factor_diag_error": 3.274772057970665e-07,
+        "max_iterations": 160,
+        "max_row_residual": 4.9690458262974246e-05,
+        "min_factor_diagonal": 0.9999996725227942,
+        "min_kernel_denominator": 0.8417609680042077,
+        "nonclaims": [
+          "experimental scalable OT candidate only",
+          "no speedup claim",
+          "no ranking claim",
+          "no production default change",
+          "no posterior correctness claim"
+        ],
+        "not_materialized_reason": "kernel_factors_nonmaterialized",
+        "orientation": "source_rows_target_columns",
+        "rank": 16,
+        "reg_sigma_map": "sigma=sqrt(epsilon) for POT exp(-dist/(2*sigma^2)) convention",
+        "semantic_class": "approximate_kernel",
+        "source_route": "fixed_hmc_adaptation",
+        "source_route_components": {
+          "cholesky_jitter": "fixed_hmc_adaptation",
+          "deterministic_landmarks": "fixed_hmc_adaptation",
+          "filterflow_cost_scaling_adapter": "fixed_hmc_adaptation",
+          "low_rank_scaling": "source_faithful",
+          "nystrom_factors": "source_faithful"
+        },
+        "source_status": "source_locked",
+        "transport_matrix_materialized": false,
+        "transport_object_kind": "kernel_factors"
+      },
+      "factor_shapes": {
+        "A_inv": [
+          1,
+          16,
+          16
+        ],
+        "V": [
+          1,
+          32,
+          16
+        ],
+        "scaling_u": [
+          1,
+          32
+        ],
+        "scaling_v": [
+          1,
+          32
+        ]
+      },
+      "finite_factors": true,
+      "finite_particles": true,
+      "fixture": "high_dim_low_rank",
+      "hard_vetoes": [],
+      "landmark_indices": [
+        0,
+        2,
+        4,
+        6,
+        8,
+        10,
+        12,
+        14,
+        17,
+        19,
+        21,
+        23,
+        25,
+        27,
+        29,
+        31
+      ],
+      "max_column_residual": 0.0,
+      "max_row_residual": 4.9690458262974246e-05,
+      "memory_maxrss_kb_explanatory": 515872,
+      "particles_shape": [
+        1,
+        32,
+        32
+      ],
+      "rank": 16,
+      "status": "PASS",
+      "transport_matrix_materialized": false,
+      "transport_matrix_shape": [
+        1,
+        0,
+        0
+      ],
+      "transport_object_kind": "kernel_factors",
+      "wall_time_seconds_explanatory": 0.011923528043553233
+    },
+    {
+      "dense_reference_max_abs_particle_error": 7.080342960219532e-05,
+      "dense_reference_rms_particle_error": 1.9292050204601995e-05,
+      "diagnostics": {
+        "backend": "tensorflow",
+        "cholesky_jitter": 1e-08,
+        "component_id": "fixed_rank_nystrom_transport_tf",
+        "convergence_threshold": 0.0001,
+        "denominator_floor": 1e-30,
+        "denominator_floor_hits": 0.0,
+        "epsilon": 0.5,
+        "eta_map": "eta=1/(2*epsilon) for exp(-0.5*||x-y||^2/epsilon)",
+        "factor_shapes": {
+          "A_inv": [
+            1,
+            32,
+            32
+          ],
+          "V": [
+            1,
+            32,
+            32
+          ],
+          "scaling_u": [
+            1,
+            32
+          ],
+          "scaling_v": [
+            1,
+            32
+          ]
+        },
+        "finite_factors": true,
+        "finite_particles": true,
+        "iterations_used": 4,
+        "landmark_indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31
+        ],
+        "landmark_rule": "deterministic_evenly_spaced_indices",
+        "mathematical_object": "approximate_kernel_nystrom_transport",
+        "max_column_residual": 1.1102230246251565e-16,
+        "max_factor_diag_error": 3.964866279737578e-08,
+        "max_iterations": 160,
+        "max_row_residual": 4.9603402864750734e-05,
+        "min_factor_diagonal": 0.9999999694726954,
+        "min_kernel_denominator": 0.841761136462653,
+        "nonclaims": [
+          "experimental scalable OT candidate only",
+          "no speedup claim",
+          "no ranking claim",
+          "no production default change",
+          "no posterior correctness claim"
+        ],
+        "not_materialized_reason": "kernel_factors_nonmaterialized",
+        "orientation": "source_rows_target_columns",
+        "rank": 32,
+        "reg_sigma_map": "sigma=sqrt(epsilon) for POT exp(-dist/(2*sigma^2)) convention",
+        "semantic_class": "approximate_kernel",
+        "source_route": "fixed_hmc_adaptation",
+        "source_route_components": {
+          "cholesky_jitter": "fixed_hmc_adaptation",
+          "deterministic_landmarks": "fixed_hmc_adaptation",
+          "filterflow_cost_scaling_adapter": "fixed_hmc_adaptation",
+          "low_rank_scaling": "source_faithful",
+          "nystrom_factors": "source_faithful"
+        },
+        "source_status": "source_locked",
+        "transport_matrix_materialized": false,
+        "transport_object_kind": "kernel_factors"
+      },
+      "factor_shapes": {
+        "A_inv": [
+          1,
+          32,
+          32
+        ],
+        "V": [
+          1,
+          32,
+          32
+        ],
+        "scaling_u": [
+          1,
+          32
+        ],
+        "scaling_v": [
+          1,
+          32
+        ]
+      },
+      "finite_factors": true,
+      "finite_particles": true,
+      "fixture": "high_dim_low_rank",
+      "hard_vetoes": [],
+      "landmark_indices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "max_column_residual": 1.1102230246251565e-16,
+      "max_row_residual": 4.9603402864750734e-05,
+      "memory_maxrss_kb_explanatory": 515872,
+      "particles_shape": [
+        1,
+        32,
+        32
+      ],
+      "rank": 32,
+      "status": "PASS",
+      "transport_matrix_materialized": false,
+      "transport_matrix_shape": [
+        1,
+        0,
+        0
+      ],
+      "transport_object_kind": "kernel_factors",
+      "wall_time_seconds_explanatory": 0.012081338092684746
+    },
+    {
+      "dense_reference_max_abs_particle_error": 0.05964056912650698,
+      "dense_reference_rms_particle_error": 0.018561042314718168,
+      "diagnostics": {
+        "backend": "tensorflow",
+        "cholesky_jitter": 1e-08,
+        "component_id": "fixed_rank_nystrom_transport_tf",
+        "convergence_threshold": 0.0001,
+        "denominator_floor": 1e-30,
+        "denominator_floor_hits": 0.0,
+        "epsilon": 0.5,
+        "eta_map": "eta=1/(2*epsilon) for exp(-0.5*||x-y||^2/epsilon)",
+        "factor_shapes": {
+          "A_inv": [
+            1,
+            4,
+            4
+          ],
+          "V": [
+            1,
+            32,
+            4
+          ],
+          "scaling_u": [
+            1,
+            32
+          ],
+          "scaling_v": [
+            1,
+            32
+          ]
+        },
+        "finite_factors": true,
+        "finite_particles": true,
+        "iterations_used": 9,
+        "landmark_indices": [
+          0,
+          10,
+          21,
+          31
+        ],
+        "landmark_rule": "deterministic_evenly_spaced_indices",
+        "mathematical_object": "approximate_kernel_nystrom_transport",
+        "max_column_residual": 1.1102230246251565e-16,
+        "max_factor_diag_error": 0.6573208250988449,
+        "max_iterations": 160,
+        "max_row_residual": 6.0194807598890065e-05,
+        "min_factor_diagonal": 0.34267917490115507,
+        "min_kernel_denominator": 0.5222172819472987,
+        "nonclaims": [
+          "experimental scalable OT candidate only",
+          "no speedup claim",
+          "no ranking claim",
+          "no production default change",
+          "no posterior correctness claim"
+        ],
+        "not_materialized_reason": "kernel_factors_nonmaterialized",
+        "orientation": "source_rows_target_columns",
+        "rank": 4,
+        "reg_sigma_map": "sigma=sqrt(epsilon) for POT exp(-dist/(2*sigma^2)) convention",
+        "semantic_class": "approximate_kernel",
+        "source_route": "fixed_hmc_adaptation",
+        "source_route_components": {
+          "cholesky_jitter": "fixed_hmc_adaptation",
+          "deterministic_landmarks": "fixed_hmc_adaptation",
+          "filterflow_cost_scaling_adapter": "fixed_hmc_adaptation",
+          "low_rank_scaling": "source_faithful",
+          "nystrom_factors": "source_faithful"
+        },
+        "source_status": "source_locked",
+        "transport_matrix_materialized": false,
+        "transport_object_kind": "kernel_factors"
+      },
+      "factor_shapes": {
+        "A_inv": [
+          1,
+          4,
+          4
+        ],
+        "V": [
+          1,
+          32,
+          4
+        ],
+        "scaling_u": [
+          1,
+          32
+        ],
+        "scaling_v": [
+          1,
+          32
+        ]
+      },
+      "finite_factors": true,
+      "finite_particles": true,
+      "fixture": "ledh_specific_smoke",
+      "hard_vetoes": [],
+      "landmark_indices": [
+        0,
+        10,
+        21,
+        31
+      ],
+      "max_column_residual": 1.1102230246251565e-16,
+      "max_row_residual": 6.0194807598890065e-05,
+      "memory_maxrss_kb_explanatory": 519968,
+      "particles_shape": [
+        1,
+        32,
+        12
+      ],
+      "rank": 4,
+      "status": "PASS",
+      "transport_matrix_materialized": false,
+      "transport_matrix_shape": [
+        1,
+        0,
+        0
+      ],
+      "transport_object_kind": "kernel_factors",
+      "wall_time_seconds_explanatory": 0.019067357061430812
+    },
+    {
+      "dense_reference_max_abs_particle_error": 0.016749752181481226,
+      "dense_reference_rms_particle_error": 0.0036999039283321564,
+      "diagnostics": {
+        "backend": "tensorflow",
+        "cholesky_jitter": 1e-08,
+        "component_id": "fixed_rank_nystrom_transport_tf",
+        "convergence_threshold": 0.0001,
+        "denominator_floor": 1e-30,
+        "denominator_floor_hits": 0.0,
+        "epsilon": 0.5,
+        "eta_map": "eta=1/(2*epsilon) for exp(-0.5*||x-y||^2/epsilon)",
+        "factor_shapes": {
+          "A_inv": [
+            1,
+            8,
+            8
+          ],
+          "V": [
+            1,
+            32,
+            8
+          ],
+          "scaling_u": [
+            1,
+            32
+          ],
+          "scaling_v": [
+            1,
+            32
+          ]
+        },
+        "finite_factors": true,
+        "finite_particles": true,
+        "iterations_used": 9,
+        "landmark_indices": [
+          0,
+          4,
+          9,
+          13,
+          18,
+          22,
+          27,
+          31
+        ],
+        "landmark_rule": "deterministic_evenly_spaced_indices",
+        "mathematical_object": "approximate_kernel_nystrom_transport",
+        "max_column_residual": 2.220446049250313e-16,
+        "max_factor_diag_error": 0.07096081179408853,
+        "max_iterations": 160,
+        "max_row_residual": 8.65669471270536e-05,
+        "min_factor_diagonal": 0.9290391882059115,
+        "min_kernel_denominator": 0.4249647326513359,
+        "nonclaims": [
+          "experimental scalable OT candidate only",
+          "no speedup claim",
+          "no ranking claim",
+          "no production default change",
+          "no posterior correctness claim"
+        ],
+        "not_materialized_reason": "kernel_factors_nonmaterialized",
+        "orientation": "source_rows_target_columns",
+        "rank": 8,
+        "reg_sigma_map": "sigma=sqrt(epsilon) for POT exp(-dist/(2*sigma^2)) convention",
+        "semantic_class": "approximate_kernel",
+        "source_route": "fixed_hmc_adaptation",
+        "source_route_components": {
+          "cholesky_jitter": "fixed_hmc_adaptation",
+          "deterministic_landmarks": "fixed_hmc_adaptation",
+          "filterflow_cost_scaling_adapter": "fixed_hmc_adaptation",
+          "low_rank_scaling": "source_faithful",
+          "nystrom_factors": "source_faithful"
+        },
+        "source_status": "source_locked",
+        "transport_matrix_materialized": false,
+        "transport_object_kind": "kernel_factors"
+      },
+      "factor_shapes": {
+        "A_inv": [
+          1,
+          8,
+          8
+        ],
+        "V": [
+          1,
+          32,
+          8
+        ],
+        "scaling_u": [
+          1,
+          32
+        ],
+        "scaling_v": [
+          1,
+          32
+        ]
+      },
+      "finite_factors": true,
+      "finite_particles": true,
+      "fixture": "ledh_specific_smoke",
+      "hard_vetoes": [],
+      "landmark_indices": [
+        0,
+        4,
+        9,
+        13,
+        18,
+        22,
+        27,
+        31
+      ],
+      "max_column_residual": 2.220446049250313e-16,
+      "max_row_residual": 8.65669471270536e-05,
+      "memory_maxrss_kb_explanatory": 519968,
+      "particles_shape": [
+        1,
+        32,
+        12
+      ],
+      "rank": 8,
+      "status": "PASS",
+      "transport_matrix_materialized": false,
+      "transport_matrix_shape": [
+        1,
+        0,
+        0
+      ],
+      "transport_object_kind": "kernel_factors",
+      "wall_time_seconds_explanatory": 0.020200002007186413
+    },
+    {
+      "dense_reference_max_abs_particle_error": 0.013161355498723215,
+      "dense_reference_rms_particle_error": 0.002562981632898809,
+      "diagnostics": {
+        "backend": "tensorflow",
+        "cholesky_jitter": 1e-08,
+        "component_id": "fixed_rank_nystrom_transport_tf",
+        "convergence_threshold": 0.0001,
+        "denominator_floor": 1e-30,
+        "denominator_floor_hits": 0.0,
+        "epsilon": 0.5,
+        "eta_map": "eta=1/(2*epsilon) for exp(-0.5*||x-y||^2/epsilon)",
+        "factor_shapes": {
+          "A_inv": [
+            1,
+            16,
+            16
+          ],
+          "V": [
+            1,
+            32,
+            16
+          ],
+          "scaling_u": [
+            1,
+            32
+          ],
+          "scaling_v": [
+            1,
+            32
+          ]
+        },
+        "finite_factors": true,
+        "finite_particles": true,
+        "iterations_used": 9,
+        "landmark_indices": [
+          0,
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          17,
+          19,
+          21,
+          23,
+          25,
+          27,
+          29,
+          31
+        ],
+        "landmark_rule": "deterministic_evenly_spaced_indices",
+        "mathematical_object": "approximate_kernel_nystrom_transport",
+        "max_column_residual": 2.220446049250313e-16,
+        "max_factor_diag_error": 0.001315421198822997,
+        "max_iterations": 160,
+        "max_row_residual": 8.937221444971222e-05,
+        "min_factor_diagonal": 0.998684578801177,
+        "min_kernel_denominator": 0.42311254084174166,
+        "nonclaims": [
+          "experimental scalable OT candidate only",
+          "no speedup claim",
+          "no ranking claim",
+          "no production default change",
+          "no posterior correctness claim"
+        ],
+        "not_materialized_reason": "kernel_factors_nonmaterialized",
+        "orientation": "source_rows_target_columns",
+        "rank": 16,
+        "reg_sigma_map": "sigma=sqrt(epsilon) for POT exp(-dist/(2*sigma^2)) convention",
+        "semantic_class": "approximate_kernel",
+        "source_route": "fixed_hmc_adaptation",
+        "source_route_components": {
+          "cholesky_jitter": "fixed_hmc_adaptation",
+          "deterministic_landmarks": "fixed_hmc_adaptation",
+          "filterflow_cost_scaling_adapter": "fixed_hmc_adaptation",
+          "low_rank_scaling": "source_faithful",
+          "nystrom_factors": "source_faithful"
+        },
+        "source_status": "source_locked",
+        "transport_matrix_materialized": false,
+        "transport_object_kind": "kernel_factors"
+      },
+      "factor_shapes": {
+        "A_inv": [
+          1,
+          16,
+          16
+        ],
+        "V": [
+          1,
+          32,
+          16
+        ],
+        "scaling_u": [
+          1,
+          32
+        ],
+        "scaling_v": [
+          1,
+          32
+        ]
+      },
+      "finite_factors": true,
+      "finite_particles": true,
+      "fixture": "ledh_specific_smoke",
+      "hard_vetoes": [],
+      "landmark_indices": [
+        0,
+        2,
+        4,
+        6,
+        8,
+        10,
+        12,
+        14,
+        17,
+        19,
+        21,
+        23,
+        25,
+        27,
+        29,
+        31
+      ],
+      "max_column_residual": 2.220446049250313e-16,
+      "max_row_residual": 8.937221444971222e-05,
+      "memory_maxrss_kb_explanatory": 519968,
+      "particles_shape": [
+        1,
+        32,
+        12
+      ],
+      "rank": 16,
+      "status": "PASS",
+      "transport_matrix_materialized": false,
+      "transport_matrix_shape": [
+        1,
+        0,
+        0
+      ],
+      "transport_object_kind": "kernel_factors",
+      "wall_time_seconds_explanatory": 0.02037930185906589
+    },
+    {
+      "dense_reference_max_abs_particle_error": 0.01316147673587198,
+      "dense_reference_rms_particle_error": 0.0025627606727071806,
+      "diagnostics": {
+        "backend": "tensorflow",
+        "cholesky_jitter": 1e-08,
+        "component_id": "fixed_rank_nystrom_transport_tf",
+        "convergence_threshold": 0.0001,
+        "denominator_floor": 1e-30,
+        "denominator_floor_hits": 0.0,
+        "epsilon": 0.5,
+        "eta_map": "eta=1/(2*epsilon) for exp(-0.5*||x-y||^2/epsilon)",
+        "factor_shapes": {
+          "A_inv": [
+            1,
+            32,
+            32
+          ],
+          "V": [
+            1,
+            32,
+            32
+          ],
+          "scaling_u": [
+            1,
+            32
+          ],
+          "scaling_v": [
+            1,
+            32
+          ]
+        },
+        "finite_factors": true,
+        "finite_particles": true,
+        "iterations_used": 9,
+        "landmark_indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31
+        ],
+        "landmark_rule": "deterministic_evenly_spaced_indices",
+        "mathematical_object": "approximate_kernel_nystrom_transport",
+        "max_column_residual": 2.220446049250313e-16,
+        "max_factor_diag_error": 1.4804320658257097e-08,
+        "max_iterations": 160,
+        "max_row_residual": 8.938865505481175e-05,
+        "min_factor_diagonal": 0.9999999851956793,
+        "min_kernel_denominator": 0.42311082082098467,
+        "nonclaims": [
+          "experimental scalable OT candidate only",
+          "no speedup claim",
+          "no ranking claim",
+          "no production default change",
+          "no posterior correctness claim"
+        ],
+        "not_materialized_reason": "kernel_factors_nonmaterialized",
+        "orientation": "source_rows_target_columns",
+        "rank": 32,
+        "reg_sigma_map": "sigma=sqrt(epsilon) for POT exp(-dist/(2*sigma^2)) convention",
+        "semantic_class": "approximate_kernel",
+        "source_route": "fixed_hmc_adaptation",
+        "source_route_components": {
+          "cholesky_jitter": "fixed_hmc_adaptation",
+          "deterministic_landmarks": "fixed_hmc_adaptation",
+          "filterflow_cost_scaling_adapter": "fixed_hmc_adaptation",
+          "low_rank_scaling": "source_faithful",
+          "nystrom_factors": "source_faithful"
+        },
+        "source_status": "source_locked",
+        "transport_matrix_materialized": false,
+        "transport_object_kind": "kernel_factors"
+      },
+      "factor_shapes": {
+        "A_inv": [
+          1,
+          32,
+          32
+        ],
+        "V": [
+          1,
+          32,
+          32
+        ],
+        "scaling_u": [
+          1,
+          32
+        ],
+        "scaling_v": [
+          1,
+          32
+        ]
+      },
+      "finite_factors": true,
+      "finite_particles": true,
+      "fixture": "ledh_specific_smoke",
+      "hard_vetoes": [],
+      "landmark_indices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "max_column_residual": 2.220446049250313e-16,
+      "max_row_residual": 8.938865505481175e-05,
+      "memory_maxrss_kb_explanatory": 519968,
+      "particles_shape": [
+        1,
+        32,
+        12
+      ],
+      "rank": 32,
+      "status": "PASS",
+      "transport_matrix_materialized": false,
+      "transport_matrix_shape": [
+        1,
+        0,
+        0
+      ],
+      "transport_object_kind": "kernel_factors",
+      "wall_time_seconds_explanatory": 0.024289244087412953
+    }
+  ],
+  "run_manifest": {
+    "artifact_paths": {
+      "json": "docs/benchmarks/scalable-ot-nystrom-ledh-pfpf-algorithm-complete-p02-small-reference-2026-06-21.json",
+      "markdown": "docs/benchmarks/scalable-ot-nystrom-ledh-pfpf-algorithm-complete-p02-small-reference-2026-06-21.md"
+    },
+    "command": "docs/benchmarks/scalable_ot_nystrom_ledh_pfpf_algorithm_complete.py --mode small-reference --device-scope cpu --output docs/benchmarks/scalable-ot-nystrom-ledh-pfpf-algorithm-complete-p02-small-reference-2026-06-21.json --markdown-output docs/benchmarks/scalable-ot-nystrom-ledh-pfpf-algorithm-complete-p02-small-reference-2026-06-21.md",
+    "cuda_visible_devices": "-1",
+    "device": "/CPU:0",
+    "device_scope": "cpu",
+    "dtype": "float64",
+    "ended_at": "2026-06-21T18:02:13.729698+00:00",
+    "git_commit": "5ea363e594516be236ca7c78ab2067b28a5b6eb5",
+    "git_status_short": "M bayesfilter/__init__.py\n M bayesfilter/inference/__init__.py\n M bayesfilter/inference/hmc.py\n M bayesfilter/inference/hmc_tuning.py\n M memory.md\n M tests/test_experimental_batched_benchmark_harness.py\n M tests/test_hmc_fixed_mass_step_tuning.py\n M tests/test_nonlinear_ssm_phase4_full_chain_hmc.py\n M tests/test_v1_public_api.py\n?? bayesfilter/inference/hmc_kernel_tuning.py\n?? docs/benchmarks/actual-sir-low-rank-route-validation-p01-compiled-core-check-2026-06-21.json\n?? docs/benchmarks/actual-sir-low-rank-route-validation-p01-compiled-core-check-2026-06-21.md\n?? docs/benchmarks/actual-sir-low-rank-route-validation-p01-harness-smoke-2026-06-21.json\n?? docs/benchmarks/actual-sir-low-rank-route-validation-p01-harness-smoke-2026-06-21.md\n?? docs/benchmarks/actual-sir-low-rank-route-validation-p03-gpu1-pilot-b1-t3-n128.json\n?? docs/benchmarks/actual-sir-low-rank-route-validation-p03-gpu1-pilot-b1-t3-n128.md\n?? docs/benchmarks/actual-sir-low-rank-route-validation-paired-gpu-2026-06-21-row-b5-t20-n1024.json\n?? docs/benchmarks/actual-sir-low-rank-route-validation-paired-gpu-2026-06-21-row-b5-t20-n1024.md\n?? docs/benchmarks/actual-sir-low-rank-route-validation-paired-gpu-2026-06-21.json\n?? docs/benchmarks/actual-sir-low-rank-route-validation-paired-gpu-2026-06-21.md\n?? docs/benchmarks/actual-sir-low-rank-route-validation-smoke-2026-06-21-row-b1-t20-n256.json\n?? docs/benchmarks/actual-sir-low-rank-route-validation-smoke-2026-06-21-row-b1-t20-n256.md\n?? docs/benchmarks/actual-sir-low-rank-route-validation-smoke-2026-06-21-row-b1-t3-n128.json\n?? docs/benchmarks/actual-sir-low-rank-route-validation-smoke-2026-06-21-row-b1-t3-n128.md\n?? docs/benchmarks/actual-sir-low-rank-route-validation-smoke-2026-06-21.json\n?? docs/benchmarks/actual-sir-low-rank-route-validation-smoke-2026-06-21.md\n?? docs/benchmarks/benchmark_actual_sir_low_rank_route_validation.py\n?? docs/benchmarks/compare_experimental_batched_ledh_pfpf_ot_streaming_quality.py\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-impact-p01-correctness-cpu-2026-06-20.json\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-impact-p01-correctness-cpu-2026-06-20.md\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-impact-p02-precision-gpu-2026-06-20.json\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-impact-p02-precision-gpu-2026-06-20.md\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-impact-p02-precision-gpu-children-2026-06-20/\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-impact-p03-target-gpu-2026-06-20.json\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-impact-p03-target-gpu-2026-06-20.md\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-impact-p05-hmc-mechanics-cpu-2026-06-20.json\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-impact-p05-hmc-mechanics-cpu-2026-06-20.md\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-2026-06-20.json\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-2026-06-20.md\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-default-quality-p02-medium-gpu-children-2026-06-20/\n?? docs/benchmarks/experimental-batched-ledh-pfpf-ot-large-particle-efficiency-p03-streaming-large-n-gpu-children-2026-06-21/\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-large-n-2026-06-21-row-low_rank-n100000.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-large-n-2026-06-21-row-low_rank-n100000.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-large-n-2026-06-21-row-low_rank-n50000.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-large-n-2026-06-21-row-low_rank-n50000.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-large-n-2026-06-21.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-large-n-2026-06-21.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n100000.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n100000.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n1024.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n1024.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n16384.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n16384.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n2048.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n2048.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n32768.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n32768.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n4096.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n4096.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n50000.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n50000.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n8192.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-low_rank-n8192.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n1024.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n1024.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n16384.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n16384.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n2048.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n2048.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n32768.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n32768.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n4096.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n4096.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n8192.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21-row-streaming-n8192.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-2026-06-21.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-pilot-2026-06-21.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-paired-gpu-pilot-2026-06-21.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-small-2026-06-21.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-efficiency-small-2026-06-21.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-integration-gpu-scale-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-integration-gpu-scale-2026-06-20.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-integration-medium-cpu-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-integration-medium-cpu-2026-06-20.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-integration-small-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-integration-small-2026-06-20.md\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-integration-tuning-cpu-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-ledh-pfpf-integration-tuning-cpu-2026-06-20.md\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-focused-tuning-cpu-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-focused-tuning-cpu-2026-06-20.md\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-gpu-scale-tuned-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-gpu-scale-tuned-2026-06-20.md\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-medium-cpu-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-medium-cpu-2026-06-20.md\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-medium-cpu-tuned-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-medium-cpu-tuned-2026-06-20.md\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-small-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-small-2026-06-20.md\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-tuning-cpu-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-tuning-cpu-2026-06-20.md\n?? docs/benchmarks/scalable-ot-nystrom-ledh-pfpf-algorithm-complete-p02-small-reference-2026-06-21.json\n?? docs/benchmarks/scalable-ot-nystrom-ledh-pfpf-algorithm-complete-p02-small-reference-2026-06-21.md\n?? docs/benchmarks/scalable_ot_low_rank_ledh_pfpf_efficiency.py\n?? docs/benchmarks/scalable_ot_low_rank_ledh_pfpf_integration_smoke.py\n?? docs/benchmarks/scalable_ot_low_rank_tf32_scale_smoke.py\n?? docs/benchmarks/scalable_ot_nystrom_ledh_pfpf_algorithm_complete.py\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-tuning-claude-review-ledger-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-tuning-master-program-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-tuning-p00-governance-result-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-tuning-p00-governance-subplan-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-tuning-p00-review-nonconvergence-blocker-result-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-tuning-p01-harness-grid-subplan-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-tuning-p02-tiny-smoke-subplan-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-tuning-p03-tuning-screen-subplan-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-tuning-p04-candidate-freeze-subplan-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-tuning-p05-heldout-support-subplan-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-tuning-p06-large-n-envelope-subplan-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-tuning-p07-closeout-subplan-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-tuning-restart-reset-memo-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-tuning-visible-execution-ledger-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-tuning-visible-gated-execution-runbook-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-tuning-visible-stop-handoff-2026-06-22.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-claude-review-ledger-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-master-program-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-p00-governance-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-p00-governance-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-p01-harness-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-p01-harness-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-p02-smoke-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-p02-smoke-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-p03-paired-ladder-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-p03-paired-ladder-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-p04-large-n-envelope-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-p04-large-n-envelope-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-p05-closeout-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-visible-execution-ledger-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-visible-gated-execution-runbook-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-actual-sir-low-rank-validation-visible-stop-handoff-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-claude-review-ledger-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-master-program-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p00-governance-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p00-governance-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p01-correctness-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p01-correctness-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p02-precision-gpu-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p02-precision-gpu-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p03-target-gpu-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p03-target-gpu-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p04-performance-memory-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p04-performance-memory-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p05-hmc-mechanics-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p05-hmc-mechanics-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-p06-closeout-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-visible-execution-ledger-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-visible-gated-execution-runbook-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-impact-test-visible-stop-handoff-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-claude-review-ledger-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-master-program-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-next-target-shape-repeated-stability-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-p00-governance-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-p00-governance-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-p01-harness-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-p01-harness-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-p02-medium-gpu-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-p02-medium-gpu-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-p03-closeout-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-visible-execution-ledger-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-visible-gated-execution-runbook-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-default-quality-validation-visible-stop-handoff-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-claude-review-ledger-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-master-program-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-p00-governance-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-p00-governance-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-p01-harness-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-p01-harness-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-p02-paired-gpu-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-p02-paired-gpu-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-p03-large-n-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-p03-large-n-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-p04-closeout-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-visible-execution-ledger-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-visible-gated-execution-plan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-efficiency-validation-visible-stop-handoff-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-claude-review-ledger-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-master-program-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p00-governance-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p00-governance-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p01-harness-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p01-harness-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p02-tuning-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p02-tuning-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p03-medium-cpu-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p03-medium-cpu-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p04-trusted-gpu-scale-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p04-trusted-gpu-scale-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-p05-closeout-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-visible-execution-ledger-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-visible-gated-execution-plan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-low-rank-filter-integration-scale-visible-stop-handoff-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-claude-review-ledger-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-master-program-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-p00-governance-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-p00-governance-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-p01-implementation-harness-result-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-p01-implementation-harness-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-p02-small-reference-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-p03-downstream-smoke-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-p04-gpu-scale-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-p05-closeout-subplan-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-reset-memo-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-visible-execution-ledger-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-visible-gated-execution-runbook-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-visible-stop-handoff-2026-06-21.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-claude-review-ledger-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-master-program-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p00-governance-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p00-governance-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p01-harness-invariants-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p01-harness-invariants-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p02-medium-cpu-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p02-medium-cpu-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p02a-tuning-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p02a-tuning-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p02b-focused-tuning-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p02b-focused-tuning-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p02c-medium-cpu-tuned-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p02c-medium-cpu-tuned-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p03-trusted-gpu-scale-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p03-trusted-gpu-scale-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p04-closeout-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-visible-execution-ledger-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-visible-gated-execution-plan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-visible-stop-handoff-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-two-lane-gpu-coordination-record-2026-06-21.md\n?? docs/plans/bayesfilter_hmc_fixed_mass_dual_averaging_xla_probe_result_2026_06_20.md\n?? docs/plans/bayesfilter_hmc_fixed_mass_dual_averaging_xla_probe_review_ledger_2026_06_20.md\n?? docs/plans/bayesfilter_hmc_fixed_mass_dual_averaging_xla_probe_subplan_2026_06_20.md\n?? docs/plans/bayesfilter_hmc_kernel_tuning_xla_parameter_repair_plan_2026_06_22.md\n?? docs/plans/bayesfilter_hmc_kernel_tuning_xla_parameter_repair_result_2026_06_22.md\n?? tests/test_actual_sir_low_rank_route_validation.py\n?? tests/test_hmc_kernel_tuning_bootstrap.py\n?? tests/test_hmc_kernel_tuning_fixed_mass_step.py\n?? tests/test_hmc_kernel_tuning_frozen_step_trajectory.py\n?? tests/test_hmc_kernel_tuning_geometry.py\n?? tests/test_hmc_kernel_tuning_outer_loop.py\n?? tests/test_hmc_kernel_tuning_public_api.py\n?? tests/test_hmc_kernel_tuning_windowed_mass.py\n?? tests/test_low_rank_ledh_pfpf_efficiency.py\n?? tests/test_low_rank_ledh_pfpf_integration_smoke.py\n?? tests/test_low_rank_tf32_scale_smoke.py\n?? tests/test_nystrom_ledh_pfpf_algorithm_complete.py",
+    "logical_gpus": [],
+    "phase_result_path": "docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-p02-small-reference-result-2026-06-21.md",
+    "physical_gpus": [],
+    "plan_path": "docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-master-program-2026-06-21.md",
+    "platform": "Linux-6.8.0-111-generic-x86_64-with-glibc2.35",
+    "python_executable": "/home/ubuntu/anaconda3/envs/tfgpu/bin/python",
+    "python_version": "3.13.13 | packaged by Anaconda, Inc. | (main, Apr 14 2026, 06:19:41) [GCC 14.3.0]",
+    "seed": 20260621,
+    "started_at": "2026-06-21T18:02:11.623434+00:00",
+    "tensorflow_probability_version": "0.25.0",
+    "tensorflow_version": "2.20.0",
+    "tf32_execution_recorded": false,
+    "tf32_requested": "disabled",
+    "tf_dtype": "float64",
+    "trust_context": "cpu_hidden_local",
+    "wall_time_seconds": 2.106267180060968,
+    "working_directory": "/home/ubuntu/python/BayesFilter"
+  },
+  "semantic_class": "approximate_kernel",
+  "source_route": "fixed_hmc_adaptation",
+  "source_route_components": {
+    "cholesky_jitter": "fixed_hmc_adaptation",
+    "deterministic_landmarks": "fixed_hmc_adaptation",
+    "filterflow_cost_scaling_adapter": "fixed_hmc_adaptation",
+    "low_rank_scaling": "source_faithful",
+    "nystrom_factors": "source_faithful"
+  },
+  "status": "PASS",
+  "summary": {
+    "max_column_residual": 2.220446049250313e-16,
+    "max_dense_reference_particle_error": 0.08564275772586204,
+    "max_dense_reference_rms_error": 0.026235230425731913,
+    "max_memory_maxrss_kb_explanatory": 519968,
+    "max_output_log_weight_normalization_residual": null,
+    "max_row_residual": 9.902792837324093e-05,
+    "min_ess_fraction": null,
+    "num_hard_vetoes": 0,
+    "num_passed_rows": 14,
+    "num_rows": 15,
+    "total_wall_time_seconds_explanatory": 2.106267180060968
+  },
+  "thresholds": {
+    "dense_reference_max_abs_particle_error": 0.075,
+    "dense_reference_rms_particle_error": 0.03,
+    "ess_fraction_min": 0.01,
+    "output_log_weight_normalization": 1e-06,
+    "p04_phase_timeout_seconds": 7200,
+    "p04_row_timeout_seconds": 1200,
+    "row_column_residual": 0.05
+  },
+  "transport_matrix_materialized": false,
+  "transport_object_kind": "kernel_factors"
+}

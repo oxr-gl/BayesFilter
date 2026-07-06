@@ -96,4 +96,3 @@ or
 ```text
 VERDICT: REVISE
 ```
-

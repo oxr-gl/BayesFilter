@@ -57,6 +57,7 @@ def test_existing_v1_public_api_symbols_preserved():
         "pointwise_deterministic_residuals",
         "affine_structural_to_linear_gaussian_tf",
         "make_affine_structural_tf",
+        "tf_batched_svd_sigma_point_value_and_score_custom_gradient",
         "tf_svd_sigma_point_log_likelihood",
         "tf_svd_sigma_point_log_likelihood_with_rule",
         "tf_svd_sigma_point_filter",

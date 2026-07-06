@@ -110,4 +110,3 @@ requested row:
 - value status;
 - score status;
 - planned total-derivative score admission artifact or `blocked_score`.
-

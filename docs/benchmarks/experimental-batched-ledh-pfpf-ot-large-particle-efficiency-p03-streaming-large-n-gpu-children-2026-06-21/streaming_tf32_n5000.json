@@ -1,0 +1,118 @@
+{
+  "compile_and_first_call_seconds": 23.795230532065034,
+  "compiled_unit": "streaming_batched_ledh_pfpf_ot_lgssm_value",
+  "cuda_visible_devices": "1",
+  "device": "/GPU:0",
+  "device_scope": "visible",
+  "ess_by_time_preview": [],
+  "expect_device_kind": "gpu",
+  "filtered_means_preview": [],
+  "filtered_variances_preview": [],
+  "finite_output": true,
+  "gpu_memory_info_after": {
+    "current": 822016,
+    "peak": 76401408
+  },
+  "gpu_memory_info_before": {
+    "current": 821760,
+    "peak": 821760
+  },
+  "history_shapes": {
+    "ess_by_time": [
+      0,
+      1
+    ],
+    "filtered_means": [
+      0,
+      1,
+      20
+    ],
+    "filtered_variances": [
+      0,
+      1,
+      20
+    ]
+  },
+  "host": "ubuntu-MZ72-HB2-00",
+  "jit_compile": true,
+  "log_likelihood_preview": [
+    327.6990661621094
+  ],
+  "logical_gpus": [
+    "LogicalDevice(name='/device:GPU:0', device_type='GPU')"
+  ],
+  "nonclaims": [
+    "single synthetic LGSSM-shaped fixture only",
+    "production/default target by owner directive",
+    "no CPU/GPU ranking claim",
+    "no posterior validity claim",
+    "no active transport gradient validation claim",
+    "no HMC readiness claim",
+    "streaming removes dense transport storage but not all-pairs OT compute"
+  ],
+  "output_devices": [
+    "/job:localhost/replica:0/task:0/device:GPU:0"
+  ],
+  "output_shape": [
+    1
+  ],
+  "particle_chunk_size": 256,
+  "physical_gpus": [
+    "PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')"
+  ],
+  "precision": {
+    "active_dtype": "float32",
+    "default_algorithm_target": "ledh_pfpf_ot_tf32",
+    "default_dtype": "float32",
+    "default_execution_target": "gpu",
+    "default_target_status": "production_default_by_owner_directive",
+    "default_tf32_mode": "enabled",
+    "dtype": "float32",
+    "fp64_reference_requires_explicit_dtype": true,
+    "historical_module_path": "experiments/dpf_implementation",
+    "precision_default_policy": "production_ledh_pfpf_ot_gpu_tf32",
+    "public_api_exposure": "separately_gated",
+    "scope": "production_ledh_pfpf_ot_gpu_tf32_default_lane",
+    "tf32_execution_enabled": true,
+    "tf32_mode": "enabled",
+    "tf_dtype": "float32"
+  },
+  "proposal_mode": "callback",
+  "python_version": "3.13.13",
+  "repeats": 1,
+  "return_history": false,
+  "seed": 20260621,
+  "shape": {
+    "batch_size": 1,
+    "num_particles": 5000,
+    "obs_dim": 20,
+    "state_dim": 20,
+    "time_steps": 80
+  },
+  "stores_full_pre_flow_particles": false,
+  "tensorflow_version": "2.20.0",
+  "timestamp_utc": "2026-06-20T20:36:43.127291+00:00",
+  "transport": {
+    "annealed_convergence_threshold": 0.001,
+    "annealed_scaling": 0.9,
+    "col_chunk_size": 1024,
+    "dense_transport_matrix_materialized": false,
+    "gradient_mode": "raw",
+    "plan_mode": "streaming",
+    "row_chunk_size": 1024,
+    "sinkhorn_epsilon": 0.5,
+    "sinkhorn_iterations": 4
+  },
+  "transport_policy": "active-all",
+  "warm_call_timing_summary_seconds": {
+    "max": 9.109395226929337,
+    "mean": 9.109395226929337,
+    "median": 9.109395226929337,
+    "min": 9.109395226929337
+  },
+  "warm_call_timings_seconds": [
+    9.109395226929337
+  ],
+  "warmstart_mode": "none",
+  "warmups": 0
+}

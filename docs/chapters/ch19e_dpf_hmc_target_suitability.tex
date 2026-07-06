@@ -258,11 +258,24 @@ categorical resampling.  The scalar value must specify the cost, entropy
 convention, regularization parameter, stopping tolerance, and whether the
 unrolled solver path or an implicit derivative is used.
 
+The scalable-OT survey sharpens the target-status split inside this rung.  Exact
+online or streamed Sinkhorn implementations can still belong to the same relaxed
+entropic target class if they preserve the same declared teacher object and the
+same executed scalar.  Their main changes are engineering changes in storage,
+blocking, or GPU execution, not changes in the target definition itself.  By
+contrast, factorized kernel routes, low-rank coupling routes, sliced/subspace
+transports, and localized/block transports should not all inherit that same
+status automatically.  Some remain best read as retained-teacher approximations,
+while others are better read as explicit new transport rules.
+
 For HMC, the target status is relaxed-target HMC when the accept/reject value
 and gradient both use the same EOT/Sinkhorn scalar.  Finite solver residuals,
 underflow handling, stabilization, and $\varepsilon$ sensitivity are target
 diagnostics, not mere implementation details.  A finite Sinkhorn layer does not
-become an exact categorical resampling layer because its gradient exists.
+become an exact categorical resampling layer because its gradient exists.  Nor
+does a faster implementation become a new target simply because its execution
+path is different, provided the same scalar and same transport object are still
+being evaluated.
 
 \subsection{Learned or amortized OT}
 
@@ -272,6 +285,17 @@ trained to imitate, accelerate, or residual-correct a transport teacher
 scalar value is then the learned scalar unless a correction evaluates the
 teacher or original target.  The gradient path is the derivative through the
 learned map and any explicitly retained teacher terms.
+
+The scalable-OT survey helps separate two cases that should not be conflated.
+Retained-teacher accelerators, such as warm-start predictors or other
+teacher-preserving approximations, may still be judged first against the same
+transport teacher object.  Their HMC burden is therefore to show that the value
+and gradient are consistent for the same learned-or-corrected scalar and that
+teacher-preservation residuals are understood on the tested envelope.  Broader
+transport learners, sliced or localized replacement rules, and dynamic/operator
+families do not even begin with that teacher-preservation presumption.  They are
+better read as learned or replacement targets unless a separate correction or
+error argument returns the chain to the teacher or original target.
 
 The target-status label must therefore be learned-surrogate HMC unless the
 implementation supplies a valid correction or an error analysis strong enough

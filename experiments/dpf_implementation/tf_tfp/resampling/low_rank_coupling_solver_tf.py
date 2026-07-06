@@ -10,7 +10,7 @@ claim of dense Sinkhorn equivalence or production/default readiness.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, NamedTuple
 
 import tensorflow as tf
 
@@ -30,7 +30,34 @@ class LowRankCouplingSolverTFResult:
     diagnostics: dict[str, Any]
 
 
-def low_rank_coupling_solver_resample_tf(
+class LowRankCouplingSolverTensorsTF(NamedTuple):
+    particles: tf.Tensor
+    log_weights: tf.Tensor
+    transport_matrix: tf.Tensor
+    q_factor: tf.Tensor
+    r_factor: tf.Tensor
+    g_weights: tf.Tensor
+    projection_iterations_used: tf.Tensor
+    max_q_row_residual: tf.Tensor
+    max_q_column_residual: tf.Tensor
+    max_r_row_residual: tf.Tensor
+    max_r_column_residual: tf.Tensor
+    max_factor_marginal_residual: tf.Tensor
+    max_induced_row_residual: tf.Tensor
+    max_induced_column_residual: tf.Tensor
+    projection_error: tf.Tensor
+    projection_floor_hits: tf.Tensor
+    projection_min_denominator: tf.Tensor
+    min_q: tf.Tensor
+    min_r: tf.Tensor
+    min_g: tf.Tensor
+    finite_factors: tf.Tensor
+    finite_particles: tf.Tensor
+    nonnegative_factors: tf.Tensor
+    positive_g: tf.Tensor
+
+
+def low_rank_coupling_solver_resample_tensors_tf(
     particles: tf.Tensor,
     log_weights: tf.Tensor,
     *,
@@ -40,8 +67,8 @@ def low_rank_coupling_solver_resample_tf(
     max_projection_iterations: int = 240,
     convergence_threshold: float = 1.0e-6,
     denominator_floor: float = 1.0e-30,
-) -> LowRankCouplingSolverTFResult:
-    """Apply a deterministic low-rank coupling solver-route diagnostic."""
+) -> LowRankCouplingSolverTensorsTF:
+    """Apply the deterministic low-rank coupling route with tensor outputs."""
 
     if rank <= 0:
         raise ValueError("rank must be positive")
@@ -71,8 +98,10 @@ def low_rank_coupling_solver_resample_tf(
     if int(x.shape[1] or 0) and rank > int(x.shape[1]):
         raise ValueError("rank must be <= particle count")
 
-    batch_size = tf.shape(x)[0]
-    num_particles = tf.shape(x)[1]
+    static_batch_size = int(x.shape[0] or 0)
+    static_num_particles = int(x.shape[1] or 0)
+    batch_size = static_batch_size if static_batch_size else tf.shape(x)[0]
+    num_particles = static_num_particles if static_num_particles else tf.shape(x)[1]
     if not int(x.shape[1] or 0):
         with tf.control_dependencies([
             tf.debugging.assert_less_equal(tf.cast(rank, tf.int32), num_particles, message="rank must be <= particle count")
@@ -142,6 +171,57 @@ def low_rank_coupling_solver_resample_tf(
     positive_g = tf.reduce_all(g_weights > 0.0)
     uniform_log = tf.fill([batch_size, num_particles], -tf.math.log(float_n))
     transport_matrix = tf.zeros([batch_size, 0, 0], dtype=DTYPE)
+    return LowRankCouplingSolverTensorsTF(
+        particles=transported[0] if original_particle_rank == 2 else transported,
+        log_weights=uniform_log[0] if original_weight_rank == 1 else uniform_log,
+        transport_matrix=transport_matrix[0] if original_particle_rank == 2 else transport_matrix,
+        q_factor=q_factor[0] if original_particle_rank == 2 else q_factor,
+        r_factor=r_factor[0] if original_particle_rank == 2 else r_factor,
+        g_weights=g_weights[0] if original_particle_rank == 2 else g_weights,
+        projection_iterations_used=projection_diag["iterations_used"],
+        max_q_row_residual=tf.cast(q_row_residual, DTYPE),
+        max_q_column_residual=tf.cast(q_col_residual, DTYPE),
+        max_r_row_residual=tf.cast(r_row_residual, DTYPE),
+        max_r_column_residual=tf.cast(r_col_residual, DTYPE),
+        max_factor_marginal_residual=tf.cast(factor_residual, DTYPE),
+        max_induced_row_residual=tf.cast(induced_row_residual, DTYPE),
+        max_induced_column_residual=tf.cast(induced_col_residual, DTYPE),
+        projection_error=tf.cast(projection_diag["projection_error"], DTYPE),
+        projection_floor_hits=tf.cast(projection_diag["floor_hits"], DTYPE),
+        projection_min_denominator=tf.cast(projection_diag["min_denominator"], DTYPE),
+        min_q=tf.cast(tf.reduce_min(q_factor), DTYPE),
+        min_r=tf.cast(tf.reduce_min(r_factor), DTYPE),
+        min_g=tf.cast(tf.reduce_min(g_weights), DTYPE),
+        finite_factors=finite_factors,
+        finite_particles=finite_particles,
+        nonnegative_factors=nonnegative_factors,
+        positive_g=positive_g,
+    )
+
+
+def low_rank_coupling_solver_resample_tf(
+    particles: tf.Tensor,
+    log_weights: tf.Tensor,
+    *,
+    rank: int,
+    assignment_epsilon: float = 0.5,
+    alpha: float = 1.0e-8,
+    max_projection_iterations: int = 240,
+    convergence_threshold: float = 1.0e-6,
+    denominator_floor: float = 1.0e-30,
+) -> LowRankCouplingSolverTFResult:
+    """Apply a deterministic low-rank coupling solver-route diagnostic."""
+
+    tensors = low_rank_coupling_solver_resample_tensors_tf(
+        particles,
+        log_weights,
+        rank=rank,
+        assignment_epsilon=assignment_epsilon,
+        alpha=alpha,
+        max_projection_iterations=max_projection_iterations,
+        convergence_threshold=convergence_threshold,
+        denominator_floor=denominator_floor,
+    )
     diagnostics = {
         "component_id": "low_rank_coupling_solver_tf",
         "mathematical_object": "low_rank_coupling_solver_route",
@@ -170,31 +250,31 @@ def low_rank_coupling_solver_resample_tf(
         "assignment_epsilon": float(assignment_epsilon),
         "alpha": float(alpha),
         "max_projection_iterations": int(max_projection_iterations),
-        "projection_iterations_used": int(projection_diag["iterations_used"].numpy()),
+        "projection_iterations_used": tensors.projection_iterations_used,
         "convergence_threshold": float(convergence_threshold),
         "denominator_floor": float(denominator_floor),
         "factor_shapes": {
-            "Q": q_factor.shape.as_list(),
-            "R": r_factor.shape.as_list(),
-            "g": g_weights.shape.as_list(),
+            "Q": tensors.q_factor.shape.as_list(),
+            "R": tensors.r_factor.shape.as_list(),
+            "g": tensors.g_weights.shape.as_list(),
         },
-        "max_q_row_residual": _float(q_row_residual),
-        "max_q_column_residual": _float(q_col_residual),
-        "max_r_row_residual": _float(r_row_residual),
-        "max_r_column_residual": _float(r_col_residual),
-        "max_factor_marginal_residual": _float(factor_residual),
-        "max_induced_row_residual": _float(induced_row_residual),
-        "max_induced_column_residual": _float(induced_col_residual),
-        "projection_error": _float(projection_diag["projection_error"]),
-        "projection_floor_hits": _float(projection_diag["floor_hits"]),
-        "projection_min_denominator": _float(projection_diag["min_denominator"]),
-        "min_q": _float(tf.reduce_min(q_factor)),
-        "min_r": _float(tf.reduce_min(r_factor)),
-        "min_g": _float(tf.reduce_min(g_weights)),
-        "finite_factors": bool(finite_factors.numpy()),
-        "finite_particles": bool(finite_particles.numpy()),
-        "nonnegative_factors": bool(nonnegative_factors.numpy()),
-        "positive_g": bool(positive_g.numpy()),
+        "max_q_row_residual": tensors.max_q_row_residual,
+        "max_q_column_residual": tensors.max_q_column_residual,
+        "max_r_row_residual": tensors.max_r_row_residual,
+        "max_r_column_residual": tensors.max_r_column_residual,
+        "max_factor_marginal_residual": tensors.max_factor_marginal_residual,
+        "max_induced_row_residual": tensors.max_induced_row_residual,
+        "max_induced_column_residual": tensors.max_induced_column_residual,
+        "projection_error": tensors.projection_error,
+        "projection_floor_hits": tensors.projection_floor_hits,
+        "projection_min_denominator": tensors.projection_min_denominator,
+        "min_q": tensors.min_q,
+        "min_r": tensors.min_r,
+        "min_g": tensors.min_g,
+        "finite_factors": tensors.finite_factors,
+        "finite_particles": tensors.finite_particles,
+        "nonnegative_factors": tensors.nonnegative_factors,
+        "positive_g": tensors.positive_g,
         "nonclaims": [
             "Agent C P12 solver-route diagnostic only",
             "semantic replacement, not dense Sinkhorn equivalence",
@@ -207,20 +287,13 @@ def low_rank_coupling_solver_resample_tf(
             "no public API readiness claim",
         ],
     }
-    if not diagnostics["finite_factors"] or not diagnostics["finite_particles"]:
-        raise FloatingPointError("low-rank solver route emitted non-finite values")
-    if not diagnostics["nonnegative_factors"]:
-        raise FloatingPointError("low-rank solver route emitted negative factors")
-    if not diagnostics["positive_g"]:
-        raise FloatingPointError("low-rank solver route emitted nonpositive g")
-
     return LowRankCouplingSolverTFResult(
-        particles=transported[0] if original_particle_rank == 2 else transported,
-        log_weights=uniform_log[0] if original_weight_rank == 1 else uniform_log,
-        transport_matrix=transport_matrix[0] if original_particle_rank == 2 else transport_matrix,
-        q_factor=q_factor[0] if original_particle_rank == 2 else q_factor,
-        r_factor=r_factor[0] if original_particle_rank == 2 else r_factor,
-        g_weights=g_weights[0] if original_particle_rank == 2 else g_weights,
+        particles=tensors.particles,
+        log_weights=tensors.log_weights,
+        transport_matrix=tensors.transport_matrix,
+        q_factor=tensors.q_factor,
+        r_factor=tensors.r_factor,
+        g_weights=tensors.g_weights,
         diagnostics=diagnostics,
     )
 
@@ -293,7 +366,45 @@ def _lr_dykstra_projection(
     r_factor = eps_r
     g = tf.maximum(eps_g, alpha)
 
-    for iteration in range(1, max_iterations + 1):
+    max_iterations_tensor = tf.constant(max_iterations, dtype=tf.int32)
+
+    def cond(
+        iteration: tf.Tensor,
+        _g_tilde: tf.Tensor,
+        _q3_1: tf.Tensor,
+        _q3_2: tf.Tensor,
+        _v1_tilde: tf.Tensor,
+        _v2_tilde: tf.Tensor,
+        _q1: tf.Tensor,
+        _q2: tf.Tensor,
+        _min_denominator: tf.Tensor,
+        _floor_hits: tf.Tensor,
+        current_projection_error: tf.Tensor,
+        _q_factor: tf.Tensor,
+        _r_factor: tf.Tensor,
+        _g: tf.Tensor,
+    ) -> tf.Tensor:
+        return tf.logical_and(
+            iteration < max_iterations_tensor,
+            current_projection_error > stop_threshold,
+        )
+
+    def body(
+        iteration: tf.Tensor,
+        g_tilde: tf.Tensor,
+        q3_1: tf.Tensor,
+        q3_2: tf.Tensor,
+        v1_tilde: tf.Tensor,
+        v2_tilde: tf.Tensor,
+        q1: tf.Tensor,
+        q2: tf.Tensor,
+        min_denominator: tf.Tensor,
+        floor_hits: tf.Tensor,
+        _projection_error: tf.Tensor,
+        _q_factor: tf.Tensor,
+        _r_factor: tf.Tensor,
+        _g: tf.Tensor,
+    ):
         raw_q_den = tf.einsum("bnr,br->bn", eps_q, v1_tilde)
         raw_r_den = tf.einsum("bnr,br->bn", eps_r, v2_tilde)
         min_denominator = tf.minimum(min_denominator, tf.reduce_min(tf.minimum(raw_q_den, raw_r_den)))
@@ -331,9 +442,60 @@ def _lr_dykstra_projection(
         err2 = tf.reduce_sum(tf.abs(tf.reduce_sum(r_factor, axis=2) - source_weights))
         err3 = tf.reduce_sum(tf.abs(tf.reduce_sum(q_factor, axis=1) - tf.reduce_sum(r_factor, axis=1)))
         projection_error = err1 + err2 + err3
-        if bool((projection_error <= stop_threshold).numpy()):
-            iterations_used = tf.constant(iteration, dtype=tf.int32)
-            break
+        return (
+            iteration + tf.constant(1, dtype=tf.int32),
+            g_tilde,
+            q3_1,
+            q3_2,
+            v1_tilde,
+            v2_tilde,
+            q1,
+            q2,
+            min_denominator,
+            floor_hits,
+            projection_error,
+            q_factor,
+            r_factor,
+            g,
+        )
+
+    (
+        iterations_used,
+        g_tilde,
+        q3_1,
+        q3_2,
+        v1_tilde,
+        v2_tilde,
+        q1,
+        q2,
+        min_denominator,
+        floor_hits,
+        projection_error,
+        q_factor,
+        r_factor,
+        g,
+    ) = tf.while_loop(
+        cond,
+        body,
+        loop_vars=(
+            tf.constant(0, dtype=tf.int32),
+            g_tilde,
+            q3_1,
+            q3_2,
+            v1_tilde,
+            v2_tilde,
+            q1,
+            q2,
+            min_denominator,
+            floor_hits,
+            projection_error,
+            q_factor,
+            r_factor,
+            g,
+        ),
+        parallel_iterations=1,
+        maximum_iterations=max_iterations,
+    )
 
     return q_factor, r_factor, g, {
         "iterations_used": iterations_used,
@@ -348,7 +510,8 @@ def _scaled_centered_particles(x: tf.Tensor) -> tf.Tensor:
     std = tf.math.reduce_std(x, axis=1)
     scale = tf.reduce_max(std, axis=1)
     scale = tf.where(scale == 0.0, tf.ones_like(scale), scale)
-    dim = tf.cast(tf.shape(x)[2], DTYPE)
+    static_dim = int(x.shape[2] or 0)
+    dim = tf.cast(static_dim if static_dim else tf.shape(x)[2], DTYPE)
     return centered / tf.stop_gradient(scale[:, None, None] * tf.sqrt(dim))
 
 
@@ -366,9 +529,9 @@ def _assignment_kernel(x: tf.Tensor, latent: tf.Tensor, *, epsilon: tf.Tensor) -
     return tf.maximum(tf.exp(logits), tf.constant(1.0e-300, dtype=DTYPE))
 
 
-def _cost_nudged_assignment_kernel(x: tf.Tensor, latent: tf.Tensor, epsilon: float) -> tf.Tensor:
+def _cost_nudged_assignment_kernel(x: tf.Tensor, latent: tf.Tensor, epsilon: tf.Tensor) -> tf.Tensor:
     reflected = -x
-    return _assignment_kernel(reflected, latent, epsilon=tf.constant(epsilon, dtype=DTYPE))
+    return _assignment_kernel(reflected, latent, epsilon=tf.cast(epsilon, DTYPE))
 
 
 def _pairwise_squared_cross(query: tf.Tensor, key: tf.Tensor) -> tf.Tensor:
@@ -376,7 +539,3 @@ def _pairwise_squared_cross(query: tf.Tensor, key: tf.Tensor) -> tf.Tensor:
     xy = tf.matmul(query, key, transpose_b=True)
     yy = tf.expand_dims(tf.reduce_sum(key * key, axis=-1), axis=1)
     return tf.clip_by_value(xx - 2.0 * xy + yy, 0.0, float("inf"))
-
-
-def _float(value: tf.Tensor) -> float:
-    return float(tf.cast(value, DTYPE).numpy())

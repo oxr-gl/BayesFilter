@@ -17,6 +17,7 @@ from bayesfilter.linear.kalman_qr_tf import (
     tf_qr_sqrt_kalman_log_likelihood_compact,
     tf_qr_sqrt_kalman_log_likelihood_while_loop,
     tf_qr_sqrt_masked_kalman_filter,
+    tf_qr_sqrt_masked_kalman_log_likelihood_batched_static,
     tf_qr_sqrt_masked_kalman_log_likelihood_compact,
 )
 from bayesfilter.linear.types_tf import TFLinearGaussianStateSpace
@@ -128,6 +129,25 @@ def _batched_static_while_loop_dense_value(
         observation_covariance=tf.stack([model.observation_covariance for model in models], axis=0),
         initial_state_mean=tf.stack([model.initial_mean for model in models], axis=0),
         initial_state_covariance=tf.stack([model.initial_covariance for model in models], axis=0),
+        jitter=JITTER,
+    )
+
+
+def _batched_static_masked_value(
+    observations: tf.Tensor,
+    models: tuple[TFLinearGaussianStateSpace, ...],
+) -> tf.Tensor:
+    return tf_qr_sqrt_masked_kalman_log_likelihood_batched_static(
+        observations=observations,
+        transition_offset=tf.stack([model.transition_offset for model in models], axis=0),
+        transition_matrix=tf.stack([model.transition_matrix for model in models], axis=0),
+        transition_covariance=tf.stack([model.transition_covariance for model in models], axis=0),
+        observation_offset=tf.stack([model.observation_offset for model in models], axis=0),
+        observation_matrix=tf.stack([model.observation_matrix for model in models], axis=0),
+        observation_covariance=tf.stack([model.observation_covariance for model in models], axis=0),
+        initial_state_mean=tf.stack([model.initial_mean for model in models], axis=0),
+        initial_state_covariance=tf.stack([model.initial_covariance for model in models], axis=0),
+        observation_mask=_mask(),
         jitter=JITTER,
     )
 
@@ -344,6 +364,57 @@ def test_batched_static_qr_gradient_matches_scalar_compact_qr_rows() -> None:
     )
 
 
+def test_batched_static_masked_qr_value_matches_scalar_compact_qr_rows() -> None:
+    observations = _observations()
+    params_batch = (
+        tf.constant([0.25, -0.4], dtype=tf.float64),
+        tf.constant([-0.15, 0.3], dtype=tf.float64),
+    )
+    models = tuple(_model(params) for params in params_batch)
+
+    scalar_values = tf.stack(
+        [_compact_masked_value(observations, model) for model in models],
+        axis=0,
+    )
+    batch_values = _batched_static_masked_value(observations, models)
+
+    assert batch_values.shape.as_list() == [2]
+    np.testing.assert_allclose(batch_values.numpy(), scalar_values.numpy(), atol=1.0e-12)
+
+
+def test_batched_static_masked_qr_gradient_matches_scalar_compact_qr_rows() -> None:
+    observations = _observations()
+    params_batch = tf.constant([[0.25, -0.4], [-0.15, 0.3]], dtype=tf.float64)
+
+    with tf.GradientTape() as batch_tape:
+        batch_tape.watch(params_batch)
+        batch_models = tuple(_model(params_batch[row]) for row in range(2))
+        batch_value = _batched_static_masked_value(observations, batch_models)
+    batch_gradient = batch_tape.gradient(batch_value, params_batch)
+
+    scalar_values = []
+    scalar_gradients = []
+    for row in range(2):
+        params = params_batch[row]
+        with tf.GradientTape() as scalar_tape:
+            scalar_tape.watch(params)
+            scalar_value = _compact_masked_value(observations, _model(params))
+        scalar_values.append(scalar_value)
+        scalar_gradients.append(scalar_tape.gradient(scalar_value, params))
+
+    assert batch_gradient is not None
+    np.testing.assert_allclose(
+        batch_value.numpy(),
+        tf.stack(scalar_values, axis=0).numpy(),
+        atol=1.0e-12,
+    )
+    np.testing.assert_allclose(
+        batch_gradient.numpy(),
+        tf.stack(scalar_gradients, axis=0).numpy(),
+        atol=1.0e-10,
+    )
+
+
 def test_batched_static_qr_fixture_cpu_xla_value_gradient_parity_is_explanatory_only() -> None:
     observations = _observations()
     params_batch = tf.constant([[0.25, -0.4], [-0.15, 0.3]], dtype=tf.float64)
@@ -416,13 +487,16 @@ def test_compact_qr_sources_do_not_accumulate_filtered_output_stacks() -> None:
 
 
 def test_batched_static_qr_source_has_explicit_contract_and_no_chain_map() -> None:
-    source = inspect.getsource(tf_qr_sqrt_kalman_log_likelihood_batched_static.python_function)
-
-    assert "batched-static" in source.lower()
-    assert "tf.vectorized_map" not in source
-    assert "tf.map_fn" not in source
-    assert "TensorArray" not in source
-    assert ".append(" not in source
+    for fn in (
+        tf_qr_sqrt_kalman_log_likelihood_batched_static.python_function,
+        tf_qr_sqrt_masked_kalman_log_likelihood_batched_static.python_function,
+    ):
+        source = inspect.getsource(fn)
+        assert "batched-static" in source.lower()
+        assert "tf.vectorized_map" not in source
+        assert "tf.map_fn" not in source
+        assert "TensorArray" not in source
+        assert ".append(" not in source
 
 
 def test_while_loop_qr_sources_use_dynamic_time_loop_without_history_stacks() -> None:

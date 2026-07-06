@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import ast
+import inspect
 import os
+import textwrap
 from types import SimpleNamespace
 
 os.environ.setdefault("CUDA_VISIBLE_DEVICES", "-1")
@@ -9,6 +12,7 @@ import numpy as np
 import pytest
 import tensorflow as tf
 
+import bayesfilter.nonlinear.experimental_batched_svd_sigma_point_tf as svd_tf
 from bayesfilter.nonlinear.experimental_batched_svd_sigma_point_tf import (
     TFBatchedStructuralFirstDerivatives,
     TFBatchedStructuralStateSpace,
@@ -180,94 +184,138 @@ def _repeated_positive_model_and_derivatives() -> tuple[
     return observations, model, derivatives
 
 
-def _repeated_positive_innovation_model_and_derivatives() -> tuple[
+def _lagged_linear_model_and_derivatives(
+    theta: tf.Tensor,
+    *,
+    previous_coeff: float = 0.35,
+) -> tuple[
     tf.Tensor,
     TFBatchedStructuralStateSpace,
     TFBatchedStructuralFirstDerivatives,
 ]:
-    batch_size = 2
+    batch_size = 1
     parameter_dim = 1
-    state_dim = 2
-    innovation_dim = 2
-    observation_dim = 2
-    observations = tf.constant([[0.0, 0.0]], dtype=tf.float64)
-    inverse_sqrt_two = tf.constant(1.0 / np.sqrt(2.0), dtype=tf.float64)
+    state_dim = 1
+    innovation_dim = 1
+    observation_dim = 1
+    transition_state = tf.constant(0.72, dtype=tf.float64)
+    transition_innovation = tf.constant(0.18, dtype=tf.float64)
+    previous_weight = tf.constant(previous_coeff, dtype=tf.float64)
+    innovation_weight = tf.constant(0.11, dtype=tf.float64)
+    next_weight = tf.constant(1.20, dtype=tf.float64)
+    theta = tf.ensure_shape(tf.convert_to_tensor(theta, dtype=tf.float64), [batch_size, 1])
+    observations = tf.constant([[0.12], [-0.03]], dtype=tf.float64)
 
     def transition(previous: tf.Tensor, innovation: tf.Tensor) -> tf.Tensor:
-        del innovation
-        return tf.stack(
-            [
-                previous[:, :, 0],
-                inverse_sqrt_two * previous[:, :, 1],
-            ],
-            axis=2,
-        )
+        return transition_state * previous + transition_innovation * innovation
 
     def observe(states: tf.Tensor) -> tf.Tensor:
-        return states
+        return next_weight * states
+
+    def observe_lagged(
+        previous: tf.Tensor,
+        innovation: tf.Tensor,
+        predicted: tf.Tensor,
+    ) -> tf.Tensor:
+        return (
+            previous_weight * previous
+            + innovation_weight * innovation
+            + next_weight * predicted
+        )
 
     def transition_state_jacobian(
         previous: tf.Tensor,
         innovation: tf.Tensor,
     ) -> tf.Tensor:
         del innovation
-        jacobian = tf.constant(
-            [
-                [1.0, 0.0],
-                [0.0, 1.0 / np.sqrt(2.0)],
-            ],
-            dtype=tf.float64,
-        )
-        return tf.broadcast_to(
-            jacobian[tf.newaxis, tf.newaxis, :, :],
+        return tf.fill(
             [tf.shape(previous)[0], tf.shape(previous)[1], state_dim, state_dim],
+            transition_state,
         )
 
     def transition_innovation_jacobian(
         previous: tf.Tensor,
         innovation: tf.Tensor,
     ) -> tf.Tensor:
-        del innovation
-        return tf.zeros(
-            [tf.shape(previous)[0], tf.shape(previous)[1], state_dim, innovation_dim],
-            dtype=tf.float64,
+        del previous
+        return tf.fill(
+            [tf.shape(innovation)[0], tf.shape(innovation)[1], state_dim, innovation_dim],
+            transition_innovation,
         )
 
     def d_transition(previous: tf.Tensor, innovation: tf.Tensor) -> tf.Tensor:
-        del innovation
         return tf.zeros(
             [tf.shape(previous)[0], parameter_dim, tf.shape(previous)[1], state_dim],
             dtype=tf.float64,
         )
 
     def observation_state_jacobian(states: tf.Tensor) -> tf.Tensor:
-        return tf.broadcast_to(
-            tf.eye(observation_dim, dtype=tf.float64)[tf.newaxis, tf.newaxis, :, :],
-            [batch_size, tf.shape(states)[1], observation_dim, state_dim],
+        return tf.fill(
+            [tf.shape(states)[0], tf.shape(states)[1], observation_dim, state_dim],
+            next_weight,
         )
 
     def d_observation(states: tf.Tensor) -> tf.Tensor:
         return tf.zeros(
-            [batch_size, parameter_dim, tf.shape(states)[1], observation_dim],
+            [tf.shape(states)[0], parameter_dim, tf.shape(states)[1], observation_dim],
+            dtype=tf.float64,
+        )
+
+    def lagged_previous_jacobian(
+        previous: tf.Tensor,
+        innovation: tf.Tensor,
+        predicted: tf.Tensor,
+    ) -> tf.Tensor:
+        del innovation, predicted
+        return tf.fill(
+            [tf.shape(previous)[0], tf.shape(previous)[1], observation_dim, state_dim],
+            previous_weight,
+        )
+
+    def lagged_innovation_jacobian(
+        previous: tf.Tensor,
+        innovation: tf.Tensor,
+        predicted: tf.Tensor,
+    ) -> tf.Tensor:
+        del previous, predicted
+        return tf.fill(
+            [tf.shape(innovation)[0], tf.shape(innovation)[1], observation_dim, innovation_dim],
+            innovation_weight,
+        )
+
+    def lagged_next_jacobian(
+        previous: tf.Tensor,
+        innovation: tf.Tensor,
+        predicted: tf.Tensor,
+    ) -> tf.Tensor:
+        del previous, innovation
+        return tf.fill(
+            [tf.shape(predicted)[0], tf.shape(predicted)[1], observation_dim, state_dim],
+            next_weight,
+        )
+
+    def d_lagged_observation(
+        previous: tf.Tensor,
+        innovation: tf.Tensor,
+        predicted: tf.Tensor,
+    ) -> tf.Tensor:
+        del innovation, predicted
+        return tf.zeros(
+            [tf.shape(previous)[0], parameter_dim, tf.shape(previous)[1], observation_dim],
             dtype=tf.float64,
         )
 
     model = TFBatchedStructuralStateSpace(
-        initial_mean=tf.zeros([batch_size, state_dim], dtype=tf.float64),
-        initial_covariance=tf.broadcast_to(
-            tf.linalg.diag(tf.constant([1.0, 2.0], dtype=tf.float64)),
-            [batch_size, state_dim, state_dim],
-        ),
-        innovation_covariance=tf.broadcast_to(
-            tf.linalg.diag(tf.constant([3.0, 4.0], dtype=tf.float64)),
-            [batch_size, innovation_dim, innovation_dim],
-        ),
-        observation_covariance=tf.zeros([batch_size, observation_dim, observation_dim], dtype=tf.float64),
+        initial_mean=theta,
+        initial_covariance=tf.constant([[[0.20]]], dtype=tf.float64),
+        innovation_covariance=tf.constant([[[0.10]]], dtype=tf.float64),
+        observation_covariance=tf.constant([[[0.07]]], dtype=tf.float64),
         transition_fn=transition,
         observation_fn=observe,
+        lagged_observation_fn=observe_lagged,
     )
     derivatives = TFBatchedStructuralFirstDerivatives(
-        d_initial_mean=tf.zeros([batch_size, parameter_dim, state_dim], dtype=tf.float64),
+        d_initial_mean=tf.ones([batch_size, parameter_dim, state_dim], dtype=tf.float64),
         d_initial_covariance=tf.zeros(
             [batch_size, parameter_dim, state_dim, state_dim],
             dtype=tf.float64,
@@ -285,8 +333,36 @@ def _repeated_positive_innovation_model_and_derivatives() -> tuple[
         d_transition_fn=d_transition,
         observation_state_jacobian_fn=observation_state_jacobian,
         d_observation_fn=d_observation,
+        lagged_observation_previous_jacobian_fn=lagged_previous_jacobian,
+        lagged_observation_innovation_jacobian_fn=lagged_innovation_jacobian,
+        lagged_observation_next_jacobian_fn=lagged_next_jacobian,
+        d_lagged_observation_fn=d_lagged_observation,
     )
     return observations, model, derivatives
+
+
+def _lagged_value_score(
+    theta: tf.Tensor,
+    *,
+    previous_coeff: float = 0.35,
+) -> tuple[tf.Tensor, tf.Tensor, dict[str, tf.Tensor]]:
+    observations, model, derivatives = _lagged_linear_model_and_derivatives(
+        theta,
+        previous_coeff=previous_coeff,
+    )
+    value, score, diagnostics = tf_batched_svd_sigma_point_value_and_score(
+        observations,
+        model,
+        derivatives,
+        backend="tf_principal_sqrt_ukf",
+        placement_floor=tf.constant(0.0, dtype=tf.float64),
+        innovation_floor=tf.constant(1.0e-12, dtype=tf.float64),
+        rank_tolerance=tf.constant(1.0e-12, dtype=tf.float64),
+        spectral_gap_tolerance=tf.constant(1.0e-10, dtype=tf.float64),
+        fixed_null_tolerance=tf.constant(1.0e-10, dtype=tf.float64),
+        jitter=tf.constant(0.0, dtype=tf.float64),
+    )
+    return value, score, dict(diagnostics)
 
 
 def _scalar_rows(
@@ -481,6 +557,445 @@ def test_principal_sqrt_helper_repeated_positive_reconstructs_derivative() -> No
     )
 
 
+def test_principal_sqrt_helper_graph_and_cpu_xla_factor_derivative_parity() -> None:
+    covariance = tf.constant(
+        [
+            [[4.0, 0.0, 0.0], [0.0, 4.0, 0.0], [0.0, 0.0, 9.0]],
+            [[3.0, 0.25, 0.0], [0.25, 4.0, 0.1], [0.0, 0.1, 6.0]],
+        ],
+        dtype=tf.float64,
+    )
+    d_covariance = tf.constant(
+        [
+            [
+                [[0.5, 0.1, -0.2], [0.1, -0.3, 0.4], [-0.2, 0.4, 0.7]],
+                [[1.0, 0.0, 0.2], [0.0, 0.6, -0.1], [0.2, -0.1, 0.8]],
+            ],
+            [
+                [[0.2, -0.2, 0.3], [-0.2, 0.9, 0.0], [0.3, 0.0, -0.4]],
+                [[0.4, 0.5, 0.0], [0.5, 0.1, -0.3], [0.0, -0.3, 0.2]],
+            ],
+        ],
+        dtype=tf.float64,
+    )
+
+    def call() -> tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
+        placement = _checked_batched_principal_sqrt_factor_first_derivatives(
+            covariance,
+            d_covariance,
+            singular_floor=tf.constant(0.0, dtype=tf.float64),
+            fixed_null_tolerance=tf.constant(1.0e-10, dtype=tf.float64),
+            label="test compiled principal-sqrt placement",
+        )
+        return (
+            placement.factor,
+            placement.d_factor,
+            placement.derivative_reconstruction_residual,
+        )
+
+    eager_factor, eager_d_factor, eager_residual = call()
+
+    @tf.function(reduce_retracing=True)
+    def graph_call() -> tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
+        return call()
+
+    @tf.function(jit_compile=True, reduce_retracing=True)
+    def xla_call() -> tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
+        return call()
+
+    graph_factor, graph_d_factor, graph_residual = graph_call()
+    xla_factor, xla_d_factor, xla_residual = xla_call()
+
+    np.testing.assert_allclose(graph_factor.numpy(), eager_factor.numpy(), atol=1.0e-11)
+    np.testing.assert_allclose(graph_d_factor.numpy(), eager_d_factor.numpy(), atol=1.0e-11)
+    np.testing.assert_allclose(graph_residual.numpy(), eager_residual.numpy(), atol=1.0e-11)
+    np.testing.assert_allclose(xla_factor.numpy(), eager_factor.numpy(), atol=1.0e-11)
+    np.testing.assert_allclose(xla_d_factor.numpy(), eager_d_factor.numpy(), atol=1.0e-11)
+    np.testing.assert_allclose(xla_residual.numpy(), eager_residual.numpy(), atol=1.0e-11)
+
+
+def test_principal_sqrt_helper_scaled_reconstruction_guard_allows_large_rhs() -> None:
+    covariance = tf.constant(
+        [
+            [[4.0, 0.0, 0.0], [0.0, 9.0, 0.0], [0.0, 0.0, 16.0]],
+        ],
+        dtype=tf.float64,
+    )
+    d_covariance = tf.constant(
+        [
+            [
+                [
+                    [1.0e4, 2.0e3, -1.0e3],
+                    [2.0e3, -3.0e4, 4.0e3],
+                    [-1.0e3, 4.0e3, 7.0e4],
+                ],
+            ],
+        ],
+        dtype=tf.float64,
+    )
+
+    placement = _checked_batched_principal_sqrt_factor_first_derivatives(
+        covariance,
+        d_covariance,
+        singular_floor=tf.constant(0.0, dtype=tf.float64),
+        fixed_null_tolerance=tf.constant(1.0e-10, dtype=tf.float64),
+        lyapunov_tolerance=tf.constant(1.0e-12, dtype=tf.float64),
+        label="test scaled principal-sqrt reconstruction",
+    )
+
+    assert np.isfinite(placement.d_factor.numpy()).all()
+    assert float(tf.reduce_max(
+        placement.derivative_reconstruction_residual).numpy()) <= 1.0e-5
+
+
+
+def test_principal_sqrt_helper_scaled_reconstruction_guard_rejects_bad_solve(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    covariance = tf.constant(
+        [
+            [[4.0, 0.0], [0.0, 9.0]],
+        ],
+        dtype=tf.float64,
+    )
+    d_covariance = tf.constant(
+        [
+            [
+                [[1.0, 0.2], [0.2, -0.3]],
+            ],
+        ],
+        dtype=tf.float64,
+    )
+
+    def wrong_sylvester_solve(factor: tf.Tensor, rhs: tf.Tensor) -> tf.Tensor:
+        del factor
+        return tf.zeros_like(rhs)
+
+    monkeypatch.setattr(
+        svd_tf,
+        "symmetric_sylvester_solve",
+        wrong_sylvester_solve,
+    )
+
+    with pytest.raises(
+        tf.errors.InvalidArgumentError,
+        match="blocked_principal_sqrt_reconstruction",
+    ):
+        placement = _checked_batched_principal_sqrt_factor_first_derivatives(
+            covariance,
+            d_covariance,
+            singular_floor=tf.constant(0.0, dtype=tf.float64),
+            fixed_null_tolerance=tf.constant(1.0e-10, dtype=tf.float64),
+            lyapunov_tolerance=tf.constant(1.0e-12, dtype=tf.float64),
+            label="test bad principal-sqrt reconstruction",
+        )
+        _ = placement.d_factor.numpy()
+
+
+def test_principal_sqrt_helper_roundoff_repair_cpu_xla_records_diagnostics() -> None:
+    covariance = tf.constant(
+        [
+            [[1.0, 0.0], [0.0, -1.0e-20]],
+            [[2.0, 0.1], [0.1, 1.5]],
+        ],
+        dtype=tf.float64,
+    )
+    d_covariance = tf.zeros([2, 1, 2, 2], dtype=tf.float64)
+
+    @tf.function(jit_compile=True, reduce_retracing=True)
+    def xla_call() -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
+        placement = _checked_batched_principal_sqrt_factor_first_derivatives(
+            covariance,
+            d_covariance,
+            singular_floor=tf.constant(0.0, dtype=tf.float64),
+            fixed_null_tolerance=tf.constant(1.0e-10, dtype=tf.float64),
+            label="test roundoff repair placement",
+        )
+        return (
+            placement.factor,
+            placement.roundoff_repair_count,
+            placement.classified_invalid_count,
+            placement.min_eigenvalue,
+        )
+
+    factor, repair_count, invalid_count, min_eigenvalue = xla_call()
+
+    assert np.isfinite(factor.numpy()).all()
+    np.testing.assert_array_equal(repair_count.numpy(), np.asarray([1, 0], dtype=np.int32))
+    np.testing.assert_array_equal(invalid_count.numpy(), np.asarray([0, 0], dtype=np.int32))
+    assert float(min_eigenvalue.numpy()[0]) < 0.0
+
+
+def test_principal_sqrt_helper_repairs_low_margin_strict_rows_cpu_xla() -> None:
+    covariance = tf.constant(
+        [
+            [[1.0, 0.0], [0.0, 1.0e-16]],
+            [[1.0, 0.0], [0.0, 2.0e-14]],
+        ],
+        dtype=tf.float64,
+    )
+    d_covariance = tf.zeros([2, 1, 2, 2], dtype=tf.float64)
+
+    @tf.function(jit_compile=True, reduce_retracing=True)
+    def xla_call() -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
+        placement = _checked_batched_principal_sqrt_factor_first_derivatives(
+            covariance,
+            d_covariance,
+            singular_floor=tf.constant(0.0, dtype=tf.float64),
+            fixed_null_tolerance=tf.constant(1.0e-10, dtype=tf.float64),
+            label="test low-margin strict row repair",
+        )
+        return (
+            placement.implemented_covariance,
+            placement.roundoff_repair_count,
+            placement.classified_invalid_count,
+            placement.min_eigenvalue,
+        )
+
+    implemented, repair_count, invalid_count, min_eigenvalue = xla_call()
+
+    np.testing.assert_allclose(
+        np.diag(implemented.numpy()[0]),
+        np.asarray([1.0 + 1.0e-14, 2.0e-14], dtype=np.float64),
+        atol=1.0e-18,
+    )
+    np.testing.assert_allclose(
+        np.diag(implemented.numpy()[1]),
+        np.asarray([1.0 + 1.0e-14, 3.0e-14], dtype=np.float64),
+        atol=1.0e-18,
+    )
+    np.testing.assert_array_equal(repair_count.numpy(), np.asarray([1, 0], dtype=np.int32))
+    np.testing.assert_array_equal(invalid_count.numpy(), np.asarray([0, 0], dtype=np.int32))
+    assert 0.0 < float(min_eigenvalue.numpy()[0]) < 1.0e-14
+
+
+@pytest.mark.parametrize(
+    "covariance",
+    (
+        tf.constant([[[1.0, 0.0], [0.0, np.nan]]], dtype=tf.float64),
+        tf.constant([[[1.0, 0.0], [0.0, -1.0e-3]]], dtype=tf.float64),
+    ),
+)
+def test_principal_sqrt_helper_classifies_invalid_covariance_cpu_xla(
+    covariance: tf.Tensor,
+) -> None:
+    d_covariance = tf.zeros([1, 1, 2, 2], dtype=tf.float64)
+
+    @tf.function(jit_compile=True, reduce_retracing=True)
+    def xla_call() -> tuple[tf.Tensor, tf.Tensor]:
+        placement = _checked_batched_principal_sqrt_factor_first_derivatives(
+            covariance,
+            d_covariance,
+            singular_floor=tf.constant(0.0, dtype=tf.float64),
+            fixed_null_tolerance=tf.constant(1.0e-10, dtype=tf.float64),
+            label="test classified invalid placement",
+        )
+        return placement.factor, placement.classified_invalid_count
+
+    factor, invalid_count = xla_call()
+
+    assert np.isfinite(factor.numpy()).all()
+    np.testing.assert_array_equal(invalid_count.numpy(), np.asarray([1], dtype=np.int32))
+
+
+def test_principal_sqrt_helper_classifies_nonfinite_derivative_rhs_cpu_xla() -> None:
+    covariance = tf.constant([[[2.0, 0.1], [0.1, 1.5]]], dtype=tf.float64)
+    d_covariance = tf.constant(
+        [[[[0.0, np.nan], [np.nan, 0.0]]]],
+        dtype=tf.float64,
+    )
+
+    @tf.function(jit_compile=True, reduce_retracing=True)
+    def xla_call() -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
+        placement = _checked_batched_principal_sqrt_factor_first_derivatives(
+            covariance,
+            d_covariance,
+            singular_floor=tf.constant(0.0, dtype=tf.float64),
+            fixed_null_tolerance=tf.constant(1.0e-10, dtype=tf.float64),
+            label="test nonfinite derivative RHS placement",
+        )
+        return (
+            placement.factor,
+            placement.d_factor,
+            placement.classified_invalid_count,
+            placement.derivative_rhs_nonfinite_count,
+        )
+
+    factor, d_factor, invalid_count, rhs_nonfinite_count = xla_call()
+
+    assert np.isfinite(factor.numpy()).all()
+    assert np.isfinite(d_factor.numpy()).all()
+    np.testing.assert_array_equal(invalid_count.numpy(), np.asarray([1], dtype=np.int32))
+    np.testing.assert_array_equal(
+        rhs_nonfinite_count.numpy(),
+        np.asarray([1], dtype=np.int32),
+    )
+
+
+def test_principal_sqrt_value_score_rejects_invalid_innovation_covariance_cpu_xla() -> None:
+    observations, model, derivatives = _repeated_positive_model_and_derivatives()
+    bad_model = TFBatchedStructuralStateSpace(
+        initial_mean=model.initial_mean,
+        initial_covariance=model.initial_covariance,
+        innovation_covariance=tf.fill(
+            tf.shape(model.innovation_covariance),
+            tf.constant(-1.0e-3, dtype=tf.float64),
+        ),
+        observation_covariance=model.observation_covariance,
+        transition_fn=model.transition_fn,
+        observation_fn=model.observation_fn,
+        deterministic_residual_fn=model.deterministic_residual_fn,
+        lagged_observation_fn=model.lagged_observation_fn,
+    )
+
+    @tf.function(jit_compile=True, reduce_retracing=True)
+    def xla_call() -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
+        value, score, diagnostics = tf_batched_svd_sigma_point_value_and_score(
+            observations,
+            bad_model,
+            derivatives,
+            backend="tf_principal_sqrt_ukf",
+            placement_floor=tf.constant(0.0, dtype=tf.float64),
+            innovation_floor=tf.constant(1.0e-12, dtype=tf.float64),
+        )
+        return (
+            value,
+            score,
+            diagnostics["principal_sqrt_target_classified_invalid_count"],
+            diagnostics["principal_sqrt_target_valid_count"],
+            diagnostics["principal_sqrt_target_row_class_code"],
+        )
+
+    value, score, invalid_count, valid_count, row_class_code = xla_call()
+
+    np.testing.assert_allclose(
+        value.numpy(),
+        np.full([2], -1.0e100, dtype=np.float64),
+        rtol=0.0,
+        atol=0.0,
+    )
+    np.testing.assert_allclose(score.numpy(), np.zeros([2, 1]), atol=0.0)
+    np.testing.assert_array_equal(invalid_count.numpy(), np.ones([2], dtype=np.int32))
+    np.testing.assert_array_equal(valid_count.numpy(), np.zeros([2], dtype=np.int32))
+    np.testing.assert_array_equal(row_class_code.numpy(), np.full([2], 2, dtype=np.int32))
+
+
+def test_principal_sqrt_value_score_rejects_nonfinite_derivative_rhs_cpu_xla() -> None:
+    observations, model, derivatives = _repeated_positive_model_and_derivatives()
+    bad_derivatives = TFBatchedStructuralFirstDerivatives(
+        d_initial_mean=derivatives.d_initial_mean,
+        d_initial_covariance=tf.fill(
+            tf.shape(derivatives.d_initial_covariance),
+            tf.constant(np.nan, dtype=tf.float64),
+        ),
+        d_innovation_covariance=derivatives.d_innovation_covariance,
+        d_observation_covariance=derivatives.d_observation_covariance,
+        transition_state_jacobian_fn=derivatives.transition_state_jacobian_fn,
+        transition_innovation_jacobian_fn=derivatives.transition_innovation_jacobian_fn,
+        d_transition_fn=derivatives.d_transition_fn,
+        observation_state_jacobian_fn=derivatives.observation_state_jacobian_fn,
+        d_observation_fn=derivatives.d_observation_fn,
+        lagged_observation_previous_jacobian_fn=(
+            derivatives.lagged_observation_previous_jacobian_fn
+        ),
+        lagged_observation_innovation_jacobian_fn=(
+            derivatives.lagged_observation_innovation_jacobian_fn
+        ),
+        lagged_observation_next_jacobian_fn=(
+            derivatives.lagged_observation_next_jacobian_fn
+        ),
+        d_lagged_observation_fn=derivatives.d_lagged_observation_fn,
+        name=derivatives.name,
+    )
+
+    @tf.function(jit_compile=True, reduce_retracing=True)
+    def xla_call() -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
+        value, score, diagnostics = tf_batched_svd_sigma_point_value_and_score(
+            observations,
+            model,
+            bad_derivatives,
+            backend="tf_principal_sqrt_ukf",
+            placement_floor=tf.constant(0.0, dtype=tf.float64),
+            innovation_floor=tf.constant(1.0e-12, dtype=tf.float64),
+        )
+        return (
+            value,
+            score,
+            diagnostics["principal_sqrt_target_classified_invalid_count"],
+            diagnostics["principal_sqrt_target_derivative_rhs_nonfinite_count"],
+            diagnostics["principal_sqrt_target_row_class_code"],
+        )
+
+    value, score, invalid_count, rhs_nonfinite_count, row_class_code = xla_call()
+
+    np.testing.assert_allclose(
+        value.numpy(),
+        np.full([2], -1.0e100, dtype=np.float64),
+        rtol=0.0,
+        atol=0.0,
+    )
+    np.testing.assert_allclose(score.numpy(), np.zeros([2, 1]), atol=0.0)
+    np.testing.assert_array_equal(invalid_count.numpy(), np.ones([2], dtype=np.int32))
+    np.testing.assert_array_equal(
+        rhs_nonfinite_count.numpy(),
+        np.ones([2], dtype=np.int32),
+    )
+    np.testing.assert_array_equal(row_class_code.numpy(), np.full([2], 2, dtype=np.int32))
+
+
+def test_principal_sqrt_value_score_valid_rows_report_valid_class_cpu_xla() -> None:
+    observations, model, derivatives = _repeated_positive_model_and_derivatives()
+
+    @tf.function(jit_compile=True, reduce_retracing=True)
+    def xla_call() -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
+        value, score, diagnostics = tf_batched_svd_sigma_point_value_and_score(
+            observations,
+            model,
+            derivatives,
+            backend="tf_principal_sqrt_ukf",
+            placement_floor=tf.constant(0.0, dtype=tf.float64),
+            innovation_floor=tf.constant(1.0e-12, dtype=tf.float64),
+        )
+        return (
+            value,
+            score,
+            diagnostics["principal_sqrt_target_classified_invalid_count"],
+            diagnostics["principal_sqrt_target_valid_count"],
+            diagnostics["principal_sqrt_target_row_class_code"],
+        )
+
+    value, score, invalid_count, valid_count, row_class_code = xla_call()
+
+    assert np.isfinite(value.numpy()).all()
+    assert np.isfinite(score.numpy()).all()
+    np.testing.assert_array_equal(invalid_count.numpy(), np.zeros([2], dtype=np.int32))
+    np.testing.assert_array_equal(valid_count.numpy(), np.ones([2], dtype=np.int32))
+    np.testing.assert_array_equal(row_class_code.numpy(), np.zeros([2], dtype=np.int32))
+
+
+def test_principal_sqrt_helper_uses_compiled_factor_and_sylvester_derivative() -> None:
+    from bayesfilter.nonlinear import experimental_batched_svd_sigma_point_tf as module
+
+    source = inspect.getsource(
+        module._checked_batched_principal_sqrt_factor_first_derivatives
+    )
+    tree = ast.parse(textwrap.dedent(source))
+
+    assert "symmetric_principal_sqrt" in source
+    assert "symmetric_sylvester_solve" in source
+    assert "roundoff_repair_count" in source
+    assert "classified_invalid_count" in source
+    assert "assert_equal" not in source
+    assert "_principal_sqrt_frechet_derivative_from_eigh" not in source
+    assert not any(
+        isinstance(node, ast.Attribute)
+        and node.attr == "eigh"
+        and isinstance(node.value, ast.Attribute)
+        and node.value.attr == "linalg"
+        for node in ast.walk(tree)
+    )
+
+
 def test_principal_sqrt_dispatcher_passes_repeated_positive_while_svd_fails() -> None:
     observations, model, derivatives = _repeated_positive_model_and_derivatives()
 
@@ -512,42 +1027,7 @@ def test_principal_sqrt_dispatcher_passes_repeated_positive_while_svd_fails() ->
     )
 
 
-def test_principal_sqrt_innovation_dispatcher_passes_repeated_positive_while_svd_fails() -> None:
-    observations, model, derivatives = _repeated_positive_innovation_model_and_derivatives()
-
-    with pytest.raises(tf.errors.InvalidArgumentError, match="blocked_weak_spectral_gap"):
-        tf_batched_svd_sigma_point_value_and_score(
-            observations,
-            model,
-            derivatives,
-            backend="tf_svd_ukf",
-            spectral_gap_tolerance=tf.constant(1.0e-10, dtype=tf.float64),
-        )
-
-    value, score, diagnostics = tf_batched_svd_sigma_point_value_and_score(
-        observations,
-        model,
-        derivatives,
-        backend="tf_principal_sqrt_ukf",
-        spectral_gap_tolerance=tf.constant(1.0e-10, dtype=tf.float64),
-    )
-
-    assert np.isfinite(value.numpy()).all()
-    assert np.isfinite(score.numpy()).all()
-    assert diagnostics["backend"].numpy() == b"tf_principal_sqrt_ukf"
-    assert diagnostics["derivative_branch"].numpy() == b"strict_spd_principal_sqrt"
-    np.testing.assert_allclose(
-        diagnostics["factor_derivative_reconstruction_residual"].numpy(),
-        np.zeros([2]),
-        atol=1.0e-10,
-    )
-    np.testing.assert_allclose(
-        diagnostics["innovation_sylvester_residual"].numpy(),
-        np.zeros([2]),
-        atol=1.0e-10,
-    )
-
-
+def test_principal_sqrt_ukf_nondegenerate_parity_with_svd_ukf() -> None:
     tensors = _fixture(batch_size=2, time_steps=3)
     svd_value, svd_score, _diagnostics = _value_score_diagnostics(tensors, backend="tf_svd_ukf")
     sqrt_value, sqrt_score, diagnostics = _value_score_diagnostics(
@@ -595,6 +1075,89 @@ def test_principal_sqrt_ukf_graph_and_cpu_xla_smoke() -> None:
     np.testing.assert_allclose(graph_score.numpy(), eager_score.numpy(), rtol=1.0e-5, atol=1.0e-6)
     np.testing.assert_allclose(xla_value.numpy(), eager_value.numpy(), atol=1.0e-7)
     np.testing.assert_allclose(xla_score.numpy(), eager_score.numpy(), rtol=1.0e-5, atol=1.0e-6)
+
+
+def test_lagged_observation_contract_selects_runtime_path_and_changes_value() -> None:
+    theta = tf.constant([[0.04]], dtype=tf.float64)
+    lagged_value, lagged_score, diagnostics = _lagged_value_score(
+        theta,
+        previous_coeff=0.35,
+    )
+    current_value, _current_score, current_diagnostics = _lagged_value_score(
+        theta,
+        previous_coeff=0.0,
+    )
+
+    assert diagnostics["observation_contract"].numpy() == (
+        b"lagged_previous_innovation_predicted"
+    )
+    assert bool(diagnostics["observation_contract_runtime_selected"].numpy()) is True
+    assert current_diagnostics["observation_contract"].numpy() == (
+        b"lagged_previous_innovation_predicted"
+    )
+    assert np.isfinite(lagged_value.numpy()).all()
+    assert np.isfinite(lagged_score.numpy()).all()
+    assert abs(float(lagged_value.numpy()[0] - current_value.numpy()[0])) > 1.0e-6
+
+
+def test_lagged_observation_contract_score_matches_finite_difference() -> None:
+    theta = tf.constant([[0.04]], dtype=tf.float64)
+    value, score, _diagnostics = _lagged_value_score(theta)
+    step = tf.constant(1.0e-5, dtype=tf.float64)
+    plus_value, _plus_score, _plus_diagnostics = _lagged_value_score(theta + step)
+    minus_value, _minus_score, _minus_diagnostics = _lagged_value_score(theta - step)
+    finite_difference = (plus_value - minus_value) / (2.0 * step)
+
+    assert np.isfinite(value.numpy()).all()
+    np.testing.assert_allclose(
+        score.numpy()[:, 0],
+        finite_difference.numpy(),
+        rtol=5.0e-5,
+        atol=5.0e-6,
+    )
+
+
+def test_lagged_observation_contract_cpu_xla_smoke() -> None:
+    theta = tf.constant([[0.04]], dtype=tf.float64)
+    eager_value, eager_score, eager_diagnostics = _lagged_value_score(theta)
+
+    @tf.function(jit_compile=True, reduce_retracing=True)
+    def xla_call(theta_arg: tf.Tensor) -> tuple[tf.Tensor, tf.Tensor]:
+        value, score, diagnostics = _lagged_value_score(theta_arg)
+        with tf.control_dependencies(
+            [
+                tf.debugging.assert_equal(
+                    diagnostics["observation_contract"],
+                    tf.constant("lagged_previous_innovation_predicted"),
+                ),
+                tf.debugging.assert_equal(
+                    diagnostics["observation_contract_runtime_selected"],
+                    tf.constant(True),
+                ),
+            ]
+        ):
+            return tf.identity(value), tf.identity(score)
+
+    xla_value, xla_score = xla_call(theta)
+
+    assert eager_diagnostics["observation_contract"].numpy() == (
+        b"lagged_previous_innovation_predicted"
+    )
+    np.testing.assert_allclose(xla_value.numpy(), eager_value.numpy(), atol=1.0e-8)
+    np.testing.assert_allclose(xla_score.numpy(), eager_score.numpy(), rtol=1.0e-5, atol=1.0e-6)
+
+
+def test_lagged_observation_contract_source_contract() -> None:
+    from bayesfilter.nonlinear import experimental_batched_svd_sigma_point_tf as module
+
+    source = inspect.getsource(module.tf_batched_svd_sigma_point_value_and_score_with_rule)
+    tree = ast.parse(textwrap.dedent(source))
+
+    assert "tf.while_loop" in source
+    assert "observation_contract" in source
+    assert "lagged_previous_innovation_predicted" in source
+    assert "d_lagged_observation_fn" in source
+    assert not any(isinstance(node, (ast.For, ast.AsyncFor)) for node in ast.walk(tree))
 
 
 @pytest.mark.parametrize("backend", OLD_BACKENDS)

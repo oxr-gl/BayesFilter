@@ -93,6 +93,210 @@ class GenericHMCTuningConfig:
 
 
 @dataclass(frozen=True)
+class GenericHMCFixedGridScaleConfig:
+    """BayesFilter-owned policy for scaling a fixed HMC step-size grid.
+
+    Client code supplies pilot acceptance diagnostics for candidate scale
+    factors. BayesFilter owns the target-band interpretation and returns the
+    scaled grid or a fail-closed artifact; it does not run target-specific HMC.
+    """
+
+    base_step_size_candidates: tuple[float, ...]
+    num_leapfrog_step_candidates: tuple[int, ...]
+    scale_candidates: tuple[float, ...]
+    acceptance_band: tuple[float, float] = (0.65, 0.75)
+    fallback_acceptance_max: float = 0.85
+    target_acceptance: float = 0.70
+    pilot_base_step_size: float | None = None
+    pilot_num_leapfrog_steps: int | None = None
+    policy_source: str = "bayesfilter.inference.generic_hmc_tuning"
+
+    def __post_init__(self) -> None:
+        base_steps = tuple(float(item) for item in self.base_step_size_candidates)
+        if not base_steps:
+            raise ValueError("base_step_size_candidates must be non-empty")
+        if any((not np.isfinite(item)) or item <= 0.0 for item in base_steps):
+            raise ValueError("base_step_size_candidates must be positive and finite")
+        leapfrogs = tuple(int(item) for item in self.num_leapfrog_step_candidates)
+        if not leapfrogs:
+            raise ValueError("num_leapfrog_step_candidates must be non-empty")
+        if any(item <= 0 for item in leapfrogs):
+            raise ValueError("num_leapfrog_step_candidates must be positive")
+        scales = tuple(float(item) for item in self.scale_candidates)
+        if not scales:
+            raise ValueError("scale_candidates must be non-empty")
+        if any((not np.isfinite(item)) or item <= 0.0 for item in scales):
+            raise ValueError("scale_candidates must be positive and finite")
+        if tuple(sorted(scales)) != scales:
+            raise ValueError("scale_candidates must be sorted ascending")
+        lower, upper = (float(self.acceptance_band[0]), float(self.acceptance_band[1]))
+        fallback = float(self.fallback_acceptance_max)
+        target = float(self.target_acceptance)
+        if not (np.isfinite(lower) and np.isfinite(upper) and 0.0 < lower <= upper < 1.0):
+            raise ValueError("acceptance_band must satisfy 0 < lower <= upper < 1")
+        if not (np.isfinite(fallback) and upper <= fallback < 1.0):
+            raise ValueError("fallback_acceptance_max must be finite and in [upper, 1)")
+        if not (np.isfinite(target) and lower <= target <= upper):
+            raise ValueError("target_acceptance must lie inside acceptance_band")
+        pilot_base = (
+            max(base_steps)
+            if self.pilot_base_step_size is None
+            else float(self.pilot_base_step_size)
+        )
+        if not np.isfinite(pilot_base) or pilot_base <= 0.0:
+            raise ValueError("pilot_base_step_size must be positive and finite")
+        pilot_leapfrog = (
+            min((item for item in leapfrogs if item >= 8), default=max(leapfrogs))
+            if self.pilot_num_leapfrog_steps is None
+            else int(self.pilot_num_leapfrog_steps)
+        )
+        if pilot_leapfrog <= 0:
+            raise ValueError("pilot_num_leapfrog_steps must be positive")
+        source = str(self.policy_source)
+        if not source:
+            raise ValueError("policy_source must be non-empty")
+        object.__setattr__(self, "base_step_size_candidates", base_steps)
+        object.__setattr__(self, "num_leapfrog_step_candidates", leapfrogs)
+        object.__setattr__(self, "scale_candidates", scales)
+        object.__setattr__(self, "acceptance_band", (lower, upper))
+        object.__setattr__(self, "fallback_acceptance_max", fallback)
+        object.__setattr__(self, "target_acceptance", target)
+        object.__setattr__(self, "pilot_base_step_size", pilot_base)
+        object.__setattr__(self, "pilot_num_leapfrog_steps", pilot_leapfrog)
+        object.__setattr__(self, "policy_source", source)
+
+    def scaled_step_size_candidates(self, scale: float) -> tuple[float, ...]:
+        factor = float(scale)
+        if not np.isfinite(factor) or factor <= 0.0:
+            raise ValueError("scale must be positive and finite")
+        return tuple(float(factor * step) for step in self.base_step_size_candidates)
+
+    def payload(self) -> Mapping[str, Any]:
+        return {
+            "base_step_size_candidates": self.base_step_size_candidates,
+            "num_leapfrog_step_candidates": self.num_leapfrog_step_candidates,
+            "scale_candidates": self.scale_candidates,
+            "acceptance_band": self.acceptance_band,
+            "fallback_acceptance_max": self.fallback_acceptance_max,
+            "target_acceptance": self.target_acceptance,
+            "pilot_base_step_size": self.pilot_base_step_size,
+            "pilot_num_leapfrog_steps": self.pilot_num_leapfrog_steps,
+            "policy_source": self.policy_source,
+        }
+
+
+@dataclass(frozen=True)
+class GenericHMCFixedGridScaleProbe:
+    """One scale-probe diagnostic for a fixed HMC grid."""
+
+    candidate_index: int
+    scale: float
+    pilot_step_size: float
+    pilot_num_leapfrog_steps: int
+    acceptance_rate: float | None
+    acceptance_class: str
+    status: str
+    vetoes: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        index = int(self.candidate_index)
+        if index < 0:
+            raise ValueError("candidate_index must be non-negative")
+        scale = float(self.scale)
+        step = float(self.pilot_step_size)
+        leapfrog = int(self.pilot_num_leapfrog_steps)
+        if not np.isfinite(scale) or scale <= 0.0:
+            raise ValueError("scale must be positive and finite")
+        if not np.isfinite(step) or step <= 0.0:
+            raise ValueError("pilot_step_size must be positive and finite")
+        if leapfrog <= 0:
+            raise ValueError("pilot_num_leapfrog_steps must be positive")
+        acceptance = None if self.acceptance_rate is None else float(self.acceptance_rate)
+        if acceptance is not None and (
+            not np.isfinite(acceptance) or acceptance < 0.0 or acceptance > 1.0
+        ):
+            raise ValueError("acceptance_rate must be in [0, 1]")
+        status = str(self.status)
+        acceptance_class = str(self.acceptance_class)
+        if not status or not acceptance_class:
+            raise ValueError("status and acceptance_class must be non-empty")
+        object.__setattr__(self, "candidate_index", index)
+        object.__setattr__(self, "scale", scale)
+        object.__setattr__(self, "pilot_step_size", step)
+        object.__setattr__(self, "pilot_num_leapfrog_steps", leapfrog)
+        object.__setattr__(self, "acceptance_rate", acceptance)
+        object.__setattr__(self, "acceptance_class", acceptance_class)
+        object.__setattr__(self, "status", status)
+        object.__setattr__(self, "vetoes", tuple(str(item) for item in self.vetoes))
+
+    def payload(self) -> Mapping[str, Any]:
+        return {
+            "candidate_index": self.candidate_index,
+            "scale": self.scale,
+            "pilot_step_size": self.pilot_step_size,
+            "pilot_num_leapfrog_steps": self.pilot_num_leapfrog_steps,
+            "acceptance_rate": self.acceptance_rate,
+            "acceptance_class": self.acceptance_class,
+            "status": self.status,
+            "vetoes": self.vetoes,
+        }
+
+
+@dataclass(frozen=True)
+class GenericHMCFixedGridScaleSelection:
+    """Stable result for scaling a fixed HMC grid before a full run."""
+
+    config: GenericHMCFixedGridScaleConfig
+    probes: tuple[GenericHMCFixedGridScaleProbe, ...]
+    selected_scale: float | None
+    scaled_step_size_candidates: tuple[float, ...]
+    status: str
+    vetoes: tuple[str, ...] = ()
+    nonclaims: tuple[str, ...] = GENERIC_HMC_TUNING_NONCLAIMS
+
+    def __post_init__(self) -> None:
+        probes = tuple(self.probes)
+        if not probes:
+            raise ValueError("probes must be non-empty")
+        selected = None if self.selected_scale is None else float(self.selected_scale)
+        if selected is not None and (not np.isfinite(selected) or selected <= 0.0):
+            raise ValueError("selected_scale must be positive and finite")
+        scaled = tuple(float(item) for item in self.scaled_step_size_candidates)
+        if selected is not None and not scaled:
+            raise ValueError("scaled_step_size_candidates must be non-empty when selected")
+        status = str(self.status)
+        if not status:
+            raise ValueError("status must be non-empty")
+        object.__setattr__(self, "probes", probes)
+        object.__setattr__(self, "selected_scale", selected)
+        object.__setattr__(self, "scaled_step_size_candidates", scaled)
+        object.__setattr__(self, "status", status)
+        object.__setattr__(self, "vetoes", tuple(str(item) for item in self.vetoes))
+        object.__setattr__(self, "nonclaims", tuple(str(item) for item in self.nonclaims))
+
+    @property
+    def passed(self) -> bool:
+        return self.selected_scale is not None and not self.vetoes
+
+    def payload(self) -> Mapping[str, Any]:
+        return {
+            "artifact_type": "bayesfilter_hmc_fixed_grid_scale_selection",
+            "config": self.config.payload(),
+            "probes": tuple(item.payload() for item in self.probes),
+            "selected_scale": self.selected_scale,
+            "scaled_step_size_candidates": self.scaled_step_size_candidates,
+            "status": self.status,
+            "passed": self.passed,
+            "vetoes": self.vetoes,
+            "nonclaims": self.nonclaims,
+        }
+
+    @property
+    def artifact_hash(self) -> str:
+        return stable_config_hash(self.payload())
+
+
+@dataclass(frozen=True)
 class GenericHMCCandidateResult:
     """One client-target candidate row with checkpoint-ready payload."""
 
@@ -589,6 +793,159 @@ def _select_generic_candidate(
     except ValueError:
         return None
     return selected.payload
+
+
+def classify_hmc_fixed_grid_acceptance(
+    acceptance_rate: float | None,
+    *,
+    acceptance_band: tuple[float, float] = (0.65, 0.75),
+    fallback_acceptance_max: float = 0.85,
+) -> str:
+    """Classify fixed-grid pilot acceptance without moving the target band."""
+
+    lower, upper = (float(acceptance_band[0]), float(acceptance_band[1]))
+    fallback = float(fallback_acceptance_max)
+    if acceptance_rate is None:
+        return "invalid"
+    acceptance = float(acceptance_rate)
+    if not np.isfinite(acceptance) or acceptance < 0.0 or acceptance > 1.0:
+        return "invalid"
+    if lower <= acceptance <= upper:
+        return "in_band"
+    if acceptance > upper and acceptance <= fallback:
+        return "high_warning_band"
+    if acceptance < lower:
+        return "below_band"
+    return "too_high"
+
+
+def select_hmc_fixed_grid_scale(
+    *,
+    base_step_size_candidates: Sequence[float],
+    num_leapfrog_step_candidates: Sequence[int],
+    scale_candidates: Sequence[float],
+    pilot_acceptance_rates: Sequence[float | None],
+    acceptance_band: tuple[float, float] = (0.65, 0.75),
+    fallback_acceptance_max: float = 0.85,
+    target_acceptance: float = 0.70,
+    pilot_base_step_size: float | None = None,
+    pilot_num_leapfrog_steps: int | None = None,
+    policy_source: str = "bayesfilter.inference.generic_hmc_tuning",
+) -> GenericHMCFixedGridScaleSelection:
+    """Select ``X`` for ``X * base_step_size_candidates`` from pilot diagnostics."""
+
+    config = GenericHMCFixedGridScaleConfig(
+        base_step_size_candidates=tuple(float(item) for item in base_step_size_candidates),
+        num_leapfrog_step_candidates=tuple(int(item) for item in num_leapfrog_step_candidates),
+        scale_candidates=tuple(float(item) for item in scale_candidates),
+        acceptance_band=acceptance_band,
+        fallback_acceptance_max=fallback_acceptance_max,
+        target_acceptance=target_acceptance,
+        pilot_base_step_size=pilot_base_step_size,
+        pilot_num_leapfrog_steps=pilot_num_leapfrog_steps,
+        policy_source=policy_source,
+    )
+    acceptances = tuple(
+        None if item is None else float(item) for item in pilot_acceptance_rates
+    )
+    if len(acceptances) != len(config.scale_candidates):
+        raise ValueError("pilot_acceptance_rates must match scale_candidates length")
+
+    probes = []
+    for index, (scale, acceptance) in enumerate(zip(config.scale_candidates, acceptances)):
+        acceptance_class = classify_hmc_fixed_grid_acceptance(
+            acceptance,
+            acceptance_band=config.acceptance_band,
+            fallback_acceptance_max=config.fallback_acceptance_max,
+        )
+        vetoes: tuple[str, ...]
+        if acceptance_class == "invalid":
+            status = "invalid_pilot"
+            vetoes = ("invalid_pilot_acceptance",)
+        elif acceptance_class == "too_high":
+            status = "pilot_acceptance_too_high"
+            vetoes = ("pilot_acceptance_above_fallback_max",)
+        else:
+            status = "pilot_scale_usable"
+            vetoes = ()
+        probes.append(
+            GenericHMCFixedGridScaleProbe(
+                candidate_index=index,
+                scale=scale,
+                pilot_step_size=float(scale) * float(config.pilot_base_step_size),
+                pilot_num_leapfrog_steps=int(config.pilot_num_leapfrog_steps),
+                acceptance_rate=acceptance,
+                acceptance_class=acceptance_class,
+                status=status,
+                vetoes=vetoes,
+            )
+        )
+
+    selected_probe = None
+    for probe in probes:
+        if probe.acceptance_class == "in_band":
+            selected_probe = probe
+            break
+    if selected_probe is None:
+        for probe in probes:
+            if probe.acceptance_class == "high_warning_band":
+                selected_probe = probe
+                break
+    if selected_probe is None:
+        for probe in probes:
+            if probe.acceptance_class == "below_band":
+                selected_probe = probe
+                break
+
+    if selected_probe is None:
+        if _has_ordered_finite_domain_ceiling(probes):
+            return GenericHMCFixedGridScaleSelection(
+                config=config,
+                probes=tuple(probes),
+                selected_scale=None,
+                scaled_step_size_candidates=(),
+                status="scale_search_failed_finite_domain_ceiling",
+                vetoes=("pilot_scale_expansion_hit_finite_domain_ceiling",),
+            )
+        return GenericHMCFixedGridScaleSelection(
+            config=config,
+            probes=tuple(probes),
+            selected_scale=None,
+            scaled_step_size_candidates=(),
+            status="scale_search_failed_high_acceptance",
+            vetoes=("all_pilot_acceptance_rates_above_fallback_max_or_invalid",),
+        )
+
+    status_by_class = {
+        "in_band": "scale_selected_in_band",
+        "high_warning_band": "scale_selected_warning_band",
+        "below_band": "scale_selected_below_band",
+    }
+    return GenericHMCFixedGridScaleSelection(
+        config=config,
+        probes=tuple(probes),
+        selected_scale=float(selected_probe.scale),
+        scaled_step_size_candidates=config.scaled_step_size_candidates(
+            selected_probe.scale),
+        status=status_by_class[str(selected_probe.acceptance_class)],
+        vetoes=(),
+    )
+
+
+def _has_ordered_finite_domain_ceiling(
+    probes: Sequence[GenericHMCFixedGridScaleProbe],
+) -> bool:
+    """Detect high-acceptance finite probes followed by larger invalid probes."""
+
+    for index, probe in enumerate(probes):
+        if probe.acceptance_class != "too_high" or probe.acceptance_rate is None:
+            continue
+        if any(
+            later.scale > probe.scale and later.acceptance_class == "invalid"
+            for later in probes[index + 1 :]
+        ):
+            return True
+    return False
 
 
 @dataclass(frozen=True)

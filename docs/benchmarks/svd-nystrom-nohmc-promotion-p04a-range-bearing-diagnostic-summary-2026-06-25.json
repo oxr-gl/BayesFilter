@@ -1,0 +1,193 @@
+{
+  "created_at": "2026-06-24T21:55:00+00:00",
+  "decision_table": {
+    "decision": "P04A_LOCKED_FAILURE_CONFIRMED_REPAIR_REQUIRED",
+    "main_uncertainty": "Only seed 84000 was diagnosed; control rows are one-seed descriptive diagnostics and do not establish a repaired candidate or statistical ranking.",
+    "next_justified_action": "Stop the promotion ladder as repair-required or open a separate owner-approved candidate-freeze repair lane.",
+    "not_concluded": "No P04 pass, no default promotion, no posterior correctness, no statistical superiority, no HMC readiness, no broad nonlinear validity, and no approval of a new candidate.",
+    "primary_criterion_status": "FAILURE CONFIRMED: locked rerun reproduced the P04 exceedance with deterministic-valid routes.",
+    "veto_diagnostic_status": "PASS for deterministic route validity across all four diagnostic rows; FAIL for paired quality threshold across all four rows."
+  },
+  "gate": {
+    "all_routes_deterministic_valid": true,
+    "control_rows_passing_one_seed_diagnostic": [],
+    "control_rows_run": [
+      "rank64",
+      "rank128",
+      "eps1p0"
+    ],
+    "diagnostic_threshold": 0.05,
+    "locked_failure_reproduced": true,
+    "max_normalized_abs_delta": 0.10152473449707031,
+    "min_normalized_abs_delta": 0.09715399742126465,
+    "rows_run": 4
+  },
+  "inference_status": {
+    "default_readiness": "NO",
+    "descriptive_only_differences": "Rank/epsilon sensitivity and one-seed delta magnitudes are descriptive only.",
+    "hard_veto_screen": "Deterministic route validity PASS; paired diagnostic quality threshold FAIL for locked rerun and all controls.",
+    "next_evidence_needed": "Separate repair/candidate-freeze lane if the owner wants to continue.",
+    "statistically_supported_ranking": "NO"
+  },
+  "nonclaims": [
+    "P04A confirms a seed-84000 range-bearing quality failure for the locked candidate",
+    "no default promotion claim",
+    "no posterior correctness claim",
+    "no statistical superiority claim",
+    "no HMC readiness claim",
+    "no broad nonlinear-validity claim",
+    "no repaired-candidate approval claim"
+  ],
+  "phase": "SVD-NYSTROM-NOHMC-PROMOTION-P04A-RANGE-BEARING-DIAGNOSTIC",
+  "result": "docs/plans/bayesfilter-dpf-ledh-pfpf-ot-svd-nystrom-nohmc-promotion-p04a-range-bearing-failure-diagnostic-result-2026-06-25.md",
+  "rows": [
+    {
+      "artifact": "docs/benchmarks/svd-nystrom-nohmc-promotion-p04a-range-bearing-seed84000-locked-r32-eps0p5-rerun-2026-06-25.json",
+      "diagnostic_threshold": 0.05,
+      "hard_vetoes": [
+        "paired:paired_normalized_log_likelihood_delta"
+      ],
+      "log_artifact": "docs/plans/logs/svd-nystrom-nohmc-promotion-2026-06-25/svd-nystrom-nohmc-promotion-p04a-range-bearing-seed84000-locked-r32-eps0p5-rerun.log",
+      "log_likelihood_delta": -3.9682178497314453,
+      "markdown_artifact": "docs/benchmarks/svd-nystrom-nohmc-promotion-p04a-range-bearing-seed84000-locked-r32-eps0p5-rerun-2026-06-25.md",
+      "normalized_abs_delta_per_observation_component": 0.09920544624328613,
+      "nystrom_epsilon": 0.5,
+      "nystrom_ess_fraction_min": 0.253101110458374,
+      "nystrom_final_logsumexp_residual": 0.0,
+      "nystrom_finite_factors": true,
+      "nystrom_finite_particles": true,
+      "nystrom_log_likelihood": 23.511123657226562,
+      "nystrom_max_column_residual": 0.002088785171508789,
+      "nystrom_max_row_residual": 0.009805679321289062,
+      "nystrom_rank": 32,
+      "nystrom_status": "PASS",
+      "passes_diagnostic_threshold": false,
+      "row": "locked-rerun",
+      "selected_physical_gpu": {
+        "index": "1",
+        "memory_used_mib": "30693",
+        "name": "NVIDIA GeForce RTX 4080 SUPER",
+        "status": "selected",
+        "utilization_gpu_percent": "0",
+        "uuid": "GPU-a1ea1946-07c0-8ed5-2ba1-d96f82c89cd3"
+      },
+      "status": "FAIL",
+      "streaming_ess_fraction_min": 0.253101110458374,
+      "streaming_log_likelihood": 27.479341506958008,
+      "streaming_status": "PASS",
+      "tf32_execution_enabled": true,
+      "wall_time_seconds": 124.05675485706888
+    },
+    {
+      "artifact": "docs/benchmarks/svd-nystrom-nohmc-promotion-p04a-range-bearing-seed84000-rank64-eps0p5-2026-06-25.json",
+      "diagnostic_threshold": 0.05,
+      "hard_vetoes": [
+        "paired:paired_normalized_log_likelihood_delta"
+      ],
+      "log_artifact": "docs/plans/logs/svd-nystrom-nohmc-promotion-2026-06-25/svd-nystrom-nohmc-promotion-p04a-range-bearing-seed84000-rank64-eps0p5.log",
+      "log_likelihood_delta": -4.0609893798828125,
+      "markdown_artifact": "docs/benchmarks/svd-nystrom-nohmc-promotion-p04a-range-bearing-seed84000-rank64-eps0p5-2026-06-25.md",
+      "normalized_abs_delta_per_observation_component": 0.10152473449707031,
+      "nystrom_epsilon": 0.5,
+      "nystrom_ess_fraction_min": 0.253101110458374,
+      "nystrom_final_logsumexp_residual": 0.0,
+      "nystrom_finite_factors": true,
+      "nystrom_finite_particles": true,
+      "nystrom_log_likelihood": 23.418352127075195,
+      "nystrom_max_column_residual": 0.0018078088760375977,
+      "nystrom_max_row_residual": 0.002476930618286133,
+      "nystrom_rank": 64,
+      "nystrom_status": "PASS",
+      "passes_diagnostic_threshold": false,
+      "row": "rank64",
+      "selected_physical_gpu": {
+        "index": "1",
+        "memory_used_mib": "30693",
+        "name": "NVIDIA GeForce RTX 4080 SUPER",
+        "status": "selected",
+        "utilization_gpu_percent": "0",
+        "uuid": "GPU-a1ea1946-07c0-8ed5-2ba1-d96f82c89cd3"
+      },
+      "status": "FAIL",
+      "streaming_ess_fraction_min": 0.253101110458374,
+      "streaming_log_likelihood": 27.479341506958008,
+      "streaming_status": "PASS",
+      "tf32_execution_enabled": true,
+      "wall_time_seconds": 132.16423943615519
+    },
+    {
+      "artifact": "docs/benchmarks/svd-nystrom-nohmc-promotion-p04a-range-bearing-seed84000-rank128-eps0p5-2026-06-25.json",
+      "diagnostic_threshold": 0.05,
+      "hard_vetoes": [
+        "paired:paired_normalized_log_likelihood_delta"
+      ],
+      "log_artifact": "docs/plans/logs/svd-nystrom-nohmc-promotion-2026-06-25/svd-nystrom-nohmc-promotion-p04a-range-bearing-seed84000-rank128-eps0p5.log",
+      "log_likelihood_delta": -3.886159896850586,
+      "markdown_artifact": "docs/benchmarks/svd-nystrom-nohmc-promotion-p04a-range-bearing-seed84000-rank128-eps0p5-2026-06-25.md",
+      "normalized_abs_delta_per_observation_component": 0.09715399742126465,
+      "nystrom_epsilon": 0.5,
+      "nystrom_ess_fraction_min": 0.253101110458374,
+      "nystrom_final_logsumexp_residual": 0.0,
+      "nystrom_finite_factors": true,
+      "nystrom_finite_particles": true,
+      "nystrom_log_likelihood": 23.593181610107422,
+      "nystrom_max_column_residual": 0.009912490844726562,
+      "nystrom_max_row_residual": 0.002891242504119873,
+      "nystrom_rank": 128,
+      "nystrom_status": "PASS",
+      "passes_diagnostic_threshold": false,
+      "row": "rank128",
+      "selected_physical_gpu": {
+        "index": "1",
+        "memory_used_mib": "30693",
+        "name": "NVIDIA GeForce RTX 4080 SUPER",
+        "status": "selected",
+        "utilization_gpu_percent": "0",
+        "uuid": "GPU-a1ea1946-07c0-8ed5-2ba1-d96f82c89cd3"
+      },
+      "status": "FAIL",
+      "streaming_ess_fraction_min": 0.253101110458374,
+      "streaming_log_likelihood": 27.479341506958008,
+      "streaming_status": "PASS",
+      "tf32_execution_enabled": true,
+      "wall_time_seconds": 166.90410159504972
+    },
+    {
+      "artifact": "docs/benchmarks/svd-nystrom-nohmc-promotion-p04a-range-bearing-seed84000-r32-eps1p0-2026-06-25.json",
+      "diagnostic_threshold": 0.05,
+      "hard_vetoes": [
+        "paired:paired_normalized_log_likelihood_delta"
+      ],
+      "log_artifact": "docs/plans/logs/svd-nystrom-nohmc-promotion-2026-06-25/svd-nystrom-nohmc-promotion-p04a-range-bearing-seed84000-r32-eps1p0.log",
+      "log_likelihood_delta": -3.9405384063720703,
+      "markdown_artifact": "docs/benchmarks/svd-nystrom-nohmc-promotion-p04a-range-bearing-seed84000-r32-eps1p0-2026-06-25.md",
+      "normalized_abs_delta_per_observation_component": 0.09851346015930176,
+      "nystrom_epsilon": 1.0,
+      "nystrom_ess_fraction_min": 0.253101110458374,
+      "nystrom_final_logsumexp_residual": 0.0,
+      "nystrom_finite_factors": true,
+      "nystrom_finite_particles": true,
+      "nystrom_log_likelihood": 23.538803100585938,
+      "nystrom_max_column_residual": 0.00506436824798584,
+      "nystrom_max_row_residual": 0.003958940505981445,
+      "nystrom_rank": 32,
+      "nystrom_status": "PASS",
+      "passes_diagnostic_threshold": false,
+      "row": "eps1p0",
+      "selected_physical_gpu": {
+        "index": "1",
+        "memory_used_mib": "30693",
+        "name": "NVIDIA GeForce RTX 4080 SUPER",
+        "status": "selected",
+        "utilization_gpu_percent": "0",
+        "uuid": "GPU-a1ea1946-07c0-8ed5-2ba1-d96f82c89cd3"
+      },
+      "status": "FAIL",
+      "streaming_ess_fraction_min": 0.253101110458374,
+      "streaming_log_likelihood": 27.479341506958008,
+      "streaming_status": "PASS",
+      "tf32_execution_enabled": true,
+      "wall_time_seconds": 117.9069279411342
+    }
+  ]
+}

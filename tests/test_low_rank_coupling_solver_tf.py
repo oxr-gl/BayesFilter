@@ -4,7 +4,6 @@ import os
 
 os.environ.setdefault("CUDA_VISIBLE_DEVICES", "-1")
 
-import numpy as np
 import pytest
 import tensorflow as tf
 
@@ -85,12 +84,12 @@ def test_materialized_tiny_plan_matches_lazy_apply_and_marginals() -> None:
     matrix = low_rank_coupling_scaled_matrix_tf(result.q_factor, result.r_factor, result.g_weights)
     reconstructed = tf.linalg.matmul(matrix, particles)
 
-    np.testing.assert_allclose(reconstructed.numpy(), result.particles.numpy(), atol=1.0e-10, rtol=1.0e-10)
-    np.testing.assert_allclose(tf.reduce_sum(matrix, axis=2).numpy(), np.ones((2, 5)), atol=5.0e-3)
-    np.testing.assert_allclose(tf.reduce_sum(matrix, axis=1).numpy(), (weights * 5.0).numpy(), atol=5.0e-3)
-    np.testing.assert_allclose(
-        tf.reduce_logsumexp(result.log_weights, axis=1).numpy(),
-        np.zeros(2),
+    tf.debugging.assert_near(reconstructed, result.particles, atol=1.0e-10, rtol=1.0e-10)
+    tf.debugging.assert_near(tf.reduce_sum(matrix, axis=2), tf.ones((2, 5), dtype=DTYPE), atol=5.0e-3)
+    tf.debugging.assert_near(tf.reduce_sum(matrix, axis=1), weights * 5.0, atol=5.0e-3)
+    tf.debugging.assert_near(
+        tf.reduce_logsumexp(result.log_weights, axis=1),
+        tf.zeros(2, dtype=DTYPE),
         atol=1.0e-12,
     )
 

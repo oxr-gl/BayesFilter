@@ -45,6 +45,7 @@ __all__ = [
     "tf_fixed_sgqf_p47_one_step_oracle",
     "tf_fixed_sgqf_same_branch_signature",
     "tf_fixed_sgqf_score",
+    "tf_batched_svd_sigma_point_value_and_score_custom_gradient",
     "tf_svd_sigma_point_filter",
     "tf_svd_sigma_point_log_likelihood",
     "tf_svd_sigma_point_log_likelihood_with_rule",
@@ -113,6 +114,9 @@ _EXPORT_MODULES = {
         "bayesfilter.nonlinear.fixed_sgqf_derivatives_tf"
     ),
     "tf_fixed_sgqf_score": "bayesfilter.nonlinear.fixed_sgqf_derivatives_tf",
+    "tf_batched_svd_sigma_point_value_and_score_custom_gradient": (
+        "bayesfilter.nonlinear.batched_svd_sigma_point_tf"
+    ),
     "tf_svd_sigma_point_filter": "bayesfilter.nonlinear.sigma_points_tf",
     "tf_svd_sigma_point_log_likelihood": "bayesfilter.nonlinear.sigma_points_tf",
     "tf_svd_sigma_point_log_likelihood_with_rule": (

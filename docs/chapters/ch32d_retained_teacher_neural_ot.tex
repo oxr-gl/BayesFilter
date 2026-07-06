@@ -813,6 +813,32 @@ Minibatch / stochastic routes & local or sampled transport work & teacher status
 \end{tabular}
 \end{center}
 
+\subsection{How the broader retained-teacher approximations fit here}
+\label{sec:bf-learned-ot-broader-retained}
+
+The same residual logic gives the chapter a place to classify the broader
+scalable-OT approximations from the survey.  If a Nystrom factorization, a
+positive-feature kernel, or a low-rank coupling factorization is proposed as a
+retained-teacher acceleration, then the first audit question is still teacher
+preservation: how close is the transported cloud or coupling application to the
+declared teacher route from Chapter~\ref{ch:bf-dpf-entropic-ot-sinkhorn}?
+
+For example, a kernel-factor route may replace the dense Gibbs kernel by a
+factorized approximation while still producing a coupling application of the same
+schematic form.  A low-rank coupling route may store and apply transport through
+structured factors rather than a dense matrix.  A stochastic or minibatch route
+may reduce computation by solving smaller transport subproblems.  In all such
+cases, this chapter's doctrine is the same: they are still retained-teacher
+candidates only if the approximation error is measured against the teacher object
+rather than hidden behind speedups alone.
+
+That is why the residual hierarchy should be read broadly.  The diagnostic is not
+restricted to one neural warm-start map.  It is the first reusable test for any
+approximation family that claims to accelerate the teacher without changing the
+meaning of the transported output.  Once the approximation stops being naturally
+judged by teacher-preservation residuals, it belongs in the later target-changing
+chapters instead of this retained-teacher one.
+
 \section{Filtering-loop insertion point}
 \label{sec:bf-learned-ot-loop}
 

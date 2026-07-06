@@ -88,4 +88,3 @@ or
 ```text
 VERDICT: REVISE
 ```
-

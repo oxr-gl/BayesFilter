@@ -1,0 +1,1376 @@
+{
+  "algorithm_family": "low_rank_coupling_solver_route_scale_smoke",
+  "algorithm_under_test": "P = Q diag(1/g) R^T lazy low-rank solver-route resampling",
+  "fixture_contract": {
+    "batch_offset_abs_bound": 0.1,
+    "fixture_id": "bounded_smooth_v1",
+    "log_weight_logit_abs_bound": 1.25,
+    "particle_coordinate_abs_bound": 1.0
+  },
+  "hard_vetoes": [
+    "tuning_grid_no_viable_setting"
+  ],
+  "mode": "tuning-cpu",
+  "nonclaims": [
+    "low-rank TF32 scale-smoke diagnostic only",
+    "no speedup claim",
+    "no ranking claim",
+    "no superiority claim",
+    "no posterior correctness claim",
+    "no HMC readiness claim",
+    "no public API readiness claim",
+    "no production/default readiness claim",
+    "no dense Sinkhorn equivalence claim",
+    "no full low-rank Sinkhorn solver-fidelity claim",
+    "no broad scalable-OT selection claim",
+    "no TF32-help claim"
+  ],
+  "phase": "LR-TF32-2A",
+  "rows": [
+    {
+      "assignment_epsilon": 0.5,
+      "batch_size": 2,
+      "dense_materialization_role": "forbidden_not_used",
+      "dense_transport_materialized": false,
+      "dtype": "float32",
+      "finite_factors": true,
+      "finite_particles": true,
+      "fixture_id": "bounded_smooth_v1",
+      "g_shape": [
+        2,
+        64
+      ],
+      "grid_role": "tuning_candidate",
+      "hard_vetoes": [
+        "weighted_second_moment_abs_error_threshold"
+      ],
+      "max_factor_marginal_residual": 1.6763806343078613e-08,
+      "max_induced_column_residual": 7.152557373046875e-07,
+      "max_induced_row_residual": 3.5762786865234375e-07,
+      "memory_maxrss_kb_explanatory": 482640,
+      "min_g_explanatory": 0.009522118605673313,
+      "min_q_explanatory": 3.5571279255464106e-08,
+      "min_r_explanatory": 1.4333941145139306e-08,
+      "moment_threshold_role": "hard_veto",
+      "naive_uniform_mean_abs_error_explanatory": 0.1909829080104828,
+      "naive_uniform_second_moment_abs_error_explanatory": 0.07073083519935608,
+      "nonnegative_factors": true,
+      "output_log_weight_normalization_residual": 0.0,
+      "particle_count": 4096,
+      "particles_shape": [
+        2,
+        4096,
+        8
+      ],
+      "positive_g": true,
+      "projection_error_explanatory": 9.933100955095142e-07,
+      "projection_floor_hits_explanatory": 0.0,
+      "projection_iterations_used": 13,
+      "projection_min_denominator_explanatory": 0.005172268953174353,
+      "q_shape": [
+        2,
+        4096,
+        64
+      ],
+      "r_shape": [
+        2,
+        4096,
+        64
+      ],
+      "rank": 64,
+      "solver_fidelity": "diagnostic_solver_route_not_full_lowrank_sinkhorn_fidelity",
+      "source_route": "extension_or_invention",
+      "source_route_components": {
+        "cost_nudged_assignment_kernel": "extension_or_invention",
+        "deterministic_initialization": "fixed_hmc_adaptation",
+        "dykstra_style_projection": "source_faithful",
+        "factor_marginal_diagnostics": "source_faithful",
+        "factored_coupling_parameterization": "source_faithful",
+        "fixed_iteration_schedule": "fixed_hmc_adaptation",
+        "low_rank_lazy_apply": "source_faithful",
+        "phase1_scaled_transport_adapter": "fixed_hmc_adaptation"
+      },
+      "state_dim": 8,
+      "status": "FAIL",
+      "tiny_materialized_apply_parity": null,
+      "tiny_materialized_column_residual": null,
+      "tiny_materialized_row_residual": null,
+      "transport_matrix_materialized_by_solver": false,
+      "transport_matrix_shape": [
+        2,
+        0,
+        0
+      ],
+      "transport_object_kind": "low_rank_coupling_factors",
+      "wall_time_seconds_explanatory": 0.21915571903809905,
+      "weighted_mean_abs_error": 1.1920928955078125e-07,
+      "weighted_second_moment_abs_error": 0.29352012276649475
+    },
+    {
+      "assignment_epsilon": 0.25,
+      "batch_size": 2,
+      "dense_materialization_role": "forbidden_not_used",
+      "dense_transport_materialized": false,
+      "dtype": "float32",
+      "finite_factors": true,
+      "finite_particles": true,
+      "fixture_id": "bounded_smooth_v1",
+      "g_shape": [
+        2,
+        64
+      ],
+      "grid_role": "tuning_candidate",
+      "hard_vetoes": [
+        "weighted_second_moment_abs_error_threshold"
+      ],
+      "max_factor_marginal_residual": 2.421438694000244e-08,
+      "max_induced_column_residual": 4.76837158203125e-07,
+      "max_induced_row_residual": 4.76837158203125e-07,
+      "memory_maxrss_kb_explanatory": 482640,
+      "min_g_explanatory": 0.009004559367895126,
+      "min_q_explanatory": 5.968557592606061e-11,
+      "min_r_explanatory": 2.930265405320931e-11,
+      "moment_threshold_role": "hard_veto",
+      "naive_uniform_mean_abs_error_explanatory": 0.1909829080104828,
+      "naive_uniform_second_moment_abs_error_explanatory": 0.07073083519935608,
+      "nonnegative_factors": true,
+      "output_log_weight_normalization_residual": 0.0,
+      "particle_count": 4096,
+      "particles_shape": [
+        2,
+        4096,
+        8
+      ],
+      "positive_g": true,
+      "projection_error_explanatory": 1.110951416194439e-06,
+      "projection_floor_hits_explanatory": 0.0,
+      "projection_iterations_used": 240,
+      "projection_min_denominator_explanatory": 0.001957060769200325,
+      "q_shape": [
+        2,
+        4096,
+        64
+      ],
+      "r_shape": [
+        2,
+        4096,
+        64
+      ],
+      "rank": 64,
+      "solver_fidelity": "diagnostic_solver_route_not_full_lowrank_sinkhorn_fidelity",
+      "source_route": "extension_or_invention",
+      "source_route_components": {
+        "cost_nudged_assignment_kernel": "extension_or_invention",
+        "deterministic_initialization": "fixed_hmc_adaptation",
+        "dykstra_style_projection": "source_faithful",
+        "factor_marginal_diagnostics": "source_faithful",
+        "factored_coupling_parameterization": "source_faithful",
+        "fixed_iteration_schedule": "fixed_hmc_adaptation",
+        "low_rank_lazy_apply": "source_faithful",
+        "phase1_scaled_transport_adapter": "fixed_hmc_adaptation"
+      },
+      "state_dim": 8,
+      "status": "FAIL",
+      "tiny_materialized_apply_parity": null,
+      "tiny_materialized_column_residual": null,
+      "tiny_materialized_row_residual": null,
+      "transport_matrix_materialized_by_solver": false,
+      "transport_matrix_shape": [
+        2,
+        0,
+        0
+      ],
+      "transport_object_kind": "low_rank_coupling_factors",
+      "wall_time_seconds_explanatory": 1.5762896339874715,
+      "weighted_mean_abs_error": 1.1175870895385742e-07,
+      "weighted_second_moment_abs_error": 0.2755662798881531
+    },
+    {
+      "assignment_epsilon": 0.125,
+      "batch_size": 2,
+      "dense_materialization_role": "forbidden_not_used",
+      "dense_transport_materialized": false,
+      "dtype": "float32",
+      "finite_factors": true,
+      "finite_particles": true,
+      "fixture_id": "bounded_smooth_v1",
+      "g_shape": [
+        2,
+        64
+      ],
+      "grid_role": "tuning_candidate",
+      "hard_vetoes": [
+        "weighted_second_moment_abs_error_threshold"
+      ],
+      "max_factor_marginal_residual": 4.0978193283081055e-08,
+      "max_induced_column_residual": 9.5367431640625e-07,
+      "max_induced_row_residual": 7.748603820800781e-07,
+      "memory_maxrss_kb_explanatory": 482640,
+      "min_g_explanatory": 0.008566281758248806,
+      "min_q_explanatory": 3.8538870825715143e-17,
+      "min_r_explanatory": 2.2892954680066538e-17,
+      "moment_threshold_role": "hard_veto",
+      "naive_uniform_mean_abs_error_explanatory": 0.1909829080104828,
+      "naive_uniform_second_moment_abs_error_explanatory": 0.07073083519935608,
+      "nonnegative_factors": true,
+      "output_log_weight_normalization_residual": 0.0,
+      "particle_count": 4096,
+      "particles_shape": [
+        2,
+        4096,
+        8
+      ],
+      "positive_g": true,
+      "projection_error_explanatory": 1.2937089195474982e-06,
+      "projection_floor_hits_explanatory": 0.0,
+      "projection_iterations_used": 240,
+      "projection_min_denominator_explanatory": 0.00021181898773647845,
+      "q_shape": [
+        2,
+        4096,
+        64
+      ],
+      "r_shape": [
+        2,
+        4096,
+        64
+      ],
+      "rank": 64,
+      "solver_fidelity": "diagnostic_solver_route_not_full_lowrank_sinkhorn_fidelity",
+      "source_route": "extension_or_invention",
+      "source_route_components": {
+        "cost_nudged_assignment_kernel": "extension_or_invention",
+        "deterministic_initialization": "fixed_hmc_adaptation",
+        "dykstra_style_projection": "source_faithful",
+        "factor_marginal_diagnostics": "source_faithful",
+        "factored_coupling_parameterization": "source_faithful",
+        "fixed_iteration_schedule": "fixed_hmc_adaptation",
+        "low_rank_lazy_apply": "source_faithful",
+        "phase1_scaled_transport_adapter": "fixed_hmc_adaptation"
+      },
+      "state_dim": 8,
+      "status": "FAIL",
+      "tiny_materialized_apply_parity": null,
+      "tiny_materialized_column_residual": null,
+      "tiny_materialized_row_residual": null,
+      "transport_matrix_materialized_by_solver": false,
+      "transport_matrix_shape": [
+        2,
+        0,
+        0
+      ],
+      "transport_object_kind": "low_rank_coupling_factors",
+      "wall_time_seconds_explanatory": 1.4522649890277535,
+      "weighted_mean_abs_error": 1.4901161193847656e-07,
+      "weighted_second_moment_abs_error": 0.1976916640996933
+    },
+    {
+      "assignment_epsilon": 0.0625,
+      "batch_size": 2,
+      "dense_materialization_role": "forbidden_not_used",
+      "dense_transport_materialized": false,
+      "dtype": "float32",
+      "finite_factors": true,
+      "finite_particles": true,
+      "fixture_id": "bounded_smooth_v1",
+      "g_shape": [
+        2,
+        64
+      ],
+      "grid_role": "tuning_candidate",
+      "hard_vetoes": [
+        "weighted_second_moment_abs_error_threshold"
+      ],
+      "max_factor_marginal_residual": 1.7508864402770996e-07,
+      "max_induced_column_residual": 1.1920928955078125e-06,
+      "max_induced_row_residual": 9.5367431640625e-07,
+      "memory_maxrss_kb_explanatory": 482640,
+      "min_g_explanatory": 0.005116297863423824,
+      "min_q_explanatory": 1.591500485024622e-29,
+      "min_r_explanatory": 1.0610669535042043e-29,
+      "moment_threshold_role": "hard_veto",
+      "naive_uniform_mean_abs_error_explanatory": 0.1909829080104828,
+      "naive_uniform_second_moment_abs_error_explanatory": 0.07073083519935608,
+      "nonnegative_factors": true,
+      "output_log_weight_normalization_residual": 0.0,
+      "particle_count": 4096,
+      "particles_shape": [
+        2,
+        4096,
+        8
+      ],
+      "positive_g": true,
+      "projection_error_explanatory": 2.025837602559477e-06,
+      "projection_floor_hits_explanatory": 0.0,
+      "projection_iterations_used": 240,
+      "projection_min_denominator_explanatory": 1.0433057013869984e-06,
+      "q_shape": [
+        2,
+        4096,
+        64
+      ],
+      "r_shape": [
+        2,
+        4096,
+        64
+      ],
+      "rank": 64,
+      "solver_fidelity": "diagnostic_solver_route_not_full_lowrank_sinkhorn_fidelity",
+      "source_route": "extension_or_invention",
+      "source_route_components": {
+        "cost_nudged_assignment_kernel": "extension_or_invention",
+        "deterministic_initialization": "fixed_hmc_adaptation",
+        "dykstra_style_projection": "source_faithful",
+        "factor_marginal_diagnostics": "source_faithful",
+        "factored_coupling_parameterization": "source_faithful",
+        "fixed_iteration_schedule": "fixed_hmc_adaptation",
+        "low_rank_lazy_apply": "source_faithful",
+        "phase1_scaled_transport_adapter": "fixed_hmc_adaptation"
+      },
+      "state_dim": 8,
+      "status": "FAIL",
+      "tiny_materialized_apply_parity": null,
+      "tiny_materialized_column_residual": null,
+      "tiny_materialized_row_residual": null,
+      "transport_matrix_materialized_by_solver": false,
+      "transport_matrix_shape": [
+        2,
+        0,
+        0
+      ],
+      "transport_object_kind": "low_rank_coupling_factors",
+      "wall_time_seconds_explanatory": 1.454716828884557,
+      "weighted_mean_abs_error": 6.705522537231445e-08,
+      "weighted_second_moment_abs_error": 0.11541613936424255
+    },
+    {
+      "assignment_epsilon": 0.5,
+      "batch_size": 2,
+      "dense_materialization_role": "forbidden_not_used",
+      "dense_transport_materialized": false,
+      "dtype": "float32",
+      "finite_factors": true,
+      "finite_particles": true,
+      "fixture_id": "bounded_smooth_v1",
+      "g_shape": [
+        2,
+        128
+      ],
+      "grid_role": "tuning_candidate",
+      "hard_vetoes": [
+        "weighted_second_moment_abs_error_threshold"
+      ],
+      "max_factor_marginal_residual": 9.313225746154785e-09,
+      "max_induced_column_residual": 7.152557373046875e-07,
+      "max_induced_row_residual": 2.980232238769531e-07,
+      "memory_maxrss_kb_explanatory": 482640,
+      "min_g_explanatory": 0.004612659104168415,
+      "min_q_explanatory": 1.844808750206539e-08,
+      "min_r_explanatory": 7.3992092453067926e-09,
+      "moment_threshold_role": "hard_veto",
+      "naive_uniform_mean_abs_error_explanatory": 0.1909829080104828,
+      "naive_uniform_second_moment_abs_error_explanatory": 0.07073083519935608,
+      "nonnegative_factors": true,
+      "output_log_weight_normalization_residual": 0.0,
+      "particle_count": 4096,
+      "particles_shape": [
+        2,
+        4096,
+        8
+      ],
+      "positive_g": true,
+      "projection_error_explanatory": 9.939030860550702e-07,
+      "projection_floor_hits_explanatory": 0.0,
+      "projection_iterations_used": 13,
+      "projection_min_denominator_explanatory": 0.0024473140947520733,
+      "q_shape": [
+        2,
+        4096,
+        128
+      ],
+      "r_shape": [
+        2,
+        4096,
+        128
+      ],
+      "rank": 128,
+      "solver_fidelity": "diagnostic_solver_route_not_full_lowrank_sinkhorn_fidelity",
+      "source_route": "extension_or_invention",
+      "source_route_components": {
+        "cost_nudged_assignment_kernel": "extension_or_invention",
+        "deterministic_initialization": "fixed_hmc_adaptation",
+        "dykstra_style_projection": "source_faithful",
+        "factor_marginal_diagnostics": "source_faithful",
+        "factored_coupling_parameterization": "source_faithful",
+        "fixed_iteration_schedule": "fixed_hmc_adaptation",
+        "low_rank_lazy_apply": "source_faithful",
+        "phase1_scaled_transport_adapter": "fixed_hmc_adaptation"
+      },
+      "state_dim": 8,
+      "status": "FAIL",
+      "tiny_materialized_apply_parity": null,
+      "tiny_materialized_column_residual": null,
+      "tiny_materialized_row_residual": null,
+      "transport_matrix_materialized_by_solver": false,
+      "transport_matrix_shape": [
+        2,
+        0,
+        0
+      ],
+      "transport_object_kind": "low_rank_coupling_factors",
+      "wall_time_seconds_explanatory": 0.19382149493321776,
+      "weighted_mean_abs_error": 9.685754776000977e-08,
+      "weighted_second_moment_abs_error": 0.2935502529144287
+    },
+    {
+      "assignment_epsilon": 0.25,
+      "batch_size": 2,
+      "dense_materialization_role": "forbidden_not_used",
+      "dense_transport_materialized": false,
+      "dtype": "float32",
+      "finite_factors": true,
+      "finite_particles": true,
+      "fixture_id": "bounded_smooth_v1",
+      "g_shape": [
+        2,
+        128
+      ],
+      "grid_role": "tuning_candidate",
+      "hard_vetoes": [
+        "weighted_second_moment_abs_error_threshold"
+      ],
+      "max_factor_marginal_residual": 1.210719347000122e-08,
+      "max_induced_column_residual": 7.152557373046875e-07,
+      "max_induced_row_residual": 4.76837158203125e-07,
+      "memory_maxrss_kb_explanatory": 482640,
+      "min_g_explanatory": 0.004489774815738201,
+      "min_q_explanatory": 3.3162556034582735e-11,
+      "min_r_explanatory": 1.6490309118211144e-11,
+      "moment_threshold_role": "hard_veto",
+      "naive_uniform_mean_abs_error_explanatory": 0.1909829080104828,
+      "naive_uniform_second_moment_abs_error_explanatory": 0.07073083519935608,
+      "nonnegative_factors": true,
+      "output_log_weight_normalization_residual": 0.0,
+      "particle_count": 4096,
+      "particles_shape": [
+        2,
+        4096,
+        8
+      ],
+      "positive_g": true,
+      "projection_error_explanatory": 1.0868461686186492e-06,
+      "projection_floor_hits_explanatory": 0.0,
+      "projection_iterations_used": 240,
+      "projection_min_denominator_explanatory": 0.0009049953077919781,
+      "q_shape": [
+        2,
+        4096,
+        128
+      ],
+      "r_shape": [
+        2,
+        4096,
+        128
+      ],
+      "rank": 128,
+      "solver_fidelity": "diagnostic_solver_route_not_full_lowrank_sinkhorn_fidelity",
+      "source_route": "extension_or_invention",
+      "source_route_components": {
+        "cost_nudged_assignment_kernel": "extension_or_invention",
+        "deterministic_initialization": "fixed_hmc_adaptation",
+        "dykstra_style_projection": "source_faithful",
+        "factor_marginal_diagnostics": "source_faithful",
+        "factored_coupling_parameterization": "source_faithful",
+        "fixed_iteration_schedule": "fixed_hmc_adaptation",
+        "low_rank_lazy_apply": "source_faithful",
+        "phase1_scaled_transport_adapter": "fixed_hmc_adaptation"
+      },
+      "state_dim": 8,
+      "status": "FAIL",
+      "tiny_materialized_apply_parity": null,
+      "tiny_materialized_column_residual": null,
+      "tiny_materialized_row_residual": null,
+      "transport_matrix_materialized_by_solver": false,
+      "transport_matrix_shape": [
+        2,
+        0,
+        0
+      ],
+      "transport_object_kind": "low_rank_coupling_factors",
+      "wall_time_seconds_explanatory": 2.7410425529815257,
+      "weighted_mean_abs_error": 1.043081283569336e-07,
+      "weighted_second_moment_abs_error": 0.2758675813674927
+    },
+    {
+      "assignment_epsilon": 0.125,
+      "batch_size": 2,
+      "dense_materialization_role": "forbidden_not_used",
+      "dense_transport_materialized": false,
+      "dtype": "float32",
+      "finite_factors": true,
+      "finite_particles": true,
+      "fixture_id": "bounded_smooth_v1",
+      "g_shape": [
+        2,
+        128
+      ],
+      "grid_role": "tuning_candidate",
+      "hard_vetoes": [
+        "weighted_second_moment_abs_error_threshold"
+      ],
+      "max_factor_marginal_residual": 2.561137080192566e-08,
+      "max_induced_column_residual": 9.5367431640625e-07,
+      "max_induced_row_residual": 5.364418029785156e-07,
+      "memory_maxrss_kb_explanatory": 482640,
+      "min_g_explanatory": 0.0042401463724672794,
+      "min_q_explanatory": 2.340231264894199e-17,
+      "min_r_explanatory": 1.4472330490531846e-17,
+      "moment_threshold_role": "hard_veto",
+      "naive_uniform_mean_abs_error_explanatory": 0.1909829080104828,
+      "naive_uniform_second_moment_abs_error_explanatory": 0.07073083519935608,
+      "nonnegative_factors": true,
+      "output_log_weight_normalization_residual": 0.0,
+      "particle_count": 4096,
+      "particles_shape": [
+        2,
+        4096,
+        8
+      ],
+      "positive_g": true,
+      "projection_error_explanatory": 1.4560901036020368e-06,
+      "projection_floor_hits_explanatory": 0.0,
+      "projection_iterations_used": 240,
+      "projection_min_denominator_explanatory": 9.96328963083215e-05,
+      "q_shape": [
+        2,
+        4096,
+        128
+      ],
+      "r_shape": [
+        2,
+        4096,
+        128
+      ],
+      "rank": 128,
+      "solver_fidelity": "diagnostic_solver_route_not_full_lowrank_sinkhorn_fidelity",
+      "source_route": "extension_or_invention",
+      "source_route_components": {
+        "cost_nudged_assignment_kernel": "extension_or_invention",
+        "deterministic_initialization": "fixed_hmc_adaptation",
+        "dykstra_style_projection": "source_faithful",
+        "factor_marginal_diagnostics": "source_faithful",
+        "factored_coupling_parameterization": "source_faithful",
+        "fixed_iteration_schedule": "fixed_hmc_adaptation",
+        "low_rank_lazy_apply": "source_faithful",
+        "phase1_scaled_transport_adapter": "fixed_hmc_adaptation"
+      },
+      "state_dim": 8,
+      "status": "FAIL",
+      "tiny_materialized_apply_parity": null,
+      "tiny_materialized_column_residual": null,
+      "tiny_materialized_row_residual": null,
+      "transport_matrix_materialized_by_solver": false,
+      "transport_matrix_shape": [
+        2,
+        0,
+        0
+      ],
+      "transport_object_kind": "low_rank_coupling_factors",
+      "wall_time_seconds_explanatory": 2.4798786870669574,
+      "weighted_mean_abs_error": 9.685754776000977e-08,
+      "weighted_second_moment_abs_error": 0.19786816835403442
+    },
+    {
+      "assignment_epsilon": 0.0625,
+      "batch_size": 2,
+      "dense_materialization_role": "forbidden_not_used",
+      "dense_transport_materialized": false,
+      "dtype": "float32",
+      "finite_factors": true,
+      "finite_particles": true,
+      "fixture_id": "bounded_smooth_v1",
+      "g_shape": [
+        2,
+        128
+      ],
+      "grid_role": "tuning_candidate",
+      "hard_vetoes": [
+        "weighted_second_moment_abs_error_threshold"
+      ],
+      "max_factor_marginal_residual": 1.043081283569336e-07,
+      "max_induced_column_residual": 1.430511474609375e-06,
+      "max_induced_row_residual": 7.152557373046875e-07,
+      "memory_maxrss_kb_explanatory": 482640,
+      "min_g_explanatory": 0.0024225800298154354,
+      "min_q_explanatory": 1.0156204987262726e-29,
+      "min_r_explanatory": 6.9436913977649e-30,
+      "moment_threshold_role": "hard_veto",
+      "naive_uniform_mean_abs_error_explanatory": 0.1909829080104828,
+      "naive_uniform_second_moment_abs_error_explanatory": 0.07073083519935608,
+      "nonnegative_factors": true,
+      "output_log_weight_normalization_residual": 0.0,
+      "particle_count": 4096,
+      "particles_shape": [
+        2,
+        4096,
+        8
+      ],
+      "positive_g": true,
+      "projection_error_explanatory": 2.1547639335040003e-06,
+      "projection_floor_hits_explanatory": 0.0,
+      "projection_iterations_used": 240,
+      "projection_min_denominator_explanatory": 5.336451067705639e-07,
+      "q_shape": [
+        2,
+        4096,
+        128
+      ],
+      "r_shape": [
+        2,
+        4096,
+        128
+      ],
+      "rank": 128,
+      "solver_fidelity": "diagnostic_solver_route_not_full_lowrank_sinkhorn_fidelity",
+      "source_route": "extension_or_invention",
+      "source_route_components": {
+        "cost_nudged_assignment_kernel": "extension_or_invention",
+        "deterministic_initialization": "fixed_hmc_adaptation",
+        "dykstra_style_projection": "source_faithful",
+        "factor_marginal_diagnostics": "source_faithful",
+        "factored_coupling_parameterization": "source_faithful",
+        "fixed_iteration_schedule": "fixed_hmc_adaptation",
+        "low_rank_lazy_apply": "source_faithful",
+        "phase1_scaled_transport_adapter": "fixed_hmc_adaptation"
+      },
+      "state_dim": 8,
+      "status": "FAIL",
+      "tiny_materialized_apply_parity": null,
+      "tiny_materialized_column_residual": null,
+      "tiny_materialized_row_residual": null,
+      "transport_matrix_materialized_by_solver": false,
+      "transport_matrix_shape": [
+        2,
+        0,
+        0
+      ],
+      "transport_object_kind": "low_rank_coupling_factors",
+      "wall_time_seconds_explanatory": 2.5882519150618464,
+      "weighted_mean_abs_error": 1.1175870895385742e-07,
+      "weighted_second_moment_abs_error": 0.11569878458976746
+    },
+    {
+      "assignment_epsilon": 0.5,
+      "batch_size": 2,
+      "dense_materialization_role": "forbidden_not_used",
+      "dense_transport_materialized": false,
+      "dtype": "float32",
+      "finite_factors": true,
+      "finite_particles": true,
+      "fixture_id": "bounded_smooth_v1",
+      "g_shape": [
+        2,
+        256
+      ],
+      "grid_role": "tuning_candidate",
+      "hard_vetoes": [
+        "weighted_second_moment_abs_error_threshold"
+      ],
+      "max_factor_marginal_residual": 5.122274160385132e-09,
+      "max_induced_column_residual": 9.5367431640625e-07,
+      "max_induced_row_residual": 3.5762786865234375e-07,
+      "memory_maxrss_kb_explanatory": 491532,
+      "min_g_explanatory": 0.0022908300161361694,
+      "min_q_explanatory": 9.396692313146104e-09,
+      "min_r_explanatory": 3.760852074208287e-09,
+      "moment_threshold_role": "hard_veto",
+      "naive_uniform_mean_abs_error_explanatory": 0.1909829080104828,
+      "naive_uniform_second_moment_abs_error_explanatory": 0.07073083519935608,
+      "nonnegative_factors": true,
+      "output_log_weight_normalization_residual": 0.0,
+      "particle_count": 4096,
+      "particles_shape": [
+        2,
+        4096,
+        8
+      ],
+      "positive_g": true,
+      "projection_error_explanatory": 1.0768198990263045e-06,
+      "projection_floor_hits_explanatory": 0.0,
+      "projection_iterations_used": 240,
+      "projection_min_denominator_explanatory": 0.0012138549936935306,
+      "q_shape": [
+        2,
+        4096,
+        256
+      ],
+      "r_shape": [
+        2,
+        4096,
+        256
+      ],
+      "rank": 256,
+      "solver_fidelity": "diagnostic_solver_route_not_full_lowrank_sinkhorn_fidelity",
+      "source_route": "extension_or_invention",
+      "source_route_components": {
+        "cost_nudged_assignment_kernel": "extension_or_invention",
+        "deterministic_initialization": "fixed_hmc_adaptation",
+        "dykstra_style_projection": "source_faithful",
+        "factor_marginal_diagnostics": "source_faithful",
+        "factored_coupling_parameterization": "source_faithful",
+        "fixed_iteration_schedule": "fixed_hmc_adaptation",
+        "low_rank_lazy_apply": "source_faithful",
+        "phase1_scaled_transport_adapter": "fixed_hmc_adaptation"
+      },
+      "state_dim": 8,
+      "status": "FAIL",
+      "tiny_materialized_apply_parity": null,
+      "tiny_materialized_column_residual": null,
+      "tiny_materialized_row_residual": null,
+      "transport_matrix_materialized_by_solver": false,
+      "transport_matrix_shape": [
+        2,
+        0,
+        0
+      ],
+      "transport_object_kind": "low_rank_coupling_factors",
+      "wall_time_seconds_explanatory": 6.113668588921428,
+      "weighted_mean_abs_error": 7.450580596923828e-08,
+      "weighted_second_moment_abs_error": 0.2935657501220703
+    },
+    {
+      "assignment_epsilon": 0.25,
+      "batch_size": 2,
+      "dense_materialization_role": "forbidden_not_used",
+      "dense_transport_materialized": false,
+      "dtype": "float32",
+      "finite_factors": true,
+      "finite_particles": true,
+      "fixture_id": "bounded_smooth_v1",
+      "g_shape": [
+        2,
+        256
+      ],
+      "grid_role": "tuning_candidate",
+      "hard_vetoes": [
+        "weighted_second_moment_abs_error_threshold"
+      ],
+      "max_factor_marginal_residual": 6.51925802230835e-09,
+      "max_induced_column_residual": 9.5367431640625e-07,
+      "max_induced_row_residual": 5.960464477539062e-07,
+      "memory_maxrss_kb_explanatory": 491532,
+      "min_g_explanatory": 0.002226336393505335,
+      "min_q_explanatory": 1.7501944338249587e-11,
+      "min_r_explanatory": 8.774250423448926e-12,
+      "moment_threshold_role": "hard_veto",
+      "naive_uniform_mean_abs_error_explanatory": 0.1909829080104828,
+      "naive_uniform_second_moment_abs_error_explanatory": 0.07073083519935608,
+      "nonnegative_factors": true,
+      "output_log_weight_normalization_residual": 0.0,
+      "particle_count": 4096,
+      "particles_shape": [
+        2,
+        4096,
+        8
+      ],
+      "positive_g": true,
+      "projection_error_explanatory": 1.0888688848353922e-06,
+      "projection_floor_hits_explanatory": 0.0,
+      "projection_iterations_used": 240,
+      "projection_min_denominator_explanatory": 0.0004492446023505181,
+      "q_shape": [
+        2,
+        4096,
+        256
+      ],
+      "r_shape": [
+        2,
+        4096,
+        256
+      ],
+      "rank": 256,
+      "solver_fidelity": "diagnostic_solver_route_not_full_lowrank_sinkhorn_fidelity",
+      "source_route": "extension_or_invention",
+      "source_route_components": {
+        "cost_nudged_assignment_kernel": "extension_or_invention",
+        "deterministic_initialization": "fixed_hmc_adaptation",
+        "dykstra_style_projection": "source_faithful",
+        "factor_marginal_diagnostics": "source_faithful",
+        "factored_coupling_parameterization": "source_faithful",
+        "fixed_iteration_schedule": "fixed_hmc_adaptation",
+        "low_rank_lazy_apply": "source_faithful",
+        "phase1_scaled_transport_adapter": "fixed_hmc_adaptation"
+      },
+      "state_dim": 8,
+      "status": "FAIL",
+      "tiny_materialized_apply_parity": null,
+      "tiny_materialized_column_residual": null,
+      "tiny_materialized_row_residual": null,
+      "transport_matrix_materialized_by_solver": false,
+      "transport_matrix_shape": [
+        2,
+        0,
+        0
+      ],
+      "transport_object_kind": "low_rank_coupling_factors",
+      "wall_time_seconds_explanatory": 6.285463406005874,
+      "weighted_mean_abs_error": 1.2665987014770508e-07,
+      "weighted_second_moment_abs_error": 0.2760322391986847
+    },
+    {
+      "assignment_epsilon": 0.125,
+      "batch_size": 2,
+      "dense_materialization_role": "forbidden_not_used",
+      "dense_transport_materialized": false,
+      "dtype": "float32",
+      "finite_factors": true,
+      "finite_particles": true,
+      "fixture_id": "bounded_smooth_v1",
+      "g_shape": [
+        2,
+        256
+      ],
+      "grid_role": "tuning_candidate",
+      "hard_vetoes": [
+        "weighted_second_moment_abs_error_threshold"
+      ],
+      "max_factor_marginal_residual": 1.7695128917694092e-08,
+      "max_induced_column_residual": 7.152557373046875e-07,
+      "max_induced_row_residual": 7.152557373046875e-07,
+      "memory_maxrss_kb_explanatory": 491532,
+      "min_g_explanatory": 0.002111316891387105,
+      "min_q_explanatory": 1.2913131431816341e-17,
+      "min_r_explanatory": 8.180138797227763e-18,
+      "moment_threshold_role": "hard_veto",
+      "naive_uniform_mean_abs_error_explanatory": 0.1909829080104828,
+      "naive_uniform_second_moment_abs_error_explanatory": 0.07073083519935608,
+      "nonnegative_factors": true,
+      "output_log_weight_normalization_residual": 0.0,
+      "particle_count": 4096,
+      "particles_shape": [
+        2,
+        4096,
+        8
+      ],
+      "positive_g": true,
+      "projection_error_explanatory": 1.5121149772312492e-06,
+      "projection_floor_hits_explanatory": 0.0,
+      "projection_iterations_used": 240,
+      "projection_min_denominator_explanatory": 5.003307887818664e-05,
+      "q_shape": [
+        2,
+        4096,
+        256
+      ],
+      "r_shape": [
+        2,
+        4096,
+        256
+      ],
+      "rank": 256,
+      "solver_fidelity": "diagnostic_solver_route_not_full_lowrank_sinkhorn_fidelity",
+      "source_route": "extension_or_invention",
+      "source_route_components": {
+        "cost_nudged_assignment_kernel": "extension_or_invention",
+        "deterministic_initialization": "fixed_hmc_adaptation",
+        "dykstra_style_projection": "source_faithful",
+        "factor_marginal_diagnostics": "source_faithful",
+        "factored_coupling_parameterization": "source_faithful",
+        "fixed_iteration_schedule": "fixed_hmc_adaptation",
+        "low_rank_lazy_apply": "source_faithful",
+        "phase1_scaled_transport_adapter": "fixed_hmc_adaptation"
+      },
+      "state_dim": 8,
+      "status": "FAIL",
+      "tiny_materialized_apply_parity": null,
+      "tiny_materialized_column_residual": null,
+      "tiny_materialized_row_residual": null,
+      "transport_matrix_materialized_by_solver": false,
+      "transport_matrix_shape": [
+        2,
+        0,
+        0
+      ],
+      "transport_object_kind": "low_rank_coupling_factors",
+      "wall_time_seconds_explanatory": 6.215495456941426,
+      "weighted_mean_abs_error": 5.960464477539063e-08,
+      "weighted_second_moment_abs_error": 0.1979588121175766
+    },
+    {
+      "assignment_epsilon": 0.0625,
+      "batch_size": 2,
+      "dense_materialization_role": "forbidden_not_used",
+      "dense_transport_materialized": false,
+      "dtype": "float32",
+      "finite_factors": true,
+      "finite_particles": true,
+      "fixture_id": "bounded_smooth_v1",
+      "g_shape": [
+        2,
+        256
+      ],
+      "grid_role": "tuning_candidate",
+      "hard_vetoes": [
+        "weighted_second_moment_abs_error_threshold"
+      ],
+      "max_factor_marginal_residual": 4.377216100692749e-08,
+      "max_induced_column_residual": 9.5367431640625e-07,
+      "max_induced_row_residual": 8.940696716308594e-07,
+      "memory_maxrss_kb_explanatory": 491532,
+      "min_g_explanatory": 0.0012010547798126936,
+      "min_q_explanatory": 5.767490621857543e-30,
+      "min_r_explanatory": 4.101346809792994e-30,
+      "moment_threshold_role": "hard_veto",
+      "naive_uniform_mean_abs_error_explanatory": 0.1909829080104828,
+      "naive_uniform_second_moment_abs_error_explanatory": 0.07073083519935608,
+      "nonnegative_factors": true,
+      "output_log_weight_normalization_residual": 0.0,
+      "particle_count": 4096,
+      "particles_shape": [
+        2,
+        4096,
+        8
+      ],
+      "positive_g": true,
+      "projection_error_explanatory": 2.1095183910802007e-06,
+      "projection_floor_hits_explanatory": 0.0,
+      "projection_iterations_used": 240,
+      "projection_min_denominator_explanatory": 2.577082227617211e-07,
+      "q_shape": [
+        2,
+        4096,
+        256
+      ],
+      "r_shape": [
+        2,
+        4096,
+        256
+      ],
+      "rank": 256,
+      "solver_fidelity": "diagnostic_solver_route_not_full_lowrank_sinkhorn_fidelity",
+      "source_route": "extension_or_invention",
+      "source_route_components": {
+        "cost_nudged_assignment_kernel": "extension_or_invention",
+        "deterministic_initialization": "fixed_hmc_adaptation",
+        "dykstra_style_projection": "source_faithful",
+        "factor_marginal_diagnostics": "source_faithful",
+        "factored_coupling_parameterization": "source_faithful",
+        "fixed_iteration_schedule": "fixed_hmc_adaptation",
+        "low_rank_lazy_apply": "source_faithful",
+        "phase1_scaled_transport_adapter": "fixed_hmc_adaptation"
+      },
+      "state_dim": 8,
+      "status": "FAIL",
+      "tiny_materialized_apply_parity": null,
+      "tiny_materialized_column_residual": null,
+      "tiny_materialized_row_residual": null,
+      "transport_matrix_materialized_by_solver": false,
+      "transport_matrix_shape": [
+        2,
+        0,
+        0
+      ],
+      "transport_object_kind": "low_rank_coupling_factors",
+      "wall_time_seconds_explanatory": 6.01796988886781,
+      "weighted_mean_abs_error": 8.195638656616211e-08,
+      "weighted_second_moment_abs_error": 0.11567762494087219
+    },
+    {
+      "assignment_epsilon": 0.5,
+      "batch_size": 2,
+      "dense_materialization_role": "forbidden_not_used",
+      "dense_transport_materialized": false,
+      "dtype": "float32",
+      "finite_factors": true,
+      "finite_particles": true,
+      "fixture_id": "bounded_smooth_v1",
+      "g_shape": [
+        2,
+        512
+      ],
+      "grid_role": "tuning_candidate",
+      "hard_vetoes": [
+        "weighted_second_moment_abs_error_threshold"
+      ],
+      "max_factor_marginal_residual": 2.7939677238464355e-09,
+      "max_induced_column_residual": 1.1920928955078125e-06,
+      "max_induced_row_residual": 4.76837158203125e-07,
+      "memory_maxrss_kb_explanatory": 568764,
+      "min_g_explanatory": 0.001144691021181643,
+      "min_q_explanatory": 4.7439514538893945e-09,
+      "min_r_explanatory": 1.89653426296843e-09,
+      "moment_threshold_role": "hard_veto",
+      "naive_uniform_mean_abs_error_explanatory": 0.1909829080104828,
+      "naive_uniform_second_moment_abs_error_explanatory": 0.07073083519935608,
+      "nonnegative_factors": true,
+      "output_log_weight_normalization_residual": 0.0,
+      "particle_count": 4096,
+      "particles_shape": [
+        2,
+        4096,
+        8
+      ],
+      "positive_g": true,
+      "projection_error_explanatory": 1.1224437912460417e-06,
+      "projection_floor_hits_explanatory": 0.0,
+      "projection_iterations_used": 240,
+      "projection_min_denominator_explanatory": 0.0006067829672247171,
+      "q_shape": [
+        2,
+        4096,
+        512
+      ],
+      "r_shape": [
+        2,
+        4096,
+        512
+      ],
+      "rank": 512,
+      "solver_fidelity": "diagnostic_solver_route_not_full_lowrank_sinkhorn_fidelity",
+      "source_route": "extension_or_invention",
+      "source_route_components": {
+        "cost_nudged_assignment_kernel": "extension_or_invention",
+        "deterministic_initialization": "fixed_hmc_adaptation",
+        "dykstra_style_projection": "source_faithful",
+        "factor_marginal_diagnostics": "source_faithful",
+        "factored_coupling_parameterization": "source_faithful",
+        "fixed_iteration_schedule": "fixed_hmc_adaptation",
+        "low_rank_lazy_apply": "source_faithful",
+        "phase1_scaled_transport_adapter": "fixed_hmc_adaptation"
+      },
+      "state_dim": 8,
+      "status": "FAIL",
+      "tiny_materialized_apply_parity": null,
+      "tiny_materialized_column_residual": null,
+      "tiny_materialized_row_residual": null,
+      "transport_matrix_materialized_by_solver": false,
+      "transport_matrix_shape": [
+        2,
+        0,
+        0
+      ],
+      "transport_object_kind": "low_rank_coupling_factors",
+      "wall_time_seconds_explanatory": 9.973967290017754,
+      "weighted_mean_abs_error": 8.940696716308594e-08,
+      "weighted_second_moment_abs_error": 0.29357314109802246
+    },
+    {
+      "assignment_epsilon": 0.25,
+      "batch_size": 2,
+      "dense_materialization_role": "forbidden_not_used",
+      "dense_transport_materialized": false,
+      "dtype": "float32",
+      "finite_factors": true,
+      "finite_particles": true,
+      "fixture_id": "bounded_smooth_v1",
+      "g_shape": [
+        2,
+        512
+      ],
+      "grid_role": "tuning_candidate",
+      "hard_vetoes": [
+        "weighted_second_moment_abs_error_threshold"
+      ],
+      "max_factor_marginal_residual": 3.725290298461914e-09,
+      "max_induced_column_residual": 9.5367431640625e-07,
+      "max_induced_row_residual": 5.364418029785156e-07,
+      "memory_maxrss_kb_explanatory": 569592,
+      "min_g_explanatory": 0.001112520694732666,
+      "min_q_explanatory": 9.015397803291414e-12,
+      "min_r_explanatory": 4.5378826564468344e-12,
+      "moment_threshold_role": "hard_veto",
+      "naive_uniform_mean_abs_error_explanatory": 0.1909829080104828,
+      "naive_uniform_second_moment_abs_error_explanatory": 0.07073083519935608,
+      "nonnegative_factors": true,
+      "output_log_weight_normalization_residual": 0.0,
+      "particle_count": 4096,
+      "particles_shape": [
+        2,
+        4096,
+        8
+      ],
+      "positive_g": true,
+      "projection_error_explanatory": 1.1408301361370832e-06,
+      "projection_floor_hits_explanatory": 0.0,
+      "projection_iterations_used": 240,
+      "projection_min_denominator_explanatory": 0.00022393577091861516,
+      "q_shape": [
+        2,
+        4096,
+        512
+      ],
+      "r_shape": [
+        2,
+        4096,
+        512
+      ],
+      "rank": 512,
+      "solver_fidelity": "diagnostic_solver_route_not_full_lowrank_sinkhorn_fidelity",
+      "source_route": "extension_or_invention",
+      "source_route_components": {
+        "cost_nudged_assignment_kernel": "extension_or_invention",
+        "deterministic_initialization": "fixed_hmc_adaptation",
+        "dykstra_style_projection": "source_faithful",
+        "factor_marginal_diagnostics": "source_faithful",
+        "factored_coupling_parameterization": "source_faithful",
+        "fixed_iteration_schedule": "fixed_hmc_adaptation",
+        "low_rank_lazy_apply": "source_faithful",
+        "phase1_scaled_transport_adapter": "fixed_hmc_adaptation"
+      },
+      "state_dim": 8,
+      "status": "FAIL",
+      "tiny_materialized_apply_parity": null,
+      "tiny_materialized_column_residual": null,
+      "tiny_materialized_row_residual": null,
+      "transport_matrix_materialized_by_solver": false,
+      "transport_matrix_shape": [
+        2,
+        0,
+        0
+      ],
+      "transport_object_kind": "low_rank_coupling_factors",
+      "wall_time_seconds_explanatory": 10.443082751939073,
+      "weighted_mean_abs_error": 1.564621925354004e-07,
+      "weighted_second_moment_abs_error": 0.2761261463165283
+    },
+    {
+      "assignment_epsilon": 0.125,
+      "batch_size": 2,
+      "dense_materialization_role": "forbidden_not_used",
+      "dense_transport_materialized": false,
+      "dtype": "float32",
+      "finite_factors": true,
+      "finite_particles": true,
+      "fixture_id": "bounded_smooth_v1",
+      "g_shape": [
+        2,
+        512
+      ],
+      "grid_role": "tuning_candidate",
+      "hard_vetoes": [
+        "weighted_second_moment_abs_error_threshold"
+      ],
+      "max_factor_marginal_residual": 8.96397978067398e-09,
+      "max_induced_column_residual": 1.1920928955078125e-06,
+      "max_induced_row_residual": 7.152557373046875e-07,
+      "memory_maxrss_kb_explanatory": 569592,
+      "min_g_explanatory": 0.0010534145403653383,
+      "min_q_explanatory": 6.8257645474314135e-18,
+      "min_r_explanatory": 4.379922997829507e-18,
+      "moment_threshold_role": "hard_veto",
+      "naive_uniform_mean_abs_error_explanatory": 0.1909829080104828,
+      "naive_uniform_second_moment_abs_error_explanatory": 0.07073083519935608,
+      "nonnegative_factors": true,
+      "output_log_weight_normalization_residual": 0.0,
+      "particle_count": 4096,
+      "particles_shape": [
+        2,
+        4096,
+        8
+      ],
+      "positive_g": true,
+      "projection_error_explanatory": 1.5644982340745628e-06,
+      "projection_floor_hits_explanatory": 0.0,
+      "projection_iterations_used": 240,
+      "projection_min_denominator_explanatory": 2.4766000933595933e-05,
+      "q_shape": [
+        2,
+        4096,
+        512
+      ],
+      "r_shape": [
+        2,
+        4096,
+        512
+      ],
+      "rank": 512,
+      "solver_fidelity": "diagnostic_solver_route_not_full_lowrank_sinkhorn_fidelity",
+      "source_route": "extension_or_invention",
+      "source_route_components": {
+        "cost_nudged_assignment_kernel": "extension_or_invention",
+        "deterministic_initialization": "fixed_hmc_adaptation",
+        "dykstra_style_projection": "source_faithful",
+        "factor_marginal_diagnostics": "source_faithful",
+        "factored_coupling_parameterization": "source_faithful",
+        "fixed_iteration_schedule": "fixed_hmc_adaptation",
+        "low_rank_lazy_apply": "source_faithful",
+        "phase1_scaled_transport_adapter": "fixed_hmc_adaptation"
+      },
+      "state_dim": 8,
+      "status": "FAIL",
+      "tiny_materialized_apply_parity": null,
+      "tiny_materialized_column_residual": null,
+      "tiny_materialized_row_residual": null,
+      "transport_matrix_materialized_by_solver": false,
+      "transport_matrix_shape": [
+        2,
+        0,
+        0
+      ],
+      "transport_object_kind": "low_rank_coupling_factors",
+      "wall_time_seconds_explanatory": 9.783857153961435,
+      "weighted_mean_abs_error": 1.043081283569336e-07,
+      "weighted_second_moment_abs_error": 0.19800668954849243
+    },
+    {
+      "assignment_epsilon": 0.0625,
+      "batch_size": 2,
+      "dense_materialization_role": "forbidden_not_used",
+      "dense_transport_materialized": false,
+      "dtype": "float32",
+      "finite_factors": true,
+      "finite_particles": true,
+      "fixture_id": "bounded_smooth_v1",
+      "g_shape": [
+        2,
+        512
+      ],
+      "grid_role": "tuning_candidate",
+      "hard_vetoes": [
+        "weighted_second_moment_abs_error_threshold"
+      ],
+      "max_factor_marginal_residual": 2.3748725652694702e-08,
+      "max_induced_column_residual": 1.430511474609375e-06,
+      "max_induced_row_residual": 7.152557373046875e-07,
+      "memory_maxrss_kb_explanatory": 569592,
+      "min_g_explanatory": 0.0005997292464599013,
+      "min_q_explanatory": 3.118492473183463e-30,
+      "min_r_explanatory": 2.266708577877059e-30,
+      "moment_threshold_role": "hard_veto",
+      "naive_uniform_mean_abs_error_explanatory": 0.1909829080104828,
+      "naive_uniform_second_moment_abs_error_explanatory": 0.07073083519935608,
+      "nonnegative_factors": true,
+      "output_log_weight_normalization_residual": 0.0,
+      "particle_count": 4096,
+      "particles_shape": [
+        2,
+        4096,
+        8
+      ],
+      "positive_g": true,
+      "projection_error_explanatory": 2.23972529056482e-06,
+      "projection_floor_hits_explanatory": 0.0,
+      "projection_iterations_used": 240,
+      "projection_min_denominator_explanatory": 1.2847503683133255e-07,
+      "q_shape": [
+        2,
+        4096,
+        512
+      ],
+      "r_shape": [
+        2,
+        4096,
+        512
+      ],
+      "rank": 512,
+      "solver_fidelity": "diagnostic_solver_route_not_full_lowrank_sinkhorn_fidelity",
+      "source_route": "extension_or_invention",
+      "source_route_components": {
+        "cost_nudged_assignment_kernel": "extension_or_invention",
+        "deterministic_initialization": "fixed_hmc_adaptation",
+        "dykstra_style_projection": "source_faithful",
+        "factor_marginal_diagnostics": "source_faithful",
+        "factored_coupling_parameterization": "source_faithful",
+        "fixed_iteration_schedule": "fixed_hmc_adaptation",
+        "low_rank_lazy_apply": "source_faithful",
+        "phase1_scaled_transport_adapter": "fixed_hmc_adaptation"
+      },
+      "state_dim": 8,
+      "status": "FAIL",
+      "tiny_materialized_apply_parity": null,
+      "tiny_materialized_column_residual": null,
+      "tiny_materialized_row_residual": null,
+      "transport_matrix_materialized_by_solver": false,
+      "transport_matrix_shape": [
+        2,
+        0,
+        0
+      ],
+      "transport_object_kind": "low_rank_coupling_factors",
+      "wall_time_seconds_explanatory": 9.798842941178009,
+      "weighted_mean_abs_error": 6.705522537231445e-08,
+      "weighted_second_moment_abs_error": 0.11567898094654083
+    }
+  ],
+  "run_manifest": {
+    "artifact_paths": {
+      "json": "docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-tuning-cpu-2026-06-20.json",
+      "markdown": "docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-tuning-cpu-2026-06-20.md"
+    },
+    "assignment_epsilon": 0.5,
+    "batch_size": 2,
+    "command": "docs/benchmarks/scalable_ot_low_rank_tf32_scale_smoke.py --mode tuning-cpu --particle-counts 4096 --batch-size 2 --state-dim 8 --tuning-ranks 64 128 256 512 --tuning-assignment-epsilons 0.5 0.25 0.125 0.0625 --dtype float32 --fixture-id bounded_smooth_v1 --output docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-tuning-cpu-2026-06-20.json --markdown-output docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-tuning-cpu-2026-06-20.md",
+    "cpu_gpu_trust_context": "cpu_hidden_local",
+    "cuda_visible_devices": "-1",
+    "device": "/CPU:0",
+    "device_mode": "tuning-cpu",
+    "device_scope": "cpu",
+    "dtype": "float32",
+    "ended_at": "2026-06-19T20:51:15.618083+00:00",
+    "fixture_id": "bounded_smooth_v1",
+    "git_commit": "3b11bb1b4848eeeafdd60671f476ba90d54b4caa",
+    "git_status_short": "M AGENTS.md\n M CLAUDE.md\n M docs/benchmarks/benchmark_experimental_batched_ledh_pfpf_ot_efficiency_matrix.py\n M docs/benchmarks/benchmark_experimental_batched_ledh_pfpf_ot_streaming_lgssm.py\n M docs/benchmarks/benchmark_p8j_tf32_batched_actual_sir.py\n M docs/benchmarks/check_experimental_batched_ledh_pfpf_ot_streaming_correctness.py\n M docs/benchmarks/compare_experimental_batched_ledh_pfpf_ot_streaming_precision.py\n M experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_streaming_tf.py\n M experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_tf.py\n M tests/test_experimental_batched_ledh_pfpf_ot_tf.py\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-medium-cpu-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-medium-cpu-2026-06-20.md\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-small-2026-06-20.json\n?? docs/benchmarks/scalable-ot-low-rank-tf32-scale-smoke-small-2026-06-20.md\n?? docs/benchmarks/scalable_ot_low_rank_tf32_scale_smoke.py\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-gpu-tf32-production-default-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-claude-review-ledger-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-master-program-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p00-governance-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p00-governance-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p01-harness-invariants-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p01-harness-invariants-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p02-medium-cpu-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p02-medium-cpu-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p02a-tuning-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p03-trusted-gpu-scale-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p04-closeout-subplan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-result-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-visible-execution-ledger-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-visible-gated-execution-plan-2026-06-20.md\n?? docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-visible-stop-handoff-2026-06-20.md\n?? tests/test_low_rank_tf32_scale_smoke.py",
+    "gpu0_memory_info": null,
+    "gpu_devices": [],
+    "particle_counts": [
+      4096
+    ],
+    "phase_result_path": "docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-p02a-tuning-result-2026-06-20.md",
+    "plan_path": "docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-low-rank-tf32-scale-smoke-master-program-2026-06-20.md",
+    "platform": "Linux-6.8.0-111-generic-x86_64-with-glibc2.35",
+    "python_executable": "/home/ubuntu/anaconda3/envs/tfgpu/bin/python",
+    "python_version": "3.13.13 | packaged by Anaconda, Inc. | (main, Apr 14 2026, 06:19:41) [GCC 14.3.0]",
+    "rank": 64,
+    "seed": 20260620,
+    "started_at": "2026-06-19T20:49:57.898224+00:00",
+    "state_dim": 8,
+    "tensorflow_probability_version": "0.25.0",
+    "tensorflow_version": "2.20.0",
+    "tf32_execution_recorded": true,
+    "tf32_requested": "default",
+    "tuning_assignment_epsilons": [
+      0.5,
+      0.25,
+      0.125,
+      0.0625
+    ],
+    "tuning_ranks": [
+      64,
+      128,
+      256,
+      512
+    ],
+    "visible_logical_gpus": [],
+    "wall_time_seconds": 77.71987030119635,
+    "working_directory": "/home/ubuntu/python/BayesFilter"
+  },
+  "selected_tuned_setting": null,
+  "status": "FAIL",
+  "summary": {
+    "max_factor_marginal_residual": 1.7508864402770996e-07,
+    "max_induced_column_residual": 1.430511474609375e-06,
+    "max_induced_row_residual": 9.5367431640625e-07,
+    "max_memory_maxrss_kb_explanatory": 569592,
+    "max_output_log_weight_normalization_residual": 0.0,
+    "max_tiny_materialized_apply_parity": null,
+    "max_wall_time_seconds_explanatory": 10.443082751939073,
+    "max_weighted_mean_abs_error": 1.564621925354004e-07,
+    "max_weighted_second_moment_abs_error": 0.29357314109802246,
+    "num_executed_rows": 16,
+    "num_hard_vetoes": 1,
+    "num_rows": 16,
+    "num_viable_rows": 0,
+    "total_wall_time_seconds_explanatory": 77.71987030119635
+  },
+  "thresholds": {
+    "factor_marginal_residual": 0.005,
+    "induced_column_residual": 0.005,
+    "induced_row_residual": 0.005,
+    "output_log_weight_normalization_residual": 1e-06,
+    "runtime_memory_tf32_role": "explanatory_only",
+    "tiny_materialized_apply_parity": 1e-10,
+    "weighted_mean_abs_error": 0.025,
+    "weighted_second_moment_abs_error": 0.075
+  },
+  "viable_tuned_rows": []
+}
