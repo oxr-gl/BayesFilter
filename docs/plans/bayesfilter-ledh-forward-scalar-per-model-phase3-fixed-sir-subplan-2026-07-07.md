@@ -39,6 +39,8 @@ Target scalar: `observed_data_log_likelihood_estimator`, reported as
   `docs/plans/bayesfilter-ledh-forward-scalar-per-model-phase4-predator-prey-subplan-2026-07-07.md`
 - Phase 3 review bundle:
   `docs/reviews/bayesfilter-ledh-forward-scalar-per-model-phase3-review-bundle-2026-07-07.md`
+- Mandatory fixed SIR artifact replay test:
+  `tests/highdim/test_ledh_phase3_fixed_sir_forward_scalar_artifact.py`
 
 ## Required Checks/Tests/Reviews
 
@@ -49,10 +51,13 @@ CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp python -m pytest \
   tests/highdim/test_ledh_phase3_forward_admission.py \
   tests/highdim/test_ledh_forward_contract_phase2.py \
   tests/highdim/test_ledh_forward_scalar_admission_guard.py \
-  tests/highdim/test_ledh_phase2_lgssm_forward_scalar_artifact.py -q
+  tests/highdim/test_ledh_phase2_lgssm_forward_scalar_artifact.py \
+  tests/highdim/test_ledh_phase3_fixed_sir_forward_scalar_artifact.py -q
 ```
 
-If Phase 3 adds a fixed SIR replay test, include it in this check set.
+The fixed SIR artifact replay test is mandatory. Phase 3 may not hand off to
+Phase 4 without an automated read-from-disk revalidation of the actual Phase 3
+canonical artifact.
 
 Required review:
 
@@ -98,7 +103,9 @@ Required review:
 5. Validate the canonical artifact with:
    - `validate_ledh_forward_scalar_artifact(..., expected_row_id=..., require_admitted=True)`.
 6. If validation passes, write the canonical artifact and Phase 3 result.
-7. Add a fixed SIR artifact replay test if not already covered.
+7. Add a fixed SIR artifact replay test that reads the actual Phase 3
+   canonical JSON artifact from disk and validates it with
+   `require_admitted=True`.
 8. Draft Phase 4 predator-prey subplan.
 9. Run required local checks.
 10. Send Phase 3 result and Phase 4 subplan for bounded read-only review.
@@ -118,6 +125,8 @@ Required review:
 Phase 4 may begin only if:
 
 - the canonical fixed SIR artifact validates with `require_admitted=True`;
+- the mandatory fixed SIR artifact replay test passes on the actual Phase 3
+  canonical JSON artifact;
 - Phase 3 result records the source artifact and canonical artifact paths;
 - Phase 3 local checks pass;
 - Phase 4 predator-prey subplan is drafted;

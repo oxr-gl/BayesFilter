@@ -145,6 +145,12 @@ schema, with:
 - target-density correction;
 - no score admission.
 
+Review repair 1 made the fixed SIR artifact replay test mandatory in the Phase
+3 subplan. Phase 3 cannot hand off to predator-prey unless
+`tests/highdim/test_ledh_phase3_fixed_sir_forward_scalar_artifact.py` reads the
+actual Phase 3 canonical JSON artifact from disk and validates it with
+`require_admitted=True`.
+
 ## Nonclaims
 
 - This is `not nonlinear-row evidence`.
