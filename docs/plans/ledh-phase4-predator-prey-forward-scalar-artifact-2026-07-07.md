@@ -19,4 +19,5 @@
 - not Zhao-Cui TT/SIRT source-faithfulness evidence
 - not HMC readiness evidence
 - not posterior correctness evidence
+- not scientific superiority evidence
 - not runtime ranking evidence

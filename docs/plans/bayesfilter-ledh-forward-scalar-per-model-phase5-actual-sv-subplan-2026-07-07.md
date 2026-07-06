@@ -157,8 +157,9 @@ Phase 6 may begin only if:
 - Phase 5 local checks pass or the blocker result explains why artifact replay
   checks cannot apply;
 - Phase 6 generalized-SV subplan is drafted;
-- read-only review agrees, or a documented fallback Codex review accepts the
-  boundary.
+- bounded read-only review agrees. If Claude is unavailable or policy-blocked,
+  write an explicit reviewer-unavailability record and use a fresh Codex
+  read-only review only for that documented contingency.
 
 ## Stop Conditions
 

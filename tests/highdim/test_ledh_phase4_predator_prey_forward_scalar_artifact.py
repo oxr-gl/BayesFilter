@@ -58,5 +58,8 @@ def test_phase4_predator_prey_artifact_is_not_score_or_exactness_evidence() -> N
     assert "not score admission" in nonclaims
     assert "not score correctness" in nonclaims
     assert "not exact nonlinear likelihood correctness evidence" in nonclaims
+    assert "not Zhao-Cui TT/SIRT source-faithfulness evidence" in nonclaims
     assert "not HMC readiness evidence" in nonclaims
+    assert "not posterior correctness evidence" in nonclaims
+    assert "not scientific superiority evidence" in nonclaims
     assert "not runtime ranking evidence" in nonclaims
