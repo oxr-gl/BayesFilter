@@ -346,3 +346,50 @@ Next action:
 
 - Run bounded read-only review of Phase 2 result and Phase 3 fixed SIR
   subplan.
+
+### 2026-07-07 - Phase 2 - REVIEW_REPAIR_ACCEPTED
+
+Evidence contract:
+
+- Question: Did the Phase 2/3 handoff repair make fixed SIR replay mandatory?
+- Primary criterion: read-only review agrees the Phase 3 fixed SIR subplan
+  requires a replay test that reads the actual Phase 3 canonical JSON artifact
+  and validates it with `require_admitted=True`.
+- Nonclaims: no Phase 3 execution yet, no new model row beyond LGSSM
+  reconfirmation, no score admission, no score correctness, no leaderboard
+  rebuild, no new GPU model evidence, and no scientific conclusion.
+
+Actions:
+
+- Ran bounded Claude read-only review of Phase 2 result and Phase 3 subplan.
+- Review returned `VERDICT=REVISE` because fixed SIR artifact replay was
+  optional.
+- Patched Phase 3 subplan so
+  `tests/highdim/test_ledh_phase3_fixed_sir_forward_scalar_artifact.py` is
+  mandatory and appears in required checks and handoff conditions.
+- Patched Phase 2 result to record the repair.
+- Ran bounded Claude read-only repair review.
+
+Artifacts:
+
+- `docs/plans/bayesfilter-ledh-forward-scalar-per-model-phase2-lgssm-result-2026-07-07.md`
+- `docs/plans/bayesfilter-ledh-forward-scalar-per-model-phase3-fixed-sir-subplan-2026-07-07.md`
+- `docs/reviews/bayesfilter-ledh-forward-scalar-per-model-phase2-review-bundle-2026-07-07.md`
+- `docs/reviews/bayesfilter-ledh-forward-scalar-per-model-phase2-repair1-review-bundle-2026-07-07.md`
+
+Review:
+
+- Initial review run dir:
+  `/home/chakwong/BayesFilter/.claude_reviews/20260707-040054-ledh-forward-scalar-per-model-phase2-phase3-handoff`
+- Initial status: `REVIEW_STATUS=revise`, `VERDICT=REVISE`.
+- Repair review run dir:
+  `/home/chakwong/BayesFilter/.claude_reviews/20260707-040534-ledh-forward-scalar-per-model-phase2-repair1`
+- Repair status: `REVIEW_STATUS=agreed`, `VERDICT=AGREE`.
+
+Gate status:
+
+- `PASSED_PHASE2_PHASE3_HANDOFF_PHASE3_MAY_START`
+
+Next action:
+
+- Execute Phase 3 fixed SIR forward scalar reconfirmation.
