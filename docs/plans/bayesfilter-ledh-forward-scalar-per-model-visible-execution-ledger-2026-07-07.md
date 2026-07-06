@@ -470,3 +470,134 @@ Next action:
 
 - Run bounded read-only review of Phase 3 result and Phase 4 predator-prey
   subplan.
+
+### 2026-07-07 - Phase 3 - REVIEW_ACCEPTED
+
+Evidence contract:
+
+- Question: Did Phase 3 correctly close fixed SIR scalar reconfirmation and
+  safely hand off to predator-prey as the first previously blocked model?
+- Primary criterion: read-only review agrees Phase 3 stays within fixed SIR
+  scalar scope and Phase 4 has safe predator-prey stop/handoff conditions.
+- Nonclaims: no predator-prey execution yet, no score admission, no score
+  correctness, no leaderboard rebuild, no new GPU model evidence, and no
+  scientific conclusion.
+
+Actions:
+
+- Ran bounded Claude read-only review of Phase 3 result and Phase 4 subplan.
+
+Artifacts:
+
+- `docs/plans/bayesfilter-ledh-forward-scalar-per-model-phase3-fixed-sir-result-2026-07-07.md`
+- `docs/plans/bayesfilter-ledh-forward-scalar-per-model-phase4-predator-prey-subplan-2026-07-07.md`
+- `docs/reviews/bayesfilter-ledh-forward-scalar-per-model-phase3-review-bundle-2026-07-07.md`
+
+Review:
+
+- Run dir:
+  `/home/chakwong/BayesFilter/.claude_reviews/20260707-041754-ledh-forward-scalar-per-model-phase3-phase4-handoff`
+- `REVIEW_STATUS=agreed`, `VERDICT=AGREE`.
+
+Gate status:
+
+- `PASSED_PHASE3_PHASE4_HANDOFF_PHASE4_MAY_START`
+
+Next action:
+
+- Execute Phase 4 predator-prey inventory and forward scalar build/blocker
+  path.
+
+### 2026-07-07 - Phase 4 - PREDATOR_PREY_FORWARD_SCALAR_LOCAL_PASS
+
+Evidence contract:
+
+- Question: Can the predator-prey row produce an executable same-target
+  observed-data log likelihood artifact under the shared schema?
+- Target scalar: `observed_data_log_likelihood_estimator`, reported as
+  `log_likelihood`.
+- Primary criterion: canonical predator-prey artifact validates with
+  `require_admitted=True`, finite `log_likelihood_by_seed`, full-row scale,
+  physical theta `(0.6,114,25,0.3,0.5,0.5)`, and target-density correction.
+- Veto diagnostics: LGSSM/SIR evidence borrowing, metadata-only evidence,
+  callback-only evidence, missing likelihood vector, wrong theta, missing
+  target correction, score evidence used for value admission, or runtime-only
+  admission.
+- Nonclaims: no score admission, no score correctness, no exact nonlinear
+  likelihood correctness, no Zhao-Cui TT/SIRT source-faithfulness, no HMC
+  readiness, no posterior correctness, no scientific superiority, and no
+  runtime ranking.
+
+Actions:
+
+- Inventoried predator-prey row callbacks and prior blocker records.
+- Added a current-route streaming LEDH-PFPF-OT predator-prey forward scalar
+  runner.
+- Ran a tiny CPU-hidden smoke artifact.
+- Ran the trusted GPU/XLA full-row N=10000 artifact.
+- Added mandatory predator-prey artifact replay tests.
+- Ran the required local check set.
+- Wrote Phase 4 result.
+- Drafted Phase 5 actual-SV subplan.
+
+Artifacts:
+
+- `docs/benchmarks/benchmark_ledh_same_target_predator_prey_value.py`
+- `docs/plans/ledh-phase4-predator-prey-forward-scalar-artifact-2026-07-07.json`
+- `docs/plans/ledh-phase4-predator-prey-forward-scalar-artifact-2026-07-07.md`
+- `tests/highdim/test_ledh_phase4_predator_prey_forward_scalar_artifact.py`
+- `docs/plans/bayesfilter-ledh-forward-scalar-per-model-phase4-predator-prey-result-2026-07-07.md`
+- `docs/plans/bayesfilter-ledh-forward-scalar-per-model-phase5-actual-sv-subplan-2026-07-07.md`
+
+Full-row trusted GPU command:
+
+```text
+MPLCONFIGDIR=/tmp python \
+  docs/benchmarks/benchmark_ledh_same_target_predator_prey_value.py \
+  --device-scope visible --device /GPU:0 --expect-device-kind gpu \
+  --batch-seeds 81120,81121,81122,81123,81124 --time-steps 20 \
+  --num-particles 10000 --transport-policy active-all \
+  --sinkhorn-iterations 10 --sinkhorn-epsilon 1.0 \
+  --row-chunk-size 512 --col-chunk-size 512 --particle-chunk-size 512 \
+  --history-mode value-only --warmups 0 --repeats 1 \
+  --output docs/plans/ledh-phase4-predator-prey-forward-scalar-artifact-2026-07-07.json \
+  --markdown-output docs/plans/ledh-phase4-predator-prey-forward-scalar-artifact-2026-07-07.md
+```
+
+Full-row result:
+
+- `admission_status = n10000_same_target_value_admitted`;
+- `log_likelihood_by_seed =
+  [-169.6912841796875, -169.636962890625, -169.46498107910156,
+  -171.49961853027344, -169.044677734375]`;
+- output tensor device `/job:localhost/replica:0/task:0/device:GPU:0`;
+- compile plus first call `34.134711731923744` seconds;
+- warm call `19.095908388961107` seconds;
+- finite output and schema validation passed.
+
+Local checks:
+
+```text
+CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp python -m pytest \
+  tests/highdim/test_ledh_phase3_forward_admission.py \
+  tests/highdim/test_ledh_forward_contract_phase2.py \
+  tests/highdim/test_ledh_forward_scalar_admission_guard.py \
+  tests/highdim/test_ledh_phase2_lgssm_forward_scalar_artifact.py \
+  tests/highdim/test_ledh_phase3_fixed_sir_forward_scalar_artifact.py \
+  tests/highdim/test_ledh_phase4_predator_prey_forward_scalar_artifact.py -q
+```
+
+Result:
+
+```text
+30 passed, 2 warnings in 2.79s
+```
+
+Gate status:
+
+- `IN_PROGRESS_PENDING_PHASE4_PHASE5_REVIEW`
+
+Next action:
+
+- Run bounded read-only review of Phase 4 result and Phase 5 actual-SV
+  subplan.

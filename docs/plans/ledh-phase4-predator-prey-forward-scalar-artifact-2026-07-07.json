@@ -1,0 +1,412 @@
+{
+  "admission_status": "n10000_same_target_value_admitted",
+  "average_log_likelihood_by_seed": [
+    -8.484564208984375,
+    -8.48184814453125,
+    -8.473249053955078,
+    -8.574980926513671,
+    -8.45223388671875
+  ],
+  "batch_seeds": [
+    81120,
+    81121,
+    81122,
+    81123,
+    81124
+  ],
+  "compile_and_first_call_seconds": 34.134711731923744,
+  "correction_formula": "transition_log_density + observation_log_density - pre_flow_log_density + forward_log_det",
+  "cuda_visible_devices": null,
+  "device": "/GPU:0",
+  "device_scope": "visible",
+  "expect_device_kind": "gpu",
+  "finite_output": true,
+  "flow_observation_policy": "predator_prey_identity_state_gaussian_flow_observation",
+  "forward_contract": {
+    "correction_formula": "transition_log_density + observation_log_density - pre_flow_log_density + forward_log_det",
+    "estimator_kind": "finite_N_fixed_randomness_ledh_log_likelihood_estimator",
+    "full_leaderboard_row": true,
+    "metadata": {
+      "batch_seeds": [
+        81120,
+        81121,
+        81122,
+        81123,
+        81124
+      ],
+      "num_particles": 10000,
+      "target_observation_policy": "additive_gaussian_predator_prey",
+      "time_steps": 20
+    },
+    "nonclaims": [
+      "metadata alone is not predator-prey value admission",
+      "metadata alone is not predator-prey score evidence"
+    ],
+    "output_tensor_field": "log_likelihood",
+    "proposal_flow_fields": [
+      "pre_flow_log_density",
+      "forward_log_det",
+      "proposal_observation_surface"
+    ],
+    "row_id": "zhao_cui_predator_prey_T20",
+    "row_scope": "main_observed_data_filtering_row",
+    "schema_version": "bayesfilter.highdim.ledh_forward_contract.v1",
+    "score_status": "blocked_score_until_same_target_no_tape_gate",
+    "target_density_fields": [
+      "transition_log_density",
+      "observation_log_density"
+    ],
+    "target_scalar": "observed_data_log_likelihood_estimator",
+    "theta_contract": {
+      "nonclaims": [],
+      "parameter_order": [
+        "r",
+        "K",
+        "a",
+        "s",
+        "u",
+        "v"
+      ],
+      "row_id": "zhao_cui_predator_prey_T20",
+      "source_classification": "phase1_predator_prey_additive_gaussian_contract",
+      "theta_coordinate_system": "physical",
+      "theta_dimension": 6,
+      "theta_status": "phase1_frozen",
+      "truth_theta": [
+        0.6,
+        114.0,
+        25.0,
+        0.3,
+        0.5,
+        0.5
+      ]
+    },
+    "value_status": "predator_prey_same_target_value_metadata_present"
+  },
+  "full_batched_evaluation_per_warm_call": true,
+  "git_commit": "16e15aecc7dd627ae9159bd69db0f2433b94c5d0",
+  "gpu_memory_info_after": {
+    "current": 409856,
+    "peak": 48685312
+  },
+  "gpu_memory_info_before": {
+    "current": 409600,
+    "peak": 808704
+  },
+  "history_mode": "value-only",
+  "history_shapes": {
+    "ess_by_time": [
+      0,
+      5
+    ],
+    "filtered_means": [
+      0,
+      5,
+      2
+    ],
+    "filtered_variances": [
+      0,
+      5,
+      2
+    ]
+  },
+  "host": "DESKTOP-RF1Q5IJ",
+  "log_likelihood_by_seed": [
+    -169.6912841796875,
+    -169.636962890625,
+    -169.46498107910156,
+    -171.49961853027344,
+    -169.044677734375
+  ],
+  "logical_gpus": [
+    "LogicalDevice(name='/device:GPU:0', device_type='GPU')"
+  ],
+  "nonclaims": [
+    "not score admission",
+    "not score correctness",
+    "not exact nonlinear likelihood correctness evidence",
+    "not Zhao-Cui TT/SIRT source-faithfulness evidence",
+    "not HMC readiness evidence",
+    "not posterior correctness evidence",
+    "not runtime ranking evidence"
+  ],
+  "normalization_checks": {
+    "batch_seeds": true,
+    "finite_log_likelihood": true,
+    "full_row_requested": true,
+    "num_particles": true,
+    "predator_prey_semantics_row_id": true,
+    "row_id": true,
+    "seed_count_matches_values": true,
+    "target_density_used_for_correction": true,
+    "time_steps": true
+  },
+  "num_particles": 10000,
+  "output_devices": [
+    "/job:localhost/replica:0/task:0/device:GPU:0"
+  ],
+  "output_shape": [
+    5
+  ],
+  "physical_gpus": [
+    "PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')"
+  ],
+  "precision": {
+    "active_dtype": "float32",
+    "default_algorithm_target": "ledh_pfpf_ot_tf32",
+    "default_dtype": "float32",
+    "default_execution_target": "gpu",
+    "default_route_acceptance": "accepted_default_use_whenever_possible",
+    "default_route_guidance": "use for BayesFilter DPF LEDH-PFPF-OT work whenever GPU execution and the streaming fixed-branch contract are applicable",
+    "default_route_rationale": "streaming GPU TF32 LEDH-PFPF-OT avoids dense transport/history storage for large-particle DPF transport while preserving explicit reference and fallback arms",
+    "default_target_status": "production_default_by_owner_directive",
+    "default_tf32_mode": "enabled",
+    "dtype": "float32",
+    "fp64_reference_requires_explicit_dtype": true,
+    "historical_module_path": "experiments/dpf_implementation",
+    "precision_default_policy": "production_ledh_pfpf_ot_gpu_tf32",
+    "public_api_exposure": "separately_gated",
+    "scope": "production_ledh_pfpf_ot_gpu_tf32_default_lane",
+    "tf32_execution_enabled": true,
+    "tf32_mode": "enabled",
+    "tf_dtype": "float32"
+  },
+  "predator_prey_semantics": {
+    "dataset_seed": 81104,
+    "experimental_streaming_adapter_route": "batched predator-prey RK4-prior LEDH-PFPF-OT streaming adapter with target transition and observation densities in the correction",
+    "flow_observation_contract": "identity_state_gaussian_flow_observation",
+    "initial_covariance": [
+      [
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0
+      ]
+    ],
+    "model_family": "PredatorPreySSM",
+    "observation_covariance": [
+      [
+        4.0,
+        0.0
+      ],
+      [
+        0.0,
+        4.0
+      ]
+    ],
+    "observation_dimension": 2,
+    "process_covariance": [
+      [
+        4.0,
+        0.0
+      ],
+      [
+        0.0,
+        4.0
+      ]
+    ],
+    "rk4_delta": 2.0,
+    "rk4_internal_step": 0.1,
+    "rk4_substeps": 20,
+    "row_id": "zhao_cui_predator_prey_T20",
+    "scalar_algorithm1_ukf_covariance_lifecycle_parity_claim": false,
+    "state_dimension": 2,
+    "target_density_used_for_correction": true,
+    "target_observation_policy": "additive_gaussian_predator_prey",
+    "theta_coordinate_system": "physical",
+    "truth_theta": [
+      0.6,
+      114.0,
+      25.0,
+      0.3,
+      0.5,
+      0.5
+    ]
+  },
+  "proposal_flow_fields": [
+    "pre_flow_log_density",
+    "forward_log_det",
+    "proposal_observation_surface"
+  ],
+  "python_version": "3.11.14",
+  "repeats": 1,
+  "return_history": false,
+  "row_id": "zhao_cui_predator_prey_T20",
+  "schema_version": "bayesfilter.highdim.ledh_forward_scalar_artifact.v1",
+  "shape": {
+    "batch_seed_count": 5,
+    "batch_size": 5,
+    "num_particles": 10000,
+    "obs_dim": 2,
+    "state_dim": 2,
+    "time_steps": 20
+  },
+  "target_density_fields": [
+    "transition_log_density",
+    "observation_log_density"
+  ],
+  "target_density_used_for_correction": true,
+  "target_observation_policy": "additive_gaussian_predator_prey",
+  "target_output_tensor_field": "log_likelihood",
+  "target_scalar": "observed_data_log_likelihood_estimator",
+  "tensorflow_version": "2.19.1",
+  "theta_coordinate_system": "physical",
+  "theta_values": [
+    0.6,
+    114.0,
+    25.0,
+    0.3,
+    0.5,
+    0.5
+  ],
+  "time_steps": 20,
+  "timestamp_utc": "2026-07-06T20:34:41.699916+00:00",
+  "transport": {
+    "annealed_convergence_threshold": 0.001,
+    "annealed_scaling": 0.9,
+    "col_chunk_size": 512,
+    "dense_transport_matrix_materialized": false,
+    "gradient_mode": "raw",
+    "particle_chunk_size": 512,
+    "plan_mode": "streaming",
+    "row_chunk_size": 512,
+    "sinkhorn_epsilon": 1.0,
+    "sinkhorn_iterations": 10
+  },
+  "transport_policy": "active-all",
+  "validator_normalized_core": {
+    "admission_status": "n10000_same_target_value_admitted",
+    "average_log_likelihood_by_seed": [
+      -8.484564208984375,
+      -8.48184814453125,
+      -8.473249053955078,
+      -8.574980926513671,
+      -8.45223388671875
+    ],
+    "batch_seeds": [
+      81120,
+      81121,
+      81122,
+      81123,
+      81124
+    ],
+    "correction_formula": "transition_log_density + observation_log_density - pre_flow_log_density + forward_log_det",
+    "finite_output": true,
+    "flow_observation_policy": "predator_prey_identity_state_gaussian_flow_observation",
+    "forward_contract": {
+      "correction_formula": "transition_log_density + observation_log_density - pre_flow_log_density + forward_log_det",
+      "estimator_kind": "finite_N_fixed_randomness_ledh_log_likelihood_estimator",
+      "full_leaderboard_row": true,
+      "metadata": {
+        "batch_seeds": [
+          81120,
+          81121,
+          81122,
+          81123,
+          81124
+        ],
+        "num_particles": 10000,
+        "target_observation_policy": "additive_gaussian_predator_prey",
+        "time_steps": 20
+      },
+      "nonclaims": [
+        "metadata alone is not predator-prey value admission",
+        "metadata alone is not predator-prey score evidence"
+      ],
+      "output_tensor_field": "log_likelihood",
+      "proposal_flow_fields": [
+        "pre_flow_log_density",
+        "forward_log_det",
+        "proposal_observation_surface"
+      ],
+      "row_id": "zhao_cui_predator_prey_T20",
+      "row_scope": "main_observed_data_filtering_row",
+      "schema_version": "bayesfilter.highdim.ledh_forward_contract.v1",
+      "score_status": "blocked_score_until_same_target_no_tape_gate",
+      "target_density_fields": [
+        "transition_log_density",
+        "observation_log_density"
+      ],
+      "target_scalar": "observed_data_log_likelihood_estimator",
+      "theta_contract": {
+        "nonclaims": [],
+        "parameter_order": [
+          "r",
+          "K",
+          "a",
+          "s",
+          "u",
+          "v"
+        ],
+        "row_id": "zhao_cui_predator_prey_T20",
+        "source_classification": "phase1_predator_prey_additive_gaussian_contract",
+        "theta_coordinate_system": "physical",
+        "theta_dimension": 6,
+        "theta_status": "phase1_frozen",
+        "truth_theta": [
+          0.6,
+          114.0,
+          25.0,
+          0.3,
+          0.5,
+          0.5
+        ]
+      },
+      "value_status": "predator_prey_same_target_value_metadata_present"
+    },
+    "log_likelihood_by_seed": [
+      -169.6912841796875,
+      -169.636962890625,
+      -169.46498107910156,
+      -171.49961853027344,
+      -169.044677734375
+    ],
+    "nonclaims": [
+      "not score admission",
+      "not score correctness",
+      "not exact nonlinear likelihood correctness evidence",
+      "not Zhao-Cui TT/SIRT source-faithfulness evidence",
+      "not HMC readiness evidence",
+      "not posterior correctness evidence",
+      "not runtime ranking evidence"
+    ],
+    "num_particles": 10000,
+    "proposal_flow_fields": [
+      "pre_flow_log_density",
+      "forward_log_det",
+      "proposal_observation_surface"
+    ],
+    "row_id": "zhao_cui_predator_prey_T20",
+    "schema_version": "bayesfilter.highdim.ledh_forward_scalar_artifact.v1",
+    "target_density_fields": [
+      "transition_log_density",
+      "observation_log_density"
+    ],
+    "target_density_used_for_correction": true,
+    "target_observation_policy": "additive_gaussian_predator_prey",
+    "target_output_tensor_field": "log_likelihood",
+    "target_scalar": "observed_data_log_likelihood_estimator",
+    "theta_coordinate_system": "physical",
+    "theta_values": [
+      0.6,
+      114.0,
+      25.0,
+      0.3,
+      0.5,
+      0.5
+    ],
+    "time_steps": 20
+  },
+  "warm_call_timing_summary_seconds": {
+    "max": 19.095908388961107,
+    "mean": 19.095908388961107,
+    "median": 19.095908388961107,
+    "min": 19.095908388961107
+  },
+  "warm_call_timings_seconds": [
+    19.095908388961107
+  ],
+  "warmups": 0
+}
