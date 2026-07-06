@@ -601,3 +601,83 @@ Next action:
 
 - Run bounded read-only review of Phase 4 result and Phase 5 actual-SV
   subplan.
+
+### 2026-07-07 - Phase 4 - REVIEW_REPAIR_ACCEPTED
+
+Evidence contract:
+
+- Question: Did the Phase 4/5 handoff repair close the read-only review
+  findings?
+- Primary criterion: review agrees the predator-prey artifact/replay now
+  consistently preserve the scientific-superiority nonclaim and the Phase 5
+  fallback-review clause is narrowed to documented Claude-unavailability or
+  policy-blocked contingency only.
+- Nonclaims: no Phase 5 execution yet, no actual-SV admission, no score
+  admission, no score correctness, no leaderboard rebuild, and no scientific
+  conclusion.
+
+Actions:
+
+- Ran bounded Claude read-only review of Phase 4 result and Phase 5 subplan.
+- Review returned `VERDICT=REVISE`.
+- Finding 1: predator-prey runner/artifact/replay did not consistently include
+  or assert the scientific-superiority nonclaim.
+- Finding 2: Phase 5 handoff had an overly broad fallback Codex review clause.
+- Patched the runner, artifact JSON, artifact markdown, replay test, and Phase
+  5 subplan.
+- Ran focused repair checks.
+- Ran bounded Claude read-only repair review.
+
+Artifacts:
+
+- Initial review run dir:
+  `/home/chakwong/BayesFilter/.claude_reviews/20260707-044709-ledh-forward-scalar-per-model-phase4-phase5-handoff`
+- Repair review run dir:
+  `/home/chakwong/BayesFilter/.claude_reviews/20260707-045118-ledh-forward-scalar-per-model-phase4-repair1`
+- `docs/reviews/bayesfilter-ledh-forward-scalar-per-model-phase4-review-bundle-2026-07-07.md`
+- `docs/reviews/bayesfilter-ledh-forward-scalar-per-model-phase4-repair1-review-bundle-2026-07-07.md`
+
+Focused repair checks:
+
+```text
+CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp python -m pytest \
+  tests/highdim/test_ledh_phase4_predator_prey_forward_scalar_artifact.py -q
+```
+
+Result:
+
+```text
+2 passed, 2 warnings in 3.04s
+```
+
+```text
+python -m py_compile \
+  docs/benchmarks/benchmark_ledh_same_target_predator_prey_value.py \
+  tests/highdim/test_ledh_phase4_predator_prey_forward_scalar_artifact.py
+```
+
+Result: passed.
+
+```text
+git diff --check -- \
+  docs/benchmarks/benchmark_ledh_same_target_predator_prey_value.py \
+  tests/highdim/test_ledh_phase4_predator_prey_forward_scalar_artifact.py \
+  docs/plans/bayesfilter-ledh-forward-scalar-per-model-phase5-actual-sv-subplan-2026-07-07.md \
+  docs/plans/ledh-phase4-predator-prey-forward-scalar-artifact-2026-07-07.json \
+  docs/plans/ledh-phase4-predator-prey-forward-scalar-artifact-2026-07-07.md
+```
+
+Result: passed.
+
+Review:
+
+- Initial status: `REVIEW_STATUS=revise`, `VERDICT=REVISE`.
+- Repair status: `REVIEW_STATUS=agreed`, `VERDICT=AGREE`.
+
+Gate status:
+
+- `PASSED_PHASE4_PHASE5_HANDOFF_PHASE5_MAY_START`
+
+Next action:
+
+- Execute Phase 5 actual-SV target-bridge inventory before any full-row run.
