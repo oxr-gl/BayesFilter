@@ -1,0 +1,56 @@
+{
+  "config": {
+    "batch_size": 16,
+    "cpu_training_fallback_policy": "forbidden",
+    "device": "/GPU:0",
+    "disallow_soft_placement": true,
+    "external_sample_generation_policy": "multicore_cpu_separate_phase_not_run_here",
+    "full_training_executed": false,
+    "hmc_executed": false,
+    "initial_raw_scale": -1.3862943611198906,
+    "jit_compile": true,
+    "nonclaims": [
+      "Phase 9 GPU NeuTra training-objective preflight only",
+      "no optimizer step or learned transport claim",
+      "no full NeuTra training claim",
+      "no external sample generation claim",
+      "no HMC tuning or sampling claim",
+      "no posterior convergence claim",
+      "no route ranking claim",
+      "no production readiness claim",
+      "no scientific validity claim"
+    ],
+    "optimizer_step_executed": false,
+    "output_path": "docs/plans/bayesfilter-lgssm-first-neutra-hmc-phase9-gpu-neutra-training-preflight-2026-07-07.json",
+    "require_gpu": true,
+    "route_ids": [
+      "lgssm-static-qr-exact-kalman",
+      "model-b-svd-ukf-deterministic-loglikelihood",
+      "model-b-svd-cubature-deterministic-loglikelihood"
+    ],
+    "schema": "bayesfilter.neutra.gpu_training_preflight_config.v1",
+    "seed": 20260707,
+    "training_execution_target": "gpu_required"
+  },
+  "decision": "BLOCK_PHASE9_GPU_NEUTRA_TRAINING_PREFLIGHT",
+  "error_message": "XLA compilation requires a fixed tensor list size. Set the max number of elements. This could also happen if you're using a TensorArray in a while loop that does not have its maximum_iteration set, you can fix this by setting maximum_iteration to a suitable value.\n\nStack trace for op definition: \nFile \"<frozen runpy>\", line 198, in _run_module_as_main\nFile \"<frozen runpy>\", line 88, in _run_code\nFile \"/home/chakwong/BayesFilter/bayesfilter/testing/neutra_gpu_training_preflight_tf.py\", line 532, in <module>\nFile \"/home/chakwong/BayesFilter/bayesfilter/testing/neutra_gpu_training_preflight_tf.py\", line 509, in main\nFile \"/home/chakwong/BayesFilter/bayesfilter/testing/neutra_gpu_training_preflight_tf.py\", line 204, in run_neutra_gpu_training_preflight\nFile \"/home/chakwong/BayesFilter/bayesfilter/testing/neutra_gpu_training_preflight_tf.py\", line 205, in <listcomp>\nFile \"/home/chakwong/BayesFilter/bayesfilter/testing/neutra_gpu_training_preflight_tf.py\", line 317, in _run_route_preflight\nFile \"/home/chakwong/anaconda3/envs/tf-gpu/lib/python3.11/site-packages/tensorflow/core/function/capture/capture_container.py\", line 154, in capture_by_value\n\n\t [[{{node while/Abs_0/accumulator}}]]\n\ttf2xla conversion failed while converting __forward_<lambda>_35092[_XlaMustCompile=true,config_proto=6350034404435846682,executor_type=11160318154034397263]. Run with TF_DUMP_GRAPH_PREFIX=/path/to/dump/dir and --vmodule=xla_compiler=2 to obtain a dump of the compiled functions. [Op:__forward_<lambda>_35092]",
+  "error_type": "InvalidArgumentError",
+  "external_sample_generation_executed": false,
+  "full_training_executed": false,
+  "hmc_executed": false,
+  "nonclaims": [
+    "Phase 9 GPU NeuTra training-objective preflight only",
+    "no optimizer step or learned transport claim",
+    "no full NeuTra training claim",
+    "no external sample generation claim",
+    "no HMC tuning or sampling claim",
+    "no posterior convergence claim",
+    "no route ranking claim",
+    "no production readiness claim",
+    "no scientific validity claim"
+  ],
+  "optimizer_step_executed": false,
+  "passed": false,
+  "phase": "phase9_gpu_neutra_training_preflight",
+  "schema": "bayesfilter.neutra.gpu_training_preflight_result.v1"
+}
