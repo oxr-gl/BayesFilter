@@ -45,6 +45,76 @@ SIMPLE_NONLINEAR_GENERIC_TARGET_NONCLAIMS = (
 MODEL_B_ALPHA = tf.constant(0.55, dtype=tf.float64)
 MODEL_B_OBSERVATION_SIGMA = tf.constant(0.30, dtype=tf.float64)
 MODEL_B_INITIAL_BATCH = tf.constant([[0.70, 0.25, 0.80]], dtype=tf.float64)
+SIMPLE_NONLINEAR_SVD_UKF_FILTER_ID = "model-b-svd-ukf-deterministic-loglikelihood"
+SIMPLE_NONLINEAR_SVD_CUBATURE_FILTER_ID = (
+    "model-b-svd-cubature-deterministic-loglikelihood"
+)
+SIMPLE_NONLINEAR_SVD_CUT4_FILTER_ID = "model-b-svd-cut4-deterministic-loglikelihood"
+SIMPLE_NONLINEAR_PRINCIPAL_SQRT_UKF_FILTER_ID = (
+    "model-b-principal-sqrt-ukf-deterministic-loglikelihood"
+)
+SIMPLE_NONLINEAR_DEFAULT_FILTER_ID = SIMPLE_NONLINEAR_SVD_UKF_FILTER_ID
+
+
+@dataclass(frozen=True)
+class SimpleNonlinearFilterRoute:
+    """Phase 8 route inventory entry for the simple nonlinear target."""
+
+    filter_id: str
+    status: str
+    sigma_point_backend: str
+    filter_hash: str
+    reason: str
+
+    def manifest_payload(self) -> Mapping[str, str]:
+        return {
+            "filter_id": self.filter_id,
+            "status": self.status,
+            "sigma_point_backend": self.sigma_point_backend,
+            "filter_hash": self.filter_hash,
+            "reason": self.reason,
+        }
+
+
+_SIMPLE_NONLINEAR_FILTER_ROUTES = (
+    SimpleNonlinearFilterRoute(
+        filter_id=SIMPLE_NONLINEAR_SVD_UKF_FILTER_ID,
+        status="admitted",
+        sigma_point_backend="tf_svd_ukf",
+        filter_hash="sha256:model-b-svd-ukf-deterministic-filter-v1",
+        reason="Phase 7 admitted deterministic SVD-UKF value/score adapter route.",
+    ),
+    SimpleNonlinearFilterRoute(
+        filter_id=SIMPLE_NONLINEAR_SVD_CUBATURE_FILTER_ID,
+        status="admitted",
+        sigma_point_backend="tf_svd_cubature",
+        filter_hash="sha256:model-b-svd-cubature-deterministic-filter-v1",
+        reason="Phase 8 admitted deterministic SVD cubature value/score adapter route.",
+    ),
+    SimpleNonlinearFilterRoute(
+        filter_id=SIMPLE_NONLINEAR_SVD_CUT4_FILTER_ID,
+        status="deferred",
+        sigma_point_backend="tf_svd_cut4",
+        filter_hash="sha256:model-b-svd-cut4-deterministic-filter-deferred-v1",
+        reason=(
+            "CUT4 is deferred until a dedicated generic-adapter finite-difference "
+            "and branch-diagnostic gate is reviewed."
+        ),
+    ),
+    SimpleNonlinearFilterRoute(
+        filter_id=SIMPLE_NONLINEAR_PRINCIPAL_SQRT_UKF_FILTER_ID,
+        status="deferred",
+        sigma_point_backend="tf_principal_sqrt_ukf",
+        filter_hash="sha256:model-b-principal-sqrt-ukf-deterministic-filter-deferred-v1",
+        reason=(
+            "Principal-square-root UKF is deferred until custom-op/principal-sqrt "
+            "availability and provenance are gated for this target."
+        ),
+    ),
+)
+_SIMPLE_NONLINEAR_ROUTE_BY_ID = {
+    route.filter_id: route for route in _SIMPLE_NONLINEAR_FILTER_ROUTES
+}
 
 
 @dataclass(frozen=True)
@@ -56,16 +126,23 @@ class SimpleNonlinearGenericTargetFixture:
     initial_batch: tf.Tensor
 
 
-def make_simple_nonlinear_generic_target_fixture() -> SimpleNonlinearGenericTargetFixture:
+def make_simple_nonlinear_generic_target_fixture(
+    *,
+    filter_id: str = SIMPLE_NONLINEAR_DEFAULT_FILTER_ID,
+) -> SimpleNonlinearGenericTargetFixture:
     """Return a simple nonlinear non-DSGE target via the generic SSM adapter."""
 
-    contract = make_simple_nonlinear_generic_target_contract()
+    route = _require_admitted_filter_route(filter_id)
+    contract = make_simple_nonlinear_generic_target_contract(filter_id=filter_id)
+    target_scope = "model-b-nonlinear-accumulation-generic-target-fixture"
+    if filter_id != SIMPLE_NONLINEAR_DEFAULT_FILTER_ID:
+        target_scope = f"{target_scope}:{filter_id}"
     adapter = build_ssm_posterior_adapter(
         contract=contract,
         prior_log_prob_and_grad=simple_nonlinear_gaussian_prior_log_prob_and_grad,
-        filter_log_likelihood_and_grad=simple_nonlinear_svd_ukf_log_likelihood_and_grad,
+        filter_log_likelihood_and_grad=_filter_log_likelihood_fn(route),
         dtype=tf.float64,
-        target_scope="model-b-nonlinear-accumulation-generic-target-fixture",
+        target_scope=target_scope,
         evidence_path="bayesfilter/testing/simple_nonlinear_generic_target_adapter_tf.py",
         nonclaims=SIMPLE_NONLINEAR_GENERIC_TARGET_NONCLAIMS,
     )
@@ -82,10 +159,13 @@ def make_simple_nonlinear_generic_target_contract(
     model_hash: str = "sha256:model-b-nonlinear-accumulation-v1",
     transform_hash: str = "sha256:model-b-identity-unconstrained-v1",
     prior_hash: str = "sha256:model-b-phase7-gaussian-prior-v1",
-    filter_hash: str = "sha256:model-b-svd-ukf-deterministic-filter-v1",
+    filter_hash: str | None = None,
+    filter_id: str = SIMPLE_NONLINEAR_DEFAULT_FILTER_ID,
 ) -> SSMTargetContract:
     """Build a stable generic target contract for Model B."""
 
+    route = _require_admitted_filter_route(filter_id)
+    selected_filter_hash = route.filter_hash if filter_hash is None else filter_hash
     observations = model_b_observations_tf()
     if observations.shape.rank != 2:
         raise ValueError("Model B observations must have shape [time, observation]")
@@ -151,7 +231,7 @@ def make_simple_nonlinear_generic_target_contract(
         log_density_authority="graph_native",
     )
     filter_program = FilterProgram(
-        filter_id="model-b-svd-ukf-deterministic-loglikelihood",
+        filter_id=route.filter_id,
         required_model_capabilities=(
             "smooth_nonlinear_transition",
             "additive_gaussian_observation",
@@ -160,13 +240,13 @@ def make_simple_nonlinear_generic_target_contract(
         deterministic_target_policy="deterministic",
         approximation_semantics="deterministic_approximation",
         filter_manifest={
-            "filter_id": "model-b-svd-ukf-deterministic-loglikelihood",
-            "filter_hash": filter_hash,
+            "filter_id": route.filter_id,
+            "filter_hash": selected_filter_hash,
             "backend": "tensorflow",
             "value_score_source": (
                 "bayesfilter.nonlinear.experimental_batched_svd_sigma_point_tf"
             ),
-            "sigma_point_backend": "tf_svd_ukf",
+            "sigma_point_backend": route.sigma_point_backend,
             "innovation_floor": 1.0e-12,
             "spectral_gap_tolerance": 1.0e-8,
         },
@@ -177,6 +257,22 @@ def make_simple_nonlinear_generic_target_contract(
         prior=prior,
         filter_program=filter_program,
         frozen_transport=None,
+    )
+
+
+def simple_nonlinear_filter_route_inventory() -> tuple[Mapping[str, str], ...]:
+    """Return the Phase 8 filter-route inventory for Model B."""
+
+    return tuple(route.manifest_payload() for route in _SIMPLE_NONLINEAR_FILTER_ROUTES)
+
+
+def simple_nonlinear_admitted_filter_ids() -> tuple[str, ...]:
+    """Return filter ids admitted through the generic adapter boundary."""
+
+    return tuple(
+        route.filter_id
+        for route in _SIMPLE_NONLINEAR_FILTER_ROUTES
+        if route.status == "admitted"
     )
 
 
@@ -200,13 +296,39 @@ def simple_nonlinear_svd_ukf_log_likelihood_and_grad(
 ) -> tuple[tf.Tensor, tf.Tensor]:
     """Return deterministic SVD-UKF likelihood value and first-order score."""
 
+    return simple_nonlinear_sigma_point_log_likelihood_and_grad(
+        theta,
+        backend="tf_svd_ukf",
+    )
+
+
+def simple_nonlinear_svd_cubature_log_likelihood_and_grad(
+    theta: Any,
+) -> tuple[tf.Tensor, tf.Tensor]:
+    """Return deterministic SVD cubature likelihood value and first-order score."""
+
+    return simple_nonlinear_sigma_point_log_likelihood_and_grad(
+        theta,
+        backend="tf_svd_cubature",
+    )
+
+
+def simple_nonlinear_sigma_point_log_likelihood_and_grad(
+    theta: Any,
+    *,
+    backend: str,
+) -> tuple[tf.Tensor, tf.Tensor]:
+    """Return deterministic sigma-point likelihood value and first-order score."""
+
+    if backend not in {"tf_svd_ukf", "tf_svd_cubature"}:
+        raise ValueError(f"simple nonlinear filter backend is not admitted: {backend}")
     theta_tensor = _rank2_theta(theta)
     model, derivatives = make_batched_model_b_svd_ukf_components(theta_tensor)
     value, score, diagnostics = tf_batched_svd_sigma_point_value_and_score(
         model_b_observations_tf(),
         model,
         derivatives,
-        backend="tf_svd_ukf",
+        backend=backend,
         placement_floor=tf.constant(0.0, dtype=tf.float64),
         innovation_floor=tf.constant(1.0e-12, dtype=tf.float64),
         spectral_gap_tolerance=tf.constant(1.0e-8, dtype=tf.float64),
@@ -224,21 +346,51 @@ def simple_nonlinear_svd_ukf_log_likelihood_and_grad(
         return tf.identity(value), tf.identity(score)
 
 
-def simple_nonlinear_filter_diagnostics(theta: Any) -> Mapping[str, tf.Tensor]:
+def simple_nonlinear_filter_diagnostics(
+    theta: Any,
+    *,
+    backend: str = "tf_svd_ukf",
+) -> Mapping[str, tf.Tensor]:
     """Return deterministic filter diagnostics for Phase 7 tests/results."""
 
+    if backend not in {"tf_svd_ukf", "tf_svd_cubature"}:
+        raise ValueError(f"simple nonlinear filter backend is not admitted: {backend}")
     theta_tensor = _rank2_theta(theta)
     model, derivatives = make_batched_model_b_svd_ukf_components(theta_tensor)
     _value, _score, diagnostics = tf_batched_svd_sigma_point_value_and_score(
         model_b_observations_tf(),
         model,
         derivatives,
-        backend="tf_svd_ukf",
+        backend=backend,
         placement_floor=tf.constant(0.0, dtype=tf.float64),
         innovation_floor=tf.constant(1.0e-12, dtype=tf.float64),
         spectral_gap_tolerance=tf.constant(1.0e-8, dtype=tf.float64),
     )
     return diagnostics
+
+
+def _require_admitted_filter_route(filter_id: str) -> SimpleNonlinearFilterRoute:
+    key = str(filter_id)
+    try:
+        route = _SIMPLE_NONLINEAR_ROUTE_BY_ID[key]
+    except KeyError as exc:
+        raise ValueError(f"unknown simple nonlinear filter route: {key}") from exc
+    if route.status != "admitted":
+        raise ValueError(
+            f"simple nonlinear filter route is not admitted: {key}; {route.reason}"
+        )
+    return route
+
+
+def _filter_log_likelihood_fn(route: SimpleNonlinearFilterRoute):
+    if route.sigma_point_backend == "tf_svd_ukf":
+        return simple_nonlinear_svd_ukf_log_likelihood_and_grad
+    if route.sigma_point_backend == "tf_svd_cubature":
+        return simple_nonlinear_svd_cubature_log_likelihood_and_grad
+    raise ValueError(
+        "simple nonlinear filter route has no admitted likelihood function: "
+        f"{route.filter_id}"
+    )
 
 
 def make_batched_model_b_svd_ukf_components(

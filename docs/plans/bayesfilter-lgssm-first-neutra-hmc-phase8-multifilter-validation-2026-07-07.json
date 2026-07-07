@@ -1,0 +1,87 @@
+{
+  "admitted": [
+    {
+      "adapter_signature": "9fdc2ef475992711dd1ed5aadc0b47aeed235d7ccea9e9567740b57aaf2a04dd",
+      "deterministic_residual": [
+        0.0
+      ],
+      "filter_id": "model-b-svd-ukf-deterministic-loglikelihood",
+      "finite_score": true,
+      "finite_value": true,
+      "initial_score": [
+        [
+          -1.1355531146145685,
+          -5.3168526492364165,
+          -1.1111252763895456
+        ]
+      ],
+      "initial_value": [
+        -1.559808494225846
+      ],
+      "sigma_point_backend": "tf_svd_ukf",
+      "target_signature": "c6a942c251e08f111b5647f814c1815535f931fcd13a09d337a74b8fb5eacaa0"
+    },
+    {
+      "adapter_signature": "39927792f114f9d80f540b4f6759e9b5cd22c4c55d1d5cb7df13fc0e4756a9b9",
+      "deterministic_residual": [
+        0.0
+      ],
+      "filter_id": "model-b-svd-cubature-deterministic-loglikelihood",
+      "finite_score": true,
+      "finite_value": true,
+      "initial_score": [
+        [
+          -1.135496127724087,
+          -5.31676397190331,
+          -1.1111158284501887
+        ]
+      ],
+      "initial_value": [
+        -1.5597972944849308
+      ],
+      "sigma_point_backend": "tf_svd_cubature",
+      "target_signature": "19e87b2090c353ddc855791c36a1a325246b0a275886c92f3fa8dc625467d1ee"
+    }
+  ],
+  "nonclaims": [
+    "simple nonlinear generic target/filter interface gate only",
+    "no NeuTra training claim",
+    "no HMC sampling or tuning claim",
+    "no posterior convergence claim",
+    "no route ranking claim",
+    "no production readiness claim",
+    "no scientific validity claim"
+  ],
+  "routes": [
+    {
+      "filter_hash": "sha256:model-b-svd-ukf-deterministic-filter-v1",
+      "filter_id": "model-b-svd-ukf-deterministic-loglikelihood",
+      "reason": "Phase 7 admitted deterministic SVD-UKF value/score adapter route.",
+      "sigma_point_backend": "tf_svd_ukf",
+      "status": "admitted"
+    },
+    {
+      "filter_hash": "sha256:model-b-svd-cubature-deterministic-filter-v1",
+      "filter_id": "model-b-svd-cubature-deterministic-loglikelihood",
+      "reason": "Phase 8 admitted deterministic SVD cubature value/score adapter route.",
+      "sigma_point_backend": "tf_svd_cubature",
+      "status": "admitted"
+    },
+    {
+      "filter_hash": "sha256:model-b-svd-cut4-deterministic-filter-deferred-v1",
+      "filter_id": "model-b-svd-cut4-deterministic-loglikelihood",
+      "reason": "CUT4 is deferred until a dedicated generic-adapter finite-difference and branch-diagnostic gate is reviewed.",
+      "sigma_point_backend": "tf_svd_cut4",
+      "status": "deferred"
+    },
+    {
+      "filter_hash": "sha256:model-b-principal-sqrt-ukf-deterministic-filter-deferred-v1",
+      "filter_id": "model-b-principal-sqrt-ukf-deterministic-loglikelihood",
+      "reason": "Principal-square-root UKF is deferred until custom-op/principal-sqrt availability and provenance are gated for this target.",
+      "sigma_point_backend": "tf_principal_sqrt_ukf",
+      "status": "deferred"
+    }
+  ],
+  "schema": "bayesfilter.lgssm_first_neutra_hmc.phase8.multifilter_gate.v1",
+  "target": "model-b-nonlinear-accumulation-generic-target-fixture"
+}
