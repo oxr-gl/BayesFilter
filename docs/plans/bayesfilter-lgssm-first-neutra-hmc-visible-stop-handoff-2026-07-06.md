@@ -4,11 +4,12 @@ Date: 2026-07-06
 
 ## Status
 
-`PHASE7_READY`
+`PHASE11_READY`
 
 ## Current Phase
 
-Phase 7 simple nonlinear non-DSGE SSM target design/execution.
+Phase 11 frozen GPU-trained affine payload packaging and loader/mechanics
+validation.
 
 ## Current Evidence
 
@@ -95,29 +96,51 @@ Phase 7 simple nonlinear non-DSGE SSM target design/execution.
   and returned `VERDICT: AGREE`.
 - Phase 6 result is
   `PASSED_LEARNED_AFFINE_LGSSM_NEUTRA_MECHANICS_GATE`.
-- No GPU job, dense IAF training, long HMC, package installation, detached
-  execution, or git operation has been run in this LGSSM-first program.
+- Phase 7 simple nonlinear non-DSGE SSM target adapter gate passed.
+- Phase 8 same-target multi-filter gate passed for deterministic SVD-UKF and
+  SVD cubature routes, while CUT4 and principal-square-root UKF remain
+  deferred.
+- Phase 9 GPU NeuTra objective/gradient preflight passed under trusted GPU
+  execution for the LGSSM QR route and the two admitted simple nonlinear
+  routes.  The Phase 9 XLA/JIT probe remains blocked by TensorFlow's fixed
+  tensor-list-size compile failure.
+- Phase 10 bounded GPU affine NeuTra optimizer training passed for
+  `lgssm-static-qr-exact-kalman` with seed `20260707`, 12 steps, batch size
+  `16`, learning rate `0.03`, TF32 enabled, and `jit_compile=false`.
+- Phase 10 artifact:
+  `docs/plans/artifacts/lgssm-first-neutra-gpu-training-2026-07-07/lgssm_static_qr_exact_kalman_affine_neutra_gpu_training_state_seed20260707.json`.
+- Phase 10 target signature:
+  `290a91d2a8f90d5b29243965b258b1ec6fd965aa46ffca69dcb78f7fa1ecabcb`.
+- Phase 10 adapter signature:
+  `0a48b43d2750cad5b452708f7619a1119a259231d8955769809460f256575a97`.
+- Claude bounded read-only review returned `VERDICT: AGREE` for the Phase 10
+  result and Phase 11 subplan, after a small Phase 11 adapter-signature
+  handoff/veto wording patch.
+- No dense IAF training, long HMC, HMC sampling/tuning, external sample
+  generation, package installation, detached execution, DSGE/c603 runtime use,
+  XLA readiness claim, production/default-readiness claim, or scientific claim
+  has been made in this Phase 10 closeout.
 
 ## Current Execution Gate
 
-Phase 7 may begin under:
+Phase 11 may begin under:
 
-- `docs/plans/bayesfilter-lgssm-first-neutra-hmc-phase7-simple-nonlinear-ssm-subplan-2026-07-06.md`
+- `docs/plans/bayesfilter-lgssm-first-neutra-hmc-phase11-frozen-gpu-affine-payload-subplan-2026-07-07.md`
 
-Phase 7 must start with model/filter semantics for a simple BayesFilter-owned
-nonlinear non-DSGE SSM, preserve target-signature and finite value/score gates,
-and avoid hidden training/long-HMC/DSGE/c603 crossings.  If Phase 7 or a later
-phase introduces learned NeuTra training, it must follow the GPU NeuTra policy;
-external sample generation should be planned as multicore CPU work.
+Phase 11 must package the Phase 10 GPU-trained affine parameters into the
+existing frozen affine NeuTra artifact schema and run loader/mechanics checks.
+It must not run new training, HMC sampling/tuning, external sample generation,
+dense IAF training, XLA repair, DSGE/c603, production/default promotion, or
+scientific promotion.
 
 ## Stop Conditions To Preserve
 
 Stop before unreviewed GPU/CUDA jobs, dense IAF training, additional learned
-transport training, long HMC sampling, package installation, destructive
-filesystem action, git commit/push, detached execution, default-policy change,
-live DSGE/c603 runtime target authority, or unsupported scientific/product
-claims.  Do not run serious NeuTra training on CPU except for explicitly
-reviewed tiny smoke/reference exceptions.
+transport training, HMC sampling/tuning, external sample generation, package
+installation, destructive filesystem action, detached execution, default-policy
+change, live DSGE/c603 runtime target authority, XLA-readiness claims, or
+unsupported scientific/product claims.  Do not run serious NeuTra training on
+CPU except for explicitly reviewed tiny smoke/reference exceptions.
 
 ## Resume Instructions
 

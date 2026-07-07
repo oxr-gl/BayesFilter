@@ -795,3 +795,90 @@ Next action:
 
 - Enter Phase 7 simple nonlinear non-DSGE SSM target design/execution under
   `docs/plans/bayesfilter-lgssm-first-neutra-hmc-phase7-simple-nonlinear-ssm-subplan-2026-07-06.md`.
+
+### 2026-07-07 - Phase 10 - BOUNDED_GPU_TRAINING_PASSED
+
+Evidence contract:
+
+- Question: Can BayesFilter run bounded GPU NeuTra optimizer training for one
+  admitted non-DSGE route without CPU fallback, HMC, or sample generation?
+- Baseline/comparator: Phase 9 GPU objective/gradient preflight and the Phase 6
+  CPU affine fixture as historical schema/mechanics reference only.
+- Primary criterion: selected route completes predeclared bounded optimizer
+  steps on GPU with `jit_compile=false`, finite loss/gradient diagnostics, and
+  a written training-state artifact.
+- Veto diagnostics: missing trusted GPU, CPU fallback, nonfinite diagnostics,
+  optimizer state missing, route not admitted, hidden HMC, hidden external
+  sample generation, unrecorded TF32/JIT/device provenance, or unreviewed XLA.
+- Non-claims: no transport quality, HMC readiness, posterior correctness, route
+  superiority, dense IAF readiness, production readiness, default execution
+  readiness, XLA readiness, or scientific validity.
+
+Actions:
+
+- Added `bayesfilter/testing/neutra_gpu_bounded_training_tf.py`.
+- Added `tests/test_neutra_gpu_bounded_training_tf.py`.
+- Ran trusted `nvidia-smi` and trusted TensorFlow GPU visibility probe.
+- Ran trusted bounded Phase 10 GPU training for
+  `lgssm-static-qr-exact-kalman` with seed `20260707`, 12 steps, batch size
+  `16`, learning rate `0.03`, TF32 enabled, and `jit_compile=false`.
+- The first trusted GPU attempt failed only while recording optimizer-variable
+  device provenance because Keras variables in this TensorFlow build do not
+  expose `.device` directly.
+- Patched the runner to use a compatibility placement helper for tensors,
+  TensorFlow variables, and Keras variables; reran focused CPU-hidden checks
+  and reran trusted GPU training successfully.
+- Wrote the Phase 10 result, Phase 11 subplan, and Claude bounded read-only
+  review result.
+- Refreshed the master phase index and stop handoff to make Phase 11 the
+  current gate.
+
+Local checks:
+
+- `python -m py_compile bayesfilter/testing/neutra_gpu_bounded_training_tf.py tests/test_neutra_gpu_bounded_training_tf.py`:
+  passed.
+- `CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp python -m pytest tests/test_neutra_gpu_bounded_training_tf.py tests/test_neutra_gpu_training_preflight_tf.py -q`:
+  passed, `16 passed, 2 warnings`.
+- `python -m json.tool docs/plans/artifacts/lgssm-first-neutra-gpu-training-2026-07-07/lgssm_static_qr_exact_kalman_affine_neutra_gpu_training_state_seed20260707.json`:
+  passed.
+- Trusted `nvidia-smi`: passed.
+- Trusted TensorFlow GPU visibility probe: passed.
+- Trusted Phase 10 GPU bounded training command: passed.
+
+Phase 10 artifact summary:
+
+- Training state:
+  `docs/plans/artifacts/lgssm-first-neutra-gpu-training-2026-07-07/lgssm_static_qr_exact_kalman_affine_neutra_gpu_training_state_seed20260707.json`
+- Target signature:
+  `290a91d2a8f90d5b29243965b258b1ec6fd965aa46ffca69dcb78f7fa1ecabcb`
+- Adapter signature:
+  `0a48b43d2750cad5b452708f7619a1119a259231d8955769809460f256575a97`
+- Initial/final loss: `4.270573668036143` -> `3.678928622118027`,
+  explanatory only.
+- Artifact stable hash:
+  `sha256:5b6bb48c74fc3ddc4d97404d7220a08323d90337e2a72e24f1fcdaa82a7de351`
+- Artifact file SHA-256:
+  `263c492c9789c9b50e245b14efd0bacb114d281b52285267c9ce4c5280496811`
+
+Review:
+
+- Claude health probe returned `CLAUDE_PROBE_OK`.
+- Claude bounded one-path review of the Phase 10 result returned
+  `VERDICT: AGREE`.
+- Claude bounded one-path review of the Phase 11 subplan returned
+  `VERDICT: AGREE`.
+- A non-blocking Phase 11 adapter-signature handoff/veto symmetry note was
+  patched.
+
+Phase 10 result:
+
+- `PASS_PHASE10_BOUNDED_GPU_NEUTRA_TRAINING`
+
+Gate status:
+
+- `PASSED`
+
+Next action:
+
+- Enter Phase 11 frozen GPU-trained affine payload packaging under
+  `docs/plans/bayesfilter-lgssm-first-neutra-hmc-phase11-frozen-gpu-affine-payload-subplan-2026-07-07.md`.

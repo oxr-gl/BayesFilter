@@ -4,7 +4,7 @@ Date: 2026-07-06
 
 ## Status
 
-`DRAFT_MASTER_PROGRAM`
+`PHASE10_COMPLETED_PHASE11_READY`
 
 ## Objective
 
@@ -72,7 +72,9 @@ These are starting surfaces, not automatic claims of full HMC/NeuTra readiness.
 | 6 | LGSSM NeuTra Training And Freeze | Train/freeze NeuTra on LGSSM only if prior mechanics/reference gates pass and approval is available. | `docs/plans/bayesfilter-lgssm-first-neutra-hmc-phase6-lgssm-neutra-training-subplan-2026-07-06.md` | `docs/plans/bayesfilter-lgssm-first-neutra-hmc-phase6-lgssm-neutra-training-result-2026-07-06.md` |
 | 7 | First Simple Nonlinear SSM | Move to a BayesFilter-owned non-DSGE nonlinear SSM target. | `docs/plans/bayesfilter-lgssm-first-neutra-hmc-phase7-simple-nonlinear-ssm-subplan-2026-07-06.md` | `docs/plans/bayesfilter-lgssm-first-neutra-hmc-phase7-simple-nonlinear-ssm-result-2026-07-06.md` |
 | 8 | Same Target Multiple Filters | Show the same target interface can use different filters without changing HMC/transport plumbing. | `docs/plans/bayesfilter-lgssm-first-neutra-hmc-phase8-multifilter-subplan-2026-07-06.md` | `docs/plans/bayesfilter-lgssm-first-neutra-hmc-phase8-multifilter-result-2026-07-06.md` |
-| 9 | DSGE/c603 Stress Target | Revisit c603 only as a stress/import target after the BayesFilter interface is proven. | `docs/plans/bayesfilter-lgssm-first-neutra-hmc-phase9-dsge-stress-subplan-2026-07-06.md` | `docs/plans/bayesfilter-lgssm-first-neutra-hmc-phase9-dsge-stress-result-2026-07-06.md` |
+| 9 | GPU NeuTra Training Preflight | Check admitted non-DSGE routes can bind a GPU NeuTra-style objective and emit finite initial value/gradient diagnostics without training or HMC. | `docs/plans/bayesfilter-lgssm-first-neutra-hmc-phase9-gpu-neutra-training-preflight-subplan-2026-07-07.md` | `docs/plans/bayesfilter-lgssm-first-neutra-hmc-phase9-gpu-neutra-training-preflight-result-2026-07-07.md` |
+| 10 | Bounded GPU NeuTra Training | Run the first bounded GPU optimizer-training gate for one admitted LGSSM route, with `jit_compile=false` while the XLA blocker remains open. | `docs/plans/bayesfilter-lgssm-first-neutra-hmc-phase10-bounded-gpu-training-subplan-2026-07-07.md` | `docs/plans/bayesfilter-lgssm-first-neutra-hmc-phase10-bounded-gpu-training-result-2026-07-07.md` |
+| 11 | Frozen GPU-Trained Affine Payload | Package the Phase 10 GPU-trained affine parameters into the frozen affine payload schema and run loader/mechanics checks. | `docs/plans/bayesfilter-lgssm-first-neutra-hmc-phase11-frozen-gpu-affine-payload-subplan-2026-07-07.md` | `pending` |
 
 ## Human Approval Boundaries
 
