@@ -365,6 +365,120 @@ def test_joint_l_epsilon_candidate_outside_tau_window_is_not_viable() -> None:
     assert candidate["reports_sampler_superiority"] is False
 
 
+def test_joint_l_epsilon_candidate_outside_tau_window_can_nominate_under_phase23() -> None:
+    class Round:
+        tuned_step_size = 10.0
+        budget = 3
+        screen_diagnostics = {"acceptance_rate": 0.70}
+        hard_vetoes = ()
+        continuation_vetoes = ()
+        repair_triggers = ()
+
+    class Ladder:
+        selected_round = Round()
+        selected_round_index = 0
+        final_status = "passed"
+        passed = True
+        rounds = (Round(),)
+        artifact_hash = "fake-ladder-hash"
+
+        def payload(self):
+            return {"schema": "fake-ladder"}
+
+    candidate = hmc_kernel_tuning._joint_l_epsilon_ladder_candidate_payload(
+        round_index=0,
+        grid_stage="test",
+        candidate_index=0,
+        num_leapfrog_steps=8,
+        ladder=Ladder(),
+        target_trajectory=1.5707963267948968,
+        target_accept_prob=0.70,
+        trajectory_window_lower_multiplier=0.8,
+        trajectory_window_upper_multiplier=1.25,
+        max_leapfrog_steps=8,
+        handoff_screen_policy="phase23_nomination_only",
+    )
+
+    assert candidate["handoff_screen_policy"] == "phase23_nomination_only"
+    assert candidate["trajectory_window_relation"] == "above_trajectory_window"
+    assert candidate["trajectory_window_viability_gate_active"] is False
+    assert candidate["trajectory_window_nomination_only"] is True
+    assert candidate["viable"] is False
+    assert candidate["nomination_eligible"] is True
+    assert (
+        candidate["nomination_role"]
+        == "phase23_candidate_for_phase7_verification"
+    )
+    assert "trajectory_length_outside_window" in candidate["repair_triggers"]
+    assert candidate["reports_posterior_convergence"] is False
+    assert candidate["reports_sampler_superiority"] is False
+
+
+def test_joint_l_epsilon_phase23_selection_uses_nomination_key() -> None:
+    candidates = (
+        {
+            "nomination_eligible": True,
+            "screen_acceptance_rate": 0.70,
+            "selected_step_size": 1.0,
+            "trajectory_length": 10.0,
+            "trajectory_window_relation": "above_trajectory_window",
+            "selected_budget": 5,
+            "num_leapfrog_steps": 10,
+            "candidate_index": 0,
+            "round_index": 0,
+            "hard_vetoes": (),
+            "continuation_vetoes": (),
+            "viable": False,
+        },
+        {
+            "nomination_eligible": True,
+            "screen_acceptance_rate": 0.70,
+            "selected_step_size": 1.0,
+            "trajectory_length": 2.0,
+            "trajectory_window_relation": "inside_trajectory_window",
+            "selected_budget": 5,
+            "num_leapfrog_steps": 2,
+            "candidate_index": 1,
+            "round_index": 0,
+            "hard_vetoes": (),
+            "continuation_vetoes": (),
+            "viable": True,
+        },
+        {
+            "nomination_eligible": False,
+            "screen_acceptance_rate": 0.70,
+            "selected_step_size": 1.0,
+            "trajectory_length": 1.0,
+            "trajectory_window_relation": "inside_trajectory_window",
+            "selected_budget": 1,
+            "num_leapfrog_steps": 1,
+            "candidate_index": 2,
+            "round_index": 0,
+            "hard_vetoes": ("fixed_mass_step_ladder_error",),
+            "continuation_vetoes": (),
+            "viable": False,
+        },
+    )
+
+    assert (
+        hmc_kernel_tuning._select_joint_l_epsilon_candidate(
+            candidates,
+            target_accept_prob=0.70,
+            target_trajectory=2.0,
+            handoff_screen_policy="phase23_nomination_only",
+        )
+        == 1
+    )
+    assert (
+        hmc_kernel_tuning._select_joint_l_epsilon_candidate(
+            candidates,
+            target_accept_prob=0.70,
+            target_trajectory=2.0,
+        )
+        == 1
+    )
+
+
 def test_fixed_mass_step_stage_passes_with_frozen_mass_and_internal_budget() -> None:
     geometry = _geometry()
     bootstrap = _bootstrap()

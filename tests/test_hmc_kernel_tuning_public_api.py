@@ -705,6 +705,7 @@ def test_public_xla_runtime_parameter_propagates_to_internal_stage_configs() -> 
         step_repair_high_acceptance_ladder_max_factor=4.0,
         trajectory_window_lower_multiplier=0.75,
         trajectory_window_upper_multiplier=1.5,
+        handoff_screen_policy="phase23_nomination_only",
         terminal_phase6_repair_extra_attempts=1,
     )
     geometry = hmc_kernel_tuning_module._public_geometry_config(config)
@@ -727,8 +728,11 @@ def test_public_xla_runtime_parameter_propagates_to_internal_stage_configs() -> 
     assert loop.use_xla is True
     assert loop.payload()["use_xla"] is True
     assert config.payload()["terminal_phase6_repair_extra_attempts"] == 1
+    assert config.payload()["handoff_screen_policy"] == "phase23_nomination_only"
     assert loop.terminal_phase6_repair_extra_attempts == 1
     assert loop.payload()["terminal_phase6_repair_extra_attempts"] == 1
+    assert loop.handoff_screen_policy == "phase23_nomination_only"
+    assert loop.payload()["handoff_screen_policy"] == "phase23_nomination_only"
     assert loop.max_leapfrog_steps == 40
     assert loop.step_repair_factor == pytest.approx(2.5)
     assert loop.step_repair_high_acceptance_directional_factor == pytest.approx(3.0)
@@ -759,17 +763,41 @@ def test_public_xla_runtime_parameter_propagates_to_internal_stage_configs() -> 
 
     assert windowed.use_xla is True
     assert fixed_step.use_xla is True
+    assert fixed_step.handoff_screen_policy == "phase23_nomination_only"
     assert fixed_step.step_repair_factor == pytest.approx(2.5)
     assert fixed_step.step_repair_high_acceptance_directional_factor == (
         pytest.approx(3.0)
     )
     assert fixed_step.step_repair_high_acceptance_ladder_max_factor == pytest.approx(4.0)
     assert trajectory.use_xla is True
+    assert trajectory.handoff_screen_policy == "phase23_nomination_only"
     assert trajectory.max_leapfrog_steps == 40
     assert trajectory.trajectory_window_lower_multiplier == pytest.approx(0.75)
     assert trajectory.trajectory_window_upper_multiplier == pytest.approx(1.5)
     assert trajectory.public_timeout_budget_s == pytest.approx(810.0)
     assert trajectory.public_timeout_started_perf_counter_s == pytest.approx(12.5)
+
+
+def test_public_handoff_screen_policy_defaults_and_rejects_unknown_value() -> None:
+    config = HMCKernelTuningConfig.standard(
+        target_scope="kernel_fixed_mass_step_toy_gaussian"
+    )
+    loop = hmc_kernel_tuning_module._public_loop_config(config)
+
+    assert config.handoff_screen_policy == "phase22_heuristic_viability_gate"
+    assert config.payload()["handoff_screen_policy"] == (
+        "phase22_heuristic_viability_gate"
+    )
+    assert loop.handoff_screen_policy == "phase22_heuristic_viability_gate"
+    assert loop.payload()["handoff_screen_policy"] == (
+        "phase22_heuristic_viability_gate"
+    )
+
+    with pytest.raises(ValueError, match="handoff_screen_policy"):
+        HMCKernelTuningConfig.standard(
+            target_scope="kernel_fixed_mass_step_toy_gaussian",
+            handoff_screen_policy="unknown-policy",
+        )
 
 
 def test_public_xla_runtime_parameter_rejects_eager_mode() -> None:
@@ -1090,6 +1118,35 @@ def test_final_kernel_emitted_only_after_phase7_pass(monkeypatch: pytest.MonkeyP
     assert result.passed is False
     assert result.final_kernel_payload is None
     assert result.final_kernel_hash is None
+    assert "phase7_budget_exhausted" in result.repair_triggers
+
+
+def test_phase23_final_kernel_emitted_only_after_phase7_pass(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    geometry = _geometry()
+    bootstrap = _bootstrap_passed()
+    loop = _loop_result(passed=False)
+    module = __import__("bayesfilter.inference.hmc_kernel_tuning", fromlist=[""])
+    monkeypatch.setattr(module, "initialize_hmc_kernel_geometry", lambda **_kwargs: geometry)
+    monkeypatch.setattr(module, "run_hmc_bootstrap_screen", lambda **_kwargs: bootstrap)
+    monkeypatch.setattr(module, "run_hmc_tune_verify_repair_loop", lambda **_kwargs: loop)
+
+    result = tune_hmc_kernel(
+        adapter=_ToyGaussianAdapter(),
+        initial_position=[0.0, 0.0],
+        config=HMCKernelTuningConfig.smoke(
+            target_scope="kernel_fixed_mass_step_toy_gaussian",
+            handoff_screen_policy="phase23_nomination_only",
+        ),
+    )
+
+    assert result.passed is False
+    assert result.final_kernel_payload is None
+    assert result.final_kernel_hash is None
+    assert result.config.payload()["handoff_screen_policy"] == (
+        "phase23_nomination_only"
+    )
     assert "phase7_budget_exhausted" in result.repair_triggers
 
 

@@ -616,6 +616,52 @@ def test_frozen_step_trajectory_high_acceptance_underreach_cannot_pass() -> None
     assert "trajectory_length_below_window" in result.repair_triggers
 
 
+def test_frozen_step_trajectory_high_acceptance_underreach_nominates_under_phase23() -> None:
+    geometry = replace(_geometry(), target_trajectory_length=100.0)
+    bootstrap, windowed, step_stage = _consistent_chain_for_geometry(
+        geometry,
+        fixed_step_size=0.2,
+        fixed_stage_config_overrides={
+            "trajectory_window_lower_multiplier": 0.04,
+            "handoff_screen_policy": "phase23_nomination_only",
+        },
+    )
+    run, _calls = _scripted_trajectory_runner({})
+
+    result = run_hmc_frozen_step_trajectory_stage(
+        adapter=_ToyGaussianAdapter(),
+        geometry=geometry,
+        bootstrap=bootstrap,
+        windowed_stage=windowed,
+        fixed_mass_step_stage=step_stage,
+        config=_trajectory_config(
+            max_leapfrog_steps=25,
+            handoff_screen_policy="phase23_nomination_only",
+        ),
+        run_full_chain=run,
+    )
+    public_summary = hmc_kernel_tuning._frozen_step_trajectory_public_summary(result)
+
+    assert result.passed is True
+    assert result.final_status == "passed"
+    assert result.selected_candidate is not None
+    assert result.selected_candidate["classification"] == "nomination_screen"
+    assert result.selected_candidate["nomination_eligible"] is True
+    assert result.selected_candidate["trajectory_window_relation"] == (
+        "below_trajectory_window"
+    )
+    assert result.selected_trajectory_payload is not None
+    assert result.selected_trajectory_payload["not_fresh_final_verification"] is True
+    assert result.diagnostics["handoff_screen_policy"] == "phase23_nomination_only"
+    assert result.diagnostics["trajectory_window_viability_gate_active"] is False
+    assert result.diagnostics["trajectory_window_nomination_only"] is True
+    assert public_summary["handoff_screen_policy"] == "phase23_nomination_only"
+    assert public_summary["nomination_candidate_count"] >= 1
+    assert public_summary["reports_fresh_final_verification"] is False
+    assert public_summary["reports_posterior_convergence"] is False
+    assert public_summary["reports_sampler_superiority"] is False
+
+
 def test_frozen_step_trajectory_acceptance_pass_underreach_cannot_pass() -> None:
     geometry = replace(_geometry(), target_trajectory_length=100.0)
     bootstrap, windowed, step_stage = _consistent_chain_for_geometry(
@@ -640,6 +686,78 @@ def test_frozen_step_trajectory_acceptance_pass_underreach_cannot_pass() -> None
     assert "acceptance_pass_but_trajectory_underreach" in result.repair_triggers
     assert result.candidate_results[-1]["num_leapfrog_steps"] == 25
     assert result.candidate_results[-1]["diagnostics"]["acceptance_rate"] == pytest.approx(0.70)
+
+
+def test_frozen_step_trajectory_acceptance_pass_underreach_nominates_under_phase23() -> None:
+    geometry = replace(_geometry(), target_trajectory_length=100.0)
+    bootstrap, windowed, step_stage = _consistent_chain_for_geometry(
+        geometry,
+        fixed_step_size=0.2,
+        fixed_stage_config_overrides={
+            "trajectory_window_lower_multiplier": 0.04,
+            "handoff_screen_policy": "phase23_nomination_only",
+        },
+    )
+    run, _calls = _scripted_trajectory_runner({25: 0.70})
+
+    result = run_hmc_frozen_step_trajectory_stage(
+        adapter=_ToyGaussianAdapter(),
+        geometry=geometry,
+        bootstrap=bootstrap,
+        windowed_stage=windowed,
+        fixed_mass_step_stage=step_stage,
+        config=_trajectory_config(
+            max_leapfrog_steps=25,
+            handoff_screen_policy="phase23_nomination_only",
+        ),
+        run_full_chain=run,
+    )
+
+    assert result.passed is True
+    assert result.final_status == "passed"
+    assert result.selected_candidate is not None
+    assert result.selected_candidate["classification"] == "nomination_screen"
+    assert result.selected_candidate["num_leapfrog_steps"] == 25
+    assert result.selected_candidate["diagnostics"]["acceptance_rate"] == pytest.approx(
+        0.70
+    )
+    assert "acceptance_pass_but_trajectory_underreach" in result.repair_triggers
+    assert result.diagnostics["trajectory_window_viability_gate_active"] is False
+    assert result.diagnostics["reports_sampler_superiority"] is False
+    assert result.payload()["reports_fresh_final_verification"] is False
+
+
+def test_frozen_step_trajectory_phase23_preserves_invalid_trajectory_hard_veto() -> None:
+    (
+        classification,
+        diagnostic_role,
+        hard_vetoes,
+        continuation_vetoes,
+        promotion_vetoes,
+        repair_triggers,
+    ) = hmc_kernel_tuning._classify_frozen_step_trajectory_candidate(
+        _trajectory_config(handoff_screen_policy="phase23_nomination_only"),
+        diagnostics={
+            "acceptance_rate": 0.70,
+            "runtime_finite": True,
+            "log_accept_ratio_finite": True,
+            "samples_all_finite": True,
+            "target_log_prob_finite": True,
+        },
+        trajectory_window={
+            "trajectory_window_relation": "invalid_trajectory_length",
+            "leapfrog_exceeds_max": False,
+        },
+        screen_error=None,
+        callback_result=FixedMassHMCTuningBudgetCallbackResult(),
+    )
+
+    assert classification == "hard_veto"
+    assert diagnostic_role == "hard_veto"
+    assert "trajectory_length_invalid" in hard_vetoes
+    assert continuation_vetoes == ()
+    assert promotion_vetoes == ()
+    assert repair_triggers == ()
 
 
 def test_phase6_underreach_repair_preserves_in_band_acceptance_relation() -> None:

@@ -12776,6 +12776,43 @@ def _select_joint_l_epsilon_candidate(
 ) -> int | None:
     policy = _validate_handoff_screen_policy(handoff_screen_policy)
     if _phase23_nomination_policy_active(policy):
+        def phase23_selection_key(item: tuple[int, Mapping[str, Any]]) -> tuple[
+            int,
+            int,
+            float,
+            int,
+            float,
+            float,
+            int,
+            int,
+            int,
+        ]:
+            candidate = item[1]
+            trajectory_length = _scalar_or_none(candidate.get("trajectory_length"))
+            selected_budget = _scalar_or_none(candidate.get("selected_budget"))
+            public_cost_proxy = (
+                float(selected_budget)
+                if selected_budget is not None
+                else float(candidate.get("num_leapfrog_steps", _GEOMETRY_MAX_LEAPFROG))
+            )
+            return (
+                len(tuple(candidate.get("hard_vetoes", ()))),
+                len(tuple(candidate.get("continuation_vetoes", ()))),
+                abs(float(candidate["screen_acceptance_rate"]) - float(target_accept_prob)),
+                _trajectory_window_class_penalty(
+                    candidate.get("trajectory_window_relation", "unavailable")
+                ),
+                (
+                    abs(float(trajectory_length) - float(target_trajectory))
+                    if trajectory_length is not None
+                    else float("inf")
+                ),
+                public_cost_proxy,
+                int(candidate["num_leapfrog_steps"]),
+                int(candidate["candidate_index"]),
+                int(candidate.get("round_index", 0)),
+            )
+
         nomination_candidates = [
             (index, candidate)
             for index, candidate in enumerate(candidates)
@@ -12787,27 +12824,7 @@ def _select_joint_l_epsilon_candidate(
             return None
         selected_index, _candidate = min(
             nomination_candidates,
-            key=lambda item: (
-                len(tuple(item[1].get("hard_vetoes", ()))),
-                len(tuple(item[1].get("continuation_vetoes", ()))),
-                abs(float(item[1]["screen_acceptance_rate"]) - float(target_accept_prob)),
-                _trajectory_window_class_penalty(
-                    item[1].get("trajectory_window_relation", "unavailable")
-                ),
-                abs(
-                    float(item[1].get("trajectory_length", float("inf")))
-                    - float(target_trajectory)
-                ),
-                float(
-                    item[1].get(
-                        "selected_budget",
-                        item[1].get("num_leapfrog_steps", _GEOMETRY_MAX_LEAPFROG),
-                    )
-                ),
-                int(item[1]["num_leapfrog_steps"]),
-                int(item[1]["candidate_index"]),
-                int(item[1].get("round_index", 0)),
-            ),
+            key=phase23_selection_key,
         )
         return int(selected_index)
     viable = [
