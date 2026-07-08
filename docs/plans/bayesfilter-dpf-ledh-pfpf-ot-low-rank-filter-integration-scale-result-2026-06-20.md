@@ -71,4 +71,3 @@ posterior correctness, general scalability, or default readiness.
 
 This independent lane is complete.  Do not perform mid-lane synthesis with the
 positive-feature lane.
-

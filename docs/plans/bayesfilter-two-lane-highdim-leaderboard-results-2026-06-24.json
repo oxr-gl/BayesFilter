@@ -1,0 +1,604 @@
+{
+  "benchmark": "bayesfilter_two_lane_highdim_leaderboard_reference",
+  "comparison_algorithm_ids": [
+    "fixed_sgqf",
+    "ukf",
+    "zhao_cui_scalar_or_multistate"
+  ],
+  "manifest": {
+    "comparison_program_master": "docs/plans/bayesfilter-two-lane-filter-comparison-master-program-2026-06-24.md",
+    "excluded_algorithms": [
+      "cut4"
+    ],
+    "execution_mode": "reviewed_p8d_numeric_artifact_plus_direct_sgqf_row_routes_where_supported",
+    "lane": "highdim_source_scope",
+    "source_numeric_artifact": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-p8d-numeric-results-2026-06-13.json",
+    "source_scope_contract": "docs/plans/bayesfilter-filtering-value-gradient-benchmark-source-paper-scope-contract-2026-06-11.json"
+  },
+  "metadata_date": "2026-06-24",
+  "nonclaims": [
+    "This highdim packet combines the reviewed P8d numeric artifact with direct SGQF row routes where already supported in code/tests.",
+    "CUT4 is excluded from the highdim lane by contract.",
+    "Actual transformed SV and KSC surrogate SV remain separate rows and must not be merged.",
+    "Rows with blocked or missing algorithms are not full three-way leaderboard rows.",
+    "This is not a production-GPU timing packet."
+  ],
+  "row_summary": [
+    {
+      "blocked_or_missing_algorithms": [
+        "zhao_cui_scalar_or_multistate"
+      ],
+      "executed_algorithms": [
+        "fixed_sgqf",
+        "ukf"
+      ],
+      "full_three_way_ready": false,
+      "row_id": "benchmark_lgssm_exact_oracle_m3_T50"
+    },
+    {
+      "blocked_or_missing_algorithms": [
+        "fixed_sgqf"
+      ],
+      "executed_algorithms": [
+        "ukf",
+        "zhao_cui_scalar_or_multistate"
+      ],
+      "full_three_way_ready": false,
+      "row_id": "zhao_cui_sv_actual_nongaussian_T1000"
+    },
+    {
+      "blocked_or_missing_algorithms": [],
+      "executed_algorithms": [
+        "fixed_sgqf",
+        "ukf",
+        "zhao_cui_scalar_or_multistate"
+      ],
+      "full_three_way_ready": true,
+      "row_id": "zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000"
+    },
+    {
+      "blocked_or_missing_algorithms": [
+        "fixed_sgqf",
+        "zhao_cui_scalar_or_multistate"
+      ],
+      "executed_algorithms": [
+        "ukf"
+      ],
+      "full_three_way_ready": false,
+      "row_id": "zhao_cui_spatial_sir_austria_j9_T20"
+    },
+    {
+      "blocked_or_missing_algorithms": [
+        "zhao_cui_scalar_or_multistate"
+      ],
+      "executed_algorithms": [
+        "fixed_sgqf",
+        "ukf"
+      ],
+      "full_three_way_ready": false,
+      "row_id": "zhao_cui_predator_prey_T20"
+    },
+    {
+      "blocked_or_missing_algorithms": [
+        "fixed_sgqf",
+        "zhao_cui_scalar_or_multistate"
+      ],
+      "executed_algorithms": [
+        "ukf"
+      ],
+      "full_three_way_ready": false,
+      "row_id": "zhao_cui_generalized_sv_synthetic_from_estimated_values"
+    }
+  ],
+  "rows": [
+    {
+      "absolute_value_gap_to_kalman": 2.842170943040401e-14,
+      "algorithm_id": "fixed_sgqf",
+      "average_log_likelihood": -2.7215194971584937,
+      "comparison_status": "executed_value_only",
+      "lane": "highdim_source_scope",
+      "log_likelihood": -136.07597485792468,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "direct affine SGQF value route; no score emitted in this packet",
+        "not a production-GPU timing result"
+      ],
+      "numeric_execution_status": "executed_direct_affine_sgqf_value",
+      "reason": null,
+      "reason_codes": [
+        "DIRECT_AFFINE_SGQF_LGSSM_ROUTE"
+      ],
+      "reference_log_likelihood": -136.0759748579247,
+      "row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+      "runtime_seconds": null,
+      "score_coordinate_system": null,
+      "score_derivative_provenance": null,
+      "score_l2_norm": null,
+      "score_status": "blocked_missing_analytical_route",
+      "score_status_reason": "direct affine SGQF value route exists, but no reviewed source-scope SGQF score route is emitted",
+      "target_contract_status": "target_compatible_direct_affine_sgqf"
+    },
+    {
+      "absolute_value_gap_to_kalman": 4.838057066081092e-09,
+      "algorithm_id": "ukf",
+      "average_log_likelihood": -2.721519497158494,
+      "comparison_status": "executed_value_score",
+      "lane": "highdim_source_scope",
+      "log_likelihood": -136.0759748579247,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "LGSSM affine-equivalence differentiated-Kalman score, not native sigma-point placement derivative",
+        "physical-coordinate score, not canonical unconstrained phi",
+        "not a nonlinear benchmark ranking"
+      ],
+      "numeric_execution_status": "executed_numeric_lgssm_score",
+      "reason": null,
+      "reason_codes": [
+        "P8D_NUMERIC_EXECUTED_LGSSM_DIFFERENTIATED_KALMAN_AFFINE_VALUE_SCORE_HESSIAN"
+      ],
+      "reference_log_likelihood": -136.07597485308665,
+      "row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+      "runtime_seconds": null,
+      "score_coordinate_system": "physical_theta",
+      "score_derivative_provenance": "ukf_lgssm_affine_equivalence_to_tf_covariance_differentiated_kalman_reference_cholesky_solve_physical_theta",
+      "score_l2_norm": 8.331768521408039,
+      "score_status": null,
+      "score_status_reason": null,
+      "target_contract_status": "target_compatible"
+    },
+    {
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "average_log_likelihood": null,
+      "comparison_status": "blocked_or_status_only",
+      "lane": "highdim_source_scope",
+      "log_likelihood": null,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "not a numeric benchmark result for this cell",
+        "no silent N/A: cell remains explicit structured blocker or not-applicable"
+      ],
+      "numeric_execution_status": "blocked_model_specific_evaluator_adapter_required",
+      "reason": "P8D_MODEL_SPECIFIC_NUMERIC_EVALUATOR_ADAPTER_REQUIRED",
+      "reason_codes": [
+        "P8D_MODEL_SPECIFIC_NUMERIC_EVALUATOR_ADAPTER_REQUIRED"
+      ],
+      "reference_log_likelihood": null,
+      "row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+      "runtime_seconds": null,
+      "score_coordinate_system": null,
+      "score_derivative_provenance": null,
+      "score_l2_norm": null,
+      "score_status": null,
+      "score_status_reason": null,
+      "target_contract_status": "target_compatible"
+    },
+    {
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "fixed_sgqf",
+      "average_log_likelihood": null,
+      "comparison_status": "blocked",
+      "lane": "highdim_source_scope",
+      "log_likelihood": null,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "not executed in the current source-scope leaderboard lane",
+        "no SGQF broad high-dimensional admission is implied"
+      ],
+      "numeric_execution_status": "blocked_by_two_lane_contract_or_missing_source_scope_evaluator",
+      "reason": "blocked_not_same_target under current additive-state SGQF lane",
+      "reason_codes": [
+        "TWO_LANE_FIXED_SGQF_BLOCK_OR_MISSING_EVALUATOR"
+      ],
+      "reference_log_likelihood": null,
+      "row_id": "zhao_cui_sv_actual_nongaussian_T1000",
+      "runtime_seconds": null,
+      "score_coordinate_system": null,
+      "score_derivative_provenance": null,
+      "score_l2_norm": null,
+      "score_status": "blocked_not_same_target",
+      "score_status_reason": "current SGQF support is not same-target for actual transformed SV",
+      "target_contract_status": "blocked_fixed_sgqf_current_scope"
+    },
+    {
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "ukf",
+      "average_log_likelihood": -1.4607021902071977,
+      "comparison_status": "executed_value_score",
+      "lane": "highdim_source_scope",
+      "log_likelihood": -1460.7021902071976,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "actual raw-observation SV sigma-point approximation with observation-noise augmentation",
+        "not exact nonlinear likelihood",
+        "P8c is a partial comparator-only baseline, not full scientific truth",
+        "no filter ranking or Bayesian-estimation readiness claim"
+      ],
+      "numeric_execution_status": "executed_numeric_value_score",
+      "reason": null,
+      "reason_codes": [
+        "P8D_EXECUTED_DETERMINISTIC_VALUE_AND_TF_AUTODIFF_SCORE"
+      ],
+      "reference_log_likelihood": null,
+      "row_id": "zhao_cui_sv_actual_nongaussian_T1000",
+      "runtime_seconds": 15.01487,
+      "score_coordinate_system": "p8_truth_theta_coordinate",
+      "score_derivative_provenance": "ukf_augmented_noise_sigma_point_raw_sv_tf_autodiff_score",
+      "score_l2_norm": 1916.1087595276813,
+      "score_status": null,
+      "score_status_reason": null,
+      "target_contract_status": "target_compatible"
+    },
+    {
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "average_log_likelihood": -0.7150968568579721,
+      "comparison_status": "executed_value_score",
+      "lane": "highdim_source_scope",
+      "log_likelihood": -715.096856857972,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "fixed-branch dense scalar route, not adaptive MATLAB TT-cross/SIRT reproduction",
+        "full T=1000 source-row observations used",
+        "P8c is a partial comparator-only baseline, not full scientific truth",
+        "no filter ranking or Bayesian-estimation readiness claim"
+      ],
+      "numeric_execution_status": "executed_numeric_value_score",
+      "reason": null,
+      "reason_codes": [
+        "P8D_EXECUTED_DETERMINISTIC_VALUE_AND_TF_AUTODIFF_SCORE"
+      ],
+      "reference_log_likelihood": null,
+      "row_id": "zhao_cui_sv_actual_nongaussian_T1000",
+      "runtime_seconds": 17.155709,
+      "score_coordinate_system": "p8_truth_theta_coordinate",
+      "score_derivative_provenance": "fixed_branch_scalar_dense_zhaocui_style_value_path_tf_autodiff_score",
+      "score_l2_norm": 6.218900604151572,
+      "score_status": null,
+      "score_status_reason": null,
+      "target_contract_status": "target_compatible"
+    },
+    {
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "fixed_sgqf",
+      "average_log_likelihood": -2.2846321465997916,
+      "comparison_status": "executed_value_only",
+      "lane": "highdim_source_scope",
+      "log_likelihood": -2284.6321465997917,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "source-scope KSC SGQF value route executed; no score emitted in this packet",
+        "declared KSC Gaussian-mixture surrogate target only"
+      ],
+      "numeric_execution_status": "executed_source_scope_ksc_sgqf_value",
+      "reason": null,
+      "reason_codes": [
+        "DIRECT_KSC_SOURCE_SCOPE_SGQF_ROUTE"
+      ],
+      "reference_log_likelihood": null,
+      "row_id": "zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000",
+      "runtime_seconds": null,
+      "score_coordinate_system": null,
+      "score_derivative_provenance": null,
+      "score_l2_norm": null,
+      "score_status": "diagnostic_score_only",
+      "score_status_reason": "existing SGQF score evidence is tiny-fixture-only and not yet promoted to source-scope analytical-score admission",
+      "target_contract_status": "target_compatible_declared_ksc_surrogate_value_only"
+    },
+    {
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "ukf",
+      "average_log_likelihood": -2.2846321465997916,
+      "comparison_status": "executed_value_score",
+      "lane": "highdim_source_scope",
+      "log_likelihood": -2284.6321465997917,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "declared KSC Gaussian-mixture surrogate, not native SV likelihood",
+        "independent scalar/panel route, not coupled high-dimensional TT",
+        "P8c is a partial comparator-only baseline, not full scientific truth",
+        "no filter ranking or Bayesian-estimation readiness claim"
+      ],
+      "numeric_execution_status": "executed_numeric_value_score",
+      "reason": null,
+      "reason_codes": [
+        "P8D_EXECUTED_DETERMINISTIC_VALUE_AND_TF_AUTODIFF_SCORE"
+      ],
+      "reference_log_likelihood": null,
+      "row_id": "zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000",
+      "runtime_seconds": 38.668817,
+      "score_coordinate_system": "p8_truth_theta_coordinate",
+      "score_derivative_provenance": "ukf_ksc_mixture_tf_autodiff_score",
+      "score_l2_norm": 5.436270495074727,
+      "score_status": null,
+      "score_status_reason": null,
+      "target_contract_status": "target_compatible"
+    },
+    {
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "average_log_likelihood": -2.0150851664190284,
+      "comparison_status": "executed_value_score",
+      "lane": "highdim_source_scope",
+      "log_likelihood": -2015.0851664190282,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "declared KSC Gaussian-mixture surrogate, not native SV likelihood",
+        "independent scalar/panel route, not coupled high-dimensional TT",
+        "fixed-branch scalar route, not adaptive MATLAB TT-cross/SIRT reproduction",
+        "P8c is a partial comparator-only baseline, not full scientific truth",
+        "no filter ranking or Bayesian-estimation readiness claim"
+      ],
+      "numeric_execution_status": "executed_numeric_value_score",
+      "reason": null,
+      "reason_codes": [
+        "P8D_EXECUTED_DETERMINISTIC_VALUE_AND_TF_AUTODIFF_SCORE"
+      ],
+      "reference_log_likelihood": null,
+      "row_id": "zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000",
+      "runtime_seconds": 22.661457,
+      "score_coordinate_system": "p8_truth_theta_coordinate",
+      "score_derivative_provenance": "zhao_cui_scalar_or_multistate_ksc_mixture_tf_autodiff_score",
+      "score_l2_norm": 679.8681399699925,
+      "score_status": null,
+      "score_status_reason": null,
+      "target_contract_status": "target_compatible"
+    },
+    {
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "fixed_sgqf",
+      "average_log_likelihood": null,
+      "comparison_status": "blocked",
+      "lane": "highdim_source_scope",
+      "log_likelihood": null,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "not executed in the current source-scope leaderboard lane",
+        "no SGQF broad high-dimensional admission is implied"
+      ],
+      "numeric_execution_status": "blocked_by_two_lane_contract_or_missing_source_scope_evaluator",
+      "reason": "no reviewed SGQF source-scope spatial SIR route is wired",
+      "reason_codes": [
+        "TWO_LANE_FIXED_SGQF_BLOCK_OR_MISSING_EVALUATOR"
+      ],
+      "reference_log_likelihood": null,
+      "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+      "runtime_seconds": null,
+      "score_coordinate_system": null,
+      "score_derivative_provenance": null,
+      "score_l2_norm": null,
+      "score_status": "blocked_no_free_theta",
+      "score_status_reason": "row has no free theta and no reviewed SGQF source-scope route",
+      "target_contract_status": "blocked_fixed_sgqf_current_scope"
+    },
+    {
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "ukf",
+      "average_log_likelihood": -36.832007416195985,
+      "comparison_status": "executed_value_only",
+      "lane": "highdim_source_scope",
+      "log_likelihood": -736.6401483239197,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "spatial SIR P8 source row has no free theta",
+        "value-only sigma-point approximation",
+        "value-only cell because the P8 source row has no free theta"
+      ],
+      "numeric_execution_status": "executed_numeric_value_only_no_free_theta",
+      "reason": null,
+      "reason_codes": [
+        "P8D_EXECUTED_DETERMINISTIC_VALUE_ONLY_NO_FREE_THETA"
+      ],
+      "reference_log_likelihood": null,
+      "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+      "runtime_seconds": 0.684872,
+      "score_coordinate_system": "no_free_theta",
+      "score_derivative_provenance": "not_applicable_no_free_theta",
+      "score_l2_norm": null,
+      "score_status": null,
+      "score_status_reason": null,
+      "target_contract_status": "target_compatible"
+    },
+    {
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "average_log_likelihood": null,
+      "comparison_status": "blocked_or_status_only",
+      "lane": "highdim_source_scope",
+      "log_likelihood": null,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "not a numeric benchmark result for this cell",
+        "no silent N/A: cell remains explicit structured blocker or not-applicable"
+      ],
+      "numeric_execution_status": "blocked_model_specific_evaluator_adapter_required",
+      "reason": "P8D_MODEL_SPECIFIC_NUMERIC_EVALUATOR_ADAPTER_REQUIRED",
+      "reason_codes": [
+        "P8D_MODEL_SPECIFIC_NUMERIC_EVALUATOR_ADAPTER_REQUIRED"
+      ],
+      "reference_log_likelihood": null,
+      "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+      "runtime_seconds": null,
+      "score_coordinate_system": null,
+      "score_derivative_provenance": null,
+      "score_l2_norm": null,
+      "score_status": null,
+      "score_status_reason": null,
+      "target_contract_status": "source_route_target_compatible_execution_only_ready"
+    },
+    {
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "fixed_sgqf",
+      "average_log_likelihood": -3.2555634617217066,
+      "comparison_status": "executed_value_only",
+      "lane": "highdim_source_scope",
+      "log_likelihood": -65.11126923443413,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "direct SGQF predator-prey value route; no score emitted in this packet",
+        "not a production-GPU timing result"
+      ],
+      "numeric_execution_status": "executed_predator_prey_sgqf_value",
+      "reason": null,
+      "reason_codes": [
+        "DIRECT_PREDATOR_PREY_SGQF_ROUTE"
+      ],
+      "reference_log_likelihood": -16.415853869084895,
+      "row_id": "zhao_cui_predator_prey_T20",
+      "runtime_seconds": null,
+      "score_coordinate_system": null,
+      "score_derivative_provenance": null,
+      "score_l2_norm": null,
+      "score_status": "analytical_score_admitted",
+      "score_status_reason": "family tests provide explicit analytical derivatives plus same-branch finite-difference validation",
+      "target_contract_status": "target_compatible_direct_predator_prey_sgqf"
+    },
+    {
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "ukf",
+      "average_log_likelihood": -8.56827587430274,
+      "comparison_status": "executed_value_score",
+      "lane": "highdim_source_scope",
+      "log_likelihood": -171.3655174860548,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "additive-Gaussian predator-prey structural approximation",
+        "predict-then-observe filter convention",
+        "P8c is a partial comparator-only baseline, not full scientific truth",
+        "no filter ranking or Bayesian-estimation readiness claim"
+      ],
+      "numeric_execution_status": "executed_numeric_value_score",
+      "reason": null,
+      "reason_codes": [
+        "P8D_EXECUTED_DETERMINISTIC_VALUE_AND_TF_AUTODIFF_SCORE"
+      ],
+      "reference_log_likelihood": null,
+      "row_id": "zhao_cui_predator_prey_T20",
+      "runtime_seconds": 5.479427,
+      "score_coordinate_system": "p8_truth_theta_coordinate",
+      "score_derivative_provenance": "ukf_predator_prey_structural_sigma_point_tf_autodiff_score",
+      "score_l2_norm": 270.11877553452604,
+      "score_status": null,
+      "score_status_reason": null,
+      "target_contract_status": "target_compatible"
+    },
+    {
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "average_log_likelihood": null,
+      "comparison_status": "blocked_or_status_only",
+      "lane": "highdim_source_scope",
+      "log_likelihood": null,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "not a numeric benchmark result for this cell",
+        "no silent N/A: cell remains explicit structured blocker or not-applicable"
+      ],
+      "numeric_execution_status": "blocked_model_specific_evaluator_adapter_required",
+      "reason": "P8D_MODEL_SPECIFIC_NUMERIC_EVALUATOR_ADAPTER_REQUIRED",
+      "reason_codes": [
+        "P8D_MODEL_SPECIFIC_NUMERIC_EVALUATOR_ADAPTER_REQUIRED"
+      ],
+      "reference_log_likelihood": null,
+      "row_id": "zhao_cui_predator_prey_T20",
+      "runtime_seconds": null,
+      "score_coordinate_system": null,
+      "score_derivative_provenance": null,
+      "score_l2_norm": null,
+      "score_status": null,
+      "score_status_reason": null,
+      "target_contract_status": "target_compatible"
+    },
+    {
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "fixed_sgqf",
+      "average_log_likelihood": null,
+      "comparison_status": "blocked",
+      "lane": "highdim_source_scope",
+      "log_likelihood": null,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "not executed in the current source-scope leaderboard lane",
+        "no SGQF broad high-dimensional admission is implied"
+      ],
+      "numeric_execution_status": "blocked_by_two_lane_contract_or_missing_source_scope_evaluator",
+      "reason": "no reviewed SGQF source-scope generalized-SV evaluator is wired",
+      "reason_codes": [
+        "TWO_LANE_FIXED_SGQF_BLOCK_OR_MISSING_EVALUATOR"
+      ],
+      "reference_log_likelihood": null,
+      "row_id": "zhao_cui_generalized_sv_synthetic_from_estimated_values",
+      "runtime_seconds": null,
+      "score_coordinate_system": null,
+      "score_derivative_provenance": null,
+      "score_l2_norm": null,
+      "score_status": "blocked_missing_analytical_route",
+      "score_status_reason": "no reviewed same-target SGQF source-row evaluator exists yet",
+      "target_contract_status": "blocked_fixed_sgqf_current_scope"
+    },
+    {
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "ukf",
+      "average_log_likelihood": -1.428934153339374,
+      "comparison_status": "executed_value_score",
+      "lane": "highdim_source_scope",
+      "log_likelihood": -1440.365626566089,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "prior-mean generalized-SV synthetic row",
+        "sigma-point approximation with observation-noise augmentation",
+        "P8c is a partial comparator-only baseline, not full scientific truth",
+        "no filter ranking or Bayesian-estimation readiness claim"
+      ],
+      "numeric_execution_status": "executed_numeric_value_score",
+      "reason": null,
+      "reason_codes": [
+        "P8D_EXECUTED_DETERMINISTIC_VALUE_AND_TF_AUTODIFF_SCORE"
+      ],
+      "reference_log_likelihood": null,
+      "row_id": "zhao_cui_generalized_sv_synthetic_from_estimated_values",
+      "runtime_seconds": 15.095921,
+      "score_coordinate_system": "p8_truth_theta_coordinate",
+      "score_derivative_provenance": "ukf_generalized_sv_augmented_noise_sigma_point_tf_autodiff_score",
+      "score_l2_norm": 1.2627872597965142,
+      "score_status": null,
+      "score_status_reason": null,
+      "target_contract_status": "target_compatible"
+    },
+    {
+      "absolute_value_gap_to_kalman": null,
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "average_log_likelihood": null,
+      "comparison_status": "blocked_or_status_only",
+      "lane": "highdim_source_scope",
+      "log_likelihood": null,
+      "mc_standard_error": null,
+      "nonclaims": [
+        "not a numeric benchmark result for this cell",
+        "no silent N/A: cell remains explicit structured blocker or not-applicable"
+      ],
+      "numeric_execution_status": "blocked_model_specific_evaluator_adapter_required",
+      "reason": "P8D_MODEL_SPECIFIC_NUMERIC_EVALUATOR_ADAPTER_REQUIRED",
+      "reason_codes": [
+        "P8D_MODEL_SPECIFIC_NUMERIC_EVALUATOR_ADAPTER_REQUIRED"
+      ],
+      "reference_log_likelihood": null,
+      "row_id": "zhao_cui_generalized_sv_synthetic_from_estimated_values",
+      "runtime_seconds": null,
+      "score_coordinate_system": null,
+      "score_derivative_provenance": null,
+      "score_l2_norm": null,
+      "score_status": null,
+      "score_status_reason": null,
+      "target_contract_status": "target_compatible"
+    }
+  ],
+  "source_scope_row_ids": [
+    "benchmark_lgssm_exact_oracle_m3_T50",
+    "zhao_cui_sv_actual_nongaussian_T1000",
+    "zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000",
+    "zhao_cui_spatial_sir_austria_j9_T20",
+    "zhao_cui_predator_prey_T20",
+    "zhao_cui_generalized_sv_synthetic_from_estimated_values"
+  ]
+}

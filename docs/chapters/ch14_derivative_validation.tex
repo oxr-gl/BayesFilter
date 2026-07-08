@@ -156,19 +156,22 @@ or ``HMC-ready backend'' are too ambiguous to audit.
 \section{Audit Record}
 \label{sec:bf-derivative-audit-record}
 
-Each derivative chapter should record the source labels, code files, and tests
-that support it.  If a tool audit is inconclusive, the monograph should say so.
-An inconclusive symbolic audit can still be valuable: it identifies which
-guards, shapes, or noncommutative matrix steps need manual proof before a
-formula is promoted to peer-review-ready status.
+Each derivative chapter should record the mathematical assumptions,
+implementation branch conditions, and tests that support it.  If a symbolic or
+automated audit is inconclusive, the monograph should say so.  An inconclusive
+audit can still be valuable: it identifies which guards, shapes, or
+noncommutative matrix steps need manual proof before a formula is promoted to
+peer-review-ready status.
 
 For the analytic-derivative chapter set, the current audit record is:
 \begin{itemize}
-  \item MacroFinance analytic derivative labels provide the source formulas for
-    score, Hessian, structural provider, Cholesky, and QR contracts;
-  \item MathDevMCP is useful for label lookup and local-context provenance, but
-    it does not replace manual proof of noncommutative matrix calculus steps;
-  \item ResearchAssistant is local/offline and has no current summary hits for
-    the exact SVD/eigen derivative-validation cluster used here;
-  \item production readiness remains a test claim, not a prose claim.
+  \item the score, Hessian, structural-provider, Cholesky, and QR chapters are
+    treated as one connected derivative contract rather than isolated formulas;
+  \item local symbolic tools are useful for context lookup and algebraic smoke
+    tests, but they do not replace manual proof of noncommutative matrix
+    calculus steps;
+  \item automated literature helpers may fail to summarize the exact SVD/eigen
+    derivative-validation cluster relevant to a given implementation branch;
+  \item readiness for downstream use remains a test-supported claim, not a prose
+    claim.
 \end{itemize}

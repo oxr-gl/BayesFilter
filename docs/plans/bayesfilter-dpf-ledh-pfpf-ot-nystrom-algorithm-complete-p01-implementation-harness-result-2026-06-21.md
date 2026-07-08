@@ -85,4 +85,3 @@ No P02 execution was run in P01.
 | Seeds | Harness default seed `20260621` for deterministic fixture generation. |
 | Artifacts | This result note plus the two created P01 files. |
 | Plan file | `docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-p01-implementation-harness-subplan-2026-06-21.md` |
-

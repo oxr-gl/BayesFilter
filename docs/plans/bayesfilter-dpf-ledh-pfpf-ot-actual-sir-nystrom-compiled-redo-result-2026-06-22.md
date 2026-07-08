@@ -81,4 +81,3 @@ Run a moderate compiled paired row before any serious default-promotion ladder:
 `history-mode value-only`, one repeat.  This is a protocol/effectiveness gate,
 not a default-promotion gate.  If it passes, then define the serious redo ladder
 from scratch.
-

@@ -24,4 +24,3 @@ pytest -q tests/test_actual_sir_nystrom_default_promotion.py
 
 P01 is complete.  Advance to trusted GPU preflight and P03 serious actual-SIR
 row if the GPU selection rule can be satisfied.
-

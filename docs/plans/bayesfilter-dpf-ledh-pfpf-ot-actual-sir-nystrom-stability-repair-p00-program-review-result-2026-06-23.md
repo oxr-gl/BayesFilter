@@ -57,4 +57,3 @@ P01 may begin because:
 - P00 did not run serious GPU diagnostics.
 - P00 did not establish default readiness, posterior correctness, dense
   equivalence, HMC readiness, or statistical superiority.
-

@@ -67,4 +67,3 @@ not support a speed ranking or default-promotion speed claim.
 | Descriptive-only differences | P05B runtime ratio is withdrawn as contaminated |
 | Default-readiness | `NO` |
 | Next evidence needed | Comparable compiled Nystrom-vs-streaming timing or explicitly Nystrom-only high-N feasibility |
-

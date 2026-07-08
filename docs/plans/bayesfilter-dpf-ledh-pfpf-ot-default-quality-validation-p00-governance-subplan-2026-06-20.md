@@ -74,4 +74,3 @@ Stop and write a blocker result if:
 - the plan requires a new dependency, network fetch, destructive filesystem
   action, or changing scientific/default-policy authority;
 - the streaming route cannot be identified as the target route.
-

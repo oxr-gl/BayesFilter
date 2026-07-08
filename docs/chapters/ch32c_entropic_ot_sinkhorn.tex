@@ -15,15 +15,38 @@ used in a downstream filtering scalar.
 \section{What changes when entropy is added}
 \label{sec:bf-eot-what-changes}
 
-The deterministic OT baseline chooses a coupling that minimizes transport cost
-exactly for the declared linear program.  Entropic OT changes that object by
-adding a smoothing term to the optimization problem.  In plain language, the
-transport plan is now rewarded for being more diffuse instead of concentrating all
-mass as sharply as possible.
+The previous chapter fixed the unregularized deterministic baseline by choosing a
+feasible coupling with minimal declared transport cost,
+\begin{equation}
+\label{eq:bf-eot-deterministic-baseline-repeat}
+  \Pi_0^\star
+  \in
+  \arg\min_{\Pi\in\mathcal U(w,u)}
+  \langle C,\Pi\rangle.
+\end{equation}
+Entropic OT changes that teacher object before any numerical approximation enters.
+For a regularization level \(\varepsilon>0\), it replaces the linear program by
+an objective that also penalizes overly concentrated couplings through the entropy
+term.  In plain language, the plan is now rewarded for spreading mass more smoothly
+instead of concentrating all mass as sharply as possible.
 
-The gain is numerical smoothness and a tractable matrix-scaling solver.  The cost
-is that the transport object is no longer the unregularized deterministic OT
-solution.  This is the first approximation layer of the chapter.
+This change matters mathematically as well as numerically.  The transport object is
+no longer the unregularized deterministic optimizer from
+\eqref{eq:bf-eot-deterministic-baseline-repeat}.  It is a different teacher problem
+whose solution is smoother and whose first-order conditions can be rewritten as a
+matrix-scaling problem.  That rewrite is what later makes Sinkhorn iteration
+possible.  Thus the chapter's logic is:
+\begin{enumerate}[label=(\roman*)]
+  \item change the deterministic teacher by adding entropy,
+  \item derive the factorized form of the new optimizer,
+  \item derive the balancing equations for its scaling vectors,
+  \item and only then discuss the finite numerical route used in code.
+\end{enumerate}
+
+The gain is numerical smoothness and a tractable scaling-based solver.  The cost is
+that the transport object is no longer the unregularized deterministic OT solution.
+This is the chapter's first approximation layer, and later finite iteration will add
+another one on top of it.
 
 \section{Running three-particle cell with entropic smoothing}
 \label{sec:bf-eot-running-cell}
@@ -77,7 +100,7 @@ longer forced into the sharpest possible assignment.
 \label{sec:bf-eot-teacher-object}
 
 Let \(\mathcal U(w,u)\) be the feasible coupling set from the previous chapter.
-The entropically regularized OT problem is
+The entropically regularized OT problem is \citep{cuturi2013sinkhorn,peyre2019computational}
 \begin{equation}
 \label{eq:bf-eot-primal}
   \Pi_\varepsilon^\star
@@ -95,8 +118,81 @@ unregularized linear program and not for categorical resampling.
 \paragraph{Reader checkpoint.}
 At this stage, the chapter has changed the mathematical object once: from the
 unregularized deterministic OT coupling to the entropically smoothed OT coupling.
-Nothing numerical has happened yet.  The next step explains how this exact
-regularized object is computed in practice.
+Nothing numerical has happened yet.  The next step still stays at the exact-object
+level: first identify the factorized teacher form, and only after that turn to the
+finite executable route.
+
+\subsection{Exact teacher versus exact engineering route}
+\label{sec:bf-eot-teacher-versus-engineering}
+
+The scalable-OT survey suggests a useful extra distinction before moving on to
+finite Sinkhorn iterations.  There are two different senses in which a route may
+still be called ``exact'' for the entropic OT object.
+
+First, there is the mathematical teacher object
+\(\Pi_\varepsilon^\star\) from \eqref{eq:bf-eot-primal}.  That is the exact
+minimizer of the entropically regularized problem.  Second, there is an
+engineering route that preserves that same entropic object while changing how the
+matrix-scaling updates are executed in memory or on hardware.  Exact online,
+streaming, and GPU Sinkhorn methods belong to this second category: they do not
+change the entropic teacher problem, but they avoid materializing the full cost,
+kernel, or coupling whenever possible \citep{feydy2019geomloss,charlier2021keops,ye2026flashsinkhorn,xiao2026fastsinkhorn}.
+
+This distinction matters for the BayesFilter transport lane.  A method that
+recomputes the same entropic scaling updates through blocked reductions or
+streamed kernel application is still on the semantics-preserving reference lane.
+By contrast, a method that replaces the kernel, truncates the coupling family, or
+changes the transport objective has moved to a different approximation class even
+if it is motivated by scalability.  The reader should therefore keep separate:
+\begin{enumerate}[label=(\roman*)]
+  \item the exact entropic teacher object,
+  \item the finite numerical object produced by a declared Sinkhorn execution
+    path,
+  \item the engineering strategy used to realize that numerical path.
+\end{enumerate}
+The next sections fix the second object explicitly and later staged chapters will
+discuss scalability routes that either preserve or alter it.
+
+\subsection{The current BayesFilter bottleneck}
+\label{sec:bf-eot-current-bottleneck}
+
+The need for scalable OT in BayesFilter is not only a generic literature concern.
+The current TensorFlow route already distinguishes dense and streamed execution.
+Dense mode materializes the effective transport matrix and applies it to the
+particle cloud directly.  Streamed mode avoids storing that full matrix, but it
+still loops over row and column blocks and therefore still computes the same
+underlying pairwise transport interactions.
+
+For equal-weight barycentric output, the streamed route still forms costs of the
+schematic form
+\begin{equation}
+\label{eq:bf-eot-current-cost}
+  C_{ij}
+  =
+  \frac{1}{2}\|\tilde x_i-\tilde x_j\|_2^2,
+\end{equation}
+then log-transport weights of the schematic form
+\begin{equation}
+\label{eq:bf-eot-current-log-transport}
+  \log T_{ij}
+  =
+  \frac{f_i+g_j-C_{ij}}{\varepsilon}
+  - \ell_j
+  + \log N
+  + \log w_j,
+\end{equation}
+and finally blockwise transport application by accumulation,
+\begin{equation}
+\label{eq:bf-eot-current-streamed-application}
+  z_i = \sum_j T_{ij}x_j.
+\end{equation}
+The gain is real: memory pressure is reduced because the full transport matrix need
+not be kept in RAM or device memory.  But the all-pairs arithmetic burden remains.
+Streaming therefore solves part of the storage problem without yet solving the full
+large-\(N\), large-\(d_x\) interaction problem.  This is exactly why the derivation
+below matters: once the teacher object has been rewritten as a scaling problem, one
+can see clearly which later routes merely change execution strategy and which ones
+change the transport object itself.
 
 \subsection{Exact teacher versus exact engineering route}
 \label{sec:bf-eot-teacher-versus-engineering}
@@ -132,20 +228,121 @@ discuss scalability routes that either preserve or alter it.
 \section{Why the optimizer factorizes}
 \label{sec:bf-eot-factorization}
 
-The first-order optimality conditions imply that the regularized coupling has the
-form
+The next step is to derive the multiplicative structure of the entropic optimizer
+rather than only state it.  Introduce Lagrange multipliers \(\alpha\in\mathbb R^N\)
+for the row constraints and \(\beta\in\mathbb R^N\) for the column constraints.
+With the entropy convention from \eqref{eq:bf-eot-primal}, the Lagrangian is
+\begin{align}
+\label{eq:bf-eot-lagrangian}
+  \mathcal L(\Pi,\alpha,\beta)
+  &=
+  \sum_{i,j}
+  \left[
+    C_{ij}\Pi_{ij}
+    + \varepsilon \Pi_{ij}(\log\Pi_{ij}-1)
+  \right]
+  + \sum_i \alpha_i\left(\sum_j\Pi_{ij}-w_i\right) \\
+  &\qquad
+  + \sum_j \beta_j\left(\sum_i\Pi_{ij}-u_j\right).
+\end{align}
+Stationarity with respect to each entry \(\Pi_{ij}\) gives
+\begin{equation}
+\label{eq:bf-eot-stationarity}
+  0
+  =
+  \frac{\partial \mathcal L}{\partial \Pi_{ij}}
+  =
+  C_{ij}
+  + \varepsilon \log \Pi_{ij}
+  + \alpha_i + \beta_j,
+\end{equation}
+so
+\begin{equation}
+\label{eq:bf-eot-log-pi}
+  \log\Pi_{ij}
+  =
+  -\frac{C_{ij}}{\varepsilon}
+  -\frac{\alpha_i}{\varepsilon}
+  -\frac{\beta_j}{\varepsilon}.
+\end{equation}
+Exponentiating entrywise yields
+\begin{equation}
+\label{eq:bf-eot-entrywise-factorization}
+  \Pi_{ij}
+  =
+  \exp\!\left(-\frac{\alpha_i}{\varepsilon}\right)
+  \exp\!\left(-\frac{C_{ij}}{\varepsilon}\right)
+  \exp\!\left(-\frac{\beta_j}{\varepsilon}\right).
+\end{equation}
+Define the positive scalings
+\begin{equation}
+\label{eq:bf-eot-scaling-definitions}
+  a_i = \exp(-\alpha_i/\varepsilon),
+  \qquad
+  b_j = \exp(-\beta_j/\varepsilon),
+  \qquad
+  (K_\varepsilon)_{ij}=\exp(-C_{ij}/\varepsilon).
+\end{equation}
+Then the optimizer must have the Gibbs-scaled form
 \begin{equation}
 \label{eq:bf-eot-factorization}
   \Pi_\varepsilon^\star
   =
-  \diag(a)K_\varepsilon\diag(b),
-  \qquad
-  (K_\varepsilon)_{ij}=\exp(-C_{ij}/\varepsilon),
+  \diag(a)K_\varepsilon\diag(b).
 \end{equation}
-with positive scaling vectors \(a,b\) chosen so that the coupling has the correct
-row and column sums.  Operationally, this means the hard OT problem has been
-reduced to the problem of finding two scaling vectors that balance a known kernel.
-That reduction is why Sinkhorn iteration is so useful.
+This is the key structural step.  The entropic teacher problem has been converted
+from a constrained optimization over all couplings into the search for two positive
+scaling vectors that make a known kernel satisfy the marginal constraints.
+
+\subsection{Why the balancing equations are Sinkhorn updates}
+\label{sec:bf-eot-balancing-equations}
+
+Once \eqref{eq:bf-eot-factorization} is available, the marginal constraints from
+\(\mathcal U(w,u)\) become explicit equations for the scaling vectors.  The row
+constraints require
+\begin{equation}
+\label{eq:bf-eot-row-balance-derived}
+  \Pi_\varepsilon^\star\mathbf 1
+  =
+  \diag(a)K_\varepsilon\diag(b)\mathbf 1
+  =
+  a \odot (K_\varepsilon b)
+  = w,
+\end{equation}
+where \(\odot\) denotes entrywise multiplication.  Therefore
+\begin{equation}
+\label{eq:bf-eot-a-balance}
+  a = w \oslash (K_\varepsilon b).
+\end{equation}
+Likewise the column constraints require
+\begin{equation}
+\label{eq:bf-eot-col-balance-derived}
+  (\Pi_\varepsilon^\star)^\top\mathbf 1
+  =
+  \diag(b)K_\varepsilon^\top\diag(a)\mathbf 1
+  =
+  b \odot (K_\varepsilon^\top a)
+  = u,
+\end{equation}
+so
+\begin{equation}
+\label{eq:bf-eot-b-balance}
+  b = u \oslash (K_\varepsilon^\top a).
+\end{equation}
+These are exactly the balancing equations behind Sinkhorn iteration.  The algorithm
+is not a mysterious OT oracle added from outside the derivation.  It simply
+alternates the two marginal repairs implied by the factorized optimizer.
+
+\paragraph{Reader checkpoint.}
+The chapter has now introduced three different objects that should not be
+confused:
+\begin{enumerate}[label=(\roman*)]
+  \item the exact entropic teacher problem \eqref{eq:bf-eot-primal},
+  \item the factorized teacher optimizer \eqref{eq:bf-eot-factorization},
+  \item and the balancing equations \eqref{eq:bf-eot-a-balance}--\eqref{eq:bf-eot-b-balance}
+  that a finite numerical routine will try to satisfy.
+\end{enumerate}
+Finite Sinkhorn iteration begins only after these exact relations have been fixed.
 
 \section{Algorithm: finite Sinkhorn equal-weighting}
 \label{sec:bf-eot-algorithm}
@@ -174,6 +371,33 @@ That reduction is why Sinkhorn iteration is so useful.
 \end{algorithmic}
 \end{algorithm}
 
+The algorithm returns a \emph{finite} numerical object, not the exact teacher
+optimizer from \eqref{eq:bf-eot-primal}.  After \(K\) balancing passes, the
+executed coupling is
+\begin{equation}
+\label{eq:bf-eot-finite-coupling-repeat}
+  \Pi_{\varepsilon,K}
+  =
+  \diag(a^{(K)})K_\varepsilon\diag(b^{(K)}),
+\end{equation}
+with residuals that measure how closely the declared row and column constraints
+have been met.  This distinction is the second approximation layer of the chapter:
+first the deterministic teacher was replaced by an entropic teacher, and then that
+entropic teacher was approximated by a finite numerical route.  The next custom-
+gradient chapter will differentiate this declared finite route, not an abstract
+teacher floating above the executed computation.
+
+\paragraph{Reader checkpoint.}
+It is useful to keep the chain of objects explicit:
+\begin{enumerate}[label=(\roman*)]
+  \item deterministic OT teacher \(\Pi_0^\star\),
+  \item exact entropic teacher \(\Pi_\varepsilon^\star\),
+  \item finite executed coupling \(\Pi_{\varepsilon,K}\),
+  \item barycentric equal-weight cloud built from \(\Pi_{\varepsilon,K}\).
+\end{enumerate}
+Later differentiation claims must attach to the actually executed object in this
+chain, not jump back silently to one of the earlier teachers.
+
 \subsection{Exact online and streaming Sinkhorn as the reference lane}
 \label{sec:bf-eot-reference-lane}
 
@@ -183,7 +407,7 @@ made substantially more practical by changing the execution strategy rather than
 the underlying entropic teacher problem.  Streaming, online, or GPU-specialized
 implementations still belong to the reference lane when they preserve the same
 entropic scaling equations and the same barycentric output rule while avoiding
-full materialization of the cost or kernel matrix.
+full materialization of the cost or kernel matrix \citep{feydy2019geomloss,charlier2021keops,ye2026flashsinkhorn,xiao2026fastsinkhorn}.
 
 In that reference-lane setting, the implementation may compute the needed
 row-wise or column-wise reductions in blocks, keep only partial transport state
@@ -195,6 +419,16 @@ not automatically a new approximation class.  It becomes a new approximation
 class only when the scaling equations, kernel, feasible family, or output object
 itself are changed.
 
+This exact-reference reading is important because it separates engineering success
+from scientific overclaim.  Exact-online or GPU-specialized Sinkhorn may reduce
+memory traffic, improve device utilization, and make larger particle clouds
+practical while still computing the same finite entropic object.  But these routes
+normally leave the dominant all-pairs interaction structure in place: every full
+row or column update still depends on interactions with the whole opposing cloud.
+So they are the right first scaling lane when the goal is to preserve semantics,
+but they are not by themselves the final answer to truly large-\(N\), large-\(d_x\)
+transport.
+
 This chapter therefore treats exact-online and streaming implementations as
 engineering variants of the same entropic reference lane.  Later staged chapters
 on retained-teacher approximations will take up the different case where the
@@ -203,6 +437,43 @@ scalability.
 
 This is the chapter’s main callable procedure.  A reader who implements only one
 OT route from the monograph should be able to implement this one.
+
+\subsection{Sparse, screened, stabilized, and accelerated Sinkhorn variants}
+\label{sec:bf-eot-solver-variant-boundary}
+
+The scalable-OT survey also suggests a useful boundary inside the broader
+Sinkhorn family.  Some variants still belong naturally to the exact-reference
+lane because they mainly stabilize or schedule the same scaling equations more
+carefully.  Others move toward approximation because they restrict which entries,
+rows, or columns are treated as active, or because they replace dense kernel use
+by a screened or sparse surrogate \citep{schmitzer2016sparse,alaya2019screenkhorn,schmitzer2019stabilized,altschuler2017nearlinear,dvurechensky2018computational,abid2018greedy,lin2019efficient,xu2026accelerating,genevay2016stochastic}.
+
+At the most conservative end, stabilization policies remain part of the same
+finite-Sinkhorn object.  Log-domain updates, shifting, epsilon scheduling, or
+other numerical defenses are execution details attached to the same declared
+coupling \(\Pi_{\varepsilon,K}\) and should therefore be judged first by the
+usual marginal residual and barycentric parity checks.
+
+Sparse or screened routes require a sharper audit.  If they only prune obviously
+negligible work while preserving the same effective scaling equations and output
+object to numerical tolerance, they may still be read as near-reference
+engineering variants.  But once the active support, feasible family, or effective
+kernel semantics are altered in a way that changes the finite transport object,
+the method is no longer only a better implementation of the same reference lane.
+It has crossed into retained-teacher or structure-changing territory and must be
+judged accordingly.
+
+A similar caution applies to accelerated, greedy, or stochastic update schedules.
+These methods may reduce iteration count, repair the most violated row or column
+first, or otherwise improve convergence behavior of the balancing routine.  That
+is valuable, but it does not by itself remove dense-kernel access.  If each major
+update still needs interactions against the whole opposing cloud, the dominant
+large-\(N\), large-\(d_x\) arithmetic bottleneck remains.
+
+This is why the present chapter keeps these variants conceptually downstream from
+the finite teacher object rather than promoting them to new transport doctrines.
+They refine how the reference route is executed.  They do not automatically change
+what object the filter is claiming to compute.
 
 \section{Worked balancing pass on the running cell}
 \label{sec:bf-eot-worked-balance}
@@ -257,6 +528,953 @@ cloud.  It is therefore the place where an implementation must be especially cle
 about shapes, normalization, and any auxiliary state that is or is not carried
 alongside the particle locations.
 
+\begin{proposition}[Barycentric equal-weighting contracts covariance]
+\label{prop:bf-eot-barycentric-covariance-contraction}
+Let \(X\) be a random variable that takes values \(x_1,\ldots,x_N\in\mathbb R^d\)
+with probabilities \(w_1,\ldots,w_N\).  Let \(J\) be an equal-weight output index,
+\(\mathbb P(J=j)=1/N\), and suppose a coupling between \(X\) and \(J\) has the
+same source and target marginals as the OT coupling used in
+\eqref{eq:bf-eot-barycentric-equal}.  The barycentric output associated with
+index \(J\) is
+\[
+  \widetilde X = \mathbb E[X\mid J].
+\]
+Then
+\begin{equation}
+\label{eq:bf-eot-barycentric-mean-preservation}
+  \mathbb E[\widetilde X]=\mathbb E[X],
+\end{equation}
+but
+\begin{equation}
+\label{eq:bf-eot-barycentric-covariance-contraction}
+  \operatorname{Cov}(\widetilde X)
+  =
+  \operatorname{Cov}(X)
+  -
+  \mathbb E\!\left[\operatorname{Cov}(X\mid J)\right]
+  \preceq
+  \operatorname{Cov}(X).
+\end{equation}
+Equality holds only when the conditional covariance
+\(\operatorname{Cov}(X\mid J)\) is zero almost surely.
+\end{proposition}
+
+\begin{proof}
+The mean identity follows from the tower property:
+\[
+  \mathbb E[\widetilde X]
+  =
+  \mathbb E[\mathbb E[X\mid J]]
+  =
+  \mathbb E[X].
+\]
+For the covariance, apply the law of total covariance:
+\[
+  \operatorname{Cov}(X)
+  =
+  \operatorname{Cov}\!\left(\mathbb E[X\mid J]\right)
+  +
+  \mathbb E\!\left[\operatorname{Cov}(X\mid J)\right].
+\]
+Since \(\widetilde X=\mathbb E[X\mid J]\), rearranging gives
+\eqref{eq:bf-eot-barycentric-covariance-contraction}.  The second term is
+positive semidefinite, so the barycentric covariance is no larger in Loewner
+order.  Equality requires the conditional covariance term to vanish almost
+surely.
+\end{proof}
+
+\paragraph{Implication for filtering values.}
+This proposition is the finite-\(N\) reason that a barycentric equal-weight cloud
+should not be treated as a categorical-resampling cloud.  Categorical resampling
+draws particles from the weighted empirical law and is unbiased for test
+functions conditional on the weighted cloud.  Barycentric projection instead
+replaces each conditional cloud by its conditional mean.  It preserves affine
+test functions, including the first moment, but it generally changes quadratic
+and nonlinear test functions.  In a linear-Gaussian state-space model, the next
+predictive likelihood increment depends on the predictive covariance through
+\(S_t=H P_{t\mid t-1}H'+R\).  A covariance-contracted reset can therefore change
+the finite-\(N\) scalar being estimated even when Sinkhorn marginal residuals are
+small, except in special cases where the lost covariance lies in observation-null
+directions or otherwise cancels from the downstream likelihood increment.  The
+exact Kalman likelihood remains a valid comparator for a no-OT weighted particle
+approximation, but it is not a direct oracle for the barycentric-reset scalar
+unless the reset route also preserves the relevant moments or the comparison is
+explicitly redefined.
+
+\paragraph{Implication for SV, SIR, and nonlinear models.}
+The same issue is not special to LGSSM.  In stochastic-volatility models, future
+observation densities are nonlinear functions of latent volatility, so the
+finite-\(N\) likelihood scalar can change when barycentric projection compresses
+the spread of the volatility particles.  In SIR and other nonlinear compartmental
+models, the transition and observation maps are nonlinear in the state, so
+preserving only the particle mean is not enough to preserve infection tails,
+state constraints, threshold behavior, or future likelihood curvature.  A value
+or gradient computed through the barycentric-reset filter can still be a correct
+gradient of the executed barycentric scalar; it is not automatically the gradient
+of the categorical-resampling particle-filter likelihood, the exact filtering
+likelihood, or a moment-preserving approximation.  Consequently, SIR or SV
+gradient checks must be same-scalar checks unless an additional evidence gate
+shows that barycentric bias is negligible for the declared model, particle count,
+regularization, and horizon.
+
+The distinction matters for the later custom-gradient chapter
+(Chapter~\ref{ch:bf-ledh-pfpf-ot-custom-gradient}).  That chapter does not
+differentiate an abstract teacher floating outside the executed computation.  It
+must differentiate the declared finite Sinkhorn route together with the barycentric
+map that actually produces the equal-weight cloud used by the filtering scalar.
+
+\section{Remedy options for barycentric covariance loss}
+\label{sec:bf-eot-barycentric-remedies}
+
+The remedy has to be stated at the level of the reset map, because the
+covariance defect is not a vague numerical pathology of Sinkhorn.  It is a
+deterministic consequence of replacing each column of a transport plan by its
+conditional mean.  This subsection makes that statement as a finite-dimensional
+matrix calculation.
+
+For the algebra in this subsection, assume first that the Sinkhorn marginal
+constraints have been solved exactly.  Finite iteration and floating-point
+residuals add normalization errors that should be checked separately, but they
+are not the mechanism discussed here.  Let
+\[
+  X = [x_1,\ldots,x_N]\in\mathbb R^{d_x\times N},
+  \qquad
+  w\in\mathbb R^N_+,\qquad
+  \mathbf 1^\top w=1,
+  \qquad
+  W=\diag(w).
+\]
+The weighted empirical measure before reset is
+\[
+  \nu_w=\sum_{i=1}^N w_i\delta_{x_i}.
+\]
+Any deterministic equal-weight reset whose output particles are linear
+combinations of the input particles can be written as
+\begin{equation}
+\label{eq:bf-eot-reset-transform}
+  Y = XD,
+  \qquad
+  y_j=\sum_{i=1}^N x_i D_{ij},
+\end{equation}
+for some \(N\times N\) transform matrix \(D\).  The barycentric Sinkhorn reset is
+the special case
+\begin{equation}
+\label{eq:bf-eot-barycentric-D}
+  D_B = N\Pi_{\varepsilon,K},
+\end{equation}
+because the target marginal is \(u_j=1/N\).  The row and column marginal
+constraints on \(\Pi_{\varepsilon,K}\) become the first-order transform
+constraints
+\begin{equation}
+\label{eq:bf-eot-first-order-transform-contract}
+  D^\top \mathbf 1 = \mathbf 1,
+  \qquad
+  D\mathbf 1 = Nw.
+\end{equation}
+The first condition says that every output particle is an affine combination of
+the input particles.  The second says that the equal-weight output cloud has the
+same mean as the weighted input cloud:
+\begin{equation}
+\label{eq:bf-eot-transform-mean}
+  \bar y_D
+  :=
+  \frac1N Y\mathbf 1
+  =
+  \frac1N XD\mathbf 1
+  =
+  Xw
+  =:
+  \mu_w.
+\end{equation}
+
+The second moment is where the problem lives.  Define the weighted input
+covariance and the equal-weight output covariance by
+\begin{align}
+\label{eq:bf-eot-weighted-covariance}
+  \Sigma_w
+  &:=
+  \sum_{i=1}^N w_i(x_i-\mu_w)(x_i-\mu_w)^\top
+  =
+  X(W-ww^\top)X^\top,\\
+\label{eq:bf-eot-transform-covariance}
+  \Sigma_D
+  &:=
+  \frac1N\sum_{j=1}^N (y_j-\mu_w)(y_j-\mu_w)^\top
+  =
+  \frac1N X(D-w\mathbf 1^\top)(D-w\mathbf 1^\top)^\top X^\top.
+\end{align}
+A deterministic reset is therefore \emph{second-order exact for the current
+cloud} when it satisfies \eqref{eq:bf-eot-first-order-transform-contract} and
+\begin{equation}
+\label{eq:bf-eot-second-order-cloud-contract}
+  \Sigma_D=\Sigma_w.
+\end{equation}
+A stronger, cloud-independent sufficient condition is
+\begin{equation}
+\label{eq:bf-eot-second-order-matrix-contract}
+  (D-w\mathbf 1^\top)(D-w\mathbf 1^\top)^\top
+  =
+  N(W-ww^\top).
+\end{equation}
+Equations
+\eqref{eq:bf-eot-first-order-transform-contract}--\eqref{eq:bf-eot-second-order-matrix-contract}
+are the finite-dimensional version of the second-order accurate ensemble-transform
+condition used by Acevedo, de Wiljes, and Reich: the output ensemble matches both
+the importance-weighted mean and covariance; see their Definition~3.1 and
+Sections~5--6 for the Sinkhorn-based second-order ETPF construction
+\citep{acevedodewiljesreich2017secondorder}.
+The factor \(N\) in \eqref{eq:bf-eot-second-order-matrix-contract} is not a
+convention-free decoration: it follows from using the biased equal-weight output
+covariance \(N^{-1}\sum_j(y_j-\mu_w)(y_j-\mu_w)^\top\) together with a transform
+matrix satisfying \(D\mathbf 1=Nw\).
+
+\begin{proposition}[Why the barycentric Sinkhorn reset is not second-order exact]
+\label{prop:bf-eot-barycentric-not-second-order}
+Assume \(D_B=N\Pi_{\varepsilon,K}\) is nonnegative and satisfies
+\eqref{eq:bf-eot-first-order-transform-contract}.  Interpret \(J\) as a uniform
+output index and define a source index \(I\) by
+\[
+  \mathbb P(I=i\mid J=j)=D_{B,ij}.
+\]
+Then \(X_I\) has the weighted empirical law \(w\), the barycentric output is
+\(Y_J=\mathbb E[X_I\mid J]\), and
+\begin{equation}
+\label{eq:bf-eot-D-covariance-gap}
+  \Sigma_w-\Sigma_{D_B}
+  =
+  \mathbb E\!\left[\operatorname{Cov}(X_I\mid J)\right]
+  \succeq 0.
+\end{equation}
+Consequently \(D_B\) satisfies the second-order cloud contract
+\eqref{eq:bf-eot-second-order-cloud-contract} only if the conditional covariance
+inside every output column vanishes as a state-space covariance.  Equivalently,
+for each output column \(j\), all source particles with \(D_{B,ij}>0\) must have
+the same state value, up to duplicate particle locations.  In generic diffuse
+entropic couplings this condition fails.
+\end{proposition}
+
+\begin{proof}
+The column sums in \eqref{eq:bf-eot-first-order-transform-contract} make
+\(D_{B,\cdot j}\) a probability vector.  Since
+\((1/N)D_B\mathbf 1=w\), the unconditional law of \(I\) is \(w\).  The output
+particle in column \(j\) is exactly
+\[
+  y_j=\sum_i x_iD_{B,ij}=\mathbb E[X_I\mid J=j].
+\]
+Applying the law of total covariance gives
+\[
+  \operatorname{Cov}(X_I)
+  =
+  \operatorname{Cov}(\mathbb E[X_I\mid J])
+  +
+  \mathbb E[\operatorname{Cov}(X_I\mid J)].
+\]
+Because \(J\) is uniform,
+\[
+  \operatorname{Cov}(\mathbb E[X_I\mid J])
+  =
+  \frac1N\sum_{j=1}^N (y_j-\mu_w)(y_j-\mu_w)^\top
+  =
+  \Sigma_{D_B}.
+\]
+The left side is \(\Sigma_w\), which proves \eqref{eq:bf-eot-D-covariance-gap}.
+\end{proof}
+
+This is why the bug is not solved by asking Sinkhorn to converge more tightly.
+A smaller marginal residual makes \(D_B\) a better approximation to the declared
+entropic barycentric transform.  It does not change the identity
+\eqref{eq:bf-eot-D-covariance-gap}, because that identity is about the output
+map \(D_B\mapsto XD_B\), not about whether the coupling has been balanced
+accurately.  A real remedy must therefore change, or explicitly keep, the
+mathematical object being estimated.  The following contracts are mutually
+different finite-\(N\) estimators.
+
+\paragraph{Contract A: keep the same barycentric scalar.}
+Set \(D=D_B\) and accept that \(\Sigma_D\preceq\Sigma_w\).  The reported value and
+gradient are then only claims about the finite barycentric-reset scalar.  The
+correct derivative check is a same-scalar finite-difference check of that exact
+executed computation.  This contract repairs value-gradient naming, not the
+covariance loss.  In notation, if the filter returns \(L_B(\theta)\), where every
+reset uses \(Y_B(\theta)=X(\theta)D_B(\theta)\), then the admissible gradient
+claim is
+\[
+  \nabla_\theta L_B(\theta),
+\]
+not the gradient of the categorical particle-filter likelihood and not the
+gradient of an exact Kalman or nonlinear filtering likelihood.
+
+\paragraph{Contract B: stochastic categorical output.}
+Given the same nonnegative \(D_B\), draw \(I_j\) independently or by a chosen
+resampling scheme from
+\(\mathbb P(I_j=i\mid J=j)=D_{B,ij}\) and output \(z_j=x_{I_j}\).  Then for any
+test function \(\varphi\) on the particle support,
+\begin{equation}
+\label{eq:bf-eot-stochastic-unbiased-test}
+  \mathbb E\!\left[
+    \frac1N\sum_{j=1}^N\varphi(z_j)\,\middle|\,D_B,X
+  \right]
+  =
+  \sum_{i=1}^N w_i\varphi(x_i).
+\end{equation}
+This restores the unbiased empirical-measure property of categorical resampling
+in expectation
+\citep{gordon1993novel,doucet2001sequential,chopin2020introduction}, but the
+realized reset is random and discontinuous as a function of weights and particles.
+It is therefore a different estimator and not a pathwise differentiable
+replacement for \(D_B\).
+
+\paragraph{Contract C: second-order deterministic transform.}
+Replace \(D_B\) by
+\begin{equation}
+\label{eq:bf-eot-second-order-correction}
+  D^\sharp = D_B+\Delta,
+  \qquad
+  \Delta^\top\mathbf 1=0,
+  \qquad
+  \Delta\mathbf 1=0,
+\end{equation}
+and choose \(\Delta\) so that
+\begin{equation}
+\label{eq:bf-eot-second-order-correction-cov}
+  \frac1N X(D^\sharp-w\mathbf 1^\top)
+  (D^\sharp-w\mathbf 1^\top)^\top X^\top
+  =
+  X(W-ww^\top)X^\top.
+\end{equation}
+The stronger matrix-level target is
+\begin{equation}
+\label{eq:bf-eot-second-order-correction-matrix}
+  (D^\sharp-w\mathbf 1^\top)(D^\sharp-w\mathbf 1^\top)^\top
+  =
+  N(W-ww^\top).
+\end{equation}
+One concrete reference object satisfying the matrix target is the NETF-type
+square-root transform
+\begin{equation}
+\label{eq:bf-eot-netf-reference-transform}
+  D_{\mathrm{NETF}}(Q)
+  =
+  w\mathbf 1^\top
+  +
+  \sqrt{N}\,(W-ww^\top)^{1/2}Q,
+  \qquad
+  Q\in\mathbb R^{N\times N},
+  \qquad
+  Q^\top Q=QQ^\top=I_N,
+  \qquad
+  Q\mathbf 1=\mathbf 1.
+\end{equation}
+Here \((W-ww^\top)^{1/2}\) denotes the principal symmetric square root.  Indeed,
+\((W-ww^\top)\mathbf 1=0\), so the square root also annihilates \(\mathbf 1\), and
+\(D_{\mathrm{NETF}}(Q)^\top\mathbf 1=\mathbf 1\),
+\(D_{\mathrm{NETF}}(Q)\mathbf 1=Nw\), and
+\eqref{eq:bf-eot-second-order-matrix-contract} holds:
+\[
+  (D_{\mathrm{NETF}}-w\mathbf 1^\top)
+  (D_{\mathrm{NETF}}-w\mathbf 1^\top)^\top
+  =
+  N(W-ww^\top)^{1/2}QQ^\top(W-ww^\top)^{1/2}
+  =
+  N(W-ww^\top).
+\]
+Thus Contract C is mathematically explicit: the filter is no longer using the
+barycentric transform \(D_B\); it is using a new transform \(D^\sharp\) whose
+mean and covariance are the declared finite-\(N\) moments.  Inside this contract,
+the NETF-type transform above and a second-order corrected ETPF are distinct
+finite-\(N\) choices.  The NETF-type transform is a reference moment-preserving
+object, not a promise of closeness to \(D_B\).  A second-order corrected ETPF
+instead tries to stay close to the OT transform while enforcing the same moment
+equations
+\citep{reich2013nonparametric,acevedodewiljesreich2017secondorder}.
+The unavoidable cost is that \(D^\sharp\) need not be nonnegative.  Hence the
+corrected particles need not lie in the convex hull of the pre-reset particles,
+and bounded, positive, simplex-valued, or otherwise constrained state spaces need
+an explicit constraint policy.
+
+\paragraph{Contract D: affine state-space moment restoration.}
+Instead of correcting the \(N\times N\) transform matrix, one may correct the
+already formed barycentric cloud.  Let \(Y_B=XD_B\) and
+\(\Sigma_B=\Sigma_{D_B}\).  If there exists a matrix \(A_m\in\mathbb R^{d_x\times d_x}\)
+such that
+\begin{equation}
+\label{eq:bf-eot-affine-moment-map}
+  A_m\Sigma_B A_m^\top = \Sigma_w,
+\end{equation}
+then
+\begin{equation}
+\label{eq:bf-eot-affine-moment-output}
+  y_j^\sharp
+  =
+  \mu_w + A_m(y_j-\mu_w),
+  \qquad j=1,\ldots,N,
+\end{equation}
+has equal-weight mean \(\mu_w\) and covariance \(\Sigma_w\).  A full-rank example
+is \(A_m=\Sigma_w^{1/2}\Sigma_B^{-1/2}\).  If \(\Sigma_B\) is singular, exact
+affine restoration can exist only if
+\(\operatorname{rank}(\Sigma_w)\le \operatorname{rank}(\Sigma_B)\);
+jitter, truncation, or pseudoinverses define an additional approximation policy,
+not an identity.  This contract is simple to test in an LGSSM, but it is a new
+finite target and requires its own value gate, same-scalar gradient gate, and
+state-constraint audit.
+
+\paragraph{Contract E: positive spread, residual noise, and affine restoration.}
+The preceding contracts leave a gap between two desirable but incompatible
+properties.  Contract C gives an exact second-order deterministic transform, but
+the transform can be signed.  Contract D gives a simple state-space covariance
+repair, but it can be ill-conditioned when the barycentric cloud has already
+collapsed in one or more directions.  A natural intermediate construction is to
+split the job into three explicit stages:
+\[
+  D_B \longrightarrow D^+
+  \longrightarrow \widetilde Y
+  \longrightarrow Y^\star .
+\]
+Here \(D^+\) is still a nonnegative first-order transform, \(\widetilde Y\)
+adds a small reparameterized residual in the missing covariance directions, and
+\(Y^\star\) applies the final affine moment restoration.  This is not a
+drop-in form of the second-order ETPF of
+\citet{acevedodewiljesreich2017secondorder}, nor is it the nonlinear
+transport-map framework of \citet{spantini2022coupling}.  It is a new finite
+reset contract assembled from familiar components: positive ensemble transforms
+\citep{reich2013nonparametric,corenflos2021differentiable}, second-order and
+moment-matching ensemble updates
+\citep{lei2011moment,todter2015secondorder,kirchgessner2017smoother,acevedodewiljesreich2017secondorder},
+stochastic ensemble perturbations \citep{vanleeuwen2020consistent}, nonlinear
+and conditional transport-map viewpoints
+\citep{taghvaeihosseini2022bayesot,spantini2022coupling,hosseini2025conditional,zeng2026coupling},
+learned measure-to-measure ensemble maps \citep{bach2026learning}, and a final
+square-root covariance map.  The exact three-stage composition below was not
+found in the inspected sources.  The citations support the ingredients and the
+nearby design space; they do not prove that this contract is stable, unbiased,
+or preferable for LEDH-PFPF-OT.  Those are separate value, gradient,
+conditioning, and constraint gates.
+
+The construction is easiest to state on the linear support of the weighted
+cloud.  Write
+\[
+  \mathcal S_w:=\operatorname{range}(\Sigma_w),
+  \qquad
+  P_w:=\hbox{the orthogonal projector onto }\mathcal S_w .
+\]
+Let \(r_w:=\operatorname{rank}(\Sigma_w)\).  Since \(\Sigma_w\) is the covariance
+of \(N\) centered weighted particles, \(r_w\le N-1\); if a modified construction
+asks for a rank larger than \(N-1\), no equal-weight cloud of \(N\) particles can
+realize it.  All square roots below are principal square roots on their stated
+supports.  If
+the rank of \(\Sigma_w\), \(G_+\), or \(\widetilde\Sigma\) changes along a
+parameter path, the corresponding square-root, pseudoinverse, or support
+projector derivative may fail to be classical.  A differentiable implementation
+therefore needs either a fixed-rank contract or an explicit spectral floor and
+smoothed spectral projector policy.  This is a numerical assumption, not a
+consequence of optimal transport.
+
+The first stage chooses
+\begin{equation}
+\label{eq:bf-eot-positive-spread-transform}
+  D^+\in\mathcal D_1^+
+  :=
+  \{D\in\mathbb R_+^{N\times N}:D^\top\mathbf 1=\mathbf 1,\,
+  D\mathbf 1=Nw\}.
+\end{equation}
+The notation \(D^+\) does not mean that the matrix is invertible.  The relevant
+rank condition is a state-space condition on the cloud
+\[
+  Y^+ := XD^+,
+  \qquad
+  \Sigma_+
+  :=
+  \frac1N
+  (Y^+-\mu_w\mathbf 1^\top)(Y^+-\mu_w\mathbf 1^\top)^\top .
+\]
+The selection rule for \(D^+\) may be a sharper Sinkhorn plan, a spread-penalized
+positive transport solve, or a positive projection of a partial second-order
+correction.  The mathematical contract is weaker and more auditable than any
+particular optimizer: \(D^+\) must remain in \(\mathcal D_1^+\), must be close
+enough to the declared transport target for the application, and must pass a
+spectral gate on \(\Sigma_+\).  If the gate fails, this contract has not produced
+a usable reset.
+
+\begin{proposition}[The residual covariance to be repaired is positive]
+\label{prop:bf-eot-positive-spread-gap}
+Let \(D^+\in\mathcal D_1^+\).  Define
+\[
+  G_+ := \Sigma_w-\Sigma_+ .
+\]
+Then
+\begin{equation}
+\label{eq:bf-eot-positive-spread-gap-formula}
+  G_+
+  =
+  \frac1N
+  \sum_{j=1}^N
+  \sum_{i=1}^N
+  D^+_{ij}
+  (x_i-y^+_j)(x_i-y^+_j)^\top
+  \succeq 0.
+\end{equation}
+Equality holds if and only if each output column of \(D^+\) has zero conditional
+state covariance, in the same sense as
+Proposition~\ref{prop:bf-eot-barycentric-not-second-order}.  Moreover
+\(\operatorname{range}(G_+)\subseteq\operatorname{range}(\Sigma_w)\).
+\end{proposition}
+
+\begin{proof}
+The proof is the same total-covariance argument as
+Proposition~\ref{prop:bf-eot-barycentric-not-second-order}, with \(D_B\)
+replaced by \(D^+\).  Nonnegativity and the column-sum constraint make each
+column \(D^+_{\cdot j}\) a conditional probability vector.  The row-sum
+constraint gives the unconditional law \(w\).  Therefore the covariance of the
+weighted source draw decomposes into the covariance of the column barycentres
+plus the mean conditional covariance inside the columns.  The first term is
+\(\Sigma_+\), and the second is exactly the right-hand side of
+\eqref{eq:bf-eot-positive-spread-gap-formula}.  This proves positive
+semidefiniteness.  Since \(0\preceq G_+\preceq \Sigma_w\), every vector in
+\(\ker(\Sigma_w)\) is also in \(\ker(G_+)\); for symmetric positive
+semidefinite matrices this is equivalent to
+\(\operatorname{range}(G_+)\subseteq\operatorname{range}(\Sigma_w)\).
+\end{proof}
+
+The second stage adds a differentiable residual in the directions represented by
+\(G_+\).  Let \(\Xi\in\mathbb R^{d_x\times N}\) be an auxiliary base-noise
+matrix, independent of the model parameters, satisfying
+\[
+  \mathbb E[\Xi]=0,
+  \qquad
+  \Xi\mathbf 1=0,
+  \qquad
+  \mathbb E\!\left[\frac1N\Xi\Xi^\top\right]=I_{d_x}.
+\]
+One concrete reparameterized choice is
+\[
+  H_N:=I_N-\frac1N\mathbf 1\mathbf 1^\top,
+  \qquad
+  \Xi:=\sqrt{\frac{N}{N-1}}\, ZH_N,
+  \qquad
+  Z_{ij}\stackrel{\mathrm{iid}}{\sim}N(0,1),
+  \qquad N\ge2.
+\]
+The matrix \(Z\) is drawn independently of \(X\) and \(D^+\).  Then
+\(\Xi\mathbf 1=0\), and
+\(\mathbb E[N^{-1}\Xi\Xi^\top]=I_{d_x}\) because \(H_N\) is an idempotent
+projector with trace \(N-1\).  A fixed quasi-random or orthogonal design may be
+used instead, but then its empirical covariance is part of the finite contract
+and must be reported.  For \(0\le\rho\le1\) and \(\tau\ge0\), define
+\begin{equation}
+\label{eq:bf-eot-residual-noise-cloud}
+  \widetilde Y
+  :=
+  Y^+
+  +
+  B_{\rho,\tau}\Xi,
+  \qquad
+  B_{\rho,\tau}
+  :=
+  \sqrt{\rho}\,(G_+ + \tau P_w)^{1/2}.
+\end{equation}
+The parameter \(\rho\) controls how much of the gap is injected before the
+affine map.  The parameter \(\tau\) is not a proof device; it is a numerical
+floor on \(\mathcal S_w\).  Since
+\(\operatorname{range}(G_+)\subseteq\mathcal S_w\), the residual covariance
+\(G_+ + \tau P_w\) is positive semidefinite and has no component orthogonal to
+the weighted cloud support.  If \(\tau\) is set too small, the affine whitening
+in the next stage can amplify the auxiliary noise violently.  Therefore
+\(\tau\) and \(\rho\) must be chosen by conditioning gates, not by the desire to
+make the perturbation invisible.
+
+\begin{proposition}[Expected effect of the residual stage]
+\label{prop:bf-eot-residual-expected-covariance}
+Assume \(D^+\in\mathcal D_1^+\), \(\mathbb E[\Xi\mid X,D^+]=0\),
+\(\Xi\mathbf 1=0\), and
+\(\mathbb E[N^{-1}\Xi\Xi^\top\mid X,D^+]=I_{d_x}\).  Conditional on \(X\) and \(D^+\),
+the residual cloud \(\widetilde Y\) in
+\eqref{eq:bf-eot-residual-noise-cloud} has mean \(\mu_w\), and its covariance
+around \(\mu_w\) satisfies
+\begin{equation}
+\label{eq:bf-eot-residual-expected-covariance}
+  \mathbb E\!\left[
+    \frac1N(\widetilde Y-\mu_w\mathbf 1^\top)
+    (\widetilde Y-\mu_w\mathbf 1^\top)^\top
+    \,\middle|\,X,D^+
+  \right]
+  =
+  \Sigma_+ + \rho(G_+ + \tau P_w).
+\end{equation}
+In particular, when \(\rho=1\) and \(\tau=0\), the conditional expected
+covariance is \(\Sigma_w\).
+\end{proposition}
+
+\begin{proof}
+Because \(D^+\mathbf 1=Nw\), the equal-weight mean of \(Y^+\) is \(\mu_w\).
+Because \(\Xi\mathbf 1=0\), the equal-weight mean of \(B_{\rho,\tau}\Xi\) is
+zero.  Expanding the covariance of \(\widetilde Y\) around \(\mu_w\) gives the
+covariance of \(Y^+\), two cross terms, and the residual covariance.  The cross
+terms have conditional expectation zero because the auxiliary noise has
+conditional mean zero given \(X,D^+\).  The residual covariance has conditional
+expectation
+\[
+  B_{\rho,\tau}
+  \mathbb E\!\left[\frac1N\Xi\Xi^\top\,\middle|\,X,D^+\right]
+  B_{\rho,\tau}^\top
+  =
+  B_{\rho,\tau}B_{\rho,\tau}^\top
+  =
+  \rho(G_+ + \tau P_w),
+\]
+by the definition of the principal square root.  This proves
+\eqref{eq:bf-eot-residual-expected-covariance}.
+\end{proof}
+
+The proposition is deliberately an expectation statement.  For a realized finite
+noise matrix \(\Xi\), the covariance of \(\widetilde Y\) need not equal
+\(\Sigma_w\) even when \(\rho=1\) and \(\tau=0\).  This is not a defect in the
+algebra; it is the price of using a reparameterized stochastic residual rather
+than a discontinuous categorical resampling step.  The next affine stage turns
+the realized cloud into an exact finite second-moment object only when the
+support condition in Proposition~\ref{prop:bf-eot-residual-affine-restoration}
+holds and the exact Moore--Penrose inverse square root is used.
+
+\begin{proposition}[A small residual can repair support, but not sample-rank limits]
+\label{prop:bf-eot-residual-support-repair}
+Assume \(r_w\le N-1\), \(0<\rho\le1\), and \(\tau>0\).  Draw \(Z\) with
+entries having a joint density, for example independent standard Gaussian
+entries, and set
+\(\Xi=\sqrt{N/(N-1)}\,ZH_N\).  Conditional on \(X\) and \(D^+\), the residual
+matrix \(B_{\rho,\tau}\Xi\) has column span equal to \(\mathcal S_w\) with
+probability one.  Consequently
+\[
+  \operatorname{range}(\Sigma_w)
+  \subseteq
+  \operatorname{range}(\widetilde\Sigma)
+\]
+with probability one.  If \(r_w>N-1\), no choice of \(N\) equal-weight output
+particles can realize covariance \(\Sigma_w\), because every centered
+\(d_x\times N\) cloud has rank at most \(N-1\).
+\end{proposition}
+
+\begin{proof}
+Since \(\tau>0\),
+\[
+  G_+ + \tau P_w
+\]
+is strictly positive definite on \(\mathcal S_w\) and zero on
+\(\mathcal S_w^\perp\).  Hence \(B_{\rho,\tau}\) has range \(\mathcal S_w\) and
+rank \(r_w\).  Let \(U\in\mathbb R^{d_x\times r_w}\) have orthonormal columns
+spanning \(\mathcal S_w\).  The centering matrix \(H_N\) has rank \(N-1\), and
+\(U^\top ZH_N\) has rank \(r_w\) almost surely when \(r_w\le N-1\), because its
+\(r_w\times (N-1)\) coordinate representation on
+\(\operatorname{range}(H_N)\) has a joint density and at least one
+\(r_w\times r_w\) minor is a nonzero polynomial in those variables.
+Multiplication by the nonsingular
+restriction of \(B_{\rho,\tau}\) on \(\mathcal S_w\) therefore produces a
+residual cloud whose span is exactly \(\mathcal S_w\) almost surely.
+
+The deterministic centered cloud \(Y^+-\mu_w\mathbf 1^\top\) also lies in
+\(\mathcal S_w\).  The event that adding this fixed matrix to the full-rank
+random residual reduces the rank on \(\mathcal S_w\) is again a polynomial zero
+event.  To see that the relevant polynomial is not identically zero, choose any
+centered matrix \(R_0\) with column span \(\mathcal S_w\); then the same
+\(r_w\times r_w\) minor of
+\((Y^+-\mu_w\mathbf 1^\top)+tR_0\) is nonzero for all sufficiently large
+\(|t|\).  Hence the zero set has probability zero under the joint-density
+assumption.  Thus the realized centered cloud
+\(\widetilde Y-\mu_w\mathbf 1^\top\) has rank \(r_w\) on \(\mathcal S_w\) almost
+surely, which is the displayed support inclusion.  The final statement follows
+because any centered cloud \(Y-\bar y\mathbf 1^\top\) has columns summing to zero
+and therefore rank at most \(N-1\).
+\end{proof}
+
+The third stage removes the remaining finite-sample mismatch by affine
+restoration.  Define the realized residual covariance
+\[
+  \widetilde\Sigma
+  :=
+  \frac1N
+  (\widetilde Y-\mu_w\mathbf 1^\top)
+  (\widetilde Y-\mu_w\mathbf 1^\top)^\top .
+\]
+If \(\widetilde\Sigma\) is nonsingular on the support of \(\Sigma_w\), set
+\begin{equation}
+\label{eq:bf-eot-residual-affine-map}
+  A_{\rho,\tau}
+  :=
+  \Sigma_w^{1/2}\,\widetilde\Sigma^{\dagger,-1/2},
+  \qquad
+  Y^\star
+  :=
+  \mu_w\mathbf 1^\top
+  +
+  A_{\rho,\tau}
+  (\widetilde Y-\mu_w\mathbf 1^\top),
+\end{equation}
+where \(\widetilde\Sigma^{\dagger,-1/2}\) denotes the Moore--Penrose inverse of
+the principal square root.
+
+\begin{proposition}[Affine restoration after the residual stage]
+\label{prop:bf-eot-residual-affine-restoration}
+Assume \(D^+\in\mathcal D_1^+\), \(\Xi\mathbf 1=0\), and
+\[
+  \operatorname{range}(\Sigma_w)
+  \subseteq
+  \operatorname{range}(\widetilde\Sigma).
+\]
+Then the output \(Y^\star\) in \eqref{eq:bf-eot-residual-affine-map} has
+equal-weight mean \(\mu_w\) and equal-weight covariance \(\Sigma_w\).
+\end{proposition}
+
+\begin{proof}
+The mean statement follows from \(D^+\mathbf 1=Nw\) and \(\Xi\mathbf 1=0\).
+For the covariance, let \(P_{\widetilde\Sigma}\) be the orthogonal projector
+onto \(\operatorname{range}(\widetilde\Sigma)\).  By the definition of the
+Moore--Penrose inverse square root,
+\[
+  \widetilde\Sigma^{\dagger,-1/2}
+  \widetilde\Sigma
+  \widetilde\Sigma^{\dagger,-1/2}
+  =
+  P_{\widetilde\Sigma}.
+\]
+The range assumption implies that this projector acts as the identity on
+\(\operatorname{range}(\Sigma_w)\).  Since the range of
+\(\Sigma_w^{1/2}\) is \(\operatorname{range}(\Sigma_w)\), this also implies
+\(P_{\widetilde\Sigma}\Sigma_w^{1/2}=\Sigma_w^{1/2}\).  By symmetry of
+\(P_{\widetilde\Sigma}\) and \(\Sigma_w^{1/2}\), it also implies
+\(\Sigma_w^{1/2}P_{\widetilde\Sigma}=\Sigma_w^{1/2}\).  Hence
+\[
+  \frac1N
+  (Y^\star-\mu_w\mathbf 1^\top)
+  (Y^\star-\mu_w\mathbf 1^\top)^\top
+  =
+  \Sigma_w^{1/2}
+  P_{\widetilde\Sigma}
+  \Sigma_w^{1/2}
+  =
+  \Sigma_w .
+\]
+\end{proof}
+
+An implementation may replace \(\widetilde\Sigma^{\dagger,-1/2}\) by a floored
+or otherwise regularized inverse square root for conditioning.  That defines an
+approximate restoration policy, not Proposition~\ref{prop:bf-eot-residual-affine-restoration}.
+The approximation must report its spectral floor, covariance residual, and
+conditioning diagnostics separately from the exact algebra above.
+
+Contract E is attractive because it does not ask the nonnegative transform to do
+the impossible.  Positivity is used only to build a noncollapsed first-order
+cloud; residual noise supplies controlled missing directions; the affine map
+enforces the declared second moment.  It is also dangerous for exactly the same
+reason.  The final particles need not remain in the convex hull of the source
+particles after the residual and affine stages, and a small residual can be made
+large by \(\widetilde\Sigma^{-1/2}\).  The contract is therefore admissible only
+with explicit gates:
+\[
+  \operatorname{rank}_{\tau_{\mathrm{eig}}}(\widetilde\Sigma)=r_w
+  \quad\hbox{or}\quad
+  \|(I-P_{\widetilde\Sigma,\tau_{\mathrm{eig}}})P_w\|\le \epsilon_{\mathrm{supp}},
+  \qquad
+  \lambda_{\min}^{\tau}(\widetilde\Sigma)>\tau_{\mathrm{eig}},
+  \qquad
+  \kappa^{\tau}(\widetilde\Sigma)<\kappa_{\max},
+  \qquad
+  \frac{\|\Sigma_w-\Sigma_+\|}{\|\Sigma_w\|}\le c_{\mathrm{gap}}
+  \quad\hbox{or an explained exception.}
+\]
+where \(P_{\widetilde\Sigma,\tau_{\mathrm{eig}}}\) denotes the numerical support
+projector obtained from the same eigenvalue threshold used by the rank gate.
+The spectral quantities
+\(\lambda_{\min}^{\tau}(\widetilde\Sigma)\) and
+\(\kappa^{\tau}(\widetilde\Sigma)\) are computed only on this retained
+\(\tau_{\mathrm{eig}}\)-support.  Eigenvalues below the threshold are treated as
+discarded numerical null directions and must be charged to the support-projector
+gate above; they must not simultaneously veto the fallback through a full
+positive-spectrum condition.  If the implementation claims the exact
+Moore--Penrose restoration rather than a floored numerical restoration, then the
+full positive spectrum must be used and the support-projector fallback is no
+longer sufficient.
+It must also record the auxiliary-noise law or fixed design, random seeds,
+Monte Carlo standard errors, same-scalar finite-difference checks, and
+constraint violations after the affine map.  In SIR, SV, and other constrained
+models, the construction should normally be tested first in validated
+unconstrained or transformed coordinates.
+
+\paragraph{Contract E--Chol: ridged square-root gauge for differentiability.}
+The support-exact form above is mathematically natural but a poor default
+coordinate system for a manual gradient implementation.  It asks the code to
+differentiate eigenvectors, support projectors, principal square roots, and
+Moore--Penrose inverse square roots.  When eigenvalues repeat, eigenvectors are
+not unique.  When an eigenvalue crosses the numerical floor, the retained rank
+changes.  Thus an eigendecomposition implementation can be perfectly reasonable
+for a forward diagnostic while still being a bad coordinate chart for a
+gradient-bearing reset.  This is the same engineering lesson as the
+square-root sigma-point discussion in Chapter~\ref{ch:bf-svd-sigma-point}: the
+covariance object may be smooth even when a particular spectral coordinate
+representation is not.  Classical numerical linear algebra also treats Cholesky
+factorization as the stable coordinate chart for strictly positive definite
+covariances; see, for example, \citet{higham2002accuracy}.
+
+A practical differentiable variant is therefore to replace the support-exact
+eigensystem route by a strictly positive definite, ridged Cholesky gauge.  This
+is a different numerical contract, not a proof that the eigensystem contract was
+unnecessary.  Choose user-visible ridge parameters
+\(\lambda_{\rm abs}>0\) and \(\lambda_{\rm rel}\ge0\), and set
+\begin{equation}
+\label{eq:bf-eot-contract-e-chol-ridge}
+  \lambda_0
+  :=
+  \max\!\left\{
+    \lambda_{\rm abs},
+    \lambda_{\rm rel}\frac{\operatorname{tr}(\Sigma_w)}{d_x}
+  \right\}.
+\end{equation}
+The implementation should then use a bounded escalation policy
+\(\lambda_k=\lambda_0\gamma^k\), \(\gamma>1\), stopping if the Cholesky factors
+below are not finite or do not have positive diagonal entries after the allowed
+attempts.  The actual \(\lambda_k\) used is part of the algorithm output.  It is
+not harmless metadata: too small a ridge can make the triangular solve explode,
+while too large a ridge changes the reset into a biased full-rank covariance
+contract.
+
+With \(\lambda=\lambda_k\), define
+\[
+  B_\lambda
+  :=
+  \sqrt{\rho}\,\operatorname{chol}(G_+ + \lambda I),
+  \qquad
+  \widetilde Y
+  :=
+  Y^+ + B_\lambda\Xi .
+\]
+Then form
+\[
+  \widetilde\Sigma
+  :=
+  \frac1N
+  (\widetilde Y-\bar{\widetilde y}\mathbf 1^\top)
+  (\widetilde Y-\bar{\widetilde y}\mathbf 1^\top)^\top ,
+  \qquad
+  L_w:=\operatorname{chol}(\Sigma_w+\lambda I),
+  \qquad
+  L_{\widetilde{}}:=\operatorname{chol}(\widetilde\Sigma+\lambda I).
+\]
+The affine operator is not formed with an inverse explicitly.  It is the
+triangular-solve operator
+\begin{equation}
+\label{eq:bf-eot-contract-e-chol-affine}
+  A_\lambda
+  :=
+  L_w L_{\widetilde{}}^{-1},
+  \qquad
+  Y^\star_\lambda
+  :=
+  \mu_w\mathbf 1^\top
+  +
+  A_\lambda(\widetilde Y-\bar{\widetilde y}\mathbf 1^\top).
+\end{equation}
+The recentering in \eqref{eq:bf-eot-contract-e-chol-affine} is essential: it is
+what preserves the target mean independently of the ridge.
+
+\begin{proposition}[Ridged Cholesky restoration]
+\label{prop:bf-eot-contract-e-chol-restoration}
+Assume the Cholesky factors in
+\eqref{eq:bf-eot-contract-e-chol-affine} exist.  Then
+\[
+  A_\lambda(\widetilde\Sigma+\lambda I)A_\lambda^\top
+  =
+  \Sigma_w+\lambda I,
+\]
+and \(Y^\star_\lambda\) has equal-weight mean \(\mu_w\).  The covariance of
+\(Y^\star_\lambda\) around \(\mu_w\) satisfies
+\[
+  \frac1N
+  (Y^\star_\lambda-\mu_w\mathbf 1^\top)
+  (Y^\star_\lambda-\mu_w\mathbf 1^\top)^\top
+  -
+  \Sigma_w
+  =
+  \lambda(I-A_\lambda A_\lambda^\top).
+\]
+\end{proposition}
+
+\begin{proof}
+The mean statement follows immediately from the centering in
+\eqref{eq:bf-eot-contract-e-chol-affine}.  Since
+\(\widetilde\Sigma+\lambda I=L_{\widetilde{}}L_{\widetilde{}}^\top\),
+\[
+  A_\lambda(\widetilde\Sigma+\lambda I)A_\lambda^\top
+  =
+  L_wL_{\widetilde{}}^{-1}
+  L_{\widetilde{}}L_{\widetilde{}}^\top
+  L_{\widetilde{}}^{-\top}L_w^\top
+  =
+  L_wL_w^\top
+  =
+  \Sigma_w+\lambda I.
+\]
+Subtracting
+\(A_\lambda(\lambda I)A_\lambda^\top\) from both sides gives the displayed
+unridged covariance residual.
+\end{proof}
+
+Contract E--Chol should be opt-in until its value and gradient behavior has
+been tested beyond tiny reset fixtures.  Its advantage is that the manual VJP
+can be written through Cholesky factors and triangular solves, without
+eigenvector gauges or rank-switching projectors.  Its cost is the explicit
+\(\lambda\)-bias above.  A user-facing function must therefore expose
+\(\lambda_{\rm abs}\), \(\lambda_{\rm rel}\), escalation multiplier, and maximum
+attempts; it must record the realized ridge and the covariance residual; and it
+must warn that the ridge is a tuning parameter, not a universal constant.
+
+\paragraph{Contract F: no reset or delayed reset.}
+If the effective sample size is acceptable, carry the weighted cloud forward and
+do not apply \(D_B\).  This avoids the deterministic covariance loss at that step.
+It does not solve weight degeneracy in long horizons or high dimensions, but it is
+a clean diagnostic: if a no-reset weighted route agrees with an exact LGSSM
+comparator while the barycentric route fails, the reset contract rather than the
+transition or likelihood code is implicated.
+
+\begin{center}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}p{0.20\textwidth} p{0.23\textwidth} p{0.22\textwidth} p{0.20\textwidth}@{}}
+\toprule
+Remedy & What it fixes & Main cost & Required audit \\
+\midrule
+Same-scalar barycentric contract & claim mismatch for the executed scalar & does not restore covariance & same-scalar finite differences and moment-drift report \\
+Stochastic resampling & unbiased empirical-measure semantics in expectation & discontinuous random branch & estimator contract, seed/randomness policy, MCSE \\
+Second-order transform & mean and covariance matching & possible negative transform entries and nonphysical states & moment gate, constraint gate, custom VJP gate \\
+Affine moment restoration & local covariance restoration diagnostic & new finite target and rank/jitter choices & LGSSM value/gradient gate and state-constraint audit \\
+Positive residual-affine hybrid & covariance restoration with positive first stage & novel randomized finite target and conditioning sensitivity & spectrum gate, MCSE, same-scalar gradient gate, constraint audit \\
+No-reset threshold & avoids unnecessary deterministic collapse & leaves weight degeneracy unresolved & ESS policy and weighted-cloud comparator \\
+\bottomrule
+\end{tabular}
+\setlength{\tabcolsep}{6pt}
+\normalsize
+\end{center}
+
+\paragraph{Implication for SIR, SV, and learned teachers.}
+Yes, this issue can affect SIR, stochastic-volatility, and other nonlinear-model
+gradients.  The effect is harder to expose than in an LGSSM because there is no
+closed-form Kalman likelihood oracle, but the mechanism is the same: a
+mean-preserving reset can still change nonlinear transition, observation, and
+future-likelihood functionals.  Formally, let \(\Phi_t\) denote the rest of the
+filtering computation after a reset at time \(t\).  The barycentric route and a
+moment-preserving route evaluate different functions,
+\[
+  L_B(\theta)=\Phi_t\!\left(X_t(\theta)D_B(\theta);\theta\right),
+  \qquad
+  L_\sharp(\theta)=
+  \Phi_t\!\left(X_t(\theta)D^\sharp(\theta);\theta\right),
+\]
+unless \(\Phi_t\) is insensitive to the covariance directions removed by
+\eqref{eq:bf-eot-D-covariance-gap}.  Therefore equality of autodiff and finite
+differences for \(L_B\) certifies only the executed barycentric route.  It does
+not certify \(L_\sharp\), a categorical-resampling route, or an exact filtering
+likelihood.  A learned teacher trained to imitate the current barycentric teacher
+\(D_B\) will inherit this moment contract rather than repair it.  A learned or
+retained teacher can be a remedy only if its target is changed to one of the
+declared objects above, for example \(D^\sharp\), \(D_{\mathrm{NETF}}\), the
+stochastic estimator, or the affine-corrected cloud \(Y^\star\), and the
+downstream filtering diagnostics are rerun under that new finite target.
+
 \section{Differentiation contracts}
 \label{sec:bf-eot-differentiation}
 
@@ -269,7 +1487,80 @@ objects:
 \end{enumerate}
 In code, the second and third are the most common.  A gradient is only the
 correct gradient of the exact executed scalar if the computational graph used in
-autodiff matches the scalar value actually reported by the code.
+autodiff matches the scalar value actually reported by the code.  The next chapter
+specializes this point to the declared LEDH-PFPF-OT scalar and its custom VJP.
+
+\begin{proposition}[Stopped transport normalization gives a partial derivative]
+\label{prop:bf-eot-stopped-normalization-partial}
+Let a finite Sinkhorn transport step use normalized particles
+\[
+  u_i(x)={x_i-\bar x\over s(x)},\qquad
+  \bar x={1\over N}\sum_{k=1}^N x_k,
+\]
+where \(s(x)\) is the scale used to build the transport cost.  Let
+\[
+  L(x)=\Psi\bigl(x,u(x)\bigr)
+\]
+be any downstream scalar depending on both the carried particles \(x\) and the
+transport-normalized particles \(u(x)\).  If a reverse pass treats \(\bar x\)
+and \(s(x)\) as constants, then it computes the partial derivative of
+\(\Psi(x,u)\) with respect to \(x\) under the artificial map
+\[
+  u_i={x_i-c\over s},
+\]
+not the total derivative of \(L(x)\).  Therefore, unless the omitted terms are
+zero or a different objective is explicitly declared, this stopped derivative is
+wrong relative to the claim that it is the score of the executed finite scalar.
+\end{proposition}
+
+\begin{proof}
+Write \(a_i=\partial L/\partial u_i\).  The true differential through
+\[
+  u_i(x)={x_i-\bar x\over s(x)}
+\]
+is
+\[
+  dL_u
+  =
+  \sum_i a_i^\top {dx_i-d\bar x\over s(x)}
+  -
+  \left(\sum_i a_i^\top (x_i-\bar x)\right){ds(x)\over s(x)^2}.
+\]
+Since \(d\bar x=N^{-1}\sum_k dx_k\), the contribution to the adjoint of
+\(x_i\) is
+\[
+  {a_i\over s(x)}
+  -
+  {1\over N}\sum_k {a_k\over s(x)}
+  -
+  {1\over s(x)^2}
+  \left(\sum_k a_k^\top (x_k-\bar x)\right)\nabla_{x_i}s(x).
+\]
+The stopped rule keeps only \(a_i/s(x)\).  It drops the mean term and the scale
+term.  Hence it is the derivative of an artificial partial-derivative problem
+with fixed \(c\) and fixed \(s\), not the total derivative of \(L(x)\).
+\end{proof}
+
+The same warning applies to Sinkhorn cost keys, adaptive starting
+\(\varepsilon_0\), finite-iteration potentials, and any other quantity computed
+from the current particles.  If the scalar value recomputes such a quantity
+when \(\theta\) changes, then its score includes the corresponding chain-rule
+term.  A hand-written VJP may use internal stops only to avoid double counting,
+but it must add back every blocked derivative.  Otherwise the result is a
+partial derivative and must be named as such.
+
+\begin{center}
+\small
+\begin{tabular}{p{0.24\textwidth} p{0.30\textwidth} p{0.33\textwidth}}
+\toprule
+Derivative object & What is being differentiated? & What can go wrong? \\
+\midrule
+Exact regularized optimizer & the ideal entropic OT solution & not what finite code usually executes directly \\
+Finite unrolled Sinkhorn route & the declared numerical balancing procedure & residuals or stabilization may change the executed object \\
+Downstream scalar built from finite Sinkhorn & the actual reported value used in filtering or HMC-adjacent code & value-gradient mismatch if autodiff follows a different graph \\
+\bottomrule
+\end{tabular}
+\end{center}
 
 \section{Filtering-loop insertion point}
 \label{sec:bf-eot-loop}
@@ -313,17 +1604,34 @@ categorical target.
 \label{sec:bf-eot-boundary}
 
 This chapter teaches the main differentiable OT computational route in a near-
-implementation style.  It does \emph{not} claim:
+implementation style.  The derivation above fixes a specific ladder:
+\begin{enumerate}[label=(\roman*)]
+  \item deterministic OT chooses an exact coupling for the unregularized baseline,
+  \item entropic OT changes that teacher object,
+  \item Sinkhorn balancing computes a finite numerical approximation to the entropic
+    teacher,
+  \item barycentric projection turns that finite coupling into the equal-weight
+    cloud consumed by later filtering code.
+\end{enumerate}
+Within that ladder, exact-online and streamed execution strategies remain on the
+reference lane when they preserve the same scaling equations and the same
+barycentric output contract.  Later retained-teacher chapters ask whether the same
+teacher can be compressed or approximated while still judged against this reference
+object.  Still later changed-object chapters ask a different question again: what
+happens when the transport object itself is replaced by a learned map, altered
+support, or new target contract.
+
+It does \emph{not} claim:
 \begin{itemize}
   \item that entropic OT is the same object as unregularized OT,
   \item that finite Sinkhorn is the exact regularized optimizer,
   \item that a barycentric equal-weight cloud is the same object as categorical
   ancestor sampling,
   \item that autodiff through the executed graph is automatically the gradient of
-  the original filtering likelihood.
+    the original filtering likelihood.
 \end{itemize}
 Its role is to fix the entropic teacher object, the finite numerical route, the
-output cloud construction, and the differentiation contract that the next chapter
-will accelerate with a learned warm start.
+output cloud construction, and the differentiation contract that the recovered
+custom-gradient bridge and later learned-transport chapters build on.
 
 \FloatBarrier

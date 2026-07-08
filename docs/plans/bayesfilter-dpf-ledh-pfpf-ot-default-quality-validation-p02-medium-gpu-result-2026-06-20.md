@@ -125,4 +125,3 @@ loss, or drift above `0.01`.
 Weakest part of the evidence: the tolerance is a gross engineering bound and
 the comparator is FP64 on the same synthetic route, not an exact Kalman/posterior
 oracle.
-

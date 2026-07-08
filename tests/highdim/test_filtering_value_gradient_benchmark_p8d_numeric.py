@@ -82,7 +82,7 @@ def test_p8d_lgssm_exact_cell_has_p8d_schema_and_no_autodiff_fallback() -> None:
     assert "tf_autodiff" not in cell["score_derivative_provenance"]
 
 
-def test_p8d_raw_sv_ukf_smoke_value_score_is_finite() -> None:
+def test_p8d_raw_sv_ukf_smoke_value_is_augmented_noise_diagnostic() -> None:
     adapter = _adapters()[("ukf", SV_ROW)]
     cell = p8d._numeric_deterministic_cell("ukf", SV_ROW, adapter)
 
@@ -93,6 +93,8 @@ def test_p8d_raw_sv_ukf_smoke_value_score_is_finite() -> None:
     assert cell["score_derivative_provenance"] == (
         "ukf_augmented_noise_sigma_point_raw_sv_tf_autodiff_score"
     )
+    assert "actual raw-observation SV sigma-point approximation with observation-noise augmentation" in cell["nonclaims"]
+    assert cell["score_adapter_status"] == "executed_p8d_tf_autodiff_score"
     assert "not exact nonlinear likelihood" in " ".join(cell["nonclaims"])
 
 

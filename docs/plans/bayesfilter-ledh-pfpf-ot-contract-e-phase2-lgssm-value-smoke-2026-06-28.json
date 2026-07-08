@@ -1,0 +1,233 @@
+{
+  "device": {
+    "cuda_visible_devices": "-1",
+    "device_scope": "cpu",
+    "logical_gpus": [],
+    "physical_gpus": [],
+    "tf32_execution_enabled": true,
+    "xla": true
+  },
+  "elapsed_seconds": 11.799655057955533,
+  "gate": {
+    "fixture_gates": [
+      {
+        "arms_distinguishable_metadata": true,
+        "conditioning_ok": true,
+        "contract_abs_delta": 0.00798099664447438,
+        "contract_condition": 1.0,
+        "contract_covariance_residual": 3.9903170545585454e-07,
+        "contract_mcse": 0.007623077749701927,
+        "covariance_restoration_ok": true,
+        "finite_values": true,
+        "improves_old_barycentric_abs_delta": true,
+        "old_abs_delta": 0.40281193879840504,
+        "setting": "eps0.5_steps8",
+        "state_dim": 1,
+        "status": "pass",
+        "within_kalman_2mcse": true
+      }
+    ],
+    "gpu_claim_ok": true,
+    "primary_criterion": "material Contract E mean within 2 MCSE of exact Kalman and smaller absolute Kalman-value error than old_barycentric_ot on every fixture",
+    "status": "smoke_passed"
+  },
+  "host": "DESKTOP-RF1Q5IJ",
+  "manifest": {
+    "condition_limit": 100000000.0,
+    "contract_e_residual_seed_schedule": "seed indices 9100..9109; residual seeds [seed,43+t] for t=0..9",
+    "covariance_residual_limit": 0.0005,
+    "gate_mode": "smoke",
+    "initial_transition_seed_schedule": "seed indices 9100..9109; initial seeds [seed,17]; transition seeds [seed,29]",
+    "num_particles": 64,
+    "rho": 1.0,
+    "seed_count": 10,
+    "settings": [
+      {
+        "epsilon": 0.5,
+        "label": "eps0.5_steps8",
+        "steps": 8
+      }
+    ],
+    "spectral_floor": 1e-06,
+    "state_dims": [
+      1
+    ],
+    "tau": 1e-06,
+    "theta": [
+      0.7200000286102295,
+      -1.5141277313232422,
+      -1.2039728164672852
+    ],
+    "time_steps": 10
+  },
+  "nonclaims": [
+    "not gradient correctness",
+    "not SIR/SV/nonlinear correctness",
+    "not production readiness",
+    "not HMC readiness",
+    "not posterior correctness"
+  ],
+  "phase2_subplan": "docs/plans/bayesfilter-ledh-pfpf-ot-contract-e-phase2-lgssm-value-subplan-2026-06-28.md",
+  "python_version": "3.11.14",
+  "records": [
+    {
+      "arm": "ledh_no_ot",
+      "contract_e": {
+        "max_covariance_relative_residual": null,
+        "max_mean_linf_residual": null,
+        "max_tilde_condition": null,
+        "min_gap_eig": null,
+        "min_rank_margin": null,
+        "min_tilde_positive_eig": null,
+        "residual_noise_seed_schedule": "for seed in 9100..9109 and time t=0..9 use stateless seed [seed, 43+t]",
+        "rho": 1.0,
+        "spectral_floor": 1e-06,
+        "tau": 1e-06
+      },
+      "moments": {
+        "max_post_pre_mean_shift": 0.0,
+        "mean_post_pre_cov_trace_ratio_mean_time": 1.0,
+        "mean_post_pre_cov_trace_ratio_t0": 1.0
+      },
+      "setting": {
+        "epsilon": 0.5,
+        "label": "eps0.5_steps8",
+        "steps": 8
+      },
+      "state_dim": 1,
+      "transport": {
+        "max_column_residual": null,
+        "max_row_residual": null,
+        "old_barycentric_mapping": null
+      },
+      "value": {
+        "abs_delta": 0.011896401917912414,
+        "abs_z_mcse": 1.7780331206887046,
+        "delta": 0.011896401917912414,
+        "kalman": -6.914505011117436,
+        "mcse": 0.006690765081645078,
+        "mean": -6.902608609199524,
+        "sd": 0.021158056947120894,
+        "seed_values": [
+          -6.914995193481445,
+          -6.900168418884277,
+          -6.888646841049194,
+          -6.9323461055755615,
+          -6.879742622375488,
+          -6.914060115814209,
+          -6.9329445362091064,
+          -6.906237602233887,
+          -6.8741254806518555,
+          -6.882819175720215
+        ]
+      }
+    },
+    {
+      "arm": "old_barycentric_ot",
+      "contract_e": {
+        "max_covariance_relative_residual": null,
+        "max_mean_linf_residual": null,
+        "max_tilde_condition": null,
+        "min_gap_eig": null,
+        "min_rank_margin": null,
+        "min_tilde_positive_eig": null,
+        "residual_noise_seed_schedule": "for seed in 9100..9109 and time t=0..9 use stateless seed [seed, 43+t]",
+        "rho": 1.0,
+        "spectral_floor": 1e-06,
+        "tau": 1e-06
+      },
+      "moments": {
+        "max_post_pre_mean_shift": 1.527368986842248e-08,
+        "mean_post_pre_cov_trace_ratio_mean_time": 0.3997032940387726,
+        "mean_post_pre_cov_trace_ratio_t0": 0.3673875331878662
+      },
+      "setting": {
+        "epsilon": 0.5,
+        "label": "eps0.5_steps8",
+        "steps": 8
+      },
+      "state_dim": 1,
+      "transport": {
+        "max_column_residual": 5.960464477539062e-07,
+        "max_row_residual": 0.9198693037033081,
+        "old_barycentric_mapping": "annealed_transport_tf._filterflow_manual_dense_finite_transport_matrix_value_stopped_scale_keys followed by tf.linalg.matmul(matrix, post_flow)"
+      },
+      "value": {
+        "abs_delta": 0.40281193879840504,
+        "abs_z_mcse": 80.89615808801653,
+        "delta": 0.40281193879840504,
+        "kalman": -6.914505011117436,
+        "mcse": 0.004979370446247127,
+        "mean": -6.511693072319031,
+        "sd": 0.015746151923869946,
+        "seed_values": [
+          -6.5255045890808105,
+          -6.503188848495483,
+          -6.5081467628479,
+          -6.5119757652282715,
+          -6.481788635253906,
+          -6.512959241867065,
+          -6.50888204574585,
+          -6.500088453292847,
+          -6.538377523422241,
+          -6.526018857955933
+        ]
+      }
+    },
+    {
+      "arm": "contract_e",
+      "contract_e": {
+        "max_covariance_relative_residual": 3.9903170545585454e-07,
+        "max_mean_linf_residual": 2.9802322387695312e-08,
+        "max_tilde_condition": 1.0,
+        "min_gap_eig": 0.053294479846954346,
+        "min_rank_margin": 0.0,
+        "min_tilde_positive_eig": 0.08787186443805695,
+        "residual_noise_seed_schedule": "for seed in 9100..9109 and time t=0..9 use stateless seed [seed, 43+t]",
+        "rho": 1.0,
+        "spectral_floor": 1e-06,
+        "tau": 1e-06
+      },
+      "moments": {
+        "max_post_pre_mean_shift": 9.685755308908028e-09,
+        "mean_post_pre_cov_trace_ratio_mean_time": 1.0,
+        "mean_post_pre_cov_trace_ratio_t0": 1.0
+      },
+      "setting": {
+        "epsilon": 0.5,
+        "label": "eps0.5_steps8",
+        "steps": 8
+      },
+      "state_dim": 1,
+      "transport": {
+        "max_column_residual": 8.344650268554688e-07,
+        "max_row_residual": 0.938707172870636,
+        "old_barycentric_mapping": "annealed_transport_tf._filterflow_manual_dense_finite_transport_matrix_value_stopped_scale_keys followed by tf.linalg.matmul(matrix, post_flow)"
+      },
+      "value": {
+        "abs_delta": 0.00798099664447438,
+        "abs_z_mcse": 1.0469520194499458,
+        "delta": 0.00798099664447438,
+        "kalman": -6.914505011117436,
+        "mcse": 0.007623077749701927,
+        "mean": -6.906524014472962,
+        "sd": 0.024106288469609046,
+        "seed_values": [
+          -6.951015949249268,
+          -6.879899263381958,
+          -6.907927989959717,
+          -6.930941104888916,
+          -6.8824052810668945,
+          -6.899071931838989,
+          -6.9169535636901855,
+          -6.910413503646851,
+          -6.9137122631073,
+          -6.872899293899536
+        ]
+      }
+    }
+  ],
+  "schema_version": "filter_bench.ledh_pfpf_ot_contract_e_lgssm_value.v1",
+  "tensorflow_version": "2.19.1",
+  "timestamp_utc": "2026-06-28T12:09:37.999343+00:00"
+}

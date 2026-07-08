@@ -349,97 +349,397 @@
           18.0,
           18.0,
           18.0
-        ]
-      },
-      "truth_theta_coordinate": "no_free_theta",
-      "truth_theta": [],
-      "model_manifest": {
-        "family": "SpatialSIRSSM",
-        "source_equations": [
-          "eq:p27-sir1",
-          "eq:p27-sir2",
-          "eq:p27-sir3",
-          "eq:p27-sir4",
-          "eq:p27-sir5",
-          "eq:p27-sir6",
-          "eq:p27-sir7",
-          "eq:p27-sir8a",
-          "eq:p27-sir8b",
-          "eq:p27-sir8c",
-          "eq:p27-sir9",
-          "eq:p27-sir10",
-          "eq:p27-sir11",
-          "eq:p27-sir13"
         ],
+        "observation_standard_deviation": 10.0
+      },
+      "truth_theta_coordinate": "sir_log_scale_theta",
+      "truth_theta": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "model_manifest": {
+        "family": "ParameterizedZhaoCuiSIRSSM",
+        "base_family": "SpatialSIRSSM",
+        "parameter_dimension": 3,
+        "parameter_order": [
+          "log_kappa_scale",
+          "log_nu_scale",
+          "log_obs_noise_scale"
+        ],
+        "theta_convention": {
+          "kappa": "base_kappa * exp(log_kappa_scale)",
+          "nu": "base_nu * exp(log_nu_scale)",
+          "observation_covariance": "base_observation_covariance * exp(2 * log_obs_noise_scale)"
+        },
         "compartments": 9,
         "state_dimension": 18,
         "observation_dimension": 9,
-        "dimension_convention": "state is (S_1,I_1,...,S_J,I_J) in R^{2J}; R is eliminated",
-        "observation_convention": "infectious coordinates only",
-        "neighbor_sets": [
-          [
-            1
+        "base_model_manifest": {
+          "family": "SpatialSIRSSM",
+          "source_equations": [
+            "eq:p27-sir1",
+            "eq:p27-sir2",
+            "eq:p27-sir3",
+            "eq:p27-sir4",
+            "eq:p27-sir5",
+            "eq:p27-sir6",
+            "eq:p27-sir7",
+            "eq:p27-sir8a",
+            "eq:p27-sir8b",
+            "eq:p27-sir8c",
+            "eq:p27-sir9",
+            "eq:p27-sir10",
+            "eq:p27-sir11",
+            "eq:p27-sir13"
           ],
-          [
-            0,
-            2,
-            3
+          "compartments": 9,
+          "state_dimension": 18,
+          "observation_dimension": 9,
+          "dimension_convention": "state is (S_1,I_1,...,S_J,I_J) in R^{2J}; R is eliminated",
+          "observation_convention": "infectious coordinates only",
+          "neighbor_sets": [
+            [
+              1
+            ],
+            [
+              0,
+              2,
+              3
+            ],
+            [
+              1,
+              3,
+              4,
+              5
+            ],
+            [
+              1,
+              2,
+              4
+            ],
+            [
+              2,
+              3,
+              5,
+              6,
+              8
+            ],
+            [
+              2,
+              4,
+              6
+            ],
+            [
+              4,
+              5,
+              7,
+              8
+            ],
+            [
+              6
+            ],
+            [
+              4,
+              6
+            ]
           ],
-          [
-            1,
-            3,
-            4,
-            5
-          ],
-          [
-            1,
-            2,
-            4
-          ],
-          [
-            2,
-            3,
-            5,
-            6,
-            8
-          ],
-          [
-            2,
-            4,
-            6
-          ],
-          [
-            4,
-            5,
-            7,
-            8
-          ],
-          [
-            6
-          ],
-          [
-            4,
-            6
+          "delta": 0.02,
+          "rk4_internal_step": 0.005,
+          "rk4_variant": "zhao_cui_sir_step",
+          "rk4_substeps": 4,
+          "domain_policy": "diagnose_negative_after_noise",
+          "process_noise_policy": "clip_susceptible_after_noise",
+          "what_is_not_claimed": [
+            "production_tt_sirt_sir_filtering",
+            "paper_scale_j9_accuracy",
+            "rank_ladder_evidence",
+            "high_dimensional_scalability",
+            "hmc_or_dsge_readiness"
           ]
-        ],
-        "delta": 0.02,
-        "rk4_internal_step": 0.005,
-        "rk4_variant": "zhao_cui_sir_step",
-        "rk4_substeps": 4,
-        "domain_policy": "diagnose_negative_after_noise",
-        "process_noise_policy": "clip_susceptible_after_noise",
+        },
         "what_is_not_claimed": [
-          "production_tt_sirt_sir_filtering",
-          "paper_scale_j9_accuracy",
-          "rank_ladder_evidence",
-          "high_dimensional_scalability",
-          "hmc_or_dsge_readiness"
-        ]
+          "source_faithful_adaptive_zhao_cui",
+          "training_or_capacity_validation",
+          "p8p_agreement",
+          "hmc_or_dsge_readiness",
+          "production_default_readiness"
+        ],
+        "target_contract": "docs/plans/bayesfilter-ledh-same-target-forward-score-phase1-row-target-theta-contract-2026-07-06.md",
+        "human_amendment": "2026-07-06 fixed SIR row uses model parameters as free theta for LEDH score coverage",
+        "source_adaptation_classification": "extension_or_invention",
+        "truth_theta_semantics": "log-scale origin reproducing fixed source SIR base parameters",
+        "theta_domain": {
+          "log_kappa_scale": [
+            -0.5,
+            0.5
+          ],
+          "log_nu_scale": [
+            -0.5,
+            0.5
+          ],
+          "log_obs_noise_scale": [
+            -0.5,
+            0.5
+          ]
+        },
+        "leaderboard_score_provenance_requirement": "analytical_manual_only"
       },
       "nonclaims": [
         "not a filter performance result",
-        "not a ranking"
+        "not a ranking",
+        "not source-faithful as an inference-theta parameterization",
+        "not exact likelihood evidence",
+        "not score admission evidence",
+        "not a claim that the author fixed-parameter example had free inference theta"
       ],
+      "truth_theta_semantics": "log-scale origin reproducing fixed source SIR base parameters",
+      "theta_domain": {
+        "log_kappa_scale": [
+          -0.5,
+          0.5
+        ],
+        "log_nu_scale": [
+          -0.5,
+          0.5
+        ],
+        "log_obs_noise_scale": [
+          -0.5,
+          0.5
+        ]
+      },
+      "parameter_order": [
+        "log_kappa_scale",
+        "log_nu_scale",
+        "log_obs_noise_scale"
+      ],
+      "domain_diagnostics": {
+        "domain_policy": "diagnose_negative_after_noise",
+        "min_state": 3.9117526095101818,
+        "has_negative_state": false
+      }
+    },
+    {
+      "model_row_id": "zhao_cui_spatial_sir_austria_j9_T20_parameterized_logscale",
+      "dataset_status": "generated",
+      "blocker_token": null,
+      "reason": null,
+      "horizon": 20,
+      "seed": 81103,
+      "observation_summary": {
+        "shape": [
+          20,
+          9
+        ],
+        "dtype": "float64",
+        "sha256": "cb72b8ebb705c0f791e6f5edace8b296b7da46e5236a9824a1d5a30a261572e5",
+        "mean": 64.26918068449397,
+        "stddev": 46.08794701876618,
+        "min": -9.48213043607645,
+        "max": 153.56603185550966,
+        "all_finite": true
+      },
+      "state_summary": {
+        "shape": [
+          20,
+          18
+        ],
+        "dtype": "float64",
+        "sha256": "855dce8c00dd169a27415c4434056e4e68cd2caefd406e3f0213b42c63e608de",
+        "mean": 126.04677281906716,
+        "stddev": 137.63477271893709,
+        "min": 3.9117526095101818,
+        "max": 497.0357264761165,
+        "all_finite": true
+      },
+      "truth_physical": {
+        "kappa": [
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1
+        ],
+        "nu": [
+          18.0,
+          18.0,
+          18.0,
+          18.0,
+          18.0,
+          18.0,
+          18.0,
+          18.0,
+          18.0
+        ],
+        "observation_standard_deviation": 10.0
+      },
+      "truth_theta_coordinate": "sir_log_scale_theta",
+      "truth_theta": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "model_manifest": {
+        "family": "ParameterizedZhaoCuiSIRSSM",
+        "base_family": "SpatialSIRSSM",
+        "parameter_dimension": 3,
+        "parameter_order": [
+          "log_kappa_scale",
+          "log_nu_scale",
+          "log_obs_noise_scale"
+        ],
+        "theta_convention": {
+          "kappa": "base_kappa * exp(log_kappa_scale)",
+          "nu": "base_nu * exp(log_nu_scale)",
+          "observation_covariance": "base_observation_covariance * exp(2 * log_obs_noise_scale)"
+        },
+        "compartments": 9,
+        "state_dimension": 18,
+        "observation_dimension": 9,
+        "base_model_manifest": {
+          "family": "SpatialSIRSSM",
+          "source_equations": [
+            "eq:p27-sir1",
+            "eq:p27-sir2",
+            "eq:p27-sir3",
+            "eq:p27-sir4",
+            "eq:p27-sir5",
+            "eq:p27-sir6",
+            "eq:p27-sir7",
+            "eq:p27-sir8a",
+            "eq:p27-sir8b",
+            "eq:p27-sir8c",
+            "eq:p27-sir9",
+            "eq:p27-sir10",
+            "eq:p27-sir11",
+            "eq:p27-sir13"
+          ],
+          "compartments": 9,
+          "state_dimension": 18,
+          "observation_dimension": 9,
+          "dimension_convention": "state is (S_1,I_1,...,S_J,I_J) in R^{2J}; R is eliminated",
+          "observation_convention": "infectious coordinates only",
+          "neighbor_sets": [
+            [
+              1
+            ],
+            [
+              0,
+              2,
+              3
+            ],
+            [
+              1,
+              3,
+              4,
+              5
+            ],
+            [
+              1,
+              2,
+              4
+            ],
+            [
+              2,
+              3,
+              5,
+              6,
+              8
+            ],
+            [
+              2,
+              4,
+              6
+            ],
+            [
+              4,
+              5,
+              7,
+              8
+            ],
+            [
+              6
+            ],
+            [
+              4,
+              6
+            ]
+          ],
+          "delta": 0.02,
+          "rk4_internal_step": 0.005,
+          "rk4_variant": "zhao_cui_sir_step",
+          "rk4_substeps": 4,
+          "domain_policy": "diagnose_negative_after_noise",
+          "process_noise_policy": "clip_susceptible_after_noise",
+          "what_is_not_claimed": [
+            "production_tt_sirt_sir_filtering",
+            "paper_scale_j9_accuracy",
+            "rank_ladder_evidence",
+            "high_dimensional_scalability",
+            "hmc_or_dsge_readiness"
+          ]
+        },
+        "what_is_not_claimed": [
+          "source_faithful_adaptive_zhao_cui",
+          "training_or_capacity_validation",
+          "p8p_agreement",
+          "hmc_or_dsge_readiness",
+          "production_default_readiness"
+        ],
+        "target_contract": "docs/plans/bayesfilter-parameterized-sir-target-contract-2026-07-02.md",
+        "semantic_binding": "docs/plans/bayesfilter-parameterized-sir-semantic-binding-2026-07-02.md",
+        "source_adaptation_classification": "extension_or_invention",
+        "fixed_base_model_row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+        "truth_theta_semantics": "log-scale origin reproducing fixed source SIR base parameters",
+        "theta_domain": {
+          "log_kappa_scale": [
+            -0.5,
+            0.5
+          ],
+          "log_nu_scale": [
+            -0.5,
+            0.5
+          ],
+          "log_obs_noise_scale": [
+            -0.5,
+            0.5
+          ]
+        },
+        "leaderboard_score_provenance_requirement": "analytical_manual_only"
+      },
+      "nonclaims": [
+        "not a filter performance result",
+        "not a ranking",
+        "not source-faithful as an inference-theta parameterization",
+        "not exact likelihood evidence",
+        "not score admission evidence",
+        "legacy/scoped diagnostic duplicate of the fixed-row log-scale theta surface"
+      ],
+      "truth_theta_semantics": "log-scale origin reproducing fixed source SIR base parameters",
+      "theta_domain": {
+        "log_kappa_scale": [
+          -0.5,
+          0.5
+        ],
+        "log_nu_scale": [
+          -0.5,
+          0.5
+        ],
+        "log_obs_noise_scale": [
+          -0.5,
+          0.5
+        ]
+      },
+      "parameter_order": [
+        "log_kappa_scale",
+        "log_nu_scale",
+        "log_obs_noise_scale"
+      ],
+      "fixed_base_model_row_id": "zhao_cui_spatial_sir_austria_j9_T20",
       "domain_diagnostics": {
         "domain_policy": "diagnose_negative_after_noise",
         "min_state": 3.9117526095101818,
@@ -627,7 +927,7 @@
         "active_estimated_parameters": [
           "gamma",
           "tau",
-          "mu"
+          "mu_over_tau"
         ],
         "fixed_context": {
           "phi": 0.0,
@@ -648,7 +948,7 @@
           "variance": "v_t = exp(tau * x_t) because delta=0",
           "observation": "y_t = sqrt(v_t) * Normal(0, 1) because nu2=inf"
         },
-        "coordinate_caveat": "The paper writes log(beta)/sigma as the third transformed coordinate; the mirrored svmodels code names the third active coordinate mu. The prior-center value is zero under both labels.",
+        "coordinate_caveat": "The paper writes log(beta)/sigma as the third transformed coordinate; the mirrored svmodels ftt2true route names the third active coordinate mu but maps it to physical mu by multiplying the transformed coordinate by tau. The prior-center value is zero under both labels.",
         "what_is_not_claimed": [
           "not a posterior estimate from SP500 returns",
           "not a direct SP500 benchmark-data row",
@@ -667,7 +967,7 @@
     }
   ],
   "dataset_status_counts": {
-    "generated": 6
+    "generated": 7
   },
   "ready_for_numeric_benchmark": false,
   "reason_not_ready": "Evaluator/adapter, horizon, seed, and reviewed numeric table phases remain incomplete.",

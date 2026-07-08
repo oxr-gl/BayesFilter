@@ -26,4 +26,3 @@ and writes a separate artifact.  The comparator is the pre-repair P03 artifact,
 not the old Python-loop benchmark lane.  Compile time is a repair diagnostic,
 not a promotion criterion.  A pass only authorizes moving to the next compiled
 redo gate; it does not establish default readiness.
-

@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 import pytest
 import tensorflow as tf
 import tensorflow_probability as tfp
 
 import bayesfilter.highdim as highdim
+import bayesfilter.highdim.filtering as filtering_module
 
 
 def _convention() -> highdim.MeasureConvention:
@@ -109,6 +112,151 @@ def _score_config(seed: str = "p37-score") -> highdim.FixedBranchFilterConfig:
         ),
         fit_quadrature_order=141,
     )
+
+
+def _multistate_score_config(seed: str = "p81-multistate-score") -> highdim.FixedBranchFilterConfig:
+    convention = _convention()
+    product_basis = highdim.ProductBasis(
+        [
+            highdim.LegendreBasis1D(highdim.BoundedInterval(-1.0, 1.0), 3),
+            highdim.LegendreBasis1D(highdim.BoundedInterval(-1.0, 1.0), 3),
+        ],
+        convention,
+    )
+    ranks = (1, 1, 1)
+    return highdim.FixedBranchFilterConfig(
+        fit_config=highdim.FixedTTFitConfig(
+            ranks=ranks,
+            ridge=1e-10,
+            max_sweeps=2,
+            sweep_order=(0, 1),
+            row_budget=256,
+            column_budget=128,
+            dense_matrix_byte_budget=200_000,
+            normal_matrix_byte_budget=100_000,
+            condition_number_warning=1e10,
+            condition_number_veto=1e14,
+            holdout_tolerance=5e-3,
+        ),
+        density_tau=0.0,
+        normalizer_floor=1e-12,
+        denominator_floor=1e-12,
+        retained_storage_byte_budget=10_000_000,
+        coordinate_maps=(
+            highdim.AffineCoordinateMap(
+                offset=tf.zeros([2], dtype=tf.float64),
+                matrix=2.0 * tf.eye(2, dtype=tf.float64),
+            ),
+        ),
+        measure_convention=convention,
+        deterministic_seed=seed,
+        product_basis=product_basis,
+        initial_cores=(
+            highdim.TTCore(tf.ones([1, product_basis.bases[0].basis_dim, 1], dtype=tf.float64)),
+            highdim.TTCore(tf.ones([1, product_basis.bases[1].basis_dim, 1], dtype=tf.float64)),
+        ),
+        fit_quadrature_order=5,
+    )
+
+
+@dataclass(frozen=True)
+class _ParameterizedIndependentGaussianMultistateModel:
+    dim: int = 2
+
+    def parameter_dim(self) -> int:
+        return 1
+
+    def state_dim(self) -> int:
+        return int(self.dim)
+
+    def observation_dim(self) -> int:
+        return int(self.dim)
+
+    def initial_log_density(self, theta: tf.Tensor, x0: tf.Tensor) -> tf.Tensor:
+        del theta
+        values = tf.convert_to_tensor(x0, dtype=tf.float64)
+        return tf.reduce_sum(
+            tfp.distributions.Normal(
+                tf.constant(0.0, dtype=tf.float64),
+                tf.constant(1.0, dtype=tf.float64),
+            ).log_prob(values),
+            axis=1,
+        )
+
+    def initial_log_density_parameter_score(self, theta: tf.Tensor, x0: tf.Tensor) -> tf.Tensor:
+        values = tf.convert_to_tensor(x0, dtype=tf.float64)
+        del theta
+        return tf.zeros([tf.shape(values)[0], self.parameter_dim()], dtype=tf.float64)
+
+    def transition_log_density(
+        self,
+        theta: tf.Tensor,
+        x_prev: tf.Tensor,
+        x_next: tf.Tensor,
+        t: int,
+    ) -> tf.Tensor:
+        del t
+        previous = tf.convert_to_tensor(x_prev, dtype=tf.float64)
+        current = tf.convert_to_tensor(x_next, dtype=tf.float64)
+        loc = 0.55 * previous + 0.08 * theta[0] * tf.square(previous)
+        return tf.reduce_sum(
+            tfp.distributions.Normal(loc, tf.constant(0.7, dtype=tf.float64)).log_prob(current),
+            axis=1,
+        )
+
+    def transition_log_density_parameter_score(
+        self,
+        theta: tf.Tensor,
+        x_prev: tf.Tensor,
+        x_next: tf.Tensor,
+        t: int,
+    ) -> tf.Tensor:
+        del t
+        previous = tf.convert_to_tensor(x_prev, dtype=tf.float64)
+        current = tf.convert_to_tensor(x_next, dtype=tf.float64)
+        loc = 0.55 * previous + 0.08 * theta[0] * tf.square(previous)
+        d_loc = 0.08 * tf.square(previous)
+        score = tf.reduce_sum((current - loc) * d_loc / tf.square(tf.constant(0.7, dtype=tf.float64)), axis=1)
+        return score[:, tf.newaxis]
+
+    def observation_log_density(
+        self,
+        theta: tf.Tensor,
+        x_t: tf.Tensor,
+        y_t: tf.Tensor,
+        t: int,
+    ) -> tf.Tensor:
+        del t
+        values = tf.convert_to_tensor(x_t, dtype=tf.float64)
+        observation = tf.reshape(tf.convert_to_tensor(y_t, dtype=tf.float64), [self.dim])
+        loc = 0.3 * values + 0.05 * theta[0] * tf.square(values)
+        return tf.reduce_sum(
+            tfp.distributions.Normal(loc, tf.constant(0.6, dtype=tf.float64)).log_prob(observation[tf.newaxis, :]),
+            axis=1,
+        )
+
+    def observation_log_density_parameter_score(
+        self,
+        theta: tf.Tensor,
+        x_t: tf.Tensor,
+        y_t: tf.Tensor,
+        t: int,
+    ) -> tf.Tensor:
+        del t
+        values = tf.convert_to_tensor(x_t, dtype=tf.float64)
+        observation = tf.reshape(tf.convert_to_tensor(y_t, dtype=tf.float64), [self.dim])
+        loc = 0.3 * values + 0.05 * theta[0] * tf.square(values)
+        d_loc = 0.05 * tf.square(values)
+        score = tf.reduce_sum(
+            (observation[tf.newaxis, :] - loc)
+            * d_loc
+            / tf.square(tf.constant(0.6, dtype=tf.float64)),
+            axis=1,
+        )
+        return score[:, tf.newaxis]
+
+    def manifest_payload(self) -> dict[str, object]:
+        return {"family": "p81_parameterized_independent_gaussian_multistate_fixture", "dim": int(self.dim)}
 
 
 def _observations() -> tf.Tensor:
@@ -532,4 +680,353 @@ def test_scalar_fixed_design_tt_score_path_matches_same_branch_fd_for_exact_tran
     assert result.finite_difference_table.valid_rows()
     assert result.diagnostics["score_path"] == "scalar_nonlinear_fixed_design_tt_score_path"
     assert result.diagnostics["fixed_branch_only"] is True
+    assert result.diagnostics["target_derivative_backend"] == "model_parameter_score_methods_only"
     assert float(result.finite_difference_table.max_abs_error().numpy()) < 5e-2
+
+
+def test_scalar_fixed_design_tt_score_path_rejects_missing_manual_model_score_method() -> None:
+    class _MissingObservationScore(highdim.ExactTransformedSVSSM):
+        observation_log_density_parameter_score = None
+
+    observations = _observations()
+    gamma, beta, sigma = _physical_parameters()
+    theta = _theta_from_physical(gamma, beta)
+    model = _MissingObservationScore(sigma=sigma[0])
+    z = highdim.exact_transformed_sv_observations(observations)
+    config = _score_config("p37-score-no-fallback")
+    derivative_config = highdim.FixedBranchDerivativeConfig(parameter_indices=(0,))
+
+    with pytest.raises(ValueError, match="requires explicit model parameter-score methods"):
+        highdim.scalar_nonlinear_fixed_design_tt_score_path(
+            model,
+            theta,
+            z,
+            config,
+            derivative_config,
+            fixture_id="p37.score.no-fallback.v1",
+            initial_target_id="p37.score.no-fallback.initial.v1",
+            transition_target_id="p37.score.no-fallback.transition.v1",
+            branch_seed_prefix="p37-score-no-fallback",
+        )
+
+
+def test_stochastic_volatility_local_parameter_scores_match_tape_jacobians() -> None:
+    model = highdim.StochasticVolatilitySSM(sigma=1.0)
+    theta = model.unconstrained_from_physical(gamma=0.60, beta=0.40)
+    previous = tf.constant([[-0.30], [0.20], [0.80]], dtype=tf.float64)
+    current = tf.constant([[0.15], [-0.10], [0.40]], dtype=tf.float64)
+    observation = tf.constant([0.25], dtype=tf.float64)
+
+    def _jacobian(value_fn):
+        with tf.GradientTape() as tape:
+            tape.watch(theta)
+            values = value_fn(theta)
+        return tape.jacobian(values, theta)
+
+    tf.debugging.assert_near(
+        model.initial_log_density_parameter_score(theta, current),
+        _jacobian(lambda th: model.initial_log_density(th, current)),
+        atol=2e-10,
+        rtol=2e-10,
+    )
+    tf.debugging.assert_near(
+        model.transition_log_density_parameter_score(theta, previous, current, t=1),
+        _jacobian(lambda th: model.transition_log_density(th, previous, current, t=1)),
+        atol=2e-10,
+        rtol=2e-10,
+    )
+    tf.debugging.assert_near(
+        model.observation_log_density_parameter_score(theta, current, observation, t=1),
+        _jacobian(lambda th: model.observation_log_density(th, current, observation, t=1)),
+        atol=2e-10,
+        rtol=2e-10,
+    )
+
+
+def test_transformed_sv_local_observation_scores_match_tape_jacobians() -> None:
+    theta = highdim.StochasticVolatilitySSM(sigma=1.0).unconstrained_from_physical(
+        gamma=0.60,
+        beta=0.40,
+    )
+    values = tf.constant([[-0.35], [0.20], [0.75]], dtype=tf.float64)
+    raw_observation = tf.constant([[0.25]], dtype=tf.float64)
+    exact_observation = highdim.exact_transformed_sv_observations(raw_observation)[0]
+    ksc_observation = highdim.transformed_sv_panel_observations(raw_observation)[0]
+
+    for model, observation in (
+        (highdim.ExactTransformedSVSSM(sigma=1.0), exact_observation),
+        (highdim.KSCMixtureTransformedSVSSM(sigma=1.0), ksc_observation),
+    ):
+        with tf.GradientTape() as tape:
+            tape.watch(theta)
+            target = model.observation_log_density(theta, values, observation, t=1)
+        expected = tape.jacobian(target, theta)
+        actual = model.observation_log_density_parameter_score(theta, values, observation, t=1)
+        tf.debugging.assert_near(actual, expected, atol=2e-10, rtol=2e-10)
+
+
+def test_multistate_fixed_design_tt_score_path_matches_same_branch_fd_for_tiny_horizon0_fixture() -> None:
+    model = _ParameterizedIndependentGaussianMultistateModel()
+    theta = tf.constant([0.2], dtype=tf.float64)
+    observations = tf.constant([[0.10, -0.04]], dtype=tf.float64)
+    config = _multistate_score_config("p81-multistate-score-test")
+    derivative_config = highdim.FixedBranchDerivativeConfig(
+        parameter_indices=(0,),
+        finite_difference_h=(3e-3, 1e-3),
+        solve_condition_number_veto=1e16,
+    )
+
+    result = highdim.multistate_nonlinear_fixed_design_tt_score_path(
+        model,
+        theta,
+        observations,
+        config,
+        derivative_config,
+        fixture_id="p81.score.multistate.fixture.v1",
+        initial_target_id="p81.score.multistate.initial.v1",
+        transition_target_id="p81.score.multistate.transition.v1",
+        branch_seed_prefix="p81-score-multistate",
+    )
+
+    assert result.status is highdim.HighDimStatus.OK
+    assert result.score.shape == (1,)
+    assert result.finite_difference_table.valid_rows()
+    for row in result.finite_difference_table.rows:
+        assert row.row_status is highdim.FiniteDifferenceRowStatus.VALID
+        assert row.branch_hash_plus == row.branch_hash_base
+        assert row.branch_hash_minus == row.branch_hash_base
+    assert result.diagnostics["score_path"] == "multistate_nonlinear_fixed_design_tt_score_path"
+    assert result.diagnostics["route_role"] == highdim.MULTISTATE_RETAINED_GRID_ROUTE_ROLE
+    assert (
+        result.diagnostics["leaderboard_admission"]
+        == highdim.MULTISTATE_RETAINED_GRID_LEADERBOARD_ADMISSION
+    )
+    assert (
+        result.diagnostics["production_zhao_cui_route"]
+        == highdim.FIXED_VARIANT_ZHAO_CUI_PRODUCTION_ROUTE
+    )
+    assert result.diagnostics["fixed_branch_only"] is True
+    assert result.diagnostics["state_dim"] == 2
+    assert float(result.finite_difference_table.max_abs_error().numpy()) < 2e-1
+
+
+def test_multistate_fixed_design_tt_score_path_matches_same_branch_fd_for_tiny_two_row_fixture() -> None:
+    model = _ParameterizedIndependentGaussianMultistateModel()
+    theta = tf.constant([0.2], dtype=tf.float64)
+    observations = tf.constant([[0.10, -0.04], [0.03, 0.08]], dtype=tf.float64)
+    config = _multistate_score_config("p81-multistate-score-two-row-test")
+    derivative_config = highdim.FixedBranchDerivativeConfig(
+        parameter_indices=(0,),
+        finite_difference_h=(3e-3, 1e-3),
+        solve_condition_number_veto=1e16,
+    )
+
+    result = highdim.multistate_nonlinear_fixed_design_tt_score_path(
+        model,
+        theta,
+        observations,
+        config,
+        derivative_config,
+        fixture_id="p81.score.multistate.two-row.fixture.v1",
+        initial_target_id="p81.score.multistate.initial.v1",
+        transition_target_id="p81.score.multistate.transition.v1",
+        branch_seed_prefix="p81-score-multistate-two-row",
+    )
+
+    assert result.status is highdim.HighDimStatus.OK
+    assert result.score.shape == (1,)
+    assert bool(tf.math.is_finite(result.log_likelihood).numpy())
+    assert bool(tf.reduce_all(tf.math.is_finite(result.score)).numpy())
+    assert result.finite_difference_table.valid_rows()
+    for row in result.finite_difference_table.rows:
+        assert row.row_status is highdim.FiniteDifferenceRowStatus.VALID
+        assert row.branch_hash_plus == row.branch_hash_base
+        assert row.branch_hash_minus == row.branch_hash_base
+    assert result.diagnostics["score_path"] == "multistate_nonlinear_fixed_design_tt_score_path"
+    assert result.diagnostics["route_role"] == highdim.MULTISTATE_RETAINED_GRID_ROUTE_ROLE
+    assert (
+        result.diagnostics["leaderboard_admission"]
+        == highdim.MULTISTATE_RETAINED_GRID_LEADERBOARD_ADMISSION
+    )
+    assert (
+        result.diagnostics["production_zhao_cui_route"]
+        == highdim.FIXED_VARIANT_ZHAO_CUI_PRODUCTION_ROUTE
+    )
+    assert result.diagnostics["fixed_branch_only"] is True
+    assert result.diagnostics["state_dim"] == 2
+    assert result.diagnostics["observation_count"] == 2
+    assert result.diagnostics["last_time_index"] == 1
+    assert float(result.finite_difference_table.max_abs_error().numpy()) < 5e-1
+
+
+def test_multistate_streaming_predictive_matches_dense_for_tiny_fixture() -> None:
+    model = _ParameterizedIndependentGaussianMultistateModel()
+    theta = tf.constant([0.2], dtype=tf.float64)
+    observations = tf.constant([[0.10, -0.04]], dtype=tf.float64)
+    config = _multistate_score_config("p81-multistate-streaming-parity")
+
+    value_result = highdim.multistate_nonlinear_fixed_design_tt_value_path(
+        model,
+        theta,
+        observations,
+        config,
+        fixture_id="p81.value.multistate.streaming-parity.v1",
+        initial_target_id="p81.value.multistate.initial.v1",
+        transition_target_id="p81.value.multistate.transition.v1",
+        branch_seed_prefix="p81-value-multistate-streaming-parity",
+    )
+    retained = value_result.retained_filter
+    reference_points, _ = filtering_module._tensor_product_reference_quadrature(
+        config.product_basis,
+        config.fit_quadrature_order,
+    )
+    current_physical, _ = config.coordinate_maps[0].forward(reference_points)
+    previous_log_density = tf.convert_to_tensor(retained.diagnostics["log_density_physical"], dtype=tf.float64)
+    previous_weights = tf.convert_to_tensor(retained.diagnostics["weights"], dtype=tf.float64)
+    previous_reference = tf.convert_to_tensor(retained.diagnostics["reference_points"], dtype=tf.float64)
+    previous_physical = tf.convert_to_tensor(retained.diagnostics["physical_points"], dtype=tf.float64)
+    _, previous_log_abs_det = config.coordinate_maps[0].forward(previous_reference)
+    log_reference_weight = filtering_module._log_uniform_reference_weight_density(config.product_basis)
+    base_terms = tf.math.log(previous_weights) + previous_log_abs_det - log_reference_weight + previous_log_density
+
+    dense = filtering_module._multistate_grid_predictive_log_density_from_retained(
+        model=model,
+        theta=theta,
+        current_physical_points=current_physical,
+        retained_filter=retained,
+        coordinate_map=config.coordinate_maps[0],
+        time_index=1,
+    )
+    streaming = filtering_module._multistate_grid_predictive_log_density_from_retained_streaming(
+        model=model,
+        theta=theta,
+        current_physical_points=current_physical,
+        previous_physical_points=previous_physical,
+        base_previous_log_terms=base_terms,
+        time_index=1,
+        current_chunk_size=3,
+        previous_chunk_size=4,
+        chunk_byte_budget=100_000,
+    )
+
+    tf.debugging.assert_near(streaming, dense, atol=1e-10, rtol=1e-10)
+
+
+def test_multistate_streaming_predictive_derivative_matches_dense_for_tiny_fixture() -> None:
+    model = _ParameterizedIndependentGaussianMultistateModel()
+    theta = tf.constant([0.2], dtype=tf.float64)
+    observations = tf.constant([[0.10, -0.04]], dtype=tf.float64)
+    config = _multistate_score_config("p81-multistate-streaming-derivative-parity")
+    retained = highdim.multistate_nonlinear_fixed_design_tt_value_path(
+        model,
+        theta,
+        observations,
+        config,
+        fixture_id="p81.value.multistate.streaming-derivative-parity.v1",
+        initial_target_id="p81.value.multistate.initial.v1",
+        transition_target_id="p81.value.multistate.transition.v1",
+        branch_seed_prefix="p81-value-multistate-streaming-derivative-parity",
+    ).retained_filter
+    reference_points, _ = filtering_module._tensor_product_reference_quadrature(
+        config.product_basis,
+        config.fit_quadrature_order,
+    )
+    current_physical, _ = config.coordinate_maps[0].forward(reference_points)
+    previous_log_density = tf.convert_to_tensor(retained.diagnostics["log_density_physical"], dtype=tf.float64)
+    previous_weights = tf.convert_to_tensor(retained.diagnostics["weights"], dtype=tf.float64)
+    previous_reference = tf.convert_to_tensor(retained.diagnostics["reference_points"], dtype=tf.float64)
+    previous_physical = tf.convert_to_tensor(retained.diagnostics["physical_points"], dtype=tf.float64)
+    _, previous_log_abs_det = config.coordinate_maps[0].forward(previous_reference)
+    log_reference_weight = filtering_module._log_uniform_reference_weight_density(config.product_basis)
+    base_terms = tf.math.log(previous_weights) + previous_log_abs_det - log_reference_weight + previous_log_density
+    dot_previous = tf.linspace(
+        tf.constant(-0.03, dtype=tf.float64),
+        tf.constant(0.04, dtype=tf.float64),
+        int(previous_reference.shape[0]),
+    )
+
+    dense_value, dense_dot = filtering_module._multistate_grid_predictive_log_density_and_derivative_from_retained(
+        model=model,
+        theta=theta,
+        current_physical_points=current_physical,
+        retained_filter=retained,
+        coordinate_map=config.coordinate_maps[0],
+        time_index=1,
+        dot_retained_filter_values=dot_previous,
+        parameter_index=0,
+    )
+    streaming_value, streaming_dot = filtering_module._multistate_grid_predictive_log_density_and_derivative_from_retained_streaming(
+        model=model,
+        theta=theta,
+        current_physical_points=current_physical,
+        previous_physical_points=previous_physical,
+        base_previous_log_terms=base_terms,
+        dot_previous_density=dot_previous,
+        time_index=1,
+        parameter_index=0,
+        current_chunk_size=3,
+        previous_chunk_size=4,
+        chunk_byte_budget=100_000,
+    )
+
+    tf.debugging.assert_near(streaming_value, dense_value, atol=1e-10, rtol=1e-10)
+    tf.debugging.assert_near(streaming_dot, dense_dot, atol=1e-10, rtol=1e-10)
+
+
+def test_multistate_score_path_uses_streaming_fallback_when_dense_gate_trips(monkeypatch) -> None:
+    model = _ParameterizedIndependentGaussianMultistateModel()
+    theta = tf.constant([0.2], dtype=tf.float64)
+    observations = tf.constant([[0.10, -0.04], [0.03, 0.08]], dtype=tf.float64)
+    config = _multistate_score_config("p81-multistate-score-streaming-fallback")
+    derivative_config = highdim.FixedBranchDerivativeConfig(
+        parameter_indices=(0,),
+        finite_difference_h=(3e-3,),
+        solve_condition_number_veto=1e16,
+    )
+    calls = {"value": 0, "derivative": 0}
+    original_value_streaming = filtering_module._multistate_grid_predictive_log_density_from_retained_streaming
+    original_derivative_streaming = (
+        filtering_module._multistate_grid_predictive_log_density_and_derivative_from_retained_streaming
+    )
+    original_budget = filtering_module._check_pairwise_transition_tensor_budget
+
+    def tiny_dense_budget(current_count: int, previous_count: int, state_dim: int, byte_budget: int = 256_000_000) -> None:
+        del byte_budget
+        return original_budget(current_count, previous_count, state_dim, byte_budget=1024)
+
+    def counted_value_streaming(*args, **kwargs):
+        calls["value"] += 1
+        return original_value_streaming(*args, **kwargs)
+
+    def counted_derivative_streaming(*args, **kwargs):
+        calls["derivative"] += 1
+        return original_derivative_streaming(*args, **kwargs)
+
+    monkeypatch.setattr(filtering_module, "_check_pairwise_transition_tensor_budget", tiny_dense_budget)
+    monkeypatch.setattr(
+        filtering_module,
+        "_multistate_grid_predictive_log_density_from_retained_streaming",
+        counted_value_streaming,
+    )
+    monkeypatch.setattr(
+        filtering_module,
+        "_multistate_grid_predictive_log_density_and_derivative_from_retained_streaming",
+        counted_derivative_streaming,
+    )
+
+    result = highdim.multistate_nonlinear_fixed_design_tt_score_path(
+        model,
+        theta,
+        observations,
+        config,
+        derivative_config,
+        fixture_id="p81.score.multistate.streaming-fallback.v1",
+        initial_target_id="p81.score.multistate.initial.v1",
+        transition_target_id="p81.score.multistate.transition.v1",
+        branch_seed_prefix="p81-score-multistate-streaming-fallback",
+    )
+
+    assert result.status is highdim.HighDimStatus.OK
+    assert result.finite_difference_table.valid_rows()
+    assert calls["value"] >= 1
+    assert calls["derivative"] >= 1

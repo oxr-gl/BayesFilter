@@ -9,9 +9,10 @@ when weights cross threshold values.  That makes naive pathwise differentiation
 break down.
 
 This chapter studies the simplest smooth replacement of that discrete step.  It
-does not introduce optimal transport yet.  Its narrower task is to show, in the
+opens the part on differentiable resampling and transport by showing, in the
 smallest possible setting, how differentiability can be bought by changing the
-resampling map itself.
+resampling map itself before moving to the transport-based alternatives
+\citep{zhumurphyjonschkowski2020,jonschkowski2018differentiable,corenflos2021differentiable}.
 
 \section{What problem this chapter solves}
 \label{sec:bf-soft-what-problem}
@@ -28,7 +29,8 @@ Suppose a weighted particle cloud is
   \sum_{i=1}^N w_t^{(i)}=1.
 \end{equation}
 Classical multinomial resampling tries to convert this into an equally weighted
-cloud by drawing ancestor indices from the categorical law defined by the weights.
+cloud by drawing ancestor indices from the categorical law defined by the weights
+\citep{doucet2001sequential,chopin2020introduction}.
 This is fine as a simulation rule.  It is not fine if one wants the realized
 output cloud to depend smoothly on the weights.
 
@@ -87,7 +89,7 @@ and setting
 \end{equation}
 This map is exact for the classical resampling law, but it is not pathwise
 differentiable with respect to the weights because the realized ancestor path is
-piecewise constant in those weights.
+piecewise constant in those weights \citep{zhumurphyjonschkowski2020,jonschkowski2018differentiable}.
 
 \section{Soft resampling rule}
 \label{sec:bf-soft-rule}
@@ -209,5 +211,7 @@ does \emph{not} claim:
 \end{itemize}
 Its role is narrower: it shows, in the smallest possible setting, how
 resampling can be made smoother and where the resulting approximation enters.
+The next chapter keeps the equal-weighting goal but replaces the surrogate rule
+by a declared transport object.
 
 \FloatBarrier

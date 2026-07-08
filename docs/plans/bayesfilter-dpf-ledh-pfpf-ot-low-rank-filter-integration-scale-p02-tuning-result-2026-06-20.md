@@ -65,4 +65,3 @@ Proceed to P03 medium CPU filter-scale validation with:
 No speedup, ranking, posterior correctness, HMC readiness, public API
 readiness, production/default readiness, dense Sinkhorn equivalence, broad
 scalable-OT selection, or TF32-help is concluded.
-

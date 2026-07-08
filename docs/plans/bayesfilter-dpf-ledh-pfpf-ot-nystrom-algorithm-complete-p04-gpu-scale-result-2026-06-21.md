@@ -72,4 +72,3 @@ for GPU1.
 | Decision | Primary criterion status | Veto diagnostic status | Main uncertainty | Next justified action | Not concluded |
 | --- | --- | --- | --- | --- | --- |
 | Proceed to P05 closeout | `PASS` | No P04 veto fired | Broader leaderboard comparison and statistical ranking remain untested | Write closeout with exact nonclaims and handoff | No speedup, posterior correctness, HMC readiness, default readiness, public API readiness, or ranking |
-

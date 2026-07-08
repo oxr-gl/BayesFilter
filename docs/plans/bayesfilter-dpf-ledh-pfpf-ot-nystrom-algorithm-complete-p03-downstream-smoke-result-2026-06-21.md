@@ -57,4 +57,3 @@ requested or used for P03.
 | Decision | Primary criterion status | Veto diagnostic status | Main uncertainty | Next justified action | Not concluded |
 | --- | --- | --- | --- | --- | --- |
 | Proceed to P04 GPU preflight | `PASS` | No P03 veto fired | Trusted GPU availability and scale rows are still untested | Run trusted `nvidia-smi` preflight and then P04 if a usable GPU exists | No GPU readiness, speedup, posterior correctness, HMC readiness, default readiness, or ranking |
-

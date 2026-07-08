@@ -60,4 +60,3 @@ scalable-OT selection, or TF32-help is concluded.
 ## Next Handoff
 
 Proceed to P05 final closeout and non-claim audit.
-

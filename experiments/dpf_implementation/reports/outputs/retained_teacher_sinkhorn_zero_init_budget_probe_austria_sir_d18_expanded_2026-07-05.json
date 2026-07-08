@@ -1,0 +1,100 @@
+{
+  "backend": "tensorflow_tensorflow_probability",
+  "budget_metrics": {
+    "1": {
+      "budget_regime": "discriminating",
+      "evaluation_tolerance": 0.001,
+      "heldout_example_count": 9,
+      "max_zero_residual": 0.00448393221375501,
+      "max_zero_teacher_cloud_rmse": 0.03608830927871322,
+      "mean_zero_teacher_cloud_rmse": 0.01974044500693027
+    },
+    "2": {
+      "budget_regime": "discriminating",
+      "evaluation_tolerance": 0.0003,
+      "heldout_example_count": 9,
+      "max_zero_residual": 0.00018814341108998323,
+      "max_zero_teacher_cloud_rmse": 0.0014883530112101452,
+      "mean_zero_teacher_cloud_rmse": 0.0005617338567646035
+    },
+    "3": {
+      "budget_regime": "discriminating",
+      "evaluation_tolerance": 0.0001,
+      "heldout_example_count": 9,
+      "max_zero_residual": 8.84896418257286e-06,
+      "max_zero_teacher_cloud_rmse": 6.621255521340725e-05,
+      "mean_zero_teacher_cloud_rmse": 1.874332835605115e-05
+    },
+    "5": {
+      "budget_regime": "discriminating",
+      "evaluation_tolerance": 1e-05,
+      "heldout_example_count": 9,
+      "max_zero_residual": 1.789469133983701e-08,
+      "max_zero_teacher_cloud_rmse": 1.3074969452427602e-07,
+      "mean_zero_teacher_cloud_rmse": 2.654403186315857e-08
+    }
+  },
+  "created_at_utc": "2026-07-04T20:45:36Z",
+  "decision": "AUSTRIA_SIR_D18_EXPANDED_ZERO_INIT_DISCRIMINATING_BUDGETS_IDENTIFIED",
+  "input_teacher_data_json": "experiments/dpf_implementation/reports/outputs/retained_teacher_sinkhorn_teacher_data_austria_sir_d18_expanded_2026-07-05.json",
+  "non_implications": [
+    "No donor-aligned student win/loss claim is concluded by this zero-init-only probe.",
+    "No large-particle or N=10000 claim is concluded.",
+    "No GPU scaling claim is concluded.",
+    "No production-readiness claim is concluded."
+  ],
+  "plan_path": "docs/plans/bayesfilter-neural-ot-austria-sir-d18-retained-teacher-nonpromotion-disambiguation-plan-2026-07-05.md",
+  "probe_contract": {
+    "budget_tolerance_floors": {
+      "1": 0.001,
+      "2": 0.0003,
+      "3": 0.0001,
+      "5": 1e-05
+    },
+    "heldout_examples": 9,
+    "probe_budgets": [
+      1,
+      2,
+      3,
+      5
+    ],
+    "saturation_threshold": 1e-12,
+    "teacher_epsilon": 1469.9514166365689,
+    "teacher_tolerance": 1e-06
+  },
+  "probe_summary": {
+    "discriminating_budgets": [
+      1,
+      2,
+      3,
+      5
+    ],
+    "first_saturated_budget": null,
+    "recommended_explanatory_budgets": [],
+    "recommended_primary_budgets": [
+      3,
+      5
+    ],
+    "saturated_budgets": []
+  },
+  "question": "Does the expanded Austria SIR d18 retained-teacher artifact contain any discriminating zero-init corrective budget before saturation?",
+  "reproducibility_digest": "23d58b795c99d070cb232c698bc86d532ee7bd6df19913b8545e19aeb054de32",
+  "run_manifest": {
+    "branch": "zhaocui-fixed-branch-derivative-validation",
+    "command": "CUDA_VISIBLE_DEVICES=-1 python -m experiments.dpf_implementation.tf_tfp.runners.run_retained_teacher_sinkhorn_zero_init_budget_probe_austria_sir_d18_expanded_tf",
+    "commit": "8e66819af4235d6a4a9c68eb49ce9eb9fdc9feef",
+    "cpu_only": true,
+    "cuda_visible_devices": "-1",
+    "dirty_state_summary": "?? docs/plans/bayesfilter-neural-ot-austria-sir-d18-retained-teacher-expanded-teacher-data-result-2026-07-05.md\n?? experiments/dpf_implementation/reports/outputs/retained_teacher_sinkhorn_teacher_data_austria_sir_d18_expanded_2026-07-05.json\n?? experiments/dpf_implementation/reports/retained-teacher-sinkhorn-teacher-data-austria-sir-d18-expanded-2026-07-05.md\n?? experiments/dpf_implementation/tf_tfp/runners/run_retained_teacher_sinkhorn_low_budget_eval_austria_sir_d18_expanded_tf.py\n?? experiments/dpf_implementation/tf_tfp/runners/run_retained_teacher_sinkhorn_teacher_data_austria_sir_d18_expanded_tf.py\n?? experiments/dpf_implementation/tf_tfp/runners/run_retained_teacher_sinkhorn_zero_init_budget_probe_austria_sir_d18_expanded_tf.py",
+    "gpu_devices_visible": [],
+    "package_versions": {
+      "tensorflow": "2.19.1",
+      "tensorflow_probability": "0.25.0"
+    },
+    "pre_import_cuda_visible_devices": "-1",
+    "python_version": "3.11.14",
+    "wall_time_seconds": 0.2696221941150725
+  },
+  "scalar_id": "retained_teacher_sinkhorn_zero_init_budget_probe_austria_sir_d18_expanded_tf",
+  "teacher_data_reproducibility_digest": "40fcce2ce6cddb6b62ecb91349739488cb9bc9878b1ccb321de965bd82fe1d67"
+}

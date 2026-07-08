@@ -10,7 +10,13 @@ from typing import Mapping
 
 import tensorflow as tf
 
-from bayesfilter.highdim.bases import BoundedInterval, LegendreBasis1D, ProductBasis
+from bayesfilter.highdim.bases import (
+    BoundedInterval,
+    LegendreBasis1D,
+    ProductBasis,
+    p85_author_sir_lagrangep_algebraic_product_basis_spec,
+    p85_legacy_legendre_product_basis_spec,
+)
 from bayesfilter.highdim.diagnostics import (
     DensityMeasure,
     HighDimStatus,
@@ -95,10 +101,24 @@ P58_M9_ALLOWED_COMPARATOR_TIERS = (
 
 P58_M9_SOURCE_ROUTE_PIPELINE_KIND = "author_sir_fixed_ttsirt_source_route"
 P58_M9_AUTHOR_SIR_TARGET_ID = "zhao_cui_sir_austria_d18"
+P83_MINIMAL_TRANSPORT_SLICE_READY_STATUS = (
+    "PASS_P83_MINIMAL_SOURCE_ROUTE_TRANSPORT_SLICE"
+)
+P83_MINIMAL_TRANSPORT_SLICE_BLOCK_STATUS = (
+    "BLOCK_P83_MINIMAL_SOURCE_ROUTE_TRANSPORT_SLICE"
+)
+P90_VALUE_BRIDGE_TARGET_ID = P58_M9_AUTHOR_SIR_TARGET_ID
+P90_VALUE_BRIDGE_COMPARATOR_LABEL = "author_formula_replay"
+P90_VALUE_BRIDGE_TOLERANCE_VERSION = "p90.value_bridge.tolerances.v1"
+P90_VALUE_BRIDGE_PHYSICAL_ORDERING = ("theta", "x_t", "x_t_minus_1")
 
 P59_9A_PASS_STATUS = "PASS_P59_9A_AUTHOR_SIR_36D_TARGET_FIT_PREP"
 P59_9A_BLOCK_STATUS = "BLOCK_P59_9A_AUTHOR_SIR_36D_TARGET_FIT_PREP"
 P59_9A_AUTHOR_SIR_TARGET_DIMENSION = 36
+P85_AUTHOR_SIR_BASIS_DOMAIN_CONFIG_STATUS = "PASS_P85_AUTHOR_SIR_BASIS_DOMAIN_CONFIG"
+P85_AUTHOR_SIR_BASIS_DOMAIN_FULL_FIT_BLOCK_STATUS = (
+    "BLOCK_P85_AUTHOR_SIR_BASIS_DOMAIN_FULL_FIT_REQUIRES_DOWNSTREAM_MAPPING_REPAIR"
+)
 P59_9C_PASS_STATUS = "PASS_P59_9C_PRECONDITIONED_ROUTE_INTEGRATION"
 P59_9C_BLOCK_STATUS = "BLOCK_P59_9C_PRECONDITIONED_ROUTE_INTEGRATION"
 P59_9C_FULL_ROUTE_SELECTED = "full_route_selected"
@@ -1039,6 +1059,487 @@ class SourceRouteSequentialDensityComponents:
 
 
 @dataclass(frozen=True)
+class SourceRouteValueBridgeBinding:
+    """Fail-closed identity binding for the P90 same-target value bridge."""
+
+    target_id: str
+    time_index: int
+    parameter_dim: int
+    state_dim: int
+    physical_shape: tuple[int, int]
+    physical_ordering: tuple[str, ...]
+    previous_retained_hash: str | None
+    previous_marginal_keep_axes: tuple[int, ...] | None
+    previous_marginal_input_axes: tuple[int, ...] | None
+    basis_family: str
+    basis_order: int
+    basis_elements: int
+    tt_rank_tuple: tuple[int, ...]
+    sample_count: int
+    seed: int
+    transport_branch_hash: str
+    coordinate_frame_hash: str
+    transition_log_density_id: str
+    likelihood_log_density_id: str
+    prior_log_density_id: str | None
+    comparator_label: str = P90_VALUE_BRIDGE_COMPARATOR_LABEL
+    tolerance_version: str = P90_VALUE_BRIDGE_TOLERANCE_VERSION
+
+    def __post_init__(self) -> None:
+        d = int(self.parameter_dim)
+        m = int(self.state_dim)
+        if str(self.target_id) != P90_VALUE_BRIDGE_TARGET_ID:
+            raise ValueError("P90 value bridge target_id mismatch")
+        if int(self.time_index) < 1:
+            raise ValueError("time_index must be positive")
+        if d < 0 or m <= 0:
+            raise ValueError("parameter_dim must be nonnegative and state_dim positive")
+        shape = tuple(int(item) for item in self.physical_shape)
+        if len(shape) != 2 or shape[0] != d + 2 * m or shape[1] <= 0:
+            raise ValueError(f"physical_shape: {HighDimStatus.INVALID_SHAPE.value}")
+        ordering = tuple(str(item) for item in self.physical_ordering)
+        if ordering != P90_VALUE_BRIDGE_PHYSICAL_ORDERING:
+            raise ValueError("P90 value bridge physical ordering mismatch")
+        keep = (
+            None
+            if self.previous_marginal_keep_axes is None
+            else tuple(int(axis) for axis in self.previous_marginal_keep_axes)
+        )
+        input_axes = (
+            None
+            if self.previous_marginal_input_axes is None
+            else tuple(int(axis) for axis in self.previous_marginal_input_axes)
+        )
+        previous_hash = (
+            None
+            if self.previous_retained_hash is None
+            else str(self.previous_retained_hash)
+        )
+        if int(self.time_index) == 1:
+            if previous_hash is not None or keep is not None or input_axes is not None:
+                raise ValueError("t=1 bridge binding cannot include previous retained state")
+            if self.prior_log_density_id is None:
+                raise ValueError("t=1 bridge binding requires prior_log_density_id")
+        else:
+            if previous_hash is None:
+                raise ValueError("t>1 bridge binding requires previous_retained_hash")
+            expected_keep = tuple(range(d + m))
+            expected_input_axes = tuple(range(d)) + tuple(range(d + m, d + 2 * m))
+            if keep != expected_keep:
+                raise ValueError("P90 value bridge previous keep axes mismatch")
+            if input_axes != expected_input_axes:
+                raise ValueError("P90 value bridge previous input axes mismatch")
+            if self.prior_log_density_id is not None:
+                raise ValueError("t>1 bridge binding must not include prior_log_density_id")
+        if int(self.sample_count) <= 0:
+            raise ValueError("sample_count must be positive")
+        if not str(self.basis_family).strip():
+            raise ValueError("basis_family must be nonempty")
+        if int(self.basis_order) < 0:
+            raise ValueError("basis_order must be nonnegative")
+        if int(self.basis_elements) < 0:
+            raise ValueError("basis_elements must be nonnegative")
+        ranks = tuple(int(rank) for rank in self.tt_rank_tuple)
+        if not ranks or any(rank <= 0 for rank in ranks):
+            raise ValueError("tt_rank_tuple must contain positive ranks")
+        for field_name, value in (
+            ("transport_branch_hash", self.transport_branch_hash),
+            ("coordinate_frame_hash", self.coordinate_frame_hash),
+            ("transition_log_density_id", self.transition_log_density_id),
+            ("likelihood_log_density_id", self.likelihood_log_density_id),
+            ("comparator_label", self.comparator_label),
+            ("tolerance_version", self.tolerance_version),
+        ):
+            if not str(value).strip():
+                raise ValueError(f"{field_name} must be nonempty")
+        if str(self.comparator_label) != P90_VALUE_BRIDGE_COMPARATOR_LABEL:
+            raise ValueError("P90 value bridge comparator label mismatch")
+        if str(self.tolerance_version) != P90_VALUE_BRIDGE_TOLERANCE_VERSION:
+            raise ValueError("P90 value bridge tolerance version mismatch")
+        object.__setattr__(self, "target_id", str(self.target_id))
+        object.__setattr__(self, "time_index", int(self.time_index))
+        object.__setattr__(self, "parameter_dim", d)
+        object.__setattr__(self, "state_dim", m)
+        object.__setattr__(self, "physical_shape", shape)
+        object.__setattr__(self, "physical_ordering", ordering)
+        object.__setattr__(self, "previous_retained_hash", previous_hash)
+        object.__setattr__(self, "previous_marginal_keep_axes", keep)
+        object.__setattr__(self, "previous_marginal_input_axes", input_axes)
+        object.__setattr__(self, "basis_family", str(self.basis_family))
+        object.__setattr__(self, "basis_order", int(self.basis_order))
+        object.__setattr__(self, "basis_elements", int(self.basis_elements))
+        object.__setattr__(self, "tt_rank_tuple", ranks)
+        object.__setattr__(self, "sample_count", int(self.sample_count))
+        object.__setattr__(self, "seed", int(self.seed))
+        object.__setattr__(self, "transport_branch_hash", str(self.transport_branch_hash))
+        object.__setattr__(self, "coordinate_frame_hash", str(self.coordinate_frame_hash))
+        object.__setattr__(
+            self,
+            "transition_log_density_id",
+            str(self.transition_log_density_id),
+        )
+        object.__setattr__(
+            self,
+            "likelihood_log_density_id",
+            str(self.likelihood_log_density_id),
+        )
+        object.__setattr__(
+            self,
+            "prior_log_density_id",
+            None if self.prior_log_density_id is None else str(self.prior_log_density_id),
+        )
+        object.__setattr__(self, "comparator_label", str(self.comparator_label))
+        object.__setattr__(self, "tolerance_version", str(self.tolerance_version))
+
+    def manifest_payload(self) -> Mapping[str, object]:
+        return {
+            "family": "SourceRouteValueBridgeBinding",
+            "target_id": self.target_id,
+            "time_index": int(self.time_index),
+            "parameter_dim": int(self.parameter_dim),
+            "state_dim": int(self.state_dim),
+            "physical_shape": self.physical_shape,
+            "physical_ordering": self.physical_ordering,
+            "previous_retained_hash": self.previous_retained_hash,
+            "previous_marginal_keep_axes": self.previous_marginal_keep_axes,
+            "previous_marginal_input_axes": self.previous_marginal_input_axes,
+            "basis_family": self.basis_family,
+            "basis_order": int(self.basis_order),
+            "basis_elements": int(self.basis_elements),
+            "tt_rank_tuple": self.tt_rank_tuple,
+            "sample_count": int(self.sample_count),
+            "seed": int(self.seed),
+            "transport_branch_hash": self.transport_branch_hash,
+            "coordinate_frame_hash": self.coordinate_frame_hash,
+            "transition_log_density_id": self.transition_log_density_id,
+            "likelihood_log_density_id": self.likelihood_log_density_id,
+            "prior_log_density_id": self.prior_log_density_id,
+            "comparator_label": self.comparator_label,
+            "tolerance_version": self.tolerance_version,
+        }
+
+    @property
+    def binding_hash(self) -> str:
+        return BranchManifest(
+            version="p90.value_bridge.binding.v1",
+            payload=self.manifest_payload(),
+        ).sha256().value
+
+
+@dataclass(frozen=True)
+class SourceRouteAuthorFormulaReplayResult:
+    """Independent author-formula replay of one source-route value."""
+
+    binding: SourceRouteValueBridgeBinding
+    physical_points: tf.Tensor
+    prior_or_previous_log_density: tf.Tensor
+    transition_log_density: tf.Tensor
+    likelihood_log_density: tf.Tensor
+    negative_log_density: tf.Tensor
+    previous_marginal_local_points: tf.Tensor | None = None
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.binding, SourceRouteValueBridgeBinding):
+            raise TypeError("binding must be SourceRouteValueBridgeBinding")
+        points = tf.convert_to_tensor(self.physical_points, dtype=tf.float64)
+        if points.shape.rank != 2 or tuple(int(item) for item in points.shape) != self.binding.physical_shape:
+            raise ValueError(f"physical_points: {HighDimStatus.INVALID_SHAPE.value}")
+        assert_tf_float64("physical_points", points)
+        if not bool(tf.reduce_all(tf.math.is_finite(points)).numpy()):
+            raise ValueError(f"physical_points: {HighDimStatus.NONFINITE_VALUE.value}")
+        prior, transition = _finite_same_shape_vectors(
+            "prior_or_previous_log_density",
+            self.prior_or_previous_log_density,
+            "transition_log_density",
+            self.transition_log_density,
+        )
+        _, likelihood = _finite_same_shape_vectors(
+            "transition_log_density",
+            transition,
+            "likelihood_log_density",
+            self.likelihood_log_density,
+        )
+        expected = -prior - transition - likelihood
+        negative = _finite_vector("negative_log_density", self.negative_log_density)
+        if negative.shape != expected.shape:
+            raise ValueError(f"negative_log_density: {HighDimStatus.INVALID_SHAPE.value}")
+        tf.debugging.assert_near(negative, expected, atol=1e-10)
+        local = (
+            None
+            if self.previous_marginal_local_points is None
+            else tf.convert_to_tensor(self.previous_marginal_local_points, dtype=tf.float64)
+        )
+        if self.binding.time_index == 1:
+            if local is not None:
+                raise ValueError("t=1 bridge replay cannot carry previous marginal local points")
+        else:
+            if local is None:
+                raise ValueError("t>1 bridge replay requires previous marginal local points")
+            keep = self.binding.previous_marginal_keep_axes
+            if (
+                keep is None
+                or local.shape.rank != 2
+                or int(local.shape[0]) != len(keep)
+                or int(local.shape[1]) != int(points.shape[1])
+            ):
+                raise ValueError(
+                    f"previous_marginal_local_points: {HighDimStatus.INVALID_SHAPE.value}"
+                )
+            if not bool(tf.reduce_all(tf.math.is_finite(local)).numpy()):
+                raise ValueError(
+                    f"previous_marginal_local_points: {HighDimStatus.NONFINITE_VALUE.value}"
+                )
+        object.__setattr__(self, "physical_points", points)
+        object.__setattr__(self, "prior_or_previous_log_density", prior)
+        object.__setattr__(self, "transition_log_density", transition)
+        object.__setattr__(self, "likelihood_log_density", likelihood)
+        object.__setattr__(self, "negative_log_density", negative)
+        object.__setattr__(self, "previous_marginal_local_points", local)
+
+    def manifest_payload(self) -> Mapping[str, object]:
+        return {
+            "family": "SourceRouteAuthorFormulaReplayResult",
+            "binding": self.binding.manifest_payload(),
+            "binding_hash": self.binding.binding_hash,
+            "prior_or_previous_log_density": self.prior_or_previous_log_density,
+            "transition_log_density": self.transition_log_density,
+            "likelihood_log_density": self.likelihood_log_density,
+            "negative_log_density": self.negative_log_density,
+            "previous_marginal_local_points": self.previous_marginal_local_points,
+        }
+
+
+@dataclass(frozen=True)
+class SourceRouteDerivativeBinding:
+    """Same-branch derivative binding for P90 deterministic carry tests."""
+
+    value_bridge_binding: SourceRouteValueBridgeBinding
+    value_bridge_binding_hash: str
+    parameter_indices: tuple[int, ...]
+    derivative_tolerance_version: str = "p90.derivative_carry.tolerances.v1"
+    fixed_ttsirt_transport_derivative_status: str = (
+        "BLOCK_FIXED_TTSIRT_PROPOSAL_TRANSPORT_DERIVATIVE_NOT_IMPLEMENTED"
+    )
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.value_bridge_binding, SourceRouteValueBridgeBinding):
+            raise TypeError("value_bridge_binding must be SourceRouteValueBridgeBinding")
+        if str(self.value_bridge_binding_hash) != self.value_bridge_binding.binding_hash:
+            raise ValueError("P90 derivative binding hash mismatch")
+        indices = tuple(int(index) for index in self.parameter_indices)
+        if not indices:
+            raise ValueError("parameter_indices must be nonempty")
+        if any(index < 0 or index >= self.value_bridge_binding.parameter_dim for index in indices):
+            raise ValueError("parameter_indices out of range")
+        if str(self.derivative_tolerance_version) != "p90.derivative_carry.tolerances.v1":
+            raise ValueError("P90 derivative tolerance version mismatch")
+        if not str(self.fixed_ttsirt_transport_derivative_status).startswith("BLOCK_"):
+            raise ValueError("fixed TTSIRT transport derivative status must remain a blocker")
+        object.__setattr__(self, "value_bridge_binding_hash", str(self.value_bridge_binding_hash))
+        object.__setattr__(self, "parameter_indices", indices)
+        object.__setattr__(
+            self,
+            "derivative_tolerance_version",
+            str(self.derivative_tolerance_version),
+        )
+        object.__setattr__(
+            self,
+            "fixed_ttsirt_transport_derivative_status",
+            str(self.fixed_ttsirt_transport_derivative_status),
+        )
+
+    @property
+    def target_id(self) -> str:
+        return self.value_bridge_binding.target_id
+
+    def manifest_payload(self) -> Mapping[str, object]:
+        return {
+            "family": "SourceRouteDerivativeBinding",
+            "value_bridge_binding_hash": self.value_bridge_binding_hash,
+            "target_id": self.target_id,
+            "parameter_indices": self.parameter_indices,
+            "derivative_tolerance_version": self.derivative_tolerance_version,
+            "fixed_ttsirt_transport_derivative_status": (
+                self.fixed_ttsirt_transport_derivative_status
+            ),
+            "value_bridge_binding": self.value_bridge_binding.manifest_payload(),
+        }
+
+
+@dataclass(frozen=True)
+class SourceRouteComponentDerivativeCarry:
+    """One component score in the P90 deterministic derivative carry."""
+
+    binding: SourceRouteDerivativeBinding
+    component_name: str
+    component_value: tf.Tensor
+    parameter_score: tf.Tensor
+    callable_identity: str
+    classification: str
+    owner_status: str
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.binding, SourceRouteDerivativeBinding):
+            raise TypeError("binding must be SourceRouteDerivativeBinding")
+        name = str(self.component_name)
+        if name not in (
+            "prior",
+            "previous_marginal",
+            "transition",
+            "likelihood",
+            "negative_log_assembly",
+            "proposal_correction",
+            "normalizer",
+            "transport",
+        ):
+            raise ValueError("unsupported derivative component_name")
+        value = _finite_vector("component_value", self.component_value)
+        score = tf.convert_to_tensor(self.parameter_score, dtype=tf.float64)
+        if score.shape.rank != 2:
+            raise ValueError(f"parameter_score: {HighDimStatus.INVALID_SHAPE.value}")
+        if int(score.shape[0]) != int(value.shape[0]):
+            raise ValueError(f"parameter_score: {HighDimStatus.INVALID_SHAPE.value}")
+        if int(score.shape[1]) != len(self.binding.parameter_indices):
+            raise ValueError(f"parameter_score: {HighDimStatus.INVALID_SHAPE.value}")
+        assert_tf_float64("parameter_score", score)
+        if not bool(tf.reduce_all(tf.math.is_finite(score)).numpy()):
+            raise ValueError(f"parameter_score: {HighDimStatus.NONFINITE_VALUE.value}")
+        if not str(self.callable_identity).strip():
+            raise ValueError("callable_identity must be nonempty")
+        if str(self.classification) not in (
+            "local_parameterized_sir_component",
+            "source_formula_assembly",
+            "fixed_hmc_adaptation_blocker",
+            "source_backed_transport_blocker",
+        ):
+            raise ValueError("unsupported derivative classification")
+        status = str(self.owner_status)
+        if not (status.startswith("READY_") or status.startswith("BLOCK_")):
+            raise ValueError("owner_status must be READY_* or BLOCK_*")
+        object.__setattr__(self, "component_name", name)
+        object.__setattr__(self, "component_value", value)
+        object.__setattr__(self, "parameter_score", score)
+        object.__setattr__(self, "callable_identity", str(self.callable_identity))
+        object.__setattr__(self, "classification", str(self.classification))
+        object.__setattr__(self, "owner_status", status)
+
+    def manifest_payload(self) -> Mapping[str, object]:
+        return {
+            "family": "SourceRouteComponentDerivativeCarry",
+            "component_name": self.component_name,
+            "component_value": self.component_value,
+            "parameter_score": self.parameter_score,
+            "callable_identity": self.callable_identity,
+            "classification": self.classification,
+            "owner_status": self.owner_status,
+            "binding_hash": self.binding.value_bridge_binding_hash,
+        }
+
+
+@dataclass(frozen=True)
+class SourceRoutePreviousMarginalDerivativeCarry:
+    """Carry previous-marginal affine state plus explicit derivative blocker."""
+
+    binding: SourceRouteDerivativeBinding
+    previous_retained_hash: str
+    keep_axes: tuple[int, ...]
+    input_axes: tuple[int, ...]
+    local_prefix_points: tf.Tensor
+    log_density: tf.Tensor
+    affine_log_det: tf.Tensor
+    derivative_owner_status: str = (
+        "BLOCK_FIXED_TTSIRT_PREVIOUS_MARGINAL_DERIVATIVE_NOT_IMPLEMENTED"
+    )
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.binding, SourceRouteDerivativeBinding):
+            raise TypeError("binding must be SourceRouteDerivativeBinding")
+        value_binding = self.binding.value_bridge_binding
+        if str(self.previous_retained_hash) != value_binding.previous_retained_hash:
+            raise ValueError("P90 previous marginal derivative retained hash mismatch")
+        keep = tuple(int(axis) for axis in self.keep_axes)
+        input_axes = tuple(int(axis) for axis in self.input_axes)
+        if keep != value_binding.previous_marginal_keep_axes:
+            raise ValueError("P90 previous marginal derivative keep axes mismatch")
+        if input_axes != value_binding.previous_marginal_input_axes:
+            raise ValueError("P90 previous marginal derivative input axes mismatch")
+        local = tf.convert_to_tensor(self.local_prefix_points, dtype=tf.float64)
+        if local.shape.rank != 2 or int(local.shape[0]) != len(keep):
+            raise ValueError(f"local_prefix_points: {HighDimStatus.INVALID_SHAPE.value}")
+        assert_tf_float64("local_prefix_points", local)
+        if not bool(tf.reduce_all(tf.math.is_finite(local)).numpy()):
+            raise ValueError(f"local_prefix_points: {HighDimStatus.NONFINITE_VALUE.value}")
+        log_density = _finite_vector("log_density", self.log_density)
+        if int(log_density.shape[0]) != int(local.shape[1]):
+            raise ValueError(f"log_density: {HighDimStatus.INVALID_SHAPE.value}")
+        log_det = tf.convert_to_tensor(self.affine_log_det, dtype=tf.float64)
+        if log_det.shape.rank != 0 or not bool(tf.math.is_finite(log_det).numpy()):
+            raise ValueError(f"affine_log_det: {HighDimStatus.NONFINITE_VALUE.value}")
+        status = str(self.derivative_owner_status)
+        if not status.startswith("BLOCK_"):
+            raise ValueError("previous marginal derivative owner must remain a blocker")
+        object.__setattr__(self, "previous_retained_hash", str(self.previous_retained_hash))
+        object.__setattr__(self, "keep_axes", keep)
+        object.__setattr__(self, "input_axes", input_axes)
+        object.__setattr__(self, "local_prefix_points", local)
+        object.__setattr__(self, "log_density", log_density)
+        object.__setattr__(self, "affine_log_det", log_det)
+        object.__setattr__(self, "derivative_owner_status", status)
+
+    def manifest_payload(self) -> Mapping[str, object]:
+        return {
+            "family": "SourceRoutePreviousMarginalDerivativeCarry",
+            "binding_hash": self.binding.value_bridge_binding_hash,
+            "previous_retained_hash": self.previous_retained_hash,
+            "keep_axes": self.keep_axes,
+            "input_axes": self.input_axes,
+            "local_prefix_points": self.local_prefix_points,
+            "log_density": self.log_density,
+            "affine_log_det": self.affine_log_det,
+            "derivative_owner_status": self.derivative_owner_status,
+        }
+
+
+def source_route_negative_log_assembly_derivative_carry(
+    *,
+    binding: SourceRouteDerivativeBinding,
+    prior_or_previous: SourceRouteComponentDerivativeCarry,
+    transition: SourceRouteComponentDerivativeCarry,
+    likelihood: SourceRouteComponentDerivativeCarry,
+) -> SourceRouteComponentDerivativeCarry:
+    """Assemble the negative-log score carry from component log-density scores."""
+
+    components = (prior_or_previous, transition, likelihood)
+    if any(component.binding != binding for component in components):
+        raise ValueError("P90 derivative assembly binding hash mismatch")
+    if prior_or_previous.component_name not in ("prior", "previous_marginal"):
+        raise ValueError("prior_or_previous component must be prior or previous_marginal")
+    if transition.component_name != "transition":
+        raise ValueError("transition component mismatch")
+    if likelihood.component_name != "likelihood":
+        raise ValueError("likelihood component mismatch")
+    score = -(
+        prior_or_previous.parameter_score
+        + transition.parameter_score
+        + likelihood.parameter_score
+    )
+    value = -(
+        prior_or_previous.component_value
+        + transition.component_value
+        + likelihood.component_value
+    )
+    return SourceRouteComponentDerivativeCarry(
+        binding=binding,
+        component_name="negative_log_assembly",
+        component_value=value,
+        parameter_score=score,
+        callable_identity="source_route_negative_log_assembly",
+        classification="source_formula_assembly",
+        owner_status="READY_P90_DETERMINISTIC_ASSEMBLY_DERIVATIVE_CARRY",
+    )
+
+
+@dataclass(frozen=True)
 class SourceRouteSequentialStepSpec:
     """Frozen inputs for one fixed-HMC replay step of the source route."""
 
@@ -1355,6 +1856,147 @@ class P58M9SourceRoutePipelineReadiness:
                 "no S&P 500 reproduction",
             ),
         }
+
+
+@dataclass(frozen=True)
+class P83MinimalTransportSliceReadiness:
+    """Phase-3 fail-closed gate for the minimal fixed-TTSIRT transport slice."""
+
+    status: str
+    blockers: tuple[str, ...]
+    manifest: Mapping[str, object]
+
+    def __post_init__(self) -> None:
+        status = str(self.status)
+        allowed = {
+            P83_MINIMAL_TRANSPORT_SLICE_READY_STATUS,
+            P83_MINIMAL_TRANSPORT_SLICE_BLOCK_STATUS,
+        }
+        if status not in allowed:
+            raise ValueError("unknown P83 minimal transport slice readiness status")
+        blockers = tuple(str(blocker) for blocker in self.blockers)
+        if status == P83_MINIMAL_TRANSPORT_SLICE_READY_STATUS and blockers:
+            raise ValueError("ready status cannot carry blockers")
+        if status != P83_MINIMAL_TRANSPORT_SLICE_READY_STATUS and not blockers:
+            raise ValueError("blocked status requires at least one blocker")
+        object.__setattr__(self, "status", status)
+        object.__setattr__(self, "blockers", blockers)
+        object.__setattr__(self, "manifest", freeze_mapping(self.manifest))
+
+    @property
+    def ready_for_p83_minimal_slice(self) -> bool:
+        return self.status == P83_MINIMAL_TRANSPORT_SLICE_READY_STATUS
+
+    def manifest_payload(self) -> Mapping[str, object]:
+        return {
+            "family": "P83MinimalTransportSliceReadiness",
+            "status": self.status,
+            "ready_for_p83_minimal_slice": self.ready_for_p83_minimal_slice,
+            "blockers": self.blockers,
+            "manifest": self.manifest,
+            "nonclaims": (
+                "no production KR closure",
+                "no d18 correctness",
+                "no author-scale fit quality",
+                "no derivative readiness",
+                "no LEDH readiness",
+                "no HMC readiness",
+            ),
+        }
+
+
+def p83_minimal_transport_slice_readiness(
+    manifest: Mapping[str, object],
+) -> P83MinimalTransportSliceReadiness:
+    """Fail closed unless the P83 minimal fixed-TTSIRT slice is honest.
+
+    This metadata gate is intentionally narrower than P58/P59 launch readiness.
+    It only checks that a positive-defensive fixed-TTSIRT transport exposes the
+    retained-marginal, CDF, proposal, and nonclaim metadata required by P83.
+    """
+
+    if not isinstance(manifest, Mapping):
+        raise TypeError("manifest must be a mapping")
+    data = dict(manifest)
+    transport_data = data.get("transport_object")
+    if isinstance(transport_data, Mapping):
+        transport = dict(transport_data)
+    else:
+        transport = data
+    blockers: list[str] = []
+
+    if str(transport.get("source_contract_level", "")) != "fixed_ttsirt":
+        blockers.append("missing_fixed_ttsirt_contract_level")
+    if transport.get("tt_cores_declared") is not True:
+        blockers.append("missing_tt_cores_declared")
+    if transport.get("defensive_density_declared") is not True:
+        blockers.append("missing_defensive_density_declared")
+    if transport.get("defensive_mass_positive") is not True:
+        blockers.append("missing_positive_defensive_mass")
+    if (
+        str(transport.get("proposition2_marginal_backend", ""))
+        != "paired_core_mass_contraction_prefix_suffix"
+    ):
+        blockers.append("missing_paired_core_marginal_backend")
+    if (
+        str(transport.get("conditional_cdf_backend", ""))
+        != "numerical_grid_trapezoid_bisection"
+    ):
+        blockers.append("missing_numerical_grid_cdf_backend")
+    if (
+        str(transport.get("conditional_cdf_route_class", ""))
+        != "fixed_hmc_adaptation_diagnostic_approximation"
+    ):
+        blockers.append("missing_diagnostic_cdf_route_class")
+    if transport.get("production_kr_closure") is not False:
+        blockers.append("production_kr_closure_not_false")
+    if str(transport.get("proposal_density_backend", "")) != "eval_pdf_on_local_samples":
+        blockers.append("missing_eval_pdf_proposal_backend")
+
+    nonclaims = tuple(str(item) for item in transport.get("p83_nonclaims", ()))
+    for required in (
+        "no production KR closure",
+        "no d18 correctness",
+        "no derivative readiness",
+        "no LEDH readiness",
+        "no HMC readiness",
+    ):
+        if required not in nonclaims:
+            blockers.append(f"missing_p83_nonclaim:{required}")
+
+    strings = _flatten_manifest_strings(transport)
+    for marker in SOURCE_ROUTE_FORBIDDEN_DRIFT_MARKERS:
+        if any(marker in text for text in strings):
+            blockers.append(f"forbidden_source_route_marker:{marker}")
+
+    if blockers:
+        return P83MinimalTransportSliceReadiness(
+            status=P83_MINIMAL_TRANSPORT_SLICE_BLOCK_STATUS,
+            blockers=tuple(blockers),
+            manifest=data,
+        )
+    return P83MinimalTransportSliceReadiness(
+        status=P83_MINIMAL_TRANSPORT_SLICE_READY_STATUS,
+        blockers=(),
+        manifest=data,
+    )
+
+
+def _flatten_manifest_strings(value: object) -> tuple[str, ...]:
+    if isinstance(value, Mapping):
+        rows: list[str] = []
+        for key, child in value.items():
+            rows.extend(_flatten_manifest_strings(key))
+            rows.extend(_flatten_manifest_strings(child))
+        return tuple(rows)
+    if isinstance(value, (tuple, list, set, frozenset)):
+        rows = []
+        for child in value:
+            rows.extend(_flatten_manifest_strings(child))
+        return tuple(rows)
+    if isinstance(value, str):
+        return (value,)
+    return ()
 
 
 def p58_m9_source_route_pipeline_readiness(
@@ -2113,6 +2755,15 @@ def p59_author_sir_36d_target_fit_prep(
         )
 
     convention = _p59_reference_convention()
+    legacy_basis_config = p85_legacy_legendre_product_basis_spec(
+        dimension=target_dim,
+        fit_degree=int(fit_degree),
+        convention=convention,
+    )
+    author_basis_config = p85_author_sir_lagrangep_algebraic_product_basis_spec(
+        dimension=target_dim,
+        convention=convention,
+    )
     product_basis = ProductBasis(
         [
             LegendreBasis1D(BoundedInterval(-1.0, 1.0), int(fit_degree))
@@ -2224,6 +2875,10 @@ def p59_author_sir_36d_target_fit_prep(
         "rank_tuple": fit_config.ranks,
         "fit_degree": int(fit_degree),
         "fit_rank": int(fit_rank),
+        "basis_domain_config": legacy_basis_config.manifest_payload(),
+        "author_basis_domain_config_available": author_basis_config.manifest_payload(),
+        "author_basis_domain_config_status": P85_AUTHOR_SIR_BASIS_DOMAIN_CONFIG_STATUS,
+        "author_basis_domain_full_fit_status": P85_AUTHOR_SIR_BASIS_DOMAIN_FULL_FIT_BLOCK_STATUS,
         "fixed_branch_adaptation_class": P65_FIXED_BRANCH_ADAPTATION_CLASS,
         "fit_initialization_rule": P65_FIXED_BRANCH_INITIALIZATION_RULE,
         "fit_initialization_rule_source": "docs/plans/bayesfilter-highdim-zhao-cui-p50-chapter-discipline-rewrite-2026-06-12.tex:prop:p50-constant-path-initialization",
@@ -2239,6 +2894,8 @@ def p59_author_sir_36d_target_fit_prep(
             "no same-route rank convergence claim",
             "no d50 or d100 scaling claim",
             "no HMC production readiness claim",
+            "legacy bounded Legendre route remains local_gap/diagnostic_legendre_route",
+            "author Lagrangep(4,8) AlgebraicMapping(1) config is not fitted in P85",
         ),
     }
     return P59AuthorSIR36DTargetFitPrepResult(
@@ -7772,6 +8429,143 @@ def source_route_previous_marginal_log_density(
         physical_points=points,
         local_points=local_points,
         log_density=log_density,
+    )
+
+
+def source_route_coordinate_frame_hash(
+    coordinate_frame: SourceRouteCoordinateFrame,
+) -> str:
+    """Return the canonical manifest hash for a source-route affine frame."""
+
+    if not isinstance(coordinate_frame, SourceRouteCoordinateFrame):
+        raise TypeError("coordinate_frame must be SourceRouteCoordinateFrame")
+    return BranchManifest(
+        version="source_route_coordinate_frame.v1",
+        payload=coordinate_frame.manifest_payload(),
+    ).sha256().value
+
+
+def source_route_callable_identity(fn) -> str:
+    """Return the stable callable identity used by P90 bridge bindings."""
+
+    if not callable(fn):
+        raise TypeError("fn must be callable")
+    module = str(getattr(fn, "__module__", type(fn).__module__))
+    qualname = str(getattr(fn, "__qualname__", type(fn).__qualname__))
+    return f"{module}.{qualname}"
+
+
+def source_route_author_formula_negative_log_physical_density(
+    *,
+    physical_points: tf.Tensor,
+    binding: SourceRouteValueBridgeBinding,
+    transition_log_density_fn,
+    likelihood_log_density_fn,
+    prior_log_density_fn=None,
+    previous_retained_object: SourceRouteRetainedObject | None = None,
+    current_transport_branch_hash: str,
+    current_coordinate_frame: SourceRouteCoordinateFrame,
+) -> SourceRouteAuthorFormulaReplayResult:
+    """Replay the author formula without calling the production scalar helper."""
+
+    if not isinstance(binding, SourceRouteValueBridgeBinding):
+        raise TypeError("binding must be SourceRouteValueBridgeBinding")
+    points = tf.convert_to_tensor(physical_points, dtype=tf.float64)
+    if points.shape.rank != 2:
+        raise ValueError(f"physical_points: {HighDimStatus.INVALID_SHAPE.value}")
+    if tuple(int(item) for item in points.shape) != binding.physical_shape:
+        raise ValueError("P90 value bridge physical shape mismatch")
+    assert_tf_float64("physical_points", points)
+    if not bool(tf.reduce_all(tf.math.is_finite(points)).numpy()):
+        raise ValueError(f"physical_points: {HighDimStatus.NONFINITE_VALUE.value}")
+    if str(current_transport_branch_hash) != binding.transport_branch_hash:
+        raise ValueError("P90 value bridge transport branch hash mismatch")
+    if source_route_coordinate_frame_hash(current_coordinate_frame) != binding.coordinate_frame_hash:
+        raise ValueError("P90 value bridge coordinate frame hash mismatch")
+    if not callable(transition_log_density_fn):
+        raise TypeError("transition_log_density_fn must be callable")
+    if not callable(likelihood_log_density_fn):
+        raise TypeError("likelihood_log_density_fn must be callable")
+    if source_route_callable_identity(transition_log_density_fn) != binding.transition_log_density_id:
+        raise ValueError("P90 value bridge transition function identity mismatch")
+    if source_route_callable_identity(likelihood_log_density_fn) != binding.likelihood_log_density_id:
+        raise ValueError("P90 value bridge likelihood function identity mismatch")
+    d = binding.parameter_dim
+    m = binding.state_dim
+    previous_input_axes = tuple(range(d)) + tuple(range(d + m, d + 2 * m))
+    prior_points = tf.gather(points, previous_input_axes, axis=0)
+    previous_local_points = None
+    if binding.time_index == 1:
+        if prior_log_density_fn is None or not callable(prior_log_density_fn):
+            raise TypeError("t=1 bridge replay requires callable prior_log_density_fn")
+        if source_route_callable_identity(prior_log_density_fn) != binding.prior_log_density_id:
+            raise ValueError("P90 value bridge prior function identity mismatch")
+        if previous_retained_object is not None:
+            raise ValueError("t=1 bridge replay cannot include previous retained object")
+        prior_or_previous_log_density = _finite_vector(
+            "prior_log_density",
+            prior_log_density_fn(prior_points),
+        )
+    else:
+        if prior_log_density_fn is not None:
+            raise ValueError("t>1 bridge replay uses previous retained marginal")
+        if previous_retained_object is None:
+            raise TypeError("t>1 bridge replay requires previous_retained_object")
+        if (
+            previous_retained_object.branch_identity.hash.value
+            != binding.previous_retained_hash
+        ):
+            raise ValueError("P90 value bridge previous retained hash mismatch")
+        keep = binding.previous_marginal_keep_axes
+        if keep is None or keep != tuple(range(d + m)):
+            raise ValueError("P90 value bridge previous keep axes mismatch")
+        transport = SourceRouteTransportProtocol(
+            previous_retained_object.transport_object
+        )
+        marginal_transport = transport.marginalize(keep)
+        frame = previous_retained_object.coordinate_frame
+        mu_prefix = tf.gather(frame.mu, keep)
+        matrix_prefix = tf.gather(tf.gather(frame.matrix, keep, axis=0), keep, axis=1)
+        previous_local_points = tf.linalg.solve(
+            matrix_prefix,
+            prior_points - mu_prefix[:, tf.newaxis],
+        )
+        eval_pdf = _source_route_eval_marginal_pdf(
+            marginal_transport,
+            previous_local_points,
+        )
+        if not bool(tf.reduce_all(eval_pdf > 0.0).numpy()):
+            raise ValueError(
+                f"previous_marginal_eval_pdf: {HighDimStatus.NONFINITE_VALUE.value}"
+            )
+        prior_or_previous_log_density = tf.math.log(eval_pdf) - tf.math.log(
+            tf.abs(tf.linalg.det(matrix_prefix))
+        )
+    transition_log_density = _finite_vector(
+        "transition_log_density",
+        transition_log_density_fn(points, binding.time_index),
+    )
+    likelihood_log_density = _finite_vector(
+        "likelihood_log_density",
+        likelihood_log_density_fn(points, binding.time_index),
+    )
+    if (
+        prior_or_previous_log_density.shape != transition_log_density.shape
+        or prior_or_previous_log_density.shape != likelihood_log_density.shape
+    ):
+        raise ValueError(f"source sequential density: {HighDimStatus.INVALID_SHAPE.value}")
+    return SourceRouteAuthorFormulaReplayResult(
+        binding=binding,
+        physical_points=points,
+        prior_or_previous_log_density=prior_or_previous_log_density,
+        transition_log_density=transition_log_density,
+        likelihood_log_density=likelihood_log_density,
+        negative_log_density=(
+            -prior_or_previous_log_density
+            - transition_log_density
+            - likelihood_log_density
+        ),
+        previous_marginal_local_points=previous_local_points,
     )
 
 

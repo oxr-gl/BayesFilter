@@ -1,0 +1,326 @@
+{
+  "algorithm_id": "ledh_pfpf_ot",
+  "average_log_likelihood_by_seed": [
+    -5.509649276733398
+  ],
+  "average_log_likelihood_estimate": {
+    "mcse": null,
+    "mean": -5.509649276733398,
+    "sample_sd": null,
+    "seed_count": 1
+  },
+  "batch_seeds": [
+    81120
+  ],
+  "comparison_status": "executed_prefix_value_diagnostic_score_blocked",
+  "compile_and_first_call_seconds": 7.571674155071378,
+  "compiled_unit": "streaming_batched_ledh_pfpf_ot_value_core_tf",
+  "cuda_visible_devices": null,
+  "device": "/GPU:0",
+  "device_scope": "visible",
+  "ess_min_by_seed": null,
+  "ess_summary_available": false,
+  "exact_value_comparison": {
+    "average_absolute_delta": 1.0785740295560995,
+    "average_delta_mean_minus_exact": -1.0785740295560995,
+    "average_relative_error_abs": 0.24341135489476892,
+    "exact_average_log_likelihood": -4.431075247177299,
+    "exact_total_log_likelihood": -8.862150494354598,
+    "total_absolute_delta": 2.157148059112199,
+    "total_delta_mean_minus_exact": -2.157148059112199,
+    "total_relative_error_abs": 0.24341135489476892
+  },
+  "expect_device_kind": "gpu",
+  "finite_output": true,
+  "git_commit": "8e66819af4235d6a4a9c68eb49ce9eb9fdc9feef",
+  "gpu_memory_info_after": {
+    "current": 10240,
+    "peak": 569600
+  },
+  "gpu_memory_info_before": {
+    "current": 9216,
+    "peak": 569600
+  },
+  "history_mode": "value-only",
+  "history_shapes": {
+    "ess_by_time": [
+      0,
+      1
+    ],
+    "filtered_means": [
+      0,
+      1,
+      3
+    ],
+    "filtered_variances": [
+      0,
+      1,
+      3
+    ],
+    "final_particles": [
+      1,
+      4,
+      3
+    ]
+  },
+  "host": "DESKTOP-RF1Q5IJ",
+  "jit_compile": true,
+  "logical_gpus": [
+    "LogicalDevice(name='/device:GPU:0', device_type='GPU')"
+  ],
+  "manual_score_diagnostic": {
+    "log_likelihood_by_seed": [
+      -10.844049453735352
+    ],
+    "no_autodiff_score_route": true,
+    "objective": -10.844049453735352,
+    "old_full_history_route_status": "historical_diagnostic_only",
+    "parameter_names": [
+      "phi1",
+      "phi2",
+      "phi3",
+      "q_scale",
+      "r_scale"
+    ],
+    "per_seed_score": [
+      [
+        -2.153972864151001,
+        0.1552179455757141,
+        0.4587976336479187,
+        6.218243598937988,
+        16.27488136291504
+      ]
+    ],
+    "same_scalar_fd": {
+      "atol": 0.005,
+      "max_abs_error": 0.0010013580322265625,
+      "max_relative_error": 0.001485812827013433,
+      "parameters": [
+        {
+          "abs_error": 9.942054748535156e-05,
+          "finite_difference": -2.1538734436035156,
+          "manual_score": -2.153972864151001,
+          "parameter": "phi1",
+          "relative_error": 4.6156823373166844e-05
+        },
+        {
+          "abs_error": 0.00023096799850463867,
+          "finite_difference": 0.15544891357421875,
+          "manual_score": 0.1552179455757141,
+          "parameter": "phi2",
+          "relative_error": 0.001485812827013433
+        },
+        {
+          "abs_error": 8.031725883483887e-05,
+          "finite_difference": 0.45871731638908386,
+          "manual_score": 0.4587976336479187,
+          "parameter": "phi3",
+          "relative_error": 0.00017506031144876033
+        },
+        {
+          "abs_error": 0.0002875328063964844,
+          "finite_difference": 6.217956066131592,
+          "manual_score": 6.218243598937988,
+          "parameter": "q_scale",
+          "relative_error": 4.6240194933488965e-05
+        },
+        {
+          "abs_error": 0.0010013580322265625,
+          "finite_difference": 16.275882720947266,
+          "manual_score": 16.27488136291504,
+          "parameter": "r_scale",
+          "relative_error": 6.15240351180546e-05
+        }
+      ],
+      "rtol": 0.005,
+      "status": "pass",
+      "step": 0.001
+    },
+    "score": [
+      -2.153972864151001,
+      0.1552179455757141,
+      0.4587976336479187,
+      6.218243598937988,
+      16.27488136291504
+    ],
+    "score_derivative_provenance": "compact_forward_sensitivity_no_tape_same_scalar_fd_checked",
+    "score_mode": "compact-sensitivity",
+    "score_output_devices": [
+      "/job:localhost/replica:0/task:0/device:GPU:0"
+    ],
+    "score_route": "compact_forward_sensitivity_no_autodiff_same_scalar_lgssm_ledh_pfpf_ot",
+    "score_route_id": "same_target_lgssm_m3_t50_ledh_pfpf_ot_streaming_manual_total",
+    "transport": {
+      "ad_mode": "full",
+      "annealed_scaling": 0.9,
+      "gradient_mode": "manual_streaming_finite_sinkhorn_stopped_scale_keys",
+      "plan_mode": "streaming",
+      "sinkhorn_epsilon": 0.5,
+      "sinkhorn_iterations": 2
+    },
+    "value_route_id": "same_target_lgssm_m3_t50_ledh_pfpf_ot_streaming_manual_total",
+    "value_score_route_status": "same_route_value_score",
+    "value_score_same_transport_algorithm": true
+  },
+  "max_column_residual": 0.0,
+  "max_row_residual": 0.07495731115341187,
+  "nonclaims": [
+    "not exact Kalman score evidence",
+    "not HMC/NUTS readiness evidence",
+    "not posterior correctness evidence",
+    "not runtime-rankable against frozen non-LEDH rows",
+    "not evidence for nonlinear rows",
+    "compact total score passed same-scalar FD on this run but is not admitted as a full GPU leaderboard score"
+  ],
+  "output_devices": [
+    "/job:localhost/replica:0/task:0/device:GPU:0"
+  ],
+  "output_shape": [
+    1
+  ],
+  "physical_gpus": [
+    "PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')"
+  ],
+  "precision": {
+    "active_dtype": "float32",
+    "default_algorithm_target": "ledh_pfpf_ot_tf32",
+    "default_dtype": "float32",
+    "default_execution_target": "gpu",
+    "default_route_acceptance": "accepted_default_use_whenever_possible",
+    "default_route_guidance": "use for BayesFilter DPF LEDH-PFPF-OT work whenever GPU execution and the streaming fixed-branch contract are applicable",
+    "default_route_rationale": "streaming GPU TF32 LEDH-PFPF-OT avoids dense transport/history storage for large-particle DPF transport while preserving explicit reference and fallback arms",
+    "default_target_status": "production_default_by_owner_directive",
+    "default_tf32_mode": "enabled",
+    "dtype": "float32",
+    "fp64_reference_requires_explicit_dtype": true,
+    "historical_module_path": "experiments/dpf_implementation",
+    "precision_default_policy": "production_ledh_pfpf_ot_gpu_tf32",
+    "public_api_exposure": "separately_gated",
+    "scope": "production_ledh_pfpf_ot_gpu_tf32_default_lane",
+    "tf32_execution_enabled": true,
+    "tf32_mode": "enabled",
+    "tf_dtype": "float32"
+  },
+  "primary_pass_same_target_value_execution": false,
+  "python_version": "3.11.14",
+  "repeats": 1,
+  "return_history": false,
+  "row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+  "runtime_gate_applicable": true,
+  "runtime_rankable_with_frozen_non_ledh": false,
+  "schema_version": "filter_bench.ledh_same_target_lgssm_m3_t50_value.v2",
+  "score": [
+    -2.153972864151001,
+    0.1552179455757141,
+    0.4587976336479187,
+    6.218243598937988,
+    16.27488136291504
+  ],
+  "score_admission_status": "blocked_material_gate_not_full_gpu_row",
+  "score_derivative_provenance": "compact_forward_sensitivity_no_tape_same_scalar_fd_checked",
+  "score_output_devices": [
+    "/job:localhost/replica:0/task:0/device:GPU:0"
+  ],
+  "score_parameter_names": [
+    "phi1",
+    "phi2",
+    "phi3",
+    "q_scale",
+    "r_scale"
+  ],
+  "score_route": "compact_forward_sensitivity_no_autodiff_same_scalar_lgssm_ledh_pfpf_ot",
+  "score_route_id": "same_target_lgssm_m3_t50_ledh_pfpf_ot_streaming_manual_total",
+  "score_runtime_gate_applicable": true,
+  "score_status": "executed_compact_score_fd_pass_but_material_gate_blocked",
+  "shape": {
+    "batch_seed_count": 1,
+    "batch_size": 1,
+    "num_particles": 4,
+    "obs_dim": 3,
+    "state_dim": 3,
+    "time_steps": 2
+  },
+  "target_identity": {
+    "batch_seeds": [
+      81120
+    ],
+    "dataset_seed": 81100,
+    "dataset_source": "scripts/filtering_value_gradient_benchmark_generate_p8_datasets.py:_lgssm_dataset",
+    "exact_average_log_likelihood": -4.431075247177299,
+    "exact_total_log_likelihood": -8.862150494354598,
+    "exact_value_comparator": "tf_kalman_log_likelihood on same observations/model",
+    "full_leaderboard_row": false,
+    "full_row_expected": {
+      "batch_seeds": [
+        81120,
+        81121,
+        81122,
+        81123,
+        81124
+      ],
+      "num_particles": 1000,
+      "sinkhorn_epsilon": 0.5,
+      "sinkhorn_iterations": 10,
+      "time_steps": 50,
+      "transport_policy": "active-all"
+    },
+    "model_source": "scripts/filtering_value_gradient_benchmark_generate_p8_datasets.py:_lgssm_benchmark_model",
+    "num_particles": 4,
+    "obs_dim": 3,
+    "row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+    "row_scope": "main_observed_data_filtering_row",
+    "same_target_status": "prefix_diagnostic_not_full_leaderboard_row",
+    "score_admission_status": "blocked_material_gate_not_full_gpu_row",
+    "score_status": "executed_compact_score_fd_pass_but_material_gate_blocked",
+    "sinkhorn_epsilon": 0.5,
+    "sinkhorn_iterations": 2,
+    "state_dim": 3,
+    "time_steps": 2,
+    "transport_policy": "active-all",
+    "truth_theta": [
+      0.72,
+      0.55,
+      0.35,
+      0.35,
+      0.45
+    ]
+  },
+  "tensorflow_version": "2.19.1",
+  "timestamp_utc": "2026-07-05T11:46:09.438866+00:00",
+  "total_log_likelihood_by_seed": [
+    -11.019298553466797
+  ],
+  "total_log_likelihood_estimate": {
+    "mcse": null,
+    "mean": -11.019298553466797,
+    "sample_sd": null,
+    "seed_count": 1
+  },
+  "transport": {
+    "ad_mode": "full",
+    "annealed_convergence_threshold": 0.001,
+    "annealed_scaling": 0.9,
+    "col_chunk_size": 4,
+    "dense_transport_matrix_materialized": false,
+    "gradient_mode": "manual_streaming_finite_sinkhorn_stopped_scale_keys",
+    "particle_chunk_size": 4,
+    "plan_mode": "streaming",
+    "row_chunk_size": 4,
+    "sinkhorn_epsilon": 0.5,
+    "sinkhorn_iterations": 2
+  },
+  "transport_policy": "active-all",
+  "value_route_id": "same_target_lgssm_m3_t50_ledh_pfpf_ot_streaming_manual_total",
+  "value_score_route_status": "same_route_value_score",
+  "value_status": "executed_prefix_value_not_full_row",
+  "warm_call_timing_summary_seconds": {
+    "max": 0.015926914056763053,
+    "mean": 0.015926914056763053,
+    "median": 0.015926914056763053,
+    "min": 0.015926914056763053
+  },
+  "warm_call_timings_seconds": [
+    0.015926914056763053
+  ],
+  "warmups": 0
+}

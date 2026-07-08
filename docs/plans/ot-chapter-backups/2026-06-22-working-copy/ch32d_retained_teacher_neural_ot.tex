@@ -1,0 +1,179 @@
+\chapter{Retained-Teacher Neural OT Warm Starts}
+\label{ch:bf-dpf-learned-ot}
+
+The previous chapter fixed the entropic OT and Sinkhorn layer as a fully declared
+teacher object.  The present chapter introduces the narrowest neural extension of
+that teacher: do not replace the teacher; learn how to start it better.
+
+This is the main implementation-bearing neural chapter of the OT block.  Its
+question is narrower than ``can a network learn transport?''  It asks instead:
+can a network predict a good internal solver state so that a retained corrective
+Sinkhorn phase needs less work while still protecting the declared teacher object?
+
+\section{Objects and conventions}
+\label{sec:bf-learned-ot-objects}
+
+Let \(X=(x_1,\ldots,x_N)^\top\in\mathbb R^{N\times d_x}\) be the weighted source
+cloud and \(w\in\Delta_N\) its normalized weights.  Let
+\(u=(1/N,\ldots,1/N)\) be the equal target marginal, and let
+\(C(X,Z)\in\mathbb R^{N\times N}\) be the declared transport cost matrix.  The
+teacher coupling is either the exact regularized OT optimizer
+\(\Pi_\varepsilon^\star\) or the finite numerical teacher
+\(\Pi_{\varepsilon,K}\).  The barycentric teacher output is
+\begin{equation}
+\label{eq:bf-learned-ot-barycentric-teacher}
+  Y_\tau(X,w,\varepsilon)=B(\Pi_\tau(X,w,\varepsilon)).
+\end{equation}
+
+The student does not directly define a new target cloud at first.  It predicts a
+solver-relevant latent quantity such as dual variables or scaling vectors.  Write
+\begin{equation}
+\label{eq:bf-learned-ot-student-map}
+  h_\psi = S_\psi(X,w;\varepsilon,N,d_x),
+\end{equation}
+where \(h_\psi\) is later translated into the initialization of the retained
+corrective Sinkhorn solver.
+
+\section{What the teacher computes}
+\label{sec:bf-learned-ot-hierarchy}
+
+There is no single teacher unless the variant is named.  In this chapter, the
+main teacher is the retained EOT/Sinkhorn route from the previous chapter.  The
+most important teacher objects are:
+\begin{enumerate}[label=(\roman*)]
+  \item the exact regularized coupling \(\Pi_\varepsilon^\star\),
+  \item the finite numerical teacher \(\Pi_{\varepsilon,K}\),
+  \item the barycentric teacher output \(Y_\tau=B(\Pi_\tau)\).
+\end{enumerate}
+The chapter’s neural route is only intended to accelerate the finite teacher, not
+to redefine these objects.
+
+\section{Algorithm: retained-teacher warm-started Sinkhorn}
+\label{sec:bf-learned-ot-teacher}
+
+\begin{algorithm}[ht]
+\caption{\texttt{train\_and\_deploy\_warmstarted\_sinkhorn}}
+\begin{algorithmic}[1]
+\Require training distribution \(\mathcal D\) over weighted particle clouds, declared cost construction, regularization schedule \(\varepsilon\), teacher Sinkhorn solver, architecture class \(S_\psi\), deployment-time corrective budget \(K_{\mathrm{corr}}\)
+\Ensure trained predictor \(S_\psi\), corrected deployment coupling \(\widehat\Pi_{\psi,\varepsilon,K_{\mathrm{corr}}}\), barycentric output cloud \(\widetilde X_{\psi,\mathrm{corr}}\), and declared residual diagnostics
+\State Generate teacher problems by solving the retained EOT/Sinkhorn route on sampled clouds from \(\mathcal D\)
+\State Extract the latent teacher target to be predicted, e.g. dual/scaling coordinates
+\State Fit the predictor \(S_\psi\) on this teacher data using the declared loss family
+\State For a new weighted cloud \((X,w)\), compute the student prediction \(h_\psi=S_\psi(X,w;\varepsilon,N,d_x)\)
+\State Translate \(h_\psi\) into the initial state of the retained corrective Sinkhorn solver
+\State Run \(K_{\mathrm{corr}}\) corrective Sinkhorn updates to obtain \(\widehat\Pi_{\psi,\varepsilon,K_{\mathrm{corr}}}\)
+\State Form the barycentric equal-weight output cloud \(\widetilde X_{\psi,\mathrm{corr}}=B(\widehat\Pi_{\psi,\varepsilon,K_{\mathrm{corr}}})\)
+\State Record row/column residuals, teacher-student discrepancy, and any downstream scalar checks
+\end{algorithmic}
+\end{algorithm}
+
+\paragraph{What the student is allowed to change.}
+Only the initialization of the retained teacher solver, or another explicitly
+named latent teacher coordinate.
+
+\paragraph{What the teacher still protects.}
+The declared transport constraints, the EOT objective, and the corrected
+barycentric output after refinement.
+
+\section{Training objective and deployment contract}
+\label{sec:bf-learned-ot-training-objective}
+
+Let \(h_\tau\) denote the teacher latent target and let
+\(\mathcal D(N,d_x,\varepsilon,m,\eta)\) be the training distribution over
+problem instances.  A simple supervised teacher-student fitting problem is
+\begin{equation}
+\label{eq:bf-learned-ot-training-objective}
+  \psi^\star
+  \in
+  \arg\min_\psi
+  \mathbb E_{(X,w,\varepsilon,m)\sim\mathcal D}
+  \left[
+    \mathcal L\{S_\psi(X,w;\varepsilon,N,d_x),h_\tau(X,w,\varepsilon)
+    \}
+  \right].
+\end{equation}
+In practice, the deployment claim is not about this loss alone.  It is about
+whether the corrected route preserves the teacher output well enough on held-out
+and stress-test clouds.
+
+\section{Permutation symmetry}
+\label{sec:bf-learned-ot-symmetry}
+
+Particle labels are arbitrary.  For a permutation matrix
+\(P\in\mathbb R^{N\times N}\), the predictor should at least satisfy a declared
+permutation symmetry.  In the output-cloud case the natural condition is
+\begin{equation}
+\label{eq:bf-learned-ot-equivariance}
+  S_\psi(PX,Pw;\varepsilon,N,d_x)
+  =
+  P\,S_\psi(X,w;\varepsilon,N,d_x)
+  \quad
+  \text{or the corresponding latent-state analogue.}
+\end{equation}
+This is a necessary condition, not a target-correctness theorem.
+
+\section{Residual hierarchy}
+\label{sec:bf-learned-ot-residuals}
+
+The first deployment residual is the teacher-student discrepancy after correction:
+\begin{equation}
+\label{eq:bf-learned-ot-residual}
+  R_{\psi,\tau}(X,w,\varepsilon)
+  =
+  B(\widehat\Pi_{\psi,\varepsilon,K_{\mathrm{corr}}})
+  -
+  B(\Pi_\tau(X,w,\varepsilon)).
+\end{equation}
+This residual does not by itself control filtering or HMC target error.  It only
+measures how well the corrected student reproduces the chosen teacher.
+
+\section{Filtering-loop insertion point}
+\label{sec:bf-learned-ot-loop}
+
+Inside the filtering loop, the retained-teacher neural route sits exactly where
+Chapter~\ref{ch:bf-dpf-entropic-ot-sinkhorn} placed the finite EOT/Sinkhorn
+layer:
+\begin{equation}
+\label{eq:bf-learned-ot-loop}
+  \{x_i,w_i\}_{i=1}^N
+  \xrightarrow{\mathrm{student\ warm\ start + retained\ Sinkhorn}}
+  \{\tilde x^{(j)},1/N\}_{j=1}^N.
+\end{equation}
+It accelerates the equal-weighting layer after the weighted cloud has already been
+formed.  It does not redefine the earlier particle-weighting rule itself.
+
+\section{Verification notes}
+\label{sec:bf-learned-ot-verification}
+
+A practical implementation should still check a few local quantities carefully:
+\begin{enumerate}[label=(\arabic*)]
+  \item teacher generation is declared and reproducible,
+  \item the predicted latent teacher object is named explicitly,
+  \item the corrected route satisfies the row/column residual contract,
+  \item teacher-student cloud discrepancy remains below the declared threshold on
+  the tested envelope,
+  \item the downstream scalar is checked whenever the learned route is embedded in
+  a filtering likelihood or HMC target.
+\end{enumerate}
+
+These checks are mathematical and numerical, not bureaucratic.  Their purpose is
+only to ensure that the reader can tell whether the implementation is still
+computing the declared teacher-student object or has drifted to a different one.
+
+\section{What this chapter does and does not claim}
+\label{sec:bf-learned-ot-boundary}
+
+This chapter teaches the main implementation-bearing neural route in the OT block:
+retain the EOT/Sinkhorn teacher and learn how to start it better.  It does
+\emph{not} claim:
+\begin{itemize}
+  \item that the student replaces the teacher object,
+  \item that small teacher-student residuals automatically imply posterior or HMC
+  correctness,
+  \item that broader neural OT families are unimportant, only that they answer a
+  different implementation question.
+\end{itemize}
+Its role is narrower: fix one teacher-student acceleration route in a form that a
+reader can nearly implement directly.
+
+\FloatBarrier

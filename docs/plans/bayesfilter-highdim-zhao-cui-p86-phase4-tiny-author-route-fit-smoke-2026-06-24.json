@@ -1,0 +1,263 @@
+{
+  "batch": {
+    "dimension": 2,
+    "forbidden_audit_record_count": 1,
+    "point_count": 8,
+    "provenance_label": "p86_phase4_synthetic_training_only",
+    "target_max": 0.9990444174152558,
+    "target_min": 0.841868385180888,
+    "weight_sum": 8.0
+  },
+  "command": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp python scripts/p86_author_lagrangep_fit_smoke.py --fit-smoke --dimension 2 --sample-count 8 --optimizer-steps 1 --seed 8604 --max-seconds 60 --output docs/plans/bayesfilter-highdim-zhao-cui-p86-phase4-tiny-author-route-fit-smoke-2026-06-24.json",
+  "config": {
+    "basis_dim_tuple": [
+      33,
+      33
+    ],
+    "dimension": 2,
+    "gradient_clip_norm": 100.0,
+    "learning_rate": 0.001,
+    "metadata": {
+      "fixture": "p86_author_lagrangep_tiny_synthetic_mechanics",
+      "route": "hard_wired_lagrangep4x8_algebraic1",
+      "smoke_only": true
+    },
+    "product_basis": {
+      "bases": [
+        {
+          "basis_dim": 33,
+          "domain_map": {
+            "dtype": "float64",
+            "family": "algebraic",
+            "scale": 1.0,
+            "source_formula": "z=(x/scale)/sqrt(1+(x/scale)^2)"
+          },
+          "dtype": "float64",
+          "family": "lagrangep",
+          "implementation_note": "BayesFilter-owned P85 cardinal basis; no third-party code copied",
+          "num_elems": 8,
+          "order": 4
+        },
+        {
+          "basis_dim": 33,
+          "domain_map": {
+            "dtype": "float64",
+            "family": "algebraic",
+            "scale": 1.0,
+            "source_formula": "z=(x/scale)/sqrt(1+(x/scale)^2)"
+          },
+          "dtype": "float64",
+          "family": "lagrangep",
+          "implementation_note": "BayesFilter-owned P85 cardinal basis; no third-party code copied",
+          "num_elems": 8,
+          "order": 4
+        }
+      ],
+      "basis_dim_tuple": [
+        33,
+        33
+      ],
+      "convention": {
+        "density_measure": "REFERENCE_MEASURE",
+        "dtype_name": "float64",
+        "mass_measure": "REFERENCE_MEASURE",
+        "physical_coordinate_name": "r",
+        "reference_coordinate_name": "z",
+        "reference_weight_name": "omega"
+      },
+      "dimension": 2,
+      "family": "ProductBasis"
+    },
+    "ranks": [
+      1,
+      1,
+      1
+    ],
+    "tau": 0.25
+  },
+  "environment": {
+    "cuda_visible_devices": "-1",
+    "intentional_gpu_hiding": true,
+    "mplconfigdir": "/tmp",
+    "python": "/home/chakwong/anaconda3/envs/tf-gpu/bin/python"
+  },
+  "expected_fit_command": "CUDA_VISIBLE_DEVICES=-1 MPLCONFIGDIR=/tmp python scripts/p86_author_lagrangep_fit_smoke.py --fit-smoke --dimension 2 --sample-count 8 --optimizer-steps 1 --seed 8604 --max-seconds 60 --output docs/plans/bayesfilter-highdim-zhao-cui-p86-phase4-tiny-author-route-fit-smoke-2026-06-24.json",
+  "fit_smoke_executed": true,
+  "gate_summary": {
+    "any_core_changed": true,
+    "finite_parameter_deltas": true,
+    "gradient_norm_finite": true,
+    "intentional_gpu_hiding": true,
+    "nonclaims": [
+      "tiny synthetic mechanics smoke only",
+      "not an author SIR scientific fit",
+      "not P84 budget-compliant fitting",
+      "not fit-quality evidence",
+      "not rank convergence evidence",
+      "not posterior correctness evidence",
+      "not KR closure evidence",
+      "not HMC readiness evidence",
+      "not LEDH comparison evidence",
+      "not d50/d100 scale evidence",
+      "not production readiness"
+    ],
+    "optimizer_steps_completed": 1,
+    "overall_status": "pass",
+    "route_manifest_ok": true
+  },
+  "git": {
+    "dirty": true,
+    "head": "97ad05d40676f3fd15a2a2b4d45034ebb657ed97",
+    "status_short_count": 334
+  },
+  "max_seconds": 60.0,
+  "nonclaims": [
+    "tiny synthetic mechanics smoke only",
+    "not an author SIR scientific fit",
+    "not P84 budget-compliant fitting",
+    "not fit-quality evidence",
+    "not rank convergence evidence",
+    "not posterior correctness evidence",
+    "not KR closure evidence",
+    "not HMC readiness evidence",
+    "not LEDH comparison evidence",
+    "not d50/d100 scale evidence",
+    "not production readiness"
+  ],
+  "optimizer_steps_completed": 1,
+  "optimizer_steps_requested": 1,
+  "output": "docs/plans/bayesfilter-highdim-zhao-cui-p86-phase4-tiny-author-route-fit-smoke-2026-06-24.json",
+  "parameter_delta_norms": [
+    0.004852697115030478,
+    0.004597974729444762
+  ],
+  "phase4_result": "docs/plans/bayesfilter-highdim-zhao-cui-p86-phase4-tiny-author-route-fit-smoke-result-2026-06-24.md",
+  "phase4_subplan": "docs/plans/bayesfilter-highdim-zhao-cui-p86-phase4-tiny-author-route-fit-smoke-subplan-2026-06-24.md",
+  "route_manifest": {
+    "basis_dim_tuple": [
+      33,
+      33
+    ],
+    "basis_family": "lagrangep",
+    "basis_num_elems": 8,
+    "basis_order": 4,
+    "classification": "source_faithful",
+    "classification_subtype": "sir_config",
+    "density_measure": "REFERENCE_MEASURE",
+    "dimension": 2,
+    "domain_map": "algebraic",
+    "domain_scale": 1.0,
+    "dtype": "float64",
+    "mass_measure": "REFERENCE_MEASURE",
+    "nonclaims": [
+      "no fitting evidence",
+      "no posterior correctness claim",
+      "no production readiness claim",
+      "no HMC readiness claim",
+      "no XLA performance claim"
+    ],
+    "route_changing_cli": false,
+    "route_status": "hard_wired_author_lagrangep_algebraic",
+    "source_anchors": [
+      "docs/references.bib:703-710",
+      "docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p18-zhao-cui-source-support-ledger-2026-06-01.md:18-22",
+      "docs/plans/bayesfilter-highdim-nonlinear-filtering-paper-first-scholarship-p10-zhao-cui-tt-paper-code-crosswalk-ledger-2026-05-30.md:16-30",
+      "third_party/audit/zhao_cui_tensor_ssm_p10/source/README.md:28-41",
+      "third_party/audit/zhao_cui_tensor_ssm_p10/source/eg3_sir/mainscript.m:43-55",
+      "third_party/audit/zhao_cui_tensor_ssm_p10/source/deep-tensor.dev/src/ApproxBases.m:70-119",
+      "third_party/audit/zhao_cui_tensor_ssm_p10/source/deep-tensor.dev/src/Polynomials/Lagrangep.m:12-52",
+      "third_party/audit/zhao_cui_tensor_ssm_p10/source/deep-tensor.dev/src/Domains/AlgebraicMapping.m:5-43"
+    ],
+    "xla_static_fields": [
+      "basis_family",
+      "basis_dim",
+      "legendre_max_degree",
+      "lagrangep_order",
+      "lagrangep_num_elems",
+      "domain_map_family",
+      "domain_map_scale",
+      "bounded_interval_left",
+      "bounded_interval_right",
+      "dimension",
+      "basis_dim_tuple",
+      "measure_convention",
+      "dtype"
+    ]
+  },
+  "sample_count": 8,
+  "schema_only": false,
+  "schema_version": "p86_author_lagrangep_fit_smoke.v1",
+  "script": "scripts/p86_author_lagrangep_fit_smoke.py",
+  "seed": 8604,
+  "status": "P86_PHASE4_TINY_AUTHOR_ROUTE_FIT_SMOKE_COMPLETED",
+  "stop_reason": "optimizer_steps_completed",
+  "terms": {
+    "post": {
+      "alpha_max": 0.13573335440984344,
+      "alpha_min": 0.10426599464353298,
+      "alpha_sum": 0.9999999999999998,
+      "gradient_norm": null,
+      "log_normalizer": -1.3862758807536175,
+      "nonclaims": [
+        "not source-faithful Zhao-Cui",
+        "not lower-gate repair evidence",
+        "not validation evidence",
+        "not HMC readiness evidence",
+        "not rank or degree promotion evidence",
+        "smoke loss is not pilot evidence"
+      ],
+      "normalizer": 0.250004620134259,
+      "regularization": 1.5866505256818825e-09,
+      "rho_max": 0.25002172903862,
+      "rho_min": 0.25000004701893747,
+      "status": "ok",
+      "total_loss": -1.9075898001838557e-06,
+      "weighted_empirical_cross_entropy": 1.3862739715771668
+    },
+    "pre": {
+      "alpha_max": 0.13573335440984344,
+      "alpha_min": 0.10426599464353298,
+      "alpha_sum": 0.9999999999999998,
+      "gradient_norm": null,
+      "log_normalizer": -1.3862754784883766,
+      "nonclaims": [
+        "not source-faithful Zhao-Cui",
+        "not lower-gate repair evidence",
+        "not validation evidence",
+        "not HMC readiness evidence",
+        "not rank or degree promotion evidence",
+        "smoke loss is not pilot evidence"
+      ],
+      "normalizer": 0.250004720702448,
+      "regularization": 1.6026968243864231e-09,
+      "rho_max": 0.25002002368621495,
+      "rho_min": 0.250000044327594,
+      "status": "ok",
+      "total_loss": 2.0925825956943245e-07,
+      "weighted_empirical_cross_entropy": 1.3862756861439394
+    },
+    "step": {
+      "alpha_max": 0.13573335440984344,
+      "alpha_min": 0.10426599464353298,
+      "alpha_sum": 0.9999999999999998,
+      "gradient_norm": 0.00045619787435305083,
+      "log_normalizer": -1.3862754784883766,
+      "nonclaims": [
+        "not source-faithful Zhao-Cui",
+        "not lower-gate repair evidence",
+        "not validation evidence",
+        "not HMC readiness evidence",
+        "not rank or degree promotion evidence",
+        "smoke loss is not pilot evidence"
+      ],
+      "normalizer": 0.250004720702448,
+      "regularization": 1.6026968243864231e-09,
+      "rho_max": 0.25002002368621495,
+      "rho_min": 0.250000044327594,
+      "status": "ok",
+      "total_loss": 2.0925825956943245e-07,
+      "weighted_empirical_cross_entropy": 1.3862756861439394
+    }
+  },
+  "wall_time_seconds": 0.199
+}

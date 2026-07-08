@@ -65,4 +65,3 @@ at least one predeclared rank per required fixture must pass.
 | Decision | Primary criterion status | Veto diagnostic status | Main uncertainty | Next justified action | Not concluded |
 | --- | --- | --- | --- | --- | --- |
 | Proceed to P03 | `PASS` | No phase-level veto fired | Downstream LEDH loop may still fail smoke thresholds | Run P03 exact downstream-smoke command after fresh audit/evidence contract | No GPU readiness, speedup, posterior correctness, HMC readiness, default readiness, or ranking |
-

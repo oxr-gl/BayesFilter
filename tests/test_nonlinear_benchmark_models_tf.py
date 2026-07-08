@@ -58,21 +58,45 @@ def test_model_c_autonomous_growth_law_and_phase_residual() -> None:
 
 
 
-def test_model_b_is_exact_ineligible_for_current_fixed_sgqf_structural_adapter() -> None:
+def test_model_b_is_ineligible_for_current_fixed_sgqf_structural_adapter() -> None:
     model = make_nonlinear_accumulation_model_tf()
     adapted = tf_structural_to_fixed_sgqf_model(model)
 
     assert adapted.eligible is False
     assert adapted.model is None
-    assert "exact-ineligible" in adapted.reason
+    assert adapted.admission_status == "ineligible"
+    assert adapted.target_scope == "structural_admission_fail_closed"
+    assert "ineligible" in adapted.reason
 
 
 
-def test_model_c_is_exact_eligible_for_current_fixed_sgqf_structural_adapter() -> None:
+def test_model_c_is_approximate_eligible_for_current_fixed_sgqf_structural_adapter() -> None:
     model = make_univariate_nonlinear_growth_model_tf()
     adapted = tf_structural_to_fixed_sgqf_model(model)
 
     assert adapted.eligible is True
     assert adapted.reason is None
     assert adapted.model is not None
+    assert adapted.exact_eligible is False
+    assert adapted.approximate_eligible is True
+    assert adapted.target_scope == "declared_structural_gaussian_projection_model_c_adapter"
+    assert "not exact-target admission" in adapted.nonclaims
     np.testing.assert_allclose(adapted.model.process_covariance.numpy(), np.array([[1.0, 0.0], [0.0, 0.0]]), atol=1e-14)
+
+
+
+def test_model_a_affine_is_exact_eligible_for_current_fixed_sgqf_structural_adapter() -> None:
+    model = make_affine_gaussian_structural_oracle_tf()
+    adapted = tf_structural_to_fixed_sgqf_model(model)
+
+    assert adapted.eligible is True
+    assert adapted.reason is None
+    assert adapted.model is not None
+    assert adapted.exact_eligible is True
+    assert adapted.approximate_eligible is False
+    assert adapted.target_scope == "exact_affine_structural_lane"
+    np.testing.assert_allclose(
+        adapted.model.process_covariance.numpy(),
+        np.array([[0.0625, 0.0], [0.0, 0.0]]),
+        atol=1e-14,
+    )

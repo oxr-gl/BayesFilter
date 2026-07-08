@@ -1,0 +1,761 @@
+{
+  "bad_route_flag_vetoes": [
+    {
+      "flag": "ad_evaluation_mode",
+      "reason": "bad_production_route_flag",
+      "value": "reverse-gradient"
+    }
+  ],
+  "custom_gradient_boundary_results": [
+    {
+      "decorator_line": 1960,
+      "def_line": 1961,
+      "findings": [],
+      "grad_line": 1983,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "status": "PASS_GRAD_BODY_SCAN"
+    },
+    {
+      "decorator_line": 2064,
+      "def_line": 2065,
+      "findings": [],
+      "grad_line": 2087,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "status": "PASS_GRAD_BODY_SCAN"
+    },
+    {
+      "decorator_line": 2158,
+      "def_line": 2159,
+      "findings": [],
+      "grad_line": 2164,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "status": "PASS_GRAD_BODY_SCAN"
+    },
+    {
+      "decorator_line": 2170,
+      "def_line": 2171,
+      "findings": [
+        {
+          "line": 2196,
+          "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+          "pattern": "tf.GradientTape",
+          "text": "with tf.GradientTape() as tape:"
+        },
+        {
+          "line": 2196,
+          "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+          "pattern": "GradientTape(",
+          "text": "with tf.GradientTape() as tape:"
+        },
+        {
+          "line": 2207,
+          "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+          "pattern": ".gradient(",
+          "text": "dx, dlogw = tape.gradient("
+        }
+      ],
+      "grad_line": 2190,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "status": "FAIL_GRAD_BODY_AUTODIFF"
+    },
+    {
+      "decorator_line": 2664,
+      "def_line": 2665,
+      "findings": [],
+      "grad_line": 2683,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "status": "PASS_GRAD_BODY_SCAN"
+    }
+  ],
+  "decision": "FAIL_CURRENT_ROUTE",
+  "diagnostic_whitelist_hits": [
+    {
+      "line": 115,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": "tf.GradientTape",
+      "text": "with tf.GradientTape() as transition_tape:"
+    },
+    {
+      "line": 115,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": "GradientTape(",
+      "text": "with tf.GradientTape() as transition_tape:"
+    },
+    {
+      "line": 116,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": "watch(",
+      "text": "transition_tape.watch(theta)"
+    },
+    {
+      "line": 118,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": ".gradient(",
+      "text": "transition_gradient = transition_tape.gradient(transition_value, theta)"
+    },
+    {
+      "line": 120,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": "tf.GradientTape",
+      "text": "with tf.GradientTape() as observation_tape:"
+    },
+    {
+      "line": 120,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": "GradientTape(",
+      "text": "with tf.GradientTape() as observation_tape:"
+    },
+    {
+      "line": 121,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": "watch(",
+      "text": "observation_tape.watch(theta)"
+    },
+    {
+      "line": 123,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": ".gradient(",
+      "text": "observation_gradient = observation_tape.gradient(observation_value, theta)"
+    },
+    {
+      "line": 213,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": "tf.GradientTape",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 213,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": "GradientTape(",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 214,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": "watch(",
+      "text": "tape.watch(theta)"
+    },
+    {
+      "line": 216,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": ".jacobian(",
+      "text": "autodiff_jacobian = tape.jacobian(autodiff_mean, theta)"
+    },
+    {
+      "line": 255,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": "tf.GradientTape",
+      "text": "with tf.GradientTape() as transition_tape:"
+    },
+    {
+      "line": 255,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": "GradientTape(",
+      "text": "with tf.GradientTape() as transition_tape:"
+    },
+    {
+      "line": 256,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": "watch(",
+      "text": "transition_tape.watch(theta)"
+    },
+    {
+      "line": 258,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": ".gradient(",
+      "text": "transition_gradient = transition_tape.gradient(transition_value, theta)"
+    },
+    {
+      "line": 260,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": "tf.GradientTape",
+      "text": "with tf.GradientTape() as observation_tape:"
+    },
+    {
+      "line": 260,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": "GradientTape(",
+      "text": "with tf.GradientTape() as observation_tape:"
+    },
+    {
+      "line": 261,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": "watch(",
+      "text": "observation_tape.watch(theta)"
+    },
+    {
+      "line": 263,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": ".gradient(",
+      "text": "observation_gradient = observation_tape.gradient(observation_value, theta)"
+    },
+    {
+      "line": 1117,
+      "path": "tests/test_experimental_batched_ledh_pfpf_ot_tf.py",
+      "pattern": "tf.GradientTape",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 1117,
+      "path": "tests/test_experimental_batched_ledh_pfpf_ot_tf.py",
+      "pattern": "GradientTape(",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 1118,
+      "path": "tests/test_experimental_batched_ledh_pfpf_ot_tf.py",
+      "pattern": "watch(",
+      "text": "tape.watch(theta)"
+    },
+    {
+      "line": 1120,
+      "path": "tests/test_experimental_batched_ledh_pfpf_ot_tf.py",
+      "pattern": ".jacobian(",
+      "text": "jacobian = tape.jacobian(value, theta)"
+    },
+    {
+      "line": 60,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": "tf.GradientTape",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 60,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": "GradientTape(",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 61,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": "watch(",
+      "text": "tape.watch([residuals, covariance])"
+    },
+    {
+      "line": 64,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": ".gradient(",
+      "text": "auto_residuals, auto_covariance = tape.gradient(objective, [residuals, covariance])"
+    },
+    {
+      "line": 86,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": "tf.GradientTape",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 86,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": "GradientTape(",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 87,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": "watch(",
+      "text": "tape.watch(corrected)"
+    },
+    {
+      "line": 94,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": ".gradient(",
+      "text": "auto = tape.gradient(objective, corrected)"
+    },
+    {
+      "line": 132,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": "tf.GradientTape",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 132,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": "GradientTape(",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 133,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": "watch(",
+      "text": "tape.watch([x_next, transition_mean, transition_covariance])"
+    },
+    {
+      "line": 139,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": ".gradient(",
+      "text": "transition_auto = tape.gradient("
+    },
+    {
+      "line": 144,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": "tf.GradientTape",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 144,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": "GradientTape(",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 145,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": "watch(",
+      "text": "tape.watch([predicted_observation, observation, observation_covariance])"
+    },
+    {
+      "line": 151,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": ".gradient(",
+      "text": "observation_auto = tape.gradient("
+    },
+    {
+      "line": 232,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": "tf.GradientTape",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 232,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": "GradientTape(",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 233,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": "watch(",
+      "text": "tape.watch("
+    },
+    {
+      "line": 256,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": ".gradient(",
+      "text": "auto = tape.gradient("
+    }
+  ],
+  "failed_p1_ids": [
+    "P1-L001",
+    "P1-L003"
+  ],
+  "missing_expected_negative_control_failures": [],
+  "nonclaims": [
+    "audit tooling result only",
+    "current route is expected to fail",
+    "not no-autodiff certification",
+    "not GPU feasibility",
+    "not FD agreement"
+  ],
+  "production_findings": [
+    {
+      "line": 477,
+      "path": "docs/benchmarks/benchmark_p8p_regression_fd_reparameterization.py",
+      "pattern": "tf.GradientTape",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 477,
+      "path": "docs/benchmarks/benchmark_p8p_regression_fd_reparameterization.py",
+      "pattern": "GradientTape(",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 479,
+      "path": "docs/benchmarks/benchmark_p8p_regression_fd_reparameterization.py",
+      "pattern": "watch(",
+      "text": "tape.watch(component)"
+    },
+    {
+      "line": 485,
+      "path": "docs/benchmarks/benchmark_p8p_regression_fd_reparameterization.py",
+      "pattern": ".gradient(",
+      "text": "gradients = tape.gradient(objective, theta_components)"
+    },
+    {
+      "line": 536,
+      "path": "docs/benchmarks/benchmark_p8p_regression_fd_reparameterization.py",
+      "pattern": "tf.autodiff.ForwardAccumulator",
+      "text": "with tf.autodiff.ForwardAccumulator(theta_components, tangent_components) as accumulator:"
+    },
+    {
+      "line": 536,
+      "path": "docs/benchmarks/benchmark_p8p_regression_fd_reparameterization.py",
+      "pattern": "ForwardAccumulator(",
+      "text": "with tf.autodiff.ForwardAccumulator(theta_components, tangent_components) as accumulator:"
+    },
+    {
+      "line": 563,
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "pattern": "tf.GradientTape",
+      "text": "with tf.GradientTape(persistent=True) as tape:"
+    },
+    {
+      "line": 563,
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "pattern": "GradientTape(",
+      "text": "with tf.GradientTape(persistent=True) as tape:"
+    },
+    {
+      "line": 565,
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "pattern": "watch(",
+      "text": "tape.watch(component)"
+    },
+    {
+      "line": 567,
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "pattern": ".gradient(",
+      "text": "gradients = tape.gradient(objective, theta_components)"
+    },
+    {
+      "line": 568,
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "pattern": ".jacobian(",
+      "text": "jacobian_columns = [tape.jacobian(value, component) for component in theta_components]"
+    },
+    {
+      "line": 699,
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "pattern": "tf.GradientTape",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 699,
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "pattern": "GradientTape(",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 700,
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "pattern": "watch(",
+      "text": "tape.watch(theta_components[obs_index])"
+    },
+    {
+      "line": 706,
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "pattern": ".gradient(",
+      "text": "gradient = tape.gradient(objective, theta_components[obs_index])"
+    },
+    {
+      "line": 386,
+      "path": "scripts/filtering_value_gradient_benchmark_run_p8d_numeric.py",
+      "pattern": "tf.GradientTape",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 386,
+      "path": "scripts/filtering_value_gradient_benchmark_run_p8d_numeric.py",
+      "pattern": "GradientTape(",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 387,
+      "path": "scripts/filtering_value_gradient_benchmark_run_p8d_numeric.py",
+      "pattern": "watch(",
+      "text": "tape.watch(theta)"
+    },
+    {
+      "line": 389,
+      "path": "scripts/filtering_value_gradient_benchmark_run_p8d_numeric.py",
+      "pattern": ".gradient(",
+      "text": "score = tape.gradient(value, theta)"
+    },
+    {
+      "line": 1140,
+      "path": "scripts/filtering_value_gradient_benchmark_run_p8d_numeric.py",
+      "pattern": "tf.GradientTape",
+      "text": "with tf.GradientTape(persistent=True) as outer:"
+    },
+    {
+      "line": 1140,
+      "path": "scripts/filtering_value_gradient_benchmark_run_p8d_numeric.py",
+      "pattern": "GradientTape(",
+      "text": "with tf.GradientTape(persistent=True) as outer:"
+    },
+    {
+      "line": 1141,
+      "path": "scripts/filtering_value_gradient_benchmark_run_p8d_numeric.py",
+      "pattern": "watch(",
+      "text": "outer.watch(theta)"
+    },
+    {
+      "line": 1142,
+      "path": "scripts/filtering_value_gradient_benchmark_run_p8d_numeric.py",
+      "pattern": "tf.GradientTape",
+      "text": "with tf.GradientTape() as inner:"
+    },
+    {
+      "line": 1142,
+      "path": "scripts/filtering_value_gradient_benchmark_run_p8d_numeric.py",
+      "pattern": "GradientTape(",
+      "text": "with tf.GradientTape() as inner:"
+    },
+    {
+      "line": 1143,
+      "path": "scripts/filtering_value_gradient_benchmark_run_p8d_numeric.py",
+      "pattern": "watch(",
+      "text": "inner.watch(theta)"
+    },
+    {
+      "line": 1145,
+      "path": "scripts/filtering_value_gradient_benchmark_run_p8d_numeric.py",
+      "pattern": ".gradient(",
+      "text": "score = inner.gradient(value, theta)"
+    },
+    {
+      "line": 1147,
+      "path": "scripts/filtering_value_gradient_benchmark_run_p8d_numeric.py",
+      "pattern": ".jacobian(",
+      "text": "outer.jacobian(score, theta, experimental_use_pfor=False)"
+    },
+    {
+      "line": 3094,
+      "path": "scripts/filtering_value_gradient_benchmark_run_p8d_numeric.py",
+      "pattern": "tf.GradientTape",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 3094,
+      "path": "scripts/filtering_value_gradient_benchmark_run_p8d_numeric.py",
+      "pattern": "GradientTape(",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 3095,
+      "path": "scripts/filtering_value_gradient_benchmark_run_p8d_numeric.py",
+      "pattern": "watch(",
+      "text": "tape.watch(theta)"
+    },
+    {
+      "line": 3103,
+      "path": "scripts/filtering_value_gradient_benchmark_run_p8d_numeric.py",
+      "pattern": ".gradient(",
+      "text": "gradient = tape.gradient(value, theta)"
+    },
+    {
+      "line": 3421,
+      "path": "scripts/filtering_value_gradient_benchmark_run_p8d_numeric.py",
+      "pattern": "tf.GradientTape",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 3421,
+      "path": "scripts/filtering_value_gradient_benchmark_run_p8d_numeric.py",
+      "pattern": "GradientTape(",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 3422,
+      "path": "scripts/filtering_value_gradient_benchmark_run_p8d_numeric.py",
+      "pattern": "watch(",
+      "text": "tape.watch(theta)"
+    },
+    {
+      "line": 3431,
+      "path": "scripts/filtering_value_gradient_benchmark_run_p8d_numeric.py",
+      "pattern": ".gradient(",
+      "text": "gradient = tape.gradient(value, theta)"
+    },
+    {
+      "line": 627,
+      "path": "experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_streaming_tf.py",
+      "pattern": "tf.GradientTape",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 627,
+      "path": "experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_streaming_tf.py",
+      "pattern": "GradientTape(",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 628,
+      "path": "experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_streaming_tf.py",
+      "pattern": "watch(",
+      "text": "tape.watch(theta)"
+    },
+    {
+      "line": 638,
+      "path": "experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_streaming_tf.py",
+      "pattern": ".gradient(",
+      "text": "score = tape.gradient("
+    },
+    {
+      "line": 24,
+      "path": "experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_tf.py",
+      "pattern": "custom_gradient",
+      "text": "_filterflow_custom_gradient_transport_matrix,"
+    },
+    {
+      "line": 1521,
+      "path": "experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_tf.py",
+      "pattern": "custom_gradient",
+      "text": "transport_matrix, _iterations = _filterflow_custom_gradient_transport_matrix("
+    },
+    {
+      "line": 1756,
+      "path": "experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_tf.py",
+      "pattern": "tf.GradientTape",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 1756,
+      "path": "experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_tf.py",
+      "pattern": "GradientTape(",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 1757,
+      "path": "experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_tf.py",
+      "pattern": "watch(",
+      "text": "tape.watch(theta)"
+    },
+    {
+      "line": 1767,
+      "path": "experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_tf.py",
+      "pattern": ".gradient(",
+      "text": "score = tape.gradient("
+    },
+    {
+      "line": 372,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "custom_gradient",
+      "text": "transport_matrix, iterations = _filterflow_custom_gradient_transport_matrix("
+    },
+    {
+      "line": 1960,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "tf.custom_gradient",
+      "text": "@tf.custom_gradient"
+    },
+    {
+      "line": 1960,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "@tf.custom_gradient",
+      "text": "@tf.custom_gradient"
+    },
+    {
+      "line": 1960,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "custom_gradient",
+      "text": "@tf.custom_gradient"
+    },
+    {
+      "line": 2064,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "tf.custom_gradient",
+      "text": "@tf.custom_gradient"
+    },
+    {
+      "line": 2064,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "@tf.custom_gradient",
+      "text": "@tf.custom_gradient"
+    },
+    {
+      "line": 2064,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "custom_gradient",
+      "text": "@tf.custom_gradient"
+    },
+    {
+      "line": 2154,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "custom_gradient",
+      "text": "return \"filterflow_style_whole_transport_custom_gradient\""
+    },
+    {
+      "line": 2158,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "tf.custom_gradient",
+      "text": "@tf.custom_gradient"
+    },
+    {
+      "line": 2158,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "@tf.custom_gradient",
+      "text": "@tf.custom_gradient"
+    },
+    {
+      "line": 2158,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "custom_gradient",
+      "text": "@tf.custom_gradient"
+    },
+    {
+      "line": 2170,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "tf.custom_gradient",
+      "text": "@tf.custom_gradient"
+    },
+    {
+      "line": 2170,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "@tf.custom_gradient",
+      "text": "@tf.custom_gradient"
+    },
+    {
+      "line": 2170,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "custom_gradient",
+      "text": "@tf.custom_gradient"
+    },
+    {
+      "line": 2171,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "custom_gradient",
+      "text": "def _filterflow_custom_gradient_transport_matrix("
+    },
+    {
+      "line": 2196,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "tf.GradientTape",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 2196,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "GradientTape(",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 2197,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "watch(",
+      "text": "tape.watch([x, logw])"
+    },
+    {
+      "line": 2207,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": ".gradient(",
+      "text": "dx, dlogw = tape.gradient("
+    },
+    {
+      "line": 2664,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "tf.custom_gradient",
+      "text": "@tf.custom_gradient"
+    },
+    {
+      "line": 2664,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "@tf.custom_gradient",
+      "text": "@tf.custom_gradient"
+    },
+    {
+      "line": 2664,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "custom_gradient",
+      "text": "@tf.custom_gradient"
+    }
+  ],
+  "production_whitelist_vetoes": [],
+  "route_id": "p2_current_p1_route_negative_control",
+  "runtime_sentinel_result": {
+    "full_route_runtime_not_executed": true,
+    "reason": "P2 static negative-control audit; focused sentinel behavior is covered by tests",
+    "sentinel_available": true
+  },
+  "schema_version": "ledh_no_autodiff_audit_result.v1"
+}

@@ -1,0 +1,49 @@
+{
+  "autodiff_gradient": [
+    -10.013410568237305,
+    3.666977882385254,
+    5.286158561706543
+  ],
+  "autodiff_objective": -36.365299224853516,
+  "batch_seeds": [
+    81120
+  ],
+  "dtype": "float32",
+  "gradient_finite": true,
+  "manual_gradient": [
+    -10.013418197631836,
+    3.666980028152466,
+    5.286164283752441
+  ],
+  "manual_objective": -36.365299224853516,
+  "max_gradient_gap_vs_autodiff": 7.62939453125e-06,
+  "max_log_likelihood_gap_vs_autodiff": 0.0,
+  "nonclaims": [
+    "no_full_leaderboard_row",
+    "no_gpu_xla_evidence",
+    "no_hmc_readiness"
+  ],
+  "num_particles": 2,
+  "route": "p8p_sir_manual_full_no_tape_transport_regression",
+  "route_metadata": {
+    "no_runtime_autodiff_sentinel_test": "tests/test_ledh_pfpf_ot_p7_manual_score.py::test_p7_manual_full_transport_score_runs_under_runtime_autodiff_sentinel",
+    "primitive": "_filterflow_manual_streaming_finite_transport_total_pullback",
+    "value_score_same_transport_algorithm": true
+  },
+  "score_route": "manual_reverse_scan_no_autodiff",
+  "theta": {
+    "log_kappa_scale": 0.02,
+    "log_nu_scale": -0.01,
+    "log_obs_noise_scale": 0.01
+  },
+  "time_steps": 1,
+  "tolerances": {
+    "autodiff_gradient_atol": 1e-05,
+    "autodiff_value_atol": 1e-05
+  },
+  "transport_ad_mode": "full",
+  "transport_gradient_mode": "manual_streaming_finite_sinkhorn_stopped_scale_keys",
+  "transport_plan_mode": "streaming",
+  "transport_policy": "active-all",
+  "value_finite": true
+}

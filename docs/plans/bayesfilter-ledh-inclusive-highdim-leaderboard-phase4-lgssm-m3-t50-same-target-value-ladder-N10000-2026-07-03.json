@@ -1,0 +1,204 @@
+{
+  "algorithm_id": "ledh_pfpf_ot",
+  "average_log_likelihood_by_seed": [
+    -2.719130859375,
+    -2.7188070678710936,
+    -2.7193002319335937,
+    -2.71923583984375,
+    -2.7195333862304687
+  ],
+  "average_log_likelihood_estimate": {
+    "mcse": 0.00011866812738375645,
+    "mean": -2.719201477050781,
+    "sample_sd": 0.0002653499995926837,
+    "seed_count": 5
+  },
+  "batch_seeds": [
+    81120,
+    81121,
+    81122,
+    81123,
+    81124
+  ],
+  "comparison_status": "executed_value_only_score_blocked",
+  "compile_and_first_call_seconds": 27.142047179979272,
+  "compiled_unit": "streaming_batched_ledh_pfpf_ot_value_core_tf",
+  "cuda_visible_devices": "0",
+  "device": "/GPU:0",
+  "device_scope": "visible",
+  "ess_min_by_seed": [
+    2905.80859375,
+    2898.070068359375,
+    2912.672119140625,
+    3003.672607421875,
+    2872.838623046875
+  ],
+  "ess_summary_available": true,
+  "exact_value_comparison": {
+    "average_absolute_delta": 0.0023180201077130924,
+    "average_delta_mean_minus_exact": 0.0023180201077130924,
+    "average_relative_error_abs": 0.0008517374614193686,
+    "exact_average_log_likelihood": -2.721519497158494,
+    "exact_total_log_likelihood": -136.0759748579247,
+    "total_absolute_delta": 0.11590100538563775,
+    "total_delta_mean_minus_exact": 0.11590100538563775,
+    "total_relative_error_abs": 0.0008517374614192446
+  },
+  "expect_device_kind": "gpu",
+  "finite_output": true,
+  "git_commit": "99263ff22d11128a61c35668c7b530d870f91397",
+  "gpu_memory_info_after": {
+    "current": 1217792,
+    "peak": 80424448
+  },
+  "gpu_memory_info_before": {
+    "current": 609536,
+    "peak": 1213440
+  },
+  "history_mode": "full",
+  "history_shapes": {
+    "ess_by_time": [
+      50,
+      5
+    ],
+    "filtered_means": [
+      50,
+      5,
+      3
+    ],
+    "filtered_variances": [
+      50,
+      5,
+      3
+    ],
+    "final_particles": [
+      5,
+      10000,
+      3
+    ]
+  },
+  "host": "DESKTOP-RF1Q5IJ",
+  "jit_compile": true,
+  "logical_gpus": [
+    "LogicalDevice(name='/device:GPU:0', device_type='GPU')"
+  ],
+  "max_column_residual": 0.0,
+  "max_row_residual": 0.9826242923736572,
+  "nonclaims": [
+    "value-only LEDH row evidence",
+    "score is blocked because same-target total derivative is not implemented here",
+    "not HMC/NUTS readiness evidence",
+    "not posterior correctness evidence",
+    "not runtime-rankable against frozen non-LEDH rows",
+    "not evidence for nonlinear rows"
+  ],
+  "output_devices": [
+    "/job:localhost/replica:0/task:0/device:GPU:0"
+  ],
+  "output_shape": [
+    5
+  ],
+  "physical_gpus": [
+    "PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')"
+  ],
+  "precision": {
+    "active_dtype": "float32",
+    "default_algorithm_target": "ledh_pfpf_ot_tf32",
+    "default_dtype": "float32",
+    "default_execution_target": "gpu",
+    "default_route_acceptance": "accepted_default_use_whenever_possible",
+    "default_route_guidance": "use for BayesFilter DPF LEDH-PFPF-OT work whenever GPU execution and the streaming fixed-branch contract are applicable",
+    "default_route_rationale": "streaming GPU TF32 LEDH-PFPF-OT avoids dense transport/history storage for large-particle DPF transport while preserving explicit reference and fallback arms",
+    "default_target_status": "production_default_by_owner_directive",
+    "default_tf32_mode": "enabled",
+    "dtype": "float32",
+    "fp64_reference_requires_explicit_dtype": true,
+    "historical_module_path": "experiments/dpf_implementation",
+    "precision_default_policy": "production_ledh_pfpf_ot_gpu_tf32",
+    "public_api_exposure": "separately_gated",
+    "scope": "production_ledh_pfpf_ot_gpu_tf32_default_lane",
+    "tf32_execution_enabled": true,
+    "tf32_mode": "enabled",
+    "tf_dtype": "float32"
+  },
+  "primary_pass_same_target_value_execution": true,
+  "python_version": "3.11.14",
+  "repeats": 1,
+  "return_history": true,
+  "row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+  "runtime_gate_applicable": true,
+  "runtime_rankable_with_frozen_non_ledh": false,
+  "schema_version": "filter_bench.ledh_same_target_lgssm_m3_t50_value.v2",
+  "score_derivative_provenance": null,
+  "score_status": "blocked_score_same_target_total_derivative_not_implemented",
+  "shape": {
+    "batch_seed_count": 5,
+    "batch_size": 5,
+    "num_particles": 10000,
+    "obs_dim": 3,
+    "state_dim": 3,
+    "time_steps": 50
+  },
+  "target_identity": {
+    "dataset_seed": 81100,
+    "dataset_source": "scripts/filtering_value_gradient_benchmark_generate_p8_datasets.py:_lgssm_dataset",
+    "exact_average_log_likelihood": -2.721519497158494,
+    "exact_total_log_likelihood": -136.0759748579247,
+    "exact_value_comparator": "tf_kalman_log_likelihood on same observations/model",
+    "full_leaderboard_row": true,
+    "model_source": "scripts/filtering_value_gradient_benchmark_generate_p8_datasets.py:_lgssm_benchmark_model",
+    "obs_dim": 3,
+    "row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+    "row_scope": "main_observed_data_filtering_row",
+    "same_target_status": "same_target_value_only",
+    "score_status": "blocked_score_same_target_total_derivative_not_implemented",
+    "state_dim": 3,
+    "time_steps": 50,
+    "truth_theta": [
+      0.72,
+      0.55,
+      0.35,
+      0.35,
+      0.45
+    ]
+  },
+  "tensorflow_version": "2.19.1",
+  "timestamp_utc": "2026-07-02T22:16:25.305408+00:00",
+  "total_log_likelihood_by_seed": [
+    -135.95654296875,
+    -135.9403533935547,
+    -135.9650115966797,
+    -135.9617919921875,
+    -135.97666931152344
+  ],
+  "total_log_likelihood_estimate": {
+    "mcse": 0.005933406369186942,
+    "mean": -135.96007385253907,
+    "sample_sd": 0.013267499979632216,
+    "seed_count": 5
+  },
+  "transport": {
+    "annealed_convergence_threshold": 0.001,
+    "annealed_scaling": 0.9,
+    "col_chunk_size": 1024,
+    "dense_transport_matrix_materialized": false,
+    "gradient_mode": "raw",
+    "particle_chunk_size": 512,
+    "plan_mode": "streaming",
+    "row_chunk_size": 1024,
+    "sinkhorn_epsilon": 0.5,
+    "sinkhorn_iterations": 10
+  },
+  "transport_policy": "active-all",
+  "value_status": "executed_same_target_value",
+  "warm_call_timing_summary_seconds": {
+    "max": 15.810666500008665,
+    "mean": 15.810666500008665,
+    "median": 15.810666500008665,
+    "min": 15.810666500008665
+  },
+  "warm_call_timings_seconds": [
+    15.810666500008665
+  ],
+  "warmups": 0
+}

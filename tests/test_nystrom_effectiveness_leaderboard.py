@@ -124,4 +124,3 @@ def test_json_ready_and_markdown_include_inference_status(tmp_path: Path) -> Non
 
     assert json.loads(Path(args.output).read_text(encoding="utf-8"))["inference_status"]["default_readiness"] == "NO"
     assert "Inference Status" in Path(args.markdown_output).read_text(encoding="utf-8")
-

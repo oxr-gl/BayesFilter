@@ -58,4 +58,3 @@ omits required per-output fields, or fails to distinguish harness/environment
 failure from candidate drift failure.
 
 Weakest part of the evidence: P01 is static/compile evidence only.
-

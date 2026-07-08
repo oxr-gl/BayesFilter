@@ -72,4 +72,3 @@ P01 may begin only after:
 - Claude review finds a material issue that cannot be patched within five
   rounds.
 - The plan would require changing defaults, public API, or production claims.
-

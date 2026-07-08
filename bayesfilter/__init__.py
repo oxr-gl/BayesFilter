@@ -318,6 +318,7 @@ __all__ = [
     "tf_svd_sigma_point_log_likelihood_with_rule",
     "tf_svd_sigma_point_placement",
     "tf_svd_sigma_point_score_with_rule",
+    "tf_principal_sqrt_ukf_score",
     "tf_svd_ukf_score",
     "tf_standard_normal_ghq_level_rule",
     "tensorflow_nonlinear_value_path_contract",
@@ -577,6 +578,7 @@ _EXPORT_MODULES = {
     "ensure_cpu_only_env": "bayesfilter.runtime",
     "evaluate_target_with_failure_policy": "bayesfilter.inference",
     "evaluate_batch_native_value_score": "bayesfilter.inference",
+    "FixedTransportValueScoreAdapter": "bayesfilter.inference",
     "first_to_full_linear_gaussian_derivatives": "bayesfilter.linear.types_tf",
     "find_forbidden_compiled_value_tokens": "bayesfilter.nonlinear",
     "initialize_hmc_kernel_geometry": "bayesfilter.inference",
@@ -700,6 +702,7 @@ _EXPORT_MODULES = {
     "tf_svd_sigma_point_score_with_rule": (
         "bayesfilter.nonlinear.svd_sigma_point_derivatives_tf"
     ),
+    "tf_principal_sqrt_ukf_score": "bayesfilter.nonlinear.svd_sigma_point_derivatives_tf",
     "tf_svd_ukf_score": "bayesfilter.nonlinear.svd_sigma_point_derivatives_tf",
     "tf_standard_normal_ghq_level_rule": "bayesfilter.nonlinear",
     "tensorflow_nonlinear_value_path_contract": "bayesfilter.nonlinear",

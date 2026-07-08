@@ -637,9 +637,10 @@ def spatial_sir_local_scaling_route_metadata(
 ) -> LocalNeighborhoodScalingRouteMetadata:
     """Build P53-M4B metadata for the selected local-neighborhood route."""
 
-    _assert_diagonal_process_covariance(model)
-    state_dim = int(model.state_dim())
-    neighborhoods = _spatial_sir_coordinate_reachability_neighborhoods(model)
+    structural_model = _local_route_structural_model(model)
+    _assert_diagonal_process_covariance(structural_model)
+    state_dim = int(structural_model.state_dim())
+    neighborhoods = _spatial_sir_coordinate_reachability_neighborhoods(structural_model)
     if len(neighborhoods) != state_dim:
         raise ValueError("dependency_neighborhoods length mismatch")
     max_width = max(len(row) for row in neighborhoods)
@@ -662,7 +663,7 @@ def spatial_sir_local_scaling_route_metadata(
         "route_id": config.route_id,
         "route_class": P53_SCALING_ROUTE_CLASS,
         "selected_design": P53_LOCAL_SCALING_SELECTED_DESIGN,
-        "rk4_substeps": int(getattr(model, "_rk4_substeps")),
+        "rk4_substeps": int(getattr(structural_model, "_rk4_substeps")),
         "dependency_neighborhoods": neighborhoods,
         "basis_order": int(config.basis_order),
         "tt_rank_metadata": tt_rank_metadata,
@@ -676,7 +677,7 @@ def spatial_sir_local_scaling_route_metadata(
         route_id=config.route_id,
         route_class=P53_SCALING_ROUTE_CLASS,
         selected_design=P53_LOCAL_SCALING_SELECTED_DESIGN,
-        rk4_substeps=int(getattr(model, "_rk4_substeps")),
+        rk4_substeps=int(getattr(structural_model, "_rk4_substeps")),
         dependency_neighborhoods=neighborhoods,
         max_dependency_width=max_width,
         basis_order=int(config.basis_order),
@@ -706,9 +707,9 @@ def spatial_sir_local_coordinate_log_factor(
     current-state/previous-state pairs.
     """
 
-    del theta
     metadata = spatial_sir_local_scaling_route_metadata(model, config)
-    state_dim = int(model.state_dim())
+    structural_model = _local_route_structural_model(model)
+    state_dim = int(structural_model.state_dim())
     coordinate = int(coordinate_index)
     if coordinate < 0 or coordinate >= state_dim:
         raise ValueError("coordinate_index out of range")
@@ -716,9 +717,14 @@ def spatial_sir_local_coordinate_log_factor(
     current_values = tf.convert_to_tensor(current_coordinate_values, dtype=tf.float64)
     if current_values.shape.rank != 1 or current_values.shape[0] is None:
         raise ValueError("current_coordinate_values must be a statically shaped vector")
-    transition_mean = tf.convert_to_tensor(model.transition_mean(previous), dtype=tf.float64)
+    transition_mean = tf.convert_to_tensor(
+        _transition_mean_for_local_route(model, theta, previous),
+        dtype=tf.float64,
+    )
     mean_coordinate = transition_mean[:, coordinate]
-    covariance_diag = tf.linalg.diag_part(tf.convert_to_tensor(model.process_covariance, dtype=tf.float64))
+    covariance_diag = tf.linalg.diag_part(
+        tf.convert_to_tensor(structural_model.process_covariance, dtype=tf.float64)
+    )
     variance = covariance_diag[coordinate]
     if not bool(tf.math.is_finite(variance).numpy()) or bool((variance <= 0.0).numpy()):
         raise ValueError("process covariance diagonal entry must be positive")
@@ -837,6 +843,49 @@ def _assert_diagonal_process_covariance(model: object) -> None:
     diagonal = tf.linalg.diag(tf.linalg.diag_part(covariance))
     if not bool(tf.reduce_all(tf.abs(covariance - diagonal) <= 1e-12).numpy()):
         raise ValueError("local scaling route requires diagonal process covariance")
+
+
+def _local_route_structural_model(model: object) -> object:
+    """Return the theta-independent SIR structure used by the local route."""
+
+    if _is_spatial_sir_structural_model(model):
+        return model
+    base_model = getattr(model, "base_model", None)
+    if base_model is not None and _is_spatial_sir_structural_model(base_model):
+        if not callable(getattr(model, "scaled_model", None)):
+            raise TypeError("parameterized local route model must expose scaled_model")
+        if not callable(getattr(model, "transition_mean", None)):
+            raise TypeError("parameterized local route model must expose transition_mean")
+        return base_model
+    raise TypeError(
+        "local scaling route supports SpatialSIRSSM or ParameterizedZhaoCuiSIRSSM-compatible wrappers"
+    )
+
+
+def _is_spatial_sir_structural_model(model: object) -> bool:
+    return (
+        callable(getattr(model, "state_dim", None))
+        and callable(getattr(model, "observation_dim", None))
+        and hasattr(model, "process_covariance")
+        and hasattr(model, "neighbor_sets")
+        and hasattr(model, "_rk4_substeps")
+    )
+
+
+def _transition_mean_for_local_route(
+    model: object,
+    theta: tf.Tensor,
+    previous_physical_points: tf.Tensor,
+) -> tf.Tensor:
+    """Evaluate the local-route transition mean with explicit wrapper support."""
+
+    if _is_spatial_sir_structural_model(model):
+        return model.transition_mean(previous_physical_points)
+    structural_model = _local_route_structural_model(model)
+    del structural_model
+    if callable(getattr(model, "transition_mean", None)):
+        return model.transition_mean(theta, previous_physical_points)
+    raise TypeError("parameterized local route model must expose transition_mean")
 
 
 def _spatial_sir_coordinate_reachability_neighborhoods(

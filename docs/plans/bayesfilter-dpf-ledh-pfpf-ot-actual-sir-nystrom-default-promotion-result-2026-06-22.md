@@ -112,4 +112,3 @@ same paired thresholds, and a fixed outer timeout.  If that passes, then move to
 a replicated actual-SIR ladder; if it fails, classify whether the failure is
 rank/tuning, route validity, or evidence against Nystrom for actual-SIR default
 promotion.
-

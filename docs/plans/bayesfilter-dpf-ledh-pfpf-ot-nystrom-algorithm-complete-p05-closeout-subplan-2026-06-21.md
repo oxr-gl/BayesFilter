@@ -60,4 +60,3 @@ result must state the repair or blocker before screening.
 - Required closeout review does not converge after five rounds.
 - A result would require a human decision about default/product/scientific
   claims.
-

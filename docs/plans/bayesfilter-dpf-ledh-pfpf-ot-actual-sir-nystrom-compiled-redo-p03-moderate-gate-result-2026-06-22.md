@@ -86,4 +86,3 @@ implementation unrolled too much work into the XLA graph at `T=20`, causing a
 compile-time artifact.  A result that would overturn the current next step
 would be a graph refactor or non-XLA graph-mode path that preserves residual and
 paired diagnostics while reducing first-call latency by orders of magnitude.
-

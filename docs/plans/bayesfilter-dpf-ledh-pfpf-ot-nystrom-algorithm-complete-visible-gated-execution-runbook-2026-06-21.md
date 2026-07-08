@@ -91,4 +91,3 @@ must ask Claude to check wrong baseline, proxy metric promotion, missing stop
 condition, unfair comparison, hidden assumption, stale context, environment
 mismatch, unsupported claim, and artifact mismatch. Claude must end with exactly
 `VERDICT: AGREE` or `VERDICT: REVISE`.
-

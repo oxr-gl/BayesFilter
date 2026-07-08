@@ -2,7 +2,7 @@
 
 metadata_date: 2026-06-18
 program_id: fixed-sgqf-ksc-surrogate-sv
-status: PARTIAL_PASS_SAME_TARGET_SGQF_ROUTE_VALUE_ONLY
+status: PARTIAL_PASS_SAME_TARGET_SGQF_ROUTE_VALUE_AND_ANALYTICAL_SCORE
 plan_file: docs/plans/bayesfilter-fixed-sgqf-ksc-surrogate-sv-route-gap-plan-2026-06-18.md
 
 ## Question
@@ -28,20 +28,24 @@ single-Gaussian moment-matched shortcut would have.
 
 ### 2026-06-18 analytic-gradient correction
 
-This note is intentionally corrected to **value-only** status.
+This note is intentionally corrected from the earlier autodiff-backed wrapper
+claim, but it is **no longer value-only**.
 
 Reason:
-- the outer KSC surrogate wrapper does **not** currently use the repo’s analytic
-  Fixed-SGQF score contract in `bayesfilter/nonlinear/fixed_sgqf_derivatives_tf.py`.
-- prior wrapper-gradient evidence relied on TensorFlow autodiff through the
-  wrapper value path.
-- per user policy, autodiff is acceptable only as a **test oracle to validate an
+- the outer KSC surrogate wrapper now uses the repo’s explicit analytical
+  Fixed-SGQF score contract in `bayesfilter/nonlinear/fixed_sgqf_derivatives_tf.py`
+  through `highdim.independent_panel_sv_mixture_fixed_sgqf_score(...)`.
+- same-target UKF analytical wrapper-score support also exists via
+  `highdim.independent_panel_sv_mixture_ukf_score(...)`.
+- wrapper score evidence is validated against centered finite differences on the
+  declared tiny KSC-surrogate fixture.
+- autodiff remains acceptable only as a **diagnostic oracle to validate an
   already-implemented analytical gradient**; it is not admissible as SGQF score
   evidence by itself.
 
-Therefore the KSC surrogate Fixed-SGQF wrapper is admitted only as a same-target
-surrogate **value** route until a true analytic outer mixture score contract is
-implemented.
+Therefore the KSC surrogate Fixed-SGQF wrapper is admitted as a same-target
+surrogate **value + analytical-score** route on the declared tiny fixture,
+subject to the existing nonclaims and same-target scope limits.
 
 ## Evidence contract
 
@@ -66,8 +70,6 @@ Explanatory-only diagnostics:
 - smoke-payload representation values.
 
 What is not concluded:
-- no outer analytic score admission,
-- no wrapper gradient-valid claim,
 - no actual transformed non-Gaussian SV claim,
 - no HMC readiness claim,
 - no production-readiness claim.
@@ -76,13 +78,15 @@ What is not concluded:
 
 ### New route admitted
 - `highdim.independent_panel_sv_mixture_fixed_sgqf_filter(...)`
+- `highdim.independent_panel_sv_mixture_fixed_sgqf_score(...)`
   in `bayesfilter/highdim/sv_mixture_cut4.py`
 
 ### Main implementation shape
 - per-mixture-component Gaussian closure
 - Fixed-SGQF kernel evaluation via `tf_fixed_sgqf_filter(...)`
+- analytical Fixed-SGQF wrapper score via `tf_fixed_sgqf_score(...)` plus
+  outer mixture log-sum-exp aggregation
 - posterior Gaussian-component collapse via `_collapse_gaussian_components(...)`
-- **no admitted outer analytic score path yet**
 
 ### Export update
 - public highdim export added in `bayesfilter/highdim/__init__.py`
@@ -102,41 +106,49 @@ What is not concluded:
 ### Admitted evidence
 - same-target SGQF-vs-Kalman **value** checks now exist for dims 1, 2, 3
 - same-target SGQF-vs-CUT4 **value** bounded-gap checks now exist
+- same-target SGQF analytical wrapper-score checks now exist and are validated
+  against centered finite differences on the declared tiny fixture
+- same-target UKF analytical wrapper-score checks now exist and are validated
+  against centered finite differences on the same fixture
 - p43 keeps the distinction between surrogate-row evidence and actual exact
   transformed SV evidence
 - deterministic coverage and smoke artifacts now include a `fixed_sgqf`
-  surrogate-row algorithm entry as **value-only**
+  surrogate-row algorithm entry; later benchmark-governance artifacts must treat
+  it as analytical-score-admissible only where this same-target surrogate scope
+  is preserved
 
 ### Demoted evidence
-- the previously written wrapper-gradient claims are withdrawn
-- the outer KSC surrogate wrapper is **not** an analytic-score-admitted
-  Fixed-SGQF route
-- no benchmark artifact should treat this row as gradient-valid for `fixed_sgqf`
+- the previously written wrapper-gradient claims are withdrawn only insofar as
+  they relied on autodiff rather than the explicit analytical wrapper route
+- no benchmark artifact should treat this row as actual transformed non-Gaussian
+  SV evidence
 
 ## Decision table
 
 | decision | primary criterion | veto diagnostics | main uncertainty | next justified action | not concluded |
 |---|---|---|---|---|---|
-| Admit same-target KSC-surrogate Fixed-SGQF route for value only | Passed focused dim 1/2/3 value checks vs Kalman surrogate oracle | No component-lane failure seen; autodiff-based gradient admission vetoed and removed | Outer analytic mixture score is still missing | Keep value route; create a separate plan if analytic outer score is needed | No wrapper gradient, actual-SV, HMC, or production claim |
+| Admit same-target KSC-surrogate Fixed-SGQF route for value + analytical score on the declared tiny surrogate fixture | Passed focused dim 1/2/3 value checks vs Kalman surrogate oracle and wrapper-score FD checks on the declared tiny fixture | No component-lane failure seen; autodiff-based gradient admission remains vetoed as a promotion route | Whether broader surrogate fixtures or later benchmark-governance artifacts preserve the same score contract cleanly | Keep the route analytical-score-admitted only within the declared same-target surrogate scope and update later benchmark-governance artifacts accordingly | No actual-SV, HMC, or production claim |
 
 ## Interpretation
 
-The repo now has a real same-target Fixed-SGQF **value** route for the KSC
-surrogate SV row, but not a score-admitted one.
+The repo now has a real same-target Fixed-SGQF **value + analytical-score**
+route for the KSC surrogate SV row on the declared tiny fixture.
 
 That means:
 - the route is a surrogate-target wrapper around per-component Gaussian closures,
-- it is benchmark-admitted only for declared surrogate-row value evidence,
-- and it must not be cited as analytic Fixed-SGQF gradient evidence until a true
-  analytic outer mixture score path is implemented.
+- it is benchmark-admitted only for declared surrogate-row evidence under the
+  same-target tiny-fixture scope,
+- and autodiff may remain only as a validation tool, not as the promoted SGQF
+  score route.
 
 ## Red-team note
 
 Weakest part of the current implementation boundary:
-- the wrapper reuses an analytic inner SGQF kernel but has no aggregate analytic
-  outer score contract or same-branch wrapper identity.
-- autodiff could be used later as a **validation tool** for such an analytical
-  outer score once implemented, but it does not supply the missing contract.
+- the wrapper now has an analytical outer score contract, but its promotion is
+  still only justified on the declared tiny same-target surrogate fixture until
+  broader governance artifacts are refreshed.
+- autodiff could still be used later as a **validation tool** for this analytical
+  outer score, but it does not define the promoted route.
 
 What would overturn even the current value-only conclusion:
 - branch instability or value disagreement vs Kalman enumeration on broader
@@ -144,9 +156,10 @@ What would overturn even the current value-only conclusion:
 
 ## Next steps
 
-1. Keep the route as value-only in all benchmark/governance artifacts.
-2. If analytic score evidence is required, write a separate plan for:
-   - outer mixture score derivation,
-   - aggregate branch identity / replay semantics,
-   - analytic admission criteria.
+1. Keep the route analytical-score-admitted only within the declared tiny
+   same-target surrogate fixture scope until later matrix/benchmark artifacts are
+   refreshed.
+2. Update downstream benchmark/governance artifacts so they no longer describe
+   this row as SGQF value-only where the analytical wrapper-score evidence now
+   applies.
 3. Keep actual transformed non-Gaussian SV as a separate evidence problem.

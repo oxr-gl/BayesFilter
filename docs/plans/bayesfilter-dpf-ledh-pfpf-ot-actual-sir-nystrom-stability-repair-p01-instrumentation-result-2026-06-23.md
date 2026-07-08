@@ -69,4 +69,3 @@ P02 may begin because:
 - P01 did not repair the serious-model nonfinite failure.
 - P01 did not establish robustness or default readiness.
 - P01 did not rank tuning options.
-

@@ -1,0 +1,263 @@
+{
+  "admission_status": "n10000_same_target_value_admitted",
+  "average_log_likelihood_by_seed": [
+    -2.719130859375,
+    -2.7188070678710936,
+    -2.7193002319335937,
+    -2.71923583984375,
+    -2.7195333862304687
+  ],
+  "batch_seeds": [
+    81120,
+    81121,
+    81122,
+    81123,
+    81124
+  ],
+  "correction_formula": "transition_log_density + observation_log_density - pre_flow_log_density + forward_log_det",
+  "exact_average_log_likelihood": -2.721519497158494,
+  "exact_total_log_likelihood": -136.0759748579247,
+  "exact_value_comparator": "tf_kalman_log_likelihood on same observations/model",
+  "exact_value_comparison": {
+    "average_absolute_delta": 0.0023180201077130924,
+    "average_delta_mean_minus_exact": 0.0023180201077130924,
+    "average_relative_error_abs": 0.0008517374614193686,
+    "exact_average_log_likelihood": -2.721519497158494,
+    "exact_total_log_likelihood": -136.0759748579247,
+    "total_absolute_delta": 0.11590100538563775,
+    "total_delta_mean_minus_exact": 0.11590100538563775,
+    "total_relative_error_abs": 0.0008517374614192446
+  },
+  "execution_environment_note": "CPU-hidden normalization only; no model execution or GPU evidence.",
+  "finite_output": true,
+  "flow_observation_policy": "identity_lgssm_observation_flow",
+  "forward_contract": {
+    "correction_formula": "transition_log_density + observation_log_density - pre_flow_log_density + forward_log_det",
+    "estimator_kind": "finite_N_fixed_randomness_ledh_log_likelihood_estimator",
+    "full_leaderboard_row": true,
+    "metadata": {
+      "batch_seeds": [
+        81120,
+        81121,
+        81122,
+        81123,
+        81124
+      ],
+      "num_particles": 10000,
+      "time_steps": 50
+    },
+    "nonclaims": [
+      "metadata alone is not row admission",
+      "metadata alone is not score evidence"
+    ],
+    "output_tensor_field": "log_likelihood",
+    "proposal_flow_fields": [
+      "pre_flow_log_density",
+      "forward_log_det",
+      "proposal_observation_surface"
+    ],
+    "row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+    "row_scope": "main_observed_data_filtering_row",
+    "schema_version": "bayesfilter.highdim.ledh_forward_contract.v1",
+    "score_status": "score_requires_no_tape_same_scalar_gate",
+    "target_density_fields": [
+      "transition_log_density",
+      "observation_log_density"
+    ],
+    "target_scalar": "observed_data_log_likelihood_estimator",
+    "theta_contract": {
+      "nonclaims": [],
+      "parameter_order": [
+        "phi1",
+        "phi2",
+        "phi3",
+        "q_scale",
+        "r_scale"
+      ],
+      "row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+      "source_classification": "benchmark_exact_oracle_row",
+      "theta_coordinate_system": "physical_benchmark_exact_oracle",
+      "theta_dimension": 5,
+      "theta_status": "phase1_frozen",
+      "truth_theta": [
+        0.72,
+        0.55,
+        0.35,
+        0.35,
+        0.45
+      ]
+    },
+    "value_status": "same_target_value_metadata_present"
+  },
+  "log_likelihood_by_seed": [
+    -135.95654296875,
+    -135.9403533935547,
+    -135.9650115966797,
+    -135.9617919921875,
+    -135.97666931152344
+  ],
+  "nonclaims": [
+    "not nonlinear-row evidence",
+    "not score admission",
+    "not score correctness",
+    "not HMC readiness evidence",
+    "not posterior correctness evidence",
+    "not runtime ranking evidence"
+  ],
+  "normalization_checks": {
+    "batch_seeds": true,
+    "exact_comparator": true,
+    "finite_output": true,
+    "finite_total_log_likelihood_by_seed": true,
+    "num_particles": true,
+    "primary_pass_same_target_value_execution": true,
+    "row_id": true,
+    "seed_count_matches_values": true,
+    "time_steps": true,
+    "truth_theta": true
+  },
+  "num_particles": 10000,
+  "proposal_flow_fields": [
+    "pre_flow_log_density",
+    "forward_log_det",
+    "proposal_observation_surface"
+  ],
+  "row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+  "schema_version": "bayesfilter.highdim.ledh_forward_scalar_artifact.v1",
+  "source_artifact": "docs/plans/bayesfilter-ledh-inclusive-highdim-leaderboard-phase4-lgssm-m3-t50-same-target-value-ladder-N10000-2026-07-03.json",
+  "target_density_fields": [
+    "transition_log_density",
+    "observation_log_density"
+  ],
+  "target_density_used_for_correction": true,
+  "target_observation_policy": "lgssm_gaussian_observation_density",
+  "target_output_tensor_field": "log_likelihood",
+  "target_scalar": "observed_data_log_likelihood_estimator",
+  "theta_coordinate_system": "physical_benchmark_exact_oracle",
+  "theta_values": [
+    0.72,
+    0.55,
+    0.35,
+    0.35,
+    0.45
+  ],
+  "time_steps": 50,
+  "validator_normalized_core": {
+    "admission_status": "n10000_same_target_value_admitted",
+    "average_log_likelihood_by_seed": [
+      -2.719130859375,
+      -2.7188070678710936,
+      -2.7193002319335937,
+      -2.71923583984375,
+      -2.7195333862304687
+    ],
+    "batch_seeds": [
+      81120,
+      81121,
+      81122,
+      81123,
+      81124
+    ],
+    "correction_formula": "transition_log_density + observation_log_density - pre_flow_log_density + forward_log_det",
+    "finite_output": true,
+    "flow_observation_policy": "identity_lgssm_observation_flow",
+    "forward_contract": {
+      "correction_formula": "transition_log_density + observation_log_density - pre_flow_log_density + forward_log_det",
+      "estimator_kind": "finite_N_fixed_randomness_ledh_log_likelihood_estimator",
+      "full_leaderboard_row": true,
+      "metadata": {
+        "batch_seeds": [
+          81120,
+          81121,
+          81122,
+          81123,
+          81124
+        ],
+        "num_particles": 10000,
+        "time_steps": 50
+      },
+      "nonclaims": [
+        "metadata alone is not row admission",
+        "metadata alone is not score evidence"
+      ],
+      "output_tensor_field": "log_likelihood",
+      "proposal_flow_fields": [
+        "pre_flow_log_density",
+        "forward_log_det",
+        "proposal_observation_surface"
+      ],
+      "row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+      "row_scope": "main_observed_data_filtering_row",
+      "schema_version": "bayesfilter.highdim.ledh_forward_contract.v1",
+      "score_status": "score_requires_no_tape_same_scalar_gate",
+      "target_density_fields": [
+        "transition_log_density",
+        "observation_log_density"
+      ],
+      "target_scalar": "observed_data_log_likelihood_estimator",
+      "theta_contract": {
+        "nonclaims": [],
+        "parameter_order": [
+          "phi1",
+          "phi2",
+          "phi3",
+          "q_scale",
+          "r_scale"
+        ],
+        "row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+        "source_classification": "benchmark_exact_oracle_row",
+        "theta_coordinate_system": "physical_benchmark_exact_oracle",
+        "theta_dimension": 5,
+        "theta_status": "phase1_frozen",
+        "truth_theta": [
+          0.72,
+          0.55,
+          0.35,
+          0.35,
+          0.45
+        ]
+      },
+      "value_status": "same_target_value_metadata_present"
+    },
+    "log_likelihood_by_seed": [
+      -135.95654296875,
+      -135.9403533935547,
+      -135.9650115966797,
+      -135.9617919921875,
+      -135.97666931152344
+    ],
+    "nonclaims": [
+      "not nonlinear-row evidence",
+      "not score admission",
+      "not score correctness",
+      "not HMC readiness evidence",
+      "not posterior correctness evidence",
+      "not runtime ranking evidence"
+    ],
+    "num_particles": 10000,
+    "proposal_flow_fields": [
+      "pre_flow_log_density",
+      "forward_log_det",
+      "proposal_observation_surface"
+    ],
+    "row_id": "benchmark_lgssm_exact_oracle_m3_T50",
+    "schema_version": "bayesfilter.highdim.ledh_forward_scalar_artifact.v1",
+    "target_density_fields": [
+      "transition_log_density",
+      "observation_log_density"
+    ],
+    "target_density_used_for_correction": true,
+    "target_observation_policy": "lgssm_gaussian_observation_density",
+    "target_output_tensor_field": "log_likelihood",
+    "target_scalar": "observed_data_log_likelihood_estimator",
+    "theta_coordinate_system": "physical_benchmark_exact_oracle",
+    "theta_values": [
+      0.72,
+      0.55,
+      0.35,
+      0.35,
+      0.45
+    ],
+    "time_steps": 50
+  }
+}

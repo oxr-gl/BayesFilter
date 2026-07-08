@@ -1,6 +1,6 @@
 # Chapter Crosswalk: Scalable OT Survey Reintegration
 
-**Date:** 2026-06-20  
+**Date:** 2026-06-20
 **Source survey:** `docs/plans/bayesfilter-dpf-ledh-pfpf-ot-scalable-ot-self-contained-survey-paper-2026-06-17.tex`
 
 ## Purpose

@@ -59,4 +59,3 @@ P01 may begin. Required P01 artifacts are:
 - `docs/benchmarks/scalable_ot_nystrom_ledh_pfpf_algorithm_complete.py`
 - `tests/test_nystrom_ledh_pfpf_algorithm_complete.py`
 - `docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-algorithm-complete-p01-implementation-harness-result-2026-06-21.md`
-

@@ -1,0 +1,469 @@
+{
+  "command": "/home/chakwong/anaconda3/envs/tf-gpu/bin/python scripts/collect_ledh_clean_xla_phase7_validation.py --output docs/plans/bayesfilter-ledh-pfpf-ot-clean-xla-jit-phase7-numerical-validation-2026-07-02.json --device /GPU:0 --expect-device-kind gpu --batch-seeds 81120 --time-steps 1 --num-particles 16 --theta 0.02,-0.01,0.01 --fd-steps 0.002,0.001,0.0005 --sinkhorn-iterations 2 --sinkhorn-epsilon 1.0 --annealed-scaling 0.9 --row-chunk-size 16 --col-chunk-size 16 --particle-chunk-size 16 --dtype float32 --tf32-mode enabled",
+  "compiler": {
+    "cold_compile_plus_first_call_seconds": 23.45174773002509,
+    "concrete_function_count": 1,
+    "fd_sentinel_seconds": 0.412721885018982,
+    "hlo": {
+      "available": true,
+      "has_while_marker": true,
+      "line_count": 52059,
+      "markers": {
+        "fusion": 0,
+        "while_lower": 199199,
+        "while_region": 0
+      },
+      "text_length": 27766809
+    },
+    "hlo_retrieval_seconds": 4.607740922947414,
+    "hlo_watchpoint": {
+      "compile_plus_first_call_seconds": 23.45174773002509,
+      "compile_timeout_seconds": 600.0,
+      "hlo_text_length": 27766809,
+      "limit_text_length": 111067236,
+      "max_factor": 4.0,
+      "pass": true,
+      "phase6_baseline_field": "hlo_text_length",
+      "phase6_baseline_text_length": 27766809,
+      "same_T_N_sinkhorn_iteration_fixture": true
+    },
+    "jit_compile": true,
+    "same_process_warm_call_a_seconds": 0.03821817005518824,
+    "same_process_warm_call_b_seconds": 0.037110873963683844,
+    "unexpected_retrace": false,
+    "wall_seconds": 28.61176838504616
+  },
+  "cpu_gpu_status": {
+    "expect_device_kind": "gpu",
+    "logical_gpus": [
+      "LogicalDevice(name='/device:GPU:0', device_type='GPU')"
+    ],
+    "output_devices": [
+      "/job:localhost/replica:0/task:0/device:GPU:0",
+      "/job:localhost/replica:0/task:0/device:GPU:0",
+      "/job:localhost/replica:0/task:0/device:GPU:0",
+      "/job:localhost/replica:0/task:0/device:GPU:0"
+    ],
+    "physical_gpus": [
+      "PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')"
+    ],
+    "repeat_output_devices": [
+      "/job:localhost/replica:0/task:0/device:GPU:0",
+      "/job:localhost/replica:0/task:0/device:GPU:0",
+      "/job:localhost/replica:0/task:0/device:GPU:0",
+      "/job:localhost/replica:0/task:0/device:GPU:0"
+    ]
+  },
+  "decision": "OWNER_ACCEPTED_WITH_FD_WAIVER_PHASE7_NUMERICAL_VALIDATION",
+  "owner_acceptance": {
+    "accepted": true,
+    "accepted_at_local_date": "2026-07-03",
+    "basis": "User explicitly approved accepting and promoting the bounded Phase 7 result as closed enough and not worth extra repair effort.",
+    "fd_gate_original_pass": false,
+    "scope": "Tiny trusted GPU/XLA full-route fixture with T=1, N=16, one seed, TF32 enabled, and transport_ad_mode='full'.",
+    "waived_issue": "Same-scalar FD sentinel narrowly missed the preregistered tolerance for log_obs_noise_scale.",
+    "waiver_does_not_claim": [
+      "the preregistered FD gate passed",
+      "exact nonlinear likelihood correctness",
+      "posterior correctness",
+      "HMC readiness",
+      "all-model validation",
+      "that stopped-key partial derivatives are scores"
+    ]
+  },
+  "environment": {
+    "CUDA_VISIBLE_DEVICES": null,
+    "TF_CPP_MIN_LOG_LEVEL": "1"
+  },
+  "git_commit": "ef119f8bdb17b206339de92d722344a448eea745",
+  "git_dirty_summary": {
+    "available": true,
+    "dirty": true,
+    "line_count": 907
+  },
+  "host": "DESKTOP-RF1Q5IJ",
+  "monte_carlo_gradient_noise": {
+    "log_kappa_scale": {
+      "batch_size": 1,
+      "max": -9.70480728149414,
+      "mean": -9.70480728149414,
+      "min": -9.70480728149414,
+      "sample_sd_across_seed_contributions": 0.0,
+      "standard_error_of_batch_mean": 0.0
+    },
+    "log_nu_scale": {
+      "batch_size": 1,
+      "max": 3.55403995513916,
+      "mean": 3.55403995513916,
+      "min": 3.55403995513916,
+      "sample_sd_across_seed_contributions": 0.0,
+      "standard_error_of_batch_mean": 0.0
+    },
+    "log_obs_noise_scale": {
+      "batch_size": 1,
+      "max": 4.833810806274414,
+      "mean": 4.833810806274414,
+      "min": 4.833810806274414,
+      "sample_sd_across_seed_contributions": 0.0,
+      "standard_error_of_batch_mean": 0.0
+    }
+  },
+  "nonclaims": [
+    "bounded trusted GPU/XLA full-route fixture only",
+    "same-scalar FD sentinel only",
+    "not exact nonlinear likelihood proof",
+    "not posterior correctness evidence",
+    "not HMC readiness evidence",
+    "not all-model validation",
+    "not broad production readiness",
+    "stopped-key partial derivatives are not scores"
+  ],
+  "output_path": "docs/plans/bayesfilter-ledh-pfpf-ot-clean-xla-jit-phase7-numerical-validation-2026-07-02.json",
+  "outputs": {
+    "finite": true,
+    "gradient": [
+      -9.70480728149414,
+      3.55403995513916,
+      4.833810806274414
+    ],
+    "log_likelihood": [
+      -36.30470657348633
+    ],
+    "objective": -36.30470657348633,
+    "per_seed_gradient": [
+      [
+        -9.70480728149414,
+        3.55403995513916,
+        4.833810806274414
+      ]
+    ]
+  },
+  "plan_path": "docs/plans/bayesfilter-ledh-pfpf-ot-clean-xla-jit-phase7-numerical-validation-subplan-2026-07-02.md",
+  "precision": {
+    "active_dtype": "float32",
+    "default_algorithm_target": "ledh_pfpf_ot_tf32",
+    "default_dtype": "float32",
+    "default_execution_target": "gpu",
+    "default_route_acceptance": "accepted_default_use_whenever_possible",
+    "default_route_guidance": "use for BayesFilter DPF LEDH-PFPF-OT work whenever GPU execution and the streaming fixed-branch contract are applicable",
+    "default_route_rationale": "streaming GPU TF32 LEDH-PFPF-OT avoids dense transport/history storage for large-particle DPF transport while preserving explicit reference and fallback arms",
+    "default_target_status": "production_default_by_owner_directive",
+    "default_tf32_mode": "enabled",
+    "dtype": "float32",
+    "fp64_reference_requires_explicit_dtype": true,
+    "historical_module_path": "experiments/dpf_implementation",
+    "precision_default_policy": "production_ledh_pfpf_ot_gpu_tf32",
+    "public_api_exposure": "separately_gated",
+    "scope": "production_ledh_pfpf_ot_gpu_tf32_default_lane",
+    "tf32_execution_enabled": true,
+    "tf32_mode": "enabled",
+    "tf_dtype": "float32"
+  },
+  "primary_pass": false,
+  "promoted_by_owner_acceptance": true,
+  "python_executable": "/home/chakwong/anaconda3/envs/tf-gpu/bin/python",
+  "python_version": "3.11.14",
+  "random_seeds": {
+    "batch_seeds": [
+      81120
+    ]
+  },
+  "repeat_determinism": {
+    "log_likelihood_max_abs_delta": 0.0,
+    "mean_gradient_max_abs_delta": 0.0,
+    "objective_max_abs_delta": 0.0,
+    "pass": true,
+    "per_seed_gradient_max_abs_delta": 0.0,
+    "protocol": "same_process_warm_call_same_concrete_signature",
+    "repeat_atol": 1e-05
+  },
+  "result_path": "docs/plans/bayesfilter-ledh-pfpf-ot-clean-xla-jit-phase7-numerical-validation-result-2026-07-02.md",
+  "route_config": {
+    "annealed_scaling": 0.9,
+    "col_chunk_size": 16,
+    "particle_chunk_size": 16,
+    "row_chunk_size": 16,
+    "sinkhorn_epsilon": 1.0,
+    "sinkhorn_iterations": 2,
+    "transport_ad_mode": "full",
+    "transport_gradient_mode": "manual_streaming_finite_sinkhorn_stopped_scale_keys",
+    "transport_plan_mode": "streaming"
+  },
+  "route_pass": true,
+  "runtime_route_manifest": {
+    "anchors": [
+      {
+        "line": 717,
+        "needle": "args.transport_ad_mode == \"full\"",
+        "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+        "symbol": "_manual_transport_vjp_tf",
+        "text": "if args.transport_ad_mode == \"full\":"
+      },
+      {
+        "line": 725,
+        "needle": "_filterflow_manual_streaming_finite_transport_total_vjp",
+        "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+        "symbol": "_manual_transport_vjp_tf",
+        "text": "annealed_transport_tf._filterflow_manual_streaming_finite_transport_total_vjp(  # noqa: SLF001"
+      },
+      {
+        "line": 843,
+        "needle": "args.transport_ad_mode == \"full\"",
+        "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+        "symbol": "_manual_forward_transport_tf",
+        "text": "if args.transport_ad_mode == \"full\":"
+      },
+      {
+        "line": 845,
+        "needle": "_filterflow_manual_streaming_finite_transport_total_vjp",
+        "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+        "symbol": "_manual_forward_transport_tf",
+        "text": "annealed_transport_tf._filterflow_manual_streaming_finite_transport_total_vjp(  # noqa: SLF001"
+      },
+      {
+        "line": 1468,
+        "needle": "_filterflow_manual_streaming_finite_transport_total_vjp",
+        "path": "experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_tf.py",
+        "symbol": "batched_annealed_transport_core_tf",
+        "text": "transport_fn = _filterflow_manual_streaming_finite_transport_total_vjp"
+      }
+    ],
+    "exact_executed_scalar": true,
+    "fd_randomness": "fixed observations, fixed resampling mask, fixed initial particles, fixed stateless transition noise",
+    "fd_scalar_route": "same_compiled_manual_value_and_score_function_objective",
+    "manifest_kind": "runtime_emitted_source_anchored_route_manifest",
+    "score_route": "manual_reverse_scan_no_autodiff",
+    "selected_full_route_helper": "_filterflow_manual_streaming_finite_transport_total_vjp",
+    "stopped_key_helper_selected_for_score_evidence": false,
+    "stopped_key_helpers_classified_as": "partial_derivative_helpers_not_scores",
+    "transport_ad_mode": "full",
+    "transport_gradient_mode": "manual_streaming_finite_sinkhorn_stopped_scale_keys",
+    "transport_plan_mode": "streaming"
+  },
+  "same_scalar_fd_sentinel": {
+    "directions": [
+      {
+        "analytic_directional_derivative": -9.70480728149414,
+        "basis_name": "raw_theta",
+        "direction_name": "log_kappa_scale",
+        "direction_original_theta": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "fd_steps": [
+          {
+            "absolute_error": 0.010272979736328125,
+            "central_difference": -9.715080261230469,
+            "central_difference_per_seed": [
+              -9.715080261230469
+            ],
+            "fd_mcse": null,
+            "fd_step": 0.002,
+            "finite": true,
+            "minus_objective": -36.28535842895508,
+            "pass": true,
+            "plus_objective": -36.32421875,
+            "tolerance": 0.19530160522460938
+          },
+          {
+            "absolute_error": 0.011226654052734375,
+            "central_difference": -9.716033935546875,
+            "central_difference_per_seed": [
+              -9.716033935546875
+            ],
+            "fd_mcse": null,
+            "fd_step": 0.001,
+            "finite": true,
+            "minus_objective": -36.29500961303711,
+            "pass": true,
+            "plus_objective": -36.3144416809082,
+            "tolerance": 0.1953206787109375
+          },
+          {
+            "absolute_error": 0.011226654052734375,
+            "central_difference": -9.716033935546875,
+            "central_difference_per_seed": [
+              -9.716033935546875
+            ],
+            "fd_mcse": null,
+            "fd_step": 0.0005,
+            "finite": true,
+            "minus_objective": -36.29985427856445,
+            "pass": true,
+            "plus_objective": -36.3095703125,
+            "tolerance": 0.1953206787109375
+          }
+        ],
+        "finite_all_steps": true,
+        "pass": true,
+        "sign_guard_pass": true,
+        "sign_guard_threshold": 0.0001,
+        "tolerance_pass_any_step": true
+      },
+      {
+        "analytic_directional_derivative": 3.55403995513916,
+        "basis_name": "raw_theta",
+        "direction_name": "log_nu_scale",
+        "direction_original_theta": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "fd_steps": [
+          {
+            "absolute_error": 0.004118680953979492,
+            "central_difference": 3.5581586360931396,
+            "central_difference_per_seed": [
+              3.5581586360931396
+            ],
+            "fd_mcse": null,
+            "fd_step": 0.002,
+            "finite": true,
+            "minus_objective": -36.311824798583984,
+            "pass": true,
+            "plus_objective": -36.29759216308594,
+            "tolerance": 0.07216317272186279
+          },
+          {
+            "absolute_error": 0.005072355270385742,
+            "central_difference": 3.559112310409546,
+            "central_difference_per_seed": [
+              3.559112310409546
+            ],
+            "fd_mcse": null,
+            "fd_step": 0.001,
+            "finite": true,
+            "minus_objective": -36.308265686035156,
+            "pass": true,
+            "plus_objective": -36.3011474609375,
+            "tolerance": 0.07218224620819091
+          },
+          {
+            "absolute_error": 0.0012576580047607422,
+            "central_difference": 3.555297613143921,
+            "central_difference_per_seed": [
+              3.555297613143921
+            ],
+            "fd_mcse": null,
+            "fd_step": 0.0005,
+            "finite": true,
+            "minus_objective": -36.30648422241211,
+            "pass": true,
+            "plus_objective": -36.30292892456055,
+            "tolerance": 0.07210595226287841
+          }
+        ],
+        "finite_all_steps": true,
+        "pass": true,
+        "sign_guard_pass": true,
+        "sign_guard_threshold": 0.0001,
+        "tolerance_pass_any_step": true
+      },
+      {
+        "analytic_directional_derivative": 4.833810806274414,
+        "basis_name": "raw_theta",
+        "direction_name": "log_obs_noise_scale",
+        "direction_original_theta": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "fd_steps": [
+          {
+            "absolute_error": 0.10145378112792969,
+            "central_difference": 4.935264587402344,
+            "central_difference_per_seed": [
+              4.935264587402344
+            ],
+            "fd_mcse": null,
+            "fd_step": 0.002,
+            "finite": true,
+            "minus_objective": -36.31462478637695,
+            "pass": false,
+            "plus_objective": -36.294883728027344,
+            "tolerance": 0.09970529174804688
+          },
+          {
+            "absolute_error": 0.10050010681152344,
+            "central_difference": 4.9343109130859375,
+            "central_difference_per_seed": [
+              4.9343109130859375
+            ],
+            "fd_mcse": null,
+            "fd_step": 0.001,
+            "finite": true,
+            "minus_objective": -36.30970001220703,
+            "pass": false,
+            "plus_objective": -36.29983139038086,
+            "tolerance": 0.09968621826171875
+          },
+          {
+            "absolute_error": 0.14818382263183594,
+            "central_difference": 4.98199462890625,
+            "central_difference_per_seed": [
+              4.98199462890625
+            ],
+            "fd_mcse": null,
+            "fd_step": 0.0005,
+            "finite": true,
+            "minus_objective": -36.3072509765625,
+            "pass": false,
+            "plus_objective": -36.302268981933594,
+            "tolerance": 0.100639892578125
+          }
+        ],
+        "finite_all_steps": true,
+        "pass": false,
+        "sign_guard_pass": true,
+        "sign_guard_threshold": 0.0001,
+        "tolerance_pass_any_step": false
+      }
+    ],
+    "fd_steps": [
+      0.002,
+      0.001,
+      0.0005
+    ],
+    "pass": false,
+    "rule": {
+      "analytic": "reported_full_route_mean_score_dot_direction",
+      "fallback_tolerance": "0.001 + 0.02 * max(1, abs(fd_value))",
+      "finite_difference": "central_difference_same_compiled_scalar_fixed_randomness",
+      "mcse_tolerance": "2 * fd_mcse when fd_mcse is emitted",
+      "statistic": "directional_derivative_of_exact_executed_scalar",
+      "step_adjudication": "at least one predeclared step passes and no tested larger-neighborhood step has opposite sign when analytic magnitude is at least threshold"
+    }
+  },
+  "schema_version": "ledh_clean_xla_phase7_numerical_validation.v1",
+  "shape": {
+    "batch_size": 1,
+    "num_particles": 16,
+    "parameter_dim": 3,
+    "state_dim": 18,
+    "time_steps": 1
+  },
+  "sir_semantics": {
+    "actual_sir_callback_usage": "initial_sample, process/observation covariance callbacks, observation metadata, and route metadata",
+    "actual_sir_callbacks_used": true,
+    "adapter_classification": "BayesFilter DPF adapter for fixed-parameter SIR; not Zhao-Cui TT/SIRT source-faithfulness evidence",
+    "experimental_streaming_adapter_route": "batched nonlinear-prior LEDH-PFPF-OT streaming adapter with fixed process covariance, not scalar Li-Coates Algorithm 1 UKF covariance lifecycle parity",
+    "flow_observation_contract": "same_observation_gaussian_sir_infectious_components",
+    "graph_compatible_sir_transition_copy_used": true,
+    "graph_compatible_sir_transition_source": "bayesfilter.highdim.zhao_cui_sir_austria_model RK4 zhao_cui_sir_step equations, copied into TensorFlow graph form because the model validation path uses eager .numpy() checks",
+    "nonlinear_prior_mean_hook_used": true,
+    "observation_dimension": 9,
+    "process_noise_policy": "clip_susceptible_after_noise",
+    "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+    "scalar_algorithm1_ukf_covariance_lifecycle_parity_claim": false,
+    "state_dimension": 18,
+    "target_density_used_for_correction": true
+  },
+  "tensorflow_version": "2.19.1",
+  "theta": {
+    "log_kappa_scale": 0.02,
+    "log_nu_scale": -0.01,
+    "log_obs_noise_scale": 0.01
+  },
+  "timestamp_utc": "2026-07-02T19:33:50.814582+00:00"
+}

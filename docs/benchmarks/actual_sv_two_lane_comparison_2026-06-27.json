@@ -1,0 +1,155 @@
+{
+  "actual_sv_rows": [
+    {
+      "cross_lane": {
+        "dense_value_gap": 3.6779538008065567
+      },
+      "dim": 1,
+      "lane_a": {
+        "dense_log_likelihood": -4.492112473833502,
+        "score_relative_error": 3.789794545570641e-11,
+        "sgqf_log_likelihood": -4.477606513037577,
+        "sparse_level": 2,
+        "value_gap": 0.014505960795925255
+      },
+      "lane_b": {
+        "dense_log_likelihood": -0.8141586730269452,
+        "sgqf_log_likelihood": -0.8139605332461752,
+        "sgqf_score_relative_error": 1.4223727207285238e-11,
+        "sgqf_sparse_level": 4,
+        "sgqf_value_gap": 0.00019813978076999028,
+        "ukf_log_likelihood": -0.06560810266103534,
+        "ukf_score_relative_error": 9.44910071415306e-12,
+        "ukf_value_gap": 0.7485505703659099
+      }
+    },
+    {
+      "cross_lane": {
+        "dense_value_gap": 7.725620239406018
+      },
+      "dim": 2,
+      "lane_a": {
+        "dense_log_likelihood": -8.81916869084312,
+        "score_relative_error": 5.2359524954376005e-11,
+        "sgqf_log_likelihood": -8.80141077303949,
+        "sparse_level": 2,
+        "value_gap": 0.017757917803630008
+      },
+      "lane_b": {
+        "dense_log_likelihood": -1.0935484514371026,
+        "sgqf_log_likelihood": -1.0933271979009518,
+        "sgqf_score_relative_error": 1.7530480092628592e-11,
+        "sgqf_sparse_level": 4,
+        "sgqf_value_gap": 0.00022125353615076726,
+        "ukf_log_likelihood": 0.12064887584534234,
+        "ukf_score_relative_error": 7.206486881459999e-12,
+        "ukf_value_gap": 1.214197327282445
+      }
+    },
+    {
+      "cross_lane": {
+        "dense_value_gap": 13.33131899345035
+      },
+      "dim": 3,
+      "lane_a": {
+        "dense_log_likelihood": -15.033778455609323,
+        "score_relative_error": 4.44939034796152e-11,
+        "sgqf_log_likelihood": -15.015550151654669,
+        "sparse_level": 2,
+        "value_gap": 0.018228303954654024
+      },
+      "lane_b": {
+        "dense_log_likelihood": -1.7024594621589724,
+        "sgqf_log_likelihood": -1.7022328886381528,
+        "sgqf_score_relative_error": 1.1342968442038882e-11,
+        "sgqf_sparse_level": 4,
+        "sgqf_value_gap": 0.00022657352081956184,
+        "ukf_log_likelihood": -0.1303362549185832,
+        "ukf_score_relative_error": 6.702673271435595e-12,
+        "ukf_value_gap": 1.5721232072403892
+      }
+    }
+  ],
+  "control_rows": [
+    {
+      "backend": "tf_svd_cubature",
+      "log_likelihood": -1.5597972944849308,
+      "model": "model_b_nonlinear_accumulation",
+      "score_relative_error": 1.6321484085091997e-10
+    },
+    {
+      "backend": "tf_svd_ukf",
+      "log_likelihood": -1.559808494225846,
+      "model": "model_b_nonlinear_accumulation",
+      "score_relative_error": 0.0013175275686289297
+    },
+    {
+      "backend": "tf_svd_cut4",
+      "log_likelihood": -1.537279264741419,
+      "model": "model_b_nonlinear_accumulation",
+      "score_relative_error": 1.6148568868983887e-10
+    },
+    {
+      "backend": "tf_svd_cubature",
+      "log_likelihood": -4.871427127789433,
+      "model": "model_c_smooth_phase_growth",
+      "score_relative_error": 2.595966823604605e-09
+    },
+    {
+      "backend": "tf_svd_ukf",
+      "log_likelihood": -5.242725264623706,
+      "model": "model_c_smooth_phase_growth",
+      "score_relative_error": 0.006409241549398059
+    },
+    {
+      "backend": "tf_svd_cut4",
+      "log_likelihood": -4.937941638644215,
+      "model": "model_c_smooth_phase_growth",
+      "score_relative_error": 1.1041054577231865e-09
+    }
+  ],
+  "cuda_visible_devices": "-1",
+  "dims": [
+    1,
+    2,
+    3
+  ],
+  "fd_step": 1e-05,
+  "host": "DESKTOP-RF1Q5IJ",
+  "include_controls": true,
+  "include_ksc": true,
+  "ksc_rows": [
+    {
+      "dim": 1,
+      "kalman_mixture_log_likelihood": -4.505481290077734,
+      "nonclaim": "surrogate row only, not actual-SV evidence"
+    },
+    {
+      "dim": 2,
+      "kalman_mixture_log_likelihood": -8.847218775872449,
+      "nonclaim": "surrogate row only, not actual-SV evidence"
+    },
+    {
+      "dim": 3,
+      "kalman_mixture_log_likelihood": -15.092459806872732,
+      "nonclaim": "surrogate row only, not actual-SV evidence"
+    }
+  ],
+  "lane_a_order": 401,
+  "lane_a_radius": 8.0,
+  "lane_a_sparse_level": 2,
+  "lane_b_order": 81,
+  "lane_b_radius": 7.0,
+  "lane_b_sparse_level": 4,
+  "nonclaims": [
+    "tiny deterministic comparison harness only",
+    "not a production timing benchmark",
+    "not HMC convergence evidence",
+    "Lane A and Lane B are different declared scalars",
+    "KSC surrogate rows are reported separately from actual-SV rows"
+  ],
+  "python_version": "3.11.14",
+  "schema_version": "actual_sv_two_lane.v1",
+  "tensorflow_version": "2.19.1",
+  "timestamp_utc": "2026-06-27T16:44:39.588956+00:00"
+}

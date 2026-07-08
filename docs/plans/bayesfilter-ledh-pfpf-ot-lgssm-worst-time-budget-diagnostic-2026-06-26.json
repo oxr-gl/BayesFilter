@@ -1,0 +1,191 @@
+{
+  "decision": {
+    "decision": "Focused worst-time row residuals pass, but covariance contraction remains live.",
+    "main_uncertainty": "The target clouds are produced by baseline steps before the target; a full-propagation higher-budget run is still needed if this passes.",
+    "next_justified_action": "Move to reset covariance semantics before changing the statistical harness.",
+    "not_concluded": "No gradient correctness, SIR correctness, GPU/XLA performance, HMC readiness, posterior correctness, production readiness, or broad scientific validity.",
+    "primary_criterion_status": "state_dim=1 passes at steps=400 with row=2.831e-04; state_dim=2 passes at steps=400 with row=1.192e-06; state_dim=1 best cov ratio=0.618472; state_dim=2 best cov ratio=0.379565",
+    "veto_diagnostic_status": "PASS"
+  },
+  "manifest": {
+    "baseline_steps": 100,
+    "candidate_steps": [
+      100,
+      200,
+      400
+    ],
+    "command": "docs/benchmarks/diagnose_ledh_pfpf_ot_lgssm_worst_time_budget.py --device-scope cpu --num-particles 128 --dense-parity-particles 64 --seed-count 10 --state-dims 1 2 --baseline-steps 100 --candidate-steps 100 200 400 --epsilon 0.5 --output docs/plans/bayesfilter-ledh-pfpf-ot-lgssm-worst-time-budget-diagnostic-2026-06-26.json --markdown-output docs/plans/bayesfilter-ledh-pfpf-ot-lgssm-worst-time-budget-diagnostic-2026-06-26.md",
+    "cuda_visible_devices": "-1",
+    "dense_parity_particles": 64,
+    "device_scope": "cpu",
+    "epsilon": 0.5,
+    "git_commit": "97ad05d40676f3fd15a2a2b4d45034ebb657ed97",
+    "logical_gpus": [],
+    "markdown_output": "docs/plans/bayesfilter-ledh-pfpf-ot-lgssm-worst-time-budget-diagnostic-2026-06-26.md",
+    "num_particles": 128,
+    "output": "docs/plans/bayesfilter-ledh-pfpf-ot-lgssm-worst-time-budget-diagnostic-2026-06-26.json",
+    "physical_gpus": [],
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "python": "3.11.14 (main, Oct 21 2025, 18:31:21) [GCC 11.2.0]",
+    "runtime_seconds": 94.25710308999987,
+    "seed_count": 10,
+    "state_dims": [
+      1,
+      2
+    ],
+    "tf32_execution_enabled": true,
+    "tf32_mode": "enabled",
+    "xla": false
+  },
+  "plan": "docs/plans/bayesfilter-ledh-pfpf-ot-lgssm-worst-time-budget-diagnostic-plan-2026-06-26.md",
+  "results": [
+    {
+      "baseline_steps_before_target": 100,
+      "candidate_steps": [
+        100,
+        200,
+        400
+      ],
+      "candidates": [
+        {
+          "dense_column_residual": 5.960464477539062e-07,
+          "dense_row_residual": 0.015090644359588623,
+          "dense_streaming_max_abs_particle_diff": 0.0,
+          "dense_streaming_mean_abs_particle_diff": 0.0,
+          "post_cov_trace_mean": 0.08065823465585709,
+          "post_pre_cov_trace_ratio_mean": 0.6183902621269226,
+          "pre_cov_trace_mean": 0.1304854452610016,
+          "pre_to_post_mean_l2_max": 2.9802322387695312e-08,
+          "pre_to_post_mean_l2_mean": 9.685754420729609e-09,
+          "steps": 100,
+          "streaming_row_residual": 0.015090644359588623,
+          "subset_dense_column_residual": 3.5762786865234375e-07,
+          "subset_dense_row_residual": 0.0075855255126953125,
+          "subset_particles": 64
+        },
+        {
+          "dense_column_residual": 7.152557373046875e-07,
+          "dense_row_residual": 0.004356741905212402,
+          "dense_streaming_max_abs_particle_diff": 0.0,
+          "dense_streaming_mean_abs_particle_diff": 0.0,
+          "post_cov_trace_mean": 0.08066608011722565,
+          "post_pre_cov_trace_ratio_mean": 0.6184501647949219,
+          "pre_cov_trace_mean": 0.1304854452610016,
+          "pre_to_post_mean_l2_max": 1.4901161193847656e-08,
+          "pre_to_post_mean_l2_mean": 4.470348535789981e-09,
+          "steps": 200,
+          "streaming_row_residual": 0.004356741905212402,
+          "subset_dense_column_residual": 4.76837158203125e-07,
+          "subset_dense_row_residual": 0.0011126995086669922,
+          "subset_particles": 64
+        },
+        {
+          "dense_column_residual": 7.152557373046875e-07,
+          "dense_row_residual": 0.00028312206268310547,
+          "dense_streaming_max_abs_particle_diff": 0.0,
+          "dense_streaming_mean_abs_particle_diff": 0.0,
+          "post_cov_trace_mean": 0.08066888153553009,
+          "post_pre_cov_trace_ratio_mean": 0.6184715032577515,
+          "pre_cov_trace_mean": 0.1304854452610016,
+          "pre_to_post_mean_l2_max": 2.2351741790771484e-08,
+          "pre_to_post_mean_l2_mean": 5.9604645663569045e-09,
+          "steps": 400,
+          "streaming_row_residual": 0.00028312206268310547,
+          "subset_dense_column_residual": 4.76837158203125e-07,
+          "subset_dense_row_residual": 2.199411392211914e-05,
+          "subset_particles": 64
+        }
+      ],
+      "epsilon": 0.5,
+      "ess_mean_at_target": 127.51606674194336,
+      "ess_min_at_target": 127.0162124633789,
+      "prefix_delta_to_kalman": 0.2584825488715774,
+      "prefix_mcse": 0.009374283754926407,
+      "prefix_mean": -5.984098291397094,
+      "prefix_sd": 0.02964408809828313,
+      "state_dim": 1,
+      "target_increment_delta_to_kalman": 0.025828847156518564,
+      "target_increment_mcse": 0.0023933626493736456,
+      "target_increment_mean": -0.6369164466857911,
+      "target_increment_sd": 0.007568477238795686,
+      "target_kalman_increment": -0.6627452938423096,
+      "target_kalman_prefix": -6.242580840268672,
+      "target_time": 8
+    },
+    {
+      "baseline_steps_before_target": 100,
+      "candidate_steps": [
+        100,
+        200,
+        400
+      ],
+      "candidates": [
+        {
+          "dense_column_residual": 5.960464477539062e-07,
+          "dense_row_residual": 0.0032411813735961914,
+          "dense_streaming_max_abs_particle_diff": 0.0,
+          "dense_streaming_mean_abs_particle_diff": 0.0,
+          "post_cov_trace_mean": 0.10414515435695648,
+          "post_pre_cov_trace_ratio_mean": 0.37959086894989014,
+          "pre_cov_trace_mean": 0.27407652139663696,
+          "pre_to_post_mean_l2_max": 4.470348358154297e-08,
+          "pre_to_post_mean_l2_mean": 2.792171471810434e-08,
+          "steps": 100,
+          "streaming_row_residual": 0.0032411813735961914,
+          "subset_dense_column_residual": 4.76837158203125e-07,
+          "subset_dense_row_residual": 0.0011059045791625977,
+          "subset_particles": 64
+        },
+        {
+          "dense_column_residual": 5.364418029785156e-07,
+          "dense_row_residual": 0.0002535581588745117,
+          "dense_streaming_max_abs_particle_diff": 0.0,
+          "dense_streaming_mean_abs_particle_diff": 0.0,
+          "post_cov_trace_mean": 0.1041378602385521,
+          "post_pre_cov_trace_ratio_mean": 0.3795667290687561,
+          "pre_cov_trace_mean": 0.27407652139663696,
+          "pre_to_post_mean_l2_max": 5.066942776466021e-08,
+          "pre_to_post_mean_l2_mean": 2.6104496342327366e-08,
+          "steps": 200,
+          "streaming_row_residual": 0.0002535581588745117,
+          "subset_dense_column_residual": 4.76837158203125e-07,
+          "subset_dense_row_residual": 3.123283386230469e-05,
+          "subset_particles": 64
+        },
+        {
+          "dense_column_residual": 5.960464477539062e-07,
+          "dense_row_residual": 1.1920928955078125e-06,
+          "dense_streaming_max_abs_particle_diff": 0.0,
+          "dense_streaming_mean_abs_particle_diff": 0.0,
+          "post_cov_trace_mean": 0.10413722693920135,
+          "post_pre_cov_trace_ratio_mean": 0.37956470251083374,
+          "pre_cov_trace_mean": 0.27407652139663696,
+          "pre_to_post_mean_l2_max": 5.960464477539063e-08,
+          "pre_to_post_mean_l2_mean": 2.814295996245164e-08,
+          "steps": 400,
+          "streaming_row_residual": 1.1920928955078125e-06,
+          "subset_dense_column_residual": 4.76837158203125e-07,
+          "subset_dense_row_residual": 3.5762786865234375e-07,
+          "subset_particles": 64
+        }
+      ],
+      "epsilon": 0.5,
+      "ess_mean_at_target": 127.19999694824219,
+      "ess_min_at_target": 126.8658218383789,
+      "prefix_delta_to_kalman": 0.675332957832131,
+      "prefix_mcse": 0.013914142440612766,
+      "prefix_mean": -10.447179985046386,
+      "prefix_sd": 0.044000381800350485,
+      "state_dim": 2,
+      "target_increment_delta_to_kalman": 0.08566310689782308,
+      "target_increment_mcse": 0.0029129653781187273,
+      "target_increment_mean": -1.2688433170318603,
+      "target_increment_sd": 0.009211605340068789,
+      "target_kalman_increment": -1.3545064239296833,
+      "target_kalman_prefix": -11.122512942878517,
+      "target_time": 7
+    }
+  ],
+  "source_harness": "tests/test_ledh_pfpf_ot_lgssm_kalman_statistical.py",
+  "timestamp": "2026-06-26T13:00:36.117116+00:00"
+}

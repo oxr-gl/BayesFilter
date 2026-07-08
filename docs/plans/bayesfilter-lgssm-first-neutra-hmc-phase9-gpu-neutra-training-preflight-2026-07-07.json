@@ -1,0 +1,311 @@
+{
+  "artifact_hash": "sha256:4bda5ebbc3e2ddbeb27a984ff0fb1574d8c6b23ab45ef253c27bd126d9fce306",
+  "artifact_hash_semantics": "stable_json_sha256_excluding_artifact_hash_fields",
+  "config": {
+    "batch_size": 16,
+    "cpu_training_fallback_policy": "forbidden",
+    "device": "/GPU:0",
+    "disallow_soft_placement": true,
+    "external_sample_generation_policy": "multicore_cpu_separate_phase_not_run_here",
+    "full_training_executed": false,
+    "hmc_executed": false,
+    "initial_raw_scale": -1.3862943611198906,
+    "jit_compile": false,
+    "nonclaims": [
+      "Phase 9 GPU NeuTra training-objective preflight only",
+      "no optimizer step or learned transport claim",
+      "no full NeuTra training claim",
+      "no external sample generation claim",
+      "no HMC tuning or sampling claim",
+      "no posterior convergence claim",
+      "no route ranking claim",
+      "no production readiness claim",
+      "no scientific validity claim"
+    ],
+    "optimizer_step_executed": false,
+    "output_path": "docs/plans/bayesfilter-lgssm-first-neutra-hmc-phase9-gpu-neutra-training-preflight-2026-07-07.json",
+    "require_gpu": true,
+    "route_ids": [
+      "lgssm-static-qr-exact-kalman",
+      "model-b-svd-ukf-deterministic-loglikelihood",
+      "model-b-svd-cubature-deterministic-loglikelihood"
+    ],
+    "schema": "bayesfilter.neutra.gpu_training_preflight_config.v1",
+    "seed": 20260707,
+    "training_execution_target": "gpu_required",
+    "xla_readiness_policy": "deferred_to_explicit_gate_not_required_for_phase9_preflight"
+  },
+  "decision": "PASS_PHASE9_GPU_NEUTRA_TRAINING_PREFLIGHT",
+  "elapsed_seconds": 33.63581864815205,
+  "evidence_contract": {
+    "not_concluded": [
+      "Phase 9 GPU NeuTra training-objective preflight only",
+      "no optimizer step or learned transport claim",
+      "no full NeuTra training claim",
+      "no external sample generation claim",
+      "no HMC tuning or sampling claim",
+      "no posterior convergence claim",
+      "no route ranking claim",
+      "no production readiness claim",
+      "no scientific validity claim"
+    ],
+    "primary_criterion": "all admitted route losses and trainable affine-gradient diagnostics are finite and placed on GPU output devices",
+    "question": "Can admitted non-DSGE SSM targets bind a GPU NeuTra training objective and emit finite initial loss/gradient diagnostics without full training or HMC?",
+    "vetoes": [
+      "missing trusted TensorFlow GPU",
+      "CPU training fallback",
+      "deferred route use",
+      "nonfinite loss or gradient",
+      "non-GPU output device",
+      "hidden HMC",
+      "hidden optimizer step",
+      "hidden external sample generation"
+    ]
+  },
+  "gpu_manifest": {
+    "cuda_visible_devices": "unset",
+    "logical_gpus": [
+      "LogicalDevice(name='/device:GPU:0', device_type='GPU')"
+    ],
+    "physical_gpus": [
+      "PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')"
+    ],
+    "tensorflow_version": "2.19.1",
+    "tf_force_gpu_allow_growth": "true",
+    "trusted_gpu_context_required": true
+  },
+  "nonclaims": [
+    "Phase 9 GPU NeuTra training-objective preflight only",
+    "no optimizer step or learned transport claim",
+    "no full NeuTra training claim",
+    "no external sample generation claim",
+    "no HMC tuning or sampling claim",
+    "no posterior convergence claim",
+    "no route ranking claim",
+    "no production readiness claim",
+    "no scientific validity claim"
+  ],
+  "passed": true,
+  "phase": "phase9_gpu_neutra_training_preflight",
+  "route_inventory": [
+    {
+      "filter_backend": "tf_qr_exact_kalman",
+      "filter_id": "tf-qr-exact-lgssm-loglikelihood",
+      "reason": "LGSSM exact QR/Kalman target admitted by the LGSSM-first program.",
+      "route_id": "lgssm-static-qr-exact-kalman",
+      "status": "admitted",
+      "target_family": "lgssm_static_qr"
+    },
+    {
+      "filter_backend": "tf_svd_ukf",
+      "filter_id": "model-b-svd-ukf-deterministic-loglikelihood",
+      "reason": "Phase 7 admitted the deterministic SVD-UKF generic adapter route.",
+      "route_id": "model-b-svd-ukf-deterministic-loglikelihood",
+      "status": "admitted",
+      "target_family": "model_b_simple_nonlinear"
+    },
+    {
+      "filter_backend": "tf_svd_cubature",
+      "filter_id": "model-b-svd-cubature-deterministic-loglikelihood",
+      "reason": "Phase 8 admitted the deterministic SVD cubature adapter route.",
+      "route_id": "model-b-svd-cubature-deterministic-loglikelihood",
+      "status": "admitted",
+      "target_family": "model_b_simple_nonlinear"
+    },
+    {
+      "filter_backend": "tf_svd_cut4",
+      "filter_id": "model-b-svd-cut4-deterministic-loglikelihood",
+      "reason": "CUT4 is deferred until a dedicated branch-diagnostic gate.",
+      "route_id": "model-b-svd-cut4-deterministic-loglikelihood",
+      "status": "deferred",
+      "target_family": "model_b_simple_nonlinear"
+    },
+    {
+      "filter_backend": "tf_principal_sqrt_ukf",
+      "filter_id": "model-b-principal-sqrt-ukf-deterministic-loglikelihood",
+      "reason": "Principal-square-root UKF is deferred until its own route gate.",
+      "route_id": "model-b-principal-sqrt-ukf-deterministic-loglikelihood",
+      "status": "deferred",
+      "target_family": "model_b_simple_nonlinear"
+    }
+  ],
+  "route_results": [
+    {
+      "adapter_signature": "0a48b43d2750cad5b452708f7619a1119a259231d8955769809460f256575a97",
+      "batch_size": 16,
+      "device_checks": {
+        "all_outputs_on_gpu": true,
+        "expected_device": "/GPU:0",
+        "output_devices": [
+          "/job:localhost/replica:0/task:0/device:GPU:0",
+          "/job:localhost/replica:0/task:0/device:GPU:0",
+          "/job:localhost/replica:0/task:0/device:GPU:0",
+          "/job:localhost/replica:0/task:0/device:GPU:0",
+          "/job:localhost/replica:0/task:0/device:GPU:0",
+          "/job:localhost/replica:0/task:0/device:GPU:0"
+        ],
+        "soft_device_placement": false
+      },
+      "external_sample_generation_executed": false,
+      "finite_checks": {
+        "loss_finite": true,
+        "raw_scale_gradient_finite": true,
+        "shift_gradient_finite": true
+      },
+      "full_training_executed": false,
+      "gradient_norms": [
+        1.1184880186335193,
+        1.2371718623608414
+      ],
+      "hmc_executed": false,
+      "initial_loss": 4.270573668036143,
+      "jit_compile": false,
+      "nonclaims": [
+        "Phase 9 GPU NeuTra training-objective preflight only",
+        "no optimizer step or learned transport claim",
+        "no full NeuTra training claim",
+        "no external sample generation claim",
+        "no HMC tuning or sampling claim",
+        "no posterior convergence claim",
+        "no route ranking claim",
+        "no production readiness claim",
+        "no scientific validity claim"
+      ],
+      "optimizer_step_executed": false,
+      "parameter_dim": 2,
+      "parameter_names": [
+        "rho_unconstrained",
+        "log_measurement_noise"
+      ],
+      "passed": true,
+      "route": {
+        "filter_backend": "tf_qr_exact_kalman",
+        "filter_id": "tf-qr-exact-lgssm-loglikelihood",
+        "reason": "LGSSM exact QR/Kalman target admitted by the LGSSM-first program.",
+        "route_id": "lgssm-static-qr-exact-kalman",
+        "status": "admitted",
+        "target_family": "lgssm_static_qr"
+      },
+      "target_signature": "290a91d2a8f90d5b29243965b258b1ec6fd965aa46ffca69dcb78f7fa1ecabcb"
+    },
+    {
+      "adapter_signature": "9fdc2ef475992711dd1ed5aadc0b47aeed235d7ccea9e9567740b57aaf2a04dd",
+      "batch_size": 16,
+      "device_checks": {
+        "all_outputs_on_gpu": true,
+        "expected_device": "/GPU:0",
+        "output_devices": [
+          "/job:localhost/replica:0/task:0/device:GPU:0",
+          "/job:localhost/replica:0/task:0/device:GPU:0",
+          "/job:localhost/replica:0/task:0/device:GPU:0",
+          "/job:localhost/replica:0/task:0/device:GPU:0",
+          "/job:localhost/replica:0/task:0/device:GPU:0",
+          "/job:localhost/replica:0/task:0/device:GPU:0"
+        ],
+        "soft_device_placement": false
+      },
+      "external_sample_generation_executed": false,
+      "finite_checks": {
+        "loss_finite": true,
+        "raw_scale_gradient_finite": true,
+        "shift_gradient_finite": true
+      },
+      "full_training_executed": false,
+      "gradient_norms": [
+        5.3424620219797285,
+        5.2082360981313665
+      ],
+      "hmc_executed": false,
+      "initial_loss": 10.043907730802296,
+      "jit_compile": false,
+      "nonclaims": [
+        "Phase 9 GPU NeuTra training-objective preflight only",
+        "no optimizer step or learned transport claim",
+        "no full NeuTra training claim",
+        "no external sample generation claim",
+        "no HMC tuning or sampling claim",
+        "no posterior convergence claim",
+        "no route ranking claim",
+        "no production readiness claim",
+        "no scientific validity claim"
+      ],
+      "optimizer_step_executed": false,
+      "parameter_dim": 3,
+      "parameter_names": [
+        "rho",
+        "sigma",
+        "beta"
+      ],
+      "passed": true,
+      "route": {
+        "filter_backend": "tf_svd_ukf",
+        "filter_id": "model-b-svd-ukf-deterministic-loglikelihood",
+        "reason": "Phase 7 admitted the deterministic SVD-UKF generic adapter route.",
+        "route_id": "model-b-svd-ukf-deterministic-loglikelihood",
+        "status": "admitted",
+        "target_family": "model_b_simple_nonlinear"
+      },
+      "target_signature": "c6a942c251e08f111b5647f814c1815535f931fcd13a09d337a74b8fb5eacaa0"
+    },
+    {
+      "adapter_signature": "39927792f114f9d80f540b4f6759e9b5cd22c4c55d1d5cb7df13fc0e4756a9b9",
+      "batch_size": 16,
+      "device_checks": {
+        "all_outputs_on_gpu": true,
+        "expected_device": "/GPU:0",
+        "output_devices": [
+          "/job:localhost/replica:0/task:0/device:GPU:0",
+          "/job:localhost/replica:0/task:0/device:GPU:0",
+          "/job:localhost/replica:0/task:0/device:GPU:0",
+          "/job:localhost/replica:0/task:0/device:GPU:0",
+          "/job:localhost/replica:0/task:0/device:GPU:0",
+          "/job:localhost/replica:0/task:0/device:GPU:0"
+        ],
+        "soft_device_placement": false
+      },
+      "external_sample_generation_executed": false,
+      "finite_checks": {
+        "loss_finite": true,
+        "raw_scale_gradient_finite": true,
+        "shift_gradient_finite": true
+      },
+      "full_training_executed": false,
+      "gradient_norms": [
+        3.2381605366816353,
+        6.020535942703095
+      ],
+      "hmc_executed": false,
+      "initial_loss": 10.951616558345272,
+      "jit_compile": false,
+      "nonclaims": [
+        "Phase 9 GPU NeuTra training-objective preflight only",
+        "no optimizer step or learned transport claim",
+        "no full NeuTra training claim",
+        "no external sample generation claim",
+        "no HMC tuning or sampling claim",
+        "no posterior convergence claim",
+        "no route ranking claim",
+        "no production readiness claim",
+        "no scientific validity claim"
+      ],
+      "optimizer_step_executed": false,
+      "parameter_dim": 3,
+      "parameter_names": [
+        "rho",
+        "sigma",
+        "beta"
+      ],
+      "passed": true,
+      "route": {
+        "filter_backend": "tf_svd_cubature",
+        "filter_id": "model-b-svd-cubature-deterministic-loglikelihood",
+        "reason": "Phase 8 admitted the deterministic SVD cubature adapter route.",
+        "route_id": "model-b-svd-cubature-deterministic-loglikelihood",
+        "status": "admitted",
+        "target_family": "model_b_simple_nonlinear"
+      },
+      "target_signature": "19e87b2090c353ddc855791c36a1a325246b0a275886c92f3fa8dc625467d1ee"
+    }
+  ],
+  "schema": "bayesfilter.neutra.gpu_training_preflight_result.v1"
+}

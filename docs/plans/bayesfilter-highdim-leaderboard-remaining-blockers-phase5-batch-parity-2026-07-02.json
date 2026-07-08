@@ -1,0 +1,48 @@
+{
+  "schema_version": "bayesfilter.highdim_leaderboard.remaining_blockers.phase5.batch_parity.v1",
+  "date": "2026-07-02",
+  "phase": 5,
+  "status": "DEFERRED_PER_ROW_EXACT_BATCH_PARITY_HARNESSES_MISSING",
+  "closed_row_level_status_enum": [
+    "executed_pass",
+    "executed_fail",
+    "deferred_exact_harness_not_cheap_or_not_reviewed",
+    "deferred_exact_harness_missing",
+    "deferred_no_batch_harness_found"
+  ],
+  "row_statuses": [
+    {
+      "row_key": "phase1_zhao_cui_predator_prey_T20",
+      "row_id": "zhao_cui_predator_prey_T20",
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "row_artifact": "docs/plans/bayesfilter-highdim-leaderboard-remaining-blockers-phase1-predator-prey-zhaocui-row-2026-07-02.json",
+      "status": "deferred_exact_harness_missing",
+      "exact_row_batch_parity_harness_found": false,
+      "reason": "Discovery found exact row-local value/score tests and adjacent batch infrastructure, but no reviewed batch-parity harness for the admitted Zhao-Cui predator-prey T20 manual TT route.",
+      "adjacent_or_wrong_target_evidence_not_executed": [
+        "tests/highdim/test_p91_batched_score_api.py",
+        "docs/benchmarks/benchmark_p8p_regression_fd_reparameterization.py",
+        "bayesfilter/nonlinear/experimental_batched_svd_sigma_point_tf.py"
+      ]
+    },
+    {
+      "row_key": "phase2_zhao_cui_generalized_sv_synthetic_from_estimated_values",
+      "row_id": "zhao_cui_generalized_sv_synthetic_from_estimated_values",
+      "algorithm_id": "zhao_cui_scalar_or_multistate",
+      "row_artifact": "docs/plans/bayesfilter-highdim-leaderboard-remaining-blockers-phase2-generalized-sv-zhaocui-row-2026-07-02.json",
+      "status": "deferred_exact_harness_missing",
+      "exact_row_batch_parity_harness_found": false,
+      "reason": "Discovery found exact row-local value/score tests and adjacent batch infrastructure, but no reviewed batch-parity harness for the admitted Zhao-Cui generalized-SV prior-mean scalar TT route.",
+      "adjacent_or_wrong_target_evidence_not_executed": [
+        "tests/highdim/test_p91_batched_score_api.py",
+        "docs/benchmarks/benchmark_p8p_regression_fd_reparameterization.py",
+        "bayesfilter/nonlinear/experimental_batched_svd_sigma_point_tf.py"
+      ]
+    }
+  ],
+  "overall_summary": "Both admitted Zhao-Cui rows keep their local value/manual-score admission, but batch-parity readiness is deferred because no exact reviewed row-local batch-parity harness was found.",
+  "nonclaims": [
+    "adjacent batch APIs are not admitted as batch parity for these rows",
+    "no runtime ranking or batch throughput claim is made"
+  ]
+}

@@ -111,6 +111,9 @@ def _run() -> dict[str, Any]:
             "teacher_transport_method": "fixed_target_sinkhorn_local_comparator_tf",
             "latent_object": "canonicalized_log_domain_sinkhorn_state",
             "latent_gauge_policy": "mean_log_u_zero",
+            "meta_ot_refit_target_half": "canonical_log_u",
+            "meta_ot_refit_complementary_recovery": "teacher_side_sinkhorn_update",
+            "route_family": "meta_ot_aligned_fixed_target_retained_sinkhorn_refit",
         },
         "fixture": fixture.model_definition(),
         "counts": {

@@ -1,0 +1,211 @@
+{
+  "actual_xla_status": false,
+  "artifact_paths": {
+    "manifest": "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase6-performance-benchmark-cpu-2026-06-29.json",
+    "phase7_subplan": "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase7-hmc-smoke-subplan-2026-06-29.md",
+    "plan": "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase6-performance-benchmark-subplan-2026-06-29.md",
+    "result": "docs/plans/bayesfilter-highdim-zhao-cui-p91-phase6-performance-benchmark-result-2026-06-29.md"
+  },
+  "checks": [
+    {
+      "all_finite": true,
+      "error": "",
+      "first_call_seconds": 0.7271717760013416,
+      "gpu_output_devices": false,
+      "input_dtypes": [
+        "float64",
+        "float64",
+        "float64"
+      ],
+      "input_shapes": [
+        [
+          3
+        ],
+        [
+          5,
+          18
+        ],
+        [
+          5,
+          9
+        ]
+      ],
+      "name": "cpu_looped_single",
+      "oom_status": false,
+      "output_devices": [
+        "/job:localhost/replica:0/task:0/device:CPU:0",
+        "/job:localhost/replica:0/task:0/device:CPU:0"
+      ],
+      "passed": true,
+      "post_warmup_retrace_detected": false,
+      "repeated_call_seconds": 0.0032112309709191322,
+      "retry_count": 0,
+      "scores": [
+        15.804320716437445,
+        0.6904322032956671,
+        -44.9925
+      ],
+      "second_call_seconds": 0.00428738899063319,
+      "steady_call_seconds": [
+        0.0033959129359573126,
+        0.0037936019944027066,
+        0.003650896018370986,
+        0.0032423550728708506,
+        0.0030134449480101466
+      ],
+      "steady_mean_seconds": 0.0034192421939224006,
+      "steady_per_item_seconds": 0.0034192421939224006,
+      "trace_count_after_repeated": 1,
+      "trace_count_after_warmup": 1,
+      "trace_count_before": 0,
+      "values": [
+        -227.7673105791276
+      ]
+    },
+    {
+      "all_finite": true,
+      "error": "",
+      "first_call_seconds": 1.258851503022015,
+      "gpu_output_devices": false,
+      "input_dtypes": [
+        "float64",
+        "float64",
+        "float64"
+      ],
+      "input_shapes": [
+        [
+          3
+        ],
+        [
+          4,
+          5,
+          18
+        ],
+        [
+          4,
+          5,
+          9
+        ]
+      ],
+      "name": "cpu_batched",
+      "oom_status": false,
+      "output_devices": [
+        "/job:localhost/replica:0/task:0/device:CPU:0",
+        "/job:localhost/replica:0/task:0/device:CPU:0"
+      ],
+      "passed": true,
+      "post_warmup_retrace_detected": false,
+      "repeated_call_seconds": 0.0035021849907934666,
+      "retry_count": 0,
+      "scores": [
+        15.804320716437445,
+        0.6904322032956671,
+        -44.9925,
+        16.94228163148389,
+        0.3448956354664972,
+        -44.99282707720588,
+        18.0711308161685,
+        0.0013823570151196285,
+        -44.99314654411764,
+        19.19086839035907,
+        -0.3401076500506447,
+        -44.9934584007353
+      ],
+      "second_call_seconds": 0.0037111949641257524,
+      "steady_call_seconds": [
+        0.0036577009595930576,
+        0.003352305036969483,
+        0.00392285396810621,
+        0.003644153941422701,
+        0.003910591942258179
+      ],
+      "steady_mean_seconds": 0.003697521169669926,
+      "steady_per_item_seconds": 0.0009243802924174815,
+      "trace_count_after_repeated": 1,
+      "trace_count_after_warmup": 1,
+      "trace_count_before": 0,
+      "values": [
+        -227.7673105791276,
+        -227.77357993782164,
+        -227.7833583105829,
+        -227.79664568445125
+      ]
+    }
+  ],
+  "command": "CUDA_VISIBLE_DEVICES=-1 python scripts/p91_performance_benchmark.py --target cpu --xla false --manifest docs/plans/bayesfilter-highdim-zhao-cui-p91-phase6-performance-benchmark-cpu-2026-06-29.json",
+  "conda_environment": "tf-gpu",
+  "cpu_gpu_visibility": {
+    "CUDA_VISIBLE_DEVICES": "-1",
+    "logical_gpus_visible_to_tensorflow": [],
+    "physical_gpus_visible_to_tensorflow": []
+  },
+  "devices": {
+    "gpu_names": [],
+    "logical_gpus": [],
+    "physical_gpus": []
+  },
+  "errors": [],
+  "git_commit": "c815edc52162779e969b2982723b2f52770fd849",
+  "input_contract": {
+    "batched_observations_shape": [
+      4,
+      5,
+      9
+    ],
+    "batched_states_shape": [
+      4,
+      5,
+      18
+    ],
+    "dtype": "float64",
+    "random_seeds": "N/A; deterministic fixture",
+    "repeats": 5,
+    "single_observations_shape": [
+      5,
+      9
+    ],
+    "single_states_shape": [
+      5,
+      18
+    ],
+    "theta_shape": [
+      3
+    ]
+  },
+  "nonclaims": [
+    "no universal GPU speed superiority",
+    "no score identity proof",
+    "no exact likelihood correctness",
+    "no HMC posterior validity",
+    "no packaging/default readiness",
+    "no production readiness"
+  ],
+  "pathology": {
+    "closed_rules": [
+      "nonfinite output value or score",
+      "retry_count > 0",
+      "OOM",
+      "post-warmup retrace",
+      "missing steady timing",
+      "batched per-item steady time > 10x looped single on same target",
+      "GPU actual_xla_status != true",
+      "trusted GPU output devices missing"
+    ],
+    "pathology_detected": false,
+    "reasons": []
+  },
+  "python_executable": "/home/chakwong/anaconda3/envs/tf-gpu/bin/python",
+  "requested_xla": false,
+  "schema_version": "p91.phase6.performance_benchmark.target.v1",
+  "status": "PASS_P91_PHASE6_CPU_BENCHMARK",
+  "target": "cpu",
+  "tensorflow": {
+    "cuda_version": "12.4",
+    "cudnn_version": "",
+    "is_cuda_build": true,
+    "tensorflow_version": "2.19.1"
+  },
+  "trusted_escalated_context_recorded": false,
+  "trusted_escalated_context_required": false,
+  "worktree_status": "dirty research worktree"
+}

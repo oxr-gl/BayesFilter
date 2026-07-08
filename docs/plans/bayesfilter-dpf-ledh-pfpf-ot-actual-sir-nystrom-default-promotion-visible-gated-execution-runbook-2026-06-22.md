@@ -352,4 +352,3 @@ for the same blocker.
 Final handoff must report final phase reached, final status, result artifacts,
 tests/benchmarks actually run, unresolved blockers, nonclaims, and safest next
 human decision.
-

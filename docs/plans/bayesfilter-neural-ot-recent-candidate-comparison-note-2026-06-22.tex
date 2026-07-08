@@ -1,0 +1,3893 @@
+\documentclass[11pt]{report}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb,amsthm,bm,mathtools}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{placeins}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{url}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!50!black,
+  urlcolor=blue!50!black
+}
+
+\newtheorem{definition}{Definition}[chapter]
+\newtheorem{remark}{Remark}[chapter]
+\newtheorem{proposition}{Proposition}[chapter]
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\calP}{\mathcal{P}}
+\newcommand{\KL}{\operatorname{KL}}
+\newcommand{\W}{\operatorname{W}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\argmin}{\operatorname*{arg\,min}}
+\newcommand{\argmax}{\operatorname*{arg\,max}}
+\newcommand{\pushf}[2]{\left(#1\right)_{\#} #2}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\title{Recent Neural Optimal Transport Candidates for BayesFilter\\
+A Teaching Note for First-Year PhD Students}
+\author{BayesFilter literature reread note}
+\date{2026-06-22}
+
+\begin{document}
+\pagenumbering{roman}
+\maketitle
+\tableofcontents
+\clearpage
+\pagenumbering{arabic}
+
+\begin{abstract}
+This note is not written as a compressed survey.  It is written as a teaching
+note for first-year PhD students who want to understand what recent
+neural-optimal-transport papers are actually computing and why BayesFilter might
+care.  The organizing principle is simple: a paper may learn a coupling, a warm
+start, a static transport map, a conditional posterior map, a dynamic path, or a
+measure-to-measure operator.  Those objects are not interchangeable.  Before one
+can rank papers, one must understand what object each paper learns, how that
+object is defined mathematically, and what would have to be deployed inside
+BayesFilter.
+
+The note therefore does two things at once.  First, it reproduces the central
+mathematical objects and equations from the papers.  Second, it explicitly fills
+in explanatory gaps when the original papers jump steps, move too quickly, or
+leave important implications implicit.  The main teaching line focuses on a small
+set of anchor papers: Makkuva et al. (2020) for the OT-ICNN baseline, Wang et
+al. (2025) for conditional posterior transport, Al-Jarrah et al. (2025) for
+filtering-native conditional transport, Hosseini et al. (2025) for theorem-level
+conditional OT, and Meta OT / UNOT for retained-teacher acceleration.  The
+broader shelf remains present, but it is treated later and more compactly.
+
+One correction should be stated at the outset.  BayesFilter's earlier negative
+``OT-ICNN'' result does not show that the original Makkuva et al. method fails.
+The earlier benchmark tested bridge-style surrogates, not a faithful
+reproduction of the paper's paired-convex-potential minimax method.  So the
+right lesson is not ``OT-ICNN was disproven,'' but rather ``that benchmark did
+not justify continued investment in that particular bridge route, and newer
+conditional or retained-teacher papers are now more central.''
+\end{abstract}
+
+\chapter{Primer: what BayesFilter is trying to compute}
+
+\section{A weighted cloud is not yet a transport rule}
+
+At a filtering step, BayesFilter often has a weighted empirical measure
+\begin{equation}
+\mu_N^w = \sum_{i=1}^{N} w_i\delta_{x_i},
+\qquad
+w_i\ge 0,
+\qquad
+\sum_{i=1}^{N} w_i=1.
+\label{eq:weighted-cloud}
+\end{equation}
+This is only a distributional summary.  It is not yet a transport rule.  To see
+what is missing, start with a tiny three-particle example:
+\begin{equation}
+\mu_3^w = \tfrac12 \delta_{-1} + \tfrac13 \delta_{0} + \tfrac16 \delta_{2}.
+\label{eq:three-particle-source}
+\end{equation}
+Suppose we want an equal-weight cloud
+\begin{equation}
+\bar\mu_3 = \tfrac13 \delta_{z_1} + \tfrac13 \delta_{z_2} + \tfrac13 \delta_{z_3}.
+\label{eq:three-particle-target}
+\end{equation}
+A scalar OT cost does not tell us what the new points $z_j$ are.  What we need is
+one of the following:
+\begin{enumerate}[label=(\roman*)]
+  \item a \emph{coupling} $\pi$ between source and target weights,
+  \item a \emph{map} $T$ sending source points to target points,
+  \item or a \emph{conditional update rule} that depends on an observation $y$.
+\end{enumerate}
+
+In the coupling view, one solves over matrices
+\begin{equation}
+\Pi(w,\bar w)
+=
+\left\{
+\pi\in\R_+^{N\times N}:
+\pi\mathbf 1 = w,
+\ \pi^{\top}\mathbf 1 = \bar w
+\right\},
+\label{eq:transport-polytope}
+\end{equation}
+and then forms the equal-weight points by barycentric projection,
+\begin{equation}
+z_j = \frac{1}{\bar w_j}\sum_{i=1}^{N} \pi_{ij}x_i.
+\label{eq:barycentric-projection}
+\end{equation}
+In the direct-map view, one instead learns a map $T$ and sets
+\begin{equation}
+z_i = T(x_i).
+\label{eq:direct-map-deployment}
+\end{equation}
+In the conditional-map view, one learns a family of maps $T_y$ and sets
+\begin{equation}
+z_i = T_y(x_i).
+\label{eq:conditional-map-deployment}
+\end{equation}
+This small example already teaches the central lesson of the whole note: two
+papers can both say ``optimal transport'' while learning completely different
+objects.
+
+\paragraph{Implementation safety warning.}
+A weighted cloud by itself is \emph{not} yet something one can deploy as an update
+algorithm.  Before implementing any paper in the note, a student should force one
+classification:
+\begin{enumerate}[label=(\roman*)]
+  \item is the paper learning a coupling or plan,
+  \item a direct map,
+  \item a conditional update family,
+  \item a path or operator,
+  \item or only a latent state that helps a retained teacher?
+\end{enumerate}
+Many wrong implementations come from skipping that classification and jumping
+straight from a weighted empirical measure to code.
+
+\section{A running conditional example}
+
+The next step is to add conditioning.  Suppose
+\begin{equation}
+Z \sim \mathcal N(0,1),
+\qquad
+X\mid Y=y \sim \mathcal N(m(y),s(y)^2).
+\label{eq:running-conditional-law}
+\end{equation}
+Then one perfectly valid conditional transport map is
+\begin{equation}
+g(z;y) = m(y) + s(y)z.
+\label{eq:running-conditional-map}
+\end{equation}
+This one-line example is extremely important.  It tells us that a conditional
+transport paper is trying to learn something like ``for each fixed observation
+$y$, push a simple reference law to the posterior law.''  The inverse map is
+\begin{equation}
+g^{-1}(x;y)=\frac{x-m(y)}{s(y)}.
+\label{eq:running-conditional-inverse}
+\end{equation}
+Therefore, by change of variables,
+\begin{equation}
+p_{X\mid Y}(x\mid y)
+=
+\varphi\!\bigl(g^{-1}(x;y)\bigr)
+\left|\partial_x g^{-1}(x;y)\right|,
+\label{eq:running-change-of-variables}
+\end{equation}
+where $\varphi$ is the standard Gaussian density.  Many of the papers below are
+more complicated versions of exactly this story.
+
+\section{Three object classes}
+
+\paragraph{Retained-teacher methods.}
+A retained-teacher method keeps a declared OT or entropic-OT solve and learns only
+a warm start or latent solver state,
+\begin{equation}
+h_\theta(\mu,\nu)
+\leadsto
+\widehat \pi_\theta
+\xrightarrow{\text{corrective solve}}
+\pi_{\mathrm{teacher}}.
+\label{eq:retained-teacher-schema}
+\end{equation}
+The learned object is not trusted as the final answer.  It only helps the teacher.
+
+\paragraph{Direct static or conditional maps.}
+A direct-map paper tries to learn
+\begin{equation}
+T_\theta : \R^d \to \R^d,
+\qquad
+\pushf{T_\theta}{\mu} \approx \nu,
+\label{eq:direct-map-schema}
+\end{equation}
+or, in the conditional case,
+\begin{equation}
+\pushf{T_\theta(\cdot;y)}{\eta} \approx \pi(\cdot\mid y).
+\label{eq:conditional-map-schema}
+\end{equation}
+Now the learned object itself is deployed.
+
+\paragraph{Dynamic paths and measure operators.}
+A richer family learns a path or operator.  A dynamic path satisfies a continuity
+law,
+\begin{equation}
+\partial_t \rho_t + \nabla\cdot(\rho_t v_t)=0,
+\qquad
+t\in[0,1],
+\label{eq:continuity-path}
+\end{equation}
+while an operator learns a mapping
+\begin{equation}
+\mathcal G_\theta : \calP(\R^d) \to \calP(\R^d).
+\label{eq:measure-operator}
+\end{equation}
+These methods are often scientifically interesting, but they are usually farther
+from BayesFilter's present deployment problem.
+
+\paragraph{Implementation-safe object registry.}
+For the rest of the note, keep four labels separate:
+\begin{enumerate}[label=(\roman*)]
+  \item \textbf{learned object} --- what the network or optimizer is actually fitting,
+  \item \textbf{optimized object} --- what the loss or solver updates directly,
+  \item \textbf{auxiliary object} --- critic, dual, value function, PDE residual, or solver state used only to enforce the contract,
+  \item \textbf{deployed object} --- the thing BayesFilter would actually call at inference time.
+\end{enumerate}
+If a student cannot fill in those four labels for a paper, they should not start
+coding yet.  That missing classification is itself the first bug signal.
+
+\section{House notation and how to read the rest}
+
+The note uses one house notation system throughout:
+\begin{itemize}
+  \item $\mu$ is always a source measure and $\nu$ a target measure unless a paper
+  is intrinsically conditional, in which case the target is often written as
+  $\pi(\cdot\mid y)$.
+  \item $\eta$ denotes a simple reference law such as a Gaussian.
+  \item $\pi$ denotes a coupling or transport plan, and $\pi_\varepsilon$ an
+  entropically regularized plan.
+  \item $T$ denotes a static transport map; $T_y$ denotes an observation- or
+  context-conditioned map.
+  \item $\rho_t$ denotes a time-indexed path of measures, and $v_t$ its velocity
+  field.
+  \item $a$ and $b$ denote discrete source and target marginals
+  in finite-dimensional papers.
+\end{itemize}
+
+For each core paper we use the same teaching rhythm:
+\begin{enumerate}[label=(\arabic*)]
+  \item what problem the paper is solving,
+  \item paper reproduction,
+  \item explanatory reconstruction,
+  \item BayesFilter bridge,
+  \item and what remains unresolved.
+\end{enumerate}
+Whenever a step in a paper is mathematically correct but pedagogically abrupt, the
+note says so and fills in the missing bridge explicitly.
+
+\chapter{Static map learning and the OT-ICNN cautionary lesson}
+
+\section{Why quadratic OT suggests convex potentials}
+
+The classical quadratic-cost Monge problem is
+\begin{equation}
+\inf_{\pushf{T}{Q}=P} \int_{\R^d} \frac12\|x-T(x)\|^2\,dQ(x).
+\label{eq:monge-problem}
+\end{equation}
+A first-year student should ask immediately: why do papers start talking about
+convex functions instead of maps?  The answer is Brenier's theorem.  Under
+regularity conditions such as finite second moments and absolute continuity of the
+source law, the optimal map is the gradient of a convex potential.  The dual or
+semidual formulation therefore becomes a way of learning the map indirectly through
+a structured scalar object.
+
+A semidual quadratic formulation can be written as
+\begin{equation}
+\W_2^2(P,Q)
+=
+C_{P,Q} - \inf_{f\in\mathrm{CVX}} \Bigl\{\E_{X\sim P}[f(X)] + \E_{Y\sim Q}[f^*(Y)]\Bigr\},
+\label{eq:quadratic-semidual}
+\end{equation}
+where $f^*$ is the convex conjugate of $f$,
+\begin{equation}
+f^*(y)=\sup_x \{\langle x,y\rangle - f(x)\}.
+\label{eq:convex-conjugate}
+\end{equation}
+Pedagogically, the key point is not the exact constant $C_{P,Q}$; it is the
+logic:
+\begin{quote}
+quadratic OT turns an optimization over maps into an optimization over convex
+potentials, and the map can then be recovered from the potential.
+\end{quote}
+That is why the OT-ICNN line exists at all.
+
+\section{Paper reproduction: Makkuva et al. (2020)}
+
+Makkuva et al. study quadratic-cost Monge transport with
+\begin{equation}
+c(x,y)=\frac12\|x-y\|^2.
+\label{eq:makkuva-cost}
+\end{equation}
+The paper's deployed transport map is not an arbitrary regressor.  It is the
+Brenier-style gradient map
+\begin{equation}
+T^\star = \nabla f^{\star},
+\label{eq:makkuva-gradient-map}
+\end{equation}
+recovered from an optimized convex potential.  The paper then introduces a neural
+approximation in which the Wasserstein-2 objective is approximated by a minimax
+ICNN program of the form
+\begin{equation}
+\widetilde W_2^2(P,Q)
+=
+\sup_{f\in\mathrm{ICNN}}\inf_{g\in\mathrm{ICNN}} \mathcal V_{P,Q}(f,g)+C_{P,Q},
+\label{eq:makkuva-minimax}
+\end{equation}
+which is the paper's Equation~(6) in its own notation.  The numerical method then
+optimizes this minimax program by alternating updates, which is the role of the
+paper's Algorithm~1.
+
+A first implementation detail that the original paper leaves easy to miss is that
+the two ICNNs are not two deployed transport maps.  The candidate map that will
+ultimately be used is the gradient of the learned convex potential,
+\begin{equation}
+T_{\theta}(x)=\nabla f_{\theta}(x).
+\label{eq:makkuva-deployed-icnn-map}
+\end{equation}
+The second ICNN is part of the saddle-point optimization machinery.  It helps
+enforce the dual OT structure during training, but it is not the object one keeps
+at deployment time.
+
+So the operational contract is:
+\begin{enumerate}[label=(\roman*)]
+  \item choose two convex-network parameterizations for the minimax problem,
+  \item alternate updates so that the saddle objective \eqref{eq:makkuva-minimax}
+  is optimized numerically,
+  \item after training, discard the optimization-side helper and deploy only the
+  gradient of the learned convex potential.
+\end{enumerate}
+This is the paper's intended training/deployment split.
+
+\section{Explanatory reconstruction}
+
+The missing pedagogical bridge in the original paper is usually the same one that
+confuses readers later: why should learning a convex scalar function give a good
+transport map?  The answer is the chain
+\begin{equation}
+\text{quadratic OT}
+\Longrightarrow
+\text{Brenier structure}
+\Longrightarrow
+\text{gradient of convex potential}
+\Longrightarrow
+\text{ICNN parameterization}.
+\label{eq:makkuva-logic-chain}
+\end{equation}
+So the neural net is not learning a map because ``neural nets are flexible.''  It
+is learning a map because a theorem says the map should be a gradient of a convex
+potential in the ideal setting, and ICNNs provide a parametric family that can
+respect that structure.
+
+A 1D version makes this less mysterious.  If $Q=\mathcal N(0,1)$ and
+$P=\mathcal N(m,s^2)$, then the optimal map is
+\begin{equation}
+T(x)=m+sx,
+\label{eq:gaussian-affine-map}
+\end{equation}
+and one convex potential giving this map is
+\begin{equation}
+\psi(x)=mx+\frac{s}{2}x^2.
+\label{eq:gaussian-convex-potential}
+\end{equation}
+The map is the derivative:
+\begin{equation}
+\psi'(x)=m+sx=T(x).
+\label{eq:gaussian-convex-derivative}
+\end{equation}
+This tiny calculation is what the Brenier story is trying to generalize.
+
+\paragraph{What are the two ICNNs doing in practice?}
+A first-year student should read the minimax program as an optimization game, not
+as two separate candidate transport maps.  One ICNN parameterizes the convex
+potential whose gradient is meant to become the transport map.  The other ICNN
+plays the optimization-side role needed by the paper's saddle formulation.  So the
+practical training loop is not ``fit a map by regression.''  It is:
+\begin{align}
+\text{choose candidate convex potential}
+&\Longleftrightarrow
+\text{improve dual witness in the saddle objective}
+\notag\\
+&\Longleftrightarrow
+\text{alternate until the minimax objective stabilizes}.
+\label{eq:makkuva-training-logic}
+\end{align}
+That is why the paper needs Algorithm~1 rather than a single direct supervised
+loss.
+
+\paragraph{What is optimized in practice?}
+Operationally, each training iteration uses samples from the source and target
+laws, evaluates the saddle objective \eqref{eq:makkuva-minimax}, performs an
+update for the optimization-side ICNN, then performs an update for the candidate
+transport-potential ICNN.  In a first pass implementation, the student should
+therefore expect a loop of the form:
+\begin{algorithm}[ht]
+\caption{Makkuva-style OT-ICNN training loop}
+\begin{algorithmic}[1]
+\Require source samples $x\sim Q$, target samples $y\sim P$, convex networks $f_\theta,g_\omega$
+\For{each iteration}
+  \State sample minibatches from $P$ and $Q$
+  \State evaluate the saddle objective $\mathcal V_{P,Q}(f_\theta,g_\omega)$
+  \State update the optimization-side network $g_\omega$
+  \State update the candidate transport-potential network $f_\theta$
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+This is deliberately schematic, but it names the real executable loop rather than
+leaving the reader with only the variational formula.
+
+\paragraph{What is deployed after training?}
+After training, one does not deploy the whole minimax game.  One deploys the map
+obtained from the learned convex potential,
+\begin{equation}
+T_\theta(x)=\nabla f_\theta(x).
+\label{eq:makkuva-deployment-map-again}
+\end{equation}
+So the deployment recipe is:
+\begin{enumerate}[label=(\arabic*)]
+  \item receive a new source sample $x$,
+  \item evaluate the gradient of the learned convex potential,
+  \item output $T_\theta(x)$ as the transported sample.
+\end{enumerate}
+That is the practical meaning of the Brenier-to-ICNN bridge.
+
+\paragraph{Why this still matters for BayesFilter.}
+Even though this paper is no longer the main BayesFilter lane, it remains the right
+cautionary baseline for a specific reason: it teaches what a \emph{faithful}
+Brenier-style direct-map implementation would actually have to contain.  The note
+should therefore make clear that a faithful first pass would need
+\begin{enumerate}[label=(\roman*)]
+  \item a convex-potential parameterization,
+  \item an alternating saddle-point training loop,
+  \item and gradient-of-potential deployment.
+\end{enumerate}
+Without all three pieces, one has not yet reproduced the paper's algorithmic
+contract.
+
+\section{Code snapshot}
+
+The repo's existing code-availability ledger records official public code for
+OT-ICNN.  That means this paper is one of the clearest cases where students can
+inspect a paper-authored implementation while reading the note.  However, the same
+ledger and the current note also make clear that BayesFilter's earlier negative
+result was not a faithful reproduction of that original route.
+
+So the practical status is:
+\begin{enumerate}[label=(\roman*)]
+  \item official paper code exists,
+  \item it is useful for faithful reproduction and for understanding the intended ICNN/Brenier training loop,
+  \item but it is not yet a BayesFilter-ready filtering module without a fresh object and framework translation.
+\end{enumerate}
+
+\section{BayesFilter bridge and OT-ICNN closeout}
+
+The current BayesFilter negative result does \emph{not} show that Makkuva et al.'s
+algorithm fails.  What BayesFilter benchmarked earlier was a bridge-style surrogate,
+not a faithful reproduction of the paper's full method.  The paper's central
+contract is the triad
+\begin{enumerate}[label=(\roman*)]
+  \item convex-potential representation,
+  \item minimax dual optimization,
+  \item gradient-of-convex-potential deployment.
+\end{enumerate}
+The earlier BayesFilter bridge benchmark did not implement this full triad, so the
+correct conclusion is only:
+\begin{quote}
+that benchmark did not beat the stronger trivial baseline.
+\end{quote}
+It does \emph{not} support the stronger claim that the original OT-ICNN paper is
+false or ineffective.
+
+\chapter{Conditional posterior transport: the main scientific lane}
+
+\section{Chapter preview}
+
+This chapter is the scientific center of gravity of the note.  The papers here are
+trying to learn observation-conditioned or context-conditioned transport objects,
+not merely static unconditional maps.  That is closer to what BayesFilter actually
+needs.
+
+The two hard ideas to watch are:
+\begin{enumerate}[label=(\roman*)]
+  \item a conditional transport problem is often a family of ordinary transport
+  problems indexed by $y$,
+  \item and a conditional posterior map is more demanding than a generic map,
+  because it must reproduce the posterior law given the observation.
+\end{enumerate}
+
+\section{Wang et al. (2025): conditional OT for Bayesian inference}
+
+\subsection*{What problem is the paper solving?}
+
+Wang et al. ask whether a conditional posterior law $\pi(\cdot\mid y)$ can be
+represented as the pushforward of a simple reference law by a map that depends on
+$y$.  The paper then studies both a static inverse-map route and a dynamic
+conditional-flow route.
+
+For implementation purposes, the right first question is not ``what theorem is the
+paper using?''  It is:
+\begin{quote}
+What are the inputs, what is being parameterized, what is the training objective,
+and what do we evaluate at deployment time?
+\end{quote}
+That is how the section is organized below.
+
+\subsection*{Paper reproduction}
+
+The defining block-triangular map is
+\begin{equation}
+T(z,y)=
+\begin{bmatrix}
+ y \\
+ g_\theta(z;y)
+\end{bmatrix},
+\label{eq:wang-block-triangular}
+\end{equation}
+which is the paper's Equation~(2.2).  Once $y$ is fixed, the conditional transport
+object is just the fiberwise map $z\mapsto g_\theta(z;y)$.
+
+If $g_\theta(\cdot;y)$ is a diffeomorphism, the conditional density follows by
+change of variables:
+\begin{equation}
+\pushf{g_\theta(\cdot;y)}{\eta}(x)
+=
+\eta\bigl(g_\theta^{-1}(x;y)\bigr)
+\left|\det \nabla_x g_\theta^{-1}(x;y)\right|.
+\label{eq:wang-pushforward-density}
+\end{equation}
+The target is therefore
+\begin{equation}
+\pushf{g_\theta(\cdot;y)}{\eta} \approx \pi(\cdot\mid y),
+\label{eq:wang-conditional-target}
+\end{equation}
+which is the paper's Equation~(2.4).
+
+For the static PCP-Map route, the inverse conditional generator is fitted by the
+negative log-likelihood functional
+\begin{equation}
+J_{\mathrm{NLL}}[g_\theta^{-1}]
+=
+\E_{\pi(x,y)}
+\left[
+\frac12\|g_\theta^{-1}(x;y)\|^2
+- \log\det \nabla_x g_\theta^{-1}(x;y)
+\right],
+\label{eq:wang-nll}
+\end{equation}
+with the Brenier-style inverse parameterization
+\begin{equation}
+g_\theta^{-1}(x;y)=\nabla_x G_\theta(x,y).
+\label{eq:wang-inverse-brenier}
+\end{equation}
+For the dynamic COT-Flow route, the state trajectory obeys
+\begin{equation}
+\dot p_t = v_\theta(t,p_t;y),
+\label{eq:wang-flow-ode}
+\end{equation}
+and the OT-regularized objective is
+\begin{equation}
+\min_{v_\theta} J_{\mathrm{NLL}}[g_\theta^{-1}] + \alpha_1 P_{\mathrm{dynOT}}[v_\theta],
+\label{eq:wang-flow-objective}
+\end{equation}
+with dynamic penalty
+\begin{equation}
+P_{\mathrm{dynOT}}[v_\theta]
+=
+\E_{\pi(x,y)}\left[\int_0^1 \frac12\|v_\theta(t,p_t;y)\|^2\,dt\right].
+\label{eq:wang-dynot-penalty}
+\end{equation}
+The dynamic route is then related to a macroscopic density-control problem,
+\begin{equation}
+\min_{\rho_t,v_t}
+\int \left[
+-\log \rho_1(x;y)\,\pi(x,y)
++
+\alpha_1\int_0^1 \frac12\|v_t(x;y)\|^2\rho_t(x;y)\,dt
+\right]dx\,dy
+\label{eq:wang-mfg-schematic}
+\end{equation}
+subject to the continuity equation
+\begin{equation}
+\partial_t \rho_t(x;y)+\nabla_x\cdot\bigl(\rho_t(x;y)v_t(x;y)\bigr)=0,
+\qquad
+\rho_0(x;y)=\eta(x).
+\label{eq:wang-continuity}
+\end{equation}
+By Pontryagin's principle, the optimal velocity has feedback form
+\begin{equation}
+v_\theta(t,p_t;y) = -\frac{1}{\alpha_1}\nabla_p \Phi(t,p_t;y),
+\label{eq:wang-flow-feedback}
+\end{equation}
+with Hamilton--Jacobi--Bellman equation
+\begin{equation}
+\partial_t \Phi(t,x;y)-\frac{1}{2\alpha_1}\|\nabla_x\Phi(t,x;y)\|^2=0
+\label{eq:wang-hjb}
+\end{equation}
+and terminal condition schematically of the form
+\begin{equation}
+\Phi(1,x;y) = -\frac{\pi(x,y)}{\rho_1(x;y)}.
+\label{eq:wang-terminal}
+\end{equation}
+The paper then parameterizes the value function as
+\begin{equation}
+\Phi_\theta(q)=\mathrm{NN}_{\theta_{\mathrm{NN}}}(q)+Q_{\theta_Q}(q),
+\qquad q=(t,x;y),
+\label{eq:wang-value-net}
+\end{equation}
+which is the role of Equation~(4.11).
+
+\subsection*{Explanatory reconstruction}
+
+\paragraph{Why does the block-triangular map matter?}
+Equation~\eqref{eq:wang-block-triangular} is the paper's first nontrivial idea.
+It means that the transport leaves the conditioning variable untouched and only
+acts on the latent coordinate.  Therefore, once we freeze $Y=y$, the joint map
+reduces to an ordinary transport map on the fiber over $y$:
+\begin{equation}
+(z,Y)\mapsto (Y,g_\theta(z;Y))
+\quad\Longrightarrow\quad
+z\mapsto g_\theta(z;y)
+\text{ for fixed } y.
+\label{eq:wang-fiberwise-reduction}
+\end{equation}
+So conditional transport is not a mysterious new kind of transport; it is a
+family of ordinary transports indexed by the conditioning variable.
+
+\paragraph{Why does the NLL objective have exactly that form?}
+Take the reference law to be standard Gaussian,
+\begin{equation}
+\eta(z) = (2\pi)^{-d/2}\exp\!\left(-\frac12\|z\|^2\right).
+\label{eq:gaussian-reference}
+\end{equation}
+Plugging \eqref{eq:gaussian-reference} into
+\eqref{eq:wang-pushforward-density} gives
+\begin{equation}
+-\log \pushf{g_\theta(\cdot;y)}{\eta}(x)
+=
+\frac12\|g_\theta^{-1}(x;y)\|^2
+-\log\det \nabla_x g_\theta^{-1}(x;y)
++\text{const}.
+\label{eq:wang-negative-log-density}
+\end{equation}
+Averaging \eqref{eq:wang-negative-log-density} over samples from the target
+conditional law gives exactly \eqref{eq:wang-nll}.  So the objective is not an ad
+hoc design choice.  It is simply the negative log-likelihood implied by the
+conditional change-of-variables formula.
+
+\paragraph{Why the inverse map is parameterized rather than the forward map.}
+The paper's static route works with $g_\theta^{-1}$ rather than directly with
+$g_\theta$.  The reason is computational.  The NLL objective
+\eqref{eq:wang-nll} requires the inverse map and the Jacobian determinant of that
+inverse.  If the inverse is parameterized directly as a conditional Brenier map,
+then the exact training objective can be evaluated without solving a numerical
+inverse problem inside every gradient step.
+
+The mathematical structure is then
+\begin{equation}
+\text{posterior samples }x
+\xrightarrow{\ g_\theta^{-1}(\cdot;y)\ }
+\text{reference samples that should look Gaussian}.
+\label{eq:wang-inverse-interpretation}
+\end{equation}
+So the static route learns a map that pulls posterior samples backward to the
+reference law.
+
+\paragraph{What the static Brenier structure buys.}
+The inverse map is constrained to be the gradient of a partially convex scalar
+function,
+\begin{equation}
+g_\theta^{-1}(x;y)=\nabla_x G_\theta(x,y).
+\label{eq:wang-static-gradient-again}
+\end{equation}
+This is a conditional Brenier idea: if the inverse map comes from a convex
+potential in the transported variable, then it is a gradient field rather than a
+free unconstrained regression map.  The paper is therefore trying to learn
+``posterior samples pushed backward to look Gaussian'' in a structured way.
+
+\paragraph{What the dynamic route is really doing.}
+The dynamic route says: instead of only fitting an endpoint map, learn a whole
+conditional flow whose endpoint reproduces the posterior and whose trajectories are
+transport-efficient.  The penalty \eqref{eq:wang-dynot-penalty} is a kinetic-energy
+penalty.  Equation \eqref{eq:wang-flow-objective} should therefore be read as a
+control objective rather than as ``the NLL plus one more regularizer.''
+
+The conceptual staircase is
+\begin{align}
+\text{conditional endpoint fit}
+&+ \text{kinetic-energy regularization}
+\notag\\
+&\Longrightarrow
+\text{density control problem}
+\notag\\
+&\Longrightarrow
+\text{feedback velocity law}.
+\label{eq:wang-dynamic-logic-chain}
+\end{align}
+So the dynamic route is not just a static map with extra smoothing.  It is a
+conditional dynamic OT problem whose endpoint is the posterior law.
+
+\paragraph{Why the HJB equation appears.}
+The mean-field-game or control formulation
+\eqref{eq:wang-mfg-schematic}--\eqref{eq:wang-continuity} introduces a constrained
+optimization over evolving densities and velocities.  The value function
+$\Phi(t,x;y)$ is the control-theoretic object that prices the best future
+continuation of the transport.  Once such a value function exists, the optimal
+feedback velocity is its gradient field \eqref{eq:wang-flow-feedback}, and the HJB
+equation \eqref{eq:wang-hjb} is the stationarity condition of the dynamic control
+problem.
+
+This is exactly the step the original paper leaves too compressed.  The PDEs are
+not arbitrary.  They are the optimality conditions of the dynamic OT control
+problem.
+
+\paragraph{What the neural network is approximating.}
+The network in \eqref{eq:wang-value-net} is not directly parameterizing the final
+transport map.  It parameterizes the value function from which the velocity field
+is recovered.  That is a very different architectural commitment from the static
+PCP-Map route.  This is the key conceptual distinction between the two halves of
+the paper.
+
+A student who gets lost in the dynamic half should stop and sort the objects by
+role:
+\begin{enumerate}[label=(\roman*)]
+  \item $\rho_t$ is the evolving density path we are trying to fit at the population level,
+  \item $v_t$ is the velocity field that moves that density path,
+  \item $\Phi$ is the value-function or control object whose gradient determines the velocity,
+  \item and the deployed sampler is obtained only after integrating the learned flow forward from a reference sample.
+\end{enumerate}
+So the learned neural object is closest to $\Phi_\theta$ (or equivalently to the
+velocity field derived from it), not directly to the final posterior sample cloud.
+
+\subsection*{Implementation manual: what Claude or a student would need}
+
+\paragraph{Inputs.}
+The static and dynamic routes both assume access to samples from the joint law
+\begin{equation}
+(x_i,y_i) \sim \pi(x,y),
+\qquad i=1,\ldots,N,
+\label{eq:wang-training-pairs}
+\end{equation}
+and a tractable reference law $\eta$ from which latent samples $z\sim\eta$ can be
+drawn.
+
+\paragraph{Static PCP-Map training loop.}
+A practical implementation reads as follows.
+\begin{algorithm}[ht]
+\caption{Static PCP-Map training loop}
+\begin{algorithmic}[1]
+\Require minibatches $(x_i,y_i)$ from the joint law, reference law $\eta$, neural potential $G_\theta(x,y)$
+\State Define $g_\theta^{-1}(x;y)=\nabla_x G_\theta(x,y)$
+\State For each batch, evaluate $g_\theta^{-1}(x_i;y_i)$ and the Jacobian determinant term
+\State Form the Monte Carlo estimate of $J_{\mathrm{NLL}}$ from \eqref{eq:wang-nll}
+\State Backpropagate through $G_\theta$ and update $\theta$
+\State At deployment, sample $z\sim\eta$ and numerically invert $g_\theta^{-1}(\cdot;y)$ or solve the corresponding forward map problem to obtain $x=g_\theta(z;y)$
+\end{algorithmic}
+\end{algorithm}
+
+\paragraph{Dynamic COT-Flow training loop.}
+The dynamic route instead parameterizes either the velocity field or the value
+function.
+\begin{algorithm}[ht]
+\caption{Dynamic COT-Flow training loop}
+\begin{algorithmic}[1]
+\Require minibatches $(x_i,y_i)$, reference law $\eta$, value-function network $\Phi_\theta$ or velocity network $v_\theta$
+\State Recover the velocity by \eqref{eq:wang-flow-feedback} if using $\Phi_\theta$
+\State Simulate trajectories $p_t$ from \eqref{eq:wang-flow-ode}
+\State Estimate the negative log-likelihood term and the dynamic penalty \eqref{eq:wang-dynot-penalty}
+\State Backpropagate the total objective \eqref{eq:wang-flow-objective} and update parameters
+\State At deployment, sample $z\sim\eta$ and integrate the ODE forward to obtain $x=g_\theta(z;y)$
+\end{algorithmic}
+\end{algorithm}
+
+\paragraph{Implementation hazards.}
+There are three implementation traps a student should know immediately.
+\begin{enumerate}[label=(\roman*)]
+  \item The static route needs stable Jacobian-determinant evaluation for the inverse map.
+  \item The dynamic route needs stable ODE integration and repeated differentiation through trajectories.
+  \item The two routes output different objects at deployment time: the static route centers the inverse map, while the dynamic route centers the velocity or value function.
+\end{enumerate}
+
+\paragraph{Implementation contract.}
+A correct static implementation learns an \emph{inverse conditional map}
+$g_\theta^{-1}(x;y)$ and deploys posterior samples only after inverting or otherwise
+recovering the forward transport.  A correct dynamic implementation learns a value
+function or velocity field whose endpoint flow produces the posterior sampler.  In
+neither case is the raw training object itself automatically the final posterior
+sample cloud.
+
+\paragraph{Common wrong implementations.}
+The easiest wrong turns are:
+\begin{enumerate}[label=(\roman*)]
+  \item training the inverse-map loss but deploying the raw inverse map as if it were the posterior sampler,
+  \item parameterizing the forward map when the implemented loss is written for the inverse,
+  \item treating $\Phi_\theta$ as the deployed artifact rather than integrating the induced flow,
+  \item checking only the loss while never checking fixed-$y$ conditional pushforward quality.
+\end{enumerate}
+The first three change semantics, not just efficiency.
+
+\paragraph{Minimum correct recipe.}
+The shortest safe recipe is: choose the route first, fix whether the trainable object
+is $g_\theta^{-1}$ or $\Phi_\theta$, train with the matching objective, and deploy
+only after the required inversion or ODE integration step has been carried out.  For a
+first executable build, the static inverse-map route is the safer starting point;
+the dynamic route is conceptually clear here, but it still requires more numerical
+decisions about trajectory integration and density-control estimation.
+
+\paragraph{First diagnostic.}
+Before any serious benchmark, freeze one observation value $y$ and run a tiny
+conditional-law smoke test.  For the static route, check that pushed-back posterior
+samples look Gaussian under $g_\theta^{-1}(\cdot;y)$.  For the dynamic route, check
+that integrating the learned flow from reference samples at fixed $y$ actually lands
+near the target conditional sample law.
+
+\subsection*{Code snapshot}
+
+The repo's current source-availability notes do not record a clean official codebase
+for this exact paper under the title used in the note.  They do, however, record a
+closely matching arXiv source for this conditional OT / Bayesian inference family.
+So students should read the code status here as family-level code evidence rather
+than as a clean locally endorsed implementation starting point.
+
+Operationally, that means:
+\begin{enumerate}[label=(\roman*)]
+  \item this is not a theory-only family,
+  \item but a student should still expect to implement the critical route-specific pieces themselves,
+  \item especially because the static inverse-map route and the dynamic flow route have different deployment semantics.
+\end{enumerate}
+
+\subsection*{BayesFilter bridge}
+
+For BayesFilter, Wang et al. are central because the paper learns exactly the kind
+of object one might want in a posterior-transport lane: an
+observation-conditioned sampler or inverse map.  What remains missing is not the
+conditional idea, but the engineering bridge:
+\begin{itemize}
+  \item repeated weighted particle-cloud inputs,
+  \item stable high-dimensional deployment,
+  \item and downstream derivative-aware use inside BayesFilter.
+\end{itemize}
+
+\subsection*{What the paper does not settle}
+
+The paper does not by itself establish that a learned conditional posterior map
+preserves any BayesFilter-specific scalar or correction contract.  It shows how to
+represent and train a conditional transport model for Bayesian inference.  The
+BayesFilter-specific downstream semantics remain an implementation and validation
+question.
+
+
+\section{Al-Jarrah et al. (2025): nonlinear filtering with Brenier OT maps}
+
+\subsection*{What problem is the paper solving?}
+
+Al-Jarrah et al. ask the most BayesFilter-native question on the shelf: can a
+posterior update be represented directly as an observation-conditioned transport
+map?  The paper is not about generic image transport or unconditional OT.  It is
+about nonlinear filtering, where one repeatedly has a predictive law and then must
+condition it on a new observation.
+
+To see the point, start from the filtering recursion.  If $\overline\pi_{t\mid t-1}$
+denotes the predictive law before assimilating the new observation $Y_t$, then the
+posterior law is
+\begin{equation}
+\pi_t = \mathcal B_{Y_t}(\overline\pi_{t\mid t-1}),
+\label{eq:filtering-conditioning-operator}
+\end{equation}
+where $\mathcal B_y$ denotes Bayes conditioning by the observation value $y$.  The
+paper's core question is therefore:
+\begin{quote}
+Can Bayes conditioning itself be represented as a transport operator?
+\end{quote}
+If the answer is yes, then posterior updating becomes a map-learning problem.
+
+For implementation purposes, the right questions are again concrete:
+\begin{enumerate}[label=(\roman*)]
+  \item What samples are assumed available?
+  \item What neural objects are parameterized?
+  \item What population problem are they approximating?
+  \item What exactly is applied to particles at deployment time?
+\end{enumerate}
+
+\subsection*{Paper reproduction}
+
+The paper formulates the design problem directly.  For every prior or predictive
+law $\mu$, find an observation-conditioned transport map $T_y$ such that
+\begin{equation}
+\pushf{T_y}{\mu} = \mathcal B_y(\mu),
+\label{eq:aljarrah-design-problem}
+\end{equation}
+which is the paper's Equation~(6) in the note's notation.  This is the central
+deployment equation of the whole paper.
+
+To express this transport condition in a way that is easier to optimize, the paper
+introduces independent copies $U\sim P_X$ and $\overline U\sim P_X$ together with
+an observation $Y\sim P_Y$.  The bookkeeping is easier if one assigns them fixed
+roles from the start:
+\begin{itemize}
+  \item $U$ denotes the target-side state variable whose joint law with $Y$ we want to match,
+  \item $\overline U$ denotes an independent source-side sample that will actually be pushed through the learned map,
+  \item $Y$ is the conditioning observation that chooses which transport map is applied.
+\end{itemize}
+The conditional consistency condition is then written
+as
+\begin{equation}
+(T_y(\overline U),Y) \sim P_{U,Y},
+\label{eq:aljarrah-joint-law-condition}
+\end{equation}
+which is the content of the paper's Equation~(8a).  Equivalently, for all suitable
+test functions $F$,
+\begin{equation}
+\E[F(T_y(U),y)\mid y] = \E[F(U,y)\mid y].
+\label{eq:aljarrah-consistency}
+\end{equation}
+
+Once this consistency condition has been fixed, the paper formulates the
+conditional Monge problem
+\begin{equation}
+\min_{T_y} \E\bigl[c(T_y(\overline U),\overline U)\bigr]
+\quad\text{subject to}\quad
+(T_y(\overline U),Y)\sim P_{U,Y},
+\label{eq:aljarrah-conditional-monge}
+\end{equation}
+with quadratic cost
+\begin{equation}
+c(u,u')=\frac12\|u-u'\|^2.
+\label{eq:aljarrah-quadratic-cost}
+\end{equation}
+The paper then rewrites the problem by duality as a conditional max--min game,
+\begin{equation}
+\sup_f\inf_{T_y} J(f,T_y),
+\label{eq:aljarrah-minimax-abstract}
+\end{equation}
+and more explicitly as
+\begin{equation}
+J(f,T_y)
+=
+\E[f(U',y)]
++
+\E\bigl[c(T_y(U),U)-f(T_y(U),y)\bigr].
+\label{eq:aljarrah-max-min}
+\end{equation}
+The empirical objective is then
+\begin{equation}
+\widehat J_N(f,T_y)
+=
+\frac1N\sum_{i=1}^{N} f(U_i',y)
++
+\frac1N\sum_{i=1}^{N}\bigl[c(T_y(U_i),U_i)-f(T_y(U_i),y)\bigr],
+\label{eq:aljarrah-empirical-objective}
+\end{equation}
+which is the finite-sample problem the neural networks actually optimize.
+
+Finally, the deployed posterior-update operator is
+\begin{equation}
+\Pi_y(\mu)=\pushf{T_y}{\mu},
+\label{eq:aljarrah-posterior-map}
+\end{equation}
+which is the BayesFilter-relevant object.
+
+\subsection*{Explanatory reconstruction}
+
+\paragraph{Why is the transport problem conditional rather than ordinary?}
+A first reading of the paper can be baffling because the transport target is not a
+single fixed measure.  It is the posterior law, which changes with the
+observation.  Equation~\eqref{eq:aljarrah-design-problem} is therefore not saying
+``learn one map from prior to posterior.''  It is saying:
+\begin{quote}
+for each observation value $y$, learn a different map $T_y$ whose pushforward is
+exactly the conditioned law.
+\end{quote}
+So the learned object is a family of maps indexed by $y$, not one static map.
+
+\paragraph{Why does the test-function identity characterize the posterior law?}
+Suppose \eqref{eq:aljarrah-consistency} holds for all bounded measurable test
+functions $F$.  Then, by the defining property of equality in law,
+\begin{equation}
+\E[F(X_1)\mid y]=\E[F(X_2)\mid y]\ \forall F
+\quad\Longrightarrow\quad
+\mathcal L(X_1\mid y)=\mathcal L(X_2\mid y).
+\label{eq:test-function-law-identity}
+\end{equation}
+This is the crucial bridge many readers need.  The paper is not only matching a
+few posterior moments.  It is matching the full conditional law via a test-function
+identity.
+
+A useful mental model is the following.  If no test function can distinguish
+$T_y(U)$ from the target posterior variable, then the two have the same posterior
+law.  So the conditional consistency condition is not decorative; it is the core
+correctness condition.
+
+\paragraph{Why does the Monge problem appear?}
+Once the law-matching condition is fixed, there are typically many maps that send
+$P_X$ to $P_{X\mid Y=y}$.  The paper therefore chooses among them by minimizing a
+quadratic transport cost.  This is exactly the role of
+\eqref{eq:aljarrah-conditional-monge}: among all observation-conditioned maps that
+produce the right conditional law, pick the one that moves mass least under the
+quadratic cost.  So the conditioning problem is being turned into a conditional OT
+selection principle.
+
+\paragraph{What are the critic and the map doing in the max--min game?}
+The max--min formulation can be hard to read on first sight.  Here is the slow
+interpretation.
+
+- The critic $f$ tries to score whether transported points look like they come from
+  the target joint law.
+- The map $T_y$ tries to move source points into locations that the critic accepts,
+  while paying the transport cost.
+
+Thus
+\begin{equation}
+\text{critic certifies target agreement}
+\quad\Longleftrightarrow\quad
+\text{map pays transport cost to achieve it}.
+\label{eq:critic-map-division}
+\end{equation}
+The first expectation in \eqref{eq:aljarrah-max-min} rewards the critic on true
+posterior-side samples, while the second expectation penalizes the map by its OT
+cost and subtracts the critic score at the transported location.  This is the
+conditional OT analogue of the usual primal-dual game, but now with the observation
+variable carried along.
+
+\paragraph{Why is the empirical objective the right sample version?}
+The empirical objective \eqref{eq:aljarrah-empirical-objective} is simply the
+sample-average version of the population objective \eqref{eq:aljarrah-max-min}.
+This matters because the paper is designed to work in a likelihood-free or
+simulation-based setting: one only needs samples from the joint or conditional
+observation mechanism, not a closed-form likelihood expression.  So the neural
+training problem is not detached from the theory; it is the Monte Carlo version of
+that theory.
+
+\paragraph{What hidden assumption matters most?}
+The hardest hidden step is the role of convexity.  The theory later needs
+conditions like strong convexity of the function
+\begin{equation}
+u \mapsto \frac12\|u\|^2 - f(u,y)
+\label{eq:aljarrah-strong-convexity-bridge}
+\end{equation}
+with respect to the transported variable.  Why does this matter?  Because that is
+what allows one to control the difference between an approximate learned pair
+$(f,T_y)$ and the ideal optimal pair.  Without such structure, the max--min problem
+might still be optimized numerically, but the map-quality guarantees become much
+weaker.
+
+\paragraph{What the paper leaves implicit.}
+The original paper moves quickly from Bayes-law motivation to the conditional OT
+game.  The missing bridge supplied here is:
+\begin{align}
+\text{Bayes conditioning}
+&\Longrightarrow
+\text{conditional law identity}
+\notag\\
+&\Longrightarrow
+\text{conditional Monge selection principle}
+\notag\\
+&\Longrightarrow
+\text{dual or max--min learning problem}.
+\label{eq:aljarrah-logic-chain}
+\end{align}
+Once this ladder is explicit, the whole paper becomes much easier to follow.
+
+\subsection*{Implementation manual: what Claude or a student would need}
+
+\paragraph{Inputs.}
+A practical implementation needs predictive or prior particles together with
+observation samples.  In the paper's finite-sample construction, one needs
+triples of the form
+\begin{equation}
+(U_i,\overline U_i,Y_i),
+\qquad
+U_i,\overline U_i \sim P_X,
+\quad
+Y_i\sim P_Y
+\text{ or }Y_i\sim h(\cdot\mid U_i),
+\label{eq:aljarrah-training-triples}
+\end{equation}
+where $\overline U_i$ is an independent source-side copy and $Y_i$ is the
+conditioning observation paired with the target-side sample.
+
+\paragraph{Parameterization.}
+The paper uses two learnable objects:
+\begin{enumerate}[label=(\roman*)]
+  \item a critic $f_\phi(u,y)$,
+  \item and an observation-conditioned transport map $T_\theta(u,y)$,
+\end{enumerate}
+with the map represented by a residual network and the critic by a scalar-valued
+network.
+
+\paragraph{Population objective.}
+The ideal optimization target is the max--min program
+\eqref{eq:aljarrah-minimax-abstract}--\eqref{eq:aljarrah-max-min}.  This is what
+should be written down before coding anything else, because it tells us exactly
+which expectations must be estimated and which variables are being optimized.
+
+\paragraph{Empirical objective.}
+The code should implement the Monte Carlo objective
+\eqref{eq:aljarrah-empirical-objective}.  In practice this means:
+\begin{enumerate}[label=(\arabic*)]
+  \item draw or assemble a batch of predictive-state samples $U_i$,
+  \item form an independent batch $\overline U_i$ or a shuffled copy,
+  \item sample or simulate the corresponding observations $Y_i$,
+  \item evaluate the critic on target-side samples,
+  \item evaluate the transported samples $T_\theta(\overline U_i,Y_i)$,
+  \item accumulate the transport-cost and critic terms,
+  \item update the neural parameters.
+\end{enumerate}
+If the symbols start to blur together, keep the intended semantics in one sentence:
+\begin{quote}
+$U_i$ is the law we want to match, $\overline U_i$ is the independent source sample
+we are allowed to move, and $Y_i$ tells the network which posterior-update map to
+use.
+\end{quote}
+
+\paragraph{Training loop.}
+A minimal implementation loop is:
+\begin{algorithm}[ht]
+\caption{Conditional Brenier OT filter-map training loop}
+\begin{algorithmic}[1]
+\Require batches $(U_i,\overline U_i,Y_i)$, critic network $f_\phi$, transport network $T_\theta$, quadratic cost $c$
+\State Compute transported samples $\widehat U_i=T_\theta(\overline U_i,Y_i)$
+\State Evaluate the empirical objective $\widehat J_N(f_\phi,T_\theta)$ from \eqref{eq:aljarrah-empirical-objective}
+\State Update $\phi$ to increase the critic objective
+\State Update $\theta$ to decrease the transport objective
+\State Repeat until the min--max game stabilizes
+\end{algorithmic}
+\end{algorithm}
+The paper's actual implementation uses stochastic optimization and residual-network
+parameterizations, but this is the core mathematical loop.
+
+\paragraph{Deployment loop.}
+At deployment time, the algorithmic object is not the critic.  It is the learned
+posterior-update operator
+\begin{equation}
+\mu \longmapsto \Pi_y(\mu)=\pushf{T_y}{\mu}.
+\label{eq:aljarrah-deployment-loop}
+\end{equation}
+So a BayesFilter-style use is straightforward in form:
+\begin{enumerate}[label=(\arabic*)]
+  \item start with predictive particles $u_i$ approximating $\mu$,
+  \item observe $y$,
+  \item push every predictive particle through $T_y$,
+  \item treat the transported cloud as the posterior particle approximation.
+\end{enumerate}
+
+\paragraph{Implementation hazards.}
+A reader trying to code the paper should be warned about four difficulties.
+\begin{enumerate}[label=(\roman*)]
+  \item The correctness of the learned map depends on the conditional consistency
+  structure, not only on numerical loss decrease.
+  \item The theory relies on convexity or strong-convexity structure that the raw
+  network parameterization may not enforce automatically.
+  \item The map is conditioned on $y$, so batching and sample pairing must preserve
+  the conditioning semantics.
+  \item The finite-sample construction may be easier to state than to stabilize in
+  high dimensions.
+\end{enumerate}
+
+\paragraph{Implementation contract.}
+The learned object is the family of observation-conditioned maps $T_y$; the optimized
+objects are the map and critic in the max--min game; the critic is auxiliary only; and
+the deployed object is the posterior-update operator $\Pi_y(\mu)=\pushf{T_y}{\mu}$.
+A correct implementation must preserve the conditional-law identity, not only obtain a
+small adversarial or primal-dual loss.
+
+\paragraph{Common wrong implementations.}
+The most likely wrong turns are:
+\begin{enumerate}[label=(\roman*)]
+  \item confusing $U$, $\overline U$, and $Y$ so the batch semantics are wrong,
+  \item learning one static map instead of a family $T_y$ indexed by the observation,
+  \item deploying the critic or critic score instead of deploying only the transported cloud,
+  \item treating lower min--max loss as sufficient without checking the conditional-law contract.
+\end{enumerate}
+The first three are semantic failures, not just tuning mistakes.
+
+\paragraph{Minimum correct recipe.}
+The shortest safe recipe is: build correctly paired triples $(U_i,\overline U_i,Y_i)$,
+train the critic and conditional map against the empirical max--min objective, discard
+the critic at deployment, and use only $T_y$ to move predictive particles at fixed
+observation value $y$.
+
+\paragraph{First diagnostic.}
+Before any large run, freeze one observation value $y$ and verify that transported
+particles are hard to distinguish from the target conditional law at that same $y$.
+If batch shuffling or conditioning semantics are wrong, this fixed-$y$ check usually
+fails immediately even when the training loss decreases.
+
+\subsection*{Code snapshot}
+
+The repo's existing ledger does not record a confirmed public implementation source
+for this filtering-native Brenier OT paper.  Students should therefore interpret the
+status as conceptually strong but practically paper-first: the note itself is doing
+much of the implementation-guidance work.
+
+The practical interpretation is:
+\begin{enumerate}[label=(\roman*)]
+  \item there is no confirmed local code-backed shortcut,
+  \item the implementation contract in this section matters more than any presumed external repo,
+  \item and a first BayesFilter implementation should be treated as a fresh reconstruction.
+\end{enumerate}
+
+\subsection*{BayesFilter bridge}
+
+This paper is extremely important for BayesFilter because the deployed object
+\eqref{eq:aljarrah-posterior-map} is already a posterior-update operator.  That is
+much closer to BayesFilter's real need than a generic static OT map.  The remaining
+gap is that the learned conditional map still needs to be translated into a stable,
+reusable, derivative-aware filtering block.
+
+\subsection*{What the paper does not settle}
+
+The paper does not prove that its learned map preserves all downstream BayesFilter
+semantics beyond the conditional transport contract it studies.  It is therefore a
+strong scientific lane, but not yet an automatic drop-in module.
+
+
+\section{Hosseini, Hsu, and Taghvaei (2025): conditional OT on function spaces}
+
+\subsection*{What problem is the paper solving?}
+
+Hosseini et al. ask the theorem-level version of the same conditional question:
+can conditional transport be formulated directly on function spaces, not only in
+finite-dimensional Euclidean coordinates?  This makes the paper conceptually very
+important, but also harder to read.
+
+A first-year student should notice immediately what is unusual here.  In Wang, the
+main burden is conditional change of variables inside a finite-dimensional neural
+map.  Here the burden is different: the paper first asks what the \emph{ideal
+conditional transport object} should be in infinite-dimensional settings, and only
+later discusses approximation.
+
+If the implementation-ready question is asked immediately, the core difficulty
+becomes clear:
+\begin{quote}
+What is the algorithm supposed to approximate if the paper starts by formulating a
+theorem-level transport object on function spaces?
+\end{quote}
+The section below is written to answer that exact question.
+
+\subsection*{Paper reproduction}
+
+The starting point is the paper's conditional transport problem.  In the note's
+notation, we want a conditional map $T_y^\star$ such that
+\begin{equation}
+\pushf{T_y^\star}{\eta} = \pi(\cdot\mid y).
+\label{eq:hosseini-pushforward}
+\end{equation}
+This is the paper's Problem~1.1 in house notation.  The significance is that the
+map does not target one fixed distribution.  It targets a whole family of
+conditionals.
+
+The paper then places this inside a block-triangular map.  In the notation used
+throughout the note,
+\begin{equation}
+T(y,u) = (y,T_y(u)).
+\label{eq:hosseini-block-triangular}
+\end{equation}
+This is the finite-dimensional shadow of the paper's Definition~1.2.  The
+triangular structure means that the conditioning variable is carried through by the
+identity map while only the latent or state coordinate is transported.
+
+To formulate the Bayesian inverse problem, the paper considers a joint law of data
+and unknowns.  In house notation, the posterior law appears schematically as
+\begin{equation}
+\pi(du\mid y) \propto L(y\mid u)\,\mu_0(du),
+\label{eq:hosseini-bip-posterior}
+\end{equation}
+which is the conceptual content of the paper's Equations~(1.3)--(1.4).  The key
+point is that conditional OT is being used to characterize this posterior law as a
+transport image of a reference law, not merely as a Radon--Nikodym derivative.
+
+The conditional Monge problem then becomes
+\begin{equation}
+\inf_{T_y}
+\int c(u,T_y(u))\,d\eta_y(u)
+\quad\text{subject to}\quad
+\pushf{T_y}{\eta_y} = \pi(\cdot\mid y)
+\text{ for a.e. } y,
+\label{eq:hosseini-conditional-monge}
+\end{equation}
+which is the note's translation of Problem~1.3.  The conditional Kantorovich
+relaxation then replaces the map by a constrained coupling that keeps the data
+coordinate fixed; this is the content of Problem~1.4.
+
+Later, in the explicit Bayesian-inverse-problem section, the paper specializes the
+reference law to an independence coupling between the data marginal and the prior,
+so that the conditional Monge problem becomes, schematically,
+\begin{equation}
+\inf_{T}
+\int \|v-T_y(v)\|_{\mathcal U}^{p}\,d\eta(y,v)
+\quad\text{subject to}\quad
+\pushf{T}{\eta}=\nu,
+\qquad
+T(y,v)=(y,T_y(v)),
+\label{eq:hosseini-bip-monge}
+\end{equation}
+which is the role of the paper's Equation~(4.2).  The point of this specialization
+is to show that the same conditional OT machinery can represent a prior-to-posterior
+transport family for inverse problems.
+
+Finally, the paper proposes two approximation routes later in the manuscript:
+Algorithm~5.1 (plugin conditional OT) and Algorithm~5.2 (WaMGAN).  The theory and
+the approximation are deliberately not the same object.  That separation is one of
+the paper's main virtues.
+
+\subsection*{Explanatory reconstruction}
+
+\paragraph{First do the finite-dimensional version.}
+The paper becomes much easier if one first ignores function spaces and imagines
+ordinary Euclidean variables.  Fix an observation value $y$.  Then the paper is
+trying to find a map that sends a simple reference law to the posterior law for
+that particular observation:
+\begin{equation}
+\eta_y \xrightarrow{\ T_y\ } \pi(\cdot\mid y).
+\label{eq:hosseini-fiber-picture}
+\end{equation}
+Now vary $y$.  Instead of one transport problem, you now have a whole family of
+transport problems, one for each observation fiber.  This is the real meaning of
+conditional OT in the paper.
+
+\paragraph{Why the triangular structure matters.}
+A student might ask: why not just learn a generic map on the pair $(y,u)$?  The
+triangular structure in \eqref{eq:hosseini-block-triangular} answers this.  If the
+map is of the form
+\begin{equation}
+(y,u)\mapsto (y,T_y(u)),
+\label{eq:triangular-explicit}
+\end{equation}
+then the data variable is not transported.  It only indexes which transport map is
+used on the latent variable.  This is the mathematical mechanism that turns a joint
+transport problem into a conditional one.
+
+Without triangularity, the map could also move the conditioning variable itself,
+and then the interpretation ``posterior law given the same observation $y$'' would
+break down.  So the triangular restriction is not cosmetic.  It is what makes the
+problem genuinely conditional.
+
+\paragraph{What does ``for almost every $y$'' mean?}
+Equation \eqref{eq:hosseini-conditional-monge} requires
+\begin{equation}
+\pushf{T_y}{\eta_y} = \pi(\cdot\mid y)
+\quad\text{for a.e. }y.
+\label{eq:hosseini-ae-condition}
+\end{equation}
+This means the transport condition can fail only on a set of observations of
+probability zero.  Operationally, it is the correct conditional analogue of saying
+that an ordinary pushforward identity holds almost surely.  The paper is therefore
+not demanding a uniform deterministic identity for every logically possible $y$,
+but for all observations that matter under the underlying measure.
+
+\paragraph{Why the conditional Monge problem is the right object.}
+Once the target posterior family $\pi(\cdot\mid y)$ has been fixed, there may be
+many maps that realize it.  The conditional Monge problem
+\eqref{eq:hosseini-conditional-monge} picks a preferred one by minimizing the
+transport cost for each fiber.  So the logic is:
+\begin{align}
+\text{conditional law matching}
+&\Longrightarrow
+\text{many admissible transport maps}
+\notag\\
+&\Longrightarrow
+\text{choose the least-cost one fiberwise}.
+\label{eq:hosseini-selection-logic}
+\end{align}
+That is the hidden selection principle behind the paper.
+
+\paragraph{Why the Kantorovich relaxation is needed.}
+A first-year student should ask why the paper introduces a conditional coupling at
+all.  The answer is the same as in ordinary OT: deterministic maps can be hard to
+prove exist, hard to optimize directly, or too rigid in approximation arguments.
+The constrained conditional coupling problem is the natural relaxation of the
+conditional Monge problem.  The novelty is not the relaxation itself; it is that
+the coupling is constrained so the data variable is still deterministically matched
+by the identity map.
+
+\paragraph{What is new in the function-space setting?}
+The finite-dimensional logic above is already enough to understand the architecture
+of the argument.  The function-space leap adds three new difficulties:
+\begin{enumerate}[label=(\roman*)]
+  \item the ambient spaces are separable Hilbert spaces,
+  \item the cost and regularity assumptions must now be stated in infinite-dimensional form,
+  \item and the eventual algorithm must pass through finite truncation or approximation.
+\end{enumerate}
+So the function-space paper is not conceptually new in its conditional logic.  It
+is mathematically harder because it proves that the same logic survives in a much
+richer setting.
+
+\paragraph{Why is this paper harder than Wang?}
+Wang begins with a neural parameterization and then fits it by likelihood and OT
+regularization.  Hosseini et al. do the reverse.  They first define the ideal
+conditional OT object and only later discuss how to approximate it.  The paper's
+real contribution is therefore the separation
+\begin{equation}
+\text{ideal conditional transport object}
+\quad\Longrightarrow\quad
+\text{approximation route for that object}.
+\label{eq:hosseini-theory-to-approximation}
+\end{equation}
+That separation is what makes the paper valuable, but it is also what makes the
+reading harder.  The student is being asked to keep the theorem-level and
+algorithm-level objects separate.
+
+\paragraph{What the plugin and WaMGAN algorithms are really doing.}
+The plugin route says: estimate the conditional target structure first, then solve
+conditional OT numerically.  The WaMGAN route says: parameterize a conditional
+generator and train it adversarially so it behaves like the conditional OT object.
+So the two algorithms answer different practical questions:
+\begin{align}
+\text{plugin route:}
+&\quad
+\text{estimate target then transport};
+\notag\\
+\text{WaMGAN route:}
+&\quad
+\text{learn a generator that emulates transport}.
+\label{eq:hosseini-two-algorithms}
+\end{align}
+This distinction is easy to miss in a fast reading of the paper, but it is very
+important pedagogically.
+
+The next question a student should ask is: where does the finite implementation
+burden enter?  The answer is that the theorem-level object lives on an infinite-
+dimensional space, while the code must choose a finite representation, a finite
+family of conditioning values, and a finite numerical surrogate for the conditional
+OT solve.  So the real bridge is not
+\begin{quote}
+``the theorem immediately gives an algorithm,''
+\end{quote}
+but rather
+\begin{align}
+\text{ideal conditional OT object on function space}
+&\Longrightarrow
+\text{choose a finite representation}
+\notag\\
+&\Longrightarrow
+\text{approximate the conditional target family}
+\notag\\
+&\Longrightarrow
+\text{solve OT fiberwise or train a surrogate generator}.
+\label{eq:hosseini-finite-bridge}
+\end{align}
+That ladder is the practical content hidden between the theorem section and the two
+algorithms.
+
+\paragraph{What the paper leaves implicit.}
+For new readers, the hardest gap is not the notation; it is the leap from a
+finite-dimensional conditional map intuition to a function-space theorem.  The
+correct reading order is:
+\begin{align}
+\text{fiberwise conditional OT in finite dimensions}
+&\Longrightarrow
+\text{triangular conditional transport}
+\notag\\
+&\Longrightarrow
+\text{function-space generalization}.
+\label{eq:hosseini-reading-order}
+\end{align}
+If one tries to read the function-space theorem first, the paper feels mysterious.
+If one reads the finite-dimensional logic first, the abstraction becomes much more
+reasonable.
+
+A useful concrete mental model is a finite truncation of an unknown function.
+Imagine that the hidden state is represented approximately by its first few basis
+coefficients,
+\begin{equation}
+u \approx (u_1,\ldots,u_m) \in \R^m.
+\label{eq:hosseini-finite-truncation-idea}
+\end{equation}
+Then the theorem-level object $T_y^\star$ says: for each observation value $y$,
+there should be a map on this coefficient vector that pushes a simple reference law
+to the posterior law of those coefficients.  The plugin route would try to solve
+that finite-dimensional conditional OT problem more directly; the WaMGAN route
+would try to learn a generator that emulates the same conditional pushforward.
+This finite-truncation picture is not the theorem itself, but it is the right first
+mental model for implementation.
+
+\subsection*{Implementation manual: what Claude or a student would need}
+
+\paragraph{Inputs.}
+The theorem object assumes a joint measure of observations and unknowns
+\begin{equation}
+\nu \in \calP(\mathcal Y\times \mathcal U)
+\label{eq:hosseini-joint-measure}
+\end{equation}
+and a reference law of the form
+\begin{equation}
+\eta = \nu_{\mathcal Y}\otimes \eta_{\mathcal V}
+\quad\text{or, in the inverse-problem specialization,}\quad
+\eta = \nu_{\mathcal Y}\otimes \mu.
+\label{eq:hosseini-reference-law}
+\end{equation}
+So an implementer must know whether the reference variable is a synthetic latent
+law $\eta_{\mathcal V}$ or the prior itself.
+
+\paragraph{Theorem object versus algorithmic object.}
+The theorem object is the ideal conditional map $T_y^\star$ satisfying
+\eqref{eq:hosseini-pushforward}.  The algorithmic object is not the same thing.
+It is either:
+\begin{enumerate}[label=(\roman*)]
+  \item a plugin numerical approximation to that map, or
+  \item a trained conditional generator meant to emulate it.
+\end{enumerate}
+A correct implementation note must keep those two levels separate.
+
+\paragraph{Plugin route.}
+The plugin route is the more literal implementation of the theorem story.  Its
+steps are approximately:
+\begin{algorithm}[ht]
+\caption{Plugin conditional OT pipeline}
+\begin{algorithmic}[1]
+\Require samples $(y_j,u_j)\sim \nu$, reference law $\eta=\nu_{\mathcal Y}\otimes\eta_{\mathcal V}$ or $\nu_{\mathcal Y}\otimes\mu$
+\State Choose a finite state representation and a finite representation of the conditioning variable
+\State Estimate the conditional target family $\pi(\cdot\mid y)$ or its finite projection on that representation
+\State For each conditioning value or each local approximation point $y$, solve the corresponding conditional OT problem
+\State Extract the $\mathcal U$-component of the resulting triangular map
+\State Use interpolation or nearest-neighbor style selection to evaluate the map at new conditioning values
+\end{algorithmic}
+\end{algorithm}
+This route is closest to the theorem, but can be computationally heavy.
+
+\paragraph{WaMGAN route.}
+The WaMGAN route is the more neural approximation route.  Its rough logic is:
+\begin{algorithm}[ht]
+\caption{Conditional WaMGAN-style transport training}
+\begin{algorithmic}[1]
+\Require samples $(y_j,u_j)\sim\nu$, chosen conditional generator family, regularization parameters
+\State Choose the finite representation in which the conditional generator and critic will operate
+\State Sample conditioning values and latent/reference variables
+\State Push the latent variables through the conditional generator to produce synthetic conditional samples
+\State Compare synthetic and target conditional samples by the paper's adversarial or Wasserstein objective
+\State Update the generator (and critic, if present) by stochastic optimization
+\State At deployment, sample the reference variable and evaluate the conditional generator at a new observation value $y$
+\end{algorithmic}
+\end{algorithm}
+This route is farther from the theorem object, but easier to amortize.
+
+\paragraph{Deployment.}
+After training, the implementable object should look like
+\begin{equation}
+(y,v) \longmapsto T_y(v),
+\qquad
+v\sim \eta_{\mathcal V} \text{ or } v\sim \mu,
+\label{eq:hosseini-deployment-object}
+\end{equation}
+so that conditional samples are obtained by fixing $y$ and pushing forward the
+reference or prior law.
+
+\paragraph{Implementation hazards.}
+The major hazards are:
+\begin{enumerate}[label=(\roman*)]
+  \item the theorem object lives on function spaces, but the implementation must choose a finite representation,
+  \item conditional OT must be evaluated or approximated fiberwise in $y$,
+  \item plugin methods can become expensive if many conditioning values are needed,
+  \item neural approximation methods may obscure the distinction between the theorem object and the trained surrogate,
+  \item the paper's most natural inverse-problem interpretation uses a prior-based reference law, which is not the same as the Gaussian-reference logic in Wang.
+\end{enumerate}
+
+\paragraph{Implementation contract.}
+The theorem object is the ideal conditional map $T_y^\star$; the algorithmic object is
+either a plugin finite approximation of that map or a trained generator that emulates
+it; and the deployed object is whatever finite surrogate finally sends the chosen
+reference representation to conditional samples at fixed $y$.  A correct implementation
+must keep those three levels separate.
+
+\paragraph{Common wrong implementations.}
+The most likely wrong turns are:
+\begin{enumerate}[label=(\roman*)]
+  \item treating the theorem object as if it already specified a finite algorithm,
+  \item choosing a neural generator without recording the finite state representation it is supposed to emulate,
+  \item pooling over conditioning values instead of respecting the fiberwise nature of the conditional problem,
+  \item silently switching the reference law from prior-based to Gaussian or vice versa.
+\end{enumerate}
+The first and fourth mistakes change the mathematical contract, not only the code path.
+
+\paragraph{Minimum correct recipe.}
+The shortest safe recipe is: choose the finite state representation first, choose the
+reference law second, decide whether the route is plugin or surrogate third, and only
+then code the transport solver or generator for fixed-$y$ conditional problems.  If a
+student wants one recommended first surrogate, the safest first build is a finite-
+dimensional plugin route on a low-dimensional coefficient truncation before attempting
+a fully learned generator.
+
+\paragraph{First diagnostic.}
+Before any broad experiment, test one finite truncation and one fixed observation value
+$y$.  Check whether the implemented surrogate actually pushes the chosen finite
+reference representation toward the intended conditional target for that same $y$.
+This is the smallest theorem-object versus surrogate-object sanity check.
+
+\subsection*{Code snapshot}
+
+The repo's existing availability research does not record a confirmed official
+codebase for this function-space conditional OT paper.  Students should therefore
+interpret the paper as theorem-backed but effectively implementation-first in our
+current notes.
+
+In practice, the code status means:
+\begin{enumerate}[label=(\roman*)]
+  \item the note's theorem-to-surrogate bridge is currently more reusable than any confirmed external software source,
+  \item a first implementation still requires explicit finite representation choices,
+  \item and code reuse is less decisive here than avoiding theorem-object versus surrogate confusion.
+\end{enumerate}
+
+\subsection*{BayesFilter bridge}
+
+This paper matters most if BayesFilter's long-run ambition is truly
+function-space or operator-valued posterior transport.  The paper's weakness is not
+lack of rigor.  It is that a large finite-dimensional bridge still has to be built
+before one gets an implementable filtering routine.
+
+\subsection*{What the paper does not settle}
+
+The paper does not automatically give a practical weighted-particle BayesFilter
+update.  It gives the strongest mathematical formulation of what a conditional
+transport object should be in a richer setting.
+
+
+\section{Bunne, Krause, and Cuturi (2022): a shorter conditional comparison}
+
+Bunne et al. are useful as a contrast paper.  The learned object is a
+context-conditioned Monge map family,
+\begin{equation}
+T_\theta(y)(u)=\nabla_u F_\theta(u,y),
+\label{eq:bunne-conditional-map}
+\end{equation}
+with shared-task objective
+\begin{equation}
+\max_\theta \sum_{i=1}^{m} J_i\bigl(T_\theta(y_i)\bigr).
+\label{eq:bunne-task-aggregate}
+\end{equation}
+This teaches a useful idea: conditional transport across a family of contexts can
+be learned jointly.  But the paper is less central than Wang or Al-Jarrah because
+its deployed object is still mainly a context-conditioned sample pushforward,
+rather than a filtering-native posterior update or a retained teacher.
+
+The right way to read this section is therefore not
+\begin{quote}
+``here is another full implementation lane to copy first.''
+\end{quote}
+It is instead:
+\begin{quote}
+``here is a shorter comparison paper that teaches the multi-context learning idea,
+but does not carry the full filtering-native or retained-teacher burden.''
+\end{quote}
+
+Operationally, the learned object is a family of maps indexed by context $y$; the
+objective says those context-specific tasks are trained jointly rather than one by
+one.  The section's teaching value is the contrast:
+\begin{enumerate}[label=(\roman*)]
+  \item Wang emphasizes conditional density modeling and change of variables,
+  \item Al-Jarrah emphasizes posterior-update semantics,
+  \item Bunne emphasizes joint learning across many related contexts.
+\end{enumerate}
+So Bunne belongs here as a comparison marker, not as the main implementation anchor
+for BayesFilter.
+
+\section{What this chapter established}
+
+The conditional lane contains the most scientifically central papers for
+BayesFilter.  A first-year reader should now know:
+\begin{enumerate}[label=(\arabic*)]
+  \item Wang teaches how a conditional posterior map can be turned into a density
+  model by change of variables.
+  \item Al-Jarrah teaches how a posterior-update map can be characterized by a
+  conditional law identity.
+  \item Hosseini teaches the theorem-level conditional OT object that those more
+  practical papers are approximating.
+\end{enumerate}
+
+\chapter{Retained-teacher acceleration: keep the solve, learn the warm start}
+
+\section{Why this lane is conservative}
+
+The retained-teacher lane is the right lane when you do not want the learned model
+to replace OT outright.  Instead, you want the learned model to help solve the same
+teacher problem faster.
+
+To make this concrete, suppose a discrete entropic OT problem is posed over source
+and target marginals $a,b$ and cost matrix $C$.  The regularized plan is
+\begin{equation}
+\pi_\varepsilon
+\in
+\argmin_{\pi\in\Pi(a,b)}
+\langle C,\pi\rangle + \varepsilon \KL(\pi\,\|\,a\otimes b).
+\label{eq:entropic-teacher}
+\end{equation}
+A retained-teacher learner does \emph{not} replace \eqref{eq:entropic-teacher}.
+It predicts latent quantities that make solving \eqref{eq:entropic-teacher} easier.
+
+\section{A tiny discrete warm-start example}
+
+Suppose the cost matrix is $2\times 2$ and the teacher solve uses Sinkhorn-style
+updates.  Then the raw optimization variable is the plan $\pi$, but the practical
+solver often works through dual or scaling variables.  The idea of retained-teacher
+learning is therefore:
+\begin{equation}
+(a,b,C)
+\xrightarrow{\text{neural prediction}}
+\widehat h_\theta
+\xrightarrow{\text{teacher correction}}
+\pi_\varepsilon.
+\label{eq:warm-start-tiny-example}
+\end{equation}
+This is the right toy picture to keep in mind when reading Meta OT and UNOT.
+
+\subsection*{Explanatory reconstruction}
+
+\paragraph{What is a retained-teacher warm start actually doing?}
+The most useful way to read retained-teacher papers is not by the slogan
+``predict the dual.''  Start instead from the teacher solve
+\eqref{eq:entropic-teacher}.  A direct solve computes the full corrected transport
+plan from scratch.  A retained-teacher learner asks whether one can predict a
+structured latent state from which the same teacher solve converges faster.  The
+chain
+\begin{equation}
+(a,b,C)
+\Longrightarrow
+\widehat h_\theta
+\Longrightarrow
+\text{corrected solve for }\pi_\varepsilon
+\label{eq:retained-teacher-chain}
+\end{equation}
+is therefore the real conceptual object, and \eqref{eq:metaot-entropic-dual} and
+\eqref{eq:unot-dual-abstract} are two different mathematical ways to realize that
+same retained-teacher idea.
+
+\section{Meta OT (Amos et al., 2023)}
+
+\subsection*{What problem is the paper solving?}
+
+Meta OT asks whether many related OT problems can be solved faster by amortizing
+the dual solution itself.  This is the cleanest retained-teacher paper on the
+shelf, because it is explicit that the point is not to replace the teacher solve,
+but to learn how to initialize it from the context of previous problems.
+
+For implementation purposes, the key questions are:
+\begin{enumerate}[label=(\roman*)]
+  \item what teacher problem is fixed,
+  \item what latent solver state is predicted,
+  \item how the prediction is trained,
+  \item and how a corrective solve refines that prediction.
+\end{enumerate}
+
+\subsection*{Paper reproduction}
+
+In the discrete entropic setting, the teacher dual is
+\begin{equation}
+f^*,g^* \in
+\argmax_{f,g}
+\left\{
+\langle f,a\rangle + \langle g,b\rangle
+-\varepsilon \exp(f/\varepsilon)^{\top} K \exp(g/\varepsilon)
+\right\},
+\label{eq:metaot-entropic-dual}
+\end{equation}
+where $K_{ij}=\exp(-C_{ij}/\varepsilon)$.  Once the duals are known, the primal
+plan is recovered by
+\begin{equation}
+\pi^*_{ij} = \exp(f_i^*/\varepsilon)K_{ij}\exp(g_j^*/\varepsilon),
+\label{eq:metaot-primal-recovery}
+\end{equation}
+which is the paper's Equation~(6).
+
+The Sinkhorn teacher itself can be written as the log-space coordinate ascent
+updates
+\begin{equation}
+g \leftarrow \varepsilon \log b - \varepsilon \log\bigl(K^{\top}\exp(f/\varepsilon)\bigr),
+\qquad
+f \leftarrow \varepsilon \log a - \varepsilon \log\bigl(K\exp(g/\varepsilon)\bigr),
+\label{eq:metaot-sinkhorn-updates}
+\end{equation}
+which is the substance of the paper's Algorithm~1.
+
+The paper then exploits the fact that one dual potential determines the other via
+\begin{equation}
+g(f;b,C) = \varepsilon \log b - \varepsilon \log\bigl(K^{\top}\exp(f/\varepsilon)\bigr),
+\label{eq:metaot-dual-map}
+\end{equation}
+so that one may amortize only a single dual variable.  This yields the objective
+\begin{equation}
+f^*(a,b,C,\varepsilon)
+\in
+\argmin_{f\in\R^n} J(f;a,b,C),
+\label{eq:metaot-single-dual-objective}
+\end{equation}
+which is the paper's Equation~(16), and the amortization model
+\begin{equation}
+(a,b,C) \longmapsto \widehat f_\theta(a,b,C).
+\label{eq:metaot-predicted-discrete-dual}
+\end{equation}
+The learning objective is then
+\begin{equation}
+\min_\theta \E_{(a,b,C)\sim\mathcal D} J\bigl(\widehat f_\theta(a,b,C);a,b,C\bigr),
+\label{eq:metaot-amortization-loss}
+\end{equation}
+which is the paper's Equation~(17).
+
+On the continuous side, the teacher problem is quadratic-cost Wasserstein-2
+transport between measures $\mu$ and $\nu$.  The transport map is recovered from a
+convex dual potential,
+\begin{equation}
+T^*(x)=\nabla \psi^*(x),
+\label{eq:metaot-continuous-map}
+\end{equation}
+corresponding to the paper's Equation~(12), while the neural OT teacher is taken
+from a W2GN-style objective.  The amortization model then predicts parameters of a
+convex potential or dual object,
+\begin{equation}
+(\mu,\nu) \longmapsto \widehat\psi_\theta,
+\label{eq:metaot-predicted-continuous-dual}
+\end{equation}
+and is trained by an objective-based amortization loss, corresponding to the
+paper's Equation~(18).
+
+\subsection*{Explanatory reconstruction}
+
+\paragraph{Why is predicting a dual state natural?}
+A first-year reader may reasonably ask: why predict dual variables instead of the
+transport plan itself?  The answer is that the dual variables are a compact,
+solver-native representation of the same teacher problem.  The chain is
+\begin{equation}
+\text{teacher problem}
+\Longrightarrow
+\text{dual state }(f,g)
+\Longrightarrow
+\text{recovered plan }\pi^*.
+\label{eq:metaot-representation-chain}
+\end{equation}
+If the map from problem instance $(a,b,C)$ to optimal dual state is learnable, then
+one can warm-start the teacher solve from a much better location than the usual
+zero initialization.
+
+\paragraph{Why predict only one dual half?}
+Equation~\eqref{eq:metaot-dual-map} is the hidden simplification that makes the
+paper practical.  Because $g$ can be reconstructed from $f$ by the teacher's own
+first-order condition, predicting both halves is often unnecessary.  So the paper
+reduces the learning burden from
+\begin{equation}
+(a,b,C)\mapsto (f,g)
+\qquad\text{to}\qquad
+(a,b,C)\mapsto f.
+\label{eq:metaot-single-half-idea}
+\end{equation}
+This is not just an architectural convenience.  It means the model is learning a
+teacher-consistent latent state rather than a free pair of vectors.
+
+\paragraph{Why is the loss objective-based rather than supervised?}
+The paper's Equation~\eqref{eq:metaot-amortization-loss} does not require ground
+truth optimal duals.  Instead of regressing onto stored teacher solutions, it says:
+make the predicted dual good according to the teacher's own objective.  This is why
+the method can train without an explicit database of exact dual labels.
+
+\paragraph{Why does fine-tuning preserve semantic conservatism?}
+After prediction, one may still run a standard Sinkhorn correction.  So the
+full deployment loop is
+\begin{equation}
+(a,b,C)
+\xrightarrow{\text{predict }} \widehat f_\theta
+\xrightarrow{\text{recover }\widehat g}
+\xrightarrow{\text{corrective Sinkhorn}}
+\widehat\pi_{\mathrm{corr}}.
+\label{eq:metaot-corrected-pipeline}
+\end{equation}
+That last step is what preserves semantic conservatism: the final answer still
+comes from the teacher dynamics, only faster.
+
+\subsection*{Implementation manual: what Claude or a student would need}
+
+\paragraph{Inputs.}
+For the discrete route, the inputs are repeated OT problems of the form
+\begin{equation}
+(a,b,C,\varepsilon),
+\label{eq:metaot-inputs-discrete}
+\end{equation}
+where $a$ and $b$ are discrete marginals and $C$ is the cost matrix.  For the
+continuous route, the inputs are measure pairs $(\mu,\nu)$ together with whatever
+representation the chosen teacher method uses.
+
+\paragraph{Teacher objects.}
+The implementer must decide which teacher is retained:
+\begin{enumerate}[label=(\roman*)]
+  \item discrete entropic OT with Sinkhorn,
+  \item or continuous W2-style OT with a convex-potential teacher.
+\end{enumerate}
+This choice determines the latent state that is learned.
+
+\paragraph{Parameterization.}
+The discrete model predicts one dual vector,
+\begin{equation}
+\widehat f_\theta = M_\theta(a,b,C),
+\label{eq:metaot-mlp}
+\end{equation}
+where $M_\theta$ is typically an MLP over the chosen problem representation.  The
+continuous model predicts a dual potential or its parameter vector.
+
+\paragraph{Training loop.}
+A minimal discrete Meta OT loop is:
+\begin{algorithm}[ht]
+\caption{Meta OT training loop}
+\begin{algorithmic}[1]
+\Require repeated OT problem distribution $\mathcal D$ over $(a,b,C)$, regularization $\varepsilon$, model $M_\theta$
+\For{each iteration}
+  \State Sample a batch $(a,b,C)\sim\mathcal D$
+  \State Predict $\widehat f_\theta=M_\theta(a,b,C)$
+  \State Recover $\widehat g$ from \eqref{eq:metaot-dual-map}
+  \State Evaluate the teacher objective $J(\widehat f_\theta;a,b,C)$
+  \State Backpropagate and update $\theta$
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+\paragraph{Deployment loop.}
+At deployment time:
+\begin{enumerate}[label=(\arabic*)]
+  \item receive a new OT problem $(a,b,C)$,
+  \item predict $\widehat f_\theta$,
+  \item recover $\widehat g$,
+  \item optionally build the approximate plan from \eqref{eq:metaot-primal-recovery},
+  \item run corrective Sinkhorn iterations until the desired marginal error is met.
+\end{enumerate}
+
+\paragraph{Implementation hazards.}
+The main hazards are:
+\begin{enumerate}[label=(\roman*)]
+  \item the representation of $(a,b,C)$ can dominate performance,
+  \item one must decide whether to optimize a pure objective-based loss or include supervised regression to teacher duals,
+  \item the correction loop must still be monitored by a teacher-side error criterion,
+  \item the continuous route inherits the fragility of the underlying W2GN-style teacher.
+\end{enumerate}
+
+\paragraph{Implementation contract.}
+The learned object is a solver-native latent state, not the final transport answer; the
+optimized object is the predicted dual potential; the teacher solve is auxiliary but
+non-negotiable; and the deployed artifact is the corrected teacher output after the
+warm start has been refined.
+
+\paragraph{Common wrong implementations.}
+The easiest wrong turns are:
+\begin{enumerate}[label=(\roman*)]
+  \item training the predictor and skipping the corrective solve,
+  \item regressing to arbitrary teacher labels without checking whether the objective-based contract is being preserved,
+  \item evaluating predictor loss only and never checking the retained teacher residuals after correction.
+\end{enumerate}
+The first mistake changes semantics entirely: it turns a retained-teacher method into a
+free predictor.
+
+\paragraph{Minimum correct recipe.}
+The shortest safe recipe is: fix the teacher, predict one teacher-native latent state,
+recover the complementary dual information, and always finish by running the corrective
+teacher solve before exporting the result.
+
+\paragraph{First diagnostic.}
+On a tiny batch of OT problems, compare warm-start plus correction against zero-init plus
+correction under the same teacher-side residual criterion.  If the corrected outputs are
+not at least teacher-consistent, the amortization route is not yet safe.
+
+\subsection*{Code snapshot}
+
+This is one of the strongest code-backed papers in the repo's availability ledger.
+That ledger and the implementation-fit note both treat Meta OT as a high-value
+starting point for the retained-teacher route.
+
+Students should still read that status carefully:
+\begin{enumerate}[label=(\roman*)]
+  \item official code exists,
+  \item it is highly relevant for amortized solver-state prediction,
+  \item but it still requires adaptation to the BayesFilter teacher object and TensorFlow/TFP implementation conventions.
+\end{enumerate}
+
+\subsection*{BayesFilter bridge}
+
+Meta OT remains the strongest retained-teacher paper for BayesFilter if the goal is
+semantic conservatism.  The gap is not conceptual; it is in the representation and
+scale of the predicted latent solver state.
+
+\section{UNOT (Geuter et al., 2025)}
+
+\subsection*{What problem is the paper solving?}
+
+UNOT also remains close to a retained discrete entropic OT teacher, but with a
+more operator-style architecture that aims to generalize across discretizations.
+The paper is less about one fixed image size or one fixed discrete grid, and more
+about learning an OT-related operator that works across varying resolutions.
+
+\subsection*{Paper reproduction}
+
+The paper starts from a dual OT formulation of the form
+\begin{equation}
+\sup_{\phi,\psi}
+\left\{
+\int \phi\,d\mu + \int \psi\,d\nu
+\ : \ \phi(x)+\psi(y)\le c(x,y)
+\right\},
+\label{eq:unot-dual-abstract}
+\end{equation}
+and in the discrete entropic setting uses the Sinkhorn parameterization of the dual
+via scaling variables $u,v$.  The standard Sinkhorn teacher loop is
+\begin{equation}
+u^{\ell+1} = a ./ (K v^{\ell}),
+\qquad
+v^{\ell+1} = b ./ (K^{\top}u^{\ell+1}),
+\label{eq:unot-sinkhorn}
+\end{equation}
+followed by plan recovery
+\begin{equation}
+\pi = \diag(u)K\diag(v),
+\label{eq:unot-plan-from-scales}
+\end{equation}
+which is the substance of the paper's Algorithm~1.
+
+UNOT predicts a dual-derived latent quantity,
+\begin{equation}
+S_\theta(\mu,\nu)\approx g,
+\qquad
+v = \exp(g/\varepsilon),
+\label{eq:unot-dual-prediction}
+\end{equation}
+From this latent quantity one reconstructs a plan, schematically through
+\begin{equation}
+\pi_{ij} \propto \exp\!\left(\frac{f_i+g_j-c_{ij}}{\varepsilon}\right).
+\label{eq:unot-plan-recovery}
+\end{equation}
+The paper also introduces a synthetic data generator,
+\begin{equation}
+z\sim\rho_z \mapsto G_\vartheta(z)=(\mu,\nu),
+\label{eq:unot-generator}
+\end{equation}
+with the actual implementation given in the paper's Equation~(6), and trains the
+operator against Sinkhorn-generated targets through an $L_2$ loss, corresponding
+to Equation~(7) and Algorithm~2.
+
+\subsection*{Explanatory reconstruction}
+
+\paragraph{What does UNOT learn that ordinary Sinkhorn does not?}
+Ordinary Sinkhorn solves one problem at a time.  UNOT tries to learn the map
+\begin{equation}
+(\mu,\nu) \longmapsto \text{dual OT state},
+\label{eq:unot-learned-map}
+\end{equation}
+so that solving the next OT problem becomes much cheaper.  The important point is
+that the learned output is still a teacher-native object: a dual potential or a
+scaling variable, not a free final transport map.
+
+\paragraph{Why predict the log-potential rather than the plan directly?}
+The plan itself changes with resolution and is constrained by marginals.  The dual
+potential or its log-scaling form is often smoother and more learnable across
+resolutions.  The paper therefore predicts
+\begin{equation}
+g = \varepsilon \log v,
+\label{eq:unot-log-scaling}
+\end{equation}
+rather than the full plan matrix.  This is the same retained-teacher logic as Meta
+OT, but adapted to a variable-resolution neural-operator setting.
+
+\paragraph{Why does the synthetic generator matter?}
+UNOT does not rely only on a fixed finite training set of OT problems.  The paper
+constructs a generator of discrete measures across varying resolutions.  This is
+why the method can claim resolution robustness: the training distribution itself is
+built to vary the discretization.
+
+A student implementing a first pass therefore has to make a concrete design choice
+that the paper's abstract presentation can hide: what family of OT problems will be
+generated during training, and what parts of that generator are fixed versus
+learned?  In practice the generator is not a decorative data-loader.  It defines
+the distribution of teacher problems on which the neural operator is expected to
+generalize.
+
+\paragraph{Why is the quotient-space issue important?}
+The dual solution is not unique in a naive vector sense.  Equivalent dual states
+can represent the same plan.  The paper uses this to motivate learning in a way
+that respects the dual non-uniqueness rather than treating one arbitrary dual
+representative as the only correct label.  This is one of the subtle points that
+makes the operator-learning problem more stable than directly regressing onto a raw
+plan matrix.
+
+A first-year reader should translate that abstract statement into an operational
+warning:
+\begin{quote}
+if two different dual vectors produce the same transport plan, then a naive
+supervised loss can punish a correct prediction just because it picked a different
+representative of the same equivalence class.
+\end{quote}
+So the quotient-space issue is not philosophical decoration.  It changes what a
+sensible target construction and loss can look like.
+
+\subsection*{Implementation manual: what Claude or a student would need}
+
+\paragraph{Inputs.}
+UNOT assumes discrete measures on
+varying-resolution grids or meshes,
+\begin{equation}
+\mu = \sum_{i=1}^{m} a_i\delta_{x_i},
+\qquad
+\nu = \sum_{j=1}^{n} b_j\delta_{y_j},
+\label{eq:unot-discrete-inputs}
+\end{equation}
+together with a cost function and entropic regularization parameter $\varepsilon$.
+
+\paragraph{Teacher objects.}
+The teacher is discrete entropic OT solved by Sinkhorn.  The core latent states are
+its dual scalings or their logarithms.
+
+\paragraph{Parameterization.}
+The learned model is an operator
+\begin{equation}
+S_\theta : (\mu,\nu) \mapsto g,
+\label{eq:unot-operator-param}
+\end{equation}
+typically realized as an FNO-like neural operator over the chosen measure
+representation.  A separate synthetic generator $G_\vartheta$ creates training OT
+instances.
+
+\paragraph{Training loop.}
+A minimal UNOT training loop is:
+\begin{algorithm}[ht]
+\caption{UNOT training loop}
+\begin{algorithmic}[1]
+\Require cost $c$, regularization $\varepsilon$, synthetic measure generator $G_\vartheta$, operator $S_\theta$, Sinkhorn target generator $\tau_k$
+\For{each iteration}
+  \State Sample latent noise $z\sim\rho_z$
+  \State Generate a problem $(\mu,\nu)=G_\vartheta(z)$
+  \State Predict $g_\theta=S_\theta(\mu,\nu)$
+  \State Run the target generator $\tau_k$ to obtain improved teacher-side dual targets
+  \State Minimize the $L_2$ discrepancy between predicted and target dual data
+  \State Update both $\theta$ and, when applicable, the generator parameters $\vartheta$
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+Here the two paper-specific objects that most need translation are $\tau_k$ and the
+target duals.  Operationally, $\tau_k$ should be read as
+\begin{quote}
+a teacher-side target-refinement routine built from $k$ Sinkhorn updates or an
+equivalent teacher-improvement map.
+\end{quote}
+So the training story is not simply ``predict one dual vector from data.''  It is
+``predict a teacher-native latent state, then compare it against a Sinkhorn-improved
+target built from the same OT instance.''  That retained-teacher interpretation is
+what keeps UNOT close to a conservative BayesFilter lane.
+
+Concretely, dual nonuniqueness means the loss should reward agreement at the level
+of the represented transport plan or equivalence class, not only agreement with one
+arbitrarily chosen raw dual vector.  A useful practical reading is:
+\begin{enumerate}[label=(\roman*)]
+  \item the teacher problem produces a family of equivalent dual descriptions,
+  \item $\tau_k$ chooses or refines one teacher-side representative of that family,
+  \item the learner should be judged by whether its prediction leads to the right corrected OT solution, not only by exact coordinate-wise equality to one raw label.
+\end{enumerate}
+This is the operational content behind the quotient-space warning.
+
+\paragraph{Deployment loop.}
+At deployment time:
+\begin{enumerate}[label=(\arabic*)]
+  \item encode the discrete source and target measures in the operator's expected format,
+  \item predict the dual latent quantity $g_\theta$,
+  \item convert to scaling variables by \eqref{eq:unot-log-scaling},
+  \item either reconstruct the approximate plan directly or use the prediction as a Sinkhorn warm start,
+  \item if high accuracy is needed, run corrective Sinkhorn iterations.
+\end{enumerate}
+
+\paragraph{Implementation hazards.}
+The main difficulties are:
+\begin{enumerate}[label=(\roman*)]
+  \item the method is naturally grid or resolution-centric, so particle-cloud use requires a nontrivial representation bridge,
+  \item the synthetic measure generator is part of the training story and must be implemented coherently,
+  \item teacher-target generation still depends on repeated Sinkhorn solves during training,
+  \item the predicted dual is not unique, so the loss must respect the teacher's equivalence structure.
+\end{enumerate}
+
+\paragraph{Implementation contract.}
+The learned object is a dual-derived latent state; the optimized object is the operator
+that predicts that latent state; the teacher-side target refinement remains auxiliary but
+required; and the deployed artifact is either a corrected Sinkhorn warm start or the
+transport object reconstructed from it after respecting the teacher equivalence class.
+
+\paragraph{Common wrong implementations.}
+The main wrong turns are:
+\begin{enumerate}[label=(\roman*)]
+  \item predicting one arbitrary raw dual vector and treating exact coordinate agreement as the real target,
+  \item skipping the teacher-side refinement and treating the raw predictor output as the final answer,
+  \item ignoring the representation mismatch between regular grids and unordered particle clouds.
+\end{enumerate}
+The first two change semantics rather than only efficiency.
+
+\paragraph{Minimum correct recipe.}
+The shortest safe recipe is: define the synthetic problem generator, predict the
+teacher-native latent state, compare it against a teacher-refined target that respects
+nonuniqueness, and deploy only through a corrected Sinkhorn-style route.
+
+A practical first loss rule is therefore: do not supervise one arbitrary raw dual
+vector.  Instead, choose a teacher-refined target representative, run the corrective
+teacher updates needed to make that representative meaningful, and judge success by the
+corrected OT solution and residual contract rather than by coordinate-wise agreement
+alone.
+
+\paragraph{First diagnostic.}
+On a tiny family of OT problems, verify that warm start plus correction reproduces the
+teacher residual contract and improves on naive initialization.  If that check fails, the
+predictor may still be fitting an arbitrary dual label rather than a useful equivalence
+class of teacher states.
+
+\subsection*{Code snapshot}
+
+This is also one of the strongest code-backed papers in the repo's ledger.  The
+existing source-availability note records an official repository and treats UNOT as a
+high-value retained-teacher-adjacent route.
+
+The practical status is:
+\begin{enumerate}[label=(\roman*)]
+  \item official code exists,
+  \item it is highly relevant for discrete entropic OT and solver-latent prediction,
+  \item but it is not BayesFilter-ready without a bridge from grid or resolution-centric inputs to unordered particle clouds.
+\end{enumerate}
+
+\subsection*{BayesFilter bridge}
+
+The paper is serious for BayesFilter because it keeps close contact with an
+entropic teacher.  The hard part is the representation bridge from regular-grid or
+resolution-centric operator inputs to unordered particle clouds.
+
+\section{What this chapter established}
+
+A first-year reader should now know that retained-teacher papers are not trying to
+learn a final transport answer.  They are trying to learn a \emph{better way to
+solve the same teacher problem}.  That is their main virtue for a cautious
+BayesFilter design.
+
+
+\chapter{Advanced directions and compressed shelf}
+
+\section{How to read this chapter}
+
+The remaining papers are scientifically useful, but they are not the best first
+teaching path.  They belong here because they fill in the shelf and sharpen the
+comparison, not because they should all be studied first.
+
+However, the right fix is not to leave them compressed.  This chapter should now be
+read with the same teaching-note ambition as the stronger earlier chapters: each
+algorithm gets its own explanation of the learned object, objective, practical
+optimization route, deployment object, BayesFilter relevance, and unresolved gap.
+
+The main difference from the earlier chapters is not that the pedagogy should be
+lighter.  It is that the frontier papers themselves sometimes support shorter
+mathematical derivations or weaker implementation claims.  So the structure should
+be uniform even when the depth of the paper's own executable detail is not.
+
+As you read each Chapter 5 algorithm, keep four questions fixed:
+\begin{enumerate}[label=(\roman*)]
+  \item What object is learned or optimized?
+  \item Why does the objective or formulation have that form?
+  \item What is actually done in training or numerical optimization?
+  \item What gets deployed, and why should BayesFilter care?
+\end{enumerate}
+\section{Static direct-map variants}
+
+These papers all keep the learned object close to a direct map, but each changes a
+different part of the burden: sparsity priors, Jacobian-bearing density formulas,
+geometric optimization, fixed-point potential recovery, or manifold geometry.
+Their value in this note is that they show how rich the direct-map lane becomes
+once one asks for more than the original OT-ICNN story.
+
+\subsection*{Chen (2025), displacement-sparse neural OT}
+
+\paragraph{What problem is the paper solving?}
+Chen keeps the direct-map OT setting but asks for a map whose displacement field is
+structurally sparse.  The problem is therefore not to change the object class, but
+to bias the learned map toward simpler or more localized motion.
+
+\paragraph{Paper reproduction.}
+The paper augments the direct-map objective by a sparsity regularizer on the
+displacement,
+\begin{equation}
+J_{\mathrm{sparse}}(T_\theta)
+=
+J_{\mathrm{OT}}(T_\theta) + \lambda \mathcal R(T_\theta(u)-u).
+\label{eq:chen-sparse-objective}
+\end{equation}
+So the deployed object is still a transport map $T_\theta$, but the optimization
+criterion now prefers maps whose movement field has additional structure.
+
+\paragraph{Explanatory reconstruction.}
+The clean way to read the paper is:
+\begin{align}
+\text{ordinary direct transport map}
+&\Longrightarrow
+\text{add prior belief about how mass should move}
+\notag\\
+&\Longrightarrow
+\text{penalize displacements that violate that structural prior}.
+\label{eq:chen-logic}
+\end{align}
+Pedagogically, this is one of the simplest examples of how a paper can keep the
+same learned object while changing the inductive bias.
+
+\paragraph{Implementation manual: what Claude or a student would need.}
+\paragraph{Inputs.}
+One needs source and target samples exactly as in an ordinary direct-map OT setup.
+
+\paragraph{Trainable object.}
+The learned object is still the direct transport map $T_\theta$.
+
+\paragraph{Objective.}
+Optimize the OT fit term together with the displacement regularizer
+\eqref{eq:chen-sparse-objective}.
+
+\paragraph{Training loop.}
+Each iteration samples minibatches, evaluates the transport-fit term, evaluates the
+sparsity penalty on $T_\theta(u)-u$, combines them with weight $\lambda$, and
+updates $\theta$.
+
+\paragraph{Deployment loop.}
+At deployment time, one simply applies $T_\theta$ to fresh source samples.  The
+regularizer matters only because it changed the map learned during training.
+
+\paragraph{Implementation hazards.}
+The main hazard is over-reading the regularizer: if the true transport is not sparse
+in the intended sense, the inductive bias can improve interpretability while hurting
+fidelity.
+
+\paragraph{BayesFilter bridge.}
+This paper matters mainly as a design lesson.  It shows how one might inject prior
+structure into a transport map, but it does not by itself solve BayesFilter's need
+for repeated observation-conditioned posterior updates.
+
+\paragraph{What the paper does not settle.}
+It does not show that the chosen sparsity prior matches weighted-particle filtering
+semantics or that sparsity is the right structural bias for BayesFilter clouds.
+
+\subsection*{GradNetOT (Chaudhari 2025)}
+
+\paragraph{What problem is the paper solving?}
+GradNetOT stays in the direct-map family but makes the density-transform burden
+explicit.  The question is no longer only where samples move, but also how the map's
+Jacobian changes density.
+
+\paragraph{Paper reproduction.}
+The map is parameterized directly,
+\begin{equation}
+T_\theta : \R^d \to \R^d,
+\label{eq:gradnet-map}
+\end{equation}
+with density relation
+\begin{equation}
+p(x)=q(T_\theta(x))\left|\det J_{T_\theta}(x)\right|,
+\label{eq:gradnet-jacobian}
+\end{equation}
+and quadratic objective
+\begin{equation}
+\min_{T_\theta} \E_{x\sim p}\left[\frac12\|x-T_\theta(x)\|^2\right].
+\label{eq:gradnet-ot}
+\end{equation}
+So the learned object is still a direct map, but the map must now carry explicit
+Jacobian information.
+
+\paragraph{Explanatory reconstruction.}
+The right pedagogical staircase is:
+\begin{align}
+\text{direct map learning}
+&\Longrightarrow
+\text{need density transformation law}
+\notag\\
+&\Longrightarrow
+\text{must control Jacobian information explicitly}.
+\label{eq:gradnet-logic}
+\end{align}
+That is why the method feels heavier than a plain sample-pushforward map learner.
+
+\paragraph{Implementation manual: what Claude or a student would need.}
+\paragraph{Inputs.}
+One needs samples together with a representation that makes the Jacobian-based terms
+computable or approximable.
+
+\paragraph{Trainable object.}
+The learned object is still $T_\theta$.
+
+\paragraph{Objective.}
+The optimization combines transport cost with the density-transform contract coming
+from \eqref{eq:gradnet-jacobian}.
+
+\paragraph{Training loop.}
+Each iteration evaluates the map, computes the relevant Jacobian term, forms the
+training objective, and updates the network by backpropagation.
+
+\paragraph{Deployment loop.}
+Deployment still applies $T_\theta$ as a direct map, but the model is only credible
+because training enforced the density-bearing structure.
+
+\paragraph{Implementation hazards.}
+Stable Jacobian evaluation is the main difficulty.  This is exactly why the paper is
+more mathematically and numerically demanding than a simpler direct-map baseline.
+
+\paragraph{BayesFilter bridge.}
+The paper is a useful warning about how quickly direct-map transport becomes heavier
+when exact density logic is made explicit.  That is informative for BayesFilter, but
+it is not yet a natural first lane for repeated weighted-particle updates.
+
+\paragraph{What the paper does not settle.}
+It does not settle whether a Jacobian-heavy direct-map route is the right trade-off
+for BayesFilter compared with more conditional or retained-teacher alternatives.
+
+\subsection*{Dumont et al. (2026)}
+
+\paragraph{What problem is the paper solving?}
+Dumont keeps the learned object map-like, but changes the optimization story.  The
+question becomes how to optimize transport maps geometrically rather than treating
+them as only another unconstrained neural parameterization.
+
+\paragraph{Paper reproduction.}
+The paper optimizes
+\begin{equation}
+\argmin_{T_\theta\in K_{\mu}} D(\pushf{T_\theta}{\mu}\mid \nu),
+\label{eq:dumont-divergence}
+\end{equation}
+with convex map
+\begin{equation}
+T_\theta = \nabla \phi_\theta,
+\label{eq:dumont-convex-map}
+\end{equation}
+and gradient-flow dynamics
+\begin{equation}
+\partial_t T_t = -\operatorname{grad}\mathcal F(T_t).
+\label{eq:dumont-gradient-flow}
+\end{equation}
+So the object is still a map, but the optimization route is geometric.
+
+\paragraph{Explanatory reconstruction.}
+The clean reading is:
+\begin{align}
+\text{transport map family}
+&\Longrightarrow
+\text{treat the family itself as a geometric space}
+\notag\\
+&\Longrightarrow
+\text{optimize by a structured gradient flow on that space}.
+\label{eq:dumont-logic}
+\end{align}
+This is why the paper feels different from both OT-ICNN and more standard neural map
+fitting.
+
+The phrase "geometric descent" can otherwise remain too vague.  The real shift is
+that the update variable is not only a parameter vector sitting behind a neural map;
+it is the map object itself viewed as living in a structured space.  So the descent
+step is meant to respect that geometry rather than treat every admissible transport
+map as just another unconstrained point in parameter space.
+
+\paragraph{Implementation manual: what Claude or a student would need.}
+\paragraph{Inputs.}
+One needs source and target measures together with a choice of divergence
+$D(\pushf{T_\theta}{\mu}\mid\nu)$.
+
+\paragraph{Trainable object.}
+The learned object is the convex-potential parameterization $\phi_\theta$, hence the
+map $T_\theta=\nabla\phi_\theta$.
+
+\paragraph{Objective.}
+The target is not only to fit a map but to descend the divergence by the geometric
+flow \eqref{eq:dumont-gradient-flow}.
+
+\paragraph{Training or optimization loop.}
+Each step evaluates the current pushforward mismatch, computes the geometric descent
+update, and moves the map parameters along that structured direction.  In practice,
+the student should think of this as repeatedly converting a current map into a
+geometry-aware descent direction, then updating the potential representation so that
+the next map is better with respect to the chosen divergence.
+
+\paragraph{Deployment loop.}
+Deployment applies the resulting map $T_\theta$ to fresh source samples.  So despite
+the richer optimization story, the exported object is still a transport map rather
+than a solver state or full path object.
+
+\paragraph{Implementation hazards.}
+The main burden is the optimization geometry itself: one must understand not just
+how to parameterize the map, but how the structured descent is represented and
+stabilized numerically.
+
+\paragraph{BayesFilter bridge.}
+The paper is scientifically valuable because it shows another way direct-map OT can
+be regularized and optimized.  But it still reads as a pair-specific transport lane,
+not yet as a repeated posterior-update block.
+
+\paragraph{What the paper does not settle.}
+It does not show that the geometric optimization burden pays off for BayesFilter's
+repeated conditioned-update setting.
+
+\subsection*{Park et al. (2026)}
+
+\paragraph{What problem is the paper solving?}
+Park focuses on recovering OT maps from a single potential by emphasizing the
+$c$-transform structure.  The paper is therefore about making the solver side of the
+potential story cleaner rather than changing the deployed object away from a map.
+
+\paragraph{Paper reproduction.}
+The paper emphasizes the $c$-transform,
+\begin{equation}
+f^c(y)=\inf_x\left\{\frac12\|x-y\|^2-f(x)\right\},
+\label{eq:park-c-transform}
+\end{equation}
+and develops a fixed-point route for recovering the transport map from one
+potential.
+
+\paragraph{Explanatory reconstruction.}
+The pedagogical lesson is:
+\begin{align}
+\text{single potential description}
+&\Longrightarrow
+\text{recover OT structure through the }c\text{-transform}
+\notag\\
+&\Longrightarrow
+\text{shift burden from free map fitting to structured solver recovery}.
+\label{eq:park-logic}
+\end{align}
+So the paper stays near the Brenier-style family while changing how the numerical
+route is organized.
+
+\paragraph{Implementation manual: what Claude or a student would need.}
+\paragraph{Inputs.}
+One needs a cost function and a potential parameterization that supports the
+$c$-transform calculations.
+
+\paragraph{Trainable or optimized object.}
+The central object is the potential $f$, not an arbitrary direct map.
+
+\paragraph{Objective.}
+Optimization is driven by making the potential consistent with the fixed-point or
+solver structure that recovers the map.
+
+\paragraph{Training or optimization loop.}
+Each step updates the potential representation and re-evaluates the fixed-point or
+potential-recovery relation that defines the corresponding transport map.  So the
+iterated variable is the potential, but the quantity one repeatedly checks is the map
+recovered from that potential through the solver structure.
+
+\paragraph{Deployment loop.}
+Deployment evaluates the recovered map induced by the learned or optimized
+potential.  The important practical message is that the paper does not deploy the raw
+potential as the final user-facing object; it deploys the transport map obtained after
+the fixed-point or potential-recovery step has been carried out.
+
+\paragraph{Implementation hazards.}
+The main hazard is that the potential-recovery logic can be elegant mathematically
+while still being nontrivial to stabilize numerically.
+
+\paragraph{BayesFilter bridge.}
+The paper matters because it shows that direct-map OT can be made more solver-aware.
+But the route is still not naturally phrased as a repeated observation-conditioned
+update operator.
+
+\paragraph{What the paper does not settle.}
+It does not settle whether a cleaner fixed-point solver for a static OT potential is
+the right abstraction for BayesFilter's actual transport needs.
+
+\subsection*{Micheli et al. (2026)}
+
+\paragraph{What problem is the paper solving?}
+Micheli keeps the map-like object but moves the whole story to manifold geometry.
+The problem is how to define and learn OT maps when Euclidean geometry is no longer
+the right background.
+
+\paragraph{Paper reproduction.}
+The manifold cost is
+\begin{equation}
+c(x,y)=\frac12 d_{\mathcal M}(x,y)^2,
+\label{eq:micheli-cost}
+\end{equation}
+and the deployed map is
+\begin{equation}
+T(x)=\operatorname{Exp}_x(-\nabla\phi(x)).
+\label{eq:micheli-map}
+\end{equation}
+The deployed object is therefore still a map, but it lives inside manifold geometry
+through the exponential map.
+
+\paragraph{Explanatory reconstruction.}
+The right staircase is:
+\begin{align}
+\text{OT map on Euclidean space}
+&\Longrightarrow
+\text{replace Euclidean geometry by manifold geometry}
+\notag\\
+&\Longrightarrow
+\text{replace ordinary displacement by gradient plus exponential map}.
+\label{eq:micheli-logic}
+\end{align}
+So the object remains familiar while the ambient geometry becomes much richer.
+
+A slower way to read the formula is to compare it directly with the Euclidean story.
+In flat space, a Brenier-style map says: take a gradient direction and move along it.
+On a manifold, the gradient still tells us the infinitesimal direction of motion, but
+that direction lives in the tangent space at the current point.  One cannot simply add
+that tangent vector to the point itself.  The exponential map in
+\eqref{eq:micheli-map} is the mechanism that turns the tangent-space direction back
+into an actual point on the manifold.
+
+A tiny concrete example helps.  If the state lived on a sphere, then a Euclidean
+straight-line update would usually leave the sphere.  The manifold update instead says:
+compute the tangent-space direction from the potential, then move along the sphere's
+own geometry by the exponential map.  That is the smallest intuition behind the paper:
+keep the transport step intrinsic to the geometry of the state space.
+
+\paragraph{Implementation manual: what Claude or a student would need.}
+\paragraph{Inputs.}
+One needs source and target data on the manifold $\mathcal M$ together with the
+manifold distance and differential operators.
+
+\paragraph{Trainable object.}
+The central trainable object is the potential $\phi$, whose gradient is interpreted
+through the manifold geometry.
+
+\paragraph{Objective.}
+Optimization is driven by the manifold OT cost rather than the flat Euclidean one.
+
+\paragraph{Training or optimization loop.}
+Each iteration computes the geometry-aware objective, differentiates through the
+manifold operators, and updates the potential representation.  In practice this means
+that every optimization step must repeatedly move between three levels: the potential,
+its tangent-space gradient, and the geometry-aware map obtained after applying the
+exponential map.
+
+\paragraph{Deployment loop.}
+Deployment evaluates the map through the exponential-map formula
+\eqref{eq:micheli-map}.  So the deployed object is still a map, but it is a map that
+must be evaluated intrinsically on the manifold rather than by ordinary Euclidean
+vector arithmetic.
+
+\paragraph{Implementation hazards.}
+The burden shifts to geometry: manifold gradients, exponential maps, and stable
+numerical representations of the ambient space.  For BayesFilter, the right mental
+question is very concrete: is the state space genuinely curved enough that ordinary
+Euclidean transport would be misleading?  If not, the manifold burden may be
+scientifically elegant but operationally unnecessary.
+
+\paragraph{BayesFilter bridge.}
+This is best read as a geometry frontier marker.  It matters if BayesFilter's state
+space is intrinsically non-Euclidean, but otherwise it is a contrast paper rather
+than the immediate next lane.
+
+\paragraph{What the paper does not settle.}
+It does not settle whether the additional manifold burden is justified for the
+current BayesFilter use cases.
+\section{Solver-side and unbalanced comparisons}
+
+These papers move the emphasis away from learning one explicit direct map and
+toward changing the solver object itself: faster retained solves, unbalanced plans,
+or low-rank factorizations.  The key thing to watch is not just the formula, but
+which optimization variable changes.
+
+\subsection*{Kassraie et al. (2024)}
+
+\paragraph{What problem is the paper solving?}
+Kassraie asks how much can be gained by redesigning the entropic OT solve itself
+without changing the semantic target.  The emphasis is therefore on solver quality,
+not on replacing the OT object with a new learned map.
+
+\paragraph{Paper reproduction.}
+The retained teacher remains the entropic OT plan
+\begin{equation}
+\pi_\varepsilon
+\in
+\argmin_{\pi\in\Pi(a,b)}
+\langle C,\pi\rangle + \varepsilon \KL(\pi\,\|\,a\otimes b).
+\label{eq:kassraie-entropic}
+\end{equation}
+So the optimized object is still the regularized OT plan, together with whatever
+solver state is used to reach it more efficiently.
+
+\paragraph{Explanatory reconstruction.}
+The clean reading is:
+\begin{align}
+\text{same semantic OT target}
+&\Longrightarrow
+\text{different numerical route to that target}
+\notag\\
+&\Longrightarrow
+\text{performance gain comes from the solver, not from a new transport object}.
+\label{eq:kassraie-logic}
+\end{align}
+This is exactly why the paper belongs in a solver-side section rather than in a map-
+learning section.
+
+A first-year student will understand the paper much better if they separate three
+levels that are easy to collapse together:
+\begin{enumerate}[label=(\roman*)]
+  \item the semantic target, namely the same entropic OT solution as before,
+  \item the iterated numerical state, such as dual variables, scalings, or another solver-side internal state,
+  \item the final artifact kept after convergence, namely the solved plan or the transport object derived from it.
+\end{enumerate}
+The paper's claim lives almost entirely at level (ii): it changes how the retained
+teacher is solved, not what the retained teacher means.
+
+\paragraph{Implementation manual: what Claude or a student would need.}
+\paragraph{Inputs.}
+One needs the usual entropic OT ingredients $(a,b,C,\varepsilon)$.
+
+\paragraph{Optimized object.}
+The optimized object is still the regularized plan $\pi_\varepsilon$ or the
+associated solver state.
+
+\paragraph{Objective.}
+The objective remains the same entropic OT objective \eqref{eq:kassraie-entropic}.
+
+\paragraph{Optimization loop.}
+The numerical loop repeatedly updates the solver state until the retained entropic OT
+problem is solved to the desired tolerance.  The key point is that the loop is still
+judged by teacher-side criteria: residual error, marginal mismatch, or whatever
+numerical certificate the retained entropic solver uses.  So the accelerated method is
+not finished when parameters stop moving; it is finished when the retained OT solve
+has actually met its stopping rule.
+
+A more explicit computational picture is helpful.  A first implementation would store
+some solver-side state, run one accelerated update of that state, evaluate the same
+teacher-side stopping diagnostic used by the baseline solver, and then either stop or
+iterate again.  So the method still lives inside the same residual-based contract as
+the teacher; it just tries to reach the acceptable residual regime faster.
+
+\paragraph{Deployment loop.}
+Deployment uses the resulting plan or barycentric projection exactly as in the
+teacher method, because the semantic target never changed.  Operationally, the only
+artifact that survives is the solved teacher object itself: the accelerated solver
+state is valuable only because it helped reach that final retained OT solution more
+quickly.
+
+\paragraph{Implementation hazards.}
+The main risk is over-claiming: a faster solver is not a new OT model, and it does
+not by itself change the correctness contract of the retained teacher.
+
+\paragraph{BayesFilter bridge.}
+This is relevant whenever BayesFilter wants to keep the same OT teacher but reduce
+solve cost.  It is therefore conceptually close to retained-teacher thinking.
+
+\paragraph{What the paper does not settle.}
+It does not by itself produce an observation-conditioned posterior map or an
+amortized update rule.
+
+\subsection*{Gazdieva et al. (2024)}
+
+\paragraph{What problem is the paper solving?}
+Gazdieva asks what happens when exact mass conservation is too restrictive.  The
+problem is therefore not only transport, but transport with creation or destruction
+of mass.
+
+\paragraph{Paper reproduction.}
+The unbalanced plan-side objective is
+\begin{equation}
+\inf_{\gamma}
+\left\{
+\int c(x,y)\,d\gamma
++\varepsilon\mathcal H(\gamma)
++\tau_1 D(\pi_1\gamma,\mu)
++\tau_2 D(\pi_2\gamma,\nu)
+\right\},
+\label{eq:gazdieva-ueot}
+\end{equation}
+and the parametric coupling factorization is
+\begin{equation}
+\gamma_\theta(x,y)=\mu_\omega(x)\gamma_\theta(y\mid x).
+\label{eq:gazdieva-factorization}
+\end{equation}
+So the optimized or learned object is an unbalanced plan or sampler, not an exact
+balanced OT coupling.
+
+\paragraph{Explanatory reconstruction.}
+The right staircase is:
+\begin{align}
+\text{balanced OT requires exact marginal match}
+&\Longrightarrow
+\text{relax the marginal constraints}
+\notag\\
+&\Longrightarrow
+\text{optimize an unbalanced plan instead of a strictly balanced one}.
+\label{eq:gazdieva-logic}
+\end{align}
+That is the conceptual move that changes the object class.
+
+\paragraph{Implementation manual: what Claude or a student would need.}
+\paragraph{Inputs.}
+One needs source and target measures, a cost function, entropy regularization, and
+penalties for marginal mismatch.
+
+\paragraph{Trainable or optimized object.}
+The core object is the coupling $\gamma$ or its parametric factorization.
+
+\paragraph{Objective.}
+Optimize the unbalanced OT objective \eqref{eq:gazdieva-ueot}, including the two
+marginal-divergence penalties.
+
+\paragraph{Training or optimization loop.}
+Each iteration updates the coupling or factorization parameters to trade off cost,
+entropy, and marginal mismatch.  Operationally, the loop is always balancing two
+questions at once: are we moving mass cheaply, and are we allowing exactly the right
+amount of mass creation or destruction for the application rather than simply washing
+out the marginal constraints?
+
+\paragraph{Deployment loop.}
+Deployment uses the learned or optimized coupling for sampling or plan evaluation,
+with the understanding that the result need not conserve mass exactly.  In a filtering
+interpretation, this means the coupling is allowed to downweight or diffuse parts of
+the source mass rather than insisting that every bit of predictive mass be matched one-
+for-one to posterior mass.
+
+\paragraph{Implementation hazards.}
+The main hazard is semantic mismatch: once mass balance is relaxed, one must be very
+clear whether that is scientifically appropriate for the target application.  For
+BayesFilter, this is exactly why the paper remains a non-default lane: unbalanced OT
+may be useful in some modeling stories, but it changes the meaning of the update more
+radically than the balanced retained-teacher or conditional-map routes do.
+
+\paragraph{BayesFilter bridge.}
+This is relevant if the filtering story genuinely wants unbalanced transport.  It is
+not the default BayesFilter lane, but it is an important contrast when strict mass
+preservation is not the right abstraction.
+
+\paragraph{What the paper does not settle.}
+It does not show that unbalanced transport is the right default semantics for the
+current BayesFilter particle-update problem.
+
+\subsection*{Scetbon et al. (2023)}
+
+\paragraph{What problem is the paper solving?}
+Scetbon asks how to keep the plan-side object but compress its numerical
+representation.  The problem is computational: how to avoid carrying a dense
+coupling matrix when a low-rank structure may suffice.
+
+\paragraph{Paper reproduction.}
+The low-rank unbalanced OT formulation is
+\begin{equation}
+\mathrm{ULOT}_r(a,b)
+=
+\min_{\pi:\,\operatorname{rank}_+(\pi)\le r}
+\langle C,\pi\rangle
++\tau_1\KL(\pi\mathbf 1\mid a)
++\tau_2\KL(\pi^{\top}\mathbf 1\mid b),
+\label{eq:scetbon-ulot}
+\end{equation}
+with low-rank factorization
+\begin{equation}
+\pi = Q\diag(1/g)R^{\top}.
+\label{eq:scetbon-low-rank-factor}
+\end{equation}
+So the object class stays plan-side, but its numerical representation changes
+fundamentally.
+
+\paragraph{Explanatory reconstruction.}
+The pedagogical lesson is:
+\begin{align}
+\text{dense plan matrix}
+&\Longrightarrow
+\text{replace by low-rank factors}
+\notag\\
+&\Longrightarrow
+\text{computational savings come from representation, not from a different semantic target}.
+\label{eq:scetbon-logic}
+\end{align}
+That is why the paper belongs beside solver-side methods.
+
+A student should make the factorization in \eqref{eq:scetbon-low-rank-factor}
+concrete.  In a dense plan, every source location can in principle talk to every
+target location through one large matrix $\pi$.  In the low-rank picture,
+\begin{equation}
+\pi = Q\diag(1/g)R^{\top},
+\end{equation}
+that communication is forced to pass through a much smaller latent bottleneck.  One
+can think of the columns of $Q$ and $R$ as describing a small collection of latent
+transport channels, while $g$ rescales how strongly those channels are used.  So the
+plan is no longer stored entry-by-entry; it is reconstructed from a compressed set of
+factors.
+
+This also explains the main benefit and the main risk.  The benefit is obvious:
+storing and updating $Q$, $g$, and $R$ can be much cheaper than storing a dense
+matrix.  The risk is equally important: if the chosen rank is too small, the factor
+family may simply be unable to represent the transport geometry the problem really
+needs.  Then the method fails not because OT is wrong, but because the compression is
+too aggressive.
+
+\paragraph{Implementation manual: what Claude or a student would need.}
+\paragraph{Inputs.}
+One needs the usual OT ingredients plus a chosen rank budget $r$.
+
+\paragraph{Optimized object.}
+The optimized object is the low-rank factorization $(Q,g,R)$ representing the plan.
+
+\paragraph{Objective.}
+Optimize the low-rank unbalanced OT objective \eqref{eq:scetbon-ulot}.
+
+\paragraph{Optimization loop.}
+Each step updates the factor matrices and scaling variables rather than a full dense
+plan.  Operationally, the loop repeatedly improves the latent factors, reconstructs
+the implied coupling, checks the transport objective and marginal-penalty terms, and
+continues until the compressed representation is good enough for the target error
+budget.
+
+\paragraph{Deployment loop.}
+Deployment reconstructs or samples from the plan through the low-rank
+representation.  If BayesFilter wanted transported particles rather than only a plan,
+one would still need the usual final step of turning the recovered coupling into a
+barycentric or sampling-based particle update.  So the low-rank compression changes
+how the coupling is represented, not the basic logic by which a coupling is turned
+into moved particles.
+
+\paragraph{Implementation hazards.}
+The key hazard is choosing a rank that is computationally cheap without destroying
+the transport fidelity one actually needs.  A practical symptom of rank failure would
+be a plan that is fast and memory-light, but that cannot reproduce the necessary
+transport structure even when the numerical optimization appears to converge.
+
+\paragraph{BayesFilter bridge.}
+This is important whenever BayesFilter wants to keep plan-side transport but make it
+more scalable.  It is therefore a computational bridge, not yet a new posterior-map
+family.
+
+\paragraph{What the paper does not settle.}
+It does not show that low-rank plan structure is the right abstraction for the
+weighted-cloud geometries BayesFilter will actually encounter.
+\section{Dynamic paths and measure operators}
+
+This section moves from endpoint maps or plans to richer objects: whole paths of
+measures, measure-to-measure operators, or local families of transport rules.  That
+is why it is the most ambitious frontier section in the chapter.
+
+The easiest way to read it is in two passes.  First, use GeONet as the anchor for
+what it means to learn a path-valued or operator-valued OT object.  Then read the
+later papers as nearby variants of that larger object class: one emphasizes motion
+fields, one emphasizes measure-to-measure operators, and one emphasizes local rather
+than global transport rules.
+
+\subsection*{GeONet (2024)}
+
+\textbf{What problem is the paper solving?}
+GeONet is not trying to learn a final transport map.  It is trying to learn the
+entire Wasserstein geodesic between two endpoint measures.  So the learned object
+is a \emph{path of distributions}, not a single map.  If students do not start from
+that sentence, the rest of the section becomes unreadable.
+
+A useful mental model is a movie.  At time $t=0$ we have one density $\mu_0$; at
+time $t=1$ we have another density $\mu_1$.  GeONet is trying to learn the whole
+movie
+\begin{equation}
+(\mu_t)_{t\in[0,1]},
+\label{eq:geonet-movie}
+\end{equation}
+not merely the last frame.  That is why the paper is harder than ordinary map
+learning and why a PDE appears almost immediately.
+
+A tiny 1D picture is helpful.  Imagine that $\mu_0$ is concentrated near the left
+side of a line and $\mu_1$ near the right side.  Then the learned object is not one
+narrow arrow from left to right.  It is the whole family of intermediate snapshots
+showing how mass moves across the line over time.  In that picture,
+\begin{itemize}
+  \item $\rho_t$ tells us what the density snapshot looks like at time $t$,
+  \item $v_t$ tells us how mass is moving at that time,
+  \item and $u$ is the potential whose gradient generates that motion.
+\end{itemize}
+This is the smallest concrete interpretation of the ``movie'' language.
+
+\textbf{Population dynamic OT problem.}
+The path is not arbitrary.  It is chosen by the dynamic OT or Benamou--Brenier
+principle:
+\begin{equation}
+\frac12\W_2^2(\mu_0,\mu_1)
+=
+\inf_{(\rho_t,v_t)}
+\int_0^1 \int \frac12\|v_t(x)\|^2\rho_t(x)\,dx\,dt
+\quad\text{subject to}\quad
+\partial_t\rho_t + \nabla\cdot(\rho_t v_t)=0.
+\label{eq:geonet-benamou-brenier}
+\end{equation}
+This is the real mathematical heart of the paper.  It says: among all paths of
+densities connecting the endpoints, choose the one with smallest total kinetic
+energy.
+
+\textbf{Why does a PDE appear at all?}
+If a density changes continuously in time, mass cannot disappear or appear
+arbitrarily.  It must flow.  That is exactly the continuity equation,
+\begin{equation}
+\partial_t\rho_t + \nabla\cdot(\rho_t v_t)=0.
+\label{eq:geonet-continuity-base}
+\end{equation}
+In words: density changes only because mass moves through space.  This is the first
+PDE students must internalize before anything about KKT systems is mentioned.
+
+\textbf{How the KKT system arises.}
+To optimize \eqref{eq:geonet-benamou-brenier}, one introduces a Lagrange
+multiplier $u(x,t)$ for the continuity equation.  The Lagrangian is
+\begin{equation}
+\mathcal L(\rho,v,u)
+=
+\int_0^1\int
+\left[
+\frac12\|v\|^2\rho + (\partial_t\rho + \nabla\cdot(\rho v))u
+\right]dx\,dt,
+\label{eq:geonet-lagrangian}
+\end{equation}
+which is the paper's Equation~(5).  Stationarity with respect to the velocity field
+shows that the optimal velocity must satisfy
+\begin{equation}
+v_t^*(x)=\nabla u^*(x,t),
+\label{eq:geonet-optimal-velocity}
+\end{equation}
+and stationarity with respect to the density yields the Hamilton--Jacobi equation
+\begin{equation}
+\partial_t u + \frac12\|\nabla u\|^2 = 0.
+\label{eq:geonet-hj}
+\end{equation}
+Substituting the optimal velocity back into the continuity equation gives
+\begin{equation}
+\partial_t\rho_t + \nabla\cdot(\rho_t\nabla u)=0.
+\label{eq:geonet-continuity}
+\end{equation}
+Together these form the paper's KKT system
+\begin{equation}
+\begin{cases}
+\partial_t\rho_t + \nabla\cdot(\rho_t\nabla u)=0,\\
+\partial_t u + \dfrac12\|\nabla u\|^2=0,\\
+\rho(\cdot,0)=\mu_0,\qquad \rho(\cdot,1)=\mu_1.
+\end{cases}
+\label{eq:geonet-kkt}
+\end{equation}
+This is the conceptual staircase that the original paper expects the reader to
+reconstruct.  The note now makes it explicit:
+\begin{align}
+\text{dynamic OT objective}
+&\Longrightarrow
+\text{continuity constraint}
+\notag\\
+&\Longrightarrow
+\text{Lagrange multiplier}
+\notag\\
+&\Longrightarrow
+\text{velocity and HJ equations}.
+\label{eq:geonet-logic-chain}
+\end{align}
+
+\textbf{What exactly is GeONet learning?}
+The paper's learned object is the nonlinear operator
+\begin{equation}
+\Gamma^\dagger : \calP_2(\Omega)\times\calP_2(\Omega) \to AC(\calP_2(\Omega)),
+\qquad
+(\mu_0,\mu_1)\mapsto (\mu_t)_{t\in[0,1]},
+\label{eq:geonet-operator}
+\end{equation}
+which matches the paper's Equations~(12)--(13).  This is why the network cannot be
+just an endpoint map regressor.  It must output a whole path or enough structure to
+evaluate that path at any desired time.
+
+\textbf{Parameterization.}
+The paper introduces coupled DeepONet-style parameterizations for the density path
+and the dual potential.  In the note's notation we can write the two operator
+outputs as
+\begin{equation}
+C_\phi(\mu_0,\mu_1)(x,t)
+\approx \rho_t(x),
+\qquad
+H_\psi(\mu_0,\mu_1)(x,t)
+\approx u(x,t),
+\label{eq:geonet-two-outputs}
+\end{equation}
+corresponding to the paper's Equations~(14)--(15).  The first network tries to
+represent the path of densities; the second tries to represent the potential whose
+gradient gives the optimal velocity.
+
+\textbf{Why the losses look the way they do.}
+Because the target object is the KKT system, the loss is built from residuals of
+that system.  The continuity residual loss is
+\begin{equation}
+L_{\mathrm{cty}}
+=
+\alpha_1\E\left[\left|\partial_t C_\phi + \nabla\cdot(C_\phi\nabla H_\psi)\right|^2\right],
+\label{eq:geonet-lcty}
+\end{equation}
+and the Hamilton--Jacobi residual loss is
+\begin{equation}
+L_{\mathrm{HJ}}
+=
+\alpha_2\E\left[\left|\partial_t H_\psi + \frac12\|\nabla H_\psi\|^2\right|^2\right].
+\label{eq:geonet-lhj}
+\end{equation}
+Boundary losses enforce the endpoint densities:
+\begin{equation}
+L_{\mathrm{BC}}
+=
+\beta_0\E\bigl[\|C_\phi(\cdot,0)-\mu_0\|_{L^2}^2\bigr]
++
+\beta_1\E\bigl[\|C_\phi(\cdot,1)-\mu_1\|_{L^2}^2\bigr],
+\label{eq:geonet-lbc}
+\end{equation}
+which are the paper's Equations~(17)--(19) in compressed notation.  The total
+training objective is then
+\begin{equation}
+\min_{\phi,\psi} L_{\mathrm{cty}}+L_{\mathrm{HJ}}+L_{\mathrm{BC}}.
+\label{eq:geonet-total-loss}
+\end{equation}
+Pedagogically, this is the right way to read the paper: each term corresponds to a
+specific failure mode of the learned path.
+
+\textbf{Implementation manual: what Claude or a student would need.}
+
+\paragraph{Inputs.}
+The training data are pairs of endpoint measures,
+\begin{equation}
+(\mu_0^{(i)},\mu_1^{(i)}),
+\qquad i=1,\ldots,n,
+\label{eq:geonet-endpoint-dataset}
+\end{equation}
+represented on some branch grid or mesh.  One must also sample collocation points
+$(x,t)$ in space-time to evaluate PDE residuals.
+
+\paragraph{Trainable objects.}
+The code needs two coupled outputs:
+\begin{enumerate}[label=(\roman*)]
+  \item a density-path network $C_\phi$,
+  \item a potential network $H_\psi$.
+\end{enumerate}
+Both depend on the endpoint pair $(\mu_0,\mu_1)$ and the query point $(x,t)$.
+
+\paragraph{Training loop.}
+A minimal implementation loop is:
+\begin{algorithm}[ht]
+\caption{GeONet training loop}
+\begin{algorithmic}[1]
+\Require endpoint-measure dataset, branch grid, collocation sampler, networks $C_\phi,H_\psi$
+\For{each iteration}
+  \State Sample endpoint pairs $(\mu_0,\mu_1)$
+  \State Sample collocation points $(x,t)$ in space-time
+  \State Evaluate $C_\phi(\mu_0,\mu_1)(x,t)$ and $H_\psi(\mu_0,\mu_1)(x,t)$
+  \State Compute continuity residual \eqref{eq:geonet-lcty}
+  \State Compute HJ residual \eqref{eq:geonet-lhj}
+  \State Compute endpoint or boundary residual \eqref{eq:geonet-lbc}
+  \State Backpropagate the total loss \eqref{eq:geonet-total-loss}
+  \State Update $\phi,\psi$
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+This is the operational meaning of the paper's Algorithm~1.
+
+\paragraph{Deployment loop.}
+At deployment time:
+\begin{enumerate}[label=(\arabic*)]
+  \item provide two endpoint measures $(\mu_0,\mu_1)$,
+  \item evaluate $C_\phi$ and optionally $H_\psi$ on a desired mesh and times $t$,
+  \item interpret the output $C_\phi$ as the learned geodesic path,
+  \item if needed, reconstruct a velocity field from $\nabla H_\psi$.
+\end{enumerate}
+So the deployed object is a path evaluator, not a one-shot endpoint transport map.
+
+\paragraph{Implementation hazards.}
+The main dangers are:
+\begin{enumerate}[label=(\roman*)]
+  \item the method learns densities or density-like fields, not just particles, so a mesh or discretization choice is unavoidable,
+  \item PDE residuals require stable automatic differentiation through coupled operator outputs,
+  \item endpoint conditions must be enforced strongly enough or the path can look plausible while missing the actual endpoints,
+  \item the learned object is much richer than what BayesFilter currently needs, so successful training does not imply an easy insertion point into the existing filtering code.
+\end{enumerate}
+
+\paragraph{Implementation contract.}
+The learned objects are the path network $C_\phi$ and the potential network $H_\psi$;
+the optimized object is the coupled PDE-residual training problem; the KKT system is an
+auxiliary correctness certificate; and the deployed object is the evaluated path (and
+optionally velocity field), not a one-shot endpoint map.
+
+\paragraph{Common wrong implementations.}
+The most likely wrong turns are:
+\begin{enumerate}[label=(\roman*)]
+  \item training only for endpoint fit and ignoring continuity or HJ residuals,
+  \item exporting one endpoint sample as if the paper learned only a terminal map,
+  \item treating the dual potential $u$ as the deployed object instead of the path or the velocity induced by it.
+\end{enumerate}
+The first two change the algorithm's contract, not just its efficiency.
+
+\paragraph{Minimum correct recipe.}
+The shortest safe recipe is: represent endpoint measures on a finite mesh, train the two
+coupled operator outputs against the continuity, HJ, and boundary losses, and deploy by
+evaluating the path (and optional velocity) over the desired time grid.
+
+\paragraph{First diagnostic.}
+Before any broad experiment, test whether the learned path hits the endpoints and
+reduces the continuity and HJ residuals on held-out collocation points.  A path that
+looks visually smooth but misses those two checks is not yet implementing the paper's
+contract.  The safest tiny first build is a 1D Gaussian-to-Gaussian path on a fixed
+mesh, because then one can see immediately whether the learned movie, endpoint fit,
+and residual logic are all behaving coherently.
+
+\textbf{What the paper leaves implicit.}
+The original paper moves very quickly from the Benamou--Brenier formulation to the
+PDE residual training story.  The missing bridge is exactly the one many students
+need:
+\begin{align}
+\text{OT path problem}
+&\Longrightarrow
+\text{mass conservation constraint}
+\notag\\
+&\Longrightarrow
+\text{Lagrange multiplier}
+\notag\\
+&\Longrightarrow
+\text{coupled PDE residuals as training losses}.
+\label{eq:geonet-teaching-bridge}
+\end{align}
+Once that ladder is made explicit, the role of the KKT system and of the operator
+network becomes much easier to understand.
+
+\textbf{BayesFilter bridge.}
+GeONet matters if BayesFilter eventually wants to learn a whole transport path or an
+operator-valued continuation of OT rather than only one posterior update.  That is
+scientifically exciting, but it is a larger object than BayesFilter immediately
+needs.
+
+\textbf{What the paper does not settle.}
+GeONet does not by itself tell us how to insert a path-valued density operator into
+the current weighted-particle filtering loop without an additional representation
+bridge.
+
+\subsection*{Chen and Liu (2025)}
+
+\paragraph{What problem is the paper solving?}
+Chen and Liu also move to dynamic transport, but from a more sample-based or
+variational solver viewpoint.  The question is how to learn the motion field that
+carries mass, rather than only the final map.
+
+\paragraph{Paper reproduction.}
+The dynamic variational problem is
+\begin{equation}
+\inf_{(\rho_t,v_t)} \int_0^1 \int L(v_t(x))\rho_t(x)\,dx\,dt
+\quad\text{subject to}\quad
+\partial_t\rho_t + \nabla\cdot(\rho_t v_t)=0.
+\label{eq:chenliu-dynamic}
+\end{equation}
+So the central object is again a path and velocity field, not only a terminal map.
+
+\paragraph{Explanatory reconstruction.}
+The simplest reading is:
+\begin{align}
+\text{endpoint transport problem}
+&\Longrightarrow
+\text{represent the whole motion of mass}
+\notag\\
+&\Longrightarrow
+\text{learn or optimize the velocity field that produces that motion}.
+\label{eq:chenliu-logic}
+\end{align}
+This makes the paper a close frontier cousin of GeONet.
+
+A student can get less lost by separating three objects that are easy to blur
+together:
+\begin{enumerate}[label=(\roman*)]
+  \item the terminal pushforward or endpoint agreement,
+  \item the full path of intermediate densities $\rho_t$,
+  \item and the velocity field $v_t$ that actually drives that path.
+\end{enumerate}
+The paper is not only trying to get the endpoints right.  It is trying to learn or
+optimize the motion law that takes us from the initial state to the final one.
+
+In practice that means time has to be discretized.  A first implementation would not
+store an abstract continuum of times; it would choose a time grid
+$0=t_0<t_1<\cdots<t_K=1$, represent the path or velocity on that grid, and enforce
+the continuity logic numerically step by step.  This is the most concrete bridge from
+the variational formula to code.
+
+\paragraph{Implementation manual: what Claude or a student would need.}
+\paragraph{Inputs.}
+One needs endpoint measures or sample representations together with a way to
+represent the evolving density and motion field.
+
+\paragraph{Trainable or optimized object.}
+The central object is the path-density/velocity pair $(\rho_t,v_t)$ or its neural
+surrogate.
+
+\paragraph{Objective.}
+Optimization is driven by the dynamic action plus the continuity constraint in
+\eqref{eq:chenliu-dynamic}.
+
+\paragraph{Training or optimization loop.}
+Each step updates the path or velocity representation so that the dynamic objective
+falls while the continuity constraint is respected numerically.  In a time-discretized
+implementation, that means repeatedly updating the path or velocity on the chosen time
+grid, evaluating the discrete action, and checking whether the induced transport over
+successive time slices still respects the continuity logic.
+
+\paragraph{Deployment loop.}
+Deployment evaluates the learned motion or the resulting path, not merely one
+terminal transport map.  For BayesFilter, the practical question would be whether the
+filter consumes the full motion law, a sequence of intermediate transport states, or
+only the final endpoint map obtained after integrating the learned velocity field.
+
+\paragraph{Implementation hazards.}
+The main hazards are stable dynamic optimization and a usable finite representation
+of the path object.  A second hazard is interface mismatch: a path-based method may be
+scientifically attractive, but a particle filter may only want a terminal update map,
+so the student must decide what part of the dynamic object is actually exported.
+
+\paragraph{BayesFilter bridge.}
+This is important as a path-based frontier lane.  It is not yet the clearest first
+implementation route for repeated observation-conditioned filtering updates.
+
+\paragraph{What the paper does not settle.}
+It does not settle how a learned path object should be integrated into BayesFilter's
+current particle-update semantics.
+
+\subsection*{Vandergrift et al. (2026)}
+
+\paragraph{What problem is the paper solving?}
+Vandergrift asks for a measure-to-measure operator that generalizes across many
+transport instances.  The key shift is from learning one map for one pair to
+learning an operator acting on whole measures.
+
+\paragraph{Paper reproduction.}
+The learned operator is
+\begin{equation}
+\mathcal G_\theta : \calP(\R^d)\to\calP(\R^d),
+\qquad
+\nu\approx \mathcal G_\theta(\mu),
+\label{eq:vandergrift-operator}
+\end{equation}
+with static training objective
+\begin{equation}
+\min_\theta \sum_{i=1}^{m}\mathcal L\bigl(\mathcal G_\theta(\mu_i),\nu_i\bigr).
+\label{eq:vandergrift-loss}
+\end{equation}
+The dynamic variant instead learns a measure-dependent velocity field.
+
+\paragraph{Explanatory reconstruction.}
+The pedagogical staircase is:
+\begin{align}
+\text{one transport map per pair}
+&\Longrightarrow
+\text{one operator that acts on many source measures}
+\notag\\
+&\Longrightarrow
+\text{generalization target shifts from point samples to whole measures}.
+\label{eq:vandergrift-logic}
+\end{align}
+That is why this is more ambitious than the ordinary direct-map story.
+
+A student can make this concrete by imagining two different encodings of a source
+measure: an unordered particle cloud and a fixed grid histogram.  The operator view
+says that neither specific encoding is the mathematical object of interest.  The real
+object is the measure-to-measure rule that should survive a reasonable change of
+representation.  This is the practical meaning of ``generalize across measures'': not
+memorize one map for one cloud, but learn a transformation law that accepts many
+measure instances from the same family.
+
+\paragraph{Implementation manual: what Claude or a student would need.}
+\paragraph{Inputs.}
+One needs a dataset of source and target measures together with a loss
+$\mathcal L$ defined on measures or their representations.
+
+\paragraph{Trainable object.}
+The trainable object is the operator $\mathcal G_\theta$ or, in the dynamic case, a
+measure-dependent velocity field.
+
+\paragraph{Objective.}
+Optimize the operator so that $\mathcal G_\theta(\mu_i)$ matches $\nu_i$ across a
+family of measure pairs.
+
+\paragraph{Training loop.}
+Each iteration samples measure pairs, evaluates the operator, computes the measure-
+level loss, and updates the operator parameters.  The hidden practical burden is that
+the measures must first be encoded in some finite representation: particles, grids,
+features, kernels, or another summary that the operator can actually process.
+
+This is where the paper becomes more algorithmic than a slogan like ``learn an
+operator on measures'' may suggest.  A real implementation must define three maps,
+not one: an encoder from a concrete measure representation into the operator's input
+space, the operator itself, and a decoder or output interpretation that turns the
+operator result back into something usable.  Without those three pieces, the phrase
+``measure-to-measure operator'' remains mathematically attractive but computationally
+underspecified.
+
+\paragraph{Deployment loop.}
+Deployment applies $\mathcal G_\theta$ to a new source measure, rather than applying
+one pair-specific map to one cloud.  So the deployed object is not "the map for this
+problem" but a callable measure-to-measure transformation rule.  In BayesFilter
+terms, this would look like an update block that accepts an entire predictive cloud or
+measure representation and returns a transformed posterior-side representation.
+
+\paragraph{Implementation hazards.}
+The main burden is representation: measures must be encoded in a way that supports
+operator learning without destroying the geometry one cares about.  A second hazard is
+decoding: once the operator outputs a transformed measure representation, the student
+must still decide how BayesFilter consumes it as particles, samples, or another usable
+state object.
+
+\paragraph{BayesFilter bridge.}
+This is a natural frontier paper if BayesFilter eventually wants a true
+measure-to-measure update operator.  That is broader than the current immediate
+transport block, but still highly relevant as a long-run direction.
+
+\paragraph{What the paper does not settle.}
+It does not settle whether a global measure operator is preferable to a more local,
+conditional, or retained-teacher BayesFilter route.
+
+\subsection*{Girshfeld and Chen (2025)}
+
+\paragraph{What problem is the paper solving?}
+Girshfeld and Chen ask what happens if one does not trust one global transport rule.
+The idea is to use locality in measure space so that nearby source measures select
+or blend nearby transport rules.
+
+\paragraph{Paper reproduction.}
+The local transport family is
+\begin{equation}
+T_\theta[\mu] : \calP(\R^d)\to\calP(\R^d),
+\label{eq:girshfeld-local-family}
+\end{equation}
+with local smoother
+\begin{equation}
+\widehat T_\theta[\mu_0]
+=
+\sum_{i=1}^{m} K_h\bigl(\W_2(\mu_0,\mu_i)\bigr)T_{\theta_i}.
+\label{eq:girshfeld-local-smoother}
+\end{equation}
+So the learned object is not one universal operator, but a local family of transport
+rules blended according to Wasserstein proximity.
+
+\paragraph{Explanatory reconstruction.}
+The clean reading is:
+\begin{align}
+\text{do not trust one global rule}
+&\Longrightarrow
+\text{store local rules in measure space}
+\notag\\
+&\Longrightarrow
+\text{blend them according to Wasserstein locality}.
+\label{eq:girshfeld-logic}
+\end{align}
+Pedagogically, this is a Wasserstein analogue of local regression.
+
+A concrete picture helps here.  Suppose BayesFilter encounters one predictive cloud
+that looks nearly Gaussian, another that is clearly multimodal, and a third that lies
+between them.  The local-rule philosophy says that the third cloud should not be
+forced to use the exact same transport logic as the first two.  Instead, it should
+borrow mostly from nearby examples in measure space.  So locality is the paper's way
+of weakening the assumption that one global operator is equally trustworthy
+everywhere.
+
+\paragraph{Implementation manual: what Claude or a student would need.}
+\paragraph{Inputs.}
+One needs a family of source measures, corresponding local transport rules, and a
+kernel or neighborhood rule defined in Wasserstein space.
+
+\paragraph{Trainable or optimized object.}
+The central object is the family $T_\theta[\mu]$ together with the local smoothing
+rule.
+
+\paragraph{Objective.}
+The optimization target is to learn useful local rules whose blend generalizes well
+to nearby source measures.
+
+\paragraph{Training loop.}
+Each iteration updates the local transport family and the weighting or smoothing
+scheme so that nearby measures receive compatible local transport behavior.
+
+Operationally, that means the algorithm must repeatedly answer two questions at
+once: what are the candidate local rules, and which training measures should count as
+"nearby" enough to influence one another?  So the learned object is never only the
+transport family by itself; it is the transport family together with the locality
+mechanism that chooses how to blend it.
+
+\paragraph{Deployment loop.}
+Deployment takes a new source measure $\mu_0$, finds nearby reference measures in
+Wasserstein space, and blends the corresponding local transport rules through
+\eqref{eq:girshfeld-local-smoother}.
+
+\paragraph{Implementation hazards.}
+The main burdens are locality design, efficient Wasserstein-neighborhood search, and
+ensuring the blended local rules remain numerically stable.
+
+\paragraph{BayesFilter bridge.}
+This is relevant if BayesFilter wants local rather than universal transport logic:
+a different update rule for different regions of measure space rather than one
+single global mechanism.
+
+\paragraph{What the paper does not settle.}
+It does not settle whether such locality is better than a single conditional update
+operator or a retained-teacher route for the current BayesFilter setting.
+
+\chapter{What should BayesFilter do next?}
+
+\section{The main scientific lesson}
+
+The papers on the shelf are not all answering the same question.  Once that is
+understood, the main ranking becomes clearer.
+
+\begin{enumerate}[label=(\arabic*)]
+  \item If the question is \emph{conditional posterior transport}, the core papers
+  are Wang, Al-Jarrah, and Hosseini.
+  \item If the question is \emph{semantic conservatism with a retained teacher},
+  the core papers are Meta OT and UNOT.
+  \item If the question is \emph{advanced re-architecture}, the dynamic and
+  measure-operator papers become relevant, but they should not be confused with the
+  immediate BayesFilter transport problem.
+\end{enumerate}
+
+\section{The top two experimental lanes}
+
+\paragraph{Lane A: conditional posterior transport.}
+This is the scientifically most central lane.  Use Wang as the leading practical
+paper, Al-Jarrah as the filtering-native contrast, and Hosseini as the strongest
+theorem-level conditional OT anchor.
+
+\paragraph{Lane B: retained-teacher acceleration.}
+This is the more conservative lane.  Use Meta OT as the leading paper, UNOT as the
+main alternative, and keep solver-side baselines such as Kassraie or Scetbon in
+view.
+
+\section{What should LEDH-PFPF-OT try first?}
+
+The right recommendation for LEDH-PFPF-OT should start from the transport object it
+already uses, not from the most fashionable paper on the shelf.  In the current
+BayesFilter direction, LEDH-PFPF-OT is not an abstract Wasserstein comparison
+problem.  It is a finite entropic-OT / Sinkhorn-style transport correction layer with
+barycentric equal-weight output, implemented under the repository's declared default
+production direction:
+\begin{equation}
+\text{TensorFlow/TFP},\qquad \text{GPU execution},\qquad \text{float32 with TF32 enabled},
+\label{eq:ledhpfpfot-default-direction}
+\end{equation}
+with streaming or chunked execution where needed.  This owner directive appears in
+`AGENTS.md` and `CLAUDE.md`.  It is an engineering target, not a proof of posterior
+correctness or HMC readiness, but it fixes the implementation question we are trying
+to answer.
+
+The most important mathematical point is that LEDH-PFPF-OT already has a declared
+teacher object: a finite entropic OT correction computed by Sinkhorn-style scaling and
+exported through a barycentric equal-weight cloud.  So the ranking criterion should be:
+\begin{quote}
+prefer the candidate that preserves the current transport object and its executable
+invariants before the candidate that replaces that object by a looser surrogate.
+\end{quote}
+The relevant invariants are:
+\begin{enumerate}[label=(\roman*)]
+  \item row and column marginal residuals for the finite coupling,
+  \item the barycentric output semantics of the equal-weight cloud,
+  \item the exact executed scalar/gradient path of the implementation,
+  \item and compatibility with the GPU / JIT / TF32 execution target.
+\end{enumerate}
+A route that preserves these invariants is easier to justify as a next step than a
+route that changes them, even if both are scientifically interesting.
+
+Under that criterion, the ranking is:
+\begin{enumerate}[label=(\arabic*)]
+  \item exact-semantics entropic OT reference lane, realized by streaming/online/GPU Sinkhorn where possible,
+  \item retained-teacher accelerations that predict a solver-relevant latent state but still end in a corrective teacher solve,
+  \item positive-feature and low-rank coupling routes only as explicitly approximate or semantic-changing candidates,
+  \item direct learned maps such as ICNN/Brenier/Monge-gap below those for immediate LEDH-PFPF-OT work,
+  \item dynamic and operator methods as larger re-architecture ideas rather than first practical targets.
+\end{enumerate}
+
+\paragraph{Why exact-semantics streaming/online/GPU Sinkhorn is first.}
+This route is ranked first because it changes the engineering realization while
+preserving the mathematical object.  In the entropic OT chapter the teacher solve is
+still the same finite entropic problem, with the same scaling equations and the same
+barycentric transport output, even if the implementation is chunked, streamed, or
+GPU-optimized.  So the main question is numerical validity under the existing contract,
+not semantic reinterpretation.  This makes it the strongest reference lane for parity,
+residual checks, and downstream gradient diagnostics.
+
+\paragraph{Why retained-teacher accelerations are next.}
+The retained-teacher chapter gives the cleanest neural/scalable extension of that
+reference lane.  Meta OT and UNOT are strong here because they do not ask BayesFilter
+to trust a learned final transport answer.  They predict a teacher-native latent state
+(dual or solver coordinate), then run a corrective teacher solve.  Mathematically,
+this preserves the distinction
+\begin{equation}
+\text{predicted latent state}
+\neq
+\text{final transport answer},
+\label{eq:ledhpfpfot-retained-distinction}
+\end{equation}
+and therefore makes the first admissibility diagnostic very sharp: does warm start plus
+correction preserve the teacher residual contract and barycentric output semantics?
+That is why retained-teacher methods are the strongest practical next step after the
+exact reference lane.
+
+\paragraph{Why positive-feature and low-rank routes are lower.}
+These routes are useful, but they should be ranked below retained-teacher methods
+because they change the executed object more aggressively.  Positive-feature methods
+can replace the Gibbs kernel by a feature approximation; low-rank coupling methods
+restrict the feasible coupling family.  In both cases, the resulting transport layer
+may still be useful, but it no longer inherits exact-semantics status automatically.
+So these routes need their own evidence contracts.  Dense-reference mismatch is then an
+explanatory diagnostic, not automatically a failure or a success.  That is why they are
+later candidates rather than the default first recommendation.
+
+\paragraph{Why direct learned maps are lower still.}
+ICNN/Brenier and related direct-map methods ask LEDH-PFPF-OT to change the learned
+object altogether.  Instead of preserving a retained entropic teacher, they try to
+learn a final map or one of its surrogates.  That is a much larger step.  It changes
+not only runtime and parameterization, but also what the implementation must verify at
+deployment time.  In a finite-cloud BayesFilter setting, the Brenier logic is valuable
+structural guidance, but it does not by itself justify replacing the current finite
+entropic correction layer as the immediate next move.
+
+\paragraph{Why dynamic and operator methods are last for immediate work.}
+Dynamic and operator methods such as GeONet and its neighbors answer a broader
+question: can we learn a whole path, a motion law, or a measure-to-measure operator?
+That is scientifically important, but it is not the same question as improving the
+current LEDH-PFPF-OT bottleneck.  These methods are therefore best viewed as future
+re-architecture candidates rather than the first implementation target.
+
+\paragraph{Concrete recommendation.}
+If the research goal is to improve LEDH-PFPF-OT without reopening the whole transport
+object, the first work items should be:
+\begin{enumerate}[label=(\arabic*)]
+  \item stabilize and optimize the exact entropic OT reference lane under the declared GPU/TF32/streaming target,
+  \item implement retained-teacher warm-started acceleration, with Meta OT as the first code-backed source and UNOT as the strongest discrete-operator alternative,
+  \item only after those pass teacher-preservation diagnostics, open explicit experiment plans for positive-feature and low-rank coupling replacements,
+  \item defer direct learned maps and dynamic/operator re-architectures until the retained-teacher lane has either succeeded or clearly saturated.
+\end{enumerate}
+
+\paragraph{What this ranking does not claim.}
+This ranking is about implementation priority for LEDH-PFPF-OT, not scientific
+closure.  It does \emph{not} establish posterior correctness, HMC readiness, dense-
+Sinkhorn equivalence for approximate routes, or production readiness from the current
+diagnostics alone.  The precision result note already supports only a much weaker
+claim: TF32 drift on the tested fixture is small relative to PF Monte Carlo noise,
+but that is still not an HMC-level promotion argument.  So the section should be read
+as a disciplined work-priority statement, not as a correctness certificate.
+
+\section{What students should remember}
+
+A first-year PhD student should leave this note with the following hierarchy in
+mind.
+\begin{enumerate}[label=(\arabic*)]
+  \item OT-ICNN is an older Brenier-style baseline and was not disproven by the
+  earlier BayesFilter benchmark.
+  \item Wang teaches how conditional posterior transport can be written as a
+  change-of-variables problem indexed by the observation.
+  \item Al-Jarrah teaches how a filtering-native posterior-update map can be
+  characterized by conditional expectation identities.
+  \item Hosseini teaches the theorem-level conditional OT object that the more
+  practical papers are approximating.
+  \item Meta OT and UNOT teach how to keep a corrective teacher solve in the loop
+  while learning to solve it faster.
+\end{enumerate}
+
+\section{Final conclusion}
+
+The correct conclusion of the reread is therefore not a one-paper winner.  It is a
+structured lesson about objects.
+
+\begin{enumerate}[label=(\arabic*)]
+  \item The old OT-ICNN lane should be closed as an unfaithful bridge benchmark,
+  not as a verdict on the original Makkuva et al. method.
+  \item The main modern scientific lane for BayesFilter is conditional posterior
+  transport, led by Wang, Al-Jarrah, and Hosseini.
+  \item The main conservative implementation lane is retained-teacher
+  acceleration, led by Meta OT and UNOT.
+  \item Dynamic and operator papers are important, but they answer a larger and
+  harder question than BayesFilter immediately needs.
+\end{enumerate}
+
+That is the mathematically and pedagogically supported conclusion of the present
+note.
+
+\chapter*{Code snapshot summary}
+\addcontentsline{toc}{chapter}{Code snapshot summary}
+
+\subsection*{Meta OT}
+\paragraph{GitHub / source.}
+`https://github.com/facebookresearch/meta-ot`
+
+\paragraph{Stack.}
+JAX + OTT, with PyTorch also mentioned in the local README setup context.
+
+\paragraph{Status / watch-outs.}
+Official repo confirmed.  This is the strongest code-backed retained-teacher
+starting point in our current notes, but students should still expect a real
+adaptation burden when translating the teacher object and framework conventions
+into BayesFilter.
+
+\subsection*{UNOT}
+\paragraph{GitHub / source.}
+`https://github.com/GregorKornhardt/UNOT`
+
+\paragraph{Stack.}
+Python + PyTorch, with an FNO-style neural-operator setup and pretrained models.
+
+\paragraph{Status / watch-outs.}
+Official repo confirmed.  This is one of the strongest discrete entropic OT code
+bases in the current survey, but the main watch-out is the representation bridge
+from grid- or resolution-centric inputs to unordered particle clouds.
+
+\subsection*{OT-ICNN / Makkuva}
+\paragraph{GitHub / source.}
+`https://github.com/AmirTag/OT-ICNN`
+
+\paragraph{Stack.}
+The local clone strongly suggests a Python / PyTorch-style codebase, though the
+current repo notes do not yet summarize the framework as formally as they do for
+Meta OT or UNOT.
+
+\paragraph{Status / watch-outs.}
+Official repo confirmed.  Best read as a faithful reproduction baseline for the
+ICNN/Brenier route, not as a ready-made BayesFilter filtering module.  The main
+watch-out is to preserve the original minimax / convex-potential contract rather
+than collapse it into a generic direct regressor.
+
+\subsection*{Wang conditional OT family}
+\paragraph{GitHub / source.}
+No clean confirmed local repository is recorded in the current ledger for this
+exact paper title, though the surrounding conditional OT / Bayesian inference
+family is clearly code-adjacent rather than theory-only.
+
+\paragraph{Stack.}
+Not yet recorded in a repo-verified way in the current local notes.
+
+\paragraph{Status / watch-outs.}
+Students should expect substantial fresh implementation.  The main watch-out is
+that the static inverse-map route and the dynamic flow route are not the same
+computational object and should not be blended into one implementation by habit.
+
+\subsection*{Al-Jarrah filtering OT}
+\paragraph{GitHub / source.}
+No confirmed public repo in the current local ledger.
+
+\paragraph{Stack.}
+Not yet recorded in the current notes.
+
+\paragraph{Status / watch-outs.}
+This is a high-value paper but currently reads as a fresh reconstruction route for
+BayesFilter.  The main watch-out is not code reuse but semantic correctness:
+getting the conditional map, sample bookkeeping, and deployed posterior-update
+operator right.
+
+\subsection*{Hosseini conditional OT on function spaces}
+\paragraph{GitHub / source.}
+No confirmed public repo in the current local ledger.
+
+\paragraph{Stack.}
+Not yet recorded in the current notes.
+
+\paragraph{Status / watch-outs.}
+The paper is theorem-backed but effectively paper-first in our local
+implementation record.  The main watch-out is that a student must still choose a
+finite surrogate carefully before there is anything concrete to port.
+
+\subsection*{GeONet}
+\paragraph{GitHub / source.}
+No confirmed public repo in the current local ledger.
+
+\paragraph{Stack.}
+Not yet recorded in the current notes.
+
+\paragraph{Status / watch-outs.}
+Strong conceptual dynamic/operator anchor, but still effectively a fresh
+implementation project in our notes.  The main watch-out is not code reuse but
+managing the richer path/PDE object without collapsing it into a simple endpoint
+map.
+
+\subsection*{Other Chapter 5 frontier papers}
+\paragraph{GitHub / source.}
+Mixed or often unclear in the current local research artifacts.
+
+\paragraph{Stack.}
+Mixed, unconfirmed, or not yet recorded in current notes.
+
+\paragraph{Status / watch-outs.}
+Students should distinguish code existence from implementation fit.  Several of
+these routes are conceptually useful, but many still look adaptation-heavy even
+when some code may exist elsewhere.
+
+This summary is intentionally conservative.  It reuses the repo's earlier
+source-availability ledger, implementation-fit note, and now the locally cloned
+repositories where available.  It should be read as an implementation-feasibility
+checklist rather than as a definitive software-maintenance, license, or
+reproducibility audit.
+
+\chapter*{References}
+\addcontentsline{toc}{chapter}{References}
+\begin{thebibliography}{99}
+
+\bibitem{makkuva2020}
+A. V. Makkuva, A. Taghvaei, S. Oh, and J. Lee.
+\newblock Optimal transport mapping via input convex neural networks.
+\newblock In \emph{Proceedings of the 37th International Conference on Machine Learning}, pages 6672--6681, 2020.
+
+\bibitem{bunne2022}
+Charlotte Bunne, Andreas Krause, and Marco Cuturi.
+\newblock Supervised training of conditional Monge maps.
+\newblock In \emph{Advances in Neural Information Processing Systems}, 2022.
+
+\bibitem{amos2023}
+Brandon Amos, Giulia Luise, Samuel Cohen, and Ievgen Redko.
+\newblock Meta optimal transport.
+\newblock In \emph{Proceedings of the 40th International Conference on Machine Learning}, pages 1472--1509, 2023.
+
+\bibitem{scetbon2023}
+Meyer Scetbon, Michal Klein, Giovanni Palla, and Marco Cuturi.
+\newblock Unbalanced low-rank optimal transport solvers.
+\newblock arXiv:2305.19727, 2023.
+
+\bibitem{kassraie2024}
+Parnian Kassraie, Aram-Alexandre Pooladian, Michal Klein, James Thornton, Jonathan Niles-Weed, and Marco Cuturi.
+\newblock Progressive entropic optimal transport solvers.
+\newblock arXiv:2406.05061, 2024.
+
+\bibitem{gazdieva2024}
+Milena Gazdieva, Arip Asadulaev, Evgeny Burnaev, and Alexander Korotin.
+\newblock Light unbalanced optimal transport.
+\newblock In \emph{Advances in Neural Information Processing Systems}, 2024.
+
+\bibitem{geonet2024}
+Andrew Gracyk and Xiaohui Chen.
+\newblock GeONet: a neural operator for learning the Wasserstein geodesic.
+\newblock In \emph{Proceedings of the Fortieth Conference on Uncertainty in Artificial Intelligence}, pages 1638--1648, 2024.
+
+\bibitem{wang2025}
+Zheyu Oliver Wang, Ricardo Baptista, Youssef Marzouk, Lars Ruthotto, and Deepanshu Verma.
+\newblock Efficient neural network approaches for conditional optimal transport with applications in Bayesian inference.
+\newblock arXiv:2310.16975, revised 2025.
+
+\bibitem{aljarrah2025}
+Mohammad Al-Jarrah, Niyizhen Jin, Bamdad Hosseini, and Amirhossein Taghvaei.
+\newblock Nonlinear filtering with Brenier optimal transport maps.
+\newblock In \emph{Proceedings of the 41st International Conference on Machine Learning}, 2024.
+
+\bibitem{hosseini2025}
+Bamdad Hosseini, Alexander W. Hsu, and Amirhossein Taghvaei.
+\newblock Conditional optimal transport on function spaces.
+\newblock arXiv:2311.05672, 2023.
+
+\bibitem{geuter2025}
+Jonathan Geuter, Gregor Kornhardt, Ingimar Tomasson, and Vaios Laschos.
+\newblock Universal neural optimal transport.
+\newblock In \emph{Proceedings of the 42nd International Conference on Machine Learning}, 2025.
+
+\bibitem{chen2025}
+Peter Chen, Yue Xie, and Qingpeng Zhang.
+\newblock Displacement-sparse neural optimal transport.
+\newblock arXiv:2502.01889, 2025.
+
+\bibitem{chaudhari2025}
+Shreyas Chaudhari, Srinivasa Pranav, and Jos\'e M. F. Moura.
+\newblock GradNetOT: learning optimal transport maps with GradNets.
+\newblock arXiv:2507.13191, 2025.
+
+\bibitem{chenliu2025}
+Chen and Liu.
+\newblock Dynamic optimal transport and learned motion fields.
+\newblock Working title placeholder; exact citation metadata still to be confirmed.
+
+\bibitem{girshfeld2025}
+Inga Girshfeld and Xiaohui Chen.
+\newblock Neural local Wasserstein regression.
+\newblock In \emph{Proceedings of the 1st Conference on Topology, Algebra, and Geometry in Data Science}, pages 79--89, 2026.
+
+\bibitem{dumont2026}
+Th\'eo Dumont, Th\'eo Lacombe, and Fran\c{c}ois-Xavier Vialard.
+\newblock Learning Monge maps by lifting and constraining Wasserstein gradient flows.
+\newblock arXiv:2603.25182, 2026.
+
+\bibitem{park2026}
+Yesom Park, Eric Gelphman, Stanley Osher, and Samy Wu Fung.
+\newblock Fixed-point neural optimal transport without implicit differentiation.
+\newblock arXiv:2605.10792, 2026.
+
+\bibitem{micheli2026}
+Alessandro Micheli, Yueqi Cao, Anthea Monod, and Samir Bhatt.
+\newblock Riemannian neural optimal transport.
+\newblock arXiv:2602.03566, 2026.
+
+\bibitem{vandergrift2026}
+Matthew Vandergrift, Martha White, Yury Polyanskiy, Philippe Rigollet, and Lazar Atanackovic.
+\newblock Measure-to-measure regression with transformers.
+\newblock arXiv:2605.28075, 2026.
+
+\end{thebibliography}
+
+\end{document}

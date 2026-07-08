@@ -1,0 +1,714 @@
+{
+  "bad_route_flag_vetoes": [],
+  "custom_gradient_boundary_results": [
+    {
+      "decorator_line": 1960,
+      "def_line": 1961,
+      "findings": [],
+      "grad_line": 1983,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "status": "PASS_GRAD_BODY_SCAN"
+    }
+  ],
+  "decision": "PASS_NO_AUTODIFF_AUDIT",
+  "diagnostic_whitelist_hits": [
+    {
+      "line": 115,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": "tf.GradientTape",
+      "text": "with tf.GradientTape() as transition_tape:"
+    },
+    {
+      "line": 115,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": "GradientTape(",
+      "text": "with tf.GradientTape() as transition_tape:"
+    },
+    {
+      "line": 116,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": "watch(",
+      "text": "transition_tape.watch(theta)"
+    },
+    {
+      "line": 118,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": ".gradient(",
+      "text": "transition_gradient = transition_tape.gradient(transition_value, theta)"
+    },
+    {
+      "line": 120,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": "tf.GradientTape",
+      "text": "with tf.GradientTape() as observation_tape:"
+    },
+    {
+      "line": 120,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": "GradientTape(",
+      "text": "with tf.GradientTape() as observation_tape:"
+    },
+    {
+      "line": 121,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": "watch(",
+      "text": "observation_tape.watch(theta)"
+    },
+    {
+      "line": 123,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": ".gradient(",
+      "text": "observation_gradient = observation_tape.gradient(observation_value, theta)"
+    },
+    {
+      "line": 213,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": "tf.GradientTape",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 213,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": "GradientTape(",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 214,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": "watch(",
+      "text": "tape.watch(theta)"
+    },
+    {
+      "line": 216,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": ".jacobian(",
+      "text": "autodiff_jacobian = tape.jacobian(autodiff_mean, theta)"
+    },
+    {
+      "line": 255,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": "tf.GradientTape",
+      "text": "with tf.GradientTape() as transition_tape:"
+    },
+    {
+      "line": 255,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": "GradientTape(",
+      "text": "with tf.GradientTape() as transition_tape:"
+    },
+    {
+      "line": 256,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": "watch(",
+      "text": "transition_tape.watch(theta)"
+    },
+    {
+      "line": 258,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": ".gradient(",
+      "text": "transition_gradient = transition_tape.gradient(transition_value, theta)"
+    },
+    {
+      "line": 260,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": "tf.GradientTape",
+      "text": "with tf.GradientTape() as observation_tape:"
+    },
+    {
+      "line": 260,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": "GradientTape(",
+      "text": "with tf.GradientTape() as observation_tape:"
+    },
+    {
+      "line": 261,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": "watch(",
+      "text": "observation_tape.watch(theta)"
+    },
+    {
+      "line": 263,
+      "path": "tests/highdim/test_p81_analytical_sir_score.py",
+      "pattern": ".gradient(",
+      "text": "observation_gradient = observation_tape.gradient(observation_value, theta)"
+    },
+    {
+      "line": 1117,
+      "path": "tests/test_experimental_batched_ledh_pfpf_ot_tf.py",
+      "pattern": "tf.GradientTape",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 1117,
+      "path": "tests/test_experimental_batched_ledh_pfpf_ot_tf.py",
+      "pattern": "GradientTape(",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 1118,
+      "path": "tests/test_experimental_batched_ledh_pfpf_ot_tf.py",
+      "pattern": "watch(",
+      "text": "tape.watch(theta)"
+    },
+    {
+      "line": 1120,
+      "path": "tests/test_experimental_batched_ledh_pfpf_ot_tf.py",
+      "pattern": ".jacobian(",
+      "text": "jacobian = tape.jacobian(value, theta)"
+    },
+    {
+      "line": 60,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": "tf.GradientTape",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 60,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": "GradientTape(",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 61,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": "watch(",
+      "text": "tape.watch([residuals, covariance])"
+    },
+    {
+      "line": 64,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": ".gradient(",
+      "text": "auto_residuals, auto_covariance = tape.gradient(objective, [residuals, covariance])"
+    },
+    {
+      "line": 86,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": "tf.GradientTape",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 86,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": "GradientTape(",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 87,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": "watch(",
+      "text": "tape.watch(corrected)"
+    },
+    {
+      "line": 94,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": ".gradient(",
+      "text": "auto = tape.gradient(objective, corrected)"
+    },
+    {
+      "line": 132,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": "tf.GradientTape",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 132,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": "GradientTape(",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 133,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": "watch(",
+      "text": "tape.watch([x_next, transition_mean, transition_covariance])"
+    },
+    {
+      "line": 139,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": ".gradient(",
+      "text": "transition_auto = tape.gradient("
+    },
+    {
+      "line": 144,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": "tf.GradientTape",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 144,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": "GradientTape(",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 145,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": "watch(",
+      "text": "tape.watch([predicted_observation, observation, observation_covariance])"
+    },
+    {
+      "line": 151,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": ".gradient(",
+      "text": "observation_auto = tape.gradient("
+    },
+    {
+      "line": 232,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": "tf.GradientTape",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 232,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": "GradientTape(",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "line": 233,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": "watch(",
+      "text": "tape.watch("
+    },
+    {
+      "line": 256,
+      "path": "tests/test_ledh_pfpf_ot_p5_primitive_adjoints.py",
+      "pattern": ".gradient(",
+      "text": "auto = tape.gradient("
+    }
+  ],
+  "excluded_custom_gradient_boundary_results": [
+    {
+      "classification": "unselected_manual_transport_variant",
+      "decorator_line": 2064,
+      "def_line": 2065,
+      "findings": [],
+      "grad_line": 2087,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "reason": "selected route uses manual_streaming_finite_sinkhorn_stopped_scale_keys, not the blockwise variant",
+      "status": "PASS_GRAD_BODY_SCAN",
+      "symbol": "_filterflow_manual_streaming_blockwise_vjp_finite_transport_stopped_scale_keys"
+    },
+    {
+      "classification": "unselected_legacy_transport_variant",
+      "decorator_line": 2158,
+      "def_line": 2159,
+      "findings": [],
+      "grad_line": 2164,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "reason": "selected route does not use filterflow_clipped",
+      "status": "PASS_GRAD_BODY_SCAN",
+      "symbol": "_clip_transport_upstream_gradient"
+    },
+    {
+      "classification": "unselected_bad_route_flag_variant",
+      "decorator_line": 2170,
+      "def_line": 2171,
+      "findings": [
+        {
+          "line": 2196,
+          "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+          "pattern": "tf.GradientTape",
+          "text": "with tf.GradientTape() as tape:"
+        },
+        {
+          "line": 2196,
+          "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+          "pattern": "GradientTape(",
+          "text": "with tf.GradientTape() as tape:"
+        },
+        {
+          "line": 2207,
+          "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+          "pattern": ".gradient(",
+          "text": "dx, dlogw = tape.gradient("
+        }
+      ],
+      "grad_line": 2190,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "reason": "bad route flag gate forbids transport_gradient_mode=filterflow_custom_op for production certification",
+      "status": "FAIL_GRAD_BODY_AUTODIFF",
+      "symbol": "_filterflow_custom_gradient_transport_matrix"
+    },
+    {
+      "classification": "unselected_dense_transport_variant",
+      "decorator_line": 2664,
+      "def_line": 2665,
+      "findings": [],
+      "grad_line": 2683,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "reason": "selected route uses streaming transport, not dense transport",
+      "status": "PASS_GRAD_BODY_SCAN",
+      "symbol": "_filterflow_manual_dense_finite_transport_matrix_stopped_scale_keys"
+    }
+  ],
+  "excluded_production_findings": [
+    {
+      "classification": "diagnostic_only_forward_jvp",
+      "line": 539,
+      "path": "docs/benchmarks/benchmark_p8p_regression_fd_reparameterization.py",
+      "pattern": "tf.autodiff.ForwardAccumulator",
+      "reason": "bad route flag gate forbids ad_evaluation_mode=forward-jvp for production certification",
+      "symbol": "_forward_jvp_diagnostic_for_contexts",
+      "text": "with tf.autodiff.ForwardAccumulator(theta_components, tangent_components) as accumulator:"
+    },
+    {
+      "classification": "diagnostic_only_forward_jvp",
+      "line": 539,
+      "path": "docs/benchmarks/benchmark_p8p_regression_fd_reparameterization.py",
+      "pattern": "ForwardAccumulator(",
+      "reason": "bad route flag gate forbids ad_evaluation_mode=forward-jvp for production certification",
+      "symbol": "_forward_jvp_diagnostic_for_contexts",
+      "text": "with tf.autodiff.ForwardAccumulator(theta_components, tangent_components) as accumulator:"
+    },
+    {
+      "classification": "diagnostic_only_reverse_autodiff",
+      "line": 1270,
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "pattern": "tf.GradientTape",
+      "reason": "bad route flag gate forbids ad_evaluation_mode=reverse-gradient for production certification",
+      "symbol": "_gradient_diagnostic",
+      "text": "with tf.GradientTape(persistent=True) as tape:"
+    },
+    {
+      "classification": "diagnostic_only_reverse_autodiff",
+      "line": 1270,
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "pattern": "GradientTape(",
+      "reason": "bad route flag gate forbids ad_evaluation_mode=reverse-gradient for production certification",
+      "symbol": "_gradient_diagnostic",
+      "text": "with tf.GradientTape(persistent=True) as tape:"
+    },
+    {
+      "classification": "diagnostic_only_reverse_autodiff",
+      "line": 1272,
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "pattern": "watch(",
+      "reason": "bad route flag gate forbids ad_evaluation_mode=reverse-gradient for production certification",
+      "symbol": "_gradient_diagnostic",
+      "text": "tape.watch(component)"
+    },
+    {
+      "classification": "diagnostic_only_reverse_autodiff",
+      "line": 1274,
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "pattern": ".gradient(",
+      "reason": "bad route flag gate forbids ad_evaluation_mode=reverse-gradient for production certification",
+      "symbol": "_gradient_diagnostic",
+      "text": "gradients = tape.gradient(objective, theta_components)"
+    },
+    {
+      "classification": "diagnostic_only_reverse_autodiff",
+      "line": 1275,
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "pattern": ".jacobian(",
+      "reason": "bad route flag gate forbids ad_evaluation_mode=reverse-gradient for production certification",
+      "symbol": "_gradient_diagnostic",
+      "text": "jacobian_columns = [tape.jacobian(value, component) for component in theta_components]"
+    },
+    {
+      "classification": "diagnostic_only_reverse_autodiff",
+      "line": 1424,
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "pattern": "tf.GradientTape",
+      "reason": "isolated diagnostic helper is not selected by manual-reverse certification route",
+      "symbol": "_isolated_observation_noise_diagnostic",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "classification": "diagnostic_only_reverse_autodiff",
+      "line": 1424,
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "pattern": "GradientTape(",
+      "reason": "isolated diagnostic helper is not selected by manual-reverse certification route",
+      "symbol": "_isolated_observation_noise_diagnostic",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "classification": "diagnostic_only_reverse_autodiff",
+      "line": 1425,
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "pattern": "watch(",
+      "reason": "isolated diagnostic helper is not selected by manual-reverse certification route",
+      "symbol": "_isolated_observation_noise_diagnostic",
+      "text": "tape.watch(theta_components[obs_index])"
+    },
+    {
+      "classification": "diagnostic_only_reverse_autodiff",
+      "line": 1431,
+      "path": "docs/benchmarks/benchmark_p8p_parameterized_sir_gradient.py",
+      "pattern": ".gradient(",
+      "reason": "isolated diagnostic helper is not selected by manual-reverse certification route",
+      "symbol": "_isolated_observation_noise_diagnostic",
+      "text": "gradient = tape.gradient(objective, theta_components[obs_index])"
+    },
+    {
+      "classification": "unselected_legacy_import",
+      "line": 24,
+      "path": "experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_tf.py",
+      "pattern": "custom_gradient",
+      "reason": "selected exact route does not call imported legacy filterflow custom-gradient transport matrix",
+      "text": "_filterflow_custom_gradient_transport_matrix,"
+    },
+    {
+      "classification": "unselected_generic_transport_dispatcher",
+      "line": 1521,
+      "path": "experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_tf.py",
+      "pattern": "custom_gradient",
+      "reason": "manual-reverse exact route calls the selected finite streaming transport helper directly",
+      "symbol": "batched_annealed_transport_core_tf",
+      "text": "transport_matrix, _iterations = _filterflow_custom_gradient_transport_matrix("
+    },
+    {
+      "classification": "unselected_reverse_autodiff_score_helper",
+      "line": 1756,
+      "path": "experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_tf.py",
+      "pattern": "tf.GradientTape",
+      "reason": "manual-reverse exact route uses hand-coded score helper, not this generic tape score",
+      "symbol": "batched_ledh_pfpf_ot_value_and_score_tf",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "classification": "unselected_reverse_autodiff_score_helper",
+      "line": 1756,
+      "path": "experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_tf.py",
+      "pattern": "GradientTape(",
+      "reason": "manual-reverse exact route uses hand-coded score helper, not this generic tape score",
+      "symbol": "batched_ledh_pfpf_ot_value_and_score_tf",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "classification": "unselected_reverse_autodiff_score_helper",
+      "line": 1757,
+      "path": "experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_tf.py",
+      "pattern": "watch(",
+      "reason": "manual-reverse exact route uses hand-coded score helper, not this generic tape score",
+      "symbol": "batched_ledh_pfpf_ot_value_and_score_tf",
+      "text": "tape.watch(theta)"
+    },
+    {
+      "classification": "unselected_reverse_autodiff_score_helper",
+      "line": 1767,
+      "path": "experiments/dpf_implementation/tf_tfp/filters/experimental_batched_ledh_pfpf_ot_tf.py",
+      "pattern": ".gradient(",
+      "reason": "manual-reverse exact route uses hand-coded score helper, not this generic tape score",
+      "symbol": "batched_ledh_pfpf_ot_value_and_score_tf",
+      "text": "score = tape.gradient("
+    },
+    {
+      "classification": "unselected_legacy_transport_dispatcher",
+      "line": 372,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "custom_gradient",
+      "reason": "selected exact route calls the finite streaming transport helper directly, not the legacy active dispatcher",
+      "symbol": "_transport_active",
+      "text": "transport_matrix, iterations = _filterflow_custom_gradient_transport_matrix("
+    },
+    {
+      "classification": "allowed_manual_custom_gradient_boundary",
+      "line": 1960,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "tf.custom_gradient",
+      "reason": "decorator line is listed in allowed_custom_gradient_boundaries; grad body is audited separately",
+      "text": "@tf.custom_gradient"
+    },
+    {
+      "classification": "allowed_manual_custom_gradient_boundary",
+      "line": 1960,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "@tf.custom_gradient",
+      "reason": "decorator line is listed in allowed_custom_gradient_boundaries; grad body is audited separately",
+      "text": "@tf.custom_gradient"
+    },
+    {
+      "classification": "allowed_manual_custom_gradient_boundary",
+      "line": 1960,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "custom_gradient",
+      "reason": "decorator line is listed in allowed_custom_gradient_boundaries; grad body is audited separately",
+      "text": "@tf.custom_gradient"
+    },
+    {
+      "classification": "unselected_manual_transport_variant",
+      "line": 2064,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "tf.custom_gradient",
+      "reason": "selected route uses manual_streaming_finite_sinkhorn_stopped_scale_keys, not the blockwise variant",
+      "symbol": "_filterflow_manual_streaming_blockwise_vjp_finite_transport_stopped_scale_keys",
+      "text": "@tf.custom_gradient"
+    },
+    {
+      "classification": "unselected_manual_transport_variant",
+      "line": 2064,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "@tf.custom_gradient",
+      "reason": "selected route uses manual_streaming_finite_sinkhorn_stopped_scale_keys, not the blockwise variant",
+      "symbol": "_filterflow_manual_streaming_blockwise_vjp_finite_transport_stopped_scale_keys",
+      "text": "@tf.custom_gradient"
+    },
+    {
+      "classification": "unselected_manual_transport_variant",
+      "line": 2064,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "custom_gradient",
+      "reason": "selected route uses manual_streaming_finite_sinkhorn_stopped_scale_keys, not the blockwise variant",
+      "symbol": "_filterflow_manual_streaming_blockwise_vjp_finite_transport_stopped_scale_keys",
+      "text": "@tf.custom_gradient"
+    },
+    {
+      "classification": "unselected_transport_metadata_helper",
+      "line": 2154,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "custom_gradient",
+      "reason": "selected exact route does not use the legacy filterflow_custom_op backward-rule label",
+      "symbol": "_transport_backward_rule",
+      "text": "return \"filterflow_style_whole_transport_custom_gradient\""
+    },
+    {
+      "classification": "unselected_legacy_transport_variant",
+      "line": 2158,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "tf.custom_gradient",
+      "reason": "selected route does not use filterflow_clipped",
+      "symbol": "_clip_transport_upstream_gradient",
+      "text": "@tf.custom_gradient"
+    },
+    {
+      "classification": "unselected_legacy_transport_variant",
+      "line": 2158,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "@tf.custom_gradient",
+      "reason": "selected route does not use filterflow_clipped",
+      "symbol": "_clip_transport_upstream_gradient",
+      "text": "@tf.custom_gradient"
+    },
+    {
+      "classification": "unselected_legacy_transport_variant",
+      "line": 2158,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "custom_gradient",
+      "reason": "selected route does not use filterflow_clipped",
+      "symbol": "_clip_transport_upstream_gradient",
+      "text": "@tf.custom_gradient"
+    },
+    {
+      "classification": "unselected_bad_route_flag_variant",
+      "line": 2170,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "tf.custom_gradient",
+      "reason": "bad route flag gate forbids transport_gradient_mode=filterflow_custom_op for production certification",
+      "symbol": "_filterflow_custom_gradient_transport_matrix",
+      "text": "@tf.custom_gradient"
+    },
+    {
+      "classification": "unselected_bad_route_flag_variant",
+      "line": 2170,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "@tf.custom_gradient",
+      "reason": "bad route flag gate forbids transport_gradient_mode=filterflow_custom_op for production certification",
+      "symbol": "_filterflow_custom_gradient_transport_matrix",
+      "text": "@tf.custom_gradient"
+    },
+    {
+      "classification": "unselected_bad_route_flag_variant",
+      "line": 2170,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "custom_gradient",
+      "reason": "bad route flag gate forbids transport_gradient_mode=filterflow_custom_op for production certification",
+      "symbol": "_filterflow_custom_gradient_transport_matrix",
+      "text": "@tf.custom_gradient"
+    },
+    {
+      "classification": "unselected_bad_route_flag_variant",
+      "line": 2171,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "custom_gradient",
+      "reason": "bad route flag gate forbids transport_gradient_mode=filterflow_custom_op for production certification",
+      "symbol": "_filterflow_custom_gradient_transport_matrix",
+      "text": "def _filterflow_custom_gradient_transport_matrix("
+    },
+    {
+      "classification": "unselected_bad_route_flag_variant",
+      "line": 2196,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "tf.GradientTape",
+      "reason": "bad route flag gate forbids transport_gradient_mode=filterflow_custom_op for production certification",
+      "symbol": "_filterflow_custom_gradient_transport_matrix",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "classification": "unselected_bad_route_flag_variant",
+      "line": 2196,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "GradientTape(",
+      "reason": "bad route flag gate forbids transport_gradient_mode=filterflow_custom_op for production certification",
+      "symbol": "_filterflow_custom_gradient_transport_matrix",
+      "text": "with tf.GradientTape() as tape:"
+    },
+    {
+      "classification": "unselected_bad_route_flag_variant",
+      "line": 2197,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "watch(",
+      "reason": "bad route flag gate forbids transport_gradient_mode=filterflow_custom_op for production certification",
+      "symbol": "_filterflow_custom_gradient_transport_matrix",
+      "text": "tape.watch([x, logw])"
+    },
+    {
+      "classification": "unselected_bad_route_flag_variant",
+      "line": 2207,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": ".gradient(",
+      "reason": "bad route flag gate forbids transport_gradient_mode=filterflow_custom_op for production certification",
+      "symbol": "_filterflow_custom_gradient_transport_matrix",
+      "text": "dx, dlogw = tape.gradient("
+    },
+    {
+      "classification": "unselected_dense_transport_variant",
+      "line": 2664,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "tf.custom_gradient",
+      "reason": "selected route uses streaming transport, not dense transport",
+      "symbol": "_filterflow_manual_dense_finite_transport_matrix_stopped_scale_keys",
+      "text": "@tf.custom_gradient"
+    },
+    {
+      "classification": "unselected_dense_transport_variant",
+      "line": 2664,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "@tf.custom_gradient",
+      "reason": "selected route uses streaming transport, not dense transport",
+      "symbol": "_filterflow_manual_dense_finite_transport_matrix_stopped_scale_keys",
+      "text": "@tf.custom_gradient"
+    },
+    {
+      "classification": "unselected_dense_transport_variant",
+      "line": 2664,
+      "path": "experiments/dpf_implementation/tf_tfp/resampling/annealed_transport_tf.py",
+      "pattern": "custom_gradient",
+      "reason": "selected route uses streaming transport, not dense transport",
+      "symbol": "_filterflow_manual_dense_finite_transport_matrix_stopped_scale_keys",
+      "text": "@tf.custom_gradient"
+    }
+  ],
+  "failed_p1_ids": [],
+  "missing_expected_negative_control_failures": [],
+  "nonclaims": [
+    "audit tooling result only",
+    "not GPU feasibility",
+    "not FD agreement",
+    "no-autodiff certification for the exact manifest route only",
+    "not transferable to a different route manifest"
+  ],
+  "production_findings": [],
+  "production_whitelist_vetoes": [],
+  "raw_production_findings_count": 39,
+  "route_id": "p8_manual_reverse_exact_route_certification",
+  "runtime_sentinel_result": {
+    "full_route_runtime_not_executed": true,
+    "reason": "P2 static negative-control audit; focused sentinel behavior is covered by tests",
+    "sentinel_available": true
+  },
+  "schema_version": "ledh_no_autodiff_audit_result.v1",
+  "unapproved_custom_gradient_boundary_results": []
+}

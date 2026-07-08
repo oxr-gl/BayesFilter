@@ -66,4 +66,3 @@ Proceed to P02 CPU tuning grid with the predeclared grid:
 - `tuning_assignment_epsilons=[0.0625, 0.03125, 0.015625]`
 - at most two focused reruns if the initial grid has no viable row and no
   harness-validity veto fires.
-

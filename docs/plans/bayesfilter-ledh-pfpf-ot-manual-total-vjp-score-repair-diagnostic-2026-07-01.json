@@ -1,0 +1,261 @@
+{
+  "batch_seeds": [
+    81120,
+    81121,
+    81122
+  ],
+  "decision": "The active-transport manual total route agrees with same finite-route tape and literal FD for this tiny CPU float64 diagnostic.  The old stopped route remains a partial derivative and is not the score.",
+  "environment": {
+    "device_scope": "cpu",
+    "intentional_cpu_only": true,
+    "precision": {
+      "active_dtype": "float64",
+      "default_algorithm_target": "ledh_pfpf_ot_tf32",
+      "default_dtype": "float32",
+      "default_execution_target": "gpu",
+      "default_route_acceptance": "accepted_default_use_whenever_possible",
+      "default_route_guidance": "use for BayesFilter DPF LEDH-PFPF-OT work whenever GPU execution and the streaming fixed-branch contract are applicable",
+      "default_route_rationale": "streaming GPU TF32 LEDH-PFPF-OT avoids dense transport/history storage for large-particle DPF transport while preserving explicit reference and fallback arms",
+      "default_target_status": "production_default_by_owner_directive",
+      "default_tf32_mode": "enabled",
+      "dtype": "float64",
+      "fp64_reference_requires_explicit_dtype": true,
+      "historical_module_path": "experiments/dpf_implementation",
+      "precision_default_policy": "production_ledh_pfpf_ot_gpu_tf32",
+      "public_api_exposure": "separately_gated",
+      "scope": "production_ledh_pfpf_ot_gpu_tf32_default_lane",
+      "tf32_execution_enabled": false,
+      "tf32_mode": "disabled",
+      "tf_dtype": "float64"
+    },
+    "visible_cuda_devices": "-1"
+  },
+  "failure_reasons": [],
+  "finite_difference_step": 1e-05,
+  "git_commit": "ef119f8bdb17b206339de92d722344a448eea745",
+  "host": "DESKTOP-RF1Q5IJ",
+  "nonclaims": [
+    "CPU float64 tiny comparator-contract diagnostic only",
+    "not material GPU/TF32 evidence",
+    "tiny SIR total-derivative score repair check only",
+    "not HMC readiness",
+    "not posterior correctness",
+    "not production/default-policy change"
+  ],
+  "passed": true,
+  "policies": [
+    {
+      "interpretation": "no_resampling_total_derivative_matches_literal_fd",
+      "literal_fd_gradient_stopped_route_value": [
+        -264.0752232196064,
+        105.52265999876907,
+        49.001272560644786
+      ],
+      "literal_fd_manual_total_gradient": [
+        -264.0752232196064,
+        105.52265999876907,
+        49.001272560644786
+      ],
+      "literal_fd_raw_full_gradient": [
+        -264.0752232196064,
+        105.52265999876907,
+        49.001272560644786
+      ],
+      "manual_stopped_gradient": [
+        -264.0752229380851,
+        105.52266000173957,
+        49.00127255535264
+      ],
+      "manual_stopped_vs_literal_fd_max_abs": 2.8152129516456625e-07,
+      "manual_tape_pass": true,
+      "manual_total_fd_pass": true,
+      "manual_total_gradient": [
+        -264.0752229380851,
+        105.52266000173957,
+        49.00127255535264
+      ],
+      "manual_total_tape_pass": true,
+      "manual_total_tape_vs_literal_fd_max_abs": 2.81521408851404e-07,
+      "manual_total_vs_literal_fd_max_abs": 2.8152129516456625e-07,
+      "manual_total_vs_raw_full_tape_max_abs": 1.1368683772161603e-13,
+      "manual_total_vs_tape_max_abs": 1.1368683772161603e-13,
+      "manual_vs_stopped_tape_max_abs": 1.1368683772161603e-13,
+      "objective_manual_total_route": -126.80196882099354,
+      "objective_manual_total_tape": -126.80196882099354,
+      "objective_raw_full": -126.80196882099354,
+      "objective_stopped_route": -126.80196882099354,
+      "objective_stopped_tape": -126.80196882099354,
+      "per_seed_manual_stopped_gradient": [
+        [
+          -257.28447350281306,
+          102.98134852520539,
+          45.825793616708836
+        ],
+        [
+          -257.9099253375796,
+          102.53994121533793,
+          44.90475795352488
+        ],
+        [
+          -277.03126997386283,
+          111.0466902646754,
+          56.273266095824205
+        ]
+      ],
+      "per_seed_manual_total_gradient": [
+        [
+          -257.28447350281306,
+          102.98134852520539,
+          45.825793616708836
+        ],
+        [
+          -257.9099253375796,
+          102.53994121533793,
+          44.90475795352488
+        ],
+        [
+          -277.03126997386283,
+          111.0466902646754,
+          56.273266095824205
+        ]
+      ],
+      "policy_pass": true,
+      "raw_full_fd_pass": true,
+      "raw_full_tape_vs_literal_fd_max_abs": 2.81521408851404e-07,
+      "tensorflow_tape_manual_total_gradient": [
+        -264.075222938085,
+        105.5226600017395,
+        49.0012725553526
+      ],
+      "tensorflow_tape_raw_full_gradient": [
+        -264.075222938085,
+        105.5226600017395,
+        49.0012725553526
+      ],
+      "tensorflow_tape_stopped_gradient": [
+        -264.075222938085,
+        105.5226600017395,
+        49.0012725553526
+      ],
+      "transport_policy": "no-resampling"
+    },
+    {
+      "interpretation": "active_transport_manual_total_derivative_matches_literal_fd",
+      "literal_fd_gradient_stopped_route_value": [
+        -275.2256122299457,
+        109.62043035860346,
+        50.127666790444884
+      ],
+      "literal_fd_manual_total_gradient": [
+        -275.2256122299457,
+        109.62043035860346,
+        50.127666790444884
+      ],
+      "literal_fd_raw_full_gradient": [
+        -275.0752390724642,
+        109.5659828244777,
+        50.08042552105962
+      ],
+      "manual_stopped_gradient": [
+        -307.4602758965205,
+        110.18532505703122,
+        45.92361833684763
+      ],
+      "manual_stopped_vs_literal_fd_max_abs": 32.23466366657482,
+      "manual_tape_pass": true,
+      "manual_total_fd_pass": true,
+      "manual_total_gradient": [
+        -275.2256119601286,
+        109.62043033531347,
+        50.12766676480653
+      ],
+      "manual_total_tape_pass": true,
+      "manual_total_tape_vs_literal_fd_max_abs": 2.69821271103865e-07,
+      "manual_total_vs_literal_fd_max_abs": 2.698170646908693e-07,
+      "manual_total_vs_raw_full_tape_max_abs": 0.15037317842427456,
+      "manual_total_vs_tape_max_abs": 4.206412995699793e-12,
+      "manual_vs_stopped_tape_max_abs": 3.581135388230905e-12,
+      "objective_manual_total_route": -127.2208817989578,
+      "objective_manual_total_tape": -127.2208817989578,
+      "objective_raw_full": -127.21008261536453,
+      "objective_stopped_route": -127.2208817989578,
+      "objective_stopped_tape": -127.2208817989578,
+      "per_seed_manual_stopped_gradient": [
+        [
+          -181.80877206897387,
+          74.68394822403144,
+          63.90938047590128
+        ],
+        [
+          -77.27718177142607,
+          55.10166657118035,
+          27.514125857353726
+        ],
+        [
+          -663.2948738491616,
+          200.77036037588186,
+          46.34734867728791
+        ]
+      ],
+      "per_seed_manual_total_gradient": [
+        [
+          -283.0915125907188,
+          112.63722951971151,
+          54.12843010199687
+        ],
+        [
+          -255.9333807198982,
+          101.33070171248363,
+          41.304001724962355
+        ],
+        [
+          -286.6519425697688,
+          114.89335977374523,
+          54.95056846746035
+        ]
+      ],
+      "policy_pass": true,
+      "raw_full_fd_pass": true,
+      "raw_full_tape_vs_literal_fd_max_abs": 2.907598855017568e-07,
+      "tensorflow_tape_manual_total_gradient": [
+        -275.2256119601244,
+        109.62043033531191,
+        50.12766676480537
+      ],
+      "tensorflow_tape_raw_full_gradient": [
+        -275.07523878170434,
+        109.56598279665171,
+        50.08042553594059
+      ],
+      "tensorflow_tape_stopped_gradient": [
+        -307.4602758965241,
+        110.18532505703226,
+        45.923618336849145
+      ],
+      "transport_policy": "active-all"
+    }
+  ],
+  "python_version": "3.11.14",
+  "schema_version": "filter_bench.p8p_sir_active_transport_comparator_contract.v1",
+  "shape": {
+    "batch_size": 3,
+    "num_particles": 3,
+    "obs_dim": 9,
+    "state_dim": 18,
+    "time_steps": 3
+  },
+  "status": "PASS",
+  "tensorflow_version": "2.19.1",
+  "theta": {
+    "log_kappa_scale": 0.02,
+    "log_nu_scale": -0.01,
+    "log_obs_noise_scale": 0.01
+  },
+  "timestamp_utc": "2026-07-01T12:37:59.670077+00:00",
+  "tolerances": {
+    "active_gap_min": 1.0,
+    "fd_tape_atol": 0.0001,
+    "manual_tape_atol": 1e-08,
+    "no_resampling_fd_atol": 0.0001
+  }
+}

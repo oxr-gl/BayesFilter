@@ -6,6 +6,7 @@ from bayesfilter import StatePartition
 from bayesfilter.nonlinear.svd_cut_tf import tf_svd_cut4_log_likelihood
 from bayesfilter.nonlinear.svd_sigma_point_derivatives_tf import (
     TFStructuralFirstDerivatives,
+    tf_principal_sqrt_ukf_score,
     tf_svd_cubature_score,
     tf_svd_cut4_score,
     tf_svd_ukf_score,
@@ -125,13 +126,14 @@ def _smooth_affine_model_and_derivatives(params: tf.Tensor):
     return model, derivatives
 
 
-def _sigma_value(params: tf.Tensor, rule: str) -> tf.Tensor:
+def _sigma_value(params: tf.Tensor, rule: str, *, backend: str | None = None) -> tf.Tensor:
     model, _derivatives = _smooth_affine_model_and_derivatives(params)
     value, _means, _covariances, _diagnostics = tf_svd_sigma_point_log_likelihood(
         OBSERVATIONS,
         model,
         rule=rule,
         innovation_floor=tf.constant(1e-12, dtype=tf.float64),
+        backend=backend,
     )
     return value
 
@@ -216,6 +218,7 @@ def _model_c_value(
         model,
         rule=rule,
         innovation_floor=tf.constant(1e-12, dtype=tf.float64),
+        backend=backend,
     )
     return value
 
@@ -246,6 +249,7 @@ def _finite_difference_score(value_fn, theta: np.ndarray, step: float = 1e-5):
     [
         (tf_svd_cubature_score, "cubature", "tf_svd_cubature_score"),
         (tf_svd_ukf_score, "unscented", "tf_svd_ukf_score"),
+        (tf_principal_sqrt_ukf_score, "unscented", "tf_principal_sqrt_ukf_score"),
     ],
 )
 def test_svd_sigma_point_analytic_score_matches_finite_difference(
@@ -263,18 +267,34 @@ def test_svd_sigma_point_analytic_score_matches_finite_difference(
         spectral_gap_tolerance=tf.constant(1e-7, dtype=tf.float64),
     )
     finite_difference = _finite_difference_score(
-        lambda values: _sigma_value(values, rule),
+        lambda values: _sigma_value(
+            values,
+            rule,
+            backend="tf_principal_sqrt_ukf" if filter_name == "tf_principal_sqrt_ukf_score" else None,
+        ),
         params.numpy(),
     )
 
     np.testing.assert_allclose(result.score.numpy(), finite_difference, rtol=2e-4, atol=2e-4)
     assert result.hessian is None
     assert result.metadata.filter_name == filter_name
-    assert (
-        result.metadata.differentiability_status
-        == "analytic_score_smooth_branch_hessian_deferred"
-    )
-    assert result.diagnostics.extra["derivative_method"] == "analytic_first_order_smooth_branch"
+    if filter_name == "tf_principal_sqrt_ukf_score":
+        assert (
+            result.metadata.differentiability_status
+            == "analytic_score_principal_sqrt_branch_hessian_deferred"
+        )
+        assert result.diagnostics.extra["derivative_method"] == "analytic_first_order_principal_sqrt_sylvester"
+        np.testing.assert_allclose(
+            result.diagnostics.extra["innovation_sylvester_residual"].numpy(),
+            0.0,
+            atol=1e-9,
+        )
+    else:
+        assert (
+            result.metadata.differentiability_status
+            == "analytic_score_smooth_branch_hessian_deferred"
+        )
+        assert result.diagnostics.extra["derivative_method"] == "analytic_first_order_smooth_branch"
     np.testing.assert_allclose(
         result.diagnostics.extra["factor_derivative_reconstruction_residual"].numpy(),
         0.0,

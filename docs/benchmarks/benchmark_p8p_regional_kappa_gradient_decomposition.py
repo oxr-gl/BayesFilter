@@ -1,0 +1,475 @@
+"""P8p SIR regional kappa gradient decomposition diagnostic.
+
+This Phase 1 diagnostic keeps the scalar forward model on the diagonal
+``kappa_j = base_kappa_j * exp(log_kappa_scale)`` while exposing the regional
+chain-rule contributions whose sum is the scalar ``log_kappa_scale`` score.
+It then compares those regional manual contributions with regional finite
+differences that perturb one region at a time.
+"""
+
+from __future__ import annotations
+
+import argparse
+import datetime as _dt
+import json
+import math
+import os
+import platform
+import subprocess
+import sys
+import time
+from pathlib import Path
+from typing import Any
+
+
+_PRE_PARSER = argparse.ArgumentParser(add_help=False, allow_abbrev=False)
+_PRE_PARSER.add_argument("--device-scope", choices=("cpu", "visible"), default="visible")
+_PRE_PARSER.add_argument("--cuda-visible-devices", default=None)
+_PRE_ARGS, _UNKNOWN = _PRE_PARSER.parse_known_args()
+if _PRE_ARGS.device_scope == "cpu":
+    os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+elif _PRE_ARGS.cuda_visible_devices is not None:
+    os.environ["CUDA_VISIBLE_DEVICES"] = _PRE_ARGS.cuda_visible_devices
+os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "1")
+
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+import tensorflow as tf
+
+from docs.benchmarks import benchmark_p8p_parameterized_sir_gradient as p8p
+from docs.benchmarks import benchmark_p8p_regression_fd_reparameterization as p8p_reg
+
+
+def _parse_int_csv(value: str) -> list[int]:
+    parsed = [int(item.strip()) for item in str(value).split(",") if item.strip()]
+    if not parsed:
+        raise ValueError("expected at least one integer")
+    return parsed
+
+
+def _parse_float_csv(value: str, *, expected: int) -> list[float]:
+    parsed = [float(item.strip()) for item in str(value).split(",") if item.strip()]
+    if len(parsed) != expected:
+        raise ValueError(f"expected {expected} comma-separated floats")
+    if not all(math.isfinite(item) for item in parsed):
+        raise ValueError("theta entries must be finite")
+    return parsed
+
+
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__, allow_abbrev=False)
+    parser.add_argument("--batch-seeds", default="81120,81121,81122,81123,81124")
+    parser.add_argument("--time-steps", type=int, default=3)
+    parser.add_argument("--num-particles", type=int, default=64)
+    parser.add_argument("--theta", default="0.02,-0.01,0.01")
+    parser.add_argument("--phase-label", default="P8p regional kappa decomposition")
+    parser.add_argument("--fd-step", type=float, default=0.001)
+    parser.add_argument("--transport-policy", choices=("active-all", "active-odd", "no-resampling"), default="active-all")
+    parser.add_argument("--sinkhorn-iterations", type=int, default=10)
+    parser.add_argument("--sinkhorn-epsilon", type=float, default=1.0)
+    parser.add_argument("--annealed-scaling", type=float, default=0.9)
+    parser.add_argument("--annealed-convergence-threshold", type=float, default=1.0e-3)
+    parser.add_argument("--transport-plan-mode", choices=("streaming", "dense"), default="streaming")
+    parser.add_argument(
+        "--transport-gradient-mode",
+        choices=(
+            "raw",
+            p8p.core_tf.MANUAL_STREAMING_FINITE_TRANSPORT_GRADIENT_MODE,
+            p8p.core_tf.MANUAL_STREAMING_BLOCKWISE_VJP_FINITE_TRANSPORT_GRADIENT_MODE,
+        ),
+        default=p8p.core_tf.MANUAL_STREAMING_FINITE_TRANSPORT_GRADIENT_MODE,
+    )
+    parser.add_argument(
+        "--transport-ad-mode",
+        choices=("stabilized", "diff-scale", "diff-keys", "diff-potentials", "full"),
+        default="stabilized",
+    )
+    parser.add_argument("--row-chunk-size", type=int, default=64)
+    parser.add_argument("--col-chunk-size", type=int, default=64)
+    parser.add_argument("--particle-chunk-size", type=int, default=64)
+    parser.add_argument("--dtype", choices=("float64", "float32"), default="float32")
+    parser.add_argument("--tf32-mode", choices=("default", "enabled", "disabled"), default="enabled")
+    parser.add_argument("--device", default="/GPU:0")
+    parser.add_argument("--device-scope", choices=("cpu", "visible"), default=_PRE_ARGS.device_scope)
+    parser.add_argument("--cuda-visible-devices", default=_PRE_ARGS.cuda_visible_devices)
+    parser.add_argument("--expect-device-kind", choices=("any", "cpu", "gpu"), default="gpu")
+    parser.add_argument(
+        "--seed-microbatch-size",
+        type=int,
+        default=0,
+        help=(
+            "evaluate seed groups sequentially and combine them as an exact "
+            "seed-weighted mean; use 1 to match the prior budget-10 baseline"
+        ),
+    )
+    parser.add_argument("--output", required=True)
+    args = parser.parse_args()
+    args.batch_seeds = _parse_int_csv(args.batch_seeds)
+    args.theta_values = _parse_float_csv(args.theta, expected=3)
+    if args.time_steps <= 0:
+        raise ValueError("time-steps must be positive")
+    if args.num_particles <= 1:
+        raise ValueError("num-particles must be greater than one")
+    if args.fd_step <= 0.0:
+        raise ValueError("fd-step must be positive")
+    if args.sinkhorn_iterations <= 0:
+        raise ValueError("sinkhorn-iterations must be positive")
+    for name in ("row_chunk_size", "col_chunk_size", "particle_chunk_size"):
+        if getattr(args, name) <= 0:
+            raise ValueError(f"{name.replace('_', '-')} must be positive")
+    if args.seed_microbatch_size < 0:
+        raise ValueError("seed-microbatch-size must be nonnegative")
+    return args
+
+
+def _git_commit() -> str:
+    try:
+        return subprocess.check_output(
+            ["git", "rev-parse", "HEAD"],
+            cwd=ROOT,
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).strip()
+    except Exception:
+        return "unavailable"
+
+
+def _to_float_matrix(tensor: tf.Tensor) -> list[list[float]]:
+    return [[float(value) for value in row] for row in tf.convert_to_tensor(tensor).numpy().tolist()]
+
+
+def _validate_device(tensors: tuple[tf.Tensor, ...], expect_device_kind: str) -> list[str]:
+    devices = [tensor.device for tensor in tensors]
+    if expect_device_kind == "gpu":
+        if not all("GPU" in device.upper() for device in devices):
+            raise RuntimeError(f"expected GPU tensors, got {devices}")
+    elif expect_device_kind == "cpu":
+        if not all("CPU" in device.upper() for device in devices):
+            raise RuntimeError(f"expected CPU tensors, got {devices}")
+    return devices
+
+
+def _value_for_regional_kappa(
+    tensors: dict[str, tf.Tensor],
+    args: argparse.Namespace,
+    theta_values: list[float],
+    regional_log_kappa: tf.Tensor,
+) -> tf.Tensor:
+    log_kappa_scale, log_nu_scale, log_obs_noise_scale = p8p._theta_components(theta_values)
+    del log_kappa_scale
+    base_kappa = tf.cast(p8p._SIR_BASE_KAPPA, p8p.DTYPE)  # noqa: SLF001
+    scaled = p8p._scaled_parameters(
+        (
+            tf.constant(theta_values[0], dtype=p8p.DTYPE),
+            log_nu_scale,
+            log_obs_noise_scale,
+        )
+    )
+    callbacks = p8p._make_sir_callbacks_from_scaled_parameters(
+        tensors=tensors,
+        seeds=args.batch_seeds,
+        args=args,
+        kappa=base_kappa * tf.exp(tf.convert_to_tensor(regional_log_kappa, dtype=p8p.DTYPE)),
+        nu=scaled["nu"],
+        observation_covariance=scaled["observation_covariance"],
+    )
+    value = p8p.streaming_tf.streaming_batched_ledh_pfpf_ot_value_core_tf(
+        observations=tensors["observations"],
+        initial_particles=tensors["initial_particles"],
+        fixed_resampling_mask=tensors["fixed_resampling_mask"],
+        transition_matrix=tensors["transition_matrix"],
+        transition_covariance=tensors["transition_covariance"],
+        observation_covariance=callbacks["observation_covariance"],
+        observation_fn=callbacks["observation_fn"],
+        observation_jacobian_fn=callbacks["observation_jacobian_fn"],
+        observation_residual_fn=callbacks["observation_residual_fn"],
+        transition_log_density_fn=callbacks["transition_log_density_fn"],
+        observation_log_density_fn=callbacks["observation_log_density_fn"],
+        prior_mean_fn=callbacks["prior_mean_fn"],
+        pre_flow_step_fn=callbacks["pre_flow_step_fn"],
+        sinkhorn_epsilon=args.sinkhorn_epsilon,
+        annealed_scaling=args.annealed_scaling,
+        annealed_convergence_threshold=args.annealed_convergence_threshold,
+        sinkhorn_iterations=args.sinkhorn_iterations,
+        transport_gradient_mode=args.transport_gradient_mode,
+        transport_plan_mode=args.transport_plan_mode,
+        transport_ad_mode=args.transport_ad_mode,
+        row_chunk_size=args.row_chunk_size,
+        col_chunk_size=args.col_chunk_size,
+        particle_chunk_size=args.particle_chunk_size,
+        return_history=False,
+    ).log_likelihood
+    return tf.reduce_mean(value)
+
+
+def _regional_fd_diagnostics(
+    tensors: dict[str, tf.Tensor],
+    args: argparse.Namespace,
+    theta_values: list[float],
+) -> list[dict[str, Any]]:
+    base = tf.fill(
+        [int(tf.shape(tf.cast(p8p._SIR_BASE_KAPPA, p8p.DTYPE))[0])],  # noqa: SLF001
+        tf.constant(theta_values[0], dtype=p8p.DTYPE),
+    )
+    step = tf.constant(float(args.fd_step), dtype=p8p.DTYPE)
+    diagnostics = []
+    for region in range(int(base.shape[0])):
+        direction = tf.one_hot(region, int(base.shape[0]), dtype=p8p.DTYPE)
+        plus = base + step * direction
+        minus = base - step * direction
+        plus_objective = _value_for_regional_kappa(tensors, args, theta_values, plus)
+        minus_objective = _value_for_regional_kappa(tensors, args, theta_values, minus)
+        central = (plus_objective - minus_objective) / (tf.constant(2.0, p8p.DTYPE) * step)
+        diagnostics.append(
+            {
+                "region": region,
+                "fd_step": float(args.fd_step),
+                "plus_objective": float(plus_objective.numpy()),
+                "minus_objective": float(minus_objective.numpy()),
+                "central_difference": float(central.numpy()),
+                "finite": bool(tf.reduce_all(tf.math.is_finite(central)).numpy()),
+            }
+        )
+    return diagnostics
+
+
+def _manual_regional_diagnostic_for_contexts(
+    contexts: list[dict[str, Any]],
+    theta_values: list[float],
+) -> dict[str, tf.Tensor]:
+    log_likelihoods = []
+    per_seed_gradients = []
+    regional_per_seed_values = []
+    regional_components = []
+    for context in contexts:
+        manual = p8p._manual_value_and_score_from_components(
+            context["tensors"],
+            context["args"],
+            p8p._theta_components(theta_values),
+            return_score_decomposition=True,
+            return_regional_kappa_decomposition=True,
+        )
+        log_likelihoods.append(tf.convert_to_tensor(manual["log_likelihood"], dtype=p8p.DTYPE))
+        per_seed_gradients.append(
+            tf.convert_to_tensor(manual["per_seed_gradient"], dtype=p8p.DTYPE)
+        )
+        regional_per_seed_values.append(
+            tf.convert_to_tensor(manual["regional_kappa_score_per_seed"], dtype=p8p.DTYPE)
+        )
+        regional_components.append(
+            tf.convert_to_tensor(manual["regional_kappa_score_components"], dtype=p8p.DTYPE)
+        )
+    log_likelihood = tf.concat(log_likelihoods, axis=0)
+    per_seed_gradient = tf.concat(per_seed_gradients, axis=0)
+    regional_per_seed = tf.concat(regional_per_seed_values, axis=0)
+    regional_kappa_components = tf.concat(regional_components, axis=1)
+    return {
+        "objective": tf.reduce_mean(log_likelihood),
+        "log_likelihood": log_likelihood,
+        "gradient_tensor": tf.reduce_mean(per_seed_gradient, axis=0),
+        "per_seed_gradient": per_seed_gradient,
+        "regional_kappa_score_components": regional_kappa_components,
+        "regional_kappa_score_per_seed": regional_per_seed,
+    }
+
+
+def _value_for_regional_kappa_contexts(
+    contexts: list[dict[str, Any]],
+    theta_values: list[float],
+    regional_log_kappa: tf.Tensor,
+) -> tf.Tensor:
+    weighted_objectives = []
+    total_seeds = 0
+    for context in contexts:
+        objective = _value_for_regional_kappa(
+            context["tensors"],
+            context["args"],
+            theta_values,
+            regional_log_kappa,
+        )
+        seed_count = len(context["seeds"])
+        weighted_objectives.append(objective * tf.cast(seed_count, p8p.DTYPE))
+        total_seeds += seed_count
+    return tf.add_n(weighted_objectives) / tf.cast(total_seeds, p8p.DTYPE)
+
+
+def _regional_fd_diagnostics_for_contexts(
+    contexts: list[dict[str, Any]],
+    theta_values: list[float],
+    fd_step: float,
+) -> list[dict[str, Any]]:
+    base = tf.fill(
+        [int(tf.shape(tf.cast(p8p._SIR_BASE_KAPPA, p8p.DTYPE))[0])],  # noqa: SLF001
+        tf.constant(theta_values[0], dtype=p8p.DTYPE),
+    )
+    step = tf.constant(float(fd_step), dtype=p8p.DTYPE)
+    diagnostics = []
+    for region in range(int(base.shape[0])):
+        direction = tf.one_hot(region, int(base.shape[0]), dtype=p8p.DTYPE)
+        plus = base + step * direction
+        minus = base - step * direction
+        plus_objective = _value_for_regional_kappa_contexts(contexts, theta_values, plus)
+        minus_objective = _value_for_regional_kappa_contexts(contexts, theta_values, minus)
+        central = (plus_objective - minus_objective) / (tf.constant(2.0, p8p.DTYPE) * step)
+        diagnostics.append(
+            {
+                "region": region,
+                "fd_step": float(fd_step),
+                "plus_objective": float(plus_objective.numpy()),
+                "minus_objective": float(minus_objective.numpy()),
+                "central_difference": float(central.numpy()),
+                "finite": bool(tf.reduce_all(tf.math.is_finite(central)).numpy()),
+            }
+        )
+    return diagnostics
+
+
+def _mcse_by_region(per_seed_regional: tf.Tensor) -> dict[str, Any]:
+    tensor = tf.convert_to_tensor(per_seed_regional, dtype=p8p.DTYPE)
+    batch_size = int(tensor.shape[0])
+    if batch_size <= 1:
+        return {"available": False, "reason": "at least two seeds required"}
+    mean = tf.reduce_mean(tensor, axis=0)
+    centered = tensor - mean[tf.newaxis, :]
+    sample_sd = tf.sqrt(
+        tf.reduce_sum(tf.square(centered), axis=0)
+        / tf.cast(batch_size - 1, p8p.DTYPE)
+    )
+    mcse = sample_sd / tf.sqrt(tf.cast(batch_size, p8p.DTYPE))
+    return {
+        "available": True,
+        "batch_size": batch_size,
+        "mean": [float(item) for item in mean.numpy().tolist()],
+        "sample_sd": [float(item) for item in sample_sd.numpy().tolist()],
+        "standard_error_of_batch_mean": [float(item) for item in mcse.numpy().tolist()],
+    }
+
+
+def main() -> None:
+    args = _parse_args()
+    precision = p8p._configure_precision(args)
+    physical_gpus, logical_gpus = p8p._configure_gpus()
+    contexts, sir_semantics = p8p_reg._build_microbatch_contexts(args)
+    start = time.perf_counter()
+    memory_before = p8p._gpu_memory_info()
+    with tf.device(args.device):
+        manual = _manual_regional_diagnostic_for_contexts(
+            contexts,
+            args.theta_values,
+        )
+        objective = tf.convert_to_tensor(manual["objective"], dtype=p8p.DTYPE)
+        gradient = tf.convert_to_tensor(manual["gradient_tensor"], dtype=p8p.DTYPE)
+        per_seed_gradient = tf.convert_to_tensor(manual["per_seed_gradient"], dtype=p8p.DTYPE)
+        regional_per_seed = tf.convert_to_tensor(
+            manual["regional_kappa_score_per_seed"],
+            dtype=p8p.DTYPE,
+        )
+        regional_mean = tf.reduce_mean(regional_per_seed, axis=0)
+        scalar_from_regions = tf.reduce_sum(regional_mean)
+        scalar_manual = gradient[p8p.PARAMETER_NAMES.index("log_kappa_scale")]
+        reconstruction_delta = scalar_from_regions - scalar_manual
+        regional_fd = _regional_fd_diagnostics_for_contexts(
+            contexts,
+            args.theta_values,
+            args.fd_step,
+        )
+    elapsed = time.perf_counter() - start
+    memory_after = p8p._gpu_memory_info()
+    output_devices = _validate_device((objective, gradient), args.expect_device_kind)
+    fd_sum = sum(float(item["central_difference"]) for item in regional_fd)
+    result = {
+        "schema_version": "filter_bench.p8p_regional_kappa_gradient_decomposition.v1",
+        "timestamp_utc": _dt.datetime.now(tz=_dt.timezone.utc).isoformat(),
+        "host": platform.node(),
+        "python_version": platform.python_version(),
+        "tensorflow_version": tf.__version__,
+        "git_commit": _git_commit(),
+        "phase": args.phase_label,
+        "status": "pass",
+        "elapsed_seconds": elapsed,
+        "physical_gpus": physical_gpus,
+        "logical_gpus": logical_gpus,
+        "device": args.device,
+        "device_scope": args.device_scope,
+        "expect_device_kind": args.expect_device_kind,
+        "output_devices": output_devices,
+        "precision": precision,
+        "shape": {
+            "batch_size": len(args.batch_seeds),
+            "seed_microbatch_count": len(contexts),
+            "seed_microbatch_size": int(args.seed_microbatch_size),
+            "time_steps": args.time_steps,
+            "num_particles": args.num_particles,
+            "state_dim": 18,
+            "obs_dim": 9,
+            "region_count": int(regional_mean.shape[0]),
+        },
+        "sir_semantics": sir_semantics,
+        "theta": dict(zip(p8p.PARAMETER_NAMES, [float(x) for x in args.theta_values], strict=True)),
+        "batch_seeds": [int(seed) for seed in args.batch_seeds],
+        "objective": float(objective.numpy()),
+        "scalar_manual_gradient": {
+            name: float(value)
+            for name, value in zip(
+                p8p.PARAMETER_NAMES,
+                gradient.numpy().tolist(),
+                strict=True,
+            )
+        },
+        "per_seed_gradient_contributions": _to_float_matrix(per_seed_gradient),
+        "regional_log_kappa_manual_mean": [float(item) for item in regional_mean.numpy().tolist()],
+        "regional_log_kappa_per_seed": _to_float_matrix(regional_per_seed),
+        "regional_log_kappa_mcse": _mcse_by_region(regional_per_seed),
+        "regional_log_kappa_component_sums": _to_float_matrix(
+            tf.reduce_sum(manual["regional_kappa_score_components"], axis=1)
+        ),
+        "manual_score_component_names": list(p8p.MANUAL_SCORE_COMPONENT_NAMES),
+        "chain_rule_reconstruction": {
+            "scalar_log_kappa_manual": float(scalar_manual.numpy()),
+            "sum_regional_log_kappa_manual": float(scalar_from_regions.numpy()),
+            "sum_minus_scalar": float(reconstruction_delta.numpy()),
+            "abs_sum_minus_scalar": float(tf.abs(reconstruction_delta).numpy()),
+            "tolerance": 1.0e-4,
+            "pass": bool(tf.abs(reconstruction_delta).numpy() <= 1.0e-4),
+        },
+        "regional_fd": regional_fd,
+        "regional_fd_sum": fd_sum,
+        "regional_fd_sum_minus_scalar_manual": fd_sum - float(scalar_manual.numpy()),
+        "regional_fd_sum_minus_sum_regional_manual": fd_sum - float(scalar_from_regions.numpy()),
+        "transport_policy": args.transport_policy,
+        "transport": {
+            "value_core_mode": "streaming",
+            "transport_plan_mode": args.transport_plan_mode,
+            "transport_ad_mode": args.transport_ad_mode,
+            "gradient_mode": args.transport_gradient_mode,
+            "row_chunk_size": args.row_chunk_size,
+            "col_chunk_size": args.col_chunk_size,
+            "particle_chunk_size": args.particle_chunk_size,
+            "sinkhorn_iterations": args.sinkhorn_iterations,
+            "sinkhorn_epsilon": args.sinkhorn_epsilon,
+            "annealed_scaling": args.annealed_scaling,
+            "annealed_convergence_threshold": args.annealed_convergence_threshold,
+        },
+        "gpu_memory_info_before": memory_before,
+        "gpu_memory_info_after": memory_after,
+        "nonclaims": list(p8p.NONCLAIMS)
+        + [
+            "regional kappa diagnostic only",
+            "not a production regional parameterization",
+            "not HMC readiness evidence",
+        ],
+    }
+    if not result["chain_rule_reconstruction"]["pass"]:
+        result["status"] = "blocked_or_failed"
+    output_path = Path(args.output)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    print(json.dumps(result, indent=2, sort_keys=True))
+    if result["status"] != "pass":
+        raise SystemExit(1)
+
+
+if __name__ == "__main__":
+    main()

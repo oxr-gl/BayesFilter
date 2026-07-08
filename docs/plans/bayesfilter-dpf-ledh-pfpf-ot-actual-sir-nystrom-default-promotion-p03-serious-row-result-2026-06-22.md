@@ -104,4 +104,3 @@ Skip P04 repair.  Continue to P05 replicated ladder with GPU1 preferred:
 `N=[1024,2048,4096,8192]` if feasible, or a shorter reviewed ladder if GPU time
 is constrained.  Keep ranking/default language blocked until uncertainty-aware
 evidence is available.
-

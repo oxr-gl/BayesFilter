@@ -141,4 +141,3 @@ def test_main_writes_json_and_markdown(tmp_path: Path, monkeypatch) -> None:
     assert loaded["rows"][0]["route"] == "nystrom"
     assert loaded["rows"][0]["transport_matrix_materialized"] is False
     assert markdown.exists()
-

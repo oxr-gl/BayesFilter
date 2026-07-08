@@ -53,6 +53,7 @@ from experiments.dpf_implementation.tf_tfp.filters import (
     experimental_batched_ledh_pfpf_ot_tf as core_tf,
 )
 from experiments.dpf_implementation.tf_tfp.resampling import annealed_transport_tf
+from experiments.dpf_implementation.tf_tfp.runners.common_tf import load_json
 
 
 DEFAULT_DTYPE_NAME = "float32"
@@ -97,6 +98,11 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--particle-chunk-size", type=int, default=256)
     parser.add_argument("--warmstart-mode", choices=("none", "heuristic", "learned"), default="none")
     parser.add_argument("--warmstart-hidden-dim", type=int, default=32)
+    parser.add_argument("--warmstart-checkpoint", default=None)
+    parser.add_argument("--target-object-convention-id", default=None)
+    parser.add_argument("--dataset-manifest", default=None)
+    parser.add_argument("--checkpoint-manifest", default=None)
+    parser.add_argument("--allow-random-learned-stub", action="store_true")
     parser.add_argument("--return-history", action="store_true")
     parser.add_argument("--warmups", type=int, default=0)
     parser.add_argument("--repeats", type=int, default=1)
@@ -131,6 +137,32 @@ def _parse_args() -> argparse.Namespace:
         raise ValueError("chunk sizes must be positive")
     if args.include_output_arrays and not args.return_history:
         raise ValueError("--include-output-arrays requires --return-history")
+    learned_lineage_flags = {
+        "--target-object-convention-id": args.target_object_convention_id,
+        "--dataset-manifest": args.dataset_manifest,
+        "--checkpoint-manifest": args.checkpoint_manifest,
+    }
+    if args.warmstart_mode != "learned":
+        provided = [flag for flag, value in learned_lineage_flags.items() if value is not None]
+        if provided:
+            raise ValueError(
+                "learned-mode provenance flags are only valid with --warmstart-mode learned: "
+                + ", ".join(provided)
+            )
+    elif args.allow_random_learned_stub and args.warmstart_checkpoint is None:
+        provided = [flag for flag, value in learned_lineage_flags.items() if value is not None]
+        if provided:
+            raise ValueError(
+                "random learned stub mode cannot carry dataset/checkpoint provenance flags: "
+                + ", ".join(provided)
+            )
+    else:
+        missing = [flag for flag, value in learned_lineage_flags.items() if value is None]
+        if missing:
+            raise ValueError(
+                "checkpoint-backed learned mode requires provenance flags: "
+                + ", ".join(missing)
+            )
     return args
 
 
@@ -344,10 +376,22 @@ def _make_observation_log_density(
     return _observation_log_density
 
 
-def _make_warmstart_fn(args: argparse.Namespace):
-    if args.warmstart_mode == "none":
-        return None
-    if args.warmstart_mode == "heuristic":
+def _prepare_warmstart_fn(
+    args: argparse.Namespace,
+    tensors: dict[str, tf.Tensor],
+    *,
+    warmstart_mode_override: str | None = None,
+) -> tuple[callable | None, dict[str, Any]]:
+    mode = args.warmstart_mode if warmstart_mode_override is None else warmstart_mode_override
+    if mode == "none":
+        return None, {
+            "mode": "none",
+            "checkpoint_path": None,
+            "checkpoint_loaded": False,
+            "random_stub_allowed": False,
+            **_manifest_placeholders(),
+        }
+    if mode == "heuristic":
         def _heuristic(scaled_particles: tf.Tensor, log_weights: tf.Tensor, mask: tf.Tensor, epsilon: tf.Tensor):
             model = _HeuristicWarmstartModel()
             return model.predict_warmstart_state(
@@ -356,12 +400,49 @@ def _make_warmstart_fn(args: argparse.Namespace):
                 epsilon,
                 valid_mask=mask,
             )
-        return _heuristic
+        return _heuristic, {
+            "mode": "heuristic",
+            "checkpoint_path": None,
+            "checkpoint_loaded": False,
+            "random_stub_allowed": False,
+            **_manifest_placeholders(),
+        }
+    if args.warmstart_checkpoint is None and not args.allow_random_learned_stub:
+        raise ValueError(
+            "learned warmstart mode requires --warmstart-checkpoint unless "
+            "--allow-random-learned-stub is set"
+        )
     config = warmstart_tf.BatchedAnnealedWarmstartConfigTF(
         particle_hidden_dim=args.warmstart_hidden_dim,
         pooled_hidden_dim=args.warmstart_hidden_dim,
     )
     model = warmstart_tf.BatchedAnnealedWarmstartStudentTF(config)
+    # Build variables on a representative tensor shape before optionally loading weights.
+    batch_size = int(tensors["initial_particles"].shape[0])
+    num_particles = int(tensors["initial_particles"].shape[1])
+    dummy_log_weights = tf.fill(
+        [batch_size, num_particles],
+        -tf.math.log(tf.cast(num_particles, DTYPE)),
+    )
+    _ = model(
+        tf.cast(tensors["initial_particles"], DTYPE),
+        dummy_log_weights,
+        epsilon=tf.cast(args.sinkhorn_epsilon, DTYPE),
+        training=False,
+    )
+    checkpoint_loaded = False
+    checkpoint_path = None
+    lineage_metadata = _manifest_placeholders()
+    if args.warmstart_checkpoint is not None:
+        checkpoint_path = str(Path(args.warmstart_checkpoint).expanduser().resolve())
+        model.load_weights(checkpoint_path)
+        checkpoint_loaded = True
+        lineage_metadata = _assemble_learned_lineage_metadata(
+            target_object_convention_id=args.target_object_convention_id,
+            dataset_manifest=args.dataset_manifest,
+            checkpoint_manifest=args.checkpoint_manifest,
+            checkpoint_path=checkpoint_path,
+        )
 
     def _learned(scaled_particles: tf.Tensor, log_weights: tf.Tensor, mask: tf.Tensor, epsilon: tf.Tensor):
         return warmstart_tf.predict_batched_annealed_warmstart_state_tf(
@@ -372,7 +453,113 @@ def _make_warmstart_fn(args: argparse.Namespace):
             valid_mask=mask,
         )
 
-    return _learned
+    return _learned, {
+        "mode": "learned",
+        "checkpoint_path": checkpoint_path,
+        "checkpoint_loaded": checkpoint_loaded,
+        "random_stub_allowed": bool(args.allow_random_learned_stub),
+        "model_config": {
+            "particle_hidden_dim": args.warmstart_hidden_dim,
+            "pooled_hidden_dim": args.warmstart_hidden_dim,
+        },
+        **lineage_metadata,
+    }
+
+
+def _manifest_placeholders() -> dict[str, Any]:
+    return {
+        "target_object_convention_id": None,
+        "dataset_manifest_path": None,
+        "dataset_manifest_reproducibility_digest": None,
+        "checkpoint_manifest_path": None,
+        "checkpoint_manifest_reproducibility_digest": None,
+        "checkpoint_reference": None,
+    }
+
+
+def _resolve_repo_reference(path: Path) -> str:
+    resolved = path.expanduser().resolve()
+    try:
+        return str(resolved.relative_to(ROOT))
+    except ValueError:
+        return str(resolved)
+
+
+def _load_required_manifest(path_str: str, *, manifest_label: str) -> tuple[Path, dict[str, Any]]:
+    manifest_path = Path(path_str).expanduser().resolve()
+    payload = load_json(manifest_path)
+    reproducibility_digest = payload.get("reproducibility_digest")
+    if reproducibility_digest is None:
+        raise ValueError(f"{manifest_label} manifest must contain top-level reproducibility_digest")
+    return manifest_path, payload
+
+
+def _require_matching_target_object_convention(
+    payload: dict[str, Any],
+    *,
+    expected: str,
+    manifest_label: str,
+) -> None:
+    observed = payload.get("target_object_convention_id")
+    if observed != expected:
+        raise ValueError(
+            f"{manifest_label} manifest target_object_convention_id mismatch: "
+            f"expected {expected!r}, observed {observed!r}"
+        )
+
+
+def _assemble_learned_lineage_metadata(
+    *,
+    target_object_convention_id: str,
+    dataset_manifest: str,
+    checkpoint_manifest: str,
+    checkpoint_path: str | None,
+) -> dict[str, Any]:
+    dataset_manifest_path, dataset_payload = _load_required_manifest(
+        dataset_manifest,
+        manifest_label="dataset",
+    )
+    checkpoint_manifest_path, checkpoint_payload = _load_required_manifest(
+        checkpoint_manifest,
+        manifest_label="checkpoint",
+    )
+    _require_matching_target_object_convention(
+        dataset_payload,
+        expected=target_object_convention_id,
+        manifest_label="dataset",
+    )
+    _require_matching_target_object_convention(
+        checkpoint_payload,
+        expected=target_object_convention_id,
+        manifest_label="checkpoint",
+    )
+    expected_dataset_path = _resolve_repo_reference(dataset_manifest_path)
+    expected_dataset_digest = dataset_payload["reproducibility_digest"]
+    observed_dataset_path = checkpoint_payload.get("dataset_manifest_path")
+    observed_dataset_digest = checkpoint_payload.get("dataset_manifest_reproducibility_digest")
+    if observed_dataset_path != expected_dataset_path:
+        raise ValueError(
+            "checkpoint manifest dataset_manifest_path mismatch: "
+            f"expected {expected_dataset_path!r}, observed {observed_dataset_path!r}"
+        )
+    if observed_dataset_digest != expected_dataset_digest:
+        raise ValueError(
+            "checkpoint manifest dataset_manifest_reproducibility_digest mismatch: "
+            f"expected {expected_dataset_digest!r}, observed {observed_dataset_digest!r}"
+        )
+    checkpoint_reference = checkpoint_payload.get("checkpoint_reference")
+    if checkpoint_reference is None:
+        checkpoint_reference = checkpoint_payload.get("checkpoint_path")
+    if checkpoint_reference is None and checkpoint_path is not None:
+        checkpoint_reference = _resolve_repo_reference(Path(checkpoint_path))
+    return {
+        "target_object_convention_id": target_object_convention_id,
+        "dataset_manifest_path": expected_dataset_path,
+        "dataset_manifest_reproducibility_digest": expected_dataset_digest,
+        "checkpoint_manifest_path": _resolve_repo_reference(checkpoint_manifest_path),
+        "checkpoint_manifest_reproducibility_digest": checkpoint_payload["reproducibility_digest"],
+        "checkpoint_reference": checkpoint_reference,
+    }
 
 
 class _HeuristicWarmstartModel:
@@ -388,7 +575,12 @@ class _HeuristicWarmstartModel:
         )
 
 
-def _value_from_tensors(tensors: dict[str, tf.Tensor], args: argparse.Namespace):
+def _value_from_tensors(
+    tensors: dict[str, tf.Tensor],
+    args: argparse.Namespace,
+    *,
+    retained_teacher_warmstart_fn: callable | None = None,
+):
     kwargs = dict(
         observations=tensors["observations"],
         initial_particles=tensors["initial_particles"],
@@ -415,7 +607,7 @@ def _value_from_tensors(tensors: dict[str, tf.Tensor], args: argparse.Namespace)
         col_chunk_size=args.col_chunk_size,
         particle_chunk_size=args.particle_chunk_size,
         return_history=args.return_history,
-        retained_teacher_warmstart_fn=_make_warmstart_fn(args),
+        retained_teacher_warmstart_fn=retained_teacher_warmstart_fn,
     )
     if args.proposal_mode == "tensor":
         kwargs["pre_flow_particles"] = tensors["pre_flow_particles"]
@@ -486,15 +678,41 @@ def main() -> None:
     fixture = _fixture(args)
     tensors = _to_tensors(fixture, args)
 
-    @tf.function(jit_compile=True, reduce_retracing=True)
-    def compiled_outputs() -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
-        result = _value_from_tensors(tensors, args)
-        return (
-            result.log_likelihood,
-            result.filtered_means,
-            result.filtered_variances,
-            result.ess_by_time,
-        )
+    include_cold_reference = args.warmstart_mode != "none"
+    warmstart_fn, warmstart_metadata = _prepare_warmstart_fn(args, tensors, warmstart_mode_override=args.warmstart_mode)
+    cold_warmstart_fn, _cold_warmstart_metadata = _prepare_warmstart_fn(args, tensors, warmstart_mode_override="none")
+
+    if include_cold_reference:
+        @tf.function(jit_compile=True, reduce_retracing=True)
+        def compiled_outputs() -> tuple[tf.Tensor, ...]:
+            result = _value_from_tensors(tensors, args, retained_teacher_warmstart_fn=warmstart_fn)
+            cold_result = _value_from_tensors(tensors, args, retained_teacher_warmstart_fn=cold_warmstart_fn)
+            return (
+                result.log_likelihood,
+                result.filtered_means,
+                result.filtered_variances,
+                result.ess_by_time,
+                result.final_particles,
+                result.max_row_residual,
+                result.max_column_residual,
+                cold_result.log_likelihood,
+                cold_result.final_particles,
+                cold_result.max_row_residual,
+                cold_result.max_column_residual,
+            )
+    else:
+        @tf.function(jit_compile=True, reduce_retracing=True)
+        def compiled_outputs() -> tuple[tf.Tensor, ...]:
+            result = _value_from_tensors(tensors, args, retained_teacher_warmstart_fn=warmstart_fn)
+            return (
+                result.log_likelihood,
+                result.filtered_means,
+                result.filtered_variances,
+                result.ess_by_time,
+                result.final_particles,
+                result.max_row_residual,
+                result.max_column_residual,
+            )
 
     with tf.device(args.device):
         memory_before = _gpu_memory_info()
@@ -514,11 +732,33 @@ def main() -> None:
             timings.append(time.perf_counter() - start)
         memory_after = _gpu_memory_info()
 
-    value, filtered_means, filtered_variances, ess_by_time = outputs
+    if include_cold_reference:
+        (
+            value,
+            filtered_means,
+            filtered_variances,
+            ess_by_time,
+            final_particles,
+            max_row_residual,
+            max_column_residual,
+            cold_value,
+            cold_final_particles,
+            cold_max_row_residual,
+            cold_max_column_residual,
+        ) = outputs
+        cold_value_np = cold_value.numpy()
+        cold_final_particles_np = cold_final_particles.numpy()
+    else:
+        value, filtered_means, filtered_variances, ess_by_time, final_particles, max_row_residual, max_column_residual = outputs
+        cold_value_np = None
+        cold_final_particles_np = None
+        cold_max_row_residual = None
+        cold_max_column_residual = None
     value_np = value.numpy()
     means_np = filtered_means.numpy()
     variances_np = filtered_variances.numpy()
     ess_np = ess_by_time.numpy()
+    final_particles_np = final_particles.numpy()
     output_devices = _validate_device((value,), args.expect_device_kind)
     result: dict[str, Any] = {
         "timestamp_utc": _dt.datetime.now(tz=_dt.timezone.utc).isoformat(),
@@ -554,6 +794,7 @@ def main() -> None:
         },
         "proposal_mode": args.proposal_mode,
         "warmstart_mode": args.warmstart_mode,
+        "warmstart_metadata": warmstart_metadata,
         "stores_full_pre_flow_particles": args.proposal_mode == "tensor",
         "particle_chunk_size": args.particle_chunk_size,
         "return_history": bool(args.return_history),
@@ -572,25 +813,42 @@ def main() -> None:
             "filtered_means": list(means_np.shape),
             "filtered_variances": list(variances_np.shape),
             "ess_by_time": list(ess_np.shape),
+            "final_particles": list(final_particles_np.shape),
         },
         "finite_output": bool(
             np.isfinite(value_np).all()
             and np.isfinite(means_np).all()
             and np.isfinite(variances_np).all()
             and np.isfinite(ess_np).all()
+            and np.isfinite(final_particles_np).all()
         ),
         "log_likelihood_preview": _preview(value_np),
         "filtered_means_preview": _preview(means_np),
         "filtered_variances_preview": _preview(variances_np),
         "ess_by_time_preview": _preview(ess_np),
+        "final_particles_preview": _preview(final_particles_np),
+        "teacher_replay_rmse_proxy": float(np.sqrt(np.mean(np.square(final_particles_np)))),
+        "teacher_replay_max_abs_proxy": float(np.max(np.abs(final_particles_np))),
+        "max_row_residual": float(max_row_residual.numpy()),
+        "max_column_residual": float(max_column_residual.numpy()),
         "nonclaims": list(NONCLAIMS),
     }
+    if include_cold_reference:
+        delta = final_particles_np - cold_final_particles_np
+        result.update({
+            "cold_log_likelihood_preview": _preview(cold_value_np),
+            "teacher_replay_rmse": float(np.sqrt(np.mean(np.square(delta)))),
+            "teacher_replay_max_abs": float(np.max(np.abs(delta))),
+            "cold_max_row_residual": float(cold_max_row_residual.numpy()),
+            "cold_max_column_residual": float(cold_max_column_residual.numpy()),
+        })
     if args.include_output_arrays:
         result["output_arrays"] = {
             "log_likelihood": value_np.tolist(),
             "filtered_means": means_np.tolist(),
             "filtered_variances": variances_np.tolist(),
             "ess_by_time": ess_np.tolist(),
+            "final_particles": final_particles_np.tolist(),
         }
     if not result["finite_output"]:
         raise FloatingPointError("streaming compiled benchmark emitted non-finite value")

@@ -1,0 +1,263 @@
+{
+  "admission_status": "n10000_same_target_value_admitted",
+  "average_log_likelihood_by_seed": [
+    -45.12174987792969,
+    -45.13401794433594,
+    -45.17232971191406,
+    -45.15927734375,
+    -45.12016296386719
+  ],
+  "batch_seeds": [
+    81120,
+    81121,
+    81122,
+    81123,
+    81124
+  ],
+  "correction_formula": "transition_log_density + observation_log_density - pre_flow_log_density + forward_log_det",
+  "execution_environment_note": "CPU-hidden normalization only; no model execution or GPU evidence.",
+  "finite_output": true,
+  "flow_observation_policy": "sir_infectious_components_gaussian_flow_observation",
+  "forward_contract": {
+    "correction_formula": "transition_log_density + observation_log_density - pre_flow_log_density + forward_log_det",
+    "estimator_kind": "finite_N_fixed_randomness_ledh_log_likelihood_estimator",
+    "full_leaderboard_row": true,
+    "metadata": {
+      "batch_seeds": [
+        81120,
+        81121,
+        81122,
+        81123,
+        81124
+      ],
+      "num_particles": 10000,
+      "time_steps": 20
+    },
+    "nonclaims": [
+      "metadata alone is not fixed-SIR value admission",
+      "metadata alone is not fixed-SIR score evidence"
+    ],
+    "output_tensor_field": "log_likelihood",
+    "proposal_flow_fields": [
+      "pre_flow_log_density",
+      "forward_log_det",
+      "proposal_observation_surface"
+    ],
+    "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+    "row_scope": "main_observed_data_filtering_row",
+    "schema_version": "bayesfilter.highdim.ledh_forward_contract.v1",
+    "score_status": "blocked_score_until_same_target_no_tape_gate",
+    "target_density_fields": [
+      "transition_log_density",
+      "observation_log_density"
+    ],
+    "target_scalar": "observed_data_log_likelihood_estimator",
+    "theta_contract": {
+      "nonclaims": [
+        "not Zhao-Cui author-source free-theta faithfulness",
+        "not fixed-SIR score admission"
+      ],
+      "parameter_order": [
+        "log_kappa_scale",
+        "log_nu_scale",
+        "log_obs_noise_scale"
+      ],
+      "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+      "source_classification": "source_base_with_logscale_theta_extension",
+      "theta_coordinate_system": "sir_log_scale_theta",
+      "theta_dimension": 3,
+      "theta_status": "phase1_frozen",
+      "truth_theta": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "value_status": "amended_sir_log_scale_theta_value_metadata_present"
+  },
+  "log_likelihood_by_seed": [
+    -902.4349975585938,
+    -902.6803588867188,
+    -903.4465942382812,
+    -903.185546875,
+    -902.4032592773438
+  ],
+  "nonclaims": [
+    "not old no_free_theta admission",
+    "not exact nonlinear likelihood correctness evidence",
+    "not Zhao-Cui TT/SIRT source-faithfulness evidence",
+    "not score admission",
+    "not score correctness",
+    "not HMC readiness evidence",
+    "not posterior correctness evidence",
+    "not runtime ranking evidence"
+  ],
+  "normalization_checks": {
+    "batch_seeds": true,
+    "finite_log_likelihood": true,
+    "finite_output": true,
+    "num_particles": true,
+    "primary_pass_5x_runtime_gate": true,
+    "seed_count_matches_values": true,
+    "sir_semantics_row_id": true,
+    "target_density_used_for_correction": true,
+    "time_steps": true
+  },
+  "num_particles": 10000,
+  "proposal_flow_fields": [
+    "pre_flow_log_density",
+    "forward_log_det",
+    "proposal_observation_surface"
+  ],
+  "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+  "schema_version": "bayesfilter.highdim.ledh_forward_scalar_artifact.v1",
+  "sir_semantics": {
+    "actual_sir_callback_usage": "initial_sample, process/observation covariance callbacks, observation metadata, and route metadata",
+    "actual_sir_callbacks_used": true,
+    "adapter_classification": "BayesFilter DPF adapter for fixed-parameter SIR; not Zhao-Cui TT/SIRT source-faithfulness evidence",
+    "experimental_streaming_adapter_route": "batched nonlinear-prior LEDH-PFPF-OT streaming adapter with fixed process covariance, not scalar Li-Coates Algorithm 1 UKF covariance lifecycle parity",
+    "flow_observation_contract": "same_observation_gaussian_sir_infectious_components",
+    "graph_compatible_sir_transition_copy_used": true,
+    "graph_compatible_sir_transition_source": "bayesfilter.highdim.zhao_cui_sir_austria_model RK4 zhao_cui_sir_step equations, copied into TensorFlow graph form because the model validation path uses eager .numpy() checks",
+    "nonlinear_prior_mean_hook_used": true,
+    "observation_dimension": 9,
+    "process_noise_policy": "clip_susceptible_after_noise",
+    "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+    "scalar_algorithm1_ukf_covariance_lifecycle_parity_claim": false,
+    "state_dimension": 18,
+    "target_density_used_for_correction": true
+  },
+  "source_artifact": "docs/plans/bayesfilter-ledh-inclusive-highdim-leaderboard-phase4-fixed-sir-value-ladder-N10000-2026-07-03.json",
+  "target_density_fields": [
+    "transition_log_density",
+    "observation_log_density"
+  ],
+  "target_density_used_for_correction": true,
+  "target_observation_policy": "fixed_sir_infectious_components_gaussian_observation_density",
+  "target_output_tensor_field": "log_likelihood",
+  "target_scalar": "observed_data_log_likelihood_estimator",
+  "theta_coordinate_system": "sir_log_scale_theta",
+  "theta_values": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "time_steps": 20,
+  "validator_normalized_core": {
+    "admission_status": "n10000_same_target_value_admitted",
+    "average_log_likelihood_by_seed": [
+      -45.12174987792969,
+      -45.13401794433594,
+      -45.17232971191406,
+      -45.15927734375,
+      -45.12016296386719
+    ],
+    "batch_seeds": [
+      81120,
+      81121,
+      81122,
+      81123,
+      81124
+    ],
+    "correction_formula": "transition_log_density + observation_log_density - pre_flow_log_density + forward_log_det",
+    "finite_output": true,
+    "flow_observation_policy": "sir_infectious_components_gaussian_flow_observation",
+    "forward_contract": {
+      "correction_formula": "transition_log_density + observation_log_density - pre_flow_log_density + forward_log_det",
+      "estimator_kind": "finite_N_fixed_randomness_ledh_log_likelihood_estimator",
+      "full_leaderboard_row": true,
+      "metadata": {
+        "batch_seeds": [
+          81120,
+          81121,
+          81122,
+          81123,
+          81124
+        ],
+        "num_particles": 10000,
+        "time_steps": 20
+      },
+      "nonclaims": [
+        "metadata alone is not fixed-SIR value admission",
+        "metadata alone is not fixed-SIR score evidence"
+      ],
+      "output_tensor_field": "log_likelihood",
+      "proposal_flow_fields": [
+        "pre_flow_log_density",
+        "forward_log_det",
+        "proposal_observation_surface"
+      ],
+      "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+      "row_scope": "main_observed_data_filtering_row",
+      "schema_version": "bayesfilter.highdim.ledh_forward_contract.v1",
+      "score_status": "blocked_score_until_same_target_no_tape_gate",
+      "target_density_fields": [
+        "transition_log_density",
+        "observation_log_density"
+      ],
+      "target_scalar": "observed_data_log_likelihood_estimator",
+      "theta_contract": {
+        "nonclaims": [
+          "not Zhao-Cui author-source free-theta faithfulness",
+          "not fixed-SIR score admission"
+        ],
+        "parameter_order": [
+          "log_kappa_scale",
+          "log_nu_scale",
+          "log_obs_noise_scale"
+        ],
+        "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+        "source_classification": "source_base_with_logscale_theta_extension",
+        "theta_coordinate_system": "sir_log_scale_theta",
+        "theta_dimension": 3,
+        "theta_status": "phase1_frozen",
+        "truth_theta": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "value_status": "amended_sir_log_scale_theta_value_metadata_present"
+    },
+    "log_likelihood_by_seed": [
+      -902.4349975585938,
+      -902.6803588867188,
+      -903.4465942382812,
+      -903.185546875,
+      -902.4032592773438
+    ],
+    "nonclaims": [
+      "not old no_free_theta admission",
+      "not exact nonlinear likelihood correctness evidence",
+      "not Zhao-Cui TT/SIRT source-faithfulness evidence",
+      "not score admission",
+      "not score correctness",
+      "not HMC readiness evidence",
+      "not posterior correctness evidence",
+      "not runtime ranking evidence"
+    ],
+    "num_particles": 10000,
+    "proposal_flow_fields": [
+      "pre_flow_log_density",
+      "forward_log_det",
+      "proposal_observation_surface"
+    ],
+    "row_id": "zhao_cui_spatial_sir_austria_j9_T20",
+    "schema_version": "bayesfilter.highdim.ledh_forward_scalar_artifact.v1",
+    "target_density_fields": [
+      "transition_log_density",
+      "observation_log_density"
+    ],
+    "target_density_used_for_correction": true,
+    "target_observation_policy": "fixed_sir_infectious_components_gaussian_observation_density",
+    "target_output_tensor_field": "log_likelihood",
+    "target_scalar": "observed_data_log_likelihood_estimator",
+    "theta_coordinate_system": "sir_log_scale_theta",
+    "theta_values": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "time_steps": 20
+  }
+}

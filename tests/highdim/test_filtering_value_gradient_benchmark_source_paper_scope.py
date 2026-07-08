@@ -42,10 +42,43 @@ def test_source_paper_scope_contract_status_and_nonclaims() -> None:
     assert contract["scope_policy"]["old_p8_roster_mutated_in_place"] is False
     assert contract["scope_policy"]["future_promoted_numeric_tables_use_this_scope"] is True
     assert contract["scope_policy"]["preflight_or_smoke_values_are_performance_evidence"] is False
+    assert contract["scope_policy"]["comparison_lane_contract_active"] is True
+    assert contract["scope_policy"]["highdim_comparison_excludes_cut4"] is True
     assert contract["role_contract"]["supervisor_and_executor"] == "Codex in this dialogue"
     assert contract["role_contract"]["reviewer"] == "Claude Code read-only"
     assert contract["role_contract"]["detached_agent_allowed"] is False
     assert "not a numeric benchmark result" in contract["nonclaims"]
+
+
+def test_source_paper_scope_contract_encodes_two_lane_highdim_boundary() -> None:
+    contract = _load()
+    lane_contract = contract["two_lane_comparison_contract"]
+    highdim = lane_contract["highdim_source_scope"]
+
+    assert lane_contract["comparison_program_master"].endswith(
+        "bayesfilter-two-lane-filter-comparison-master-program-2026-06-24.md"
+    )
+    assert lane_contract["lowdim_same_target"]["comparison_algorithm_ids"] == [
+        "fixed_sgqf",
+        "ukf",
+        "cut4",
+        "zhao_cui_scalar_or_multistate",
+    ]
+    assert highdim["comparison_row_ids"] == contract["source_scope_row_ids"]
+    assert highdim["comparison_algorithm_ids"] == [
+        "fixed_sgqf",
+        "ukf",
+        "zhao_cui_scalar_or_multistate",
+    ]
+    assert highdim["excluded_algorithm_ids"] == ["cut4"]
+    assert "cut4" in highdim["execution_algorithm_ids_retained_for_numeric_and_status_artifacts"]
+    assert highdim["actual_and_surrogate_sv_must_remain_separate"] is True
+    assert highdim["blocked_fixed_sgqf_rows_until_reviewed_same_target_route"] == [
+        "zhao_cui_sv_actual_nongaussian_T1000",
+        "zhao_cui_spatial_sir_austria_j9_T20",
+        "zhao_cui_predator_prey_T20",
+        "zhao_cui_generalized_sv_synthetic_from_estimated_values",
+    ]
 
 
 def test_p44_diagnostic_rows_are_removed_from_promoted_source_scope() -> None:
@@ -231,3 +264,15 @@ def test_source_paper_scope_summary_tables_are_status_tables() -> None:
     assert md.startswith("| row_id | scope_class |")
     assert "excluded_from_promoted_source_paper_scope" in md
     assert "BLOCK_FILTER_BENCH_SOURCE_PAPER_NUMERIC_RUN_PENDING" not in md
+
+
+def test_source_scope_sgqf_admission_ledger_matches_current_family_states() -> None:
+    ledger = Path(
+        "docs/plans/bayesfilter-source-scope-sgqf-admission-ledger-2026-06-24.md"
+    ).read_text(encoding="utf-8")
+    assert "benchmark_lgssm_exact_oracle_m3_T50" in ledger
+    assert "zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000" in ledger
+    assert "zhao_cui_predator_prey_T20" in ledger
+    assert "value_only_executed" in ledger
+    assert "blocked_not_same_target" in ledger
+    assert "blocked_missing_value_route" in ledger

@@ -75,4 +75,3 @@ next serious row because the Sinkhorn loop now stops through graph control flow.
 | Descriptive-only differences | Warm timings and deltas are descriptive only |
 | Default-readiness | `NO` |
 | Next evidence needed | Repaired compiled serious row with replicated seeds or a staged one-seed `B=5,T=20,N=1024` gate |
-

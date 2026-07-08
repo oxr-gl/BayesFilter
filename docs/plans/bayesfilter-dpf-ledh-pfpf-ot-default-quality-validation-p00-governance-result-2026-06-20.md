@@ -73,4 +73,3 @@ obsolete route.
 
 Weakest part of the evidence: Claude review was a plan review only, not an
 execution or numerical validation.
-

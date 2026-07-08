@@ -31,9 +31,10 @@ The affine oracle is a BayesFilter-local synthetic model:
 The initial law is Gaussian and the deterministic coordinate \(\ell_t\)
 stores the previous \(m\).  The oracle is the exact linear Gaussian Kalman
 likelihood after converting the structural law to its full-state LGSSM.  The
-test must verify that SVD cubature, SVD-UKF, and SVD-CUT4 collapse to the same
-prediction-error likelihood and that deterministic-completion residuals are
-zero up to numerical tolerance.
+test must verify that SVD cubature, the historical diagnostic SVD-UKF branch,
+the promoted strict-SPD principal-square-root UKF branch, and SVD-CUT4 collapse
+to the same prediction-error likelihood and that deterministic-completion
+residuals are zero up to numerical tolerance.
 
 \subsection{Model B: Nonlinear Accumulation}
 \label{subsec:bf-nonlinear-model-b}
@@ -107,9 +108,18 @@ not the exact nonlinear likelihood.
     This should follow the bearings-only residual policy and should add
     mixed-scale observation diagnostics.
   \item[Stochastic volatility.]
-    This should wait until the sigma-point interface supports non-additive
-    observation noise or an explicit approximation contract, since current
-    filters assume additive observation covariance after \(h(x_t)\).
+    This row is admitted only after it declares the one cumulative likelihood
+    target being benchmarked.  For transformed actual SV that target is the exact
+    transformed likelihood built from the normalizers of
+    \(
+      z_t=\log(y_t^2),
+      \ z_t-\log(\beta^2)-h_t\sim\log(\chi_1^2)
+    \).
+    Same-target direct-likelihood quadrature and Zhao--Cui comparisons are
+    admissible because they approximate that scalar.  Generic sigma-point rows
+    that assume additive observation covariance after \(h(x_t)\), or that replace
+    the observation law by Gaussian closure, do not benchmark the intended
+    actual-SV target and are therefore not acceptable stand-ins for it.
 \end{description}
 
 Deferred means that the model is useful later, not that it is rejected.  The
@@ -119,10 +129,10 @@ tests share a stable set of fixtures.
 \section{Current V1 Filter Evidence}
 \label{sec:bf-nonlinear-current-v1-evidence}
 
-The first CPU nonlinear benchmark compares three SVD/eigen sigma-point value
-filters:
+The first CPU nonlinear benchmark compares three current promoted-or-reference
+sigma-point value filters plus the historical diagnostic comparator:
 \[
-  \mathcal B=\{\text{SVD cubature},\text{SVD-UKF},\text{SVD-CUT4}\}.
+  \mathcal B=\{\text{SVD cubature},\text{historical SVD-UKF},\text{principal-square-root UKF},\text{SVD-CUT4}\}.
 \]
 For Model A the reference is the exact Kalman prediction-error likelihood after
 structural-to-LGSSM conversion.  The benchmark rows must satisfy
@@ -203,8 +213,9 @@ and parameter partials
   \end{bmatrix}.
 \]
 The observation derivative is \(H_x=[1,1]\).  Centered finite differences of
-the implemented SVD cubature, SVD-UKF, and SVD-CUT4 likelihoods match the
-analytic scores on the selected smooth branch.
+the implemented SVD cubature, the historical diagnostic SVD-UKF path, the
+promoted strict-SPD principal-square-root UKF path, and the SVD-CUT4 likelihoods
+match the corresponding analytic scores on the selected smooth branch.
 
 For Model C we use
 \[

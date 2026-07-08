@@ -84,4 +84,3 @@ Advance to P01 only if:
 3. Draft or refresh P01 subplan.
 4. Review P01 for consistency, correctness, feasibility, artifact coverage, and
    boundary safety.
-

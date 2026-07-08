@@ -1,0 +1,293 @@
+{
+  "device": {
+    "cuda_visible_devices": "0",
+    "device_scope": "visible",
+    "logical_gpus": [
+      "LogicalDevice(name='/device:GPU:0', device_type='GPU')"
+    ],
+    "physical_gpus": [
+      "PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')"
+    ],
+    "tf32_execution_enabled": true,
+    "xla": true
+  },
+  "elapsed_seconds": 10.11871550208889,
+  "gate": {
+    "fixture_gates": [
+      {
+        "conditioning_ok": true,
+        "covariance_restoration_ok": true,
+        "finite_base": false,
+        "kalman_value": -13.784138554721768,
+        "parameter_gates": [
+          {
+            "delta_to_kalman": NaN,
+            "gradient_mcse": NaN,
+            "gradient_mean": NaN,
+            "gradient_sd": NaN,
+            "kalman_gradient": -4.971696633032736,
+            "parameter": "ar_coefficient",
+            "within_2_gradient_mcse_of_kalman": false,
+            "z_over_gradient_mcse": NaN
+          },
+          {
+            "delta_to_kalman": NaN,
+            "gradient_mcse": NaN,
+            "gradient_mean": NaN,
+            "gradient_sd": NaN,
+            "kalman_gradient": -3.932431459463813,
+            "parameter": "log_transition_variance",
+            "within_2_gradient_mcse_of_kalman": false,
+            "z_over_gradient_mcse": NaN
+          },
+          {
+            "delta_to_kalman": NaN,
+            "gradient_mcse": NaN,
+            "gradient_mean": NaN,
+            "gradient_sd": NaN,
+            "kalman_gradient": -5.503182556558847,
+            "parameter": "log_observation_variance",
+            "within_2_gradient_mcse_of_kalman": false,
+            "z_over_gradient_mcse": NaN
+          }
+        ],
+        "ridge_ok": true,
+        "setting": "eps0.55_steps2",
+        "state_dim": 2,
+        "status": "fail",
+        "value_delta_to_kalman": -0.012917452663486984,
+        "value_mcse": 0.006292387774698677,
+        "value_mean": -13.797056007385255,
+        "value_sd": 0.019898277289046248,
+        "value_within_2_mcse_of_kalman": false,
+        "value_z_over_mcse": -2.0528697731292573
+      }
+    ],
+    "gpu_visible": true,
+    "primary_criterion": "GPU/XLA/TF32 batched Contract E seed-mean value and score are within 2 MCSE of exact FP64 Kalman for every requested fixture.",
+    "route_ok": true,
+    "status": "failed",
+    "tf32_execution_enabled": true,
+    "xla_enabled": true
+  },
+  "host": "DESKTOP-RF1Q5IJ",
+  "manifest": {
+    "chol_ridge_abs": 1e-10,
+    "chol_ridge_escalation": 10.0,
+    "chol_ridge_max_attempts": 12,
+    "chol_ridge_rel": 1e-08,
+    "condition_limit": 100000000.0,
+    "contract_e_reset_factorization": "cholesky-ridge",
+    "contract_e_residual_seed_schedule": "seed indices 9100..9109; residual seeds [seed,43+t] for t=0..9",
+    "covariance_residual_limit": 0.0005,
+    "initial_transition_seed_schedule": "seed indices 9100..9109; initial seeds [seed,17]; transition seeds [seed,29]",
+    "num_particles": 1000,
+    "reverse_gradient_route": "outer GradientTape diagnostic of summed per-seed Contract E scalars with manual-transport-vjp-only plus fixed-ridge Contract E reset custom VJP; no FD ladder in this runner",
+    "rho": 1.0,
+    "route": "gpu_xla_tf32_batched_contract_e_manual_reset_vjp_score_diagnostic",
+    "seed_count": 10,
+    "settings": [
+      {
+        "epsilon": 0.55,
+        "label": "eps0.55_steps2",
+        "steps": 2
+      }
+    ],
+    "spectral_floor": 1e-06,
+    "state_dims": [
+      2
+    ],
+    "tau": 1e-06,
+    "theta": [
+      0.7200000286102295,
+      -1.5141277313232422,
+      -1.2039728164672852
+    ],
+    "time_steps": 10
+  },
+  "nonclaims": [
+    "not CPU LEDH evidence",
+    "not same-scalar FD evidence",
+    "not SIR/SV/nonlinear correctness",
+    "not HMC readiness",
+    "not production readiness"
+  ],
+  "plan": "docs/plans/bayesfilter-ledh-pfpf-ot-contract-e-phase3-r11-n1000-gpu-xla-tf32-score-diagnostic-2026-06-30.md",
+  "python_version": "3.11.14",
+  "records": [
+    {
+      "base": {
+        "diagnostics": {
+          "any_ridge_failure": false,
+          "gap_diagnostic_label": "min residual Cholesky diagonal of sym(target_cov - plus_cov)+lambda I",
+          "max_column_residual": 1.0728836059570312e-06,
+          "max_covariance_relative_residual": 2.350563903519287e-07,
+          "max_mean_linf_residual": 1.4901161193847656e-08,
+          "max_realized_ridge": 2.060866144404372e-09,
+          "max_ridge_attempts_used": 1,
+          "max_row_residual": 0.9565663933753967,
+          "max_tilde_condition": 1.1385992765426636,
+          "min_gap_eig": 0.3153521418571472,
+          "min_rank_margin": 0.3153521418571472,
+          "min_tilde_positive_eig": 0.35231950879096985,
+          "rank_margin_diagnostic_label": "legacy field: repeats min residual Cholesky diagonal under cholesky-ridge",
+          "tilde_positive_diagnostic_label": "min Cholesky diagonal of tilde_cov+lambda I"
+        },
+        "gradient": {
+          "kalman": [
+            -4.971696633032736,
+            -3.932431459463813,
+            -5.503182556558847
+          ],
+          "mcse": [
+            NaN,
+            NaN,
+            NaN
+          ],
+          "mean": [
+            NaN,
+            NaN,
+            NaN
+          ],
+          "sd": [
+            NaN,
+            NaN,
+            NaN
+          ],
+          "values": [
+            [
+              NaN,
+              NaN,
+              NaN
+            ],
+            [
+              NaN,
+              NaN,
+              NaN
+            ],
+            [
+              NaN,
+              NaN,
+              NaN
+            ],
+            [
+              NaN,
+              NaN,
+              NaN
+            ],
+            [
+              NaN,
+              NaN,
+              NaN
+            ],
+            [
+              NaN,
+              NaN,
+              NaN
+            ],
+            [
+              NaN,
+              NaN,
+              NaN
+            ],
+            [
+              NaN,
+              NaN,
+              NaN
+            ],
+            [
+              NaN,
+              NaN,
+              NaN
+            ],
+            [
+              NaN,
+              NaN,
+              NaN
+            ]
+          ]
+        },
+        "setting": {
+          "epsilon": 0.55,
+          "label": "eps0.55_steps2",
+          "steps": 2
+        },
+        "state_dim": 2,
+        "value": {
+          "delta_to_kalman": -0.012917452663486984,
+          "kalman": -13.784138554721768,
+          "mcse": 0.006292387774698677,
+          "mean": -13.797056007385255,
+          "sd": 0.019898277289046248,
+          "values": [
+            -13.809409141540527,
+            -13.794811248779297,
+            -13.774900436401367,
+            -13.794437408447266,
+            -13.820707321166992,
+            -13.807544708251953,
+            -13.809818267822266,
+            -13.788329124450684,
+            -13.75594711303711,
+            -13.814655303955078
+          ]
+        }
+      },
+      "gate": {
+        "conditioning_ok": true,
+        "covariance_restoration_ok": true,
+        "finite_base": false,
+        "kalman_value": -13.784138554721768,
+        "parameter_gates": [
+          {
+            "delta_to_kalman": NaN,
+            "gradient_mcse": NaN,
+            "gradient_mean": NaN,
+            "gradient_sd": NaN,
+            "kalman_gradient": -4.971696633032736,
+            "parameter": "ar_coefficient",
+            "within_2_gradient_mcse_of_kalman": false,
+            "z_over_gradient_mcse": NaN
+          },
+          {
+            "delta_to_kalman": NaN,
+            "gradient_mcse": NaN,
+            "gradient_mean": NaN,
+            "gradient_sd": NaN,
+            "kalman_gradient": -3.932431459463813,
+            "parameter": "log_transition_variance",
+            "within_2_gradient_mcse_of_kalman": false,
+            "z_over_gradient_mcse": NaN
+          },
+          {
+            "delta_to_kalman": NaN,
+            "gradient_mcse": NaN,
+            "gradient_mean": NaN,
+            "gradient_sd": NaN,
+            "kalman_gradient": -5.503182556558847,
+            "parameter": "log_observation_variance",
+            "within_2_gradient_mcse_of_kalman": false,
+            "z_over_gradient_mcse": NaN
+          }
+        ],
+        "ridge_ok": true,
+        "status": "fail",
+        "value_delta_to_kalman": -0.012917452663486984,
+        "value_mcse": 0.006292387774698677,
+        "value_mean": -13.797056007385255,
+        "value_sd": 0.019898277289046248,
+        "value_within_2_mcse_of_kalman": false,
+        "value_z_over_mcse": -2.0528697731292573
+      },
+      "setting": {
+        "epsilon": 0.55,
+        "label": "eps0.55_steps2",
+        "steps": 2
+      },
+      "state_dim": 2
+    }
+  ],
+  "schema_version": "filter_bench.ledh_pfpf_ot_contract_e_lgssm_gpu_score.v1",
+  "tensorflow_version": "2.19.1",
+  "timestamp_utc": "2026-06-29T19:03:32.302849+00:00"
+}

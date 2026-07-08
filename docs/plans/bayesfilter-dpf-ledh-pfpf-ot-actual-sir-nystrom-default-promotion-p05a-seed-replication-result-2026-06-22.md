@@ -58,4 +58,3 @@ ranking or default readiness.  The next gated row is Stage B at `N=2048`.
 
 Advance to P05B if trusted GPU preflight selects a usable GPU.  Keep runtime as
 descriptive and preserve all default-readiness nonclaims.
-

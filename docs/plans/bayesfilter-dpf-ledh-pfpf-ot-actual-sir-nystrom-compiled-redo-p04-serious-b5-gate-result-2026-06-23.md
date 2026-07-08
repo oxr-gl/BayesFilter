@@ -75,4 +75,3 @@ Nystrom compile plus first call was `14.02s` and warm call was `0.057s`.
 The paired log-likelihood deltas remain within threshold, but they are not
 statistical evidence of equality or superiority.  The next appropriate gate is
 a disjoint replicated seed batch at the same shape.
-

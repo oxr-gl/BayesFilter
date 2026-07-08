@@ -161,6 +161,85 @@ class HighDimScoreAPIResult:
 
 
 @dataclass(frozen=True)
+class HighDimBatchedScoreAPIResult:
+    """Stable subpackage-scoped batched value/score API result."""
+
+    target_id: str
+    evidence_class: str
+    route_label: str
+    parameterization: str
+    theta: tf.Tensor
+    log_likelihoods: tf.Tensor
+    score: tf.Tensor
+    branch_identities: tuple[BranchIdentity, ...]
+    status: HighDimStatus
+    diagnostics: Mapping[str, object]
+
+    def __post_init__(self) -> None:
+        target_id = _require_text("target_id", self.target_id)
+        evidence_class = _require_text("evidence_class", self.evidence_class)
+        if evidence_class not in _ALLOWED_EVIDENCE_CLASSES:
+            raise ValueError("evidence_class must be lower_rung or production")
+        route_label = _require_text("route_label", self.route_label)
+        if route_label not in _ALLOWED_STABLE_SCORE_ROUTE_LABELS:
+            raise ValueError("invalid stable score route label")
+        parameterization = _require_text("parameterization", self.parameterization)
+        theta = tf.convert_to_tensor(self.theta, dtype=tf.float64)
+        values = tf.convert_to_tensor(self.log_likelihoods, dtype=tf.float64)
+        score = tf.convert_to_tensor(self.score, dtype=tf.float64)
+        if theta.shape.rank != 1 or values.shape.rank != 1 or score.shape.rank != 2:
+            raise ValueError(f"batched score API result: {HighDimStatus.INVALID_SHAPE.value}")
+        if int(score.shape[1]) != int(theta.shape[0]):
+            raise ValueError(f"batched score API result: {HighDimStatus.INVALID_SHAPE.value}")
+        if int(score.shape[0]) != int(values.shape[0]):
+            raise ValueError(f"batched score API result: {HighDimStatus.INVALID_SHAPE.value}")
+        branch_identities = tuple(self.branch_identities)
+        if len(branch_identities) != int(values.shape[0]) or not branch_identities:
+            raise ValueError("branch_identities must match nonempty batch size")
+        if any(not isinstance(identity, BranchIdentity) for identity in branch_identities):
+            raise TypeError("branch_identities must contain BranchIdentity values")
+        if not bool(
+            tf.reduce_all(tf.math.is_finite(theta)).numpy()
+            and tf.reduce_all(tf.math.is_finite(values)).numpy()
+            and tf.reduce_all(tf.math.is_finite(score)).numpy()
+        ):
+            raise ValueError(f"batched score API result: {HighDimStatus.NONFINITE_VALUE.value}")
+        if not isinstance(self.status, HighDimStatus):
+            raise TypeError("status must be HighDimStatus")
+        diagnostics = freeze_mapping(self.diagnostics)
+        if diagnostics.get("api_scope") != "bayesfilter.highdim":
+            raise ValueError("batched score API result must declare bayesfilter.highdim scope")
+        if diagnostics.get("stable_subpackage_api") is not True:
+            raise ValueError("batched score API result must declare stable subpackage API")
+        if diagnostics.get("stable_top_level_api") is not False:
+            raise ValueError("batched score API result must not claim stable top-level API")
+        if diagnostics.get("hmc_readiness") != "not_claimed":
+            raise ValueError("batched score API result must not claim HMC readiness")
+        if diagnostics.get("setup_identity_channel") != "diagnostics_and_branch_manifest":
+            raise ValueError("batched score API result must expose setup identity channel")
+        if diagnostics.get("batch_identity_mode") not in {
+            "shared_setup_identity",
+            "per_item_setup_identity",
+        }:
+            raise ValueError("batched score API result has invalid batch identity mode")
+        expected_hashes = tuple(identity.hash.value for identity in branch_identities)
+        observed_hashes = tuple(
+            str(value) for value in diagnostics.get("per_item_branch_hashes", ())
+        )
+        if observed_hashes != expected_hashes:
+            raise ValueError("batched score API result branch hash diagnostics mismatch")
+        object.__setattr__(self, "target_id", target_id)
+        object.__setattr__(self, "evidence_class", evidence_class)
+        object.__setattr__(self, "route_label", route_label)
+        object.__setattr__(self, "parameterization", parameterization)
+        object.__setattr__(self, "theta", theta)
+        object.__setattr__(self, "log_likelihoods", values)
+        object.__setattr__(self, "score", score)
+        object.__setattr__(self, "branch_identities", branch_identities)
+        object.__setattr__(self, "diagnostics", diagnostics)
+
+
+@dataclass(frozen=True)
 class ScoreReadinessRow:
     """Readiness-table row with explicit evidence-class boundaries."""
 
@@ -418,6 +497,8 @@ def evaluate_highdim_score_api(
     theta: tf.Tensor,
     value_fn: Callable[[tf.Tensor], tf.Tensor],
     diagnostics: Mapping[str, object] | None = None,
+    *,
+    setup_identity: Mapping[str, object] | None = None,
 ) -> HighDimScoreAPIResult:
     """Evaluate a deterministic scalar value function and its score.
 
@@ -448,8 +529,20 @@ def evaluate_highdim_score_api(
         "stable_top_level_api": False,
         "hmc_readiness": "not_claimed",
     }
+    if setup_identity is not None:
+        payload["setup_identity"] = _nonempty_mapping("setup_identity", setup_identity)
+        payload["setup_identity_channel"] = "branch_manifest"
     manifest = BranchManifest("highdim_score_api_result.v1", payload)
     identity = BranchIdentity(manifest=manifest, hash=manifest.sha256())
+    result_diagnostics = {
+        **dict(diagnostics or {}),
+        "api_scope": "bayesfilter.highdim",
+        "stable_subpackage_api": True,
+        "stable_top_level_api": False,
+        "hmc_readiness": "not_claimed",
+    }
+    if setup_identity is not None:
+        result_diagnostics["setup_identity_channel"] = "branch_manifest"
     return HighDimScoreAPIResult(
         target_id=target_id,
         evidence_class=evidence_class,
@@ -460,13 +553,97 @@ def evaluate_highdim_score_api(
         score=score,
         branch_identity=identity,
         status=HighDimStatus.OK,
-        diagnostics={
-            **dict(diagnostics or {}),
+        diagnostics=result_diagnostics,
+    )
+
+
+def evaluate_batched_highdim_score_api(
+    target_id: str,
+    evidence_class: str,
+    route_label: str,
+    parameterization: str,
+    theta: tf.Tensor,
+    value_fns: Sequence[Callable[[tf.Tensor], tf.Tensor]],
+    diagnostics: Mapping[str, object] | None = None,
+    *,
+    shared_setup_identity: Mapping[str, object] | None = None,
+    per_item_setup_identities: Sequence[Mapping[str, object]] | None = None,
+) -> HighDimBatchedScoreAPIResult:
+    """Evaluate deterministic scalar value functions under one fixed theta."""
+
+    theta_tensor = tf.convert_to_tensor(theta, dtype=tf.float64)
+    if theta_tensor.shape.rank != 1:
+        raise ValueError(f"theta: {HighDimStatus.INVALID_SHAPE.value}")
+    functions = tuple(value_fns)
+    if not functions:
+        raise ValueError("value_fns must be nonempty")
+    if any(not callable(value_fn) for value_fn in functions):
+        raise TypeError("value_fns must contain callables")
+    setup_items, identity_mode = _batched_setup_identities(
+        len(functions),
+        shared_setup_identity=shared_setup_identity,
+        per_item_setup_identities=per_item_setup_identities,
+    )
+    values: list[tf.Tensor] = []
+    scores: list[tf.Tensor] = []
+    identities: list[BranchIdentity] = []
+    for index, (value_fn, setup_identity) in enumerate(zip(functions, setup_items)):
+        with tf.GradientTape() as tape:
+            tape.watch(theta_tensor)
+            value = tf.convert_to_tensor(value_fn(theta_tensor), dtype=tf.float64)
+        if value.shape.rank != 0:
+            raise ValueError(f"value_fns[{index}]: {HighDimStatus.INVALID_SHAPE.value}")
+        score = tape.gradient(value, theta_tensor)
+        if score is None:
+            raise ValueError(f"value_fns[{index}] score gradient is None")
+        score = tf.convert_to_tensor(score, dtype=tf.float64)
+        if score.shape != theta_tensor.shape:
+            raise ValueError(f"value_fns[{index}] score: {HighDimStatus.INVALID_SHAPE.value}")
+        item_payload = {
+            "target_id": target_id,
+            "evidence_class": evidence_class,
+            "route_label": route_label,
+            "parameterization": parameterization,
+            "theta": theta_tensor,
+            "log_likelihood": value,
+            "score": score,
             "api_scope": "bayesfilter.highdim",
             "stable_subpackage_api": True,
             "stable_top_level_api": False,
             "hmc_readiness": "not_claimed",
-        },
+            "setup_identity_channel": "diagnostics_and_branch_manifest",
+            "batch_identity_mode": identity_mode,
+            "batch_index": index,
+            "batch_size": len(functions),
+            "setup_identity": setup_identity,
+        }
+        manifest = BranchManifest("highdim_batched_score_api_item.v1", item_payload)
+        values.append(value)
+        scores.append(score)
+        identities.append(BranchIdentity(manifest=manifest, hash=manifest.sha256()))
+    branch_hashes = tuple(identity.hash.value for identity in identities)
+    result_diagnostics = {
+        **dict(diagnostics or {}),
+        "api_scope": "bayesfilter.highdim",
+        "stable_subpackage_api": True,
+        "stable_top_level_api": False,
+        "hmc_readiness": "not_claimed",
+        "setup_identity_channel": "diagnostics_and_branch_manifest",
+        "batch_identity_mode": identity_mode,
+        "batch_size": len(functions),
+        "per_item_branch_hashes": branch_hashes,
+    }
+    return HighDimBatchedScoreAPIResult(
+        target_id=target_id,
+        evidence_class=evidence_class,
+        route_label=route_label,
+        parameterization=parameterization,
+        theta=theta_tensor,
+        log_likelihoods=tf.stack(values),
+        score=tf.stack(scores),
+        branch_identities=tuple(identities),
+        status=HighDimStatus.OK,
+        diagnostics=result_diagnostics,
     )
 
 
@@ -488,3 +665,35 @@ def _text_tuple(name: str, values: Sequence[str]) -> tuple[str, ...]:
     if not normalized or any(not value for value in normalized):
         raise ValueError(f"{name} must contain nonempty strings")
     return normalized
+
+
+def _nonempty_mapping(name: str, values: Mapping[str, object]) -> Mapping[str, object]:
+    if not isinstance(values, Mapping):
+        raise TypeError(f"{name} must be a mapping")
+    normalized = {str(key): value for key, value in values.items()}
+    if not normalized or any(not key for key in normalized):
+        raise ValueError(f"{name} must be a nonempty mapping")
+    return normalized
+
+
+def _batched_setup_identities(
+    batch_size: int,
+    *,
+    shared_setup_identity: Mapping[str, object] | None,
+    per_item_setup_identities: Sequence[Mapping[str, object]] | None,
+) -> tuple[tuple[Mapping[str, object], ...], str]:
+    if shared_setup_identity is not None and per_item_setup_identities is not None:
+        raise ValueError("provide shared_setup_identity or per_item_setup_identities, not both")
+    if shared_setup_identity is None and per_item_setup_identities is None:
+        raise ValueError("batched score API requires setup identity metadata")
+    if shared_setup_identity is not None:
+        setup = _nonempty_mapping("shared_setup_identity", shared_setup_identity)
+        return tuple(setup for _ in range(batch_size)), "shared_setup_identity"
+    assert per_item_setup_identities is not None
+    setup_items = tuple(
+        _nonempty_mapping(f"per_item_setup_identities[{index}]", item)
+        for index, item in enumerate(per_item_setup_identities)
+    )
+    if len(setup_items) != batch_size:
+        raise ValueError("per_item_setup_identities must match value_fns length")
+    return setup_items, "per_item_setup_identity"

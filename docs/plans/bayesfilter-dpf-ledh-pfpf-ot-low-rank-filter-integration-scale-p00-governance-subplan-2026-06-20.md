@@ -75,4 +75,3 @@ only nonblocking wording findings that are visibly patched or recorded.
 2. Write the P00 result/close record.
 3. Draft or refresh P01 subplan.
 4. Review P01 for consistency, correctness, feasibility, artifact coverage, and boundary safety.
-

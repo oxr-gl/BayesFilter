@@ -23,14 +23,19 @@ behavior, numerical robustness, and filtering API policy.  HMC/NeuTra are
 consumers and are not prerequisites for filtering production status.
 
 Under that corrected filter-lane scope, the batched-over-parameters value+score
-work is ready to promote from experimental evidence to a **filtering production
-candidate** for the tested Kalman and SVD-UKF scopes.  It is not yet an
+work is historically significant but is no longer the promoted UKF default
+story.  The strict-SPD principal-square-root UKF route now occupies the promoted
+scalar/public UKF role, while the old eigenderivative SVD-UKF lane remains a
+historical filtering production-candidate result for the specific tested 2026-06
+batched fixtures and a diagnostic/regression comparator.  It is not an
 unconditional default across all filtering workloads.
 
 Kalman has scalar parity, analytic score parity, interface tests, compiled
-CPU/GPU benchmark evidence, and large-batch artifacts.  SVD-UKF has scalar
-parity on the realistic affine fixture, small nonlinear/fail-closed branch
-coverage, interface tests, and compiled GPU benchmark evidence.
+CPU/GPU benchmark evidence, and large-batch artifacts.  The historical batched
+SVD-UKF lane has scalar parity on the realistic affine fixture, small
+nonlinear/fail-closed branch coverage, interface tests, and compiled GPU
+benchmark evidence, but its current role after the principal-square-root
+promotion is diagnostic comparison rather than the HMC-facing promoted route.
 
 No unconditional default, public export change, HMC/NeuTra readiness,
 posterior-validity, broad model-coverage, statistically supported speed-ranking,

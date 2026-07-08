@@ -106,4 +106,3 @@ Create a replicated leaderboard subplan using the same harness, a predeclared
 paired ladder such as `[1024, 2048, 4096, 8192, 16384]`, at least three seeds
 or a justified smaller uncertainty design, and hard separation between validity
 gates, resource nomination signals, and ranking evidence.
-

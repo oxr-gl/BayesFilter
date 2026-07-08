@@ -83,4 +83,3 @@ actual-SIR viability question.
 - Existing low-rank actual-SIR harnesses and result artifacts.
 - BayesFilter public exports/defaults/package metadata.
 - Shared schemas, unrelated stop handoffs, model files, or dependency locks.
-

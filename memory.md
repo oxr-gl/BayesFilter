@@ -147,3 +147,51 @@ CUDA_VISIBLE_DEVICES=1 python -c "import tensorflow as tf; print(tf.test.is_buil
 Resume only if TensorFlow sees at least one GPU.  Prefer GPU1 and include
 `--cuda-visible-devices 1 --device /GPU:0 --expect-device-kind gpu`.  Do not
 treat CPU/non-GPU XLA output as P02 GPU/XLA evidence.
+
+## LEDH-PFPF-OT N10000 Chunk Sizing Rule
+
+For the manual-reverse XLA LEDH-PFPF-OT SIR d=18 timing lane at `N=10000`,
+prefer exact row/column transport chunks, but keep blocks moderate.  The current
+best tested row/column chunk size is `2500 x 2500`.
+
+Evidence-backed rule:
+
+- Exact chunking helps for `N=10000`: `2500` avoids padding and beat `2048` and
+  `3334` in the single-seed compiled warm-call timing diagnostic.
+- Exact chunking alone is not enough: `5000` is also exact but was much slower.
+- Binary-friendly boundaries did not help: `N=10240`, chunk `2560` was slower
+  than `N=10000`, chunk `2500` both raw and normalized by pair slots.
+- Treat `2500` as the current empirical default for this route unless a new
+  bounded chunk-sizing plan supersedes it.
+
+Scope: timing/memory rule only.  It does not certify FD agreement, HMC
+readiness, posterior correctness, scientific validity, or production readiness.
+Detailed evidence memo:
+`docs/plans/bayesfilter-ledh-pfpf-ot-n10000-chunk-sizing-reset-memo-2026-06-24.md`.
+
+## Claude Review: One Exact Path First
+
+Repeated failure mode: Codex sends Claude a big artifact packet, pasted code
+chunks, or a broad path list when the review gate can be answered from one
+result/subplan file.  This causes stalls, approval blocks, and noisy reviews.
+
+Required habit:
+
+- Start Claude review with exactly one path.
+- Do not paste code.
+- Do not send artifact packets.
+- Do not ask Claude to review the whole repo.
+- Ask one question tied to the current gate.
+- Let Claude request any additional exact path or line range if needed.
+
+Template:
+
+```text
+READ-ONLY BOUNDED REVIEW. Review exactly this path and nothing else unless the
+file itself explicitly asks you to inspect a cited line: <one path>. Do not
+edit, run commands, launch agents, or review the whole repo. Question: <one
+question>. End with VERDICT: AGREE or VERDICT: REVISE.
+```
+
+Use this before any larger Claude prompt.  The successful M6 pattern was a
+one-path review of the phase result file, not a fact packet.

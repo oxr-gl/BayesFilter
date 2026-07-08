@@ -85,4 +85,3 @@ leaderboard plan with uncertainty analysis before ranking language is allowed.
 | P01 | `docs/benchmarks/scalable_ot_nystrom_ledh_pfpf_effectiveness_leaderboard.py` and focused tests | Implement common paired harness and tiny CPU sanity. |
 | P02 | `docs/benchmarks/scalable-ot-nystrom-ledh-pfpf-effectiveness-leaderboard-p02-pilot-2026-06-22.*` | Run GPU1-preferred paired pilot at `N=1024,4096`. |
 | P03 | `docs/plans/bayesfilter-dpf-ledh-pfpf-ot-nystrom-effectiveness-leaderboard-result-2026-06-22.md` | Interpret hard vetoes, viable candidates, statistical status, and next evidence. |
-

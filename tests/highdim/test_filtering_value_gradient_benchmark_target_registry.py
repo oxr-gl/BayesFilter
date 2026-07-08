@@ -196,3 +196,43 @@ def test_filter_bench_target_registry_policy_allows_approximate_filters_on_non_g
     assert "bootstrap_dpf_current" in algorithms
     assert "zhao_cui_scalar_or_multistate" in algorithms
     assert "ledh_pfpf_ot" not in algorithms
+
+
+def test_filter_bench_target_registry_encodes_two_lane_comparison_roles() -> None:
+    registry = _registry()
+    rows = {row["row_id"]: row for row in registry["rows"]}
+    contract = registry["two_lane_comparison_contract"]
+
+    assert contract["comparison_program_master"].endswith(
+        "bayesfilter-two-lane-filter-comparison-master-program-2026-06-24.md"
+    )
+    assert contract["lowdim_same_target"]["comparison_algorithm_ids"] == [
+        "fixed_sgqf",
+        "ukf",
+        "cut4",
+        "zhao_cui_scalar_or_multistate",
+    ]
+    assert contract["highdim_source_scope"]["comparison_algorithm_ids"] == [
+        "fixed_sgqf",
+        "ukf",
+        "zhao_cui_scalar_or_multistate",
+    ]
+    assert contract["highdim_source_scope"]["excluded_algorithm_ids"] == ["cut4"]
+    assert contract["highdim_source_scope"]["cut4_allowed"] is False
+    assert contract["highdim_source_scope"]["actual_and_surrogate_sv_must_remain_separate"] is True
+
+    assert rows["lgssm_exact_kalman_dim_1_2_3"]["comparison_lane_role"] == (
+        "lowdim_rankable_same_target"
+    )
+    assert rows["p44_nonlinear_transition_h4_cut4_extension_dim_1_2_3"][
+        "comparison_lane_role"
+    ] == "lowdim_diagnostic_only"
+    assert rows["sv_ksc_gaussian_mixture_surrogate_dim_1_2_3"]["comparison_lane_role"] == (
+        "lowdim_rankable_surrogate_same_target"
+    )
+    assert rows["sv_exact_transformed_actual_nongaussian_dim_1_2_3"][
+        "comparison_lane_role"
+    ] == "separate_actual_sv_not_in_lowdim_rankable_table"
+    assert rows["spatial_sir_lower_rung_j1_dim_2"]["comparison_lane_role"] == (
+        "outside_lowdim_rankable_lane_replaced_by_highdim_source_scope"
+    )

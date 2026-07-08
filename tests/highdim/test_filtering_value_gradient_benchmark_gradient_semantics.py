@@ -187,3 +187,37 @@ def test_filter_bench_gradient_matrix_emission_contract_forbids_zero_filling() -
     assert "reference_gradient_norm" in matrix_rules["numeric_gradient_error_required_fields"]
     assert matrix_rules["finite_gradient_check_is_explanatory_only"] is True
     assert matrix_rules["fixed_branch_gradient_check_is_explanatory_only"] is True
+
+
+def test_filter_bench_gradient_semantics_carries_two_lane_nonclaim_policy() -> None:
+    semantics = _load(SEMANTICS_PATH)
+    policy = semantics["two_lane_comparison_policy"]
+
+    assert policy["comparison_program_master"].endswith(
+        "bayesfilter-two-lane-filter-comparison-master-program-2026-06-24.md"
+    )
+    assert policy["fixed_sgqf_autodiff_status"] == "diagnostic_only_not_promoted_score_route"
+    assert "tiny_same_target_surrogate_fixture_only" in policy[
+        "fixed_sgqf_analytic_scope_qualifier"
+    ]
+    assert policy["highdim_cut4_policy"] == "excluded_from_highdim_source_scope_comparison_tables"
+    assert policy["actual_and_surrogate_sv_must_remain_separate"] is True
+    assert policy["blocked_fixed_sgqf_highdim_rows_until_reviewed_same_target_route"] == [
+        "zhao_cui_sv_actual_nongaussian_T1000",
+        "zhao_cui_spatial_sir_austria_j9_T20",
+        "zhao_cui_predator_prey_T20",
+        "zhao_cui_generalized_sv_synthetic_from_estimated_values",
+    ]
+    assert policy["preflight_and_runner_artifacts_are_performance_evidence"] is False
+
+
+def test_source_scope_sgqf_score_gate_ledger_is_coherent() -> None:
+    ledger = Path(
+        "docs/plans/bayesfilter-source-scope-sgqf-analytical-gradient-ledger-2026-06-24.md"
+    ).read_text(encoding="utf-8")
+    assert "benchmark_lgssm_exact_oracle_m3_T50" in ledger
+    assert "zhao_cui_sv_ksc_gaussian_mixture_surrogate_T1000" in ledger
+    assert "zhao_cui_predator_prey_T20" in ledger
+    assert "blocked_missing_analytical_route" in ledger
+    assert "diagnostic_score_only" in ledger
+    assert "analytical_score_admitted" in ledger

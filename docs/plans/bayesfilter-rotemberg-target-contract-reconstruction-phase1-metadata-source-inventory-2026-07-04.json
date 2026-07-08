@@ -1,0 +1,821 @@
+{
+  "artifact_presence": {
+    "phase4_embedded_training_state": {
+      "artifact_role": "embedded canary training state, not serious baseline",
+      "completed_steps": 2,
+      "exists": true,
+      "path": "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase7/rotemberg_trainable_canary.json.training_state.json",
+      "target": "rotemberg_linear_kalman_local"
+    },
+    "preflight_checks_passed": true,
+    "preflight_veto_reasons": [],
+    "serious_baseline_files": [
+      {
+        "exists": false,
+        "path": "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/executable_contract_2026-06-23/serious_baseline_launch_2026-06-23/run/paper_dense_iaf_seed20260622.json",
+        "sha256": null,
+        "size_bytes": null
+      },
+      {
+        "exists": false,
+        "path": "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/executable_contract_2026-06-23/serious_baseline_launch_2026-06-23/run/paper_dense_iaf_seed20260622_replay_state.json",
+        "sha256": null,
+        "size_bytes": null
+      },
+      {
+        "exists": false,
+        "path": "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/executable_contract_2026-06-23/serious_baseline_launch_2026-06-23/run/paper_dense_iaf_seed20260622.training_state.json",
+        "sha256": null,
+        "size_bytes": null
+      }
+    ],
+    "serious_baseline_summary_only": {
+      "classification": "summary_evidence_only_until actual serious baseline JSON files are present in this local filesystem",
+      "exists": true,
+      "path": "/home/chakwong/python/docs/plans/BayesFilterDSGE/rotemberg-fixed-neutra-serious-training-state-artifact-summary-2026-06-28.md"
+    }
+  },
+  "blockers": [
+    {
+      "code": "BLOCK_STATE_DIM_SEMANTIC_DECISION",
+      "fixable_in_next_phase": true,
+      "meaning": "Canonical signature minting needs a reviewed decision to use BayesFilter computational state_dim=6 rather than structural state_dim=4."
+    },
+    {
+      "code": "BLOCK_SERIOUS_BASELINE_PAYLOAD_ABSENT_LOCALLY",
+      "fixable_in_next_phase": false,
+      "meaning": "The serious Rotemberg linear/Kalman baseline files are referenced by summaries but are not present at their expected local paths.",
+      "missing_paths": [
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/executable_contract_2026-06-23/serious_baseline_launch_2026-06-23/run/paper_dense_iaf_seed20260622.json",
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/executable_contract_2026-06-23/serious_baseline_launch_2026-06-23/run/paper_dense_iaf_seed20260622_replay_state.json",
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/executable_contract_2026-06-23/serious_baseline_launch_2026-06-23/run/paper_dense_iaf_seed20260622.training_state.json"
+      ]
+    }
+  ],
+  "cpu_gpu_status": "CPU-only/read-only metadata inventory; no GPU/CUDA device was probed or used",
+  "created_at_local_date": "2026-07-04",
+  "created_at_utc": "2026-07-04T05:20:53.152733+00:00",
+  "draft_contract_manifest": {
+    "chart": {
+      "constrained_shape": [
+        15
+      ],
+      "log_jacobian_convention": "included_in_prior",
+      "parameter_names": [
+        "tau",
+        "nu",
+        "kap",
+        "cyst",
+        "psi1",
+        "psi2",
+        "rhor",
+        "rhog",
+        "rhoz",
+        "rrst",
+        "pist",
+        "gamst",
+        "sig_r",
+        "sig_g",
+        "sig_z"
+      ],
+      "transform_manifest": {
+        "source_anchor": "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:3850-3900",
+        "transform_hash": "sha256:7f5e861288dbab3702c715e443f2cf63c16a7fff4199d1d9dab7ddfa0f63ea37",
+        "transform_id": "RotembergNKEstimable.transform_from_unconstrained.estimate_obs_noise_false"
+      },
+      "unconstrained_dim": 15
+    },
+    "filter_program": {
+      "approximation_semantics": "exact",
+      "deterministic_target_policy": "deterministic",
+      "filter_id": "bayesfilter.linear.svd_graph_status_linear_gaussian",
+      "filter_manifest": {
+        "filter_class": "BayesFilterSVDGraphStatusLinearGaussian",
+        "filter_gradient_api": "bayesfilter.linear.tf_svd_linear_gaussian_score_first_order_graph_status",
+        "filter_hash": "sha256:f87410dc45b7a6f3d69524ddf498bd7dd1ddc3c678f0c539df4e5c448e87e4e5",
+        "filter_id": "bayesfilter.linear.svd_graph_status_linear_gaussian",
+        "structural_certificate_sha256": "sha256:027bb7cdb9cc26e785d448b5c0dfe3bd3bb89f4d333260866f136ca28b63ff16"
+      },
+      "required_model_capabilities": [
+        "time_invariant_linear_gaussian_state_space",
+        "first_order_state_space_derivatives_unconstrained_u",
+        "analytical_prior_value_score",
+        "dense_observations"
+      ]
+    },
+    "prior": {
+      "log_density_authority": "reviewed_external_adapter",
+      "prior_manifest": {
+        "prior_hash": "sha256:7f5e861288dbab3702c715e443f2cf63c16a7fff4199d1d9dab7ddfa0f63ea37",
+        "prior_id": "RotembergNKEstimable.log_prior_value_and_score_analytical_batch.estimate_obs_noise_false",
+        "source_anchor": "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:3939-4100"
+      },
+      "support_policy": "enforced_by_transform"
+    },
+    "problem": {
+      "data_signature": {
+        "data_hash": "sha256:5df35a71bb789dd36002ad464c8f090ebee1701ea69c1681a99410e642f03a3b",
+        "dataset_id": "rotemberg_linear_kalman_local/simulated_seed42_t40",
+        "mask_shape": null,
+        "observation_shape": [
+          40,
+          3
+        ]
+      },
+      "model_manifest": {
+        "capabilities": [
+          "time_invariant_linear_gaussian_state_space",
+          "first_order_state_space_derivatives_unconstrained_u",
+          "analytical_prior_value_score",
+          "dense_observations"
+        ],
+        "estimate_obs_noise": false,
+        "model_class": "RotembergNKEstimable",
+        "model_hash": "sha256:7f5e861288dbab3702c715e443f2cf63c16a7fff4199d1d9dab7ddfa0f63ea37",
+        "model_id": "RotembergNKEstimable.first_order_linear_kalman.estimate_obs_noise_false",
+        "preflight_sha256": "sha256:3307b558fbb4bad917c0dc5821d9e1419069676eb781d4627ae78263e3ab5256",
+        "structural_certificate_sha256": "sha256:027bb7cdb9cc26e785d448b5c0dfe3bd3bb89f4d333260866f136ca28b63ff16",
+        "structural_state_dim": 4,
+        "target_surface": "first_order_linear_kalman"
+      },
+      "problem_id": "rotemberg_linear_kalman_local",
+      "static_shape": {
+        "horizon": 40,
+        "innovation_dim": 3,
+        "observation_dim": 3,
+        "parameter_dim": 15,
+        "state_dim": 6
+      },
+      "target_coordinate_convention": "unconstrained"
+    },
+    "status": "draft_not_canonical_signature"
+  },
+  "external_mutation": "None; /home/chakwong/python was read-only",
+  "field_support": {
+    "data_signature": {
+      "evidence": [
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json",
+        "/home/chakwong/python/scripts/prepare_neutra_rotemberg_linear_kalman_target.py:216",
+        "/home/chakwong/python/scripts/prepare_neutra_rotemberg_linear_kalman_target.py:219"
+      ],
+      "proposed_value": {
+        "data_hash": "sha256:5df35a71bb789dd36002ad464c8f090ebee1701ea69c1681a99410e642f03a3b",
+        "dataset_id": "rotemberg_linear_kalman_local/simulated_seed42_t40",
+        "mask_shape": null,
+        "observation_shape": [
+          40,
+          3
+        ]
+      },
+      "status": "supported"
+    },
+    "filter_program": {
+      "evidence": [
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json",
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_structural_certificate.json",
+        "/home/chakwong/BayesFilter/bayesfilter/linear/kalman_svd_derivatives_tf.py",
+        "/home/chakwong/python/scripts/run_neutra_paper_style_at_baseline.py:3824",
+        "/home/chakwong/python/scripts/run_neutra_paper_style_at_baseline.py:3854"
+      ],
+      "proposed_value": {
+        "approximation_semantics": "exact",
+        "deterministic_target_policy": "deterministic",
+        "filter_id": "bayesfilter.linear.svd_graph_status_linear_gaussian",
+        "implementation_backend": "tensorflow_probability_tensorflow_float64",
+        "required_model_capabilities": [
+          "time_invariant_linear_gaussian_state_space",
+          "first_order_state_space_derivatives_unconstrained_u",
+          "analytical_prior_value_score",
+          "dense_observations"
+        ]
+      },
+      "status": "supported"
+    },
+    "model_manifest": {
+      "evidence": [
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json",
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_structural_certificate.json",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py"
+      ],
+      "proposed_value": {
+        "capabilities": [
+          "time_invariant_linear_gaussian_state_space",
+          "first_order_state_space_derivatives_unconstrained_u",
+          "analytical_prior_value_score",
+          "dense_observations"
+        ],
+        "estimate_obs_noise": false,
+        "model_class": "RotembergNKEstimable",
+        "model_id": "RotembergNKEstimable.first_order_linear_kalman.estimate_obs_noise_false",
+        "problem_id": "rotemberg_linear_kalman_local",
+        "target_coordinate_convention": "unconstrained",
+        "target_surface": "first_order_linear_kalman"
+      },
+      "status": "supported"
+    },
+    "parameter_chart": {
+      "evidence": [
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:360",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:3850",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:3939"
+      ],
+      "proposed_value": {
+        "constrained_shape": [
+          15
+        ],
+        "log_jacobian_convention": "included_in_prior",
+        "parameter_names": [
+          "tau",
+          "nu",
+          "kap",
+          "cyst",
+          "psi1",
+          "psi2",
+          "rhor",
+          "rhog",
+          "rhoz",
+          "rrst",
+          "pist",
+          "gamst",
+          "sig_r",
+          "sig_g",
+          "sig_z"
+        ],
+        "transform_id": "RotembergNKEstimable.transform_from_unconstrained.estimate_obs_noise_false",
+        "unconstrained_dim": 15
+      },
+      "status": "supported"
+    },
+    "parameter_prior": {
+      "evidence": [
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:3939",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:3999",
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json#batched_value_score_parity.metadata.prior_score_source"
+      ],
+      "proposed_value": {
+        "log_density_authority": "reviewed_external_adapter",
+        "prior_id": "RotembergNKEstimable.log_prior_value_and_score_analytical_batch.estimate_obs_noise_false",
+        "support_policy": "enforced_by_transform"
+      },
+      "status": "supported"
+    },
+    "problem_id": {
+      "evidence": [
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json",
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_structural_certificate.json",
+        "/home/chakwong/python/scripts/run_neutra_paper_style_at_baseline.py:3768"
+      ],
+      "status": "supported",
+      "value": "rotemberg_linear_kalman_local"
+    },
+    "static_shape": {
+      "evidence": [
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json",
+        "/home/chakwong/python/scripts/prepare_neutra_rotemberg_linear_kalman_target.py:229",
+        "/home/chakwong/python/scripts/prepare_neutra_rotemberg_linear_kalman_target.py:235",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:2745"
+      ],
+      "proposed_value": {
+        "horizon": 40,
+        "innovation_dim": 3,
+        "observation_dim": 3,
+        "parameter_dim": 15,
+        "state_dim": 6
+      },
+      "required_decision": "Use BayesFilter computational state_dim=6 for the generic target signature, while recording structural_state_dim=4 as model metadata.",
+      "state_dim_candidates": {
+        "bayesfilter_computational_state_dim": 6,
+        "structural_certificate_minimal_filter_state_count": 3,
+        "structural_state_dim_from_model": 4
+      },
+      "status": "supported_with_semantic_decision_required"
+    }
+  },
+  "hostname": "DESKTOP-RF1Q5IJ",
+  "network_status": "No network fetch",
+  "nonclaims": [
+    "metadata reconstruction inventory only",
+    "no canonical target_signature minted",
+    "no historical transport payload exported",
+    "no historical artifact loaded through BayesFilter",
+    "no HMC convergence claim",
+    "no posterior correctness claim",
+    "no sampler superiority claim",
+    "no GPU readiness claim",
+    "no default policy change"
+  ],
+  "phase4_bridge_json": "/home/chakwong/BayesFilter/docs/plans/bayesfilter-general-neutra-dense-iaf-artifact-migration-phase4-target-signature-bridge-2026-07-04.json",
+  "required_field_classifications": {
+    "SSMTargetContract.chart.constrained_shape": {
+      "evidence": [
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:360",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:3850",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:3939"
+      ],
+      "status": "supported",
+      "value": [
+        15
+      ]
+    },
+    "SSMTargetContract.chart.log_jacobian_convention": {
+      "evidence": [
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:360",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:3850",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:3939"
+      ],
+      "status": "supported",
+      "value": "included_in_prior"
+    },
+    "SSMTargetContract.chart.parameter_names": {
+      "evidence": [
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:360",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:3850",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:3939"
+      ],
+      "status": "supported",
+      "value": [
+        "tau",
+        "nu",
+        "kap",
+        "cyst",
+        "psi1",
+        "psi2",
+        "rhor",
+        "rhog",
+        "rhoz",
+        "rrst",
+        "pist",
+        "gamst",
+        "sig_r",
+        "sig_g",
+        "sig_z"
+      ]
+    },
+    "SSMTargetContract.chart.transform_manifest.transform_hash": {
+      "evidence": [
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:360",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:3850",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:3939"
+      ],
+      "status": "supported",
+      "value": "sha256:<rotemberg_source_sha256>"
+    },
+    "SSMTargetContract.chart.transform_manifest.transform_id": {
+      "evidence": [
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:360",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:3850",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:3939"
+      ],
+      "status": "supported",
+      "value": "RotembergNKEstimable.transform_from_unconstrained.estimate_obs_noise_false"
+    },
+    "SSMTargetContract.chart.unconstrained_dim": {
+      "evidence": [
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:360",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:3850",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:3939"
+      ],
+      "status": "supported",
+      "value": 15
+    },
+    "SSMTargetContract.filter_program.approximation_semantics": {
+      "evidence": [
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json",
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_structural_certificate.json",
+        "/home/chakwong/BayesFilter/bayesfilter/linear/kalman_svd_derivatives_tf.py",
+        "/home/chakwong/python/scripts/run_neutra_paper_style_at_baseline.py:3824",
+        "/home/chakwong/python/scripts/run_neutra_paper_style_at_baseline.py:3854"
+      ],
+      "status": "supported",
+      "value": "exact"
+    },
+    "SSMTargetContract.filter_program.deterministic_target_policy": {
+      "evidence": [
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json",
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_structural_certificate.json",
+        "/home/chakwong/BayesFilter/bayesfilter/linear/kalman_svd_derivatives_tf.py",
+        "/home/chakwong/python/scripts/run_neutra_paper_style_at_baseline.py:3824",
+        "/home/chakwong/python/scripts/run_neutra_paper_style_at_baseline.py:3854"
+      ],
+      "status": "supported",
+      "value": "deterministic"
+    },
+    "SSMTargetContract.filter_program.filter_id": {
+      "evidence": [
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json",
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_structural_certificate.json",
+        "/home/chakwong/BayesFilter/bayesfilter/linear/kalman_svd_derivatives_tf.py",
+        "/home/chakwong/python/scripts/run_neutra_paper_style_at_baseline.py:3824",
+        "/home/chakwong/python/scripts/run_neutra_paper_style_at_baseline.py:3854"
+      ],
+      "status": "supported",
+      "value": "bayesfilter.linear.svd_graph_status_linear_gaussian"
+    },
+    "SSMTargetContract.filter_program.filter_manifest.filter_hash": {
+      "evidence": [
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json",
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_structural_certificate.json",
+        "/home/chakwong/BayesFilter/bayesfilter/linear/kalman_svd_derivatives_tf.py",
+        "/home/chakwong/python/scripts/run_neutra_paper_style_at_baseline.py:3824",
+        "/home/chakwong/python/scripts/run_neutra_paper_style_at_baseline.py:3854"
+      ],
+      "status": "supported",
+      "value": "sha256:<bayesfilter_svd_score_source_sha256>"
+    },
+    "SSMTargetContract.filter_program.filter_manifest.filter_id": {
+      "evidence": [
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json",
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_structural_certificate.json",
+        "/home/chakwong/BayesFilter/bayesfilter/linear/kalman_svd_derivatives_tf.py",
+        "/home/chakwong/python/scripts/run_neutra_paper_style_at_baseline.py:3824",
+        "/home/chakwong/python/scripts/run_neutra_paper_style_at_baseline.py:3854"
+      ],
+      "status": "supported",
+      "value": "bayesfilter.linear.svd_graph_status_linear_gaussian"
+    },
+    "SSMTargetContract.filter_program.required_model_capabilities": {
+      "evidence": [
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json",
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_structural_certificate.json",
+        "/home/chakwong/BayesFilter/bayesfilter/linear/kalman_svd_derivatives_tf.py",
+        "/home/chakwong/python/scripts/run_neutra_paper_style_at_baseline.py:3824",
+        "/home/chakwong/python/scripts/run_neutra_paper_style_at_baseline.py:3854"
+      ],
+      "status": "supported",
+      "value": [
+        "time_invariant_linear_gaussian_state_space",
+        "first_order_state_space_derivatives_unconstrained_u",
+        "analytical_prior_value_score",
+        "dense_observations"
+      ]
+    },
+    "SSMTargetContract.frozen_transport": {
+      "evidence": [
+        "/home/chakwong/BayesFilter/bayesfilter/ssm/contracts.py:394",
+        "/home/chakwong/BayesFilter/docs/plans/bayesfilter-general-neutra-dense-iaf-artifact-migration-phase4-target-signature-bridge-result-2026-07-04.md"
+      ],
+      "note": "Phase 1 reconstructs the untransported target signature only; frozen transport binding belongs to a later bridge/load phase.",
+      "status": "not_applicable_untransported_signature",
+      "value": null
+    },
+    "SSMTargetContract.prior.log_density_authority": {
+      "evidence": [
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:3939",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:3999",
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json#batched_value_score_parity.metadata.prior_score_source"
+      ],
+      "status": "supported",
+      "value": "reviewed_external_adapter"
+    },
+    "SSMTargetContract.prior.prior_manifest.prior_hash": {
+      "evidence": [
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:3939",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:3999",
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json#batched_value_score_parity.metadata.prior_score_source"
+      ],
+      "status": "supported",
+      "value": "sha256:<rotemberg_source_sha256>"
+    },
+    "SSMTargetContract.prior.prior_manifest.prior_id": {
+      "evidence": [
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:3939",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:3999",
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json#batched_value_score_parity.metadata.prior_score_source"
+      ],
+      "status": "supported",
+      "value": "RotembergNKEstimable.log_prior_value_and_score_analytical_batch.estimate_obs_noise_false"
+    },
+    "SSMTargetContract.prior.support_policy": {
+      "evidence": [
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:3939",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:3999",
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json#batched_value_score_parity.metadata.prior_score_source"
+      ],
+      "status": "supported",
+      "value": "enforced_by_transform"
+    },
+    "SSMTargetContract.problem.BayesianSSMProblem.problem_id": {
+      "evidence": [
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json",
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_structural_certificate.json",
+        "/home/chakwong/python/scripts/run_neutra_paper_style_at_baseline.py:3768"
+      ],
+      "status": "supported",
+      "value": "rotemberg_linear_kalman_local"
+    },
+    "SSMTargetContract.problem.data_signature.data_hash": {
+      "evidence": [
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json",
+        "/home/chakwong/python/scripts/prepare_neutra_rotemberg_linear_kalman_target.py:216",
+        "/home/chakwong/python/scripts/prepare_neutra_rotemberg_linear_kalman_target.py:219"
+      ],
+      "status": "supported",
+      "value": "sha256:5df35a71bb789dd36002ad464c8f090ebee1701ea69c1681a99410e642f03a3b"
+    },
+    "SSMTargetContract.problem.data_signature.dataset_id": {
+      "evidence": [
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json",
+        "/home/chakwong/python/scripts/prepare_neutra_rotemberg_linear_kalman_target.py:216",
+        "/home/chakwong/python/scripts/prepare_neutra_rotemberg_linear_kalman_target.py:219"
+      ],
+      "status": "supported",
+      "value": "rotemberg_linear_kalman_local/simulated_seed42_t40"
+    },
+    "SSMTargetContract.problem.data_signature.mask_shape": {
+      "evidence": [
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json",
+        "/home/chakwong/python/scripts/prepare_neutra_rotemberg_linear_kalman_target.py:216",
+        "/home/chakwong/python/scripts/prepare_neutra_rotemberg_linear_kalman_target.py:219"
+      ],
+      "status": "supported",
+      "value": null
+    },
+    "SSMTargetContract.problem.data_signature.observation_shape": {
+      "evidence": [
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json",
+        "/home/chakwong/python/scripts/prepare_neutra_rotemberg_linear_kalman_target.py:216",
+        "/home/chakwong/python/scripts/prepare_neutra_rotemberg_linear_kalman_target.py:219"
+      ],
+      "status": "supported",
+      "value": [
+        40,
+        3
+      ]
+    },
+    "SSMTargetContract.problem.model_manifest.capabilities": {
+      "evidence": [
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json",
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_structural_certificate.json",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py"
+      ],
+      "status": "supported",
+      "value": [
+        "time_invariant_linear_gaussian_state_space",
+        "first_order_state_space_derivatives_unconstrained_u",
+        "analytical_prior_value_score",
+        "dense_observations"
+      ]
+    },
+    "SSMTargetContract.problem.model_manifest.model_hash": {
+      "evidence": [
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json",
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_structural_certificate.json",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py"
+      ],
+      "status": "supported",
+      "value": "sha256:<rotemberg_source_sha256>"
+    },
+    "SSMTargetContract.problem.model_manifest.model_id": {
+      "evidence": [
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json",
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_structural_certificate.json",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py"
+      ],
+      "status": "supported",
+      "value": "RotembergNKEstimable.first_order_linear_kalman.estimate_obs_noise_false"
+    },
+    "SSMTargetContract.problem.static_shape.horizon": {
+      "evidence": [
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json",
+        "/home/chakwong/python/scripts/prepare_neutra_rotemberg_linear_kalman_target.py:229",
+        "/home/chakwong/python/scripts/prepare_neutra_rotemberg_linear_kalman_target.py:235",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:2745"
+      ],
+      "status": "supported",
+      "value": 40
+    },
+    "SSMTargetContract.problem.static_shape.innovation_dim": {
+      "evidence": [
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json",
+        "/home/chakwong/python/scripts/prepare_neutra_rotemberg_linear_kalman_target.py:229",
+        "/home/chakwong/python/scripts/prepare_neutra_rotemberg_linear_kalman_target.py:235",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:2745"
+      ],
+      "status": "supported",
+      "value": 3
+    },
+    "SSMTargetContract.problem.static_shape.observation_dim": {
+      "evidence": [
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json",
+        "/home/chakwong/python/scripts/prepare_neutra_rotemberg_linear_kalman_target.py:229",
+        "/home/chakwong/python/scripts/prepare_neutra_rotemberg_linear_kalman_target.py:235",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:2745"
+      ],
+      "status": "supported",
+      "value": 3
+    },
+    "SSMTargetContract.problem.static_shape.parameter_dim": {
+      "evidence": [
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json",
+        "/home/chakwong/python/scripts/prepare_neutra_rotemberg_linear_kalman_target.py:229",
+        "/home/chakwong/python/scripts/prepare_neutra_rotemberg_linear_kalman_target.py:235",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:2745"
+      ],
+      "status": "supported",
+      "value": 15
+    },
+    "SSMTargetContract.problem.static_shape.state_dim": {
+      "evidence": [
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json",
+        "/home/chakwong/python/scripts/prepare_neutra_rotemberg_linear_kalman_target.py:229",
+        "/home/chakwong/python/scripts/prepare_neutra_rotemberg_linear_kalman_target.py:235",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py:2745"
+      ],
+      "note": "Use BayesFilter computational state_dim=6 for the generic target signature, while recording structural_state_dim=4 as model metadata.",
+      "status": "supported_with_semantic_decision_required",
+      "value": 6
+    },
+    "SSMTargetContract.problem.target_coordinate_convention": {
+      "evidence": [
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json",
+        "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_structural_certificate.json",
+        "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py"
+      ],
+      "status": "supported",
+      "value": "unconstrained"
+    }
+  },
+  "rotemberg_embedded_payload_candidate_count": 2,
+  "rotemberg_embedded_payload_candidates": [
+    {
+      "bridge_status": "missing_static_shape",
+      "canonical_signature": null,
+      "is_embedded_payload_candidate": true,
+      "missing_fields": [
+        "static_shape",
+        "data_signature",
+        "prior",
+        "filter_program"
+      ],
+      "notes": "Legacy payload has dense-IAF tensors, but generic target metadata is insufficient for canonical target_signature.",
+      "observed_contract_fields": {
+        "chart": {
+          "parameter_dim_inferred_from_payload": "present_but_names_and_transform_not_canonical"
+        },
+        "problem_id": "legacy_rotemberg_name_only_not_canonical"
+      },
+      "path": "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase7/rotemberg_trainable_canary.json.training_state.json",
+      "payload_status": "embedded_transport_payload_present",
+      "phase1_status": "missing_target_signature",
+      "ssm_target_contract_manifest": null,
+      "transport_kinds": [
+        "composed",
+        "dense_autoregressive_iaf"
+      ],
+      "veto_reason": "Cannot define canonical SSMTargetContract without inventing fields: static_shape, data_signature, prior, filter_program"
+    },
+    {
+      "bridge_status": "missing_static_shape",
+      "canonical_signature": null,
+      "is_embedded_payload_candidate": true,
+      "missing_fields": [
+        "static_shape",
+        "data_signature",
+        "prior",
+        "filter_program"
+      ],
+      "notes": "Legacy payload has dense-IAF tensors, but generic target metadata is insufficient for canonical target_signature.",
+      "observed_contract_fields": {
+        "chart": {
+          "parameter_dim_inferred_from_payload": "present_but_names_and_transform_not_canonical"
+        },
+        "problem_id": "legacy_rotemberg_name_only_not_canonical"
+      },
+      "path": "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-neutra-preflight-2026-06-20/runner_training_canary.json.training_state.json",
+      "payload_status": "embedded_transport_payload_present",
+      "phase1_status": "missing_target_signature",
+      "ssm_target_contract_manifest": null,
+      "transport_kinds": [
+        "composed",
+        "dense_autoregressive_iaf"
+      ],
+      "veto_reason": "Cannot define canonical SSMTargetContract without inventing fields: static_shape, data_signature, prior, filter_program"
+    }
+  ],
+  "schema": "bayesfilter.rotemberg_target_contract_reconstruction.phase1_inventory.v1",
+  "source_anchors": {
+    "derivative_contract": {
+      "description": "Rotemberg linear-Kalman derivative contract and computational state dimension",
+      "end_line": 2805,
+      "exists": true,
+      "path": "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py",
+      "sha256": "7f5e861288dbab3702c715e443f2cf63c16a7fff4199d1d9dab7ddfa0f63ea37",
+      "start_line": 2745
+    },
+    "generic_contract_fields": {
+      "description": "BayesFilter generic SSMTargetContract field requirements",
+      "end_line": 449,
+      "exists": true,
+      "path": "/home/chakwong/BayesFilter/bayesfilter/ssm/contracts.py",
+      "sha256": "a02ac20f789df4caa784fb185423940ebe95a73d51571bb5c30099991c729c7a",
+      "start_line": 62
+    },
+    "parameter_names_constructor": {
+      "description": "15 parameter names selected when estimate_obs_noise=False",
+      "end_line": 378,
+      "exists": true,
+      "path": "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py",
+      "sha256": "7f5e861288dbab3702c715e443f2cf63c16a7fff4199d1d9dab7ddfa0f63ea37",
+      "start_line": 360
+    },
+    "preflight_data_and_target_builder": {
+      "description": "model/data simulation and BayesFilter linear-Kalman adapter construction",
+      "end_line": 248,
+      "exists": true,
+      "path": "/home/chakwong/python/scripts/prepare_neutra_rotemberg_linear_kalman_target.py",
+      "sha256": "247f985ada360614fe0b8263079d9d81323feb1c5eb68d9c8c02f757491dd81c",
+      "start_line": 213
+    },
+    "runner_preflight_validation": {
+      "description": "legacy runner validation of preflight/certificate/data/probe hashes",
+      "end_line": 3908,
+      "exists": true,
+      "path": "/home/chakwong/python/scripts/run_neutra_paper_style_at_baseline.py",
+      "sha256": "0c15613ff2d4ea48f86995963e1ca5f5b1ba63409c47a788fce2ca30dbb64316",
+      "start_line": 3768
+    },
+    "transform_and_prior": {
+      "description": "unconstrained transform and analytical prior value/score",
+      "end_line": 4100,
+      "exists": true,
+      "path": "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py",
+      "sha256": "7f5e861288dbab3702c715e443f2cf63c16a7fff4199d1d9dab7ddfa0f63ea37",
+      "start_line": 3850
+    }
+  },
+  "source_records": {
+    "baseline_runner_script": {
+      "exists": true,
+      "path": "/home/chakwong/python/scripts/run_neutra_paper_style_at_baseline.py",
+      "sha256": "0c15613ff2d4ea48f86995963e1ca5f5b1ba63409c47a788fce2ca30dbb64316",
+      "size_bytes": 465444
+    },
+    "bayesfilter_svd_score_source": {
+      "exists": true,
+      "path": "/home/chakwong/BayesFilter/bayesfilter/linear/kalman_svd_derivatives_tf.py",
+      "sha256": "f87410dc45b7a6f3d69524ddf498bd7dd1ddc3c678f0c539df4e5c448e87e4e5",
+      "size_bytes": 39055
+    },
+    "canary_training_state_json": {
+      "exists": true,
+      "path": "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase7/rotemberg_trainable_canary.json.training_state.json",
+      "sha256": "cc8d79d02d43a163e94c5dc37c635e4d78c0628007d12cb4f9805ba3f5209824",
+      "size_bytes": 63492
+    },
+    "generic_contract_source": {
+      "exists": true,
+      "path": "/home/chakwong/BayesFilter/bayesfilter/ssm/contracts.py",
+      "sha256": "a02ac20f789df4caa784fb185423940ebe95a73d51571bb5c30099991c729c7a",
+      "size_bytes": 22003
+    },
+    "phase4_bridge_json": {
+      "exists": true,
+      "path": "/home/chakwong/BayesFilter/docs/plans/bayesfilter-general-neutra-dense-iaf-artifact-migration-phase4-target-signature-bridge-2026-07-04.json",
+      "sha256": "500fa4becba32c3b12d214b8bfc7d4677c8af67a04d71d7e838941cc1f441d88",
+      "size_bytes": 40251
+    },
+    "phase4_result": {
+      "exists": true,
+      "path": "/home/chakwong/BayesFilter/docs/plans/bayesfilter-general-neutra-dense-iaf-artifact-migration-phase4-target-signature-bridge-result-2026-07-04.md",
+      "sha256": "20153fe53c4b804e62ca7e5e7179932dcca4e56a04dea1bed429ed1746ab25b3",
+      "size_bytes": 5826
+    },
+    "preflight_json": {
+      "exists": true,
+      "path": "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_target_preflight.json",
+      "sha256": "3307b558fbb4bad917c0dc5821d9e1419069676eb781d4627ae78263e3ab5256",
+      "size_bytes": 42537
+    },
+    "prepare_preflight_script": {
+      "exists": true,
+      "path": "/home/chakwong/python/scripts/prepare_neutra_rotemberg_linear_kalman_target.py",
+      "sha256": "247f985ada360614fe0b8263079d9d81323feb1c5eb68d9c8c02f757491dd81c",
+      "size_bytes": 24762
+    },
+    "rotemberg_source": {
+      "exists": true,
+      "path": "/home/chakwong/python/src/dsge_hmc/models/rotemberg_nk.py",
+      "sha256": "7f5e861288dbab3702c715e443f2cf63c16a7fff4199d1d9dab7ddfa0f63ea37",
+      "size_bytes": 164030
+    },
+    "structural_certificate_json": {
+      "exists": true,
+      "path": "/home/chakwong/python/docs/plans/artifacts/rotemberg-linear-kalman-certified-neutra-2026-06-22/phase5/preflight/rotemberg_linear_kalman_structural_certificate.json",
+      "sha256": "027bb7cdb9cc26e785d448b5c0dfe3bd3bb89f4d333260866f136ca28b63ff16",
+      "size_bytes": 3011
+    }
+  },
+  "status": "PHASE1_RECONSTRUCTION_INVENTORY_COMPLETE_WITH_BLOCKERS"
+}
