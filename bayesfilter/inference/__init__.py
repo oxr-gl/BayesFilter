@@ -217,6 +217,13 @@ from bayesfilter.inference.quadratic_geometry import (
     LowRankSPDQuadraticGeometryResult,
     fit_low_rank_spd_quadratic_geometry,
 )
+from bayesfilter.inference.quadratic_map_covariance import (
+    QUADRATIC_MAP_COVARIANCE_NONCLAIMS,
+    QuadraticMapCovarianceLocatorConfig,
+    QuadraticMapCovarianceMassConfig,
+    QuadraticMapCovarianceResult,
+    estimate_quadratic_map_covariance,
+)
 from bayesfilter.inference.posterior_adapter import (
     HessianPosteriorAdapter,
     InvalidNonlinearSSMContract,
@@ -368,6 +375,10 @@ __all__ = [
     "PrecomputedMassArtifact",
     "PrecomputedMAP",
     "PriorSupportError",
+    "QUADRATIC_MAP_COVARIANCE_NONCLAIMS",
+    "QuadraticMapCovarianceLocatorConfig",
+    "QuadraticMapCovarianceMassConfig",
+    "QuadraticMapCovarianceResult",
     "ReusableFullChainHMCRunner",
     "RegularizationConvention",
     "SolveResidualError",
@@ -416,6 +427,7 @@ __all__ = [
     "evaluate_target_with_failure_policy",
     "evaluate_batch_native_value_score",
     "fit_low_rank_spd_quadratic_geometry",
+    "estimate_quadratic_map_covariance",
     "initialize_hmc_kernel_geometry",
     "normalize_hmc_tuning_policy",
     "orchestrate_generic_hmc_tuning",

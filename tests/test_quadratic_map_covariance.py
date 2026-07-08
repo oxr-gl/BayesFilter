@@ -1,0 +1,217 @@
+from __future__ import annotations
+
+import numpy as np
+import tensorflow as tf
+
+from bayesfilter.inference import (
+    QUADRATIC_MAP_COVARIANCE_NONCLAIMS,
+    LowRankSPDQuadraticGeometryConfig,
+    QuadraticMapCovarianceLocatorConfig,
+    QuadraticMapCovarianceMassConfig,
+    estimate_quadratic_map_covariance,
+)
+
+
+def _quadratic_target(
+    precision: np.ndarray,
+    *,
+    mode: np.ndarray | None = None,
+    shift: float = 0.0,
+):
+    precision_tf = tf.constant(precision, dtype=tf.float64)
+    mode_tf = (
+        tf.zeros([precision.shape[0]], dtype=tf.float64)
+        if mode is None
+        else tf.constant(mode, dtype=tf.float64)
+    )
+
+    def value_and_score(theta: tf.Tensor) -> tuple[tf.Tensor, tf.Tensor]:
+        theta = tf.reshape(tf.convert_to_tensor(theta, dtype=tf.float64), [-1])
+        delta = theta - mode_tf
+        value = tf.constant(float(shift), dtype=tf.float64) - 0.5 * tf.tensordot(
+            delta,
+            tf.linalg.matvec(precision_tf, delta),
+            axes=1,
+        )
+        score = -tf.linalg.matvec(precision_tf, delta)
+        return value, score
+
+    return value_and_score
+
+
+def _geometry_config(**kwargs) -> LowRankSPDQuadraticGeometryConfig:
+    return LowRankSPDQuadraticGeometryConfig(
+        rank=kwargs.pop("rank", 2),
+        sample_count=kwargs.pop("sample_count", 220),
+        pilot_direction_count=kwargs.pop("pilot_direction_count", 256),
+        trust_radius=kwargs.pop("trust_radius", 1.0),
+        eigenvalue_floor=kwargs.pop("eigenvalue_floor", 0.1),
+        max_condition_number=kwargs.pop("max_condition_number", 100.0),
+        holdout_rmse_abs_tolerance=kwargs.pop("holdout_rmse_abs_tolerance", 1.0e-4),
+        holdout_rmse_rel_tolerance=kwargs.pop("holdout_rmse_rel_tolerance", 1.0e-4),
+        seed=kwargs.pop("seed", (2026, 708)),
+        **kwargs,
+    )
+
+
+def test_quadratic_initializer_recovers_gaussian_mode_and_covariance() -> None:
+    precision = np.diag([2.0, 4.0])
+    mode = np.array([0.18, -0.12])
+
+    result = estimate_quadratic_map_covariance(
+        _quadratic_target(precision, mode=mode),
+        np.array([0.0, 0.0]),
+        locator_config=QuadraticMapCovarianceLocatorConfig(enabled=False),
+        quadratic_config=_geometry_config(
+            rank=1,
+            sample_count=220,
+            pilot_direction_count=1024,
+            holdout_rmse_abs_tolerance=7.0e-2,
+        ),
+        mass_config=QuadraticMapCovarianceMassConfig(
+            jitter=0.0,
+            eigenvalue_floor=0.1,
+            max_condition_number=100.0,
+        ),
+    )
+
+    assert result.accepted is True
+    assert result.status == "usable"
+    assert result.map_candidate_role == "quadratic_surrogate_map_candidate"
+    assert result.map_candidate is not None
+    np.testing.assert_allclose(result.map_candidate, mode, atol=0.06)
+    np.testing.assert_allclose(result.precision, precision, atol=0.08, rtol=0.05)
+    np.testing.assert_allclose(
+        result.covariance,
+        np.linalg.inv(precision),
+        atol=0.04,
+        rtol=0.06,
+    )
+
+    payload = result.payload()
+    assert payload["covariance_source"] == "low_rank_spd_quadratic_geometry_precision"
+    assert payload["diagnostics"]["covariance_authority"] == "covariance_from_precision"
+    assert payload["locator_diagnostics"]["uses_optimizer_inverse_hessian"] is False
+    assert "not HMC readiness evidence" in payload["nonclaims"]
+
+
+def test_enabled_locator_is_finite_locator_only_not_covariance_authority() -> None:
+    precision = np.diag([1.5, 3.0])
+    mode = np.array([0.2, -0.1])
+
+    result = estimate_quadratic_map_covariance(
+        _quadratic_target(precision, mode=mode),
+        np.array([0.0, 0.0]),
+        locator_config=QuadraticMapCovarianceLocatorConfig(
+            enabled=True,
+            max_iterations=20,
+        ),
+        quadratic_config=_geometry_config(
+            rank=1,
+            sample_count=220,
+            pilot_direction_count=1024,
+            holdout_rmse_abs_tolerance=7.0e-2,
+            seed=(5, 6),
+        ),
+        mass_config=QuadraticMapCovarianceMassConfig(
+            jitter=0.0,
+            eigenvalue_floor=0.1,
+            max_condition_number=100.0,
+        ),
+    )
+
+    assert result.accepted is True
+    diagnostics = result.payload()["locator_diagnostics"]
+    assert diagnostics["optimizer_role"] == "finite_neighborhood_locator_only"
+    assert diagnostics["uses_optimizer_inverse_hessian"] is False
+    assert result.payload()["diagnostics"]["optimizer_authority"] == "locator_only"
+    assert result.covariance_source == "low_rank_spd_quadratic_geometry_precision"
+
+
+def test_locator_exception_falls_back_to_initial_position_for_geometry(monkeypatch) -> None:
+    from bayesfilter.inference import quadratic_map_covariance as qmc
+
+    def raising_lbfgs(*args, **kwargs):
+        raise RuntimeError("synthetic locator-only failure")
+
+    monkeypatch.setattr(qmc.tfp.optimizer, "lbfgs_minimize", raising_lbfgs)
+
+    result = estimate_quadratic_map_covariance(
+        _quadratic_target(np.eye(2)),
+        np.zeros(2),
+        locator_config=QuadraticMapCovarianceLocatorConfig(
+            enabled=True,
+            max_iterations=2,
+        ),
+        quadratic_config=_geometry_config(
+            rank=1,
+            sample_count=24,
+            min_samples_per_parameter=2,
+            holdout_fraction=0.0,
+            seed=(7, 8),
+        ),
+    )
+
+    assert result.locator_diagnostics["accepted_optimizer_position"] is False
+    assert np.array_equal(result.locator_position, np.zeros(2))
+    assert result.diagnostics["optimizer_authority"] == "locator_only"
+    assert result.covariance_source == "low_rank_spd_quadratic_geometry_precision"
+
+
+def test_nonfinite_initial_position_target_fails_closed() -> None:
+    def value_and_score(theta: tf.Tensor) -> tuple[tf.Tensor, tf.Tensor]:
+        theta = tf.reshape(tf.convert_to_tensor(theta, dtype=tf.float64), [-1])
+        return tf.constant(np.nan, dtype=tf.float64), -theta
+
+    result = estimate_quadratic_map_covariance(
+        value_and_score,
+        np.zeros(2),
+        locator_config=QuadraticMapCovarianceLocatorConfig(enabled=False),
+        quadratic_config=_geometry_config(rank=1, sample_count=120),
+    )
+
+    assert result.accepted is False
+    assert result.status == "initial_value_or_score_nonfinite"
+    assert result.precision is None
+    assert result.covariance is None
+    assert result.covariance_source is None
+
+
+def test_insufficient_samples_reject_without_mass_matrix() -> None:
+    result = estimate_quadratic_map_covariance(
+        _quadratic_target(np.eye(3)),
+        np.zeros(3),
+        locator_config=QuadraticMapCovarianceLocatorConfig(enabled=False),
+        quadratic_config=LowRankSPDQuadraticGeometryConfig(
+            rank=1,
+            sample_count=10,
+            min_samples_per_parameter=5,
+            seed=(9, 10),
+        ),
+    )
+
+    assert result.accepted is False
+    assert result.status == "geometry_insufficient_finite_samples"
+    assert result.mass_matrix is None
+    assert result.payload()["geometry"]["status"] == "insufficient_finite_samples"
+
+
+def test_payload_nonclaims_and_exported_constant_are_consistent() -> None:
+    assert QUADRATIC_MAP_COVARIANCE_NONCLAIMS[-1] == (
+        "not source-faithful Zhao-Cui evidence"
+    )
+    result = estimate_quadratic_map_covariance(
+        _quadratic_target(np.eye(1)),
+        np.zeros(1),
+        locator_config=QuadraticMapCovarianceLocatorConfig(enabled=False),
+        quadratic_config=_geometry_config(
+            rank=1,
+            sample_count=80,
+            pilot_direction_count=32,
+            seed=(11, 12),
+        ),
+    )
+
+    payload = result.payload()
+    assert tuple(payload["nonclaims"]) == QUADRATIC_MAP_COVARIANCE_NONCLAIMS
+    assert payload["diagnostics"]["reports_hmc_convergence"] is False

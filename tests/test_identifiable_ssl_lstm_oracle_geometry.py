@@ -6,6 +6,14 @@ import sys
 from pathlib import Path
 
 import numpy as np
+from dataclasses import replace
+
+from bayesfilter.inference import (
+    LowRankSPDQuadraticGeometryConfig,
+    QuadraticMapCovarianceLocatorConfig,
+    QuadraticMapCovarianceMassConfig,
+    estimate_quadratic_map_covariance,
+)
 
 
 os.environ.setdefault("CUDA_VISIBLE_DEVICES", "-1")
@@ -76,6 +84,58 @@ def test_dense_negative_hessian_is_finite_spd_on_oracle_target() -> None:
     assert dense.shape == (4, 4)
     assert np.all(np.isfinite(dense))
     assert summary["positive"] is True
+
+
+def test_reusable_quadratic_map_covariance_smoke_on_oracle_target() -> None:
+    harness = _load_harness()
+    settings = replace(
+        harness.default_settings(),
+        horizon=40,
+        low_rank_sample_count=120,
+        low_rank_rank=2,
+        low_rank_pilot_direction_count=128,
+        map_max_iterations=20,
+    )
+    target = harness.build_identifiable_oracle_target(settings)
+
+    result = estimate_quadratic_map_covariance(
+        target.value_and_score,
+        target.truth_free,
+        scale=target.scale,
+        locator_config=QuadraticMapCovarianceLocatorConfig(
+            enabled=True,
+            max_iterations=20,
+        ),
+        quadratic_config=LowRankSPDQuadraticGeometryConfig(
+            rank=2,
+            sample_count=120,
+            min_samples_per_parameter=5,
+            trust_radius=settings.low_rank_trust_radius,
+            pilot_radius=settings.low_rank_pilot_radius,
+            pilot_direction_count=128,
+            eigenvalue_floor=settings.low_rank_eigenvalue_floor,
+            max_condition_number=settings.low_rank_max_condition_number,
+            holdout_rmse_abs_tolerance=settings.low_rank_holdout_rmse_abs_tolerance,
+            holdout_rmse_rel_tolerance=settings.low_rank_holdout_rmse_rel_tolerance,
+            seed=settings.seed,
+        ),
+        mass_config=QuadraticMapCovarianceMassConfig(
+            jitter=0.0,
+            eigenvalue_floor=settings.low_rank_eigenvalue_floor,
+            max_condition_number=settings.low_rank_max_condition_number,
+        ),
+    )
+
+    payload = result.payload()
+    assert result.accepted is True
+    assert payload["status"] == "usable"
+    assert payload["covariance_source"] == "low_rank_spd_quadratic_geometry_precision"
+    assert payload["diagnostics"]["optimizer_authority"] == "locator_only"
+    assert payload["diagnostics"]["covariance_authority"] == "covariance_from_precision"
+    assert payload["geometry"]["status"] == "usable"
+    assert payload["mass_matrix"]["precision_eigen_summary"]["positive"] is True
+    assert payload["mass_matrix"]["covariance_eigen_summary"]["positive"] is True
+    assert any("not HMC readiness" in item for item in payload["nonclaims"])
 
 
 def test_diagnostic_payload_records_nonclaims_and_contract(monkeypatch) -> None:
