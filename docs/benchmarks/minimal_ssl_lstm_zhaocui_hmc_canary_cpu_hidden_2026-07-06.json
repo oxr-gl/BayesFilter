@@ -1,0 +1,347 @@
+{
+  "adapter_signature": "480c7e3f4c1aa4b51556abafaabeed2be988db5500430483d6117d9bdcf03c04",
+  "artifact_role": "tiny_hmc_canary_debug_reference",
+  "capability": {
+    "evidence_path": "docs/plans/bayesfilter-minimal-ssl-lstm-zhaocui-hmc-ladder-phase2-cpu-hidden-canary-subplan-2026-07-06.md",
+    "full_chain_xla_diagnostic_ready": true,
+    "nonclaims": [
+      "clean-room fixed adaptation only",
+      "no source-faithful SSL-LSTM Zhao-Cui parity claim",
+      "no TTSIRT or KR map implementation claim",
+      "no HMC convergence claim",
+      "no posterior correctness claim",
+      "no method superiority claim",
+      "no default-readiness claim",
+      "Phase 1 target-adapter admission only",
+      "CPU-hidden debug/reference exception only",
+      "not an HMC sample or canary result",
+      "not HMC convergence evidence",
+      "not posterior correctness evidence",
+      "not a method ranking or superiority claim",
+      "not source-faithful SSL-LSTM Zhao-Cui parity evidence",
+      "not GPU/XLA production-readiness evidence",
+      "not default-readiness evidence",
+      "not LEDH evidence"
+    ],
+    "runtime_backend": "tensorflow",
+    "target_scope": "minimal_ssl_lstm_zhaocui_hmc_ladder:zhaocui_fixed:phase1",
+    "value_score_authority": "graph_native",
+    "xla_hmc_ready": true
+  },
+  "date": "2026-07-06",
+  "evidence_contract": {
+    "baseline_comparator": "Phase 1 adapter and existing run_full_chain_tfp_hmc launch-smoke pattern.",
+    "explanatory_diagnostics": "Acceptance rate, runtime, initial score norm, sample finite counts, and TensorFlow CUDA startup warnings under CPU-hidden execution.",
+    "not_concluded": [
+      "Phase 2 tiny HMC canary only",
+      "CPU-hidden non-JIT debug/reference exception only",
+      "not HMC convergence evidence",
+      "not R-hat or ESS evidence",
+      "not posterior correctness evidence",
+      "not a method ranking or superiority claim",
+      "not source-faithful SSL-LSTM Zhao-Cui parity evidence",
+      "not GPU/XLA production-readiness evidence",
+      "not default-readiness evidence",
+      "not LEDH evidence"
+    ],
+    "primary_pass_criterion": "Finite initial value/score, no HMC runtime exception, no nonfinite samples, and a valid canary artifact.",
+    "question": "Can the scalar zhaocui_fixed target run through BayesFilter run_full_chain_tfp_hmc without hard-veto failure in a tiny CPU-hidden non-JIT debug canary?",
+    "veto_diagnostics": "Nonfinite initial value/score, HMC runtime exception, nonfinite samples, invalid artifact, wrong fixture, unsupported claim, missing debug/reference exception label, or evidence-class mismatch."
+  },
+  "filter_name": "zhaocui_fixed",
+  "fixture": {
+    "augmented_state_dim": 3,
+    "hidden_dim": 1,
+    "horizon": 2,
+    "latent_dim": 1,
+    "observation_dim": 1,
+    "observations": [
+      [
+        0.12
+      ],
+      [
+        -0.03
+      ]
+    ],
+    "parameter_dim": 24,
+    "theta": [
+      0.09,
+      -0.07,
+      0.05,
+      0.04,
+      0.03,
+      -0.02,
+      0.06,
+      -0.05,
+      0.01,
+      0.04,
+      -0.03,
+      0.02,
+      0.35,
+      -0.08,
+      0.65,
+      0.05,
+      0.15,
+      -0.1,
+      0.2,
+      -0.35,
+      0.15,
+      0.55,
+      0.35,
+      -0.15
+    ]
+  },
+  "hard_vetoes": [],
+  "hmc_runtime": {
+    "diagnostics": {
+      "acceptance_rate": 1.0,
+      "divergence_count": null,
+      "divergence_source": null,
+      "divergence_status": "not_exposed_by_kernel",
+      "finite_sample_count": 2,
+      "hmc_health_diagnostics": {
+        "acceptance_finite": true,
+        "acceptance_rate": 1.0,
+        "diagnostic_role": "hmc_health_diagnostics_not_native_divergence",
+        "log_accept_ratio": {
+          "available": true,
+          "finite": true,
+          "finite_count": 2,
+          "max_abs_finite": 2.220446049250313e-15,
+          "nonfinite_count": 0
+        },
+        "nonclaims": [
+          "acceptance/log-accept/target-log-prob diagnostics are not native divergence telemetry",
+          "no sampler convergence claim"
+        ],
+        "target_log_prob": {
+          "available": true,
+          "finite": true,
+          "max": -1.398533431852591,
+          "min": -1.3985592793427934
+        }
+      },
+      "max_target_log_prob": -1.398533431852591,
+      "min_target_log_prob": -1.3985592793427934,
+      "native_divergence_status": "not_exposed_by_kernel",
+      "nonclaims": [
+        "finite tiny-chain diagnostics only",
+        "no sampler convergence claim",
+        "native divergence unavailability is not zero divergences"
+      ],
+      "nonfinite_sample_count": 0,
+      "sample_shape": [
+        2,
+        24
+      ],
+      "trace_policy": "standard"
+    },
+    "error": null,
+    "metadata": {
+      "adaptation_policy": "fixed_kernel_no_adaptation",
+      "adaptation_policy_source": "reviewed_stage_7_phase_3",
+      "chain_execution_mode": "tf_function",
+      "first_call_s": 1.8814807680028025,
+      "first_sample_chain_compile_execute_s": 1.8814807680028025,
+      "initial_state_dtype": "float64",
+      "initial_state_shape": [
+        24
+      ],
+      "jit_compile": false,
+      "nonclaims": [
+        "tiny full-chain HMC engineering gate only",
+        "no sampler convergence claim",
+        "no posterior validity claim",
+        "no GPU readiness claim",
+        "no performance superiority claim"
+      ],
+      "program_signature": "572419cab887a9a74f79d58528e155d2eed6827024d62f901f89e92c4675d1a6",
+      "requested_target_scope": "minimal_ssl_lstm_zhaocui_hmc_ladder:zhaocui_fixed:phase1",
+      "runner_build_s": 0.00013149900041753426,
+      "runtime": "tfp.mcmc.sample_chain",
+      "sample_chain_call_s": 1.8814807680028025,
+      "sample_chain_invocation_count": 1,
+      "sample_chain_timing_scope": "compile_plus_execute_when_xla_first_call",
+      "target_scope": "minimal_ssl_lstm_zhaocui_hmc_ladder:zhaocui_fixed:phase1",
+      "target_status_trace_policy": "none",
+      "timing_buckets": {
+        "first_call_s": "explanatory_only_first_sample_chain_call",
+        "runner_build_s": "explanatory_only_runner_callable_construction",
+        "trace_capture_s": "explanatory_only_post_sample_chain_trace_diagnostics_capture",
+        "warm_call_s": "not_available_single_use_runner"
+      },
+      "trace_capture_s": 0.01162579100127914,
+      "trace_capture_timing_scope": "post_sample_chain_public_safe_trace_diagnostics_capture",
+      "trace_policy": "standard",
+      "trace_unavailability": {
+        "divergence": "native boolean divergence field not exposed by TensorFlow Probability HMC kernel results"
+      },
+      "tuning_policy": {
+        "adaptation_policy": "fixed_kernel_no_adaptation",
+        "diagnostic_role": "fixed-kernel bounded HMC screen",
+        "enabled": false,
+        "implemented": true,
+        "label": "fixed_kernel_screen",
+        "nonclaims": [
+          "fixed-kernel screen only",
+          "no posterior convergence claim",
+          "no sampler superiority claim",
+          "no default adaptation readiness claim"
+        ],
+        "num_adaptation_steps": 0,
+        "source": "reviewed_stage_7_phase_3",
+        "target_accept_prob": null
+      },
+      "use_xla": false,
+      "value_score_authority": "graph_native",
+      "warm_call_s": null,
+      "warm_sample_chain_execute_s": null,
+      "warm_sample_shape": null,
+      "warm_trace_keys": []
+    },
+    "runtime_s": 2.550630630001251,
+    "sample_shape": [
+      2,
+      24
+    ],
+    "samples_all_finite": true
+  },
+  "hmc_settings": {
+    "adaptation_policy": "fixed_kernel_no_adaptation",
+    "chain_execution_mode": "tf_function",
+    "jit_compile": false,
+    "num_burnin_steps": 1,
+    "num_leapfrog_steps": 1,
+    "num_results": 2,
+    "seed": [
+      20260706,
+      2201
+    ],
+    "step_size": 1e-05,
+    "target_scope": "minimal_ssl_lstm_zhaocui_hmc_ladder:zhaocui_fixed:phase1",
+    "trace_policy": "standard",
+    "use_xla": false
+  },
+  "initial_target": {
+    "initial_offset_scale": 0.001,
+    "log_prob": -1.3985848756201187,
+    "score_finite": true,
+    "score_norm": 1.624779105977436,
+    "score_shape": [
+      24
+    ],
+    "value_finite": true
+  },
+  "metric_roles": {
+    "acceptance_rate": "explanatory_only_in_tiny_canary",
+    "ess": "not_computed_in_tiny_canary",
+    "hard_vetoes": "hard_veto_evidence",
+    "hmc_runtime_exception": "hard_veto_evidence",
+    "initial_score_finite": "hard_veto_evidence",
+    "initial_value_finite": "hard_veto_evidence",
+    "native_divergence_count": "hard_veto_evidence_when_available",
+    "nonfinite_sample_count": "hard_veto_evidence",
+    "rhat": "not_computed_in_tiny_canary",
+    "runtime": "explanatory_only"
+  },
+  "nonclaims": [
+    "Phase 2 tiny HMC canary only",
+    "CPU-hidden non-JIT debug/reference exception only",
+    "not HMC convergence evidence",
+    "not R-hat or ESS evidence",
+    "not posterior correctness evidence",
+    "not a method ranking or superiority claim",
+    "not source-faithful SSL-LSTM Zhao-Cui parity evidence",
+    "not GPU/XLA production-readiness evidence",
+    "not default-readiness evidence",
+    "not LEDH evidence"
+  ],
+  "phase": "PHASE2",
+  "run_manifest": {
+    "command": [
+      "docs/benchmarks/benchmark_minimal_ssl_lstm_zhaocui_hmc_ladder_2026_07_06.py",
+      "--mode",
+      "phase2-canary",
+      "--output",
+      "docs/benchmarks/minimal_ssl_lstm_zhaocui_hmc_canary_cpu_hidden_2026-07-06.json",
+      "--markdown-output",
+      "docs/benchmarks/minimal_ssl_lstm_zhaocui_hmc_canary_cpu_hidden_2026-07-06.md",
+      "--num-results",
+      "2",
+      "--num-burnin-steps",
+      "1",
+      "--step-size",
+      "1e-5",
+      "--num-leapfrog-steps",
+      "1",
+      "--seed",
+      "20260706",
+      "2201"
+    ],
+    "compile_mode": "tf_function",
+    "cpu_gpu_status": {
+      "cuda_visible_devices": "-1",
+      "gpu_devices": [],
+      "physical_devices": [
+        "/physical_device:CPU:0"
+      ],
+      "trust_basis": "cpu_hidden_debug_no_gpu_claim"
+    },
+    "data_version": "frozen_inline_scalar_fixture_2026-07-06",
+    "debug_reference_exception": "CPU-hidden non-JIT Phase 2 HMC canary; not BayesFilter default GPU/XLA or default-readiness evidence.",
+    "git_commit": "f98be292faabf3d1728f876ad211a70ac1ddf98c",
+    "git_dirty_summary": {
+      "dirty": true,
+      "line_count": 106,
+      "preview": [
+        " M bayesfilter/__init__.py",
+        " M bayesfilter/inference/__init__.py",
+        " M bayesfilter/inference/hmc.py",
+        " M bayesfilter/inference/hmc_kernel_tuning.py",
+        " M bayesfilter/nonlinear/experimental_batched_svd_sigma_point_tf.py",
+        " M tests/test_hmc_fixed_size_chunk_runner.py",
+        " M tests/test_hmc_kernel_tuning_frozen_step_trajectory.py",
+        " M tests/test_hmc_kernel_tuning_outer_loop.py",
+        " M tests/test_hmc_kernel_tuning_public_api.py",
+        " M tests/test_hmc_kernel_tuning_windowed_mass.py",
+        " M tests/test_nonlinear_ssm_phase4_full_chain_hmc.py",
+        "?? bayesfilter/nonlinear/ssl_lstm_protocol.py",
+        "?? bayesfilter/nonlinear/ssl_lstm_sgqf_ukf_adapters.py",
+        "?? bayesfilter/nonlinear/ssl_lstm_zhaocui_fixed_adapter.py",
+        "?? docs/benchmarks/benchmark_minimal_ssl_lstm_zhaocui_hmc_ladder_2026_07_06.py",
+        "?? docs/benchmarks/benchmark_minimal_ssl_lstm_zhaocui_smoke_2026_07_06.py",
+        "?? docs/benchmarks/benchmark_ssl_lstm_filter_hmc_phase6.py",
+        "?? docs/benchmarks/benchmark_ssl_lstm_filter_hmc_phase7.py",
+        "?? docs/benchmarks/minimal_ssl_lstm_zhaocui_hmc_adapter_cpu_hidden_2026-07-06.json",
+        "?? docs/benchmarks/minimal_ssl_lstm_zhaocui_hmc_adapter_cpu_hidden_2026-07-06.md"
+      ]
+    },
+    "jit_compile": false,
+    "plan_file": "docs/plans/bayesfilter-minimal-ssl-lstm-zhaocui-hmc-ladder-master-program-2026-07-06.md",
+    "platform": "Linux-6.8.0-124-generic-x86_64-with-glibc2.35",
+    "python": "3.13.13 | packaged by Anaconda, Inc. | (main, Apr 14 2026, 06:19:41) [GCC 14.3.0]",
+    "random_seeds": {
+      "hmc_seed": [
+        20260706,
+        2201
+      ],
+      "zhaocui_initial_seed": [
+        20260705,
+        41
+      ],
+      "zhaocui_process_seed": [
+        20260705,
+        43
+      ]
+    },
+    "result_file": "docs/plans/bayesfilter-minimal-ssl-lstm-zhaocui-hmc-ladder-phase2-cpu-hidden-canary-result-2026-07-06.md",
+    "subplan_file": "docs/plans/bayesfilter-minimal-ssl-lstm-zhaocui-hmc-ladder-phase2-cpu-hidden-canary-subplan-2026-07-06.md",
+    "tensorflow_version": "2.20.0",
+    "tf32_enabled": true,
+    "timestamp": "2026-07-05T19:59:13.158404+00:00",
+    "use_xla": false,
+    "wall_time_s": 2.8228718619975552
+  },
+  "schema_version": "minimal_ssl_lstm_zhaocui_hmc_ladder.phase2_canary.v1",
+  "status": "passed"
+}

@@ -1,0 +1,735 @@
+{
+  "bayesfilter_hmc_inspection": {
+    "diagnostics": {
+      "acceptance_rate": 1.0,
+      "divergence_count": null,
+      "divergence_source": null,
+      "divergence_status": "not_exposed_by_kernel",
+      "finite_sample_count": 8,
+      "hmc_health_diagnostics": {
+        "acceptance_finite": true,
+        "acceptance_rate": 1.0,
+        "diagnostic_role": "hmc_health_diagnostics_not_native_divergence",
+        "log_accept_ratio": {
+          "available": true,
+          "finite": true,
+          "finite_count": 8,
+          "max_abs_finite": 2.886579864025407e-15,
+          "nonfinite_count": 0
+        },
+        "nonclaims": [
+          "acceptance/log-accept/target-log-prob diagnostics are not native divergence telemetry",
+          "no sampler convergence claim"
+        ],
+        "target_log_prob": {
+          "available": true,
+          "finite": true,
+          "max": -1.374617603657411,
+          "min": -1.4227501139463914
+        }
+      },
+      "native_divergence_status": "not_exposed_by_kernel",
+      "nonclaims": [
+        "finite tiny-chain diagnostics only",
+        "no sampler convergence claim",
+        "native divergence unavailability is not zero divergences"
+      ],
+      "nonfinite_sample_count": 0
+    },
+    "metadata": {
+      "chain_execution_mode": "tf_function",
+      "target_scope": "minimal_ssl_lstm_zhaocui_hmc_ladder:zhaocui_fixed:phase1",
+      "trace_policy": "standard",
+      "trace_unavailability": {
+        "divergence": "native boolean divergence field not exposed by TensorFlow Probability HMC kernel results"
+      },
+      "use_xla": false
+    },
+    "non_divergence_health_context": {
+      "diagnostic_role": "hmc_health_diagnostics_not_native_divergence",
+      "health_context_keys": [
+        "acceptance_finite",
+        "acceptance_rate",
+        "diagnostic_role",
+        "log_accept_ratio",
+        "nonclaims",
+        "target_log_prob"
+      ],
+      "nonclaims": [
+        "acceptance/log-accept/target-log-prob are not native divergence telemetry",
+        "health context cannot establish zero divergences"
+      ],
+      "not_native_divergence": true
+    },
+    "runtime": "bayesfilter.inference.run_full_chain_tfp_hmc",
+    "runtime_s": 3.4892677559982985,
+    "sample_shape": [
+      4,
+      2,
+      24
+    ],
+    "trace_fields": {
+      "is_accepted": {
+        "convertible_to_tensor": true,
+        "dtype": "bool",
+        "element_count": 8,
+        "is_boolean": true,
+        "rank": 2,
+        "shape": [
+          4,
+          2
+        ],
+        "true_count": 8
+      },
+      "log_accept_ratio": {
+        "convertible_to_tensor": true,
+        "dtype": "float64",
+        "finite_count": 8,
+        "is_boolean": false,
+        "nonfinite_count": 0,
+        "rank": 2,
+        "shape": [
+          4,
+          2
+        ]
+      },
+      "target_log_prob": {
+        "convertible_to_tensor": true,
+        "dtype": "float64",
+        "finite_count": 8,
+        "is_boolean": false,
+        "nonfinite_count": 0,
+        "rank": 2,
+        "shape": [
+          4,
+          2
+        ]
+      }
+    },
+    "trace_keys": [
+      "is_accepted",
+      "log_accept_ratio",
+      "target_log_prob"
+    ]
+  },
+  "decision_table": {
+    "decision": "native divergence telemetry remains unavailable",
+    "main_uncertainty": "This is a result-structure inspection, not a long HMC diagnostic.",
+    "next_justified_action": "Refresh and execute Phase 5 tuning/mass diagnostics; do not reinterpret missing telemetry as zero divergences.",
+    "primary_criterion_status": "passed",
+    "veto_diagnostic_status": "no hard vetoes",
+    "what_is_not_being_concluded": "No zero-divergence, posterior correctness, convergence, ranking, default-readiness, or production-readiness claim."
+  },
+  "errors": [],
+  "evidence_contract": {
+    "explanatory_only": [
+      "acceptance",
+      "log_accept_ratio",
+      "target_log_prob",
+      "runtime"
+    ],
+    "not_concluded": [
+      "zero divergences unless native boolean divergence is exposed",
+      "HMC convergence",
+      "posterior correctness",
+      "ranking or superiority",
+      "source-faithful parity",
+      "default readiness",
+      "production readiness"
+    ],
+    "primary_pass_criterion": "Artifact records inspected result-object tree, exact native boolean field search, extractor output, and status.",
+    "question": "Does the current TFP HMC kernel result structure expose a native boolean divergence field reachable by the BayesFilter extractor for the minimal HMC target?",
+    "veto_diagnostics": [
+      "runtime exception",
+      "nonfinite target/value",
+      "missing field-tree artifact",
+      "proxy divergence substitution",
+      "zero-divergence claim from missing telemetry",
+      "invalid artifact"
+    ]
+  },
+  "fixture": {
+    "augmented_state_dim": 3,
+    "hidden_dim": 1,
+    "horizon": 2,
+    "latent_dim": 1,
+    "observation_dim": 1,
+    "observations": [
+      [
+        0.12
+      ],
+      [
+        -0.03
+      ]
+    ],
+    "parameter_dim": 24,
+    "theta": [
+      0.09,
+      -0.07,
+      0.05,
+      0.04,
+      0.03,
+      -0.02,
+      0.06,
+      -0.05,
+      0.01,
+      0.04,
+      -0.03,
+      0.02,
+      0.35,
+      -0.08,
+      0.65,
+      0.05,
+      0.15,
+      -0.1,
+      0.2,
+      -0.35,
+      0.15,
+      0.55,
+      0.35,
+      -0.15
+    ]
+  },
+  "hard_vetoes": [],
+  "inference_status": {
+    "default_readiness": "not_checked",
+    "descriptive_only_differences": "acceptance/log-accept/target-log-prob health context only",
+    "hard_veto_screen": "passed",
+    "next_evidence_needed": "Phase 5 tuning/mass diagnostics with Phase 4 status carried as available native telemetry or unavailable telemetry.",
+    "statistically_supported_ranking": "not_applicable"
+  },
+  "native_divergence_count": null,
+  "native_divergence_interpretation": "native divergence not_exposed_by_kernel is telemetry unavailability, not zero divergences",
+  "native_divergence_telemetry_status": "native_divergence_not_exposed_by_kernel",
+  "nonclaims": [
+    "native divergence telemetry inspection only",
+    "missing native divergence telemetry is not zero divergences",
+    "acceptance/log-accept/target-log-prob diagnostics are not native divergence telemetry",
+    "no HMC convergence claim",
+    "no posterior correctness claim",
+    "no sampler ranking or superiority claim",
+    "no source-faithful Zhao-Cui parity claim",
+    "no default-readiness claim",
+    "no production-readiness claim",
+    "no public API or package readiness claim",
+    "no LEDH evidence"
+  ],
+  "phase": "PHASE4",
+  "phase3_baseline": {
+    "continuation_vetoes": [],
+    "native_divergence_status": null,
+    "native_divergence_veto_present": true,
+    "path": "docs/benchmarks/minimal_ssl_lstm_zhaocui_hmc_validity_phase3_longer_gpu_xla_2026-07-06.json",
+    "phase3_preconditions_met": true,
+    "promotion_screen_status": "failed",
+    "promotion_vetoes": [
+      "split_rhat_threshold_failed",
+      "ess_threshold_failed",
+      "native_divergence_telemetry_not_exposed"
+    ],
+    "schema_version": "minimal_ssl_lstm_zhaocui_hmc_validity.phase3_longer_hmc.v1",
+    "status": "passed"
+  },
+  "predeclared_settings": {
+    "adaptation_policy": "fixed_kernel_no_adaptation",
+    "artifact_mode": "cpu_hidden_native_divergence_telemetry_inspection",
+    "chain_count": 2,
+    "chain_execution_mode": "tf_function",
+    "chain_spread": 0.015,
+    "initial_offset_scale": 0.001,
+    "jit_compile": false,
+    "num_burnin_steps": 1,
+    "num_leapfrog_steps": 1,
+    "num_results": 4,
+    "seed": [
+      20260706,
+      6401
+    ],
+    "step_size": 1e-05,
+    "trace_policy": "standard",
+    "use_xla": false
+  },
+  "run_manifest": {
+    "command": [
+      "docs/benchmarks/benchmark_minimal_ssl_lstm_zhaocui_hmc_divergence_telemetry_2026_07_06.py",
+      "--output",
+      "docs/benchmarks/minimal_ssl_lstm_zhaocui_hmc_validity_phase4_divergence_telemetry_cpu_hidden_2026-07-06.json",
+      "--markdown-output",
+      "docs/benchmarks/minimal_ssl_lstm_zhaocui_hmc_validity_phase4_divergence_telemetry_cpu_hidden_2026-07-06.md"
+    ],
+    "cwd": "/home/ubuntu/python/BayesFilter",
+    "environment": {
+      "CUDA_VISIBLE_DEVICES": "-1",
+      "cpu_hidden": true,
+      "tensorflow_probability_version": "0.25.0",
+      "tensorflow_version": "2.20.0"
+    },
+    "finished_at_utc": "2026-07-06T19:27:08.290257+00:00",
+    "markdown_artifact": "docs/benchmarks/minimal_ssl_lstm_zhaocui_hmc_validity_phase4_divergence_telemetry_cpu_hidden_2026-07-06.md",
+    "output_artifact": "docs/benchmarks/minimal_ssl_lstm_zhaocui_hmc_validity_phase4_divergence_telemetry_cpu_hidden_2026-07-06.json",
+    "plan_file": "docs/plans/bayesfilter-minimal-ssl-lstm-zhaocui-hmc-validity-gaps-phase4-divergence-telemetry-subplan-2026-07-06.md",
+    "random_seed": [
+      20260706,
+      6401
+    ],
+    "result_file": "docs/plans/bayesfilter-minimal-ssl-lstm-zhaocui-hmc-validity-gaps-phase4-divergence-telemetry-result-2026-07-06.md",
+    "runtime_s": 4.337488663994009,
+    "script": "docs/benchmarks/benchmark_minimal_ssl_lstm_zhaocui_hmc_divergence_telemetry_2026_07_06.py",
+    "started_at_utc": "2026-07-06T19:27:03.952721+00:00"
+  },
+  "schema_version": "minimal_ssl_lstm_zhaocui_hmc_validity.phase4_divergence_telemetry.v1",
+  "status": "passed",
+  "tfp_kernel_result_inspection": {
+    "bootstrap_results": {
+      "extractor_output": {
+        "available": false,
+        "count": null,
+        "dtype": null,
+        "nonclaim": "missing native divergence telemetry is not zero divergences",
+        "shape": null,
+        "source": null,
+        "status": "native_divergence_not_exposed_by_kernel"
+      },
+      "native_boolean_field_search": {
+        "accepted_native_boolean_fields": [],
+        "available": false,
+        "candidate_fields": [],
+        "field_names": [
+          "is_divergent",
+          "has_divergence",
+          "divergence",
+          "divergences"
+        ],
+        "nonclaims": [
+          "only boolean fields with native divergence names are accepted",
+          "numeric divergence-like fields are rejected as proxies"
+        ],
+        "rejected_proxy_or_nonboolean_fields": []
+      },
+      "object_tree": {
+        "candidate_divergence_fields": [],
+        "children": [
+          {
+            "candidate_divergence_fields": [],
+            "children": [],
+            "class_name": "UncalibratedHamiltonianMonteCarloKernelResults",
+            "module": "tensorflow_probability.python.mcmc.hmc",
+            "path": "kernel_results.accepted_results",
+            "public_fields": [
+              "log_acceptance_correction",
+              "target_log_prob",
+              "grads_target_log_prob",
+              "initial_momentum",
+              "final_momentum",
+              "step_size",
+              "num_leapfrog_steps",
+              "seed"
+            ],
+            "tensor_fields": [
+              {
+                "field_name": "log_acceptance_correction",
+                "summary": {
+                  "convertible_to_tensor": true,
+                  "dtype": "float64",
+                  "finite_count": 2,
+                  "is_boolean": false,
+                  "nonfinite_count": 0,
+                  "rank": 1,
+                  "shape": [
+                    2
+                  ]
+                }
+              },
+              {
+                "field_name": "target_log_prob",
+                "summary": {
+                  "convertible_to_tensor": true,
+                  "dtype": "float64",
+                  "finite_count": 2,
+                  "is_boolean": false,
+                  "nonfinite_count": 0,
+                  "rank": 1,
+                  "shape": [
+                    2
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "candidate_divergence_fields": [],
+            "children": [],
+            "class_name": "UncalibratedHamiltonianMonteCarloKernelResults",
+            "module": "tensorflow_probability.python.mcmc.hmc",
+            "path": "kernel_results.proposed_results",
+            "public_fields": [
+              "log_acceptance_correction",
+              "target_log_prob",
+              "grads_target_log_prob",
+              "initial_momentum",
+              "final_momentum",
+              "step_size",
+              "num_leapfrog_steps",
+              "seed"
+            ],
+            "tensor_fields": [
+              {
+                "field_name": "log_acceptance_correction",
+                "summary": {
+                  "convertible_to_tensor": true,
+                  "dtype": "float64",
+                  "finite_count": 2,
+                  "is_boolean": false,
+                  "nonfinite_count": 0,
+                  "rank": 1,
+                  "shape": [
+                    2
+                  ]
+                }
+              },
+              {
+                "field_name": "target_log_prob",
+                "summary": {
+                  "convertible_to_tensor": true,
+                  "dtype": "float64",
+                  "finite_count": 2,
+                  "is_boolean": false,
+                  "nonfinite_count": 0,
+                  "rank": 1,
+                  "shape": [
+                    2
+                  ]
+                }
+              },
+              {
+                "field_name": "seed",
+                "summary": {
+                  "convertible_to_tensor": true,
+                  "dtype": "int32",
+                  "finite_count": 2,
+                  "is_boolean": false,
+                  "nonfinite_count": 0,
+                  "rank": 1,
+                  "shape": [
+                    2
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "class_name": "MetropolisHastingsKernelResults",
+        "module": "tensorflow_probability.python.mcmc.metropolis_hastings",
+        "path": "kernel_results",
+        "public_fields": [
+          "accepted_results",
+          "is_accepted",
+          "log_accept_ratio",
+          "proposed_state",
+          "proposed_results",
+          "extra",
+          "seed"
+        ],
+        "tensor_fields": [
+          {
+            "field_name": "is_accepted",
+            "summary": {
+              "convertible_to_tensor": true,
+              "dtype": "bool",
+              "element_count": 2,
+              "is_boolean": true,
+              "rank": 1,
+              "shape": [
+                2
+              ],
+              "true_count": 2
+            }
+          },
+          {
+            "field_name": "log_accept_ratio",
+            "summary": {
+              "convertible_to_tensor": true,
+              "dtype": "float64",
+              "finite_count": 2,
+              "is_boolean": false,
+              "nonfinite_count": 0,
+              "rank": 1,
+              "shape": [
+                2
+              ]
+            }
+          },
+          {
+            "field_name": "proposed_state",
+            "summary": {
+              "convertible_to_tensor": true,
+              "dtype": "float64",
+              "finite_count": 48,
+              "is_boolean": false,
+              "nonfinite_count": 0,
+              "rank": 2,
+              "shape": [
+                2,
+                24
+              ]
+            }
+          },
+          {
+            "field_name": "seed",
+            "summary": {
+              "convertible_to_tensor": true,
+              "dtype": "int32",
+              "finite_count": 2,
+              "is_boolean": false,
+              "nonfinite_count": 0,
+              "rank": 1,
+              "shape": [
+                2
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "extractor_reachable_objects": [
+      "kernel_results",
+      "proposed_results",
+      "accepted_results"
+    ],
+    "field_names_considered_native_only_if_boolean": [
+      "is_divergent",
+      "has_divergence",
+      "divergence",
+      "divergences"
+    ],
+    "kernel_class": "HamiltonianMonteCarlo",
+    "kernel_module": "tensorflow_probability.python.mcmc.hmc",
+    "native_divergence_available_by_bayesfilter_extractor": false,
+    "native_divergence_available_by_direct_search": false,
+    "nonclaims": [
+      "native divergence telemetry inspection only",
+      "missing native divergence telemetry is not zero divergences",
+      "acceptance/log-accept/target-log-prob diagnostics are not native divergence telemetry",
+      "no HMC convergence claim",
+      "no posterior correctness claim",
+      "no sampler ranking or superiority claim",
+      "no source-faithful Zhao-Cui parity claim",
+      "no default-readiness claim",
+      "no production-readiness claim",
+      "no public API or package readiness claim",
+      "no LEDH evidence"
+    ],
+    "one_step_results": {
+      "extractor_output": {
+        "available": false,
+        "count": null,
+        "dtype": null,
+        "nonclaim": "missing native divergence telemetry is not zero divergences",
+        "shape": null,
+        "source": null,
+        "status": "native_divergence_not_exposed_by_kernel"
+      },
+      "native_boolean_field_search": {
+        "accepted_native_boolean_fields": [],
+        "available": false,
+        "candidate_fields": [],
+        "field_names": [
+          "is_divergent",
+          "has_divergence",
+          "divergence",
+          "divergences"
+        ],
+        "nonclaims": [
+          "only boolean fields with native divergence names are accepted",
+          "numeric divergence-like fields are rejected as proxies"
+        ],
+        "rejected_proxy_or_nonboolean_fields": []
+      },
+      "object_tree": {
+        "candidate_divergence_fields": [],
+        "children": [
+          {
+            "candidate_divergence_fields": [],
+            "children": [],
+            "class_name": "UncalibratedHamiltonianMonteCarloKernelResults",
+            "module": "tensorflow_probability.python.mcmc.hmc",
+            "path": "kernel_results.accepted_results",
+            "public_fields": [
+              "log_acceptance_correction",
+              "target_log_prob",
+              "grads_target_log_prob",
+              "initial_momentum",
+              "final_momentum",
+              "step_size",
+              "num_leapfrog_steps",
+              "seed"
+            ],
+            "tensor_fields": [
+              {
+                "field_name": "log_acceptance_correction",
+                "summary": {
+                  "convertible_to_tensor": true,
+                  "dtype": "float64",
+                  "finite_count": 2,
+                  "is_boolean": false,
+                  "nonfinite_count": 0,
+                  "rank": 1,
+                  "shape": [
+                    2
+                  ]
+                }
+              },
+              {
+                "field_name": "target_log_prob",
+                "summary": {
+                  "convertible_to_tensor": true,
+                  "dtype": "float64",
+                  "finite_count": 2,
+                  "is_boolean": false,
+                  "nonfinite_count": 0,
+                  "rank": 1,
+                  "shape": [
+                    2
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "candidate_divergence_fields": [],
+            "children": [],
+            "class_name": "UncalibratedHamiltonianMonteCarloKernelResults",
+            "module": "tensorflow_probability.python.mcmc.hmc",
+            "path": "kernel_results.proposed_results",
+            "public_fields": [
+              "log_acceptance_correction",
+              "target_log_prob",
+              "grads_target_log_prob",
+              "initial_momentum",
+              "final_momentum",
+              "step_size",
+              "num_leapfrog_steps",
+              "seed"
+            ],
+            "tensor_fields": [
+              {
+                "field_name": "log_acceptance_correction",
+                "summary": {
+                  "convertible_to_tensor": true,
+                  "dtype": "float64",
+                  "finite_count": 2,
+                  "is_boolean": false,
+                  "nonfinite_count": 0,
+                  "rank": 1,
+                  "shape": [
+                    2
+                  ]
+                }
+              },
+              {
+                "field_name": "target_log_prob",
+                "summary": {
+                  "convertible_to_tensor": true,
+                  "dtype": "float64",
+                  "finite_count": 2,
+                  "is_boolean": false,
+                  "nonfinite_count": 0,
+                  "rank": 1,
+                  "shape": [
+                    2
+                  ]
+                }
+              },
+              {
+                "field_name": "seed",
+                "summary": {
+                  "convertible_to_tensor": true,
+                  "dtype": "int32",
+                  "finite_count": 2,
+                  "is_boolean": false,
+                  "nonfinite_count": 0,
+                  "rank": 1,
+                  "shape": [
+                    2
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "class_name": "MetropolisHastingsKernelResults",
+        "module": "tensorflow_probability.python.mcmc.metropolis_hastings",
+        "path": "kernel_results",
+        "public_fields": [
+          "accepted_results",
+          "is_accepted",
+          "log_accept_ratio",
+          "proposed_state",
+          "proposed_results",
+          "extra",
+          "seed"
+        ],
+        "tensor_fields": [
+          {
+            "field_name": "is_accepted",
+            "summary": {
+              "convertible_to_tensor": true,
+              "dtype": "bool",
+              "element_count": 2,
+              "is_boolean": true,
+              "rank": 1,
+              "shape": [
+                2
+              ],
+              "true_count": 2
+            }
+          },
+          {
+            "field_name": "log_accept_ratio",
+            "summary": {
+              "convertible_to_tensor": true,
+              "dtype": "float64",
+              "finite_count": 2,
+              "is_boolean": false,
+              "nonfinite_count": 0,
+              "rank": 1,
+              "shape": [
+                2
+              ]
+            }
+          },
+          {
+            "field_name": "proposed_state",
+            "summary": {
+              "convertible_to_tensor": true,
+              "dtype": "float64",
+              "finite_count": 48,
+              "is_boolean": false,
+              "nonfinite_count": 0,
+              "rank": 2,
+              "shape": [
+                2,
+                24
+              ]
+            }
+          },
+          {
+            "field_name": "seed",
+            "summary": {
+              "convertible_to_tensor": true,
+              "dtype": "int32",
+              "finite_count": 2,
+              "is_boolean": false,
+              "nonfinite_count": 0,
+              "rank": 1,
+              "shape": [
+                2
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "runtime": "tfp.mcmc.HamiltonianMonteCarlo.bootstrap_results_and_one_step"
+  }
+}

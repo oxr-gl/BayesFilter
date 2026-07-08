@@ -457,6 +457,43 @@ def test_phase4_reusable_full_chain_runner_reuses_compiled_shape_and_seed_argume
     assert "no sampler convergence claim" in second.metadata["nonclaims"]
 
 
+def test_phase4_reusable_full_chain_runner_dynamic_l_reuses_xla_trace() -> None:
+    initial_state = tf.constant([0.1, -0.2], dtype=tf.float64)
+    config = FullChainHMCConfig(
+        num_results=2,
+        num_burnin_steps=1,
+        step_size=0.05,
+        num_leapfrog_steps=1,
+        seed=(20260705, 1),
+        use_xla=True,
+        trace_policy="standard",
+        target_scope="phase4_reviewed_gaussian",
+    )
+
+    runner = build_reusable_full_chain_tfp_hmc_runner(
+        ReviewedGaussianAdapter(),
+        initial_state,
+        config,
+        dynamic_num_leapfrog_steps=True,
+    )
+    first = runner.run(seed=(20260705, 2), step_size=0.05, num_leapfrog_steps=1)
+    second = runner.run(seed=(20260705, 3), step_size=0.05, num_leapfrog_steps=3)
+
+    assert int(first.diagnostics["nonfinite_sample_count"].numpy()) == 0
+    assert int(second.diagnostics["nonfinite_sample_count"].numpy()) == 0
+    assert first.metadata["dynamic_num_leapfrog_steps"] is True
+    assert second.metadata["dynamic_num_leapfrog_steps"] is True
+    assert second.metadata["dynamic_inputs"] == (
+        "current_state",
+        "seed",
+        "step_size",
+        "num_leapfrog_steps",
+    )
+    assert first.metadata["num_leapfrog_steps"] == 1
+    assert second.metadata["num_leapfrog_steps"] == 3
+    assert runner._runner.experimental_get_tracing_count() == 1
+
+
 def test_phase4_reusable_full_chain_runner_validates_static_state_shape() -> None:
     initial_state = tf.constant(
         [[0.1, -0.2], [0.2, 0.1]],

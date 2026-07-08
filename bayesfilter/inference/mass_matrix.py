@@ -83,6 +83,7 @@ def covariance_from_precision(
     )
     if dense:
         covariance = np.linalg.inv(regularized)
+        covariance = 0.5 * (covariance + covariance.T)
         matrix_kind = "dense"
     else:
         diagonal = np.diag(regularized)

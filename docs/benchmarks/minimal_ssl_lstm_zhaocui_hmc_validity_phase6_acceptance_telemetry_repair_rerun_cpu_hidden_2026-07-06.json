@@ -1,0 +1,588 @@
+{
+  "decision_table": {
+    "decision": "structured_tuning_hard_veto_blocks_phase6",
+    "main_uncertainty": "This is a bounded CPU-hidden tuning diagnostic; it does not establish posterior correctness or convergence.",
+    "next_justified_action": "If structured and hard-vetoed, repair the stated tuning blocker before Phase 6; if passed, validate handoff in a separately reviewed run.",
+    "primary_criterion_status": "passed",
+    "veto_diagnostic_status": "no hard vetoes",
+    "what_is_not_being_concluded": "No zero-divergence, posterior correctness, broad convergence, ranking, superiority, default-readiness, or production-readiness claim."
+  },
+  "errors": [],
+  "evidence_contract": {
+    "baseline_comparator": "Phase 3 fixed-kernel no-adaptation artifact plus Phase 2 oracle and Phase 4 telemetry-status artifact.",
+    "explanatory_only": [
+      "acceptance",
+      "runtime",
+      "stage status",
+      "repair triggers",
+      "step/leapfrog summaries hidden inside BayesFilter-owned artifacts"
+    ],
+    "not_concluded": [
+      "zero divergences",
+      "posterior correctness",
+      "broad HMC convergence",
+      "tuned-kernel superiority",
+      "default readiness",
+      "production readiness",
+      "source-faithful Zhao-Cui parity"
+    ],
+    "primary_pass_criterion": "Structured tuning result produced with required nonclaims preserved; public tuner hard vetoes are blocker evidence, not wrapper invalidity.",
+    "promotion_criterion": "none in this phase",
+    "question": "Can the repaired BayesFilter staged tuning machinery produce a finite, internally valid diagnostic artifact and frozen-kernel handoff candidate for the minimal zhaocui_fixed target?",
+    "veto_diagnostics": [
+      "runtime exception",
+      "nonfinite target/value/score",
+      "invalid staged result",
+      "tuning result hard veto",
+      "proxy divergence substitution",
+      "unsupported zero-divergence claim"
+    ]
+  },
+  "fixture": {
+    "augmented_state_dim": 3,
+    "hidden_dim": 1,
+    "horizon": 2,
+    "latent_dim": 1,
+    "observation_dim": 1,
+    "observations": [
+      [
+        0.12
+      ],
+      [
+        -0.03
+      ]
+    ],
+    "parameter_dim": 24,
+    "theta": [
+      0.09,
+      -0.07,
+      0.05,
+      0.04,
+      0.03,
+      -0.02,
+      0.06,
+      -0.05,
+      0.01,
+      0.04,
+      -0.03,
+      0.02,
+      0.35,
+      -0.08,
+      0.65,
+      0.05,
+      0.15,
+      -0.1,
+      0.2,
+      -0.35,
+      0.15,
+      0.55,
+      0.35,
+      -0.15
+    ]
+  },
+  "hard_vetoes": [],
+  "inference_status": {
+    "default_readiness": "not_checked",
+    "descriptive_only_differences": "stage status, acceptance, repair triggers, and runtime are diagnostic only",
+    "hard_veto_screen": "passed",
+    "next_evidence_needed": "Repair any structured Phase 5 tuning hard veto before Phase 6; preserve Phase 4 missing-divergence limitation.",
+    "statistically_supported_ranking": "not_applicable"
+  },
+  "native_divergence_interpretation": "Phase 4 native divergence telemetry remains unavailable; this is not zero divergences and is not repaired by Phase 5 tuning.",
+  "native_divergence_status_carried_forward": "native_divergence_not_exposed_by_kernel",
+  "nonclaims": [
+    "Phase 5 staged tuning diagnostic only",
+    "structured tuning handoff is non-promoting unless later validation passes",
+    "native divergence telemetry remains unavailable from Phase 4 unless separately repaired",
+    "missing native divergence telemetry is not zero divergences",
+    "acceptance/runtime/stage status diagnostics are descriptive only",
+    "no posterior correctness claim",
+    "no broad HMC convergence claim",
+    "no sampler superiority claim",
+    "no default-readiness claim",
+    "no production-readiness claim",
+    "no public API or package readiness claim",
+    "no source-faithful Zhao-Cui parity claim",
+    "no LEDH evidence"
+  ],
+  "phase": "PHASE5",
+  "phase3_baseline": {
+    "continuation_vetoes": [],
+    "path": "docs/benchmarks/minimal_ssl_lstm_zhaocui_hmc_validity_phase3_longer_gpu_xla_2026-07-06.json",
+    "phase3_preconditions_met": true,
+    "promotion_screen_status": "failed",
+    "promotion_vetoes": [
+      "split_rhat_threshold_failed",
+      "ess_threshold_failed",
+      "native_divergence_telemetry_not_exposed"
+    ],
+    "status": "passed"
+  },
+  "phase4_baseline": {
+    "hard_vetoes": [],
+    "native_divergence_telemetry_status": "native_divergence_not_exposed_by_kernel",
+    "path": "docs/benchmarks/minimal_ssl_lstm_zhaocui_hmc_validity_phase4_divergence_telemetry_cpu_hidden_2026-07-06.json",
+    "phase4_preconditions_met": true,
+    "status": "passed"
+  },
+  "phase_decision": "structured_tuning_hard_veto_blocks_phase6",
+  "predeclared_settings": {
+    "acceptance_band": [
+      0.65,
+      0.75
+    ],
+    "allow_geometry_fallback": false,
+    "allow_structured_tuning_hard_veto_artifact": true,
+    "artifact_mode": "cpu_hidden_staged_tuning_smoke_diagnostic",
+    "bootstrap_max_repairs": 1,
+    "chain_execution_mode": "tf_function",
+    "covariance_jitter": 1e-09,
+    "eigenvalue_floor": 1e-09,
+    "geometry_scaling_c": 0.25,
+    "initial_covariance_scale": 0.01,
+    "initial_offset_scale": 0.001,
+    "jit_compile": false,
+    "max_attempts": 1,
+    "max_leapfrog_steps": 8,
+    "preset": "smoke",
+    "public_timeout_budget_s": 90.0,
+    "repair_band": [
+      0.55,
+      0.85
+    ],
+    "seed": [
+      20260706,
+      6501
+    ],
+    "stability_guard": 0.5,
+    "target_accept_prob": 0.7,
+    "terminal_phase6_repair_extra_attempts": 0,
+    "use_xla": false
+  },
+  "public_progress_artifact": {
+    "adapter_signature": "d4ef4d31b97253e47e74ee0535323883469a745ee16c098f3e3be716d2e4aac7",
+    "artifact_path": "docs/benchmarks/minimal_ssl_lstm_zhaocui_hmc_validity_phase6_acceptance_telemetry_repair_public_artifacts_2026-07-06/hmc_kernel_tuning_result.json",
+    "bootstrap_public_summary": {
+      "acceptance_promoted_kernel": false,
+      "final_status": "repair_budget_exhausted",
+      "handoff_kernel_source": "geometry_preflight_fallback",
+      "hard_veto_categories": [],
+      "hard_veto_present": false,
+      "jit_compile_metadata": "false",
+      "last_acceptance_relation_to_band": "above",
+      "last_classification": "repair",
+      "last_diagnostic_role": "bootstrap_acceptance_repair_trigger",
+      "last_round_index": 1,
+      "leapfrog_cap_saturation_direction": "max",
+      "leapfrog_cap_saturation_observed": true,
+      "max_round_runtime_s": 1.9274677350040292,
+      "metadata_limitations": [],
+      "observed_acceptance_relations": [
+        "above"
+      ],
+      "oscillatory_acceptance_repair_observed": false,
+      "preflight_passed": true,
+      "round_count": 2,
+      "round_timing_available": true,
+      "timing_scope": "reusable_tf_function_first_call_trace_compile_plus_execute_then_warm_execute",
+      "xla_requested": false
+    },
+    "current_stage": "result_written",
+    "extra": {
+      "diagnostic_role": "tune_verify_repair_loop_hard_veto",
+      "final_status": "hard_veto",
+      "private_tuning_diagnostics": {
+        "available": true,
+        "candidate_completed_count": 0,
+        "candidate_count": 0,
+        "candidate_hard_veto_count": 0,
+        "candidate_pass_count": 0,
+        "edge_repair_direction": null,
+        "hmc_mechanics_exposed": false,
+        "last_private_event_hash": "c82e4219d4a2565a4d34e5d414325b16ce6def901ea2a05cabec797f0b41eb95",
+        "mass_hash": "9b3992268eeba55f6983bc5b74d49aeb45baadc29f8d814cb6d66a6d5b73a1a1",
+        "private_event_count": 4,
+        "private_paths_publicized": false,
+        "reports_default_readiness": false,
+        "reports_gpu_or_xla_readiness": false,
+        "reports_posterior_convergence": false,
+        "reports_sampler_superiority": false,
+        "round_kind": null,
+        "schema": "bayesfilter.hmc_private_tuning_public_summary.v1",
+        "selected_pair_exists": false
+      }
+    },
+    "last_completed_artifact_stage": "artifact_finalization_complete",
+    "last_completed_stage": "bootstrap_complete",
+    "last_completed_substage": null,
+    "last_started_artifact_stage": "artifact_finalization_start",
+    "last_started_stage": "loop_start",
+    "last_started_substage": null,
+    "nonclaims": [
+      "BayesFilter one-call HMC kernel tuning only",
+      "final frozen kernel is a handoff artifact only",
+      "tuning screens do not establish posterior convergence",
+      "no posterior convergence claim",
+      "no sampler superiority claim",
+      "no default-readiness claim",
+      "no external-client scientific claim",
+      "no GPU readiness claim",
+      "XLA execution, when requested, is runtime selection only"
+    ],
+    "output_directory": "docs/benchmarks/minimal_ssl_lstm_zhaocui_hmc_validity_phase6_acceptance_telemetry_repair_public_artifacts_2026-07-06",
+    "phase7_last_attempt_index": null,
+    "phase7_last_budget_payload": null,
+    "preset": "smoke",
+    "process_id": 2,
+    "progress_artifact_path": "docs/benchmarks/minimal_ssl_lstm_zhaocui_hmc_validity_phase6_acceptance_telemetry_repair_public_artifacts_2026-07-06/hmc_kernel_tuning_progress.json",
+    "reports_default_readiness": false,
+    "reports_external_client_scientific_claim": false,
+    "reports_gpu_or_xla_readiness": false,
+    "reports_posterior_convergence": false,
+    "reports_sampler_superiority": false,
+    "schema": "bayesfilter.hmc_kernel_tuning_progress.v1",
+    "target_dimension": 24,
+    "timestamp_utc": "2026-07-06T19:47:40.210342Z"
+  },
+  "public_tuning_artifact": {
+    "active_repair_triggers": [
+      "TypeError"
+    ],
+    "adapter_signature": "d4ef4d31b97253e47e74ee0535323883469a745ee16c098f3e3be716d2e4aac7",
+    "artifact_policy": {
+      "candidate_grid_exposed": false,
+      "internal_tuning_controls_exposed": false,
+      "mass_window_schedule_exposed": false,
+      "phase7_early_closeout_public_summary_exposed": false,
+      "phase7_public_summary_exposed": false,
+      "posterior_samples_written": false,
+      "private_budget_schedule_exposed": false,
+      "private_state_exposed": false,
+      "public_reconstruction_api": false,
+      "raw_draw_counts_exposed": false
+    },
+    "attempt_count": null,
+    "bootstrap_public_summary": {
+      "acceptance_promoted_kernel": false,
+      "final_status": "repair_budget_exhausted",
+      "handoff_kernel_source": "geometry_preflight_fallback",
+      "hard_veto_categories": [],
+      "hard_veto_present": false,
+      "jit_compile_metadata": "false",
+      "last_acceptance_relation_to_band": "above",
+      "last_classification": "repair",
+      "last_diagnostic_role": "bootstrap_acceptance_repair_trigger",
+      "last_round_index": 1,
+      "leapfrog_cap_saturation_direction": "max",
+      "leapfrog_cap_saturation_observed": true,
+      "max_round_runtime_s": 1.9274677350040292,
+      "metadata_limitations": [],
+      "observed_acceptance_relations": [
+        "above"
+      ],
+      "oscillatory_acceptance_repair_observed": false,
+      "preflight_passed": true,
+      "round_count": 2,
+      "round_timing_available": true,
+      "timing_scope": "reusable_tf_function_first_call_trace_compile_plus_execute_then_warm_execute",
+      "xla_requested": false
+    },
+    "config": {
+      "acceptance_band": [
+        0.65,
+        0.75
+      ],
+      "allow_geometry_fallback": false,
+      "bootstrap_diagnostic_screen_num_burnin_steps": null,
+      "bootstrap_diagnostic_screen_num_results": null,
+      "bootstrap_diagnostic_sizing_claim": "public observability diagnostic only; not sampler promotion",
+      "bootstrap_max_repairs": 1,
+      "chain_execution_mode": "tf_function",
+      "covariance_jitter": 1e-09,
+      "eigenvalue_floor": 1e-09,
+      "forbidden_public_fields": [
+        "step_size",
+        "initial_step_size",
+        "num_leapfrog_steps",
+        "leapfrog_count",
+        "min_leapfrog",
+        "max_leapfrog",
+        "candidate_l_grid",
+        "trajectory_grid",
+        "mass_window_schedule",
+        "warmup_budget_schedule",
+        "tuning_budget_schedule",
+        "tune_num_results",
+        "screen_num_results",
+        "verification_num_results",
+        "verification_num_burnin_steps"
+      ],
+      "geometry_scaling_c": 0.25,
+      "hmc_mechanics_owned_by_bayesfilter": true,
+      "max_attempts": 1,
+      "max_condition_number": null,
+      "max_leapfrog_steps": 8,
+      "preset": "smoke",
+      "preset_role": "contract_scale_only",
+      "public_timeout_budget_s": 90.0,
+      "repair_band": [
+        0.55,
+        0.85
+      ],
+      "reports_default_readiness": false,
+      "reports_gpu_or_xla_readiness": false,
+      "reports_posterior_convergence": false,
+      "reports_sampler_superiority": false,
+      "schema": "bayesfilter.hmc_kernel_tuning_config.v1",
+      "seed": [
+        20260706,
+        6501
+      ],
+      "source": "bayesfilter.minimal_ssl_lstm.phase5_tuning_mass",
+      "stability_guard": 0.5,
+      "staged_timeout_enlargement_rounds": null,
+      "staged_timeout_global_started_perf_counter_s": null,
+      "staged_timeout_policy": null,
+      "staged_timeout_stage_started_perf_counter_s": null,
+      "step_repair_factor": 2.0,
+      "step_repair_high_acceptance_directional_factor": 2.0,
+      "step_repair_high_acceptance_ladder_max_factor": 2.0,
+      "step_repair_min_directional_factor": 1.25,
+      "target_accept_prob": 0.7,
+      "target_scope": "minimal_ssl_lstm_zhaocui_hmc_ladder:zhaocui_fixed:phase1",
+      "target_status_trace_policy": "none",
+      "terminal_phase6_repair_extra_attempts": 0,
+      "trajectory_window_lower_multiplier": 0.8,
+      "trajectory_window_upper_multiplier": 1.25,
+      "use_xla": false
+    },
+    "diagnostic_role": "tune_verify_repair_loop_hard_veto",
+    "diagnostic_roles": {
+      "bootstrap_screen": "promotion_or_repair_or_hard_veto",
+      "fresh_fixed_kernel_verification": "kernel_handoff_screen_only",
+      "geometry_initialization": "hard_veto_when_invalid",
+      "output_artifact": "audit_evidence_only_not_public_reconstruction_api",
+      "tune_verify_repair_loop": "promotion_or_repair_or_hard_veto"
+    },
+    "final_kernel_hash": null,
+    "final_kernel_payload": null,
+    "final_kernel_requires_phase7_pass": true,
+    "hard_vetoes": [
+      "tune_verify_repair_loop_error"
+    ],
+    "historical_repair_triggers": [],
+    "nonclaims": [
+      "BayesFilter one-call HMC kernel tuning only",
+      "final frozen kernel is a handoff artifact only",
+      "tuning screens do not establish posterior convergence",
+      "no posterior convergence claim",
+      "no sampler superiority claim",
+      "no default-readiness claim",
+      "no external-client scientific claim",
+      "no GPU readiness claim",
+      "XLA execution, when requested, is runtime selection only"
+    ],
+    "phase7_early_closeout_public_summary": null,
+    "phase7_public_summary": null,
+    "repair_triggers": [
+      "TypeError"
+    ],
+    "reports_default_readiness": false,
+    "reports_external_client_scientific_claim": false,
+    "reports_gpu_or_xla_readiness": false,
+    "reports_posterior_convergence": false,
+    "reports_sampler_superiority": false,
+    "result_hash": "84e7138f1ff114ce83418c3af7f084cd07e735df2b09e43bbb50bd7ff054ba5b",
+    "schema": "bayesfilter.hmc_kernel_tuning_public_artifact.v1",
+    "stage_hashes": {
+      "bootstrap": "2688642820d6cb60da3c852a9df19f3d0e170f7627d30042980d4c79cd24bd31",
+      "geometry": "c2a41dd1be9f8ea792e22777f3c2358d880d5d45385ee8ce4c795b9adb9ac5e5",
+      "tune_verify_repair_loop": null
+    },
+    "status": "hard_veto",
+    "target_dimension": 24
+  },
+  "run_manifest": {
+    "command": [
+      "docs/benchmarks/benchmark_minimal_ssl_lstm_zhaocui_hmc_tuning_phase5_2026_07_06.py",
+      "--output",
+      "docs/benchmarks/minimal_ssl_lstm_zhaocui_hmc_validity_phase6_acceptance_telemetry_repair_rerun_cpu_hidden_2026-07-06.json",
+      "--markdown-output",
+      "docs/benchmarks/minimal_ssl_lstm_zhaocui_hmc_validity_phase6_acceptance_telemetry_repair_rerun_cpu_hidden_2026-07-06.md",
+      "--tuning-output-dir",
+      "docs/benchmarks/minimal_ssl_lstm_zhaocui_hmc_validity_phase6_acceptance_telemetry_repair_public_artifacts_2026-07-06"
+    ],
+    "cwd": "/home/ubuntu/python/BayesFilter",
+    "environment": {
+      "CUDA_VISIBLE_DEVICES": "-1",
+      "cpu_hidden": true,
+      "tensorflow_probability_version": "0.25.0",
+      "tensorflow_version": "2.20.0"
+    },
+    "finished_at_utc": "2026-07-06T19:47:40.213052+00:00",
+    "markdown_artifact": "docs/benchmarks/minimal_ssl_lstm_zhaocui_hmc_validity_phase5_tuning_mass_cpu_hidden_2026-07-06.md",
+    "output_artifact": "docs/benchmarks/minimal_ssl_lstm_zhaocui_hmc_validity_phase5_tuning_mass_cpu_hidden_2026-07-06.json",
+    "plan_file": "docs/plans/bayesfilter-minimal-ssl-lstm-zhaocui-hmc-validity-gaps-phase5-tuning-mass-ladder-subplan-2026-07-06.md",
+    "public_tuning_output_dir": "docs/benchmarks/minimal_ssl_lstm_zhaocui_hmc_validity_phase6_acceptance_telemetry_repair_public_artifacts_2026-07-06",
+    "random_seed": [
+      20260706,
+      6501
+    ],
+    "result_file": "docs/plans/bayesfilter-minimal-ssl-lstm-zhaocui-hmc-validity-gaps-phase5-tuning-mass-ladder-result-2026-07-06.md",
+    "runtime_s": 4.171681797990459,
+    "script": "docs/benchmarks/benchmark_minimal_ssl_lstm_zhaocui_hmc_tuning_phase5_2026_07_06.py",
+    "started_at_utc": "2026-07-06T19:47:36.041338+00:00"
+  },
+  "schema_version": "minimal_ssl_lstm_zhaocui_hmc_validity.phase5_tuning_mass.v1",
+  "status": "passed",
+  "tuning_result_payload_public_safe": {
+    "adapter_signature": "d4ef4d31b97253e47e74ee0535323883469a745ee16c098f3e3be716d2e4aac7",
+    "artifact_path": "docs/benchmarks/minimal_ssl_lstm_zhaocui_hmc_validity_phase6_acceptance_telemetry_repair_public_artifacts_2026-07-06/hmc_kernel_tuning_result.json",
+    "bootstrap": null,
+    "bootstrap_artifact_hash": "2688642820d6cb60da3c852a9df19f3d0e170f7627d30042980d4c79cd24bd31",
+    "config": {
+      "acceptance_band": [
+        0.65,
+        0.75
+      ],
+      "allow_geometry_fallback": false,
+      "bootstrap_diagnostic_screen_num_burnin_steps": null,
+      "bootstrap_diagnostic_screen_num_results": null,
+      "bootstrap_diagnostic_sizing_claim": "public observability diagnostic only; not sampler promotion",
+      "bootstrap_max_repairs": 1,
+      "chain_execution_mode": "tf_function",
+      "covariance_jitter": 1e-09,
+      "eigenvalue_floor": 1e-09,
+      "forbidden_public_fields": [
+        "step_size",
+        "initial_step_size",
+        "num_leapfrog_steps",
+        "leapfrog_count",
+        "min_leapfrog",
+        "max_leapfrog",
+        "candidate_l_grid",
+        "trajectory_grid",
+        "mass_window_schedule",
+        "warmup_budget_schedule",
+        "tuning_budget_schedule",
+        "tune_num_results",
+        "screen_num_results",
+        "verification_num_results",
+        "verification_num_burnin_steps"
+      ],
+      "geometry_scaling_c": 0.25,
+      "hmc_mechanics_owned_by_bayesfilter": true,
+      "max_attempts": 1,
+      "max_condition_number": null,
+      "max_leapfrog_steps": 8,
+      "preset": "smoke",
+      "preset_role": "contract_scale_only",
+      "public_timeout_budget_s": 90.0,
+      "repair_band": [
+        0.55,
+        0.85
+      ],
+      "reports_default_readiness": false,
+      "reports_gpu_or_xla_readiness": false,
+      "reports_posterior_convergence": false,
+      "reports_sampler_superiority": false,
+      "schema": "bayesfilter.hmc_kernel_tuning_config.v1",
+      "seed": [
+        20260706,
+        6501
+      ],
+      "source": "bayesfilter.minimal_ssl_lstm.phase5_tuning_mass",
+      "stability_guard": 0.5,
+      "staged_timeout_enlargement_rounds": null,
+      "staged_timeout_global_started_perf_counter_s": null,
+      "staged_timeout_policy": null,
+      "staged_timeout_stage_started_perf_counter_s": null,
+      "step_repair_factor": 2.0,
+      "step_repair_high_acceptance_directional_factor": 2.0,
+      "step_repair_high_acceptance_ladder_max_factor": 2.0,
+      "step_repair_min_directional_factor": 1.25,
+      "target_accept_prob": 0.7,
+      "target_scope": "minimal_ssl_lstm_zhaocui_hmc_ladder:zhaocui_fixed:phase1",
+      "target_status_trace_policy": "none",
+      "terminal_phase6_repair_extra_attempts": 0,
+      "trajectory_window_lower_multiplier": 0.8,
+      "trajectory_window_upper_multiplier": 1.25,
+      "use_xla": false
+    },
+    "diagnostic_role": "tune_verify_repair_loop_hard_veto",
+    "diagnostic_roles": {
+      "bootstrap_screen": "promotion_or_repair_or_hard_veto",
+      "fresh_fixed_kernel_verification": "kernel_handoff_screen_only",
+      "geometry_initialization": "hard_veto_when_invalid",
+      "output_artifact": "audit_evidence_only_not_public_reconstruction_api",
+      "tune_verify_repair_loop": "promotion_or_repair_or_hard_veto"
+    },
+    "final_kernel_hash": null,
+    "final_kernel_payload": null,
+    "final_kernel_requires_phase7_pass": true,
+    "final_status": "hard_veto",
+    "geometry": null,
+    "geometry_artifact_hash": "c2a41dd1be9f8ea792e22777f3c2358d880d5d45385ee8ce4c795b9adb9ac5e5",
+    "hard_vetoes": [
+      "tune_verify_repair_loop_error"
+    ],
+    "loop_artifact_hash": null,
+    "nonclaims": [
+      "BayesFilter one-call HMC kernel tuning only",
+      "final frozen kernel is a handoff artifact only",
+      "tuning screens do not establish posterior convergence",
+      "no posterior convergence claim",
+      "no sampler superiority claim",
+      "no default-readiness claim",
+      "no external-client scientific claim",
+      "no GPU readiness claim",
+      "XLA execution, when requested, is runtime selection only"
+    ],
+    "passed": false,
+    "phase7_early_closeout_public_summary": null,
+    "repair_triggers": [
+      "TypeError"
+    ],
+    "reports_default_readiness": false,
+    "reports_external_client_scientific_claim": false,
+    "reports_gpu_or_xla_readiness": false,
+    "reports_posterior_convergence": false,
+    "reports_sampler_superiority": false,
+    "schema": "bayesfilter.hmc_kernel_tuning_result.v1",
+    "smoke_result_is_contract_only": true,
+    "target_dimension": 24,
+    "tune_verify_repair_loop": null
+  },
+  "tuning_result_summary": {
+    "artifact_path": "docs/benchmarks/minimal_ssl_lstm_zhaocui_hmc_validity_phase6_acceptance_telemetry_repair_public_artifacts_2026-07-06/hmc_kernel_tuning_result.json",
+    "attempt_count": 0,
+    "bootstrap_available": true,
+    "diagnostic_role": "tune_verify_repair_loop_hard_veto",
+    "final_kernel_hash": null,
+    "final_kernel_payload_available": false,
+    "final_status": "hard_veto",
+    "geometry_available": true,
+    "hard_vetoes": [
+      "tune_verify_repair_loop_error"
+    ],
+    "loop_available": false,
+    "nonclaims": [
+      "BayesFilter one-call HMC kernel tuning only",
+      "final frozen kernel is a handoff artifact only",
+      "tuning screens do not establish posterior convergence",
+      "no posterior convergence claim",
+      "no sampler superiority claim",
+      "no default-readiness claim",
+      "no external-client scientific claim",
+      "no GPU readiness claim",
+      "XLA execution, when requested, is runtime selection only"
+    ],
+    "passed": false,
+    "repair_triggers": [
+      "TypeError"
+    ],
+    "schema": "minimal_ssl_lstm.phase5_tuning_result_summary.v1",
+    "stage_statuses": [],
+    "target_dimension": 24
+  }
+}

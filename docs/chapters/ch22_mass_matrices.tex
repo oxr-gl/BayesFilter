@@ -32,3 +32,70 @@ estimate is indefinite or ill-conditioned, BayesFilter should regularize it,
 record the regularization, and expose the eigenvalue diagnostics.  Silently
 using an indefinite curvature matrix as if it were a covariance is a target
 geometry error.
+
+\section{Geometry-Scaled Tuning Budgets}
+\label{sec:bf-geometry-scaled-tuning-budgets}
+
+Mass-matrix diagnostics also determine how much evidence a tuning stage needs
+before BayesFilter makes a repair decision.  A fixed number of samples is not a
+property of the model; it is a policy choice.  BayesFilter therefore records a
+public-safe geometry summary before serious HMC tuning:
+
+\begin{itemize}
+  \item parameter dimension \(d\);
+  \item covariance condition number, when available;
+  \item effective dimension, computed from the covariance eigenvalue spectrum;
+  \item anisotropy ratio \(d/d_{\mathrm{eff}}\);
+  \item regularization pressure, including eigenvalue clipping, non-positive
+    raw eigenvalues, and diagonal fallback use.
+\end{itemize}
+
+The serious tuning budget uses this summary only to decide how much local
+tuning work to allocate.  In code, the central policy is
+\texttt{HMCGeometryScaledBudgetTimingPolicy}.  Its first attempt budget is
+\[
+  B_0 =
+  \operatorname{clamp}\left(
+    \left\lceil c_d\, d\, m_{\mathrm{geom}}\right\rceil,
+    B_{\min}, B_{\max,0}
+  \right),
+\]
+where \(m_{\mathrm{geom}}\) is a clipped multiplier built from condition,
+anisotropy, and regularization pressure.  Later attempts grow as
+\[
+  B_k = \min(B_{\max}, B_0 2^k).
+\]
+Bootstrap screens use a smaller square-root dimension rule,
+\[
+  N_{\mathrm{boot}} =
+  \operatorname{clamp}\left(
+    \left\lceil c_{\sqrt d}\sqrt d\,m_{\mathrm{geom}}\right\rceil,
+    N_{\min}, N_{\max}
+  \right),
+\]
+with burn-in chosen as a fixed fraction of the screen length.
+
+These formulas are not posterior convergence criteria.  They are a disciplined
+replacement for arbitrary constants: larger, more anisotropic, or more heavily
+regularized targets receive more local tuning evidence before BayesFilter
+decides whether a step-size, trajectory, or mass repair is making progress.
+
+\section{Timing And Progress}
+\label{sec:bf-hmc-timing-and-progress}
+
+Wall-clock limits are treated differently from statistical tuning budgets.  A
+stage may run for a long time because the model is large but still making
+meaningful progress.  BayesFilter therefore separates:
+
+\begin{itemize}
+  \item progress evidence, such as stage transitions, updated mass summaries,
+    changed step-size hashes, changed trajectory hashes, repair decisions, and
+    fresh verification summaries;
+  \item emergency caps, which are machine-protection limits rather than claims
+    that the sampler has failed scientifically.
+\end{itemize}
+
+The staged timeout policy records emergency stage caps, a global cap, and a
+reserve.  Those numbers should be read as safety rails.  A scientific result
+note must not interpret an emergency cap as evidence against the posterior
+unless the predeclared continuation veto says so.

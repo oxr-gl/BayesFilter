@@ -1,0 +1,365 @@
+{
+  "artifact_role": "cpu_hidden_identifiable_oracle_geometry_diagnostic",
+  "center": {
+    "coordinate_system": "free_parameters_center_plus_scale_times_z",
+    "log_prob": -462.56185337949915,
+    "score_norm": 13.59759134868698
+  },
+  "classification": "extension_or_invention",
+  "comparison": {
+    "agreement_passed": false,
+    "coordinate_system": "whitened_center_plus_scale_times_z",
+    "max_abs_error": 53.53405068253588,
+    "max_abs_tolerance": 6.0,
+    "relative_frobenius_error": 0.817829268596799,
+    "relative_frobenius_tolerance": 0.45
+  },
+  "created_at_utc": "2026-07-07T20:25:37.681324+00:00",
+  "decision": {
+    "dense_spd_passed": true,
+    "geometry_sanity_passed": false,
+    "next_justified_action": "repair oracle geometry before any filtering-likelihood or HMC run",
+    "sample_ratio_passed": true,
+    "vetoes": [
+      "low_rank_dense_precision_mismatch"
+    ],
+    "viable_for_next_step": false
+  },
+  "dense_baseline": {
+    "coordinate_system": "original_free_parameters",
+    "precision_eigen_summary": {
+      "condition_number": 20491.244024712763,
+      "max": 572.5550394352895,
+      "min": 0.027941448491110597,
+      "nonpositive_count": 0,
+      "positive": true,
+      "values": [
+        0.027941448491110597,
+        254.96709702830844,
+        360.61157569176385,
+        572.5550394352895
+      ]
+    },
+    "source": "tensorflow_autodiff_negative_hessian_at_truth",
+    "whitened_coordinate_precision_eigen_summary": {
+      "condition_number": 20491.244024712763,
+      "max": 70.13799233082295,
+      "min": 0.003422827440161048,
+      "nonpositive_count": 0,
+      "positive": true,
+      "values": [
+        0.003422827440161048,
+        31.23346938596778,
+        44.17491802224106,
+        70.13799233082295
+      ]
+    }
+  },
+  "environment": {
+    "cpu_hidden": true,
+    "cuda_visible_devices": "-1",
+    "tf_physical_gpus": [],
+    "tf_version": "2.20.0",
+    "trust_basis": "cpu_hidden_debug_reference_exception"
+  },
+  "git": {
+    "commit": "b1c97c9424907e177f8a95ab98657f07b064a081"
+  },
+  "inference_status": {
+    "default_readiness": "not assessed",
+    "descriptive_only_differences": "runtime, condition numbers, and residual magnitudes are explanatory only",
+    "hard_veto_screen": "failed",
+    "next_evidence_needed": "filtering-likelihood geometry and then bounded HMC diagnostics",
+    "statistically_supported_ranking": "none; single diagnostic target"
+  },
+  "low_rank_geometry": {
+    "accepted": true,
+    "center_refinement_accepted": false,
+    "covariance_eigen_summary": {
+      "condition_number": 99999.99999998794,
+      "eigenvalues": [
+        0.09999999999998983,
+        0.10000000000000232,
+        0.10000000000011058,
+        9999.999999997777
+      ],
+      "finite": true,
+      "max": 9999.999999997777,
+      "min": 0.09999999999998983,
+      "positive": true
+    },
+    "diagnostics": {
+      "artifact_hash": "a20ed893a6fadf33",
+      "center_log_prob": -462.56185337949915,
+      "center_refinement": {
+        "accepted": false,
+        "center_log_prob": -462.56185337949915,
+        "center_score_norm": 13.59759134868698,
+        "reason": "outside_trust_radius;log_prob_decreased;score_norm_not_improved_enough",
+        "refined_center": [
+          4224.2138560925505,
+          -542.7388173105631,
+          219.815167528223,
+          165.77648855874116
+        ],
+        "refined_log_prob": -47632150.22202555,
+        "refined_score_norm": 57415.29021378746,
+        "z_norm": 12192.671973312365
+      },
+      "center_score_norm": 13.59759134868698,
+      "classification": "extension_or_invention",
+      "config": {
+        "center_log_prob_tolerance": 1e-08,
+        "center_score_improvement_factor": 0.95,
+        "eigenvalue_floor": 0.0001,
+        "fit_max_iterations": 300,
+        "fit_tolerance": 1e-08,
+        "holdout_fraction": 0.25,
+        "holdout_rmse_abs_tolerance": 0.05,
+        "holdout_rmse_rel_tolerance": 0.005,
+        "max_condition_number": 100000.0,
+        "min_samples_per_parameter": 5,
+        "pilot_direction_count": 512,
+        "pilot_radius": 0.08,
+        "rank": 4,
+        "sample_count": 260,
+        "seed": [
+          20260708,
+          1701
+        ],
+        "trust_radius": 0.3
+      },
+      "coordinate_system": "whitened_center_plus_scale_times_z",
+      "covariance_eigen_summary": {
+        "condition_number": 99999.99999998794,
+        "eigenvalues": [
+          0.09999999999998983,
+          0.10000000000000232,
+          0.10000000000011058,
+          9999.999999997777
+        ],
+        "finite": true,
+        "max": 9999.999999997777,
+        "min": 0.09999999999998983,
+        "positive": true
+      },
+      "dimension": 4,
+      "finite_sample_count": 260,
+      "fit": {
+        "condition_bound": 100000.0,
+        "intercept": -463.42006369263055,
+        "lambda0": 0.0001,
+        "linear_term": [
+          -0.027593040693334608,
+          -9.613756520147072,
+          6.465741981883622,
+          -7.8897316310547625
+        ],
+        "loss": 0.2488942339073811,
+        "mu": [
+          9.9999,
+          9.9999,
+          9.999899999999025,
+          4.836243235217721e-47
+        ],
+        "optimizer_converged": true,
+        "optimizer_failed": false,
+        "optimizer_iterations": 50,
+        "precision": null,
+        "status": "usable"
+      },
+      "holdout_count": 65,
+      "holdout_passed": true,
+      "holdout_rmse": 0.5145040215053533,
+      "holdout_threshold": 2.3128092668974958,
+      "nonfinite_sample_count": 0,
+      "pilot": {
+        "basis_source": "directional_curvature_sketch",
+        "curvature_max": 69.38296759395612,
+        "curvature_min": 0.7182069578526296,
+        "finite_positive_curvature_count": 512,
+        "pilot_direction_count": 512,
+        "sketch_eigenvalues": [
+          5999.391922993874,
+          5466.083427615481,
+          4527.004146515776,
+          3050.943477688396
+        ]
+      },
+      "precision_eigen_summary": {
+        "condition_number": 100000.00000001109,
+        "eigenvalues": [
+          9.999999999998899e-05,
+          9.999999999999025,
+          9.999999999999998,
+          10.000000000000007
+        ],
+        "finite": true,
+        "max": 10.000000000000007,
+        "min": 9.999999999998899e-05,
+        "positive": true
+      },
+      "precision_form": "lambda0_identity_plus_q_diag_mu_q_transpose",
+      "rank": 4,
+      "regression_parameter_count": 10,
+      "reports_default_readiness": false,
+      "reports_hmc_convergence": false,
+      "reports_map_quality": false,
+      "required_finite_samples": 50,
+      "sample_count": 260,
+      "sample_ratio_rule": "finite_sample_count >= min_samples_per_parameter * regression_parameter_count",
+      "train_rmse": 0.4988929887856764
+    },
+    "dimension": 4,
+    "intercept": -463.42006369263055,
+    "lambda0": 0.0001,
+    "mu": [
+      9.9999,
+      9.9999,
+      9.999899999999025,
+      4.836243235217721e-47
+    ],
+    "nonclaims": [
+      "low-rank quadratic geometry diagnostic only",
+      "not a certified MAP covariance",
+      "not posterior correctness evidence",
+      "not HMC convergence evidence",
+      "not sampler superiority evidence",
+      "not default-readiness evidence",
+      "not source-faithful Zhao-Cui evidence"
+    ],
+    "precision_eigen_summary": {
+      "condition_number": 100000.00000001109,
+      "eigenvalues": [
+        9.999999999998899e-05,
+        9.999999999999025,
+        9.999999999999998,
+        10.000000000000007
+      ],
+      "finite": true,
+      "max": 10.000000000000007,
+      "min": 9.999999999998899e-05,
+      "positive": true
+    },
+    "rank": 4,
+    "schema": "bayesfilter.low_rank_spd_quadratic_geometry.v1",
+    "status": "usable"
+  },
+  "nonclaims": [
+    "complete-data oracle geometry diagnostic only",
+    "not a filtering-likelihood validity result",
+    "not HMC convergence evidence",
+    "not posterior correctness evidence",
+    "not sampler superiority evidence",
+    "not Zhao-Cui source-faithfulness evidence",
+    "not GPU/XLA production-readiness evidence",
+    "not default-readiness evidence",
+    "low-rank quadratic geometry diagnostic only",
+    "not a certified MAP covariance",
+    "not posterior correctness evidence",
+    "not HMC convergence evidence",
+    "not sampler superiority evidence",
+    "not default-readiness evidence",
+    "not source-faithful Zhao-Cui evidence"
+  ],
+  "plan_path": "docs/plans/bayesfilter-identifiable-ssl-lstm-oracle-geometry-test-plan-2026-07-08.md",
+  "result_path": "docs/plans/bayesfilter-identifiable-ssl-lstm-oracle-geometry-test-result-2026-07-08.md",
+  "run_manifest": {
+    "command": "CUDA_VISIBLE_DEVICES=-1 python docs/benchmarks/benchmark_identifiable_ssl_lstm_oracle_geometry_2026_07_08.py",
+    "conda_env": "tfgpu",
+    "cpu_gpu_status": "CPU-hidden debug/reference exception",
+    "data_version": "stateless_simulated_scalar_ssl_lstm_complete_data_oracle_v1",
+    "output_artifacts": [
+      "docs/benchmarks/identifiable_ssl_lstm_oracle_geometry_cpu_hidden_2026-07-08.json",
+      "docs/benchmarks/identifiable_ssl_lstm_oracle_geometry_cpu_hidden_2026-07-08.md"
+    ],
+    "plan_file": "docs/plans/bayesfilter-identifiable-ssl-lstm-oracle-geometry-test-plan-2026-07-08.md",
+    "random_seeds": [
+      20260708,
+      1701
+    ],
+    "result_file": "docs/plans/bayesfilter-identifiable-ssl-lstm-oracle-geometry-test-result-2026-07-08.md",
+    "wall_time_seconds": 25.689078816008987
+  },
+  "schema_version": "identifiable_ssl_lstm.oracle_geometry.v1",
+  "script": "docs/benchmarks/benchmark_identifiable_ssl_lstm_oracle_geometry_2026_07_08.py",
+  "settings": {
+    "free_parameter_names": [
+      "latent_mean_weight.0.0",
+      "latent_mean_bias.0",
+      "observation_weight.0.0",
+      "observation_bias.0"
+    ],
+    "free_parameter_scale": [
+      0.35,
+      0.35,
+      0.35,
+      0.35
+    ],
+    "horizon": 200,
+    "low_rank_eigenvalue_floor": 0.0001,
+    "low_rank_fit_max_iterations": 300,
+    "low_rank_holdout_rmse_abs_tolerance": 0.05,
+    "low_rank_holdout_rmse_rel_tolerance": 0.005,
+    "low_rank_max_condition_number": 100000.0,
+    "low_rank_min_samples_per_parameter": 5,
+    "low_rank_pilot_direction_count": 512,
+    "low_rank_pilot_radius": 0.08,
+    "low_rank_rank": 4,
+    "low_rank_sample_count": 260,
+    "low_rank_trust_radius": 0.3,
+    "precision_max_abs_tolerance": 6.0,
+    "precision_relative_frobenius_tolerance": 0.45,
+    "prior_scale": 4.0,
+    "regression_parameter_count": 10,
+    "required_finite_samples": 50,
+    "seed": [
+      20260708,
+      1701
+    ],
+    "simulation_noise_scale": 1.0
+  },
+  "target": {
+    "augmented_state_dim": 3,
+    "complete_data_path_shape": [
+      200,
+      3
+    ],
+    "fixed_parameter_count": 20,
+    "free_parameter_dim": 4,
+    "free_parameter_indices": [
+      12,
+      13,
+      14,
+      15
+    ],
+    "free_parameter_names": [
+      "latent_mean_weight.0.0",
+      "latent_mean_bias.0",
+      "observation_weight.0.0",
+      "observation_bias.0"
+    ],
+    "full_parameter_dim": 24,
+    "hidden_dim": 1,
+    "horizon": 200,
+    "latent_dim": 1,
+    "likelihood_terms": [
+      "latent_process_density_given_complete_augmented_path",
+      "observation_density_given_complete_augmented_path",
+      "weak_gaussian_prior_on_free_parameters"
+    ],
+    "model": "scalar_ssl_lstm_complete_data_oracle",
+    "observation_dim": 1,
+    "observation_shape": [
+      200,
+      1
+    ],
+    "truth_free_parameters": [
+      0.35,
+      -0.08,
+      0.65,
+      0.05
+    ]
+  },
+  "target_scope": "identifiable_ssl_lstm:complete_data_oracle_geometry:phase1"
+}

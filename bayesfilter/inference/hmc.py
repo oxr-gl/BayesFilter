@@ -2562,9 +2562,12 @@ class ReusableFullChainHMCRunner:
         adapter: Any,
         initial_state_template: Any,
         config: FullChainHMCConfig,
+        *,
+        dynamic_num_leapfrog_steps: bool = False,
     ) -> None:
         self.adapter = adapter
         self.config = config
+        self.dynamic_num_leapfrog_steps = bool(dynamic_num_leapfrog_steps)
         self.capability = _validate_full_chain_hmc_authority(adapter, config)
 
         import tensorflow as tf
@@ -2603,8 +2606,9 @@ class ReusableFullChainHMCRunner:
         current_state: Any | None = None,
         seed: tuple[int, int] | Any | None = None,
         step_size: float | Any | None = None,
+        num_leapfrog_steps: int | Any | None = None,
     ) -> FullChainHMCRunResult:
-        """Run one chain call with tensor-parameterized state, seed, and step."""
+        """Run one chain call with tensor-parameterized dynamic inputs."""
 
         import tensorflow as tf
 
@@ -2620,9 +2624,32 @@ class ReusableFullChainHMCRunner:
         step_tensor = tf.convert_to_tensor(step_value, dtype=self._state_dtype)
         if step_tensor.shape.rank != 0:
             raise ValueError("step_size must be a scalar")
+        leapfrog_value = (
+            self.config.num_leapfrog_steps
+            if num_leapfrog_steps is None
+            else num_leapfrog_steps
+        )
+        leapfrog_tensor = tf.convert_to_tensor(leapfrog_value, dtype=tf.int32)
+        if leapfrog_tensor.shape.rank != 0:
+            raise ValueError("num_leapfrog_steps must be a scalar")
+        if not self.dynamic_num_leapfrog_steps:
+            static_l = tf.get_static_value(leapfrog_tensor)
+            if static_l is None or int(static_l) != int(self.config.num_leapfrog_steps):
+                raise ValueError(
+                    "num_leapfrog_steps can vary only when the reusable runner was "
+                    "built with dynamic_num_leapfrog_steps=True"
+                )
 
         sample_chain_start = time.perf_counter()
-        samples, trace = self._runner(state_tensor, seed_tensor, step_tensor)
+        if self.dynamic_num_leapfrog_steps:
+            samples, trace = self._runner(
+                state_tensor,
+                seed_tensor,
+                step_tensor,
+                leapfrog_tensor,
+            )
+        else:
+            samples, trace = self._runner(state_tensor, seed_tensor, step_tensor)
         sample_chain_call_s = time.perf_counter() - sample_chain_start
         self._call_count += 1
         if self._call_count == 1:
@@ -2643,6 +2670,7 @@ class ReusableFullChainHMCRunner:
             sample_chain_call_s=sample_chain_call_s,
             trace_capture_s=trace_capture_s,
             trace=trace if isinstance(trace, Mapping) else None,
+            num_leapfrog_steps=leapfrog_tensor,
         )
         return FullChainHMCRunResult(
             samples=samples,
@@ -2662,11 +2690,21 @@ class ReusableFullChainHMCRunner:
         target_log_prob = self._target_log_prob
         trace_fn = self._trace_fn
 
-        def run_chain(current_state: Any, seed: Any, step_size: Any) -> tuple[Any, Mapping[str, Any]]:
+        def run_chain(
+            current_state: Any,
+            seed: Any,
+            step_size: Any,
+            num_leapfrog_steps: Any | None = None,
+        ) -> tuple[Any, Mapping[str, Any]]:
+            leapfrog_count = (
+                config.num_leapfrog_steps
+                if num_leapfrog_steps is None
+                else num_leapfrog_steps
+            )
             kernel = tfm.HamiltonianMonteCarlo(
                 target_log_prob_fn=target_log_prob,
                 step_size=step_size,
-                num_leapfrog_steps=config.num_leapfrog_steps,
+                num_leapfrog_steps=leapfrog_count,
             )
             if config.tuning_policy.uses_dual_averaging:
                 kernel = tfm.DualAveragingStepSizeAdaptation(
@@ -2693,6 +2731,8 @@ class ReusableFullChainHMCRunner:
             tf.TensorSpec(shape=(2,), dtype=tf.int32),
             tf.TensorSpec(shape=(), dtype=self._state_dtype),
         ]
+        if self.dynamic_num_leapfrog_steps:
+            input_signature.append(tf.TensorSpec(shape=(), dtype=tf.int32))
         if config.use_xla:
             return tf.function(
                 run_chain,
@@ -2712,9 +2752,15 @@ class ReusableFullChainHMCRunner:
         sample_chain_call_s: float,
         trace_capture_s: float,
         trace: Mapping[str, Any] | None,
+        num_leapfrog_steps: Any,
     ) -> Mapping[str, Any]:
+        import tensorflow as tf
+
         config = self.config
         capability = self.capability
+        dynamic_inputs = ("current_state", "seed", "step_size")
+        if self.dynamic_num_leapfrog_steps:
+            dynamic_inputs = (*dynamic_inputs, "num_leapfrog_steps")
         if config.chain_execution_mode == "eager":
             timing_scope = "reusable_eager_runner_execute_only"
         elif config.use_xla:
@@ -2761,15 +2807,23 @@ class ReusableFullChainHMCRunner:
                     "config": config.signature_payload(),
                     "initial_state_shape": self._state_shape,
                     "initial_state_dtype": self._state_dtype.name,
-                    "dynamic_inputs": ("current_state", "seed", "step_size"),
+                    "dynamic_inputs": dynamic_inputs,
+                    "dynamic_num_leapfrog_steps": self.dynamic_num_leapfrog_steps,
                 }
             ),
             "initial_state_shape": self._state_shape,
             "initial_state_dtype": self._state_dtype.name,
-            "dynamic_inputs": ("current_state", "seed", "step_size"),
+            "dynamic_inputs": dynamic_inputs,
             "seed_source": "runtime_tensor_argument",
             "current_state_source": "runtime_tensor_argument",
             "step_size_source": "runtime_tensor_argument",
+            "num_leapfrog_steps_source": (
+                "runtime_tensor_argument"
+                if self.dynamic_num_leapfrog_steps
+                else "static_runner_config"
+            ),
+            "dynamic_num_leapfrog_steps": self.dynamic_num_leapfrog_steps,
+            "num_leapfrog_steps": int(tf.get_static_value(num_leapfrog_steps)),
             "sample_chain_call_s": sample_chain_call_s,
             "sample_chain_invocation_count": self._call_count,
             "sample_chain_timing_scope": timing_scope,
@@ -2808,10 +2862,17 @@ def build_reusable_full_chain_tfp_hmc_runner(
     adapter: Any,
     initial_state_template: Any,
     config: FullChainHMCConfig,
+    *,
+    dynamic_num_leapfrog_steps: bool = False,
 ) -> ReusableFullChainHMCRunner:
     """Build a reusable BayesFilter TFP HMC runner for a static contract."""
 
-    return ReusableFullChainHMCRunner(adapter, initial_state_template, config)
+    return ReusableFullChainHMCRunner(
+        adapter,
+        initial_state_template,
+        config,
+        dynamic_num_leapfrog_steps=dynamic_num_leapfrog_steps,
+    )
 
 
 class FixedSizeHMCChunkRunner:
@@ -3212,8 +3273,12 @@ class FixedSizeHMCChunkRunner:
                     target_log_prob_buffer,
                 )
 
-            trace_shape = (config.max_results,) + tuple(
-                int(dim) for dim in initial_accepted.shape
+            trace_shape = tf.concat(
+                [
+                    tf.constant([config.max_results], dtype=tf.int32),
+                    tf.shape(initial_accepted),
+                ],
+                axis=0,
             )
             trace_acceptance = tf.zeros(trace_shape, dtype=tf.bool)
             trace_log_accept = tf.fill(
@@ -5702,13 +5767,7 @@ def static_unroll_chain_value_and_score(
     use_xla: bool = False,
     target_scope: str | None = None,
 ) -> tuple[Any, Any]:
-    """Evaluate value/score for a statically sized chain batch.
-
-    This helper intentionally uses a static Python unroll over the leading
-    chain axis.  It avoids ``tf.map_fn``/``tf.vectorized_map`` TensorArray
-    semantics in early XLA gates and fails closed when the chain axis is not
-    statically known.
-    """
+    """Evaluate value/score for a statically sized chain batch."""
 
     capability = value_score_capability(adapter)
     if use_xla and not capability.is_accepted_xla_hmc_authority:
@@ -5732,13 +5791,32 @@ def static_unroll_chain_value_and_score(
     if chain_count is None or parameter_dim is None:
         raise ValueError("chain_state must have static chain and parameter dimensions")
 
-    values = []
-    scores = []
-    for index in range(int(chain_count)):
+    values = tf.TensorArray(
+        dtype=chain_state.dtype,
+        size=int(chain_count),
+        element_shape=tf.TensorShape([]),
+    )
+    scores = tf.TensorArray(
+        dtype=chain_state.dtype,
+        size=int(chain_count),
+        element_shape=tf.TensorShape([int(parameter_dim)]),
+    )
+
+    def body(index: Any, values_ta: Any, scores_ta: Any) -> tuple[Any, Any, Any]:
         value, score = adapter.log_prob_and_grad(chain_state[index])
-        values.append(value)
-        scores.append(score)
-    return _stack_like_chain(chain_state, values), _stack_like_chain(chain_state, scores)
+        return (
+            index + tf.constant(1, dtype=tf.int32),
+            values_ta.write(index, tf.cast(value, chain_state.dtype)),
+            scores_ta.write(index, tf.cast(score, chain_state.dtype)),
+        )
+
+    _index, values, scores = tf.while_loop(
+        lambda index, *_unused: index < tf.constant(int(chain_count), dtype=tf.int32),
+        body,
+        (tf.constant(0, dtype=tf.int32), values, scores),
+        parallel_iterations=1,
+    )
+    return values.stack(), scores.stack()
 
 
 def _make_tfp_target_log_prob_fn(

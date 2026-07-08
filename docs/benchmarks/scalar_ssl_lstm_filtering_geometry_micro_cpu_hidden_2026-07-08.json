@@ -1,0 +1,382 @@
+{
+  "artifact_role": "cpu_hidden_scalar_filtering_likelihood_geometry_diagnostic",
+  "center": {
+    "coordinate_system": "free_parameters_center_plus_scale_times_z",
+    "free_parameter_values": [
+      0.35,
+      -0.08,
+      0.65,
+      0.05
+    ],
+    "log_prob": -5.190783060651352,
+    "position_role": "truth_free_initial_center",
+    "reports_map_quality": false,
+    "score": [
+      0.05632356768008402,
+      2.424086117508603,
+      -0.0065959860893474165,
+      3.710553694970331
+    ],
+    "score_norm": 1.5513971814976701,
+    "status": "finite"
+  },
+  "classification": "extension_or_invention",
+  "created_at_utc": "2026-07-07T21:52:29.462019+00:00",
+  "decision": {
+    "condition_passed": true,
+    "geometry_sanity_passed": true,
+    "initial_finite_passed": true,
+    "low_rank_geometry_accepted": true,
+    "next_justified_action": "draft geometry-to-mass handoff subplan",
+    "precision_spd_passed": true,
+    "sample_ratio_passed": true,
+    "vetoes": [],
+    "viable_for_phase2_mass_handoff": true
+  },
+  "environment": {
+    "cpu_hidden": true,
+    "cuda_visible_devices": "-1",
+    "tf_physical_gpus": [],
+    "tf_version": "2.20.0",
+    "trust_basis": "cpu_hidden_debug_reference_exception"
+  },
+  "finite_difference_curvature": {
+    "computed": false,
+    "reason": "disabled_by_settings"
+  },
+  "git": {
+    "commit": "b1c97c9424907e177f8a95ab98657f07b064a081"
+  },
+  "inference_status": {
+    "default_readiness": "not assessed",
+    "descriptive_only_differences": "score norm, finite-difference curvature, residuals, condition number, and runtime",
+    "hard_veto_screen": "passed",
+    "hmc_readiness": "not assessed; Phase 1 does not run HMC",
+    "next_evidence_needed": "geometry-to-mass handoff only if geometry_sanity_passed is true",
+    "statistically_supported_ranking": "none; single diagnostic target"
+  },
+  "low_rank_geometry": {
+    "accepted": true,
+    "center_refinement_accepted": false,
+    "covariance_eigen_summary": {
+      "condition_number": 15.142181955566974,
+      "eigenvalues": [
+        1.702712531065857,
+        2.102120005359697,
+        3.081778460217023,
+        25.78278296342319
+      ],
+      "finite": true,
+      "max": 25.78278296342319,
+      "min": 1.702712531065857,
+      "positive": true
+    },
+    "diagnostics": {
+      "artifact_hash": "9197f93501fc227c",
+      "center_log_prob": -5.190783060651352,
+      "center_refinement": {
+        "accepted": false,
+        "center_log_prob": -5.190783060651352,
+        "center_score_norm": 1.5513971814976701,
+        "reason": "outside_trust_radius;log_prob_decreased;score_norm_not_improved_enough",
+        "refined_center": [
+          0.7332720826600492,
+          1.2350720051960287,
+          0.5875306434255156,
+          0.6820211172839866
+        ],
+        "refined_log_prob": -5.628290329509357,
+        "refined_score_norm": 2.465269300003476,
+        "z_norm": 4.313874134956864
+      },
+      "center_score_norm": 1.5513971814976701,
+      "classification": "extension_or_invention",
+      "config": {
+        "center_log_prob_tolerance": 1e-08,
+        "center_score_improvement_factor": 0.95,
+        "eigenvalue_floor": 0.0001,
+        "fit_max_iterations": 300,
+        "fit_tolerance": 1e-08,
+        "holdout_fraction": 0.25,
+        "holdout_rmse_abs_tolerance": 0.05,
+        "holdout_rmse_rel_tolerance": 0.005,
+        "max_condition_number": 100000.0,
+        "min_samples_per_parameter": 5,
+        "pilot_direction_count": 16,
+        "pilot_radius": 0.08,
+        "rank": 4,
+        "sample_count": 45,
+        "seed": [
+          20260708,
+          2301
+        ],
+        "trust_radius": 0.2
+      },
+      "coordinate_system": "whitened_center_plus_scale_times_z",
+      "covariance_eigen_summary": {
+        "condition_number": 15.142181955566974,
+        "eigenvalues": [
+          1.702712531065857,
+          2.102120005359697,
+          3.081778460217023,
+          25.78278296342319
+        ],
+        "finite": true,
+        "max": 25.78278296342319,
+        "min": 1.702712531065857,
+        "positive": true
+      },
+      "dimension": 4,
+      "finite_sample_count": 45,
+      "fit": {
+        "condition_bound": 15.14218195556697,
+        "fit_method": "score_difference_linear_least_squares_with_value_intercept",
+        "intercept": -5.190788427846159,
+        "lambda0": 0.038785572582240364,
+        "linear_term": [
+          0.019713248688029407,
+          0.848430141128011,
+          -0.0023085951312715957,
+          1.2986937932396159
+        ],
+        "loss": 2.3295877427126168e-05,
+        "mu": [
+          0.4369246615862833,
+          0.2857023855591694,
+          0.5485126247088927
+        ],
+        "mu_clipped_count": 0,
+        "optimizer_converged": true,
+        "optimizer_failed": false,
+        "optimizer_iterations": 0,
+        "precision": null,
+        "raw_lambda0": 0.038785572582240364,
+        "raw_mu": [
+          0.4369246615862833,
+          0.2857023855591694,
+          0.5485126247088927
+        ],
+        "score_design_condition_number": 5.3471797774463985,
+        "score_design_rank": 4,
+        "score_lstsq_residual_sum_squares": 0.39367230107951046,
+        "score_rmse": 0.046766102460335655,
+        "status": "usable"
+      },
+      "holdout_count": 0,
+      "holdout_passed": true,
+      "holdout_rmse": null,
+      "holdout_threshold": null,
+      "nonfinite_sample_count": 0,
+      "pilot": {
+        "basis_source": "directional_curvature_sketch",
+        "center_score_norm": 1.5513971814976701,
+        "curvature_max": 0.7067985415016914,
+        "curvature_min": 0.018320443528482364,
+        "curvature_source": "central_score_difference_directional_curvature",
+        "finite_positive_curvature_count": 15,
+        "pilot_direction_count": 16,
+        "sketch_eigenvalues": [
+          2.1968258128917904,
+          1.3607395918360123,
+          0.9629932069326612,
+          0.29972208998449146
+        ]
+      },
+      "precision_eigen_summary": {
+        "condition_number": 15.142181955566944,
+        "eigenvalues": [
+          0.03878557258224044,
+          0.3244879581414098,
+          0.4757102341685238,
+          0.5872981972911332
+        ],
+        "finite": true,
+        "max": 0.5872981972911332,
+        "min": 0.03878557258224044,
+        "positive": true
+      },
+      "precision_form": "lambda0_identity_plus_q_diag_mu_q_transpose",
+      "rank": 3,
+      "regression_parameter_count": 9,
+      "reports_default_readiness": false,
+      "reports_hmc_convergence": false,
+      "reports_map_quality": false,
+      "required_finite_samples": 45,
+      "sample_count": 45,
+      "sample_ratio_rule": "finite_sample_count >= min_samples_per_parameter * regression_parameter_count",
+      "train_rmse": 0.004826580303602766
+    },
+    "dimension": 4,
+    "intercept": -5.190788427846159,
+    "lambda0": 0.038785572582240364,
+    "mu": [
+      0.4369246615862833,
+      0.2857023855591694,
+      0.5485126247088927
+    ],
+    "nonclaims": [
+      "low-rank quadratic geometry diagnostic only",
+      "not a certified MAP covariance",
+      "not posterior correctness evidence",
+      "not HMC convergence evidence",
+      "not sampler superiority evidence",
+      "not default-readiness evidence",
+      "not source-faithful Zhao-Cui evidence"
+    ],
+    "precision_eigen_summary": {
+      "condition_number": 15.142181955566944,
+      "eigenvalues": [
+        0.03878557258224044,
+        0.3244879581414098,
+        0.4757102341685238,
+        0.5872981972911332
+      ],
+      "finite": true,
+      "max": 0.5872981972911332,
+      "min": 0.03878557258224044,
+      "positive": true
+    },
+    "rank": 3,
+    "schema": "bayesfilter.low_rank_spd_quadratic_geometry.v1",
+    "status": "usable"
+  },
+  "metric_roles": {
+    "center_score_norm": "explanatory_only",
+    "finite_difference_curvature": "explanatory_only",
+    "finite_sample_count": "promotion_veto",
+    "geometry_sanity_passed": "primary_phase1_pass_fail",
+    "holdout_rmse": "geometry_fit_gate_only_not_hmc_evidence",
+    "initial_value_score_finiteness": "promotion_veto",
+    "low_rank_geometry_accepted": "promotion_veto",
+    "precision_condition_number": "promotion_veto",
+    "precision_spd": "promotion_veto"
+  },
+  "nonclaims": [
+    "scalar filtering-likelihood geometry diagnostic only",
+    "not complete-data oracle evidence",
+    "not HMC readiness evidence",
+    "not an HMC run",
+    "not HMC convergence evidence",
+    "not posterior correctness evidence",
+    "not sampler superiority evidence",
+    "not statistical ranking evidence",
+    "not Zhao-Cui source-faithfulness evidence",
+    "not GPU/XLA production-readiness evidence",
+    "not default-readiness evidence",
+    "low-rank quadratic geometry diagnostic only",
+    "not a certified MAP covariance",
+    "not posterior correctness evidence",
+    "not HMC convergence evidence",
+    "not sampler superiority evidence",
+    "not default-readiness evidence",
+    "not source-faithful Zhao-Cui evidence"
+  ],
+  "plan_path": "docs/plans/bayesfilter-scalar-filtering-geometry-to-hmc-readiness-master-program-2026-07-08.md",
+  "result_path": "docs/plans/bayesfilter-scalar-filtering-geometry-to-hmc-readiness-phase1-filtering-geometry-result-2026-07-08.md",
+  "run_manifest": {
+    "command": "timeout 300 env CUDA_VISIBLE_DEVICES=-1 python docs/benchmarks/benchmark_scalar_ssl_lstm_filtering_geometry_2026_07_08.py",
+    "conda_env": "tfgpu",
+    "cpu_gpu_status": "CPU-hidden debug/reference exception",
+    "data_version": "stateless_simulated_scalar_ssl_lstm_filtering_path_v1",
+    "output_artifacts": [
+      "docs/benchmarks/scalar_ssl_lstm_filtering_geometry_cpu_hidden_2026-07-08.json",
+      "docs/benchmarks/scalar_ssl_lstm_filtering_geometry_cpu_hidden_2026-07-08.md"
+    ],
+    "plan_file": "docs/plans/bayesfilter-scalar-filtering-geometry-to-hmc-readiness-master-program-2026-07-08.md",
+    "random_seeds": [
+      20260708,
+      2301
+    ],
+    "result_file": "docs/plans/bayesfilter-scalar-filtering-geometry-to-hmc-readiness-phase1-filtering-geometry-result-2026-07-08.md",
+    "subplan_file": "docs/plans/bayesfilter-scalar-filtering-geometry-to-hmc-readiness-phase1-filtering-geometry-subplan-2026-07-08.md",
+    "wall_time_seconds": 29.66352488999837
+  },
+  "schema_version": "scalar_ssl_lstm.filtering_geometry.v1",
+  "script": "docs/benchmarks/benchmark_scalar_ssl_lstm_filtering_geometry_2026_07_08.py",
+  "settings": {
+    "compute_finite_difference_curvature": false,
+    "effective_low_rank_rank": 3,
+    "filter_name": "svd_ukf",
+    "finite_difference_step_scale": 0.001,
+    "free_parameter_names": [
+      "latent_mean_weight.0.0",
+      "latent_mean_bias.0",
+      "observation_weight.0.0",
+      "observation_bias.0"
+    ],
+    "free_parameter_scale": [
+      0.35,
+      0.35,
+      0.35,
+      0.35
+    ],
+    "horizon": 4,
+    "low_rank_eigenvalue_floor": 0.0001,
+    "low_rank_fit_max_iterations": 300,
+    "low_rank_holdout_rmse_abs_tolerance": 0.05,
+    "low_rank_holdout_rmse_rel_tolerance": 0.005,
+    "low_rank_max_condition_number": 100000.0,
+    "low_rank_min_samples_per_parameter": 5,
+    "low_rank_pilot_direction_count": 16,
+    "low_rank_pilot_radius": 0.08,
+    "low_rank_rank": 4,
+    "low_rank_sample_count": 45,
+    "low_rank_trust_radius": 0.2,
+    "prior_scale": 4.0,
+    "regression_parameter_count": 9,
+    "required_finite_samples": 45,
+    "seed": [
+      20260708,
+      2301
+    ],
+    "simulation_noise_scale": 1.0,
+    "spectral_gap_tolerance": 1e-10
+  },
+  "subplan_path": "docs/plans/bayesfilter-scalar-filtering-geometry-to-hmc-readiness-phase1-filtering-geometry-subplan-2026-07-08.md",
+  "target": {
+    "augmented_state_dim": 3,
+    "filter_name": "svd_ukf",
+    "filter_score_helper": "tf_ssl_lstm_svd_ukf_score",
+    "fixed_parameter_count": 20,
+    "free_parameter_dim": 4,
+    "free_parameter_indices": [
+      12,
+      13,
+      14,
+      15
+    ],
+    "free_parameter_names": [
+      "latent_mean_weight.0.0",
+      "latent_mean_bias.0",
+      "observation_weight.0.0",
+      "observation_bias.0"
+    ],
+    "full_parameter_dim": 24,
+    "hidden_dim": 1,
+    "horizon": 4,
+    "latent_dim": 1,
+    "likelihood_terms": [
+      "svd_ukf_filtering_log_likelihood",
+      "weak_gaussian_prior_on_four_free_parameters"
+    ],
+    "model": "scalar_ssl_lstm_filtering_likelihood",
+    "observation_dim": 1,
+    "observation_shape": [
+      4,
+      1
+    ],
+    "parameter_slice_starts": {
+      "latent_bias_start": 13,
+      "latent_weight_start": 12,
+      "observation_bias_start": 15,
+      "observation_weight_start": 14
+    },
+    "truth_free_parameters": [
+      0.35,
+      -0.08,
+      0.65,
+      0.05
+    ]
+  },
+  "target_scope": "scalar_ssl_lstm:svd_ukf_filtering_geometry:phase1"
+}

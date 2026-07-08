@@ -1,0 +1,254 @@
+{
+  "adapter_signature": "85095a36eaf605d1d84c539d5d912896b63c4028ae0aa8e63c5d63d183c85508",
+  "artifact_role": "target_adapter_debug_reference",
+  "capability": {
+    "evidence_path": "docs/plans/bayesfilter-minimal-ssl-lstm-zhaocui-hmc-ladder-phase1-target-adapter-subplan-2026-07-06.md",
+    "full_chain_xla_diagnostic_ready": true,
+    "nonclaims": [
+      "clean-room fixed adaptation only",
+      "no source-faithful SSL-LSTM Zhao-Cui parity claim",
+      "no TTSIRT or KR map implementation claim",
+      "no HMC convergence claim",
+      "no posterior correctness claim",
+      "no method superiority claim",
+      "no default-readiness claim",
+      "Phase 1 target-adapter admission only",
+      "CPU-hidden debug/reference exception only",
+      "not an HMC sample or canary result",
+      "not HMC convergence evidence",
+      "not posterior correctness evidence",
+      "not a method ranking or superiority claim",
+      "not source-faithful SSL-LSTM Zhao-Cui parity evidence",
+      "not GPU/XLA production-readiness evidence",
+      "not default-readiness evidence",
+      "not LEDH evidence"
+    ],
+    "runtime_backend": "tensorflow",
+    "target_scope": "minimal_ssl_lstm_zhaocui_hmc_ladder:zhaocui_fixed:phase1",
+    "value_score_authority": "graph_native",
+    "xla_hmc_ready": true
+  },
+  "date": "2026-07-06",
+  "evidence_contract": {
+    "baseline_comparator": "Completed minimal scalar smoke fixture and existing Phase 7 SSL-LSTM HMC adapter pattern.",
+    "explanatory_diagnostics": "Initial log prob, score norm, prior scale, offset scale, runtime, and metadata signature.",
+    "not_concluded": [
+      "Phase 1 target-adapter admission only",
+      "CPU-hidden debug/reference exception only",
+      "not an HMC sample or canary result",
+      "not HMC convergence evidence",
+      "not posterior correctness evidence",
+      "not a method ranking or superiority claim",
+      "not source-faithful SSL-LSTM Zhao-Cui parity evidence",
+      "not GPU/XLA production-readiness evidence",
+      "not default-readiness evidence",
+      "not LEDH evidence"
+    ],
+    "primary_pass_criterion": "Finite deterministic scalar log prob, gradient shape (24,), batch shape (2, 24), graph-native capability metadata, and no target-path autodiff/NumPy bridge.",
+    "question": "Can the scalar zhaocui_fixed value/score be wrapped as an internal BayesFilter HMC target adapter without changing the manual target score path?",
+    "veto_diagnostics": "Nonfinite value/score, wrong shape, nondeterminism, invalid ValueScoreCapability, target-path autodiff/NumPy, public API change, or unsupported claim."
+  },
+  "filter_name": "zhaocui_fixed",
+  "fixture": {
+    "augmented_state_dim": 3,
+    "hidden_dim": 1,
+    "horizon": 2,
+    "latent_dim": 1,
+    "observation_dim": 1,
+    "observations": [
+      [
+        0.12
+      ],
+      [
+        -0.03
+      ]
+    ],
+    "parameter_dim": 24,
+    "theta": [
+      0.09,
+      -0.07,
+      0.05,
+      0.04,
+      0.03,
+      -0.02,
+      0.06,
+      -0.05,
+      0.01,
+      0.04,
+      -0.03,
+      0.02,
+      0.35,
+      -0.08,
+      0.65,
+      0.05,
+      0.15,
+      -0.1,
+      0.2,
+      -0.35,
+      0.15,
+      0.55,
+      0.35,
+      -0.15
+    ]
+  },
+  "gradient_path": "analytic_first_order_zhaocui_fixed",
+  "hard_vetoes": [],
+  "metric_roles": {
+    "batch_consistency": "hard_veto_evidence",
+    "determinism": "hard_veto_evidence",
+    "hard_vetoes": "hard_veto_evidence",
+    "runtime": "explanatory_only",
+    "score_finite": "hard_veto_evidence",
+    "score_norm": "explanatory_only",
+    "score_shape": "hard_veto_evidence",
+    "value_finite": "hard_veto_evidence"
+  },
+  "nonclaims": [
+    "Phase 1 target-adapter admission only",
+    "CPU-hidden debug/reference exception only",
+    "not an HMC sample or canary result",
+    "not HMC convergence evidence",
+    "not posterior correctness evidence",
+    "not a method ranking or superiority claim",
+    "not source-faithful SSL-LSTM Zhao-Cui parity evidence",
+    "not GPU/XLA production-readiness evidence",
+    "not default-readiness evidence",
+    "not LEDH evidence"
+  ],
+  "phase": "PHASE1",
+  "run_manifest": {
+    "command": [
+      "docs/benchmarks/benchmark_minimal_ssl_lstm_zhaocui_hmc_ladder_2026_07_06.py",
+      "--mode",
+      "phase1-adapter",
+      "--output",
+      "docs/benchmarks/minimal_ssl_lstm_zhaocui_hmc_next_phase2_adapter_cpu_hidden_2026-07-06.json",
+      "--markdown-output",
+      "docs/benchmarks/minimal_ssl_lstm_zhaocui_hmc_next_phase2_adapter_cpu_hidden_2026-07-06.md"
+    ],
+    "compile_mode": "eager",
+    "cpu_gpu_status": {
+      "cuda_visible_devices": "-1",
+      "gpu_devices": [],
+      "physical_devices": [
+        "/physical_device:CPU:0"
+      ],
+      "trust_basis": "cpu_hidden_debug_no_gpu_claim"
+    },
+    "data_version": "frozen_inline_scalar_fixture_2026-07-06",
+    "debug_reference_exception": "CPU-hidden non-JIT Phase 1 adapter admission; not BayesFilter default GPU/XLA or default-readiness evidence.",
+    "git_commit": "f98be292faabf3d1728f876ad211a70ac1ddf98c",
+    "git_dirty_summary": {
+      "dirty": true,
+      "line_count": 136,
+      "preview": [
+        " M bayesfilter/__init__.py",
+        " M bayesfilter/inference/__init__.py",
+        " M bayesfilter/inference/hmc.py",
+        " M bayesfilter/inference/hmc_kernel_tuning.py",
+        " M bayesfilter/nonlinear/experimental_batched_svd_sigma_point_tf.py",
+        " M tests/test_hmc_fixed_size_chunk_runner.py",
+        " M tests/test_hmc_kernel_tuning_frozen_step_trajectory.py",
+        " M tests/test_hmc_kernel_tuning_outer_loop.py",
+        " M tests/test_hmc_kernel_tuning_public_api.py",
+        " M tests/test_hmc_kernel_tuning_windowed_mass.py",
+        " M tests/test_nonlinear_ssm_phase4_full_chain_hmc.py",
+        "?? bayesfilter/nonlinear/ssl_lstm_protocol.py",
+        "?? bayesfilter/nonlinear/ssl_lstm_sgqf_ukf_adapters.py",
+        "?? bayesfilter/nonlinear/ssl_lstm_zhaocui_fixed_adapter.py",
+        "?? bayesfilter/nonlinear/ssl_lstm_zhaocui_hmc_minimal.py",
+        "?? docs/benchmarks/benchmark_minimal_ssl_lstm_zhaocui_hmc_ladder_2026_07_06.py",
+        "?? docs/benchmarks/benchmark_minimal_ssl_lstm_zhaocui_smoke_2026_07_06.py",
+        "?? docs/benchmarks/benchmark_ssl_lstm_filter_hmc_phase6.py",
+        "?? docs/benchmarks/benchmark_ssl_lstm_filter_hmc_phase7.py",
+        "?? docs/benchmarks/minimal_ssl_lstm_zhaocui_hmc_adapter_cpu_hidden_2026-07-06.json"
+      ]
+    },
+    "jit_compile": false,
+    "plan_file": "docs/plans/bayesfilter-minimal-ssl-lstm-zhaocui-hmc-ladder-master-program-2026-07-06.md",
+    "platform": "Linux-6.8.0-124-generic-x86_64-with-glibc2.35",
+    "python": "3.13.13 | packaged by Anaconda, Inc. | (main, Apr 14 2026, 06:19:41) [GCC 14.3.0]",
+    "random_seeds": {
+      "zhaocui_initial_seed": [
+        20260705,
+        41
+      ],
+      "zhaocui_process_seed": [
+        20260705,
+        43
+      ]
+    },
+    "result_file": "docs/plans/bayesfilter-minimal-ssl-lstm-zhaocui-hmc-ladder-phase1-target-adapter-result-2026-07-06.md",
+    "subplan_file": "docs/plans/bayesfilter-minimal-ssl-lstm-zhaocui-hmc-ladder-phase1-target-adapter-subplan-2026-07-06.md",
+    "tensorflow_version": "2.20.0",
+    "tf32_enabled": true,
+    "timestamp": "2026-07-06T08:33:22.798651+00:00",
+    "wall_time_s": 0.44164291401102673
+  },
+  "schema_version": "minimal_ssl_lstm_zhaocui_hmc_ladder.phase1_adapter.v1",
+  "status": "passed",
+  "target_diagnostics": {
+    "batch_consistency_max_abs_delta": 0.0,
+    "batch_consistency_passed": true,
+    "batch_score_shape": [
+      2,
+      24
+    ],
+    "batch_value_shape": [
+      2
+    ],
+    "determinism_max_abs_delta": 0.0,
+    "determinism_passed": true,
+    "initial_offset_scale": 0.001,
+    "log_prob": -1.3985848756201187,
+    "prior_scale": 5.0,
+    "runtime_s": 0.2621050029993057,
+    "score_finite": true,
+    "score_max": 0.04093624533430015,
+    "score_min": -1.3131200200244952,
+    "score_norm": 1.624779105977436,
+    "score_shape": [
+      24
+    ],
+    "value_finite": true,
+    "value_shape": []
+  },
+  "value_score_authority": "graph_native",
+  "zhaocui_fixed_manifest": {
+    "forbidden_authorities": [
+      "gradient_tape_fallback",
+      "tf_py_function_bridge",
+      "finite_difference_target_score"
+    ],
+    "initial_seed": [
+      20260705,
+      41
+    ],
+    "nonclaims": [
+      "clean-room fixed adaptation only",
+      "no source-faithful SSL-LSTM Zhao-Cui parity claim",
+      "no TTSIRT or KR map implementation claim",
+      "no HMC convergence claim",
+      "no posterior correctness claim",
+      "no method superiority claim",
+      "no default-readiness claim"
+    ],
+    "process_seed": [
+      20260705,
+      43
+    ],
+    "recenter_policy": "computeL_style_weighted_frame_diagnostic_only",
+    "recenter_ridge": 1e-05,
+    "reference_sample_count": 9,
+    "reference_seed_policy": "stateless_required",
+    "resampling_policy": "not_used_fixed_logmeanexp_replay",
+    "score_path": "manual_first_order_tensorflow_chain_rule",
+    "source_anchor_summary": [
+      "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/full_sol.m:21-43 sequential replay loop",
+      "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/full_sol.m:46-124 fixed reapproximation/recentering structure",
+      "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/full_sol.m:132-135 local prior-transition-likelihood target split",
+      "third_party/audit/zhao_cui_tensor_ssm_p10/source/models/computeL.m:24-47 weighted affine recentering diagnostic"
+    ],
+    "source_route_classification": "fixed_hmc_adaptation_with_extension_likelihood"
+  }
+}

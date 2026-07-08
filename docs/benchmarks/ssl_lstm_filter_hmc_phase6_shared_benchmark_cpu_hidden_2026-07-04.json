@@ -1,0 +1,588 @@
+{
+  "admitted_filters": [
+    "fixed_sgqf",
+    "svd_ukf"
+  ],
+  "blocked_filters": [
+    "zhaocui_fixed",
+    "ledh_streaming_ot"
+  ],
+  "candidate_rows": [
+    {
+      "alignment_rotation_signature": "d3d35d027f16e885cfef8eb564e260a7d697907a63174a4d28ad925c39e3f109",
+      "artifact": {
+        "artifact_role": "target",
+        "branch_or_randomness_policy": "fixed_sparse_grid_branch_manifest",
+        "compile_mode": "xla",
+        "device": "/CPU:0",
+        "diagnostic_roles": {
+          "finite_difference_check": "promotion_veto_for_adapter_admission",
+          "runtime": "explanatory",
+          "score_finite": "promotion_veto",
+          "score_norm": "explanatory"
+        },
+        "filter_name": "fixed_sgqf",
+        "finite_difference_check": {
+          "max_abs_error": 0.00010494860536169881,
+          "role": "promotion_veto_for_adapter_admission"
+        },
+        "gradient_path": "analytic_first_order_fixed_sgqf",
+        "jit_compile": true,
+        "log_likelihood": 1.8701949434266965,
+        "nonclaims": [
+          "phase6 shared benchmark artifact",
+          "not a ranking claim",
+          "not a posterior correctness claim",
+          "heldout predictive log score is a filter-likelihood proxy"
+        ],
+        "schema_version": "ssl_lstm.filter_hmc.value_score.v1",
+        "score": [
+          -1.7941150593324786e-06,
+          -4.6987247894808186e-07,
+          -1.46218331360522e-06,
+          -1.560406759075729e-06,
+          -6.766708791308872e-06,
+          -6.067813936724411e-05,
+          -1.5842404675538368e-05,
+          -0.0001489429833147015,
+          -7.244374848368352e-06,
+          -4.855274768208114e-05,
+          -1.4811091505687723e-05,
+          -0.00012383510639009268,
+          -7.837695919551678e-05,
+          -3.4811541149274584e-05,
+          0.00010494850955546897,
+          4.617983581600059e-05,
+          -3.8855775749307315e-06,
+          6.306655399027872e-06,
+          -4.742316335579494e-06,
+          7.4496594867085666e-06,
+          3.075814555138681e-05,
+          -1.0524167600402855e-05,
+          7.659773022664648e-05,
+          -2.8109915913221614e-05,
+          2.0949905952905182e-05,
+          -2.885248522871392e-06,
+          5.889654859983837e-05,
+          -1.607771228970938e-05,
+          -0.00018699960357825994,
+          0.00030583888050652317,
+          0.00025846472311201593,
+          -0.00040116465854194273,
+          -6.460644169441246e-06,
+          1.57505042000057e-05,
+          -0.0008570834277687507,
+          -0.002089039885079085,
+          -0.0006981700668377861,
+          -0.0017236604947599935,
+          -3.0496072220517023e-05,
+          7.543126155972225e-06,
+          -0.009354758139165371,
+          0.01598838907051034,
+          0.006543394263209489,
+          -0.011183714098719771,
+          -3.3463517475149185e-05,
+          1.0213031667764506e-05,
+          -0.7769162263914391,
+          1.1177478222616668,
+          -9.566028122408283e-05,
+          4.671950715760179e-05,
+          -7.714611296827168e-05,
+          -0.00012606822376844953,
+          0.00011453784990626111,
+          -6.636990601689658e-06,
+          -3.588659773029655e-06,
+          -1.8694018305012893e-08,
+          -2.7015989197134997e-07,
+          -3.6535001047575173e-07,
+          -1.9255500501373986e-06,
+          -0.0011014560553116808,
+          -0.0025703979411352963,
+          -0.356010671078354,
+          -0.3504461751330879,
+          -2.02703051483746
+        ],
+        "score_finite": true,
+        "seed_policy": "not_used",
+        "target_scope": "ssl_lstm_filter_hmc:fixed_sgqf:phase3",
+        "target_scope_provenance": {
+          "benchmark_phase": "PHASE6",
+          "filter_name": "fixed_sgqf",
+          "protocol_phase": "PHASE3",
+          "source": "protocol.contract.value_score.target_scope",
+          "target_scope": "ssl_lstm_filter_hmc:fixed_sgqf:phase3",
+          "target_scope_relation": "inherited_from_phase3_adapter_protocol"
+        },
+        "tf32_enabled": false,
+        "value_score_authority": "graph_native"
+      },
+      "artifact_role": "target",
+      "decoded_latent_rmse": 0.01975989748616466,
+      "filter_name": "fixed_sgqf",
+      "finite_difference_check": {
+        "max_abs_error": 0.00010494860536169881,
+        "role": "promotion_veto_for_adapter_admission"
+      },
+      "full_log_likelihood": 2.4943694989072025,
+      "gradient_path": "analytic_first_order_fixed_sgqf",
+      "heldout_log_likelihood_proxy": 0.624174555480506,
+      "heldout_predictive_log_score": 0.624174555480506,
+      "nonclaims": [
+        "status row only",
+        "not a success claim",
+        "parameter matching is not the primary criterion",
+        "heldout predictive log score is a filter-likelihood proxy"
+      ],
+      "posterior_predictive_calibration": {
+        "max_abs_residual": 0.0,
+        "mean_abs_residual": 0.0,
+        "rmse": 0.0
+      },
+      "score_finite": true,
+      "score_l2_norm": 2.492367496029179,
+      "score_norm": 2.492367496029179,
+      "status": "admitted",
+      "target_scope": "ssl_lstm_filter_hmc:fixed_sgqf:phase3",
+      "target_scope_provenance": {
+        "benchmark_phase": "PHASE6",
+        "filter_name": "fixed_sgqf",
+        "protocol_phase": "PHASE3",
+        "source": "protocol.contract.value_score.target_scope",
+        "target_scope": "ssl_lstm_filter_hmc:fixed_sgqf:phase3",
+        "target_scope_relation": "inherited_from_phase3_adapter_protocol"
+      },
+      "train_log_likelihood": 1.8701949434266965,
+      "trajectory_alignment_error": 0.03325103013299723
+    },
+    {
+      "alignment_rotation_signature": "7226663b627ed2df089af905d25a605dfbd2b525fcd6a9ff9f40452b14404304",
+      "artifact": {
+        "artifact_role": "target",
+        "branch_or_randomness_policy": "deterministic_sigma_point_rule",
+        "compile_mode": "xla",
+        "device": "/CPU:0",
+        "diagnostic_roles": {
+          "finite_difference_check": "promotion_veto_for_adapter_admission",
+          "runtime": "explanatory",
+          "score_finite": "promotion_veto",
+          "score_norm": "explanatory"
+        },
+        "filter_name": "svd_ukf",
+        "finite_difference_check": {
+          "max_abs_error": 9.298806169510954e-05,
+          "role": "promotion_veto_for_adapter_admission"
+        },
+        "gradient_path": "analytic_first_order_svd_ukf",
+        "jit_compile": true,
+        "log_likelihood": 1.8704319809767607,
+        "nonclaims": [
+          "phase6 shared benchmark artifact",
+          "not a ranking claim",
+          "not a posterior correctness claim",
+          "heldout predictive log score is a filter-likelihood proxy"
+        ],
+        "schema_version": "ssl_lstm.filter_hmc.value_score.v1",
+        "score": [
+          -1.6300881176934183e-06,
+          -4.498100465142568e-07,
+          -1.2858834326724193e-06,
+          -1.6211507019539296e-06,
+          -6.725808872125207e-06,
+          -5.0444615160306314e-05,
+          -1.4989268010259195e-05,
+          -0.00011750540911558198,
+          -7.23647689727742e-06,
+          -4.377632504052413e-05,
+          -1.4283901158117085e-05,
+          -0.0001068741075433007,
+          -7.083600195299344e-05,
+          -3.320589699232466e-05,
+          9.298789549681762e-05,
+          5.0591398631366717e-05,
+          -3.6460090690232537e-06,
+          5.772479625676898e-06,
+          -4.488887863154364e-06,
+          6.558651768248357e-06,
+          2.5517978458587214e-05,
+          -8.51347995594442e-06,
+          6.063656516475661e-05,
+          -2.221922746859749e-05,
+          1.8323018742153883e-05,
+          -2.2628746676639905e-06,
+          5.0468057794395394e-05,
+          -1.3502844040474412e-05,
+          -0.00017578611351279778,
+          0.00028007221250103323,
+          0.00024450972846475825,
+          -0.00035260173948000004,
+          -5.979199567239671e-06,
+          1.4022908550146865e-05,
+          -0.000750244847876115,
+          -0.001743614916088045,
+          -0.0006422604005172377,
+          -0.0015404441330833193,
+          -2.8230856307784005e-05,
+          8.225539116068333e-06,
+          -0.008624873840801156,
+          0.014286928689325759,
+          0.006032901886413065,
+          -0.010002730673104072,
+          -2.5310484196767628e-05,
+          5.199223591723372e-06,
+          -0.776236325750476,
+          1.1177125346765302,
+          -7.70751399401564e-05,
+          3.2937212983760673e-05,
+          -5.711995261994129e-05,
+          -0.00010601289780757515,
+          9.555346703879442e-05,
+          -7.160851917449171e-06,
+          -8.408173059071503e-07,
+          -1.8577305428194203e-08,
+          -2.665711353902935e-07,
+          -3.60259692689811e-07,
+          -1.8961833395138487e-06,
+          -0.0009244488491280059,
+          -0.0020524513126733554,
+          -0.3560677669581159,
+          -0.3505143408940635,
+          -2.0273516886927334
+        ],
+        "score_finite": true,
+        "seed_policy": "not_used",
+        "target_scope": "ssl_lstm_filter_hmc:svd_ukf:phase3",
+        "target_scope_provenance": {
+          "benchmark_phase": "PHASE6",
+          "filter_name": "svd_ukf",
+          "protocol_phase": "PHASE3",
+          "source": "protocol.contract.value_score.target_scope",
+          "target_scope": "ssl_lstm_filter_hmc:svd_ukf:phase3",
+          "target_scope_relation": "inherited_from_phase3_adapter_protocol"
+        },
+        "tf32_enabled": false,
+        "value_score_authority": "graph_native"
+      },
+      "artifact_role": "target",
+      "decoded_latent_rmse": 0.019759891157126463,
+      "filter_name": "svd_ukf",
+      "finite_difference_check": {
+        "max_abs_error": 9.298806169510954e-05,
+        "role": "promotion_veto_for_adapter_admission"
+      },
+      "full_log_likelihood": 2.494606496614436,
+      "gradient_path": "analytic_first_order_svd_ukf",
+      "heldout_log_likelihood_proxy": 0.6241745156376752,
+      "heldout_predictive_log_score": 0.6241745156376752,
+      "nonclaims": [
+        "status row only",
+        "not a success claim",
+        "parameter matching is not the primary criterion",
+        "heldout predictive log score is a filter-likelihood proxy"
+      ],
+      "posterior_predictive_calibration": {
+        "max_abs_residual": 0.0,
+        "mean_abs_residual": 0.0,
+        "rmse": 0.0
+      },
+      "score_finite": true,
+      "score_l2_norm": 2.4923985162136084,
+      "score_norm": 2.4923985162136084,
+      "status": "admitted",
+      "target_scope": "ssl_lstm_filter_hmc:svd_ukf:phase3",
+      "target_scope_provenance": {
+        "benchmark_phase": "PHASE6",
+        "filter_name": "svd_ukf",
+        "protocol_phase": "PHASE3",
+        "source": "protocol.contract.value_score.target_scope",
+        "target_scope": "ssl_lstm_filter_hmc:svd_ukf:phase3",
+        "target_scope_relation": "inherited_from_phase3_adapter_protocol"
+      },
+      "train_log_likelihood": 1.8704319809767607,
+      "trajectory_alignment_error": 0.033228388120560504
+    },
+    {
+      "decoded_latent_rmse": null,
+      "filter_name": "zhaocui_fixed",
+      "finite_difference_check": {
+        "reason": "missing SSL-LSTM Zhao-Cui fixed-variant adapter",
+        "role": "status_only"
+      },
+      "gradient_path": "analytic_first_order_zhaocui_fixed",
+      "heldout_predictive_log_score": null,
+      "nonclaims": [
+        "status-only blocked row",
+        "not a benchmark result"
+      ],
+      "posterior_predictive_calibration": null,
+      "score_finite": null,
+      "score_l2_norm": null,
+      "score_norm": null,
+      "status": "blocked",
+      "target_scope": null,
+      "target_scope_provenance": {
+        "benchmark_phase": "PHASE6",
+        "filter_name": "zhaocui_fixed",
+        "protocol_phase": "PHASE3",
+        "source": "missing_ssl_lstm_zhaocui_fixed_adapter",
+        "target_scope": null,
+        "target_scope_relation": "unavailable"
+      },
+      "trajectory_alignment_error": null
+    },
+    {
+      "decoded_latent_rmse": null,
+      "filter_name": "ledh_streaming_ot",
+      "finite_difference_check": {
+        "reason": "missing manual VJP streaming-OT score path",
+        "role": "status_only"
+      },
+      "gradient_path": "manual_vjp_streaming_ot",
+      "heldout_predictive_log_score": null,
+      "nonclaims": [
+        "status-only blocked row",
+        "not a benchmark result"
+      ],
+      "posterior_predictive_calibration": null,
+      "score_finite": null,
+      "score_l2_norm": null,
+      "score_norm": null,
+      "status": "blocked",
+      "target_scope": null,
+      "target_scope_provenance": {
+        "benchmark_phase": "PHASE6",
+        "filter_name": "ledh_streaming_ot",
+        "protocol_phase": "PHASE3",
+        "source": "missing_manual_vjp_streaming_ot_adapter",
+        "target_scope": null,
+        "target_scope_relation": "unavailable"
+      },
+      "trajectory_alignment_error": null
+    }
+  ],
+  "cuda_visible_devices": "-1",
+  "dataset_manifest": {
+    "heldout_count": 1,
+    "heldout_start": 3,
+    "hidden_dim": 2,
+    "horizon": 4,
+    "latent_dim": 2,
+    "noise_scales": {
+      "initial_std": [
+        0.2,
+        0.2,
+        0.2,
+        0.2,
+        0.2,
+        0.2
+      ],
+      "observation_std": [
+        0.15
+      ],
+      "process_std": [
+        0.1,
+        0.1
+      ]
+    },
+    "nonclaims": [
+      "synthetic fixture only",
+      "not a posterior correctness claim",
+      "not a source-faithfulness claim"
+    ],
+    "observation_dim": 1,
+    "program_signature": "ssl_lstm_phase6_shared_benchmark_v1",
+    "schema_version": "ssl_lstm.filter_hmc.dataset_manifest.v1",
+    "seed": 20260704,
+    "split_policy": "prefix_train_suffix_heldout",
+    "train_count": 3,
+    "truth_theta": "[ 0.11 -0.07  0.05  0.02 -0.03  0.04 -0.06  0.08  0.03 -0.02  0.04 -0.05\n  0.01 -0.01  0.02 -0.03  0.02 -0.03  0.01 -0.02  0.04 -0.01  0.03 -0.04\n  0.05 -0.06  0.02 -0.01  0.03 -0.02  0.04 -0.05  0.01 -0.02  0.03 -0.01\n  0.02 -0.03  0.04 -0.04  0.2  -0.15  0.07  0.09  0.03 -0.02  0.5  -0.35\n  0.05  0.    0.1  -0.05  0.02 -0.03  0.04 -2.   -1.5  -1.2  -1.   -0.8\n -0.6  -1.8  -1.4  -1.6 ]",
+    "truth_theta_signature": "8fe823746712ca45b36d9069e1394648c6911fa5bfdf5fd40d25ffafe3518ef4"
+  },
+  "dataset_manifest_file": "docs/plans/bayesfilter-ssl-lstm-filter-hmc-phase6-dataset-manifest-2026-07-04.json",
+  "decision_table": {
+    "main_uncertainty": "HMC mechanics and longer-chain evidence remain future work",
+    "next_justified_action": "refresh Phase 7 subplan and execute HMC gates",
+    "primary_criterion_status": "passed_for_runner_and_schema",
+    "veto_diagnostic_status": "no schema veto",
+    "what_is_not_being_concluded": "No estimation success, no method superiority, no posterior correctness, no HMC convergence."
+  },
+  "device_list": [
+    {
+      "device_type": "CPU",
+      "name": "/physical_device:CPU:0"
+    }
+  ],
+  "host": "ubuntu-MZ72-HB2-00",
+  "inference_status": {
+    "default_readiness": "not_checked",
+    "descriptive_only_differences": "present",
+    "hard_veto_screen": "passed_for_admitted_filters",
+    "next_evidence_needed": "Phase 7 HMC mechanics and evidence ladder",
+    "statistically_supported_ranking": "not_claimed"
+  },
+  "invariant_metrics": {
+    "decoded_latent_rmse": {
+      "fixed_sgqf": 0.01975989748616466,
+      "svd_ukf": 0.019759891157126463
+    },
+    "heldout_predictive_log_score": {
+      "fixed_sgqf": 0.624174555480506,
+      "svd_ukf": 0.6241745156376752
+    },
+    "posterior_predictive_calibration": {
+      "fixed_sgqf": {
+        "max_abs_residual": 0.0,
+        "mean_abs_residual": 0.0,
+        "rmse": 0.0
+      },
+      "svd_ukf": {
+        "max_abs_residual": 0.0,
+        "mean_abs_residual": 0.0,
+        "rmse": 0.0
+      }
+    },
+    "trajectory_alignment_error": {
+      "fixed_sgqf": 0.03325103013299723,
+      "svd_ukf": 0.033228388120560504
+    }
+  },
+  "metric_roles": {
+    "decoded_latent_rmse": "explanatory",
+    "heldout_predictive_log_score": "explanatory_proxy",
+    "posterior_predictive_calibration": "explanatory",
+    "score_finite_all_admitted": "promotion_veto",
+    "trajectory_alignment_error": "explanatory"
+  },
+  "nonclaims": [
+    "shared benchmark harness only",
+    "not HMC convergence evidence",
+    "not posterior correctness evidence",
+    "not filter sufficiency evidence",
+    "not parameter-recovery evidence",
+    "not a ranking claim",
+    "parameter-by-parameter matching is not a primary criterion",
+    "heldout predictive log score is a filter-likelihood proxy",
+    "blocked candidate rows are status-only"
+  ],
+  "parameter_matching_primary_criterion": false,
+  "phase": "PHASE6",
+  "plan_file": "docs/plans/bayesfilter-ssl-lstm-filter-hmc-master-program-2026-07-04.md",
+  "python_version": "3.13.13",
+  "result_file": "docs/plans/bayesfilter-ssl-lstm-filter-hmc-phase6-benchmark-runner-invariant-metrics-result-2026-07-04.md",
+  "run_manifest": {
+    "command": [
+      "docs/benchmarks/benchmark_ssl_lstm_filter_hmc_phase6.py",
+      "--output",
+      "docs/benchmarks/ssl_lstm_filter_hmc_phase6_shared_benchmark_cpu_hidden_2026-07-04.json",
+      "--markdown-output",
+      "docs/benchmarks/ssl_lstm_filter_hmc_phase6_shared_benchmark_cpu_hidden_2026-07-04.md",
+      "--device-scope",
+      "cpu",
+      "--device",
+      "/CPU:0",
+      "--expect-device-kind",
+      "cpu",
+      "--seed",
+      "20260704",
+      "--horizon",
+      "4",
+      "--latent-dim",
+      "2",
+      "--hidden-dim",
+      "2",
+      "--observation-dim",
+      "1",
+      "--heldout-start",
+      "3",
+      "--fd-step",
+      "1e-6"
+    ],
+    "conda_env": "tfgpu",
+    "cpu_gpu_status": {
+      "device": "/CPU:0",
+      "device_scope": "cpu",
+      "logical_gpus": []
+    },
+    "dirty_state_summary": {
+      "dirty": true,
+      "line_count": 33,
+      "preview": [
+        " M bayesfilter/inference/hmc_kernel_tuning.py",
+        " M bayesfilter/nonlinear/experimental_batched_svd_sigma_point_tf.py",
+        " M tests/test_hmc_kernel_tuning_frozen_step_trajectory.py",
+        " M tests/test_hmc_kernel_tuning_outer_loop.py",
+        " M tests/test_hmc_kernel_tuning_public_api.py",
+        "?? bayesfilter/nonlinear/ssl_lstm_protocol.py",
+        "?? bayesfilter/nonlinear/ssl_lstm_sgqf_ukf_adapters.py",
+        "?? docs/benchmarks/benchmark_ssl_lstm_filter_hmc_phase6.py",
+        "?? docs/plans/bayesfilter-ssl-lstm-filter-hmc-claude-review-ledger-2026-07-04.md",
+        "?? docs/plans/bayesfilter-ssl-lstm-filter-hmc-master-program-2026-07-04.md",
+        "?? docs/plans/bayesfilter-ssl-lstm-filter-hmc-phase0-claude-review-bundle-2026-07-04.md",
+        "?? docs/plans/bayesfilter-ssl-lstm-filter-hmc-phase0-planning-governance-subplan-2026-07-04.md",
+        "?? docs/plans/bayesfilter-ssl-lstm-filter-hmc-phase0-planning-review-result-2026-07-04.md",
+        "?? docs/plans/bayesfilter-ssl-lstm-filter-hmc-phase1-ssl-model-estimand-result-2026-07-04.md",
+        "?? docs/plans/bayesfilter-ssl-lstm-filter-hmc-phase1-ssl-model-estimand-subplan-2026-07-04.md",
+        "?? docs/plans/bayesfilter-ssl-lstm-filter-hmc-phase2-value-score-protocol-result-2026-07-04.md",
+        "?? docs/plans/bayesfilter-ssl-lstm-filter-hmc-phase2-value-score-protocol-subplan-2026-07-04.md",
+        "?? docs/plans/bayesfilter-ssl-lstm-filter-hmc-phase3-sgqf-ukf-analytic-adapters-result-2026-07-04.md",
+        "?? docs/plans/bayesfilter-ssl-lstm-filter-hmc-phase3-sgqf-ukf-analytic-adapters-subplan-2026-07-04.md",
+        "?? docs/plans/bayesfilter-ssl-lstm-filter-hmc-phase4-zhaocui-fixed-analytic-adapter-result-2026-07-04.md"
+      ]
+    },
+    "dtype": "float64",
+    "environment": {
+      "CUDA_VISIBLE_DEVICES": "-1",
+      "TF_CPP_MIN_LOG_LEVEL": "1"
+    },
+    "git_commit": "f98be292faabf3d1728f876ad211a70ac1ddf98c",
+    "gpu_trust_basis": "cpu_hidden_debug",
+    "jit_compile": true,
+    "markdown_output": "docs/benchmarks/ssl_lstm_filter_hmc_phase6_shared_benchmark_cpu_hidden_2026-07-04.md",
+    "output_json": "docs/benchmarks/ssl_lstm_filter_hmc_phase6_shared_benchmark_cpu_hidden_2026-07-04.json",
+    "seeds": {
+      "fixture": 20260704
+    },
+    "tf32_mode": "disabled"
+  },
+  "runtime_s": 27.560315763112158,
+  "schema_version": "ssl_lstm.filter_hmc.phase6_benchmark.v1",
+  "score_finite_all_admitted": true,
+  "status": "PHASE6_SHARED_BENCHMARK_READY",
+  "subplan_file": "docs/plans/bayesfilter-ssl-lstm-filter-hmc-phase6-benchmark-runner-invariant-metrics-subplan-2026-07-04.md",
+  "target_scope_provenance": {
+    "fixed_sgqf": {
+      "benchmark_phase": "PHASE6",
+      "filter_name": "fixed_sgqf",
+      "protocol_phase": "PHASE3",
+      "source": "protocol.contract.value_score.target_scope",
+      "target_scope": "ssl_lstm_filter_hmc:fixed_sgqf:phase3",
+      "target_scope_relation": "inherited_from_phase3_adapter_protocol"
+    },
+    "ledh_streaming_ot": {
+      "benchmark_phase": "PHASE6",
+      "filter_name": "ledh_streaming_ot",
+      "protocol_phase": "PHASE3",
+      "source": "missing_manual_vjp_streaming_ot_adapter",
+      "target_scope": null,
+      "target_scope_relation": "unavailable"
+    },
+    "svd_ukf": {
+      "benchmark_phase": "PHASE6",
+      "filter_name": "svd_ukf",
+      "protocol_phase": "PHASE3",
+      "source": "protocol.contract.value_score.target_scope",
+      "target_scope": "ssl_lstm_filter_hmc:svd_ukf:phase3",
+      "target_scope_relation": "inherited_from_phase3_adapter_protocol"
+    },
+    "zhaocui_fixed": {
+      "benchmark_phase": "PHASE6",
+      "filter_name": "zhaocui_fixed",
+      "protocol_phase": "PHASE3",
+      "source": "missing_ssl_lstm_zhaocui_fixed_adapter",
+      "target_scope": null,
+      "target_scope_relation": "unavailable"
+    }
+  },
+  "tensorflow_version": "2.20.0",
+  "tf32_enabled": true,
+  "timestamp_utc": "2026-07-04T18:12:52.359546+00:00"
+}

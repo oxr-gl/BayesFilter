@@ -735,6 +735,93 @@ def test_seed_report_and_artifact_hash_are_deterministic() -> None:
     assert result_a.seed_report["geometry_seed_distinct_from_bootstrap_seed"] is True
 
 
+def test_bootstrap_progress_callback_emits_public_safe_call_boundaries() -> None:
+    events: list[tuple[str, Mapping[str, Any]]] = []
+
+    def callback(stage: str, payload: Mapping[str, Any]) -> None:
+        events.append((stage, dict(payload)))
+
+    def run(_adapter: Any, _initial_state: Any, config: Any) -> _FakeRunResult:
+        assert events[-1][0] == "bootstrap_round_hmc_call_start"
+        assert events[-1][1]["bootstrap_diagnostic_screen_num_results"] == int(
+            config.num_results
+        )
+        assert events[-1][1]["bootstrap_diagnostic_screen_num_burnin_steps"] == int(
+            config.num_burnin_steps
+        )
+        return _fake_result(acceptance=0.70)
+
+    result = run_hmc_bootstrap_screen(
+        adapter=_ToyGaussianAdapter(),
+        geometry=_geometry(),
+        config=_config(max_repairs=0),
+        run_full_chain=run,
+        progress_callback=callback,
+    )
+
+    assert result.passed is True
+    stages = [stage for stage, _payload in events]
+    assert stages == [
+        "bootstrap_round_start",
+        "bootstrap_round_hmc_call_start",
+        "bootstrap_round_hmc_call_complete",
+        "bootstrap_round_classified",
+    ]
+    final_payload = events[-1][1]
+    assert "screen_num_results" not in final_payload
+    assert "screen_num_burnin_steps" not in final_payload
+    assert final_payload["bootstrap_diagnostic_screen_num_results"] == 4
+    assert final_payload["bootstrap_diagnostic_screen_num_burnin_steps"] == 2
+    assert final_payload["classification"] == "passed"
+    assert final_payload["diagnostic_role"] == "bootstrap_screen_promotion_only"
+    assert final_payload["acceptance_relation_to_band"] == "inside"
+    assert final_payload["hmc_mechanics_exposed"] is False
+    event_text = str(events)
+    for forbidden in (
+        "step_size",
+        "num_leapfrog_steps",
+        "mass_artifact_payload",
+        "samples",
+        "target_log_prob",
+        "final_state",
+    ):
+        assert forbidden not in event_text
+
+
+def test_bootstrap_private_callback_records_step_and_l_repair() -> None:
+    events: list[tuple[str, Mapping[str, Any]]] = []
+    geometry = _geometry(
+        config=HMCGeometryInitializationConfig(
+            geometry_scaling_c=1000.0,
+            stability_guard=1000.0,
+            covariance_jitter=0.0,
+            seed=(123, 456),
+        )
+    )
+
+    result = run_hmc_bootstrap_screen(
+        adapter=_ToyGaussianAdapter(),
+        geometry=geometry,
+        config=_config(max_repairs=1),
+        run_full_chain=_scripted_runner([0.95, 0.70])[0],
+        _private_diagnostic_callback=lambda event_type, payload: events.append(
+            (event_type, dict(payload))
+        ),
+    )
+
+    assert result.passed is True
+    assert [event_type for event_type, _payload in events] == [
+        "bootstrap_kernel_repair",
+    ]
+    payload = events[0][1]
+    assert payload["previous_step_size"] == pytest.approx(geometry.initial_step_size)
+    assert payload["step_size"] == pytest.approx(geometry.initial_step_size * 2.0)
+    assert payload["previous_num_leapfrog_steps"] == geometry.initial_num_leapfrog_steps
+    assert payload["num_leapfrog_steps"] > 0
+    assert payload["private_hmc_mechanics"] is True
+    assert payload["reports_posterior_convergence"] is False
+
+
 def test_real_tiny_gaussian_bootstrap_returns_structured_result() -> None:
     result = run_hmc_bootstrap_screen(
         adapter=_ToyGaussianAdapter(),

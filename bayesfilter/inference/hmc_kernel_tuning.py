@@ -6,14 +6,19 @@ initial mass artifact and derives a formula-based initial step size and
 leapfrog count.  Phase 3 runs a short fixed-kernel bootstrap screen and bounded
 epsilon repair from that geometry.  Phase 4 captures retained fixed-kernel
 diagnostic draws and feeds them to the reviewed windowed-mass diagnostic.  Phase
-5 tunes a fixed-mass step size.  Phase 6 screens frozen-step trajectory
-lengths.  Phase 7 runs the internal tune/verify/repair loop.  Phase 8 exposes a
-one-call public wrapper while keeping raw HMC tuning mechanics internal to
-BayesFilter policy.
+5 runs the promoted fixed-mass joint leapfrog/epsilon grid: every candidate
+leapfrog count gets its own epsilon tuning ladder, edge selections trigger a
+bounded grid repair, and a final local grid chooses the handoff pair.  Phase 6
+screens that selected pair without performing a second frozen-epsilon L search.
+Phase 7 runs the internal tune/verify/repair loop.  Phase 8 exposes a one-call
+public wrapper while keeping raw HMC tuning mechanics internal to BayesFilter
+policy.
 """
 
 from __future__ import annotations
 
+import dataclasses
+import inspect
 import json
 import os
 import time
@@ -97,10 +102,11 @@ WINDOWED_MASS_STAGE_NONCLAIMS = (
 )
 
 FIXED_MASS_STEP_STAGE_NONCLAIMS = (
-    "fixed-mass step-stage diagnostic only",
-    "phase 4 adapted mass is frozen during step tuning",
+    "fixed-mass joint L/epsilon grid-stage diagnostic only",
+    "phase 4 adapted mass is frozen during joint L/epsilon tuning",
+    "each candidate leapfrog count gets its own epsilon tuning ladder",
     "fresh fixed-kernel screen required for step handoff",
-    "no trajectory tuning claim",
+    "selected pair is a kernel handoff only",
     "no posterior convergence claim",
     "no sampler superiority claim",
     "no default-readiness claim",
@@ -108,10 +114,10 @@ FIXED_MASS_STEP_STAGE_NONCLAIMS = (
 )
 
 FROZEN_STEP_TRAJECTORY_STAGE_NONCLAIMS = (
-    "frozen-step trajectory-stage diagnostic only",
-    "phase 4 adapted mass is frozen during trajectory tuning",
-    "phase 5 selected step is frozen during trajectory tuning",
-    "candidate leapfrog mechanics are diagnostic telemetry only",
+    "selected joint L/epsilon handoff screen only",
+    "phase 4 adapted mass is frozen during handoff screening",
+    "phase 5 selected step and leapfrog count are frozen during handoff screening",
+    "does not perform a second frozen-epsilon leapfrog search when Phase 5 used joint grid",
     "not fresh final verification",
     "no posterior convergence claim",
     "no sampler superiority claim",
@@ -141,6 +147,688 @@ HMC_KERNEL_TUNING_PUBLIC_NONCLAIMS = (
     "XLA execution, when requested, is runtime selection only",
 )
 
+STAGED_TIMEOUT_POLICY_STAGE_NAMES = (
+    "geometry_and_bootstrap",
+    "phase7_pre_windowed",
+    "windowed_mass",
+    "fixed_mass_step",
+    "frozen_step_trajectory",
+    "fresh_fixed_kernel_verification",
+)
+
+
+@dataclass(frozen=True)
+class HMCGeometryScaledBudgetTimingPolicy:
+    """Public-safe policy tying HMC tuning budgets to dimension and geometry.
+
+    The policy does not expose sampled states, mass arrays, step sizes,
+    leapfrog counts, or candidate grids.  It records why a draw budget was
+    chosen: target dimension, covariance condition pressure, effective
+    dimension/anisotropy pressure, and SPD-regularization pressure.  Emergency
+    clock limits are machine-protection caps only; meaningful progress remains
+    a separate monitor decision.
+    """
+
+    policy_id: str = "bayesfilter_hmc_geometry_scaled_budget_timing_v1"
+    dimension_factor: float = 20.0
+    min_initial_budget: int = 1000
+    max_initial_budget: int = 5000
+    max_tune_budget: int = 10000
+    min_geometry_multiplier: float = 1.0
+    max_geometry_multiplier: float = 4.0
+    condition_log10_weight: float = 0.25
+    anisotropy_sqrt_weight: float = 0.50
+    regularization_clip_weight: float = 0.05
+    regularization_nonpositive_weight: float = 0.25
+    diagonal_fallback_multiplier: float = 1.50
+    bootstrap_sqrt_dimension_factor: float = 4.0
+    bootstrap_min_results: int = 32
+    bootstrap_max_results: int = 1024
+    bootstrap_burnin_fraction: float = 0.25
+    emergency_min_stage_s: float = 3600.0
+    emergency_max_stage_s: float = 21600.0
+    emergency_global_cap_s: float = 86400.0
+    emergency_reserve_s: float = 600.0
+    stage_time_budget_multiplier: Mapping[str, float] | None = None
+    source: str = "bayesfilter.inference.hmc_kernel_tuning.geometry_scaled_budget_timing_policy"
+
+    def __post_init__(self) -> None:
+        policy_id = str(self.policy_id)
+        if not policy_id:
+            raise ValueError("policy_id must be non-empty")
+        object.__setattr__(self, "policy_id", policy_id)
+        for name in (
+            "dimension_factor",
+            "min_geometry_multiplier",
+            "max_geometry_multiplier",
+            "condition_log10_weight",
+            "anisotropy_sqrt_weight",
+            "regularization_clip_weight",
+            "regularization_nonpositive_weight",
+            "diagonal_fallback_multiplier",
+            "bootstrap_sqrt_dimension_factor",
+            "bootstrap_burnin_fraction",
+            "emergency_min_stage_s",
+            "emergency_max_stage_s",
+            "emergency_global_cap_s",
+            "emergency_reserve_s",
+        ):
+            value = float(getattr(self, name))
+            if not np.isfinite(value) or value < 0.0:
+                raise ValueError(f"{name} must be finite and non-negative")
+            object.__setattr__(self, name, value)
+        if self.dimension_factor <= 0.0:
+            raise ValueError("dimension_factor must be positive")
+        if self.min_geometry_multiplier <= 0.0:
+            raise ValueError("min_geometry_multiplier must be positive")
+        if self.max_geometry_multiplier < self.min_geometry_multiplier:
+            raise ValueError("max_geometry_multiplier must not be smaller than minimum")
+        if self.diagonal_fallback_multiplier < 1.0:
+            raise ValueError("diagonal_fallback_multiplier must be at least 1")
+        if self.bootstrap_sqrt_dimension_factor <= 0.0:
+            raise ValueError("bootstrap_sqrt_dimension_factor must be positive")
+        if self.bootstrap_burnin_fraction <= 0.0:
+            raise ValueError("bootstrap_burnin_fraction must be positive")
+        for name in (
+            "min_initial_budget",
+            "max_initial_budget",
+            "max_tune_budget",
+            "bootstrap_min_results",
+            "bootstrap_max_results",
+        ):
+            value = int(getattr(self, name))
+            if value <= 0:
+                raise ValueError(f"{name} must be positive")
+            object.__setattr__(self, name, value)
+        if self.max_initial_budget < self.min_initial_budget:
+            raise ValueError("max_initial_budget must be at least min_initial_budget")
+        if self.max_tune_budget < self.max_initial_budget:
+            raise ValueError("max_tune_budget must be at least max_initial_budget")
+        if self.bootstrap_max_results < self.bootstrap_min_results:
+            raise ValueError("bootstrap_max_results must be at least bootstrap_min_results")
+        if self.emergency_max_stage_s < self.emergency_min_stage_s:
+            raise ValueError("emergency_max_stage_s must be at least emergency_min_stage_s")
+        if self.emergency_global_cap_s <= self.emergency_reserve_s:
+            raise ValueError("emergency_global_cap_s must exceed emergency_reserve_s")
+        multipliers = (
+            self._default_stage_time_budget_multiplier()
+            if self.stage_time_budget_multiplier is None
+            else dict(self.stage_time_budget_multiplier)
+        )
+        if set(multipliers) != set(STAGED_TIMEOUT_POLICY_STAGE_NAMES):
+            raise ValueError("stage_time_budget_multiplier must cover every stage")
+        normalized: dict[str, float] = {}
+        for stage, value in multipliers.items():
+            multiplier = float(value)
+            if not np.isfinite(multiplier) or multiplier <= 0.0:
+                raise ValueError("stage time multipliers must be positive and finite")
+            normalized[str(stage)] = multiplier
+        object.__setattr__(self, "stage_time_budget_multiplier", normalized)
+        source = str(self.source)
+        if not source:
+            raise ValueError("source must be non-empty")
+        object.__setattr__(self, "source", source)
+
+    @staticmethod
+    def _default_stage_time_budget_multiplier() -> Mapping[str, float]:
+        return {
+            "geometry_and_bootstrap": 1.0,
+            "phase7_pre_windowed": 1.0,
+            "windowed_mass": 1.0,
+            "fixed_mass_step": 1.0,
+            "frozen_step_trajectory": 1.0,
+            "fresh_fixed_kernel_verification": 1.0,
+        }
+
+    def geometry_summary(
+        self,
+        *,
+        target_dimension: int | None = None,
+        mass_artifact: PrecomputedMassArtifact | None = None,
+    ) -> Mapping[str, Any]:
+        dimension = (
+            int(mass_artifact.dimension)
+            if mass_artifact is not None
+            else int(target_dimension or 0)
+        )
+        if dimension <= 0:
+            raise ValueError("target_dimension must be positive")
+        eigen_summary = (
+            {}
+            if mass_artifact is None
+            else dict(mass_artifact.eigen_summary)
+        )
+        eigenvalues = _geometry_policy_eigenvalues(
+            dimension=dimension,
+            mass_artifact=mass_artifact,
+            eigen_summary=eigen_summary,
+        )
+        condition_number = _geometry_policy_condition_number(
+            eigenvalues=eigenvalues,
+            eigen_summary=eigen_summary,
+        )
+        effective_dimension = _geometry_policy_effective_dimension(eigenvalues)
+        anisotropy_ratio = float(dimension) / max(1.0, effective_dimension)
+        regularization = (
+            {}
+            if mass_artifact is None
+            else dict(mass_artifact.regularization_report)
+        )
+        regularization_counts = _geometry_policy_regularization_counts(
+            regularization
+        )
+        multiplier = self.geometry_multiplier(
+            dimension=dimension,
+            condition_number=condition_number,
+            effective_dimension=effective_dimension,
+            regularization_counts=regularization_counts,
+        )
+        return {
+            "schema": "bayesfilter.hmc_geometry_scaled_budget_summary.v1",
+            "dimension": dimension,
+            "geometry_source": (
+                "mass_artifact_metadata" if mass_artifact is not None else "dimension_only"
+            ),
+            "condition_number": condition_number,
+            "condition_log10": (
+                None
+                if condition_number is None
+                else float(np.log10(max(1.0, condition_number)))
+            ),
+            "effective_dimension": effective_dimension,
+            "effective_dimension_ratio": effective_dimension / float(dimension),
+            "anisotropy_ratio": anisotropy_ratio,
+            "regularization_pressure": regularization_counts,
+            "geometry_multiplier": multiplier,
+            "raw_eigenvalues_exposed": False,
+            "mass_arrays_exposed": False,
+            "hmc_mechanics_exposed": False,
+            "reports_posterior_convergence": False,
+        }
+
+    def geometry_multiplier(
+        self,
+        *,
+        dimension: int,
+        condition_number: float | None,
+        effective_dimension: float,
+        regularization_counts: Mapping[str, Any],
+    ) -> float:
+        condition_log10 = (
+            0.0
+            if condition_number is None
+            else max(0.0, float(np.log10(max(1.0, float(condition_number)))))
+        )
+        condition_pressure = 1.0 + self.condition_log10_weight * condition_log10
+        anisotropy_ratio = float(dimension) / max(1.0, float(effective_dimension))
+        if not np.isfinite(anisotropy_ratio) or anisotropy_ratio < 1.0:
+            anisotropy_ratio = 1.0
+        anisotropy_pressure = 1.0 + self.anisotropy_sqrt_weight * (
+            np.sqrt(anisotropy_ratio) - 1.0
+        )
+        clipped = int(regularization_counts.get("clipped_eigenvalue_count", 0))
+        nonpositive = int(
+            regularization_counts.get("raw_nonpositive_eigenvalue_count", 0)
+        )
+        regularization_pressure = (
+            1.0
+            + self.regularization_clip_weight * max(0, clipped)
+            + self.regularization_nonpositive_weight * max(0, nonpositive)
+        )
+        if bool(regularization_counts.get("diagonal_fallback_used", False)):
+            regularization_pressure *= self.diagonal_fallback_multiplier
+        multiplier = (
+            float(condition_pressure)
+            * float(anisotropy_pressure)
+            * float(regularization_pressure)
+        )
+        return float(
+            np.clip(
+                multiplier,
+                self.min_geometry_multiplier,
+                self.max_geometry_multiplier,
+            )
+        )
+
+    def attempt_budget_payload(
+        self,
+        *,
+        target_dimension: int,
+        attempt_index: int,
+        mass_artifact: PrecomputedMassArtifact | None = None,
+    ) -> Mapping[str, Any]:
+        dimension = int(target_dimension)
+        if dimension <= 0:
+            raise ValueError("target_dimension must be positive")
+        index = int(attempt_index)
+        if index < 0:
+            raise ValueError("attempt_index must be non-negative")
+        summary = self.geometry_summary(
+            target_dimension=dimension,
+            mass_artifact=mass_artifact,
+        )
+        base_uncapped = int(
+            np.ceil(
+                self.dimension_factor
+                * float(dimension)
+                * float(summary["geometry_multiplier"])
+            )
+        )
+        budget0 = int(
+            min(
+                self.max_initial_budget,
+                max(self.min_initial_budget, base_uncapped),
+            )
+        )
+        budget = int(min(self.max_tune_budget, budget0 * (2 ** index)))
+        phase5_screen = max(32, _ceil_div(budget, 4))
+        phase6_screen = max(32, _ceil_div(budget, 4))
+        verification_results = max(64, _ceil_div(budget, 2))
+        return {
+            "target_dimension": dimension,
+            "attempt_index": index,
+            "budget": budget,
+            "phase4_warmup_steps": budget,
+            "phase5_tune_budgets": (
+                _ceil_div(budget, 4),
+                _ceil_div(budget, 2),
+                budget,
+            ),
+            "phase5_screen_num_results": phase5_screen,
+            "phase5_screen_burnin_steps": max(8, _ceil_div(phase5_screen, 4)),
+            "phase6_screen_num_results": phase6_screen,
+            "phase6_screen_burnin_steps": max(8, _ceil_div(phase6_screen, 4)),
+            "verification_num_results": verification_results,
+            "verification_num_burnin_steps": max(
+                16,
+                _ceil_div(verification_results, 4),
+            ),
+            "budget_formula": (
+                "budget0=clamp(ceil(dimension_factor*d*geometry_multiplier), "
+                "min_initial_budget, max_initial_budget); "
+                "budget_k=min(max_tune_budget, budget0*2**attempt_index)"
+            ),
+            "budget_formula_parameters": self.budget_formula_parameters(),
+            "geometry_budget_summary": summary,
+            "budget0_uncapped": base_uncapped,
+            "budget0_after_floor_and_cap": budget0,
+            "initial_budget_cap_active": budget0 < max(
+                self.min_initial_budget,
+                base_uncapped,
+            ),
+            "tune_budget_cap_active": budget < budget0 * (2 ** index),
+            "budget_claim": (
+                "dimension/geometry-scaled tuning work budget; not posterior "
+                "convergence or sampler-validity evidence"
+            ),
+        }
+
+    def bootstrap_screen_counts(
+        self,
+        *,
+        target_dimension: int,
+        mass_artifact: PrecomputedMassArtifact | None = None,
+    ) -> Mapping[str, Any]:
+        summary = self.geometry_summary(
+            target_dimension=int(target_dimension),
+            mass_artifact=mass_artifact,
+        )
+        raw_results = int(
+            np.ceil(
+                self.bootstrap_sqrt_dimension_factor
+                * np.sqrt(float(summary["dimension"]))
+                * float(summary["geometry_multiplier"])
+            )
+        )
+        results = int(
+            min(
+                self.bootstrap_max_results,
+                max(self.bootstrap_min_results, raw_results),
+            )
+        )
+        burnin = max(1, int(np.ceil(results * self.bootstrap_burnin_fraction)))
+        return {
+            "screen_num_results": results,
+            "screen_num_burnin_steps": burnin,
+            "raw_screen_num_results": raw_results,
+            "geometry_budget_summary": summary,
+            "bootstrap_formula": (
+                "screen_results=clamp(ceil(sqrt_dimension_factor*sqrt(d)*"
+                "geometry_multiplier), min_results, max_results); "
+                "burnin=ceil(results*burnin_fraction)"
+            ),
+            "bootstrap_formula_parameters": {
+                "sqrt_dimension_factor": self.bootstrap_sqrt_dimension_factor,
+                "min_results": self.bootstrap_min_results,
+                "max_results": self.bootstrap_max_results,
+                "burnin_fraction": self.bootstrap_burnin_fraction,
+            },
+            "bootstrap_claim": (
+                "public-safe mechanics and finite-runtime screen only; not a "
+                "reasonable-posterior or tuning-success gate"
+            ),
+        }
+
+    def stage_budgets_s(
+        self,
+        *,
+        target_dimension: int | None = None,
+        mass_artifact: PrecomputedMassArtifact | None = None,
+    ) -> Mapping[str, float]:
+        summary = self.geometry_summary(
+            target_dimension=1 if target_dimension is None else int(target_dimension),
+            mass_artifact=mass_artifact,
+        )
+        stage_floor = float(self.emergency_min_stage_s) * float(
+            summary["geometry_multiplier"]
+        )
+        stage_budgets: dict[str, float] = {}
+        for stage, multiplier in self.stage_time_budget_multiplier.items():
+            budget = min(
+                float(self.emergency_max_stage_s),
+                max(float(self.emergency_min_stage_s), stage_floor * float(multiplier)),
+            )
+            stage_budgets[str(stage)] = float(budget)
+        return stage_budgets
+
+    def stage_budget_provenance(self) -> Mapping[str, str]:
+        return {
+            stage: "geometry_scaled_emergency_cap_machine_protection_not_progress_gate"
+            for stage in STAGED_TIMEOUT_POLICY_STAGE_NAMES
+        }
+
+    def staged_timeout_policy(self) -> "HMCStagedTimeoutPolicy":
+        return HMCStagedTimeoutPolicy(
+            policy_id=f"{self.policy_id}.emergency_caps",
+            stage_budgets_s=self.stage_budgets_s(),
+            stage_budget_provenance=self.stage_budget_provenance(),
+            global_cap_s=self.emergency_global_cap_s,
+            reserve_s=self.emergency_reserve_s,
+            source=f"{self.source}.staged_timeout_policy",
+        )
+
+    def budget_formula_parameters(self) -> Mapping[str, Any]:
+        return {
+            "dimension_factor": self.dimension_factor,
+            "min_initial_budget": self.min_initial_budget,
+            "max_initial_budget": self.max_initial_budget,
+            "max_tune_budget": self.max_tune_budget,
+            "min_geometry_multiplier": self.min_geometry_multiplier,
+            "max_geometry_multiplier": self.max_geometry_multiplier,
+            "condition_log10_weight": self.condition_log10_weight,
+            "anisotropy_sqrt_weight": self.anisotropy_sqrt_weight,
+            "regularization_clip_weight": self.regularization_clip_weight,
+            "regularization_nonpositive_weight": (
+                self.regularization_nonpositive_weight
+            ),
+            "diagonal_fallback_multiplier": self.diagonal_fallback_multiplier,
+        }
+
+    def payload(self) -> Mapping[str, Any]:
+        return {
+            "schema": "bayesfilter.hmc_geometry_scaled_budget_timing_policy.v1",
+            "policy_id": self.policy_id,
+            "budget_formula_parameters": self.budget_formula_parameters(),
+            "bootstrap_formula_parameters": {
+                "sqrt_dimension_factor": self.bootstrap_sqrt_dimension_factor,
+                "min_results": self.bootstrap_min_results,
+                "max_results": self.bootstrap_max_results,
+                "burnin_fraction": self.bootstrap_burnin_fraction,
+            },
+            "emergency_timing_policy": {
+                "role": "machine_protection_only_not_scientific_stop_rule",
+                "min_stage_s": self.emergency_min_stage_s,
+                "max_stage_s": self.emergency_max_stage_s,
+                "global_cap_s": self.emergency_global_cap_s,
+                "reserve_s": self.emergency_reserve_s,
+                "stage_time_budget_multiplier": dict(
+                    self.stage_time_budget_multiplier
+                ),
+                "progress_monitor_is_separate": True,
+            },
+            "source": self.source,
+            "public_safe": True,
+            "raw_eigenvalues_exposed": False,
+            "mass_arrays_exposed": False,
+            "hmc_mechanics_exposed": False,
+            "reports_posterior_convergence": False,
+            "reports_sampler_superiority": False,
+        }
+
+
+@dataclass(frozen=True)
+class HMCStagedTimeoutPolicy:
+    """Opt-in public-safe staged timeout accounting policy."""
+
+    policy_id: str = "bayesfilter_hmc_emergency_stage_caps_v2"
+    stage_budgets_s: Mapping[str, float] | None = None
+    stage_budget_provenance: Mapping[str, str] | None = None
+    global_cap_s: float = 86400.0
+    reserve_s: float = 600.0
+    max_enlargement_rounds_per_stage: int = 1
+    enlargement_multiplier: float = 1.5
+    enabled: bool = True
+    source: str = "bayesfilter.inference.hmc_kernel_tuning.staged_timeout_policy"
+
+    def __post_init__(self) -> None:
+        policy_id = str(self.policy_id)
+        if not policy_id:
+            raise ValueError("policy_id must be non-empty")
+        stage_budgets = dict(
+            _default_staged_timeout_policy_stage_budgets()
+            if self.stage_budgets_s is None
+            else self.stage_budgets_s
+        )
+        if set(stage_budgets) != set(STAGED_TIMEOUT_POLICY_STAGE_NAMES):
+            raise ValueError("stage_budgets_s must match the allowed stage names")
+        budgets: dict[str, float] = {}
+        for stage, value in stage_budgets.items():
+            budget = float(value)
+            if not np.isfinite(budget) or budget <= 0.0:
+                raise ValueError("stage budgets must be positive and finite")
+            budgets[str(stage)] = budget
+        provenance_source = (
+            _default_staged_timeout_policy_stage_budget_provenance()
+            if self.stage_budget_provenance is None
+            else self.stage_budget_provenance
+        )
+        provenance = {
+            str(stage): str(value) for stage, value in dict(provenance_source).items()
+        }
+        if set(provenance) != set(budgets):
+            raise ValueError("stage_budget_provenance must cover every stage budget")
+        cap = float(self.global_cap_s)
+        if not np.isfinite(cap) or cap <= 0.0:
+            raise ValueError("global_cap_s must be positive and finite")
+        reserve = float(self.reserve_s)
+        if not np.isfinite(reserve) or reserve < 0.0:
+            raise ValueError("reserve_s must be finite and non-negative")
+        if reserve >= cap:
+            raise ValueError("reserve_s must be smaller than global_cap_s")
+        max_rounds = int(self.max_enlargement_rounds_per_stage)
+        if max_rounds < 0:
+            raise ValueError("max_enlargement_rounds_per_stage must be non-negative")
+        multiplier = float(self.enlargement_multiplier)
+        if not np.isfinite(multiplier) or multiplier <= 1.0:
+            raise ValueError("enlargement_multiplier must be finite and greater than 1")
+        source = str(self.source)
+        if not source:
+            raise ValueError("source must be non-empty")
+        object.__setattr__(self, "policy_id", policy_id)
+        object.__setattr__(self, "stage_budgets_s", budgets)
+        object.__setattr__(self, "stage_budget_provenance", provenance)
+        object.__setattr__(self, "global_cap_s", cap)
+        object.__setattr__(self, "reserve_s", reserve)
+        object.__setattr__(self, "max_enlargement_rounds_per_stage", max_rounds)
+        object.__setattr__(self, "enlargement_multiplier", multiplier)
+        object.__setattr__(self, "enabled", bool(self.enabled))
+        object.__setattr__(self, "source", source)
+
+    def payload(self) -> Mapping[str, Any]:
+        return {
+            "policy_id": self.policy_id,
+            "stage_budgets_s": dict(self.stage_budgets_s),
+            "stage_budget_provenance": dict(self.stage_budget_provenance),
+            "global_cap_s": self.global_cap_s,
+            "reserve_s": self.reserve_s,
+            "max_enlargement_rounds_per_stage": self.max_enlargement_rounds_per_stage,
+            "enlargement_multiplier": self.enlargement_multiplier,
+            "enabled": self.enabled,
+            "source": self.source,
+        }
+
+
+def _default_staged_timeout_policy_stage_budgets() -> Mapping[str, float]:
+    return {
+        "geometry_and_bootstrap": 3600.0,
+        "phase7_pre_windowed": 3600.0,
+        "windowed_mass": 3600.0,
+        "fixed_mass_step": 3600.0,
+        "frozen_step_trajectory": 3600.0,
+        "fresh_fixed_kernel_verification": 3600.0,
+    }
+
+
+def _default_staged_timeout_policy_stage_budget_provenance() -> Mapping[str, str]:
+    return {
+        "geometry_and_bootstrap": "emergency_cap_machine_protection_not_progress_gate",
+        "phase7_pre_windowed": "emergency_cap_machine_protection_not_progress_gate",
+        "windowed_mass": "emergency_cap_machine_protection_not_progress_gate",
+        "fixed_mass_step": "emergency_cap_machine_protection_not_progress_gate",
+        "frozen_step_trajectory": "emergency_cap_machine_protection_not_progress_gate",
+        "fresh_fixed_kernel_verification": "emergency_cap_machine_protection_not_progress_gate",
+    }
+
+
+def _default_staged_timeout_policy() -> HMCStagedTimeoutPolicy:
+    return HMCGeometryScaledBudgetTimingPolicy().staged_timeout_policy()
+
+
+def _geometry_scaled_budget_timing_policy() -> HMCGeometryScaledBudgetTimingPolicy:
+    return HMCGeometryScaledBudgetTimingPolicy()
+
+
+def _geometry_policy_eigenvalues(
+    *,
+    dimension: int,
+    mass_artifact: PrecomputedMassArtifact | None,
+    eigen_summary: Mapping[str, Any],
+) -> np.ndarray:
+    raw = eigen_summary.get("eigenvalues")
+    if raw is not None:
+        try:
+            values = np.asarray(tuple(raw), dtype=float)
+        except TypeError:
+            values = np.asarray((), dtype=float)
+        if values.shape == (int(dimension),) and np.all(np.isfinite(values)):
+            return np.maximum(values, 1.0e-300)
+    if mass_artifact is not None:
+        covariance = np.asarray(mass_artifact.covariance, dtype=float)
+        if covariance.shape == (int(dimension), int(dimension)):
+            values = np.linalg.eigvalsh(0.5 * (covariance + covariance.T))
+            if np.all(np.isfinite(values)):
+                return np.maximum(values, 1.0e-300)
+    return np.ones(int(dimension), dtype=float)
+
+
+def _geometry_policy_condition_number(
+    *,
+    eigenvalues: np.ndarray,
+    eigen_summary: Mapping[str, Any],
+) -> float | None:
+    raw_condition = eigen_summary.get("condition_number")
+    if raw_condition is not None:
+        try:
+            condition = float(raw_condition)
+        except (TypeError, ValueError):
+            condition = float("nan")
+        if np.isfinite(condition) and condition >= 1.0:
+            return condition
+    values = np.asarray(eigenvalues, dtype=float)
+    positive = values[np.isfinite(values) & (values > 0.0)]
+    if positive.size == 0:
+        return None
+    condition = float(np.max(positive) / np.min(positive))
+    return condition if np.isfinite(condition) and condition >= 1.0 else None
+
+
+def _geometry_policy_effective_dimension(eigenvalues: np.ndarray) -> float:
+    values = np.asarray(eigenvalues, dtype=float)
+    values = values[np.isfinite(values) & (values > 0.0)]
+    if values.size == 0:
+        return 1.0
+    total = float(np.sum(values))
+    squared_total = float(np.sum(np.square(values)))
+    if not np.isfinite(total) or not np.isfinite(squared_total) or squared_total <= 0.0:
+        return 1.0
+    return float(np.clip((total * total) / squared_total, 1.0, values.size))
+
+
+def _geometry_policy_regularization_counts(
+    regularization_report: Mapping[str, Any],
+) -> Mapping[str, Any]:
+    def int_field(*names: str) -> int:
+        for name in names:
+            if name not in regularization_report:
+                continue
+            try:
+                return max(0, int(regularization_report[name]))
+            except (TypeError, ValueError):
+                return 0
+        return 0
+
+    clipped = int_field("clipped_eigenvalue_count", "covariance_clipped_eigenvalue_count")
+    nonpositive = int_field(
+        "raw_nonpositive_eigenvalue_count",
+        "covariance_raw_nonpositive_eigenvalue_count",
+    )
+    fallback = bool(regularization_report.get("diagonal_fallback_used", False))
+    return {
+        "clipped_eigenvalue_count": clipped,
+        "raw_nonpositive_eigenvalue_count": nonpositive,
+        "diagonal_fallback_used": fallback,
+        "regularization_fields_used": (
+            "clipped_eigenvalue_count",
+            "raw_nonpositive_eigenvalue_count",
+            "diagonal_fallback_used",
+        ),
+    }
+
+
+def _attempt_budget_policy_from_payload(
+    payload: Mapping[str, Any],
+    *,
+    serious_policy: bool,
+    public_budget_class: str | None = None,
+    public_budget_cap: int | None = None,
+    public_max_attempts: int | None = None,
+    public_diagnostic_preset: str | None = None,
+) -> "_HMCAttemptBudgetPolicy":
+    return _HMCAttemptBudgetPolicy(
+        target_dimension=int(payload["target_dimension"]),
+        attempt_index=int(payload["attempt_index"]),
+        budget=int(payload["budget"]),
+        phase4_warmup_steps=int(payload["phase4_warmup_steps"]),
+        phase5_tune_budgets=tuple(int(item) for item in payload["phase5_tune_budgets"]),
+        phase5_screen_num_results=int(payload["phase5_screen_num_results"]),
+        phase5_screen_burnin_steps=int(payload["phase5_screen_burnin_steps"]),
+        phase6_screen_num_results=int(payload["phase6_screen_num_results"]),
+        phase6_screen_burnin_steps=int(payload["phase6_screen_burnin_steps"]),
+        verification_num_results=int(payload["verification_num_results"]),
+        verification_num_burnin_steps=int(payload["verification_num_burnin_steps"]),
+        serious_policy=serious_policy,
+        public_budget_class=public_budget_class,
+        public_budget_cap=public_budget_cap,
+        public_max_attempts=public_max_attempts,
+        public_diagnostic_preset=public_diagnostic_preset,
+        budget_formula=str(payload["budget_formula"]),
+        budget_formula_parameters=dict(payload["budget_formula_parameters"]),
+        geometry_budget_summary=dict(payload["geometry_budget_summary"]),
+        budget0_uncapped=int(payload["budget0_uncapped"]),
+        budget0_after_floor_and_cap=int(payload["budget0_after_floor_and_cap"]),
+        budget_claim=str(payload["budget_claim"]),
+    )
+
 RETAINED_FROZEN_KERNEL_REPLAY_NONCLAIMS = (
     "BayesFilter retained frozen-kernel adapter reconstruction only",
     "replays a previously verified adapter stack without running HMC",
@@ -161,20 +849,64 @@ _FIXED_MASS_STAGE_SCREEN_BURNIN_STEPS = 1
 _FROZEN_STEP_TRAJECTORY_CANDIDATE_OFFSETS = (-2, -1, 0, 1, 2)
 _FROZEN_STEP_TRAJECTORY_CENTER_SLACK = 10
 _FROZEN_STEP_TRAJECTORY_REPAIR_NEIGHBORHOOD_OFFSETS = (-4, -3, -2, -1, 0, 1, 2, 3, 4)
+_JOINT_L_EPSILON_INITIAL_OFFSETS = (-4, -2, -1, 0, 1, 2, 4)
+_JOINT_L_EPSILON_FINAL_LOCAL_OFFSETS = (-2, -1, 0, 1, 2)
+_JOINT_L_EPSILON_MAX_EDGE_REPAIR_ROUNDS = 2
+_FROZEN_STEP_TRAJECTORY_ORDER_ASCENDING = "ascending_clamped_l"
+_FROZEN_STEP_TRAJECTORY_ORDER_HIGH_ACCEPTANCE_REPAIR = (
+    "directional_high_acceptance_prioritize_longer_in_window"
+)
+_FROZEN_STEP_TRAJECTORY_ORDER_LOW_ACCEPTANCE_REPAIR = (
+    "directional_low_acceptance_prioritize_shorter_in_window"
+)
 _FROZEN_STEP_TRAJECTORY_SOFT_DEADLINE_RESERVE_S = 60.0
 _WINDOWED_MASS_PUBLIC_TIMEOUT_RESERVE_S = 60.0
 _WINDOWED_MASS_PUBLIC_TIMEOUT_HARD_VETO = "windowed_mass_public_timeout_soft_deadline"
+_PHASE7_PUBLIC_TIMEOUT_BEFORE_WINDOWED_MASS_HARD_VETO = (
+    "phase7_public_timeout_before_windowed_mass"
+)
+_PHASE7_PUBLIC_TIMEOUT_BEFORE_WINDOWED_MASS_REPAIR_TRIGGER = (
+    "phase7_public_timeout_before_windowed_mass"
+)
+_PHASE7_EARLY_GLOBAL_TIMEOUT_BEFORE_LOOP_HARD_VETO = (
+    "phase7_public_timeout_before_windowed_mass"
+)
+_PHASE7_EARLY_GLOBAL_TIMEOUT_BEFORE_LOOP_REPAIR_TRIGGER = (
+    "phase7_public_timeout_before_windowed_mass"
+)
 _WINDOWED_MASS_PUBLIC_TIMEOUT_REPAIR_TRIGGER = (
     "windowed_mass_public_timeout_closeout_before_hmc_call"
 )
+_FIXED_MASS_STEP_PUBLIC_TIMEOUT_HARD_VETO = (
+    "fixed_mass_step_public_timeout_soft_deadline"
+)
+_FIXED_MASS_STEP_PUBLIC_TIMEOUT_REPAIR_TRIGGER = (
+    "fixed_mass_step_public_timeout_closeout_before_next_candidate"
+)
+_FIXED_MASS_STEP_PUBLIC_TIMEOUT_BUDGET_INCOMPLETE_ROLE = (
+    "fixed_mass_step_budget_incomplete_non_promoting"
+)
+_FIXED_MASS_STEP_PUBLIC_TIMEOUT_BUDGET_INCOMPLETE_REPAIR_TRIGGER = (
+    "fixed_mass_step_budget_incomplete_after_selected_pair_progress"
+)
 _WINDOWED_MASS_SEGMENT_SIZE = 4
+_WINDOWED_MASS_SEGMENT_SOFT_DEADLINE_SAFETY_MULTIPLIER = 1.25
+_WINDOWED_MASS_SEGMENT_SOFT_DEADLINE_RECENT_WINDOW = 3
 _FROZEN_STEP_TRAJECTORY_SOFT_DEADLINE_SAFETY_MULTIPLIER = 1.25
+_FROZEN_STEP_TRAJECTORY_SOFT_DEADLINE_RECENT_WINDOW = 3
+_FIXED_MASS_STEP_SOFT_DEADLINE_SAFETY_MULTIPLIER = 1.25
+_FIXED_MASS_STEP_SOFT_DEADLINE_RECENT_WINDOW = 3
 _FROZEN_STEP_TRAJECTORY_SCREEN_NUM_RESULTS = 4
 _FROZEN_STEP_TRAJECTORY_SCREEN_BURNIN_STEPS = 1
 _SERIOUS_TUNING_MIN_RUN_BUDGET = 1000
 _SERIOUS_TUNING_DIMENSION_FACTOR = 20
 _SERIOUS_TUNING_MAX_INITIAL_BUDGET = 5000
 _SERIOUS_TUNING_MAX_TUNE_BUDGET = 10000
+_PHASE7_BASE_MAX_ATTEMPTS = 5
+_PHASE7_MAX_ATTEMPTS_CAP = 10
+_PHASE7_EXTENDED_ATTEMPT_STALLED = (
+    "phase7_extended_attempt_stalled_no_meaningful_progress"
+)
 _PUBLIC_TUNING_PROGRESS_FILENAME = "hmc_kernel_tuning_progress.json"
 _PHASE7_VERIFICATION_ACCEPTANCE_BUDGET_BLOCKED = (
     "verification_acceptance_budget_blocked"
@@ -182,6 +914,8 @@ _PHASE7_VERIFICATION_ACCEPTANCE_BUDGET_BLOCKED = (
 _PHASE6_TRAJECTORY_ACCEPTANCE_REPAIR_TRIGGER = (
     "phase6_trajectory_acceptance_outside_pass_band"
 )
+_PHASE6_HANDOFF_SCREEN_POLICY_ROLE = "handoff_screen_repair_trigger_non_promoting"
+_TRAJECTORY_WINDOW_POLICY_ROLE = "engineering_viability_gate_non_scientific"
 _PHASE7_VERIFICATION_ACCEPTANCE_REPAIR_TRIGGER = (
     "verification_acceptance_outside_pass_band"
 )
@@ -191,7 +925,11 @@ _PHASE7_VERIFY_ONLY_BUDGET_SATURATED = (
 _PHASE7_REPAIR_HANDOFF_BUDGET_EXHAUSTED = (
     "phase7_repair_handoff_budget_exhausted_no_attempt_slot"
 )
+_PHASE7_TERMINAL_PHASE6_REPAIR_SLOT_EXHAUSTED = (
+    "phase7_terminal_phase6_repair_slot_exhausted"
+)
 _PHASE7_VERIFICATION_ACCEPTANCE_RETRY_PRE_PHASE6_MIN_RESERVES = 1.0
+_PUBLIC_TERMINAL_PHASE6_REPAIR_SCREEN_MAX_RESULTS = 128
 
 
 def _validate_max_leapfrog_steps(value: Any, *, name: str = "max_leapfrog_steps") -> int:
@@ -217,6 +955,45 @@ def _validate_step_repair_multiplier(value: Any, *, name: str) -> float:
     if not np.isfinite(multiplier) or multiplier <= 1.0:
         raise ValueError(f"{name} must be finite and greater than 1")
     return multiplier
+
+
+def _validate_staged_timeout_policy_or_none(
+    value: Any,
+) -> HMCStagedTimeoutPolicy | None:
+    if value is None:
+        return None
+    if not isinstance(value, HMCStagedTimeoutPolicy):
+        raise TypeError("staged_timeout_policy must be HMCStagedTimeoutPolicy or None")
+    return value
+
+
+def _validate_nonnegative_perf_counter_or_none(
+    value: Any,
+    *,
+    name: str,
+) -> float | None:
+    if value is None:
+        return None
+    perf_counter = float(value)
+    if not np.isfinite(perf_counter) or perf_counter < 0.0:
+        raise ValueError(f"{name} must be finite and non-negative")
+    return perf_counter
+
+
+def _validate_staged_timeout_enlargement_rounds(
+    value: Any,
+) -> Mapping[str, int] | None:
+    if value is None:
+        return None
+    if not isinstance(value, Mapping):
+        raise TypeError("staged_timeout_enlargement_rounds must be a mapping or None")
+    rounds: dict[str, int] = {}
+    for key, raw in value.items():
+        round_index = int(raw)
+        if round_index < 0:
+            raise ValueError("staged_timeout_enlargement_rounds must be non-negative")
+        rounds[str(key)] = round_index
+    return rounds
 
 
 def _validate_trajectory_window_multipliers(
@@ -323,6 +1100,17 @@ FixedMassScreenCallback = Callable[
 TrajectoryScreenCallback = Callable[[Mapping[str, Any], Any, Mapping[str, Any]], Any]
 VerificationCallback = Callable[[Mapping[str, Any], Any, Mapping[str, Any]], Any]
 LoopProgressCallback = Callable[[str, Mapping[str, Any]], None]
+BootstrapProgressCallback = Callable[[str, Mapping[str, Any]], None]
+PrivateTuningDiagnosticCallback = Callable[[str, Mapping[str, Any]], None]
+
+
+def _validate_positive_int_or_none(value: int | None, *, name: str) -> int | None:
+    if value is None:
+        return None
+    integer = int(value)
+    if integer <= 0:
+        raise ValueError(f"{name} must be positive when provided")
+    return integer
 
 
 def _bootstrap_selected_kernel_payload(
@@ -354,6 +1142,166 @@ def _bootstrap_selected_kernel_payload(
     }
 
 
+def _bootstrap_geometry_preflight_kernel_payload(
+    *,
+    geometry: "HMCGeometryInitializationResult",
+    bootstrap: "HMCBootstrapScreenResult",
+    nonclaims: tuple[str, ...],
+) -> Mapping[str, Any]:
+    """Return a non-promoting kernel seed when bootstrap only passed preflight.
+
+    A short bootstrap screen is allowed to answer the mechanics question
+    "can this target run finitely?" without also selecting the step/L pair used
+    by later tuning stages.  When no bootstrap round is inside the acceptance
+    band, Phase 4 starts from the posterior/geometry seed instead of pretending
+    the bootstrap selected a tuned kernel.
+    """
+
+    seed = _seed_from_mapping(geometry.seed_report, "geometry_seed")
+    return {
+        "runtime": "bayesfilter.inference.initialize_hmc_kernel_geometry",
+        "schema": "bayesfilter.hmc_bootstrap_preflight_fallback_kernel.v1",
+        "sample_space": "latent_fixed_mass",
+        "handoff_role": "bootstrap_preflight_fallback_non_promoting",
+        "step_size": geometry.initial_step_size,
+        "num_leapfrog_steps": geometry.initial_num_leapfrog_steps,
+        "target_trajectory_length": geometry.target_trajectory_length,
+        "target_accept_prob": bootstrap.config.target_accept_prob,
+        "acceptance_band": bootstrap.config.acceptance_band,
+        "repair_band": bootstrap.config.repair_band,
+        "adapter_signature": bootstrap.adapter_signature,
+        "hmc_adapter_signature": bootstrap.hmc_adapter_signature,
+        "mass_artifact_signature": bootstrap.mass_artifact_signature,
+        "geometry_artifact_hash": geometry.artifact_hash,
+        "bootstrap_artifact_hash": bootstrap.artifact_hash,
+        "seed": seed,
+        "screen_config_payload": None,
+        "bootstrap_selected_round_index": bootstrap.selected_round_index,
+        "bootstrap_final_status": bootstrap.final_status,
+        "bootstrap_hard_veto_present": bool(_bootstrap_hard_vetoes(bootstrap)),
+        "bootstrap_acceptance_promoted": False,
+        "reports_bootstrap_tuning_success": False,
+        "reports_posterior_convergence": False,
+        "reports_sampler_superiority": False,
+        "reports_default_readiness": False,
+        "reports_gpu_or_xla_readiness": False,
+        "nonclaims": nonclaims,
+    }
+
+
+def _bootstrap_hard_vetoes(bootstrap: "HMCBootstrapScreenResult") -> tuple[str, ...]:
+    return tuple(
+        dict.fromkeys(
+            str(veto)
+            for round_result in bootstrap.rounds
+            for veto in round_result.hard_vetoes
+        )
+    )
+
+
+def _bootstrap_repair_triggers(bootstrap: "HMCBootstrapScreenResult") -> tuple[str, ...]:
+    return tuple(
+        dict.fromkeys(
+            str(trigger)
+            for round_result in bootstrap.rounds
+            for trigger in round_result.repair_triggers
+        )
+    )
+
+
+def _bootstrap_preflight_passed(bootstrap: "HMCBootstrapScreenResult") -> bool:
+    return not _bootstrap_hard_vetoes(bootstrap)
+
+
+def _active_bootstrap_handoff_kernel_payload(
+    *,
+    geometry: "HMCGeometryInitializationResult",
+    bootstrap: "HMCBootstrapScreenResult",
+) -> Mapping[str, Any]:
+    selected = bootstrap.selected_kernel_payload
+    if selected is not None:
+        return selected
+    if not _bootstrap_preflight_passed(bootstrap):
+        raise ValueError("bootstrap hard veto cannot provide active handoff kernel")
+    return _bootstrap_geometry_preflight_kernel_payload(
+        geometry=geometry,
+        bootstrap=bootstrap,
+        nonclaims=bootstrap.nonclaims,
+    )
+
+
+def _active_bootstrap_handoff_kernel_hash(
+    *,
+    geometry: "HMCGeometryInitializationResult",
+    bootstrap: "HMCBootstrapScreenResult",
+) -> str:
+    return stable_config_hash(
+        _active_bootstrap_handoff_kernel_payload(
+            geometry=geometry,
+            bootstrap=bootstrap,
+        )
+    )
+
+
+def _phase7_windowed_mass_seed_kernel_payload(
+    *,
+    geometry: "HMCGeometryInitializationResult",
+    bootstrap: "HMCBootstrapScreenResult",
+    attempt_state: "_HMCPhaseAttemptState | None",
+) -> Mapping[str, Any]:
+    """Choose the private kernel used to collect Phase 4 mass-window draws.
+
+    The first attempt uses the bootstrap/geometry handoff.  Repair attempts
+    should instead collect the next mass window at the previous selected or
+    repaired fixed kernel, matching the old robust tuning loop: select a
+    promising ``(L, epsilon)`` pair, update the mass moderately at that pair,
+    then rerun the joint grid.
+    """
+
+    bootstrap_payload = _active_bootstrap_handoff_kernel_payload(
+        geometry=geometry,
+        bootstrap=bootstrap,
+    )
+    if attempt_state is None or attempt_state.selected_step_size is None:
+        return bootstrap_payload
+    if (
+        attempt_state.verification_repair_applied
+        and attempt_state.verification_repair_step_size is not None
+    ):
+        step = float(attempt_state.verification_repair_step_size)
+        step_hash = attempt_state.verification_repair_step_hash
+        source = "phase7_private_repair_step"
+    else:
+        step = float(attempt_state.selected_step_size)
+        step_hash = attempt_state.selected_step_hash
+        source = "phase7_private_selected_step"
+    leapfrog = attempt_state.selected_num_leapfrog_steps
+    if leapfrog is None:
+        leapfrog = attempt_state.phase6_retry_num_leapfrog_steps
+    if leapfrog is None:
+        return bootstrap_payload
+    return {
+        **dict(bootstrap_payload),
+        "runtime": "bayesfilter.inference.run_hmc_windowed_mass_stage",
+        "handoff_role": "phase7_private_mass_window_seed_kernel",
+        "step_size": step,
+        "num_leapfrog_steps": int(leapfrog),
+        "private_step_hash": step_hash,
+        "private_kernel_source": source,
+        "bootstrap_kernel_hash": _active_bootstrap_handoff_kernel_hash(
+            geometry=geometry,
+            bootstrap=bootstrap,
+        ),
+        "bootstrap_kernel_is_lineage_not_active_mass_window_seed": True,
+        "phase6_retry_num_leapfrog_steps": attempt_state.phase6_retry_num_leapfrog_steps,
+        "phase6_retry_anchor_source": attempt_state.phase6_retry_anchor_source,
+        "reports_posterior_convergence": False,
+        "reports_sampler_superiority": False,
+        "reports_default_readiness": False,
+        "reports_gpu_or_xla_readiness": False,
+    }
+
+
 @dataclass(frozen=True)
 class HMCGeometryInitializationConfig:
     """Configuration for geometry-derived initial HMC kernel parameters.
@@ -370,6 +1318,8 @@ class HMCGeometryInitializationConfig:
     max_condition_number: float | None = None
     max_leapfrog_steps: int = _GEOMETRY_MAX_LEAPFROG
     allow_geometry_fallback: bool = False
+    position_role: str = "initial_position"
+    negative_hessian_source: str = "negative_hessian"
     seed: tuple[int, int] = (20260621, 2)
     source: str = "bayesfilter.inference.hmc_kernel_tuning"
 
@@ -406,6 +1356,12 @@ class HMCGeometryInitializationConfig:
         source = str(self.source)
         if not source:
             raise ValueError("source must be non-empty")
+        position_role = str(self.position_role)
+        if not position_role:
+            raise ValueError("position_role must be non-empty")
+        negative_hessian_source = str(self.negative_hessian_source)
+        if not negative_hessian_source:
+            raise ValueError("negative_hessian_source must be non-empty")
         object.__setattr__(self, "geometry_scaling_c", scaling)
         object.__setattr__(self, "stability_guard", guard)
         object.__setattr__(self, "covariance_jitter", jitter)
@@ -413,6 +1369,8 @@ class HMCGeometryInitializationConfig:
         object.__setattr__(self, "max_condition_number", condition)
         object.__setattr__(self, "max_leapfrog_steps", max_l)
         object.__setattr__(self, "allow_geometry_fallback", bool(self.allow_geometry_fallback))
+        object.__setattr__(self, "position_role", position_role)
+        object.__setattr__(self, "negative_hessian_source", negative_hessian_source)
         object.__setattr__(self, "seed", seed)
         object.__setattr__(self, "source", source)
 
@@ -425,6 +1383,8 @@ class HMCGeometryInitializationConfig:
             "max_condition_number": self.max_condition_number,
             "max_leapfrog_steps": self.max_leapfrog_steps,
             "allow_geometry_fallback": self.allow_geometry_fallback,
+            "position_role": self.position_role,
+            "negative_hessian_source": self.negative_hessian_source,
             "seed": self.seed,
             "source": self.source,
         }
@@ -835,6 +1795,10 @@ class HMCWindowedMassStageConfig:
     target_status_trace_policy: str = "none"
     public_timeout_budget_s: float | None = None
     public_timeout_started_perf_counter_s: float | None = None
+    staged_timeout_policy: HMCStagedTimeoutPolicy | None = None
+    staged_timeout_global_started_perf_counter_s: float | None = None
+    staged_timeout_stage_started_perf_counter_s: float | None = None
+    staged_timeout_enlargement_rounds: Mapping[str, int] | None = None
     source: str = "bayesfilter.inference.hmc_kernel_tuning.windowed_mass_stage"
 
     def __post_init__(self) -> None:
@@ -887,6 +1851,33 @@ class HMCWindowedMassStageConfig:
             "public_timeout_started_perf_counter_s",
             timeout_started,
         )
+        staged_policy = _validate_staged_timeout_policy_or_none(
+            self.staged_timeout_policy
+        )
+        object.__setattr__(self, "staged_timeout_policy", staged_policy)
+        object.__setattr__(
+            self,
+            "staged_timeout_global_started_perf_counter_s",
+            _validate_nonnegative_perf_counter_or_none(
+                self.staged_timeout_global_started_perf_counter_s,
+                name="staged_timeout_global_started_perf_counter_s",
+            ),
+        )
+        object.__setattr__(
+            self,
+            "staged_timeout_stage_started_perf_counter_s",
+            _validate_nonnegative_perf_counter_or_none(
+                self.staged_timeout_stage_started_perf_counter_s,
+                name="staged_timeout_stage_started_perf_counter_s",
+            ),
+        )
+        object.__setattr__(
+            self,
+            "staged_timeout_enlargement_rounds",
+            _validate_staged_timeout_enlargement_rounds(
+                self.staged_timeout_enlargement_rounds,
+            ),
+        )
         source = str(self.source)
         if not source:
             raise ValueError("source must be non-empty")
@@ -904,6 +1895,18 @@ class HMCWindowedMassStageConfig:
             "public_timeout_started_perf_counter_s": (
                 self.public_timeout_started_perf_counter_s
             ),
+            "staged_timeout_policy": None
+            if self.staged_timeout_policy is None
+            else self.staged_timeout_policy.payload(),
+            "staged_timeout_global_started_perf_counter_s": (
+                self.staged_timeout_global_started_perf_counter_s
+            ),
+            "staged_timeout_stage_started_perf_counter_s": (
+                self.staged_timeout_stage_started_perf_counter_s
+            ),
+            "staged_timeout_enlargement_rounds": None
+            if self.staged_timeout_enlargement_rounds is None
+            else dict(self.staged_timeout_enlargement_rounds),
             "source": self.source,
         }
 
@@ -1066,6 +2069,8 @@ class HMCFixedMassStepStageConfig:
     step_repair_min_directional_factor: float = 1.25
     step_repair_high_acceptance_directional_factor: float | None = None
     step_repair_high_acceptance_ladder_max_factor: float | None = None
+    trajectory_window_lower_multiplier: float = 0.3
+    trajectory_window_upper_multiplier: float = 3.0
     seed: tuple[int, int] = (20260621, 5)
     chain_execution_mode: str = "tf_function"
     use_xla: bool = False
@@ -1073,6 +2078,10 @@ class HMCFixedMassStepStageConfig:
     target_status_trace_policy: str = "none"
     public_timeout_budget_s: float | None = None
     public_timeout_started_perf_counter_s: float | None = None
+    staged_timeout_policy: HMCStagedTimeoutPolicy | None = None
+    staged_timeout_global_started_perf_counter_s: float | None = None
+    staged_timeout_stage_started_perf_counter_s: float | None = None
+    staged_timeout_enlargement_rounds: Mapping[str, int] | None = None
     source: str = "bayesfilter.inference.hmc_kernel_tuning.fixed_mass_step_stage"
 
     def __post_init__(self) -> None:
@@ -1137,6 +2146,12 @@ class HMCFixedMassStepStageConfig:
             "step_repair_high_acceptance_ladder_max_factor",
             high_ladder_max,
         )
+        lower, upper = _validate_trajectory_window_multipliers(
+            self.trajectory_window_lower_multiplier,
+            self.trajectory_window_upper_multiplier,
+        )
+        object.__setattr__(self, "trajectory_window_lower_multiplier", lower)
+        object.__setattr__(self, "trajectory_window_upper_multiplier", upper)
         object.__setattr__(self, "seed", _validate_seed(self.seed))
         mode = str(self.chain_execution_mode)
         if mode not in {"tf_function", "eager"}:
@@ -1182,6 +2197,34 @@ class HMCFixedMassStepStageConfig:
             "public_timeout_started_perf_counter_s",
             timeout_started,
         )
+        object.__setattr__(
+            self,
+            "staged_timeout_policy",
+            _validate_staged_timeout_policy_or_none(self.staged_timeout_policy),
+        )
+        object.__setattr__(
+            self,
+            "staged_timeout_global_started_perf_counter_s",
+            _validate_nonnegative_perf_counter_or_none(
+                self.staged_timeout_global_started_perf_counter_s,
+                name="staged_timeout_global_started_perf_counter_s",
+            ),
+        )
+        object.__setattr__(
+            self,
+            "staged_timeout_stage_started_perf_counter_s",
+            _validate_nonnegative_perf_counter_or_none(
+                self.staged_timeout_stage_started_perf_counter_s,
+                name="staged_timeout_stage_started_perf_counter_s",
+            ),
+        )
+        object.__setattr__(
+            self,
+            "staged_timeout_enlargement_rounds",
+            _validate_staged_timeout_enlargement_rounds(
+                self.staged_timeout_enlargement_rounds
+            ),
+        )
         source = str(self.source)
         if not source:
             raise ValueError("source must be non-empty")
@@ -1201,6 +2244,12 @@ class HMCFixedMassStepStageConfig:
             ),
             "step_repair_high_acceptance_ladder_max_factor": (
                 self.step_repair_high_acceptance_ladder_max_factor
+            ),
+            "trajectory_window_lower_multiplier": (
+                self.trajectory_window_lower_multiplier
+            ),
+            "trajectory_window_upper_multiplier": (
+                self.trajectory_window_upper_multiplier
             ),
             "seed": self.seed,
             "chain_execution_mode": self.chain_execution_mode,
@@ -1401,8 +2450,8 @@ class HMCFrozenStepTrajectoryStageConfig:
     target_accept_prob: float = 0.70
     acceptance_band: tuple[float, float] = (0.65, 0.75)
     max_leapfrog_steps: int = _GEOMETRY_MAX_LEAPFROG
-    trajectory_window_lower_multiplier: float = 0.8
-    trajectory_window_upper_multiplier: float = 1.25
+    trajectory_window_lower_multiplier: float = 0.3
+    trajectory_window_upper_multiplier: float = 3.0
     seed: tuple[int, int] = (20260621, 6)
     chain_execution_mode: str = "tf_function"
     use_xla: bool = False
@@ -1410,6 +2459,10 @@ class HMCFrozenStepTrajectoryStageConfig:
     target_status_trace_policy: str = "none"
     public_timeout_budget_s: float | None = None
     public_timeout_started_perf_counter_s: float | None = None
+    staged_timeout_policy: HMCStagedTimeoutPolicy | None = None
+    staged_timeout_global_started_perf_counter_s: float | None = None
+    staged_timeout_stage_started_perf_counter_s: float | None = None
+    staged_timeout_enlargement_rounds: Mapping[str, int] | None = None
     source: str = "bayesfilter.inference.hmc_kernel_tuning.frozen_step_trajectory_stage"
 
     def __post_init__(self) -> None:
@@ -1478,6 +2531,34 @@ class HMCFrozenStepTrajectoryStageConfig:
             "public_timeout_started_perf_counter_s",
             timeout_started,
         )
+        object.__setattr__(
+            self,
+            "staged_timeout_policy",
+            _validate_staged_timeout_policy_or_none(self.staged_timeout_policy),
+        )
+        object.__setattr__(
+            self,
+            "staged_timeout_global_started_perf_counter_s",
+            _validate_nonnegative_perf_counter_or_none(
+                self.staged_timeout_global_started_perf_counter_s,
+                name="staged_timeout_global_started_perf_counter_s",
+            ),
+        )
+        object.__setattr__(
+            self,
+            "staged_timeout_stage_started_perf_counter_s",
+            _validate_nonnegative_perf_counter_or_none(
+                self.staged_timeout_stage_started_perf_counter_s,
+                name="staged_timeout_stage_started_perf_counter_s",
+            ),
+        )
+        object.__setattr__(
+            self,
+            "staged_timeout_enlargement_rounds",
+            _validate_staged_timeout_enlargement_rounds(
+                self.staged_timeout_enlargement_rounds
+            ),
+        )
         source = str(self.source)
         if not source:
             raise ValueError("source must be non-empty")
@@ -1497,6 +2578,18 @@ class HMCFrozenStepTrajectoryStageConfig:
             "target_status_trace_policy": self.target_status_trace_policy,
             "public_timeout_budget_s": self.public_timeout_budget_s,
             "public_timeout_started_perf_counter_s": self.public_timeout_started_perf_counter_s,
+            "staged_timeout_policy": None
+            if self.staged_timeout_policy is None
+            else self.staged_timeout_policy.payload(),
+            "staged_timeout_global_started_perf_counter_s": (
+                self.staged_timeout_global_started_perf_counter_s
+            ),
+            "staged_timeout_stage_started_perf_counter_s": (
+                self.staged_timeout_stage_started_perf_counter_s
+            ),
+            "staged_timeout_enlargement_rounds": None
+            if self.staged_timeout_enlargement_rounds is None
+            else dict(self.staged_timeout_enlargement_rounds),
             "source": self.source,
         }
 
@@ -1707,9 +2800,10 @@ class HMCTuneVerifyRepairLoopConfig:
     step_repair_min_directional_factor: float = 1.25
     step_repair_high_acceptance_directional_factor: float | None = None
     step_repair_high_acceptance_ladder_max_factor: float | None = None
-    trajectory_window_lower_multiplier: float = 0.8
-    trajectory_window_upper_multiplier: float = 1.25
+    trajectory_window_lower_multiplier: float = 0.3
+    trajectory_window_upper_multiplier: float = 3.0
     max_attempts: int = 5
+    terminal_phase6_repair_extra_attempts: int = 0
     seed: tuple[int, int] = (20260621, 7)
     chain_execution_mode: str = "tf_function"
     use_xla: bool = False
@@ -1717,6 +2811,10 @@ class HMCTuneVerifyRepairLoopConfig:
     target_status_trace_policy: str = "none"
     public_timeout_budget_s: float | None = None
     public_timeout_started_perf_counter_s: float | None = None
+    staged_timeout_policy: HMCStagedTimeoutPolicy | None = None
+    staged_timeout_global_started_perf_counter_s: float | None = None
+    staged_timeout_stage_started_perf_counter_s: float | None = None
+    staged_timeout_enlargement_rounds: Mapping[str, int] | None = None
     source: str = "bayesfilter.inference.hmc_kernel_tuning.tune_verify_repair_loop"
 
     def __post_init__(self) -> None:
@@ -1792,9 +2890,19 @@ class HMCTuneVerifyRepairLoopConfig:
         attempts = int(self.max_attempts)
         if attempts <= 0:
             raise ValueError("max_attempts must be positive")
-        if attempts > 5:
-            raise ValueError("Phase 7 max_attempts is hard-capped at 5")
+        if attempts > _PHASE7_MAX_ATTEMPTS_CAP:
+            raise ValueError(
+                f"Phase 7 max_attempts is hard-capped at {_PHASE7_MAX_ATTEMPTS_CAP}"
+            )
         object.__setattr__(self, "max_attempts", attempts)
+        terminal_extra = int(self.terminal_phase6_repair_extra_attempts)
+        if terminal_extra < 0 or terminal_extra > 1:
+            raise ValueError("terminal_phase6_repair_extra_attempts must be 0 or 1")
+        object.__setattr__(
+            self,
+            "terminal_phase6_repair_extra_attempts",
+            terminal_extra,
+        )
         object.__setattr__(self, "seed", _validate_seed(self.seed))
         mode = str(self.chain_execution_mode)
         if mode not in {"tf_function", "eager"}:
@@ -1840,6 +2948,34 @@ class HMCTuneVerifyRepairLoopConfig:
             "public_timeout_started_perf_counter_s",
             timeout_started,
         )
+        object.__setattr__(
+            self,
+            "staged_timeout_policy",
+            _validate_staged_timeout_policy_or_none(self.staged_timeout_policy),
+        )
+        object.__setattr__(
+            self,
+            "staged_timeout_global_started_perf_counter_s",
+            _validate_nonnegative_perf_counter_or_none(
+                self.staged_timeout_global_started_perf_counter_s,
+                name="staged_timeout_global_started_perf_counter_s",
+            ),
+        )
+        object.__setattr__(
+            self,
+            "staged_timeout_stage_started_perf_counter_s",
+            _validate_nonnegative_perf_counter_or_none(
+                self.staged_timeout_stage_started_perf_counter_s,
+                name="staged_timeout_stage_started_perf_counter_s",
+            ),
+        )
+        object.__setattr__(
+            self,
+            "staged_timeout_enlargement_rounds",
+            _validate_staged_timeout_enlargement_rounds(
+                self.staged_timeout_enlargement_rounds,
+            ),
+        )
         source = str(self.source)
         if not source:
             raise ValueError("source must be non-empty")
@@ -1864,6 +3000,9 @@ class HMCTuneVerifyRepairLoopConfig:
             "trajectory_window_lower_multiplier": self.trajectory_window_lower_multiplier,
             "trajectory_window_upper_multiplier": self.trajectory_window_upper_multiplier,
             "max_attempts": self.max_attempts,
+            "terminal_phase6_repair_extra_attempts": (
+                self.terminal_phase6_repair_extra_attempts
+            ),
             "seed": self.seed,
             "chain_execution_mode": self.chain_execution_mode,
             "use_xla": self.use_xla,
@@ -1871,6 +3010,18 @@ class HMCTuneVerifyRepairLoopConfig:
             "target_status_trace_policy": self.target_status_trace_policy,
             "public_timeout_budget_s": self.public_timeout_budget_s,
             "public_timeout_started_perf_counter_s": self.public_timeout_started_perf_counter_s,
+            "staged_timeout_policy": None
+            if self.staged_timeout_policy is None
+            else self.staged_timeout_policy.payload(),
+            "staged_timeout_global_started_perf_counter_s": (
+                self.staged_timeout_global_started_perf_counter_s
+            ),
+            "staged_timeout_stage_started_perf_counter_s": (
+                self.staged_timeout_stage_started_perf_counter_s
+            ),
+            "staged_timeout_enlargement_rounds": None
+            if self.staged_timeout_enlargement_rounds is None
+            else dict(self.staged_timeout_enlargement_rounds),
             "source": self.source,
         }
 
@@ -2045,7 +3196,12 @@ class HMCTuneVerifyRepairLoopResult:
         return stable_config_hash(self.payload(include_final_mass_arrays=True))
 
     def payload(self, *, include_final_mass_arrays: bool = True) -> Mapping[str, Any]:
-        del include_final_mass_arrays
+        final_kernel_payload = self.final_kernel_payload
+        if final_kernel_payload is not None and not include_final_mass_arrays:
+            final_kernel_payload = _public_final_kernel_summary_from_private_payload(
+                final_kernel_payload,
+                phase7_final_kernel_hash=self.final_kernel_hash,
+            )
         return {
             "schema": "bayesfilter.hmc_tune_verify_repair_loop.v1",
             "config": self.config.payload(),
@@ -2062,7 +3218,7 @@ class HMCTuneVerifyRepairLoopResult:
             "diagnostic_role": self.diagnostic_role,
             "hard_vetoes": self.hard_vetoes,
             "repair_triggers": self.repair_triggers,
-            "final_kernel_payload": self.final_kernel_payload,
+            "final_kernel_payload": final_kernel_payload,
             "final_kernel_hash": self.final_kernel_hash,
             "seed_report": self.seed_report,
             "diagnostic_roles": self.diagnostic_roles,
@@ -2097,10 +3253,11 @@ class HMCKernelTuningConfig:
     step_repair_min_directional_factor: float = 1.25
     step_repair_high_acceptance_directional_factor: float | None = None
     step_repair_high_acceptance_ladder_max_factor: float | None = None
-    trajectory_window_lower_multiplier: float = 0.8
-    trajectory_window_upper_multiplier: float = 1.25
+    trajectory_window_lower_multiplier: float = 0.3
+    trajectory_window_upper_multiplier: float = 3.0
     bootstrap_max_repairs: int = 5
     max_attempts: int = 5
+    terminal_phase6_repair_extra_attempts: int = 0
     seed: tuple[int, int] = (20260621, 8)
     chain_execution_mode: str = "tf_function"
     use_xla: bool = False
@@ -2112,7 +3269,15 @@ class HMCKernelTuningConfig:
     eigenvalue_floor: float | None = 1.0e-9
     max_condition_number: float | None = None
     allow_geometry_fallback: bool = False
+    geometry_position_role: str = "initial_position"
+    negative_hessian_source: str = "negative_hessian"
     public_timeout_budget_s: float | None = None
+    bootstrap_diagnostic_screen_num_results: int | None = None
+    bootstrap_diagnostic_screen_num_burnin_steps: int | None = None
+    staged_timeout_policy: HMCStagedTimeoutPolicy | None = None
+    staged_timeout_global_started_perf_counter_s: float | None = None
+    staged_timeout_stage_started_perf_counter_s: float | None = None
+    staged_timeout_enlargement_rounds: Mapping[str, int] | None = None
     source: str = "bayesfilter.inference.tune_hmc_kernel"
 
     def __post_init__(self) -> None:
@@ -2199,9 +3364,19 @@ class HMCKernelTuningConfig:
         attempts = int(self.max_attempts)
         if attempts <= 0:
             raise ValueError("max_attempts must be positive")
-        if attempts > 5:
-            raise ValueError("max_attempts is hard-capped at 5")
+        if attempts > _PHASE7_MAX_ATTEMPTS_CAP:
+            raise ValueError(
+                f"max_attempts is hard-capped at {_PHASE7_MAX_ATTEMPTS_CAP}"
+            )
         object.__setattr__(self, "max_attempts", attempts)
+        terminal_extra = int(self.terminal_phase6_repair_extra_attempts)
+        if terminal_extra < 0 or terminal_extra > 1:
+            raise ValueError("terminal_phase6_repair_extra_attempts must be 0 or 1")
+        object.__setattr__(
+            self,
+            "terminal_phase6_repair_extra_attempts",
+            terminal_extra,
+        )
         object.__setattr__(self, "seed", _validate_seed(self.seed))
         mode = str(self.chain_execution_mode)
         if mode not in {"tf_function", "eager"}:
@@ -2252,6 +3427,14 @@ class HMCKernelTuningConfig:
         object.__setattr__(self, "eigenvalue_floor", floor)
         object.__setattr__(self, "max_condition_number", condition)
         object.__setattr__(self, "allow_geometry_fallback", bool(self.allow_geometry_fallback))
+        geometry_position_role = str(self.geometry_position_role)
+        if not geometry_position_role:
+            raise ValueError("geometry_position_role must be non-empty")
+        object.__setattr__(self, "geometry_position_role", geometry_position_role)
+        negative_hessian_source = str(self.negative_hessian_source)
+        if not negative_hessian_source:
+            raise ValueError("negative_hessian_source must be non-empty")
+        object.__setattr__(self, "negative_hessian_source", negative_hessian_source)
         timeout_budget = (
             None
             if self.public_timeout_budget_s is None
@@ -2262,6 +3445,50 @@ class HMCKernelTuningConfig:
         ):
             raise ValueError("public_timeout_budget_s must be positive and finite")
         object.__setattr__(self, "public_timeout_budget_s", timeout_budget)
+        object.__setattr__(
+            self,
+            "bootstrap_diagnostic_screen_num_results",
+            _validate_positive_int_or_none(
+                self.bootstrap_diagnostic_screen_num_results,
+                name="bootstrap_diagnostic_screen_num_results",
+            ),
+        )
+        object.__setattr__(
+            self,
+            "bootstrap_diagnostic_screen_num_burnin_steps",
+            _validate_positive_int_or_none(
+                self.bootstrap_diagnostic_screen_num_burnin_steps,
+                name="bootstrap_diagnostic_screen_num_burnin_steps",
+            ),
+        )
+        object.__setattr__(
+            self,
+            "staged_timeout_policy",
+            _validate_staged_timeout_policy_or_none(self.staged_timeout_policy),
+        )
+        object.__setattr__(
+            self,
+            "staged_timeout_global_started_perf_counter_s",
+            _validate_nonnegative_perf_counter_or_none(
+                self.staged_timeout_global_started_perf_counter_s,
+                name="staged_timeout_global_started_perf_counter_s",
+            ),
+        )
+        object.__setattr__(
+            self,
+            "staged_timeout_stage_started_perf_counter_s",
+            _validate_nonnegative_perf_counter_or_none(
+                self.staged_timeout_stage_started_perf_counter_s,
+                name="staged_timeout_stage_started_perf_counter_s",
+            ),
+        )
+        object.__setattr__(
+            self,
+            "staged_timeout_enlargement_rounds",
+            _validate_staged_timeout_enlargement_rounds(
+                self.staged_timeout_enlargement_rounds
+            ),
+        )
         source = str(self.source)
         if not source:
             raise ValueError("source must be non-empty")
@@ -2348,6 +3575,9 @@ class HMCKernelTuningConfig:
             "trajectory_window_upper_multiplier": self.trajectory_window_upper_multiplier,
             "bootstrap_max_repairs": self.bootstrap_max_repairs,
             "max_attempts": self.max_attempts,
+            "terminal_phase6_repair_extra_attempts": (
+                self.terminal_phase6_repair_extra_attempts
+            ),
             "seed": self.seed,
             "chain_execution_mode": self.chain_execution_mode,
             "use_xla": self.use_xla,
@@ -2359,7 +3589,33 @@ class HMCKernelTuningConfig:
             "eigenvalue_floor": self.eigenvalue_floor,
             "max_condition_number": self.max_condition_number,
             "allow_geometry_fallback": self.allow_geometry_fallback,
+            "geometry_position_role": self.geometry_position_role,
+            "negative_hessian_source": self.negative_hessian_source,
             "public_timeout_budget_s": self.public_timeout_budget_s,
+            "bootstrap_diagnostic_screen_num_results": (
+                self.bootstrap_diagnostic_screen_num_results
+            ),
+            "bootstrap_diagnostic_screen_num_burnin_steps": (
+                self.bootstrap_diagnostic_screen_num_burnin_steps
+            ),
+            "bootstrap_diagnostic_sizing_claim": (
+                "public observability diagnostic only; not sampler promotion"
+            ),
+            "geometry_scaled_budget_timing_policy": (
+                _geometry_scaled_budget_timing_policy().payload()
+            ),
+            "staged_timeout_policy": None
+            if self.staged_timeout_policy is None
+            else self.staged_timeout_policy.payload(),
+            "staged_timeout_global_started_perf_counter_s": (
+                self.staged_timeout_global_started_perf_counter_s
+            ),
+            "staged_timeout_stage_started_perf_counter_s": (
+                self.staged_timeout_stage_started_perf_counter_s
+            ),
+            "staged_timeout_enlargement_rounds": None
+            if self.staged_timeout_enlargement_rounds is None
+            else dict(self.staged_timeout_enlargement_rounds),
             "source": self.source,
             "preset_role": _public_tuning_preset_role(self.preset),
             "hmc_mechanics_owned_by_bayesfilter": True,
@@ -2390,6 +3646,7 @@ class HMCKernelTuningResult:
     artifact_path: str | None
     diagnostic_roles: Mapping[str, str]
     nonclaims: tuple[str, ...] = HMC_KERNEL_TUNING_PUBLIC_NONCLAIMS
+    phase7_early_closeout_public_summary: Mapping[str, Any] | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.config, HMCKernelTuningConfig):
@@ -2421,6 +3678,16 @@ class HMCKernelTuningResult:
         artifact = None if self.artifact_path is None else str(self.artifact_path)
         object.__setattr__(self, "artifact_path", artifact)
         object.__setattr__(self, "diagnostic_roles", dict(self.diagnostic_roles))
+        early_closeout = (
+            None
+            if self.phase7_early_closeout_public_summary is None
+            else dict(self.phase7_early_closeout_public_summary)
+        )
+        object.__setattr__(
+            self,
+            "phase7_early_closeout_public_summary",
+            early_closeout,
+        )
         nonclaims = tuple(str(item) for item in self.nonclaims)
         if not nonclaims:
             raise ValueError("nonclaims must be non-empty")
@@ -2440,6 +3707,8 @@ class HMCKernelTuningResult:
             if self.bootstrap.geometry_artifact_hash != self.geometry.artifact_hash:
                 raise ValueError("bootstrap geometry artifact mismatch")
         if self.tune_verify_repair_loop is not None:
+            if early_closeout is not None:
+                raise ValueError("early closeout cannot coexist with Phase 7 loop")
             if self.bootstrap is None:
                 raise ValueError("loop result requires bootstrap result")
             if self.tune_verify_repair_loop.adapter_signature != signature:
@@ -2454,6 +3723,8 @@ class HMCKernelTuningResult:
         if status == "passed":
             if self.hard_vetoes:
                 raise ValueError("passed public tuning result cannot have hard vetoes")
+            if early_closeout is not None:
+                raise ValueError("passed public tuning result cannot have early closeout")
             if self.tune_verify_repair_loop is None or not self.tune_verify_repair_loop.passed:
                 raise ValueError("passed public tuning result requires passed Phase 7 loop")
             if final_payload is None or final_hash is None:
@@ -2507,6 +3778,9 @@ class HMCKernelTuningResult:
             "final_kernel_hash": self.final_kernel_hash,
             "artifact_path": self.artifact_path,
             "diagnostic_roles": self.diagnostic_roles,
+            "phase7_early_closeout_public_summary": (
+                self.phase7_early_closeout_public_summary
+            ),
             "passed": self.passed,
             "smoke_result_is_contract_only": self.config.is_smoke,
             "final_kernel_requires_phase7_pass": True,
@@ -2765,6 +4039,10 @@ def _geometry_config_from_payload(
             payload.get("max_leapfrog_steps", _GEOMETRY_MAX_LEAPFROG)
         ),
         allow_geometry_fallback=bool(payload.get("allow_geometry_fallback", False)),
+        position_role=str(payload.get("position_role", "initial_position")),
+        negative_hessian_source=str(
+            payload.get("negative_hessian_source", "negative_hessian")
+        ),
         seed=tuple(int(item) for item in payload.get("seed", (20260621, 2))),
         source=str(payload.get("source", "bayesfilter.inference.hmc_kernel_tuning.geometry")),
     )
@@ -2962,6 +4240,8 @@ def run_hmc_bootstrap_screen(
     geometry: HMCGeometryInitializationResult,
     config: HMCBootstrapScreenConfig | None = None,
     run_full_chain: RunFullChainFn = run_full_chain_tfp_hmc,
+    progress_callback: BootstrapProgressCallback | None = None,
+    _private_diagnostic_callback: PrivateTuningDiagnosticCallback | None = None,
 ) -> HMCBootstrapScreenResult:
     """Run a short fixed-kernel screen and bounded epsilon repair.
 
@@ -3017,6 +4297,41 @@ def run_hmc_bootstrap_screen(
         and cfg.chain_execution_mode == "tf_function"
     )
 
+    def emit_bootstrap_progress(stage: str, **payload: Any) -> None:
+        if progress_callback is None:
+            return
+        public_payload = {
+            "schema": "bayesfilter.hmc_bootstrap_public_progress.v1",
+            "stage": stage,
+            "round_index": int(payload["round_index"]),
+            "bootstrap_diagnostic_screen_num_results": int(
+                payload.get("screen_num_results", cfg.screen_num_results)
+            ),
+            "bootstrap_diagnostic_screen_num_burnin_steps": int(
+                payload.get("screen_num_burnin_steps", cfg.screen_num_burnin_steps)
+            ),
+            "chain_execution_mode": cfg.chain_execution_mode,
+            "use_xla": bool(cfg.use_xla),
+            "target_scope": target_scope,
+            "route_category": payload.get("route_category"),
+            "runner_reused": payload.get("runner_reused"),
+            "elapsed_s": _scalar_or_none(payload.get("elapsed_s")),
+            "classification": payload.get("classification"),
+            "diagnostic_role": payload.get("diagnostic_role"),
+            "hard_veto_categories": tuple(payload.get("hard_veto_categories", ())),
+            "acceptance_relation_to_band": payload.get("acceptance_relation_to_band"),
+            "runtime_finite": payload.get("runtime_finite"),
+            "round_timing_available": payload.get("round_timing_available"),
+            "hmc_mechanics_exposed": False,
+            "reports_posterior_convergence": False,
+            "reports_sampler_superiority": False,
+            "reports_default_readiness": False,
+            "reports_external_client_scientific_claim": False,
+            "reports_gpu_or_xla_readiness": False,
+            "nonclaims": BOOTSTRAP_SCREEN_NONCLAIMS,
+        }
+        progress_callback(stage, public_payload)
+
     for round_index in range(cfg.max_repairs + 1):
         leapfrog_payload = _bootstrap_leapfrog_payload(
             step,
@@ -3031,9 +4346,20 @@ def run_hmc_bootstrap_screen(
             leapfrogs=leapfrog_payload["num_leapfrog_steps"],
             target_scope=target_scope,
         )
+        route_category = (
+            "bootstrap_scoped_reusable_runner"
+            if use_bootstrap_reusable_route
+            else "single_use_or_injected_runner"
+        )
+        emit_bootstrap_progress(
+            "bootstrap_round_start",
+            round_index=round_index,
+            route_category=route_category,
+        )
         diagnostics: Mapping[str, Any]
         screen_error: Exception | None = None
         route_event_recorded = False
+        round_started = time.perf_counter()
         try:
             if use_bootstrap_reusable_route:
                 contract_payload = _bootstrap_reusable_static_contract_payload(
@@ -3054,10 +4380,26 @@ def run_hmc_bootstrap_screen(
                     runner_cache[contract_hash] = reusable_runner
                     runner_contract_payloads[contract_hash] = contract_payload
                     reusable_runner_build_count += 1
+                emit_bootstrap_progress(
+                    "bootstrap_round_hmc_call_start",
+                    round_index=round_index,
+                    route_category="bootstrap_scoped_reusable_runner",
+                    runner_reused=runner_reused,
+                    elapsed_s=time.perf_counter() - round_started,
+                )
                 run_result = reusable_runner.run(
                     current_state=hmc_adapter.initial_position(),
                     seed=screen_config.seed,
                     step_size=screen_config.step_size,
+                )
+                emit_bootstrap_progress(
+                    "bootstrap_round_hmc_call_complete",
+                    round_index=round_index,
+                    route_category="bootstrap_scoped_reusable_runner",
+                    runner_reused=runner_reused,
+                    elapsed_s=time.perf_counter() - round_started,
+                    runtime_finite=True,
+                    round_timing_available=True,
                 )
                 runner_route_events.append(
                     {
@@ -3075,10 +4417,26 @@ def run_hmc_bootstrap_screen(
                     single_use_build_count += 1
                 else:
                     injected_runner_call_count += 1
+                emit_bootstrap_progress(
+                    "bootstrap_round_hmc_call_start",
+                    round_index=round_index,
+                    route_category="single_use_or_injected_runner",
+                    runner_reused=False,
+                    elapsed_s=time.perf_counter() - round_started,
+                )
                 run_result = run_full_chain(
                     hmc_adapter,
                     hmc_adapter.initial_position(),
                     screen_config,
+                )
+                emit_bootstrap_progress(
+                    "bootstrap_round_hmc_call_complete",
+                    round_index=round_index,
+                    route_category="single_use_or_injected_runner",
+                    runner_reused=False,
+                    elapsed_s=time.perf_counter() - round_started,
+                    runtime_finite=True,
+                    round_timing_available=True,
                 )
                 runner_route_events.append(
                     {
@@ -3097,6 +4455,15 @@ def run_hmc_bootstrap_screen(
             )
         except Exception as exc:  # noqa: BLE001 - return fail-closed artifact.
             screen_error = exc
+            emit_bootstrap_progress(
+                "bootstrap_round_hmc_call_error",
+                round_index=round_index,
+                route_category=route_category,
+                runner_reused=False,
+                elapsed_s=time.perf_counter() - round_started,
+                runtime_finite=False,
+                round_timing_available=True,
+            )
             if not route_event_recorded:
                 runner_route_events.append(
                     {
@@ -3122,6 +4489,28 @@ def run_hmc_bootstrap_screen(
             cfg,
             diagnostics=diagnostics,
             screen_error=screen_error,
+        )
+        emit_bootstrap_progress(
+            "bootstrap_round_classified",
+            round_index=round_index,
+            route_category=route_category,
+            elapsed_s=time.perf_counter() - round_started,
+            classification=classification,
+            diagnostic_role=diagnostic_role,
+            hard_veto_categories=tuple(
+                dict.fromkeys(
+                    _public_bootstrap_hard_veto_category(veto)
+                    for veto in hard_vetoes
+                )
+            ),
+            acceptance_relation_to_band=_bootstrap_acceptance_relation(
+                diagnostics.get("acceptance_rate"),
+                cfg.acceptance_band,
+            ),
+            runtime_finite=diagnostics.get("runtime_finite"),
+            round_timing_available=(
+                _scalar_or_none(diagnostics.get("runtime_s")) is not None
+            ),
         )
         repair_action: str | None = None
         if classification == "repair":
@@ -3180,6 +4569,50 @@ def run_hmc_bootstrap_screen(
             low_acceptance_step=low_acceptance_step,
             high_acceptance_step=high_acceptance_step,
         )
+        repaired_leapfrog_payload = _bootstrap_leapfrog_payload(
+            repaired_step,
+            target_trajectory,
+            max_leapfrog_steps=cfg.max_leapfrog_steps,
+        )
+        if _private_diagnostic_callback is not None:
+            _private_diagnostic_callback(
+                "bootstrap_kernel_repair",
+                {
+                    "stage": "bootstrap_repair",
+                    "round_index": int(round_index),
+                    "previous_step_size": step,
+                    "step_size": repaired_step,
+                    "previous_num_leapfrog_steps": int(
+                        leapfrog_payload["num_leapfrog_steps"]
+                    ),
+                    "num_leapfrog_steps": int(
+                        repaired_leapfrog_payload["num_leapfrog_steps"]
+                    ),
+                    "previous_unclamped_num_leapfrog_steps": int(
+                        leapfrog_payload["unclamped_num_leapfrog_steps"]
+                    ),
+                    "unclamped_num_leapfrog_steps": int(
+                        repaired_leapfrog_payload["unclamped_num_leapfrog_steps"]
+                    ),
+                    "target_trajectory_length": target_trajectory,
+                    "repair_action": repair_action,
+                    "classification": classification,
+                    "diagnostic_role": diagnostic_role,
+                    "acceptance_relation_to_band": _bootstrap_acceptance_relation(
+                        diagnostics.get("acceptance_rate"),
+                        cfg.acceptance_band,
+                    ),
+                    "step_size_changed": bool(repaired_step != step),
+                    "num_leapfrog_steps_changed": bool(
+                        int(repaired_leapfrog_payload["num_leapfrog_steps"])
+                        != int(leapfrog_payload["num_leapfrog_steps"])
+                    ),
+                    "private_hmc_mechanics": True,
+                    "reports_posterior_convergence": False,
+                    "reports_sampler_superiority": False,
+                    "nonclaims": BOOTSTRAP_SCREEN_NONCLAIMS,
+                },
+            )
         current_clamp_direction = round_result.clamp_direction
         if (
             current_clamp_direction is not None
@@ -3310,6 +4743,7 @@ def run_hmc_windowed_mass_stage(
     _progress_callback: LoopProgressCallback | None = None,
     _attempt_index: int | None = None,
     _checkpoint_writer_config: SequentialRHatCheckpointWriterConfig | None = None,
+    _private_diagnostic_callback: PrivateTuningDiagnosticCallback | None = None,
 ) -> HMCWindowedMassStageResult:
     """Capture retained diagnostic draws and run windowed mass adaptation.
 
@@ -3343,12 +4777,19 @@ def run_hmc_windowed_mass_stage(
         attempt_state=_attempt_state,
     )
     stage_mass_signature = _mass_artifact_signature(stage_mass_artifact)
-    selected = bootstrap.selected_kernel_payload
-    if selected is None:
-        raise ValueError("windowed stage requires selected bootstrap kernel payload")
-    selected_hash = bootstrap.selected_kernel_hash
-    if selected_hash is None:
-        raise ValueError("windowed stage requires selected bootstrap kernel hash")
+    selected_bootstrap = _active_bootstrap_handoff_kernel_payload(
+        geometry=geometry,
+        bootstrap=bootstrap,
+    )
+    selected_hash = _active_bootstrap_handoff_kernel_hash(
+        geometry=geometry,
+        bootstrap=bootstrap,
+    )
+    mass_window_seed_kernel = _phase7_windowed_mass_seed_kernel_payload(
+        geometry=geometry,
+        bootstrap=bootstrap,
+        attempt_state=_attempt_state,
+    )
 
     windowed_config = _windowed_mass_stage_internal_config(_attempt_budget_policy)
     draw_capture_policy = _windowed_stage_draw_capture_policy(windowed_config)
@@ -3356,7 +4797,7 @@ def run_hmc_windowed_mass_stage(
     diagnostic_config = _windowed_stage_diagnostic_run_config(
         cfg,
         windowed_config=windowed_config,
-        selected_kernel=selected,
+        selected_kernel=mass_window_seed_kernel,
         seed=stage_seed,
         target_scope=target_scope,
     )
@@ -3656,7 +5097,7 @@ def run_hmc_windowed_mass_stage(
                 config=windowed_config,
                 initial_mass_artifact=stage_mass_artifact,
                 warmup_draws=capture["warmup_draws"],
-                initial_step_size=float(selected["step_size"]),
+                initial_step_size=float(mass_window_seed_kernel["step_size"]),
                 acceptance_trace=capture["acceptance_trace"],
                 expected_adapter_signature=hmc_adapter_signature,
                 target_failure_classification={
@@ -3690,7 +5131,36 @@ def run_hmc_windowed_mass_stage(
         capture,
         windowed_result=windowed_result,
         hard_vetoes=tuple(hard_vetoes),
+        mass_window_seed_kernel=mass_window_seed_kernel,
+        bootstrap_kernel=selected_bootstrap,
     )
+    if (
+        _private_diagnostic_callback is not None
+        and windowed_result is not None
+        and windowed_result.final_mass_artifact is not None
+    ):
+        _private_diagnostic_callback(
+            "windowed_mass_matrix_change",
+            {
+                "stage": "windowed_mass_complete",
+                "attempt_index": progress_attempt_index,
+                "final_status": final_status,
+                "diagnostic_role": diagnostic_role,
+                "initial_mass_artifact_signature": stage_mass_signature,
+                "adapted_mass_artifact_signature": (
+                    windowed_result.final_mass_artifact_signature
+                ),
+                "candidate_step_size": windowed_result.final_step_size,
+                "step_size_trace": windowed_result.step_size_trace,
+                "acceptance_trace": windowed_result.acceptance_trace,
+                "mass_artifact": windowed_result.final_mass_artifact,
+                "private_hmc_mechanics": True,
+                "reports_posterior_convergence": False,
+                "reports_sampler_superiority": False,
+                "nonclaims": WINDOWED_MASS_STAGE_NONCLAIMS,
+            },
+        )
+
     return HMCWindowedMassStageResult(
         config=cfg,
         geometry_artifact_hash=geometry.artifact_hash,
@@ -3741,12 +5211,15 @@ def run_hmc_fixed_mass_step_stage(
     _attempt_state: "_HMCPhaseAttemptState" | None = None,
     _progress_callback: LoopProgressCallback | None = None,
     _attempt_index: int | None = None,
+    _max_leapfrog_steps: int = _GEOMETRY_MAX_LEAPFROG,
+    _private_diagnostic_callback: PrivateTuningDiagnosticCallback | None = None,
 ) -> HMCFixedMassStepStageResult:
     """Run Phase 5 fixed-mass step tuning from a passed Phase 4 handoff.
 
-    Phase 5 freezes the Phase 4 adapted mass and tunes only step size through
-    the existing BayesFilter fixed-mass budget ladder. The leapfrog count is
-    held fixed until Phase 6 trajectory tuning.
+    Phase 5 freezes the Phase 4 adapted mass and runs the promoted joint
+    ``(L, epsilon)`` fixed-mass grid: every candidate leapfrog count gets an
+    independent epsilon ladder, edge selections trigger bounded grid repair,
+    and one final local grid chooses the handoff pair.
     """
 
     cfg = HMCFixedMassStepStageConfig() if config is None else config
@@ -3766,26 +5239,23 @@ def run_hmc_fixed_mass_step_stage(
         config=cfg,
     )
     target_scope = _resolve_fixed_mass_step_stage_target_scope(adapter, cfg)
-    selected_kernel = _selected_bootstrap_kernel_from_windowed_stage(
+    max_leapfrog_steps = _validate_max_leapfrog_steps(_max_leapfrog_steps)
+    selected_kernel = _mass_window_seed_kernel_from_windowed_stage(
         windowed_stage,
         bootstrap=bootstrap,
+        geometry=geometry,
     )
     adapted_mass = _phase4_adapted_mass_artifact(windowed_stage)
     initial_step = _fixed_mass_step_initial_step(
         windowed_stage,
         attempt_state=_attempt_state,
     )
-    fixed_leapfrog = int(selected_kernel["num_leapfrog_steps"])
-    budget_config = _fixed_mass_step_stage_ladder_config(
-        cfg,
-        initial_step=initial_step,
-        num_leapfrog_steps=fixed_leapfrog,
-        target_scope=target_scope,
-        attempt_budget_policy=_attempt_budget_policy,
+    anchor_l = _joint_l_epsilon_anchor_l(
+        selected_kernel=selected_kernel,
         attempt_state=_attempt_state,
     )
+    target_trajectory = float(geometry.target_trajectory_length)
     ladder_result: FixedMassHMCTuningBudgetLadderResult | None = None
-    run_error: Exception | None = None
     hard_vetoes: list[str] = []
     before_signature = _mass_artifact_signature(adapted_mass)
     progress_attempt_index = (
@@ -3793,84 +5263,325 @@ def run_hmc_fixed_mass_step_stage(
         if _attempt_index is None and _attempt_budget_policy is not None
         else None if _attempt_index is None else int(_attempt_index)
     )
-
-    def forward_ladder_progress(stage: str, payload: Mapping[str, Any]) -> None:
-        _emit_phase7_progress(
-            _progress_callback,
-            stage,
-            attempt_index=0 if progress_attempt_index is None else progress_attempt_index,
-            budget_policy=_attempt_budget_policy,
-            started=bool(payload.get("started")),
-            completed=bool(payload.get("completed")),
-            extra=_budget_ladder_progress_extra(payload),
+    progress_attempt = 0 if progress_attempt_index is None else progress_attempt_index
+    phase4_adapter = _phase4_latent_adapter_for_step_stage(
+        adapter=adapter,
+        geometry=geometry,
+        windowed_stage=windowed_stage,
+        target_scope=target_scope,
+    )
+    initial_state_factory = _fixed_mass_step_initial_state_factory(
+        adapted_mass.dimension
+    )
+    joint_rounds: list[Mapping[str, Any]] = []
+    joint_candidates: list[Mapping[str, Any]] = []
+    joint_candidate_elapsed_s: list[float] = []
+    fixed_mass_stage_start = time.perf_counter()
+    round_index = 0
+    current_anchor_l = int(anchor_l)
+    final_round: Mapping[str, Any] | None = None
+    selected_candidate: Mapping[str, Any] | None = None
+    selected_ladder: FixedMassHMCTuningBudgetLadderResult | None = None
+    selected_edge_direction: str | None = None
+    public_timeout_closeout: Mapping[str, Any] | None = None
+    previous_edge_direction: str | None = None
+    previous_selected_l: int | None = None
+    for edge_round in range(_JOINT_L_EPSILON_MAX_EDGE_REPAIR_ROUNDS + 1):
+        grid_values = _joint_l_epsilon_grid_values(
+            anchor_l=current_anchor_l,
+            max_leapfrog_steps=max_leapfrog_steps,
+            offsets=_JOINT_L_EPSILON_INITIAL_OFFSETS,
         )
-
-    try:
-        ladder_result = run_fixed_mass_hmc_tuning_budget_ladder(
-            adapter=_phase4_latent_adapter_for_step_stage(
-                adapter=adapter,
-                geometry=geometry,
-                windowed_stage=windowed_stage,
-                target_scope=target_scope,
-            ),
-            mass_artifact=adapted_mass,
-            initial_state_factory=_fixed_mass_step_initial_state_factory(
-                adapted_mass.dimension
-            ),
-            config=budget_config,
+        round_payload = _run_joint_l_epsilon_grid_round(
+            adapter=phase4_adapter,
+            adapted_mass=adapted_mass,
+            initial_state_factory=initial_state_factory,
+            config=cfg,
+            initial_step=initial_step,
+            target_scope=target_scope,
+            target_trajectory=target_trajectory,
+            anchor_l=current_anchor_l,
+            max_leapfrog_steps=max_leapfrog_steps,
+            round_index=round_index,
+            grid_stage="initial" if edge_round == 0 else "edge_repair",
+            grid_values=grid_values,
+            fixed_mass_stage_start_perf_counter_s=fixed_mass_stage_start,
+            completed_candidate_elapsed_s=joint_candidate_elapsed_s,
             screen_callback=screen_callback,
-            progress_callback=forward_ladder_progress,
             run_full_chain=run_full_chain,
+            attempt_budget_policy=_attempt_budget_policy,
+            attempt_state=_attempt_state,
+            progress_callback=_progress_callback,
+            progress_attempt_index=progress_attempt,
+            private_diagnostic_callback=_private_diagnostic_callback,
         )
-    except Exception as exc:  # noqa: BLE001 - return fail-closed artifact.
-        run_error = exc
-        hard_vetoes.append("fixed_mass_step_ladder_error")
+        joint_rounds.append(round_payload)
+        joint_candidates.extend(tuple(round_payload["candidates"]))
+        selected_candidate = round_payload["selected_candidate"]
+        selected_ladder = round_payload["selected_ladder"]
+        selected_edge_direction = round_payload["edge_direction"]
+        if isinstance(round_payload.get("public_timeout_closeout"), Mapping):
+            public_timeout_closeout = dict(round_payload["public_timeout_closeout"])
+            break
+        if selected_candidate is None:
+            break
+        selected_l = int(selected_candidate["num_leapfrog_steps"])
+        if selected_edge_direction is None:
+            break
+        if (
+            previous_edge_direction is not None
+            and selected_edge_direction != previous_edge_direction
+        ):
+            break
+        if previous_selected_l is not None and selected_l == previous_selected_l:
+            break
+        if edge_round >= _JOINT_L_EPSILON_MAX_EDGE_REPAIR_ROUNDS:
+            break
+        step = max(1, max(abs(int(offset)) for offset in _JOINT_L_EPSILON_INITIAL_OFFSETS))
+        current_anchor_l = (
+            max(_GEOMETRY_MIN_LEAPFROG, selected_l - step)
+            if selected_edge_direction == "lower"
+            else min(
+                max_leapfrog_steps,
+                selected_l + step,
+            )
+        )
+        previous_edge_direction = selected_edge_direction
+        previous_selected_l = selected_l
+        round_index += 1
+    if selected_candidate is not None and public_timeout_closeout is None:
+        local_anchor_l = int(selected_candidate["num_leapfrog_steps"])
+        local_grid = _joint_l_epsilon_grid_values(
+            anchor_l=local_anchor_l,
+            max_leapfrog_steps=max_leapfrog_steps,
+            offsets=_JOINT_L_EPSILON_FINAL_LOCAL_OFFSETS,
+        )
+        round_index += 1
+        final_round = _run_joint_l_epsilon_grid_round(
+            adapter=phase4_adapter,
+            adapted_mass=adapted_mass,
+            initial_state_factory=initial_state_factory,
+            config=cfg,
+            initial_step=initial_step,
+            target_scope=target_scope,
+            target_trajectory=target_trajectory,
+            anchor_l=local_anchor_l,
+            max_leapfrog_steps=max_leapfrog_steps,
+            round_index=round_index,
+            grid_stage="final_local",
+            grid_values=local_grid,
+            fixed_mass_stage_start_perf_counter_s=fixed_mass_stage_start,
+            completed_candidate_elapsed_s=joint_candidate_elapsed_s,
+            screen_callback=screen_callback,
+            run_full_chain=run_full_chain,
+            attempt_budget_policy=_attempt_budget_policy,
+            attempt_state=_attempt_state,
+            progress_callback=_progress_callback,
+            progress_attempt_index=progress_attempt,
+            private_diagnostic_callback=_private_diagnostic_callback,
+        )
+        joint_rounds.append(final_round)
+        joint_candidates.extend(tuple(final_round["candidates"]))
+        selected_candidate = final_round["selected_candidate"]
+        selected_ladder = final_round["selected_ladder"]
+        selected_edge_direction = final_round["edge_direction"]
+        if isinstance(final_round.get("public_timeout_closeout"), Mapping):
+            public_timeout_closeout = dict(final_round["public_timeout_closeout"])
     after_signature = _mass_artifact_signature(adapted_mass)
     frozen_mass_invariant = _fixed_mass_step_frozen_mass_invariant(
         before_signature,
         after_signature,
     )
+    ladder_result = selected_ladder
+    repair_ladder = _select_joint_l_epsilon_repair_ladder(
+        joint_rounds,
+        target_accept_prob=cfg.target_accept_prob,
+        target_trajectory=target_trajectory,
+    )
+    candidate_hard_vetoes = tuple(
+        dict.fromkeys(
+            str(item)
+            for candidate in joint_candidates
+            for item in candidate.get("hard_vetoes", ())
+        )
+    )
+    candidate_continuation_vetoes = tuple(
+        dict.fromkeys(
+            str(item)
+            for candidate in joint_candidates
+            for item in candidate.get("continuation_vetoes", ())
+        )
+    )
+    candidate_repair_triggers = tuple(
+        dict.fromkeys(
+            str(item)
+            for candidate in joint_candidates
+            for item in candidate.get("repair_triggers", ())
+        )
+    )
+    viable_candidates = tuple(
+        candidate for candidate in joint_candidates if candidate.get("viable") is True
+    )
+    selected_pair_progress_before_closeout = bool(viable_candidates)
+    budget_incomplete_closeout = bool(
+        public_timeout_closeout is not None
+        and selected_pair_progress_before_closeout
+        and str(public_timeout_closeout.get("grid_stage")) in {"edge_repair", "final_local"}
+    )
+    if public_timeout_closeout is not None:
+        timeout_payload = dict(public_timeout_closeout)
+        timeout_payload["selected_pair_progress_before_closeout"] = (
+            selected_pair_progress_before_closeout
+        )
+        timeout_payload["budget_incomplete"] = budget_incomplete_closeout
+        timeout_payload["budget_incomplete_scope"] = (
+            "edge_or_final_local_after_selected_pair_progress"
+            if budget_incomplete_closeout
+            else "pre_candidate_or_no_selected_pair_progress"
+        )
+        if budget_incomplete_closeout:
+            timeout_payload.pop("hard_veto", None)
+            timeout_payload["diagnostic_role"] = (
+                _FIXED_MASS_STEP_PUBLIC_TIMEOUT_BUDGET_INCOMPLETE_ROLE
+            )
+            timeout_payload["repair_trigger"] = (
+                _FIXED_MASS_STEP_PUBLIC_TIMEOUT_BUDGET_INCOMPLETE_REPAIR_TRIGGER
+            )
+        public_timeout_closeout = timeout_payload
     if not frozen_mass_invariant["passed"]:
         hard_vetoes.append("fixed_mass_step_mass_signature_mutated")
-    diagnostics = _fixed_mass_step_stage_diagnostics(
-        ladder_result,
-        run_error=run_error,
-        hard_vetoes=tuple(hard_vetoes),
-    )
-    hard_vetoes.extend(diagnostics.get("hard_vetoes_from_ladder", ()))
-    hard_vetoes = list(dict.fromkeys(str(item) for item in hard_vetoes))
-    continuation_vetoes = tuple(
-        str(item) for item in diagnostics.get("continuation_vetoes_from_ladder", ())
-    )
-    repair_triggers = tuple(
-        str(item) for item in diagnostics.get("repair_triggers_from_ladder", ())
-    )
+    if public_timeout_closeout is not None and not budget_incomplete_closeout:
+        hard_vetoes.append(_FIXED_MASS_STEP_PUBLIC_TIMEOUT_HARD_VETO)
     if hard_vetoes:
         final_status = "hard_veto"
-    elif continuation_vetoes:
+    elif budget_incomplete_closeout:
+        final_status = "budget_exhausted"
+    elif selected_candidate is not None and ladder_result is not None and ladder_result.passed:
+        final_status = "passed"
+    elif candidate_continuation_vetoes and not viable_candidates:
         final_status = "hard_veto"
         hard_vetoes = list(
-            dict.fromkeys([*hard_vetoes, "fixed_mass_step_continuation_veto"])
+            dict.fromkeys(
+                [
+                    *hard_vetoes,
+                    "fixed_mass_step_continuation_veto",
+                    *candidate_continuation_vetoes,
+                ]
+            )
         )
-    elif ladder_result is not None and ladder_result.passed:
-        final_status = "passed"
+    elif candidate_hard_vetoes and not viable_candidates and not repair_ladder:
+        final_status = "hard_veto"
+        hard_vetoes = list(dict.fromkeys([*hard_vetoes, *candidate_hard_vetoes]))
     else:
         final_status = "repair_or_retry"
+    hard_vetoes = list(dict.fromkeys(str(item) for item in hard_vetoes))
+    continuation_vetoes = candidate_continuation_vetoes
+    repair_triggers = tuple(
+        dict.fromkeys(
+            [
+                *candidate_repair_triggers,
+                *(
+                    (
+                        (
+                            _FIXED_MASS_STEP_PUBLIC_TIMEOUT_BUDGET_INCOMPLETE_REPAIR_TRIGGER,
+                        )
+                        if budget_incomplete_closeout
+                        else (_FIXED_MASS_STEP_PUBLIC_TIMEOUT_REPAIR_TRIGGER,)
+                    )
+                    if public_timeout_closeout is not None
+                    else (
+                        ()
+                        if final_status == "passed"
+                        else ("joint_l_epsilon_no_viable_pair",)
+                    )
+                ),
+            ]
+        )
+    )
     diagnostic_role = (
         "fixed_mass_step_stage_handoff_only"
         if final_status == "passed"
-        else ("repair_trigger" if final_status == "repair_or_retry" else "hard_veto")
+        else (
+            _FIXED_MASS_STEP_PUBLIC_TIMEOUT_BUDGET_INCOMPLETE_ROLE
+            if final_status == "budget_exhausted"
+            else ("repair_trigger" if final_status == "repair_or_retry" else "hard_veto")
+        )
     )
     selected_payload = None
     selected_hash = None
     repair_payload = None
     repair_hash = None
-    if ladder_result is not None and ladder_result.passed:
+    if final_status == "passed" and ladder_result is not None and ladder_result.passed:
         selected_payload = ladder_result.selected_config_payload
         selected_hash = ladder_result.selected_config_hash
-    elif ladder_result is not None and final_status == "repair_or_retry":
-        repair_payload = ladder_result.repair_config_payload
-        repair_hash = ladder_result.repair_config_hash
+    elif repair_ladder is not None and final_status == "repair_or_retry":
+        repair_payload = repair_ladder.repair_config_payload
+        repair_hash = repair_ladder.repair_config_hash
+    representative_ladder = ladder_result if ladder_result is not None else repair_ladder
+    representative_budget_config_payload = (
+        None
+        if representative_ladder is None
+        else {
+            **representative_ladder.config.payload(),
+            "joint_l_epsilon_algorithm": "joint_l_epsilon_grid_fixed_mass_hmc",
+            "representative_selected_ladder": ladder_result is representative_ladder,
+        }
+    )
+    joint_round_summaries = tuple(dict(round_payload["summary"]) for round_payload in joint_rounds)
+    joint_run_errors = tuple(
+        error
+        for round_payload in joint_rounds
+        for error in tuple(round_payload.get("run_errors", ()))
+    )
+    diagnostics = {
+        "passed": final_status == "passed",
+        "algorithm": "joint_l_epsilon_grid_fixed_mass_hmc",
+        "promoted_default": True,
+        "bootstrap_l_is_anchor_not_fixed_policy": True,
+        "initial_anchor_l": int(anchor_l),
+        "selected_num_leapfrog_steps": None
+        if selected_candidate is None
+        else int(selected_candidate["num_leapfrog_steps"]),
+        "selected_step_size": None
+        if selected_candidate is None
+        else selected_candidate.get("selected_step_size"),
+        "selected_acceptance_rate": None
+        if selected_candidate is None
+        else selected_candidate.get("screen_acceptance_rate"),
+        "selected_ladder_artifact_hash": None
+        if ladder_result is None
+        else ladder_result.artifact_hash,
+        "edge_repair_round_count": sum(
+            1 for summary in joint_round_summaries if summary["grid_stage"] == "edge_repair"
+        ),
+        "selected_at_grid_edge_after_final_round": selected_edge_direction is not None,
+        "final_local_grid_ran": final_round is not None,
+        "round_summaries": joint_round_summaries,
+        "candidate_count": len(joint_candidates),
+        "viable_candidate_count": len(viable_candidates),
+        "candidates": tuple(joint_candidates),
+        "candidate_run_errors": joint_run_errors,
+        "public_timeout_closeout": None
+        if public_timeout_closeout is None
+        else dict(public_timeout_closeout),
+        "public_timeout_closeout_required": public_timeout_closeout is not None,
+        "public_timeout_budget_incomplete": budget_incomplete_closeout,
+        "selected_pair_progress_before_timeout_closeout": (
+            selected_pair_progress_before_closeout
+            if public_timeout_closeout is not None
+            else False
+        ),
+        "completed_candidate_elapsed_count": len(joint_candidate_elapsed_s),
+        "hard_vetoes_from_ladder": candidate_hard_vetoes,
+        "continuation_vetoes_from_ladder": continuation_vetoes,
+        "repair_triggers_from_ladder": candidate_repair_triggers,
+        "hard_vetoes": tuple(hard_vetoes),
+        "continuation_vetoes": continuation_vetoes,
+        "repair_triggers": repair_triggers,
+        "reports_posterior_convergence": False,
+        "reports_sampler_superiority": False,
+        "nonclaims": FIXED_MASS_STEP_STAGE_NONCLAIMS,
+    }
     return HMCFixedMassStepStageResult(
         config=cfg,
         windowed_stage_artifact_hash=windowed_stage.artifact_hash,
@@ -3879,31 +5590,30 @@ def run_hmc_fixed_mass_step_stage(
         phase4_hmc_adapter_signature=windowed_stage.hmc_adapter_signature,
         ladder_adapter_signature=(
             "fixed_mass_step_ladder_unavailable"
-            if ladder_result is None
-            else ladder_result.adapter_signature
+            if representative_ladder is None
+            else representative_ladder.adapter_signature
         ),
         ladder_hmc_adapter_signature=(
             "fixed_mass_step_ladder_hmc_unavailable"
-            if ladder_result is None
-            else ladder_result.hmc_adapter_signature
+            if representative_ladder is None
+            else representative_ladder.hmc_adapter_signature
         ),
         adapted_mass_artifact_payload=adapted_mass.to_payload(include_arrays=True),
         adapted_mass_artifact_signature=before_signature,
         initial_step_size=initial_step,
-        fixed_num_leapfrog_steps=fixed_leapfrog,
+        fixed_num_leapfrog_steps=(
+            int(anchor_l)
+            if selected_candidate is None
+            else int(selected_candidate["num_leapfrog_steps"])
+        ),
         target_dimension=windowed_stage.target_dimension,
         final_status=final_status,
         diagnostic_role=diagnostic_role,
         hard_vetoes=tuple(hard_vetoes),
         repair_triggers=repair_triggers,
-        diagnostics={
-            **diagnostics,
-            "hard_vetoes": tuple(hard_vetoes),
-            "continuation_vetoes": continuation_vetoes,
-            "repair_triggers": repair_triggers,
-        },
-        budget_ladder_config_payload=budget_config.payload(),
-        budget_ladder_result=ladder_result,
+        diagnostics=diagnostics,
+        budget_ladder_config_payload=representative_budget_config_payload,
+        budget_ladder_result=representative_ladder,
         selected_step_payload=selected_payload,
         selected_step_hash=selected_hash,
         repair_step_payload=repair_payload,
@@ -3943,6 +5653,7 @@ def run_hmc_frozen_step_trajectory_stage(
     _attempt_state: "_HMCPhaseAttemptState" | None = None,
     _progress_callback: LoopProgressCallback | None = None,
     _attempt_index: int | None = None,
+    _private_diagnostic_callback: PrivateTuningDiagnosticCallback | None = None,
 ) -> HMCFrozenStepTrajectoryStageResult:
     """Run Phase 6 frozen-step trajectory tuning from a passed Phase 5 handoff.
 
@@ -3974,7 +5685,7 @@ def run_hmc_frozen_step_trajectory_stage(
     target_scope = _resolve_frozen_step_trajectory_stage_target_scope(adapter, cfg)
     adapted_mass = _phase4_adapted_mass_artifact(windowed_stage)
     frozen_step = _required_selected_step_size(fixed_mass_step_stage)
-    fixed_bootstrap_l = int(fixed_mass_step_stage.fixed_num_leapfrog_steps)
+    fixed_pair_l = int(fixed_mass_step_stage.fixed_num_leapfrog_steps)
     phase4_adapter = _phase4_latent_adapter_for_step_stage(
         adapter=adapter,
         geometry=geometry,
@@ -3991,15 +5702,27 @@ def run_hmc_frozen_step_trajectory_stage(
     trajectory_hmc_signature = stable_adapter_signature(trajectory_adapter)
     if trajectory_hmc_signature != fixed_mass_step_stage.ladder_hmc_adapter_signature:
         raise ValueError("Phase 6 trajectory HMC adapter signature mismatch")
-    candidate_generation = _frozen_step_trajectory_candidate_generation(
-        geometry=geometry,
-        selected_step_size=frozen_step,
-        fixed_bootstrap_l=fixed_bootstrap_l,
-        max_leapfrog_steps=cfg.max_leapfrog_steps,
-        trajectory_window_lower_multiplier=cfg.trajectory_window_lower_multiplier,
-        trajectory_window_upper_multiplier=cfg.trajectory_window_upper_multiplier,
-        attempt_state=_attempt_state,
-    )
+    phase5_algorithm = fixed_mass_step_stage.diagnostics.get("algorithm")
+    if phase5_algorithm == "joint_l_epsilon_grid_fixed_mass_hmc":
+        candidate_generation = _joint_l_epsilon_selected_pair_candidate_generation(
+            geometry=geometry,
+            selected_step_size=frozen_step,
+            selected_num_leapfrog_steps=fixed_pair_l,
+            fixed_bootstrap_l=fixed_pair_l,
+            max_leapfrog_steps=cfg.max_leapfrog_steps,
+            trajectory_window_lower_multiplier=cfg.trajectory_window_lower_multiplier,
+            trajectory_window_upper_multiplier=cfg.trajectory_window_upper_multiplier,
+        )
+    else:
+        candidate_generation = _frozen_step_trajectory_candidate_generation(
+            geometry=geometry,
+            selected_step_size=frozen_step,
+            fixed_bootstrap_l=fixed_pair_l,
+            max_leapfrog_steps=cfg.max_leapfrog_steps,
+            trajectory_window_lower_multiplier=cfg.trajectory_window_lower_multiplier,
+            trajectory_window_upper_multiplier=cfg.trajectory_window_upper_multiplier,
+            attempt_state=_attempt_state,
+        )
     candidates = tuple(int(item) for item in candidate_generation["candidate_l_values"])
     candidate_results: list[Mapping[str, Any]] = []
     stage_hard_vetoes: list[str] = []
@@ -4112,6 +5835,7 @@ def run_hmc_frozen_step_trajectory_stage(
                     "num_leapfrog_steps": int(leapfrog_count),
                     "step_size": frozen_step,
                 },
+                dynamic_num_leapfrog_steps=True,
             )
             candidate_elapsed = time.perf_counter() - candidate_start
             candidate_elapsed_s.append(candidate_elapsed)
@@ -4249,6 +5973,53 @@ def run_hmc_frozen_step_trajectory_stage(
         if runner_route_events:
             candidate_payload["runner_route_event"] = runner_route_events[-1]
         candidate_results.append(candidate_payload)
+        if _private_diagnostic_callback is not None:
+            _private_diagnostic_callback(
+                "frozen_step_trajectory_candidate_complete",
+                {
+                    "stage": "frozen_step_trajectory_candidate_complete",
+                    "attempt_index": progress_attempt_index,
+                    "candidate_index": int(candidate_index),
+                    "candidate_count": len(candidates),
+                    "candidate_completed_count": len(candidate_results),
+                    "candidate_pass_count": sum(
+                        1
+                        for candidate in candidate_results
+                        if candidate.get("classification") == "passed_screen"
+                    ),
+                    "candidate_hard_veto_count": sum(
+                        1
+                        for candidate in candidate_results
+                        if tuple(candidate.get("hard_vetoes", ()))
+                    ),
+                    "step_size": float(frozen_step),
+                    "num_leapfrog_steps": int(leapfrog_count),
+                    "trajectory_length": trajectory_length,
+                    "target_trajectory_length": geometry.target_trajectory_length,
+                    "trajectory_window": trajectory_window["trajectory_window"],
+                    "trajectory_window_relation": trajectory_window[
+                        "trajectory_window_relation"
+                    ],
+                    "trajectory_target_ratio": trajectory_window[
+                        "trajectory_target_ratio"
+                    ],
+                    "screen_acceptance_rate": diagnostics.get("acceptance_rate"),
+                    "classification": classification,
+                    "diagnostic_role": diagnostic_role,
+                    "hard_vetoes": hard_vetoes,
+                    "continuation_vetoes": continuation_vetoes,
+                    "promotion_vetoes": promotion_vetoes,
+                    "repair_triggers": repair_triggers,
+                    "selected_candidate": False,
+                    "runner_route_hash": None
+                    if not runner_route_events
+                    else stable_config_hash(runner_route_events[-1]),
+                    "private_hmc_mechanics": True,
+                    "reports_posterior_convergence": False,
+                    "reports_sampler_superiority": False,
+                    "nonclaims": FROZEN_STEP_TRAJECTORY_STAGE_NONCLAIMS,
+                },
+            )
         stage_hard_vetoes.extend(hard_vetoes)
         if continuation_vetoes:
             stage_hard_vetoes.append("frozen_step_trajectory_continuation_veto")
@@ -4312,6 +6083,60 @@ def run_hmc_frozen_step_trajectory_stage(
         selected_payload = None
         selected_hash = None
     stage_hard_vetoes = list(dict.fromkeys(str(item) for item in stage_hard_vetoes))
+    if _private_diagnostic_callback is not None:
+        selected_candidate = (
+            None if selected_index is None else candidate_results[int(selected_index)]
+        )
+        _private_diagnostic_callback(
+            "frozen_step_trajectory_round_selected",
+            {
+                "stage": "frozen_step_trajectory_round_selected",
+                "attempt_index": progress_attempt_index,
+                "candidate_count": len(candidates),
+                "candidate_completed_count": len(candidate_results),
+                "candidate_pass_count": sum(
+                    1
+                    for candidate in candidate_results
+                    if candidate.get("classification") == "passed_screen"
+                ),
+                "candidate_hard_veto_count": sum(
+                    1
+                    for candidate in candidate_results
+                    if tuple(candidate.get("hard_vetoes", ()))
+                ),
+                "selected_pair_exists": selected_candidate is not None,
+                "selected_candidate_index": selected_index,
+                "step_size": None
+                if selected_candidate is None
+                else float(selected_candidate["step_size"]),
+                "num_leapfrog_steps": None
+                if selected_candidate is None
+                else int(selected_candidate["num_leapfrog_steps"]),
+                "trajectory_length": None
+                if selected_candidate is None
+                else selected_candidate.get("trajectory_length"),
+                "target_trajectory_length": geometry.target_trajectory_length,
+                "selected_trajectory_hash": selected_hash,
+                "final_status": final_status,
+                "diagnostic_role": (
+                    "frozen_step_trajectory_handoff_only"
+                    if final_status == "passed"
+                    else (
+                        "repair_trigger"
+                        if final_status == "repair_or_retry"
+                        else "hard_veto"
+                    )
+                ),
+                "hard_vetoes": tuple(stage_hard_vetoes),
+                "repair_triggers": tuple(stage_repair_triggers),
+                "mass_signature_unchanged": frozen_mass_invariant["passed"],
+                "step_size_unchanged": frozen_step_invariant["passed"],
+                "private_hmc_mechanics": True,
+                "reports_posterior_convergence": False,
+                "reports_sampler_superiority": False,
+                "nonclaims": FROZEN_STEP_TRAJECTORY_STAGE_NONCLAIMS,
+            },
+        )
     diagnostic_role = (
         "frozen_step_trajectory_handoff_only"
         if final_status == "passed"
@@ -4332,7 +6157,7 @@ def run_hmc_frozen_step_trajectory_stage(
         adapted_mass_artifact_payload=adapted_mass.to_payload(include_arrays=True),
         adapted_mass_artifact_signature=before_mass_signature,
         frozen_step_size=frozen_step,
-        fixed_bootstrap_num_leapfrog_steps=fixed_bootstrap_l,
+        fixed_bootstrap_num_leapfrog_steps=fixed_pair_l,
         target_dimension=windowed_stage.target_dimension,
         candidate_generation=candidate_generation,
         candidate_results=tuple(candidate_results),
@@ -4396,6 +6221,19 @@ def run_hmc_frozen_step_trajectory_stage(
     )
 
 
+def _callable_accepts_private_diagnostic_callback(callback: Callable[..., Any]) -> bool:
+    try:
+        parameters = inspect.signature(callback).parameters
+    except (TypeError, ValueError):
+        return callback is run_hmc_frozen_step_trajectory_stage
+    if "_private_diagnostic_callback" in parameters:
+        return True
+    return any(
+        parameter.kind == inspect.Parameter.VAR_KEYWORD
+        for parameter in parameters.values()
+    )
+
+
 def run_hmc_tune_verify_repair_loop(
     *,
     adapter: Any,
@@ -4421,6 +6259,7 @@ def run_hmc_tune_verify_repair_loop(
         tuple[str, ...],
     ]] | None = None,
     _progress_callback: LoopProgressCallback | None = None,
+    _private_diagnostic_callback: PrivateTuningDiagnosticCallback | None = None,
 ) -> HMCTuneVerifyRepairLoopResult:
     """Run Phase 7 tune/verify/repair with private budget escalation.
 
@@ -4468,10 +6307,53 @@ def run_hmc_tune_verify_repair_loop(
     diagnostic_role = "budget_exhausted_non_promoting"
     terminal_budget_guard_payload: Mapping[str, Any] | None = None
 
-    for attempt_index in range(cfg.max_attempts):
+    attempt_index = 0
+    terminal_phase6_repair_extra_attempts_consumed = 0
+    loop_exhausted = False
+    terminal_phase6_slot_payload: Mapping[str, Any] | None = None
+    while True:
+        if attempt_index >= int(cfg.max_attempts):
+            if _phase7_terminal_phase6_repair_slot_eligible(
+                config=cfg,
+                attempt_state=attempt_state,
+                last_attempt=attempts[-1] if attempts else None,
+                consumed_slots=terminal_phase6_repair_extra_attempts_consumed,
+            ):
+                terminal_phase6_slot_payload = _phase7_terminal_phase6_repair_slot_payload(
+                    config=cfg,
+                    attempt_state=attempt_state,
+                    last_attempt=attempts[-1] if attempts else None,
+                    attempt_index=attempt_index,
+                    consumed_slots=terminal_phase6_repair_extra_attempts_consumed,
+                )
+            else:
+                loop_exhausted = True
+                break
+        else:
+            terminal_phase6_slot_payload = None
         budget_policy = policy_factory(geometry.target_dimension, attempt_index)
         if not isinstance(budget_policy, _HMCAttemptBudgetPolicy):
             raise TypeError("private budget policy factory must return _HMCAttemptBudgetPolicy")
+        extended_attempt_stall_blocker = _phase7_extended_attempt_stall_blocker(
+            config=cfg,
+            attempt_state=attempt_state,
+            last_attempt=attempts[-1] if attempts else None,
+            next_attempt_policy=budget_policy,
+        )
+        if extended_attempt_stall_blocker is not None:
+            final_status = "budget_exhausted"
+            diagnostic_role = _PHASE7_EXTENDED_ATTEMPT_STALLED
+            terminal_budget_guard_payload = extended_attempt_stall_blocker
+            repair_triggers.append(_PHASE7_EXTENDED_ATTEMPT_STALLED)
+            _emit_phase7_progress(
+                _progress_callback,
+                _PHASE7_EXTENDED_ATTEMPT_STALLED,
+                attempt_index=attempt_index,
+                budget_policy=budget_policy,
+                completed=True,
+                extra=extended_attempt_stall_blocker,
+            )
+            break
         verify_only_budget_blocker = _phase7_verify_only_budget_saturation_blocker(
             config=cfg,
             attempt_state=attempt_state,
@@ -4510,13 +6392,22 @@ def run_hmc_tune_verify_repair_loop(
                 extra=verification_budget_blocker,
             )
             break
+        if terminal_phase6_slot_payload is not None:
+            terminal_phase6_repair_extra_attempts_consumed += 1
         _emit_phase7_progress(
             _progress_callback,
             "loop_attempt_start",
             attempt_index=attempt_index,
             budget_policy=budget_policy,
             started=True,
-            extra={"incoming_repair_handoff_available": attempt_state is not None},
+            extra={
+                "incoming_repair_handoff_available": attempt_state is not None,
+                **(
+                    {}
+                    if terminal_phase6_slot_payload is None
+                    else {"terminal_phase6_repair_slot": terminal_phase6_slot_payload}
+                ),
+            },
         )
         incoming_payload = None if attempt_state is None else attempt_state.payload()
         windowed_stage: HMCWindowedMassStageResult | None = None
@@ -4534,12 +6425,68 @@ def run_hmc_tune_verify_repair_loop(
         attempt_status = "repair_or_retry"
         attempt_role = "repair_trigger"
         handoff_state: _HMCPhaseAttemptState | None = None
+        use_verification_only_retry = (
+            verification_only_retry_bundle is not None
+            and _phase7_should_retry_verification_only(attempt_state)
+        )
+        pre_windowed_timeout: Mapping[str, Any] | None = None
+        if not use_verification_only_retry:
+            pre_windowed_timeout = _phase7_public_timeout_before_windowed_mass(
+                config=_phase7_windowed_stage_config(cfg, attempt_index=attempt_index),
+                attempt_index=attempt_index,
+                target_dimension=geometry.target_dimension,
+                budget_policy=budget_policy,
+            )
+            if pre_windowed_timeout is not None:
+                attempt_status = "hard_veto"
+                attempt_role = "hard_veto"
+                attempt_hard_vetoes.append(
+                    _PHASE7_PUBLIC_TIMEOUT_BEFORE_WINDOWED_MASS_HARD_VETO
+                )
+                attempt_repair_triggers.append(
+                    _PHASE7_PUBLIC_TIMEOUT_BEFORE_WINDOWED_MASS_REPAIR_TRIGGER
+                )
+                verification_diagnostics = {
+                    "attempt_index": attempt_index,
+                    "not_run": _PHASE7_PUBLIC_TIMEOUT_BEFORE_WINDOWED_MASS_HARD_VETO,
+                    "public_timeout_closeout": pre_windowed_timeout,
+                    "windowed_stage_runner_called": False,
+                    "reports_posterior_convergence": False,
+                    "nonclaims": TUNE_VERIFY_REPAIR_LOOP_NONCLAIMS,
+                }
+                _emit_phase7_progress(
+                    _progress_callback,
+                    _PHASE7_PUBLIC_TIMEOUT_BEFORE_WINDOWED_MASS_HARD_VETO,
+                    attempt_index=attempt_index,
+                    budget_policy=budget_policy,
+                    completed=True,
+                    extra={
+                        **dict(pre_windowed_timeout),
+                        "resume_split_public_summary": _phase7_attempt_resume_split_public_summary(
+                            HMCTuneVerifyRepairAttempt(
+                                attempt_index=attempt_index,
+                                budget_policy_payload=budget_policy.payload(),
+                                incoming_state_payload=incoming_payload,
+                                windowed_stage=None,
+                                fixed_mass_step_stage=None,
+                                frozen_step_trajectory_stage=None,
+                                verification_config_payload=None,
+                                verification_diagnostics=verification_diagnostics,
+                                verification_callback_result=verification_callback_result,
+                                final_status=attempt_status,
+                                diagnostic_role=attempt_role,
+                                hard_vetoes=tuple(attempt_hard_vetoes),
+                                repair_triggers=tuple(attempt_repair_triggers),
+                                handoff_state_payload=None,
+                            )
+                        ),
+                    },
+                )
 
         try:
-            if (
-                verification_only_retry_bundle is not None
-                and _phase7_should_retry_verification_only(attempt_state)
-            ):
+            if pre_windowed_timeout is not None:
+                pass
+            elif use_verification_only_retry:
                 windowed_stage = verification_only_retry_bundle["windowed_stage"]
                 fixed_stage = verification_only_retry_bundle["fixed_mass_step_stage"]
                 trajectory_stage = verification_only_retry_bundle["trajectory_stage"]
@@ -4683,6 +6630,7 @@ def run_hmc_tune_verify_repair_loop(
                     _progress_callback=forward_windowed_mass_progress,
                     _attempt_index=attempt_index,
                     _checkpoint_writer_config=verification_checkpoint_writer_config,
+                    _private_diagnostic_callback=_private_diagnostic_callback,
                 )
                 _emit_phase7_progress(
                     _progress_callback,
@@ -4724,6 +6672,8 @@ def run_hmc_tune_verify_repair_loop(
                         _attempt_state=attempt_state,
                         _progress_callback=_progress_callback,
                         _attempt_index=attempt_index,
+                        _max_leapfrog_steps=cfg.max_leapfrog_steps,
+                        _private_diagnostic_callback=_private_diagnostic_callback,
                     )
                     _emit_phase7_progress(
                         _progress_callback,
@@ -4741,6 +6691,13 @@ def run_hmc_tune_verify_repair_loop(
                         attempt_hard_vetoes.extend(fixed_stage.hard_vetoes)
                         attempt_status = "hard_veto"
                         attempt_role = "hard_veto"
+                    elif fixed_stage.final_status == "budget_exhausted":
+                        attempt_repair_triggers.extend(fixed_stage.repair_triggers)
+                        attempt_repair_triggers.append(
+                            f"phase5_fixed_mass_step_status:{fixed_stage.final_status}"
+                        )
+                        attempt_status = "budget_exhausted"
+                        attempt_role = fixed_stage.diagnostic_role
                     elif not fixed_stage.passed:
                         attempt_repair_triggers.extend(fixed_stage.repair_triggers)
                         attempt_repair_triggers.append(
@@ -4754,22 +6711,31 @@ def run_hmc_tune_verify_repair_loop(
                             budget_policy=budget_policy,
                             started=True,
                         )
-                        trajectory_stage = _frozen_step_trajectory_stage_runner(
-                            adapter=adapter,
-                            geometry=geometry,
-                            bootstrap=bootstrap,
-                            windowed_stage=windowed_stage,
-                            fixed_mass_step_stage=fixed_stage,
-                            config=_phase7_trajectory_stage_config(
+                        trajectory_kwargs: dict[str, Any] = {
+                            "adapter": adapter,
+                            "geometry": geometry,
+                            "bootstrap": bootstrap,
+                            "windowed_stage": windowed_stage,
+                            "fixed_mass_step_stage": fixed_stage,
+                            "config": _phase7_trajectory_stage_config(
                                 cfg,
                                 attempt_index=attempt_index,
                             ),
-                            screen_callback=trajectory_screen_callback,
-                            run_full_chain=run_full_chain,
-                            _attempt_budget_policy=budget_policy,
-                            _attempt_state=attempt_state,
-                            _progress_callback=_progress_callback,
-                            _attempt_index=attempt_index,
+                            "screen_callback": trajectory_screen_callback,
+                            "run_full_chain": run_full_chain,
+                            "_attempt_budget_policy": budget_policy,
+                            "_attempt_state": attempt_state,
+                            "_progress_callback": _progress_callback,
+                            "_attempt_index": attempt_index,
+                        }
+                        if _callable_accepts_private_diagnostic_callback(
+                            _frozen_step_trajectory_stage_runner
+                        ):
+                            trajectory_kwargs["_private_diagnostic_callback"] = (
+                                _private_diagnostic_callback
+                            )
+                        trajectory_stage = _frozen_step_trajectory_stage_runner(
+                            **trajectory_kwargs
                         )
                         _emit_phase7_progress(
                             _progress_callback,
@@ -4886,6 +6852,44 @@ def run_hmc_tune_verify_repair_loop(
                 verification_diagnostic_role=attempt_role,
                 verification_repair_triggers=attempt_repair_triggers,
             )
+            if _private_diagnostic_callback is not None and handoff_state is not None:
+                _private_diagnostic_callback(
+                    "phase7_handoff_kernel_change",
+                    {
+                        "stage": "loop_attempt_handoff",
+                        "attempt_index": int(attempt_index),
+                        "handoff_stage": handoff_state.handoff_stage,
+                        "mass_artifact_signature": handoff_state.mass_artifact_signature,
+                        "step_size": handoff_state.selected_step_size,
+                        "selected_step_hash": handoff_state.selected_step_hash,
+                        "num_leapfrog_steps": handoff_state.selected_num_leapfrog_steps,
+                        "selected_trajectory_hash": (
+                            handoff_state.selected_trajectory_hash
+                        ),
+                        "phase6_retry_num_leapfrog_steps": (
+                            handoff_state.phase6_retry_num_leapfrog_steps
+                        ),
+                        "phase6_retry_anchor_source": (
+                            handoff_state.phase6_retry_anchor_source
+                        ),
+                        "verification_repair_applied": (
+                            handoff_state.verification_repair_applied
+                        ),
+                        "verification_repair_step_size": (
+                            handoff_state.verification_repair_step_size
+                        ),
+                        "verification_repair_step_hash": (
+                            handoff_state.verification_repair_step_hash
+                        ),
+                        "verification_repair_trigger": (
+                            handoff_state.verification_repair_trigger
+                        ),
+                        "private_hmc_mechanics": True,
+                        "reports_posterior_convergence": False,
+                        "reports_sampler_superiority": False,
+                        "nonclaims": TUNE_VERIFY_REPAIR_LOOP_NONCLAIMS,
+                    },
+                )
         if attempt_status == "repair_or_retry" and (
             handoff_state is None or not handoff_state.has_stage_repair_handoff
         ):
@@ -4899,7 +6903,31 @@ def run_hmc_tune_verify_repair_loop(
         )
         attempt = HMCTuneVerifyRepairAttempt(
             attempt_index=attempt_index,
-            budget_policy_payload=budget_policy.payload(),
+            budget_policy_payload={
+                **dict(budget_policy.payload()),
+                **(
+                    {}
+                    if terminal_phase6_slot_payload is None
+                    else {
+                        "terminal_phase6_repair_extra_attempt": True,
+                        "terminal_phase6_repair_extra_attempt_index": (
+                            terminal_phase6_slot_payload[
+                                "terminal_phase6_repair_extra_attempt_index"
+                            ]
+                        ),
+                        "terminal_phase6_repair_extra_attempts": (
+                            terminal_phase6_slot_payload[
+                                "terminal_phase6_repair_extra_attempts"
+                            ]
+                        ),
+                        "terminal_phase6_repair_extra_attempts_consumed": (
+                            terminal_phase6_slot_payload[
+                                "terminal_phase6_repair_extra_attempts_consumed"
+                            ]
+                        ),
+                    }
+                ),
+            },
             incoming_state_payload=incoming_payload,
             windowed_stage=windowed_stage,
             fixed_mass_step_stage=fixed_stage,
@@ -4924,6 +6952,9 @@ def run_hmc_tune_verify_repair_loop(
                 "diagnostic_role": attempt_role,
                 "hard_veto_count": len(attempt_hard_vetoes),
                 "repair_trigger_count": len(attempt_repair_triggers),
+                "resume_split_public_summary": _phase7_attempt_resume_split_public_summary(
+                    attempt
+                ),
             },
         )
         attempts.append(attempt)
@@ -4954,6 +6985,12 @@ def run_hmc_tune_verify_repair_loop(
             final_kernel_payload = None
             final_kernel_hash = None
             break
+        if attempt_status == "budget_exhausted":
+            final_status = "budget_exhausted"
+            diagnostic_role = attempt_role
+            final_kernel_payload = None
+            final_kernel_hash = None
+            break
         if attempt_status == "architecture_blocked":
             final_status = "architecture_blocked"
             diagnostic_role = "architecture_blocked"
@@ -4961,19 +6998,41 @@ def run_hmc_tune_verify_repair_loop(
             final_kernel_hash = None
             break
         attempt_state = handoff_state
-    else:
+        attempt_index += 1
+    if loop_exhausted:
         final_status = "budget_exhausted"
         final_kernel_payload = None
         final_kernel_hash = None
-        repair_handoff_slot_blocker = _phase7_repair_handoff_attempt_slot_blocker(
-            config=cfg,
-            attempt_state=attempt_state,
-            last_attempt=attempts[-1] if attempts else None,
-        )
+        if (
+            terminal_phase6_repair_extra_attempts_consumed
+            >= int(cfg.terminal_phase6_repair_extra_attempts)
+            and int(cfg.terminal_phase6_repair_extra_attempts) > 0
+        ):
+            repair_handoff_slot_blocker = (
+                _phase7_terminal_phase6_repair_slot_exhausted_payload(
+                    config=cfg,
+                    attempt_state=attempt_state,
+                    last_attempt=attempts[-1] if attempts else None,
+                    consumed_slots=terminal_phase6_repair_extra_attempts_consumed,
+                )
+                if _phase7_repair_handoff_attempt_slot_blocker(
+                    config=cfg,
+                    attempt_state=attempt_state,
+                    last_attempt=attempts[-1] if attempts else None,
+                )
+                is not None
+                else None
+            )
+        else:
+            repair_handoff_slot_blocker = _phase7_repair_handoff_attempt_slot_blocker(
+                config=cfg,
+                attempt_state=attempt_state,
+                last_attempt=attempts[-1] if attempts else None,
+            )
         if repair_handoff_slot_blocker is not None:
-            diagnostic_role = _PHASE7_REPAIR_HANDOFF_BUDGET_EXHAUSTED
+            diagnostic_role = str(repair_handoff_slot_blocker["diagnostic_role"])
             terminal_budget_guard_payload = repair_handoff_slot_blocker
-            repair_triggers.append(_PHASE7_REPAIR_HANDOFF_BUDGET_EXHAUSTED)
+            repair_triggers.append(diagnostic_role)
         else:
             diagnostic_role = "budget_exhausted_non_promoting"
             repair_triggers.append("phase7_budget_exhausted")
@@ -5015,6 +7074,8 @@ def run_hmc_tune_verify_repair_loop(
             "callback_promotion_veto": "repair_or_retry",
             "callback_repair_trigger": "repair_or_retry",
             "mass_step_l_invariant": "hard_veto",
+            "phase6_handoff_screen": _PHASE6_HANDOFF_SCREEN_POLICY_ROLE,
+            "trajectory_window": _TRAJECTORY_WINDOW_POLICY_ROLE,
             "runtime": "hard_veto_when_error",
         },
         terminal_budget_guard_payload=terminal_budget_guard_payload,
@@ -5061,6 +7122,25 @@ def tune_hmc_kernel(
     public_timeout_started_perf_counter_s = (
         time.perf_counter() if cfg.public_timeout_budget_s is not None else None
     )
+    staged_timeout_global_started_perf_counter_s = (
+        None
+        if cfg.staged_timeout_policy is None
+        else (
+            cfg.staged_timeout_global_started_perf_counter_s
+            if cfg.staged_timeout_global_started_perf_counter_s is not None
+            else time.perf_counter()
+        )
+    )
+    cfg_for_timeout = (
+        cfg
+        if cfg.staged_timeout_policy is None
+        else dataclasses.replace(
+            cfg,
+            staged_timeout_global_started_perf_counter_s=(
+                staged_timeout_global_started_perf_counter_s
+            ),
+        )
+    )
     position = _validate_position(initial_position)
     adapter_signature = stable_adapter_signature(adapter)
     target_dimension = int(position.shape[0])
@@ -5075,6 +7155,21 @@ def tune_hmc_kernel(
     final_kernel_payload: Mapping[str, Any] | None = None
     final_kernel_hash: str | None = None
     progress_path = _public_tuning_progress_path(output_dir)
+    private_dir = _private_tuning_diagnostics_dir(output_dir)
+    private_events_path = _private_tuning_events_path(private_dir)
+    private_progress_state: dict[str, Any] = {
+        "enabled": private_dir is not None,
+        "event_count": 0,
+        "last_event_hash": None,
+        "last_mass_hash": None,
+        "candidate_count": 0,
+        "candidate_completed_count": 0,
+        "candidate_pass_count": 0,
+        "candidate_hard_veto_count": 0,
+        "selected_pair_exists": False,
+        "round_kind": None,
+        "edge_repair_direction": None,
+    }
     progress_state: dict[str, str | None] = {
         "last_started_stage": None,
         "last_completed_stage": None,
@@ -5086,7 +7181,128 @@ def tune_hmc_kernel(
     phase7_state: dict[str, Any] = {
         "last_attempt_index": None,
         "last_budget_payload": None,
+        "last_progress_contract": None,
+        "last_loop_event": None,
+        "resume_split_public_summary": None,
+        "early_closeout_public_summary": None,
     }
+
+    def write_private_event(
+        event_type: str,
+        stage: str,
+        payload: Mapping[str, Any],
+    ) -> Mapping[str, Any] | None:
+        event = _write_private_tuning_event(
+            private_events_path,
+            event_type=event_type,
+            stage=stage,
+            payload=payload,
+        )
+        if event is not None:
+            private_progress_state["event_count"] = (
+                int(private_progress_state["event_count"]) + 1
+            )
+            private_progress_state["last_event_hash"] = event["event_hash"]
+        return event
+
+    def write_private_mass_event(
+        *,
+        event_type: str,
+        stage: str,
+        label: str,
+        mass_artifact: PrecomputedMassArtifact,
+        payload: Mapping[str, Any] | None = None,
+    ) -> Mapping[str, Any] | None:
+        summary = _write_private_mass_matrix_artifact(
+            private_dir,
+            label=label,
+            mass_artifact=mass_artifact,
+        )
+        if summary is None:
+            return None
+        private_progress_state["last_mass_hash"] = summary["mass_hash"]
+        event_payload = {
+            "mass_matrix_summary": summary,
+            "mass_artifact_signature": summary["mass_hash"],
+            **({} if payload is None else dict(payload)),
+        }
+        return write_private_event(event_type, stage, event_payload)
+
+    def write_private_tuning_diagnostic(
+        event_type: str,
+        payload: Mapping[str, Any],
+    ) -> None:
+        stage = str(payload.get("stage", event_type))
+        if event_type == "windowed_mass_matrix_change":
+            mass_artifact = payload.get("mass_artifact")
+            if isinstance(mass_artifact, PrecomputedMassArtifact):
+                private_payload = {
+                    key: value for key, value in payload.items() if key != "mass_artifact"
+                }
+                write_private_mass_event(
+                    event_type=event_type,
+                    stage=stage,
+                    label=f"windowed_attempt_{payload.get('attempt_index', 'unknown')}",
+                    mass_artifact=mass_artifact,
+                    payload=private_payload,
+                )
+            return
+        event = write_private_event(event_type, stage, payload)
+        if event is None:
+            return
+        if event_type == "joint_l_epsilon_candidate_complete":
+            private_progress_state["candidate_count"] = max(
+                int(private_progress_state["candidate_count"]),
+                int(payload.get("candidate_count", 0)),
+            )
+            private_progress_state["candidate_completed_count"] = int(
+                payload.get(
+                    "candidate_completed_count",
+                    private_progress_state["candidate_completed_count"],
+                )
+            )
+            private_progress_state["candidate_pass_count"] = int(
+                payload.get(
+                    "candidate_pass_count",
+                    private_progress_state["candidate_pass_count"],
+                )
+            )
+            private_progress_state["candidate_hard_veto_count"] = int(
+                payload.get(
+                    "candidate_hard_veto_count",
+                    private_progress_state["candidate_hard_veto_count"],
+                )
+            )
+        if event_type == "joint_l_epsilon_round_selected":
+            private_progress_state["candidate_count"] = max(
+                int(private_progress_state["candidate_count"]),
+                int(payload.get("candidate_count", 0)),
+            )
+            private_progress_state["candidate_completed_count"] = int(
+                payload.get(
+                    "candidate_completed_count",
+                    private_progress_state["candidate_completed_count"],
+                )
+            )
+            private_progress_state["candidate_pass_count"] = int(
+                payload.get(
+                    "candidate_pass_count",
+                    private_progress_state["candidate_pass_count"],
+                )
+            )
+            private_progress_state["candidate_hard_veto_count"] = int(
+                payload.get(
+                    "candidate_hard_veto_count",
+                    private_progress_state["candidate_hard_veto_count"],
+                )
+            )
+            private_progress_state["selected_pair_exists"] = bool(
+                payload.get("selected_pair_exists", False)
+            )
+            private_progress_state["round_kind"] = payload.get("grid_stage")
+            private_progress_state["edge_repair_direction"] = payload.get(
+                "edge_direction"
+            )
 
     def write_progress(
         stage: str,
@@ -5112,6 +7328,40 @@ def tune_hmc_kernel(
                 progress_state["last_started_substage"] = stage
             if completed:
                 progress_state["last_completed_substage"] = stage
+        progress_extra = None if extra is None else dict(extra)
+        resume_split_summary = phase7_state.get("resume_split_public_summary")
+        if isinstance(resume_split_summary, Mapping):
+            if progress_extra is None:
+                progress_extra = {}
+            progress_extra.setdefault(
+                "phase7_resume_split_public_summary",
+                dict(resume_split_summary),
+            )
+        last_loop_event = phase7_state.get("last_loop_event")
+        if isinstance(last_loop_event, Mapping):
+            if progress_extra is None:
+                progress_extra = {}
+            progress_extra.setdefault("phase7_loop_event", dict(last_loop_event))
+        last_progress_contract = phase7_state.get("last_progress_contract")
+        if isinstance(last_progress_contract, Mapping):
+            if progress_extra is None:
+                progress_extra = {}
+            progress_extra.setdefault(
+                "phase7_progress_contract",
+                dict(last_progress_contract),
+            )
+        early_closeout = phase7_state.get("early_closeout_public_summary")
+        if isinstance(early_closeout, Mapping):
+            if progress_extra is None:
+                progress_extra = {}
+            progress_extra.setdefault(
+                "phase7_early_closeout_public_summary",
+                dict(early_closeout),
+            )
+        private_summary = _private_tuning_public_summary(private_progress_state)
+        if progress_extra is None:
+            progress_extra = {}
+        progress_extra.setdefault("private_tuning_diagnostics", private_summary)
         _write_public_tuning_progress_if_requested(
             progress_path=progress_path,
             config=cfg,
@@ -5131,7 +7381,7 @@ def tune_hmc_kernel(
             ),
             adapter_signature=adapter_signature,
             target_dimension=target_dimension,
-            extra=extra,
+            extra=progress_extra,
         )
 
     def write_loop_progress(stage: str, payload: Mapping[str, Any]) -> None:
@@ -5141,6 +7391,19 @@ def tune_hmc_kernel(
         budget_payload = event_payload.get("bounded_public_budget_payload")
         if budget_payload is not None:
             phase7_state["last_budget_payload"] = dict(budget_payload)
+        event_extra = event_payload.get("extra")
+        if isinstance(event_extra, Mapping):
+            resume_split_summary = event_extra.get("resume_split_public_summary")
+            if isinstance(resume_split_summary, Mapping):
+                phase7_state["resume_split_public_summary"] = dict(
+                    resume_split_summary
+                )
+        phase7_state["last_loop_event"] = dict(event_payload)
+        phase7_state["last_progress_contract"] = {
+            "progress_only": True,
+            "hmc_mechanics_exposed": False,
+            "reports_posterior_convergence": False,
+        }
         write_progress(
             stage,
             started=bool(event_payload.get("started")),
@@ -5188,6 +7451,29 @@ def tune_hmc_kernel(
             initial_covariance=initial_covariance,
             parameter_scales=parameter_scales,
         )
+        write_private_mass_event(
+            event_type="mass_matrix_change",
+            stage="geometry_complete",
+            label="geometry_initial",
+            mass_artifact=geometry.mass_artifact,
+            payload={
+                "source": "initialize_hmc_kernel_geometry",
+                "target_dimension": geometry.target_dimension,
+                "geometry_artifact_hash": geometry.artifact_hash,
+            },
+        )
+        write_private_event(
+            "bootstrap_kernel_initial",
+            "geometry_complete",
+            {
+                "step_size": geometry.initial_step_size,
+                "num_leapfrog_steps": geometry.initial_num_leapfrog_steps,
+                "unclamped_num_leapfrog_steps": geometry.unclamped_num_leapfrog_steps,
+                "target_trajectory_length": geometry.target_trajectory_length,
+                "geometry_artifact_hash": geometry.artifact_hash,
+                "mass_artifact_signature": geometry.mass_artifact_signature,
+            },
+        )
         write_progress(
             "geometry_complete",
             completed=True,
@@ -5230,10 +7516,54 @@ def tune_hmc_kernel(
 
     try:
         write_progress("bootstrap_start", started=True)
+
+        def write_bootstrap_progress(
+            stage: str,
+            payload: Mapping[str, Any],
+        ) -> None:
+            write_progress(
+                stage,
+                started=stage.endswith("_start"),
+                completed=(
+                    stage.endswith("_complete") or stage.endswith("_classified")
+                ),
+                extra={
+                    "bootstrap_progress_event": dict(payload),
+                    "bootstrap_progress_contract": {
+                        "progress_only": True,
+                        "hmc_mechanics_exposed": False,
+                        "reports_posterior_convergence": False,
+                    },
+                },
+            )
+
         bootstrap = run_hmc_bootstrap_screen(
             adapter=adapter,
             geometry=geometry,
-            config=_public_bootstrap_config(cfg),
+            config=_public_bootstrap_config(cfg, geometry=geometry),
+            progress_callback=write_bootstrap_progress,
+            _private_diagnostic_callback=write_private_tuning_diagnostic,
+        )
+        handoff_kernel = _active_bootstrap_handoff_kernel_payload(
+            geometry=geometry,
+            bootstrap=bootstrap,
+        )
+        write_private_event(
+            "bootstrap_kernel_handoff",
+            "bootstrap_complete",
+            {
+                "step_size": handoff_kernel.get("step_size"),
+                "num_leapfrog_steps": handoff_kernel.get("num_leapfrog_steps"),
+                "target_trajectory_length": handoff_kernel.get(
+                    "target_trajectory_length"
+                ),
+                "bootstrap_artifact_hash": bootstrap.artifact_hash,
+                "selected_kernel_hash": _active_bootstrap_handoff_kernel_hash(
+                    geometry=geometry,
+                    bootstrap=bootstrap,
+                ),
+                "bootstrap_final_status": bootstrap.final_status,
+            },
         )
         write_progress(
             "bootstrap_complete",
@@ -5275,23 +7605,12 @@ def tune_hmc_kernel(
         )
         return result
 
-    if not bootstrap.passed:
-        final_status = bootstrap.final_status
-        diagnostic_role = "bootstrap_screen_non_promoting"
-        repair_triggers = tuple(
-            dict.fromkeys(
-                str(trigger)
-                for round_result in bootstrap.rounds
-                for trigger in round_result.repair_triggers
-            )
-        )
-        hard_vetoes = tuple(
-            dict.fromkeys(
-                str(veto)
-                for round_result in bootstrap.rounds
-                for veto in round_result.hard_vetoes
-            )
-        )
+    bootstrap_hard_vetoes = _bootstrap_hard_vetoes(bootstrap)
+    if bootstrap_hard_vetoes:
+        final_status = "hard_veto"
+        diagnostic_role = "bootstrap_screen_hard_veto"
+        repair_triggers = _bootstrap_repair_triggers(bootstrap)
+        hard_vetoes = bootstrap_hard_vetoes
         result = HMCKernelTuningResult(
             config=cfg,
             adapter_signature=adapter_signature,
@@ -5318,6 +7637,69 @@ def tune_hmc_kernel(
         )
         return result
 
+    if cfg.staged_timeout_policy is not None:
+        phase7_pre_windowed_started_perf_counter_s = time.perf_counter()
+        cfg_for_timeout = dataclasses.replace(
+            cfg_for_timeout,
+            staged_timeout_stage_started_perf_counter_s=(
+                phase7_pre_windowed_started_perf_counter_s
+            ),
+        )
+
+    early_phase7_closeout = _phase7_early_global_timeout_before_loop(
+        config=cfg_for_timeout,
+        public_timeout_started_perf_counter_s=public_timeout_started_perf_counter_s,
+        bootstrap=bootstrap,
+        target_dimension=target_dimension,
+        xla_requested=cfg.use_xla,
+    )
+    if early_phase7_closeout is not None:
+        final_status = "hard_veto"
+        diagnostic_role = _PHASE7_EARLY_GLOBAL_TIMEOUT_BEFORE_LOOP_HARD_VETO
+        hard_vetoes = (_PHASE7_EARLY_GLOBAL_TIMEOUT_BEFORE_LOOP_HARD_VETO,)
+        repair_triggers = (_PHASE7_EARLY_GLOBAL_TIMEOUT_BEFORE_LOOP_REPAIR_TRIGGER,)
+        phase7_state["early_closeout_public_summary"] = dict(early_phase7_closeout)
+        write_progress(
+            _PHASE7_EARLY_GLOBAL_TIMEOUT_BEFORE_LOOP_HARD_VETO,
+            completed=True,
+            phase7_substage=True,
+            extra={
+                "phase7_early_closeout_public_summary": early_phase7_closeout,
+                "phase7_progress_contract": {
+                    "progress_only": True,
+                    "hmc_mechanics_exposed": False,
+                    "reports_posterior_convergence": False,
+                },
+            },
+        )
+        result = HMCKernelTuningResult(
+            config=cfg,
+            adapter_signature=adapter_signature,
+            target_dimension=target_dimension,
+            geometry=geometry,
+            bootstrap=bootstrap,
+            tune_verify_repair_loop=None,
+            final_status=final_status,
+            diagnostic_role=diagnostic_role,
+            hard_vetoes=hard_vetoes,
+            repair_triggers=repair_triggers,
+            final_kernel_payload=None,
+            final_kernel_hash=None,
+            artifact_path=None if artifact_path is None else str(artifact_path),
+            diagnostic_roles=_public_tuning_diagnostic_roles(),
+            phase7_early_closeout_public_summary=early_phase7_closeout,
+        )
+        write_result_artifact(result)
+        write_progress(
+            "result_written",
+            extra={
+                "final_status": result.final_status,
+                "diagnostic_role": result.diagnostic_role,
+                "phase7_early_closeout_public_summary": early_phase7_closeout,
+            },
+        )
+        return result
+
     try:
         write_progress("loop_start", started=True)
         loop = run_hmc_tune_verify_repair_loop(
@@ -5325,15 +7707,23 @@ def tune_hmc_kernel(
             geometry=geometry,
             bootstrap=bootstrap,
             config=_public_loop_config(
-                cfg,
-                public_timeout_started_perf_counter_s=public_timeout_started_perf_counter_s,
+                cfg_for_timeout,
+                public_timeout_started_perf_counter_s=(
+                    public_timeout_started_perf_counter_s
+                    if cfg.staged_timeout_policy is None
+                    else staged_timeout_global_started_perf_counter_s
+                ),
             ),
             fixed_mass_screen_callback=diagnostic_callback,
             trajectory_screen_callback=diagnostic_callback,
             verification_callback=diagnostic_callback,
             verification_checkpoint_writer_config=verification_checkpoint_writer_config,
-            _budget_policy_factory=_public_budget_policy_factory(cfg),
+            _budget_policy_factory=_public_budget_policy_factory(
+                cfg,
+                geometry=geometry,
+            ),
             _progress_callback=write_loop_progress,
+            _private_diagnostic_callback=write_private_tuning_diagnostic,
         )
         write_progress(
             "loop_complete",
@@ -5481,8 +7871,8 @@ def _hint_from_value(
             position=position,
             negative_hessian=precision,
             adapter_signature="geometry_hint_validation_adapter",
-            position_role="initial_position",
-            covariance_source="negative_hessian",
+            position_role=config.position_role,
+            covariance_source=config.negative_hessian_source,
             source="geometry_initialization_probe",
             jitter=config.covariance_jitter,
             eigenvalue_floor=config.eigenvalue_floor,
@@ -5490,6 +7880,7 @@ def _hint_from_value(
         )
         report = {
             "selected_hint": kind,
+            "covariance_source": config.negative_hessian_source,
             "hint_precedence": (
                 "negative_hessian",
                 "initial_covariance",
@@ -5622,12 +8013,13 @@ def _build_mass_artifact(
     config: HMCGeometryInitializationConfig,
 ) -> PrecomputedMassArtifact:
     source = f"geometry_initialization_{hint.kind}"
+    covariance_source = str(hint.report.get("covariance_source", hint.kind))
     return PrecomputedMassArtifact.from_covariance(
         position=position,
         covariance=hint.covariance,
         adapter_signature=adapter_signature,
-        position_role="initial_position",
-        covariance_source=hint.kind,
+        position_role=config.position_role,
+        covariance_source=covariance_source,
         matrix_used_for_square_root="geometry_initialization_covariance",
         source=source,
         jitter=0.0,
@@ -5925,8 +8317,8 @@ def _validate_windowed_stage_inputs(
         raise ValueError("windowed stage adapter signature must match geometry")
     if adapter_signature != bootstrap.adapter_signature:
         raise ValueError("windowed stage adapter signature must match bootstrap")
-    if not bootstrap.passed or bootstrap.selected_kernel_payload is None:
-        raise ValueError("windowed stage requires passed bootstrap result")
+    if not _bootstrap_preflight_passed(bootstrap):
+        raise ValueError("windowed stage requires bootstrap preflight without hard veto")
     geometry.mass_artifact.validate_for_adapter(
         adapter,
         expected_dim=geometry.target_dimension,
@@ -5959,7 +8351,10 @@ def _validate_fixed_mass_step_stage_inputs(
         raise ValueError("fixed-mass step stage geometry artifact must match Phase 4")
     if bootstrap.artifact_hash != windowed_stage.bootstrap_artifact_hash:
         raise ValueError("fixed-mass step stage bootstrap artifact must match Phase 4")
-    if bootstrap.selected_kernel_hash != windowed_stage.selected_bootstrap_kernel_hash:
+    if (
+        _active_bootstrap_handoff_kernel_hash(geometry=geometry, bootstrap=bootstrap)
+        != windowed_stage.selected_bootstrap_kernel_hash
+    ):
         raise ValueError("fixed-mass step stage selected bootstrap kernel mismatch")
     _validate_windowed_stage_inputs(adapter=adapter, geometry=geometry, bootstrap=bootstrap)
     if not windowed_stage.passed:
@@ -5972,12 +8367,13 @@ def _validate_fixed_mass_step_stage_inputs(
         raise ValueError("fixed-mass step candidate step must be finite")
     if float(windowed_stage.candidate_step_size) <= 0.0:
         raise ValueError("fixed-mass step candidate step must be positive")
-    selected = _selected_bootstrap_kernel_from_windowed_stage(
+    selected = _mass_window_seed_kernel_from_windowed_stage(
         windowed_stage,
         bootstrap=bootstrap,
+        geometry=geometry,
     )
     if int(selected.get("num_leapfrog_steps", 0)) <= 0:
-        raise ValueError("fixed-mass step stage requires positive bootstrap L")
+        raise ValueError("fixed-mass step stage requires positive mass-window seed L")
     artifact = _phase4_adapted_mass_artifact(windowed_stage)
     if artifact.adapter_signature != windowed_stage.hmc_adapter_signature:
         raise ValueError("Phase 4 adapted mass adapter signature mismatch")
@@ -6019,17 +8415,14 @@ def _validate_frozen_step_trajectory_stage_inputs(
         raise ValueError("frozen-step trajectory bootstrap artifact mismatch")
     if fixed_mass_step_stage.windowed_stage_artifact_hash != windowed_stage.artifact_hash:
         raise ValueError("frozen-step trajectory Phase 5 windowed artifact mismatch")
-    if fixed_mass_step_stage.selected_bootstrap_kernel_hash != bootstrap.selected_kernel_hash:
+    active_bootstrap_hash = _active_bootstrap_handoff_kernel_hash(
+        geometry=geometry,
+        bootstrap=bootstrap,
+    )
+    if fixed_mass_step_stage.selected_bootstrap_kernel_hash != active_bootstrap_hash:
         raise ValueError("frozen-step trajectory selected bootstrap kernel hash mismatch")
     if fixed_mass_step_stage.selected_bootstrap_kernel_hash != windowed_stage.selected_bootstrap_kernel_hash:
         raise ValueError("frozen-step trajectory Phase 4 selected bootstrap hash mismatch")
-    selected_bootstrap = bootstrap.selected_kernel_payload
-    if selected_bootstrap is None or bootstrap.selected_kernel_hash is None:
-        raise ValueError("frozen-step trajectory requires selected bootstrap kernel")
-    if int(fixed_mass_step_stage.fixed_num_leapfrog_steps) != int(
-        selected_bootstrap["num_leapfrog_steps"]
-    ):
-        raise ValueError("frozen-step trajectory fixed bootstrap L lineage mismatch")
     if not fixed_mass_step_stage.passed:
         raise ValueError("frozen-step trajectory requires passed Phase 5 result")
     if fixed_mass_step_stage.selected_step_payload is None:
@@ -6041,6 +8434,13 @@ def _validate_frozen_step_trajectory_stage_inputs(
     selected_step = float(fixed_mass_step_stage.selected_step_payload.get("step_size"))
     if not np.isfinite(selected_step) or selected_step <= 0.0:
         raise ValueError("frozen-step trajectory selected step must be positive")
+    selected_payload_l = int(
+        fixed_mass_step_stage.selected_step_payload.get("num_leapfrog_steps", 0)
+    )
+    if selected_payload_l <= 0:
+        raise ValueError("frozen-step trajectory selected payload L must be positive")
+    if selected_payload_l != int(fixed_mass_step_stage.fixed_num_leapfrog_steps):
+        raise ValueError("frozen-step trajectory selected L payload mismatch")
     if fixed_mass_step_stage.budget_ladder_result is None:
         raise ValueError("frozen-step trajectory requires Phase 5 budget ladder result")
     ladder = fixed_mass_step_stage.budget_ladder_result
@@ -6079,6 +8479,12 @@ def _validate_frozen_step_trajectory_stage_inputs(
             step_repair_high_acceptance_ladder_max_factor=(
                 fixed_mass_step_stage.config.step_repair_high_acceptance_ladder_max_factor
             ),
+            trajectory_window_lower_multiplier=(
+                fixed_mass_step_stage.config.trajectory_window_lower_multiplier
+            ),
+            trajectory_window_upper_multiplier=(
+                fixed_mass_step_stage.config.trajectory_window_upper_multiplier
+            ),
             seed=fixed_mass_step_stage.config.seed,
             chain_execution_mode=fixed_mass_step_stage.config.chain_execution_mode,
             target_scope=config.target_scope
@@ -6111,8 +8517,8 @@ def _validate_tune_verify_loop_inputs(
         raise ValueError("Phase 7 adapter signature must match bootstrap")
     if bootstrap.geometry_artifact_hash != geometry.artifact_hash:
         raise ValueError("Phase 7 bootstrap must match geometry artifact")
-    if not bootstrap.passed:
-        raise ValueError("Phase 7 requires passed bootstrap result")
+    if not _bootstrap_preflight_passed(bootstrap):
+        raise ValueError("Phase 7 requires bootstrap preflight without hard veto")
     if geometry.target_dimension != bootstrap.target_dimension:
         raise ValueError("Phase 7 geometry and bootstrap dimensions must match")
     geometry.mass_artifact.validate_for_adapter(
@@ -6164,21 +8570,37 @@ def _public_geometry_config(config: HMCKernelTuningConfig) -> HMCGeometryInitial
         max_condition_number=config.max_condition_number,
         max_leapfrog_steps=config.max_leapfrog_steps,
         allow_geometry_fallback=config.allow_geometry_fallback,
+        position_role=config.geometry_position_role,
+        negative_hessian_source=config.negative_hessian_source,
         seed=_derive_seed(config.seed, stage_index=2),
         source=f"{config.source}.geometry",
     )
 
 
-def _public_bootstrap_config(config: HMCKernelTuningConfig) -> HMCBootstrapScreenConfig:
+def _public_bootstrap_config(
+    config: HMCKernelTuningConfig,
+    geometry: HMCGeometryInitializationResult | None = None,
+) -> HMCBootstrapScreenConfig:
     if config.preset == "smoke":
         screen_num_results = 4
         screen_num_burnin_steps = 1
     elif config.preset == "standard":
         screen_num_results = 16
         screen_num_burnin_steps = 4
+    elif config.preset == "serious":
+        counts = _geometry_scaled_budget_timing_policy().bootstrap_screen_counts(
+            target_dimension=1 if geometry is None else geometry.target_dimension,
+            mass_artifact=None if geometry is None else geometry.mass_artifact,
+        )
+        screen_num_results = int(counts["screen_num_results"])
+        screen_num_burnin_steps = int(counts["screen_num_burnin_steps"])
     else:
         screen_num_results = 32
         screen_num_burnin_steps = 8
+    if config.bootstrap_diagnostic_screen_num_results is not None:
+        screen_num_results = config.bootstrap_diagnostic_screen_num_results
+    if config.bootstrap_diagnostic_screen_num_burnin_steps is not None:
+        screen_num_burnin_steps = config.bootstrap_diagnostic_screen_num_burnin_steps
     return HMCBootstrapScreenConfig(
         target_accept_prob=config.target_accept_prob,
         acceptance_band=config.acceptance_band,
@@ -6217,6 +8639,9 @@ def _public_loop_config(
         trajectory_window_lower_multiplier=config.trajectory_window_lower_multiplier,
         trajectory_window_upper_multiplier=config.trajectory_window_upper_multiplier,
         max_attempts=config.max_attempts,
+        terminal_phase6_repair_extra_attempts=(
+            config.terminal_phase6_repair_extra_attempts
+        ),
         seed=_derive_seed(config.seed, stage_index=7),
         chain_execution_mode=config.chain_execution_mode,
         use_xla=config.use_xla,
@@ -6224,15 +8649,39 @@ def _public_loop_config(
         target_status_trace_policy=config.target_status_trace_policy,
         public_timeout_budget_s=config.public_timeout_budget_s,
         public_timeout_started_perf_counter_s=public_timeout_started_perf_counter_s,
+        staged_timeout_policy=config.staged_timeout_policy,
+        staged_timeout_global_started_perf_counter_s=(
+            config.staged_timeout_global_started_perf_counter_s
+            if config.staged_timeout_global_started_perf_counter_s is not None
+            else public_timeout_started_perf_counter_s
+        ),
+        staged_timeout_stage_started_perf_counter_s=(
+            config.staged_timeout_stage_started_perf_counter_s
+        ),
+        staged_timeout_enlargement_rounds=config.staged_timeout_enlargement_rounds,
         source=f"{config.source}.tune_verify_repair_loop",
     )
 
 
 def _public_budget_policy_factory(
     config: HMCKernelTuningConfig,
+    geometry: HMCGeometryInitializationResult | None = None,
 ) -> Callable[[int, int], _HMCAttemptBudgetPolicy] | None:
     if config.preset == "serious":
-        return None
+        central = _geometry_scaled_budget_timing_policy()
+
+        def serious_factory(
+            target_dimension: int,
+            attempt_index: int,
+        ) -> _HMCAttemptBudgetPolicy:
+            return _default_attempt_budget_policy(
+                target_dimension,
+                attempt_index,
+                mass_artifact=None if geometry is None else geometry.mass_artifact,
+                policy=central,
+            )
+
+        return serious_factory
 
     def factory(target_dimension: int, attempt_index: int) -> _HMCAttemptBudgetPolicy:
         dimension = int(target_dimension)
@@ -6278,6 +8727,15 @@ def _public_budget_policy_factory(
             budget = min(budget, budget_cap)
         phase5_screen = max(screen_floor, _ceil_div(budget, 4))
         phase6_screen = max(screen_floor, _ceil_div(budget, 4))
+        if (
+            config.preset == "standard"
+            and int(config.terminal_phase6_repair_extra_attempts) > 0
+            and index >= int(config.max_attempts)
+        ):
+            phase6_screen = min(
+                phase6_screen,
+                _PUBLIC_TERMINAL_PHASE6_REPAIR_SCREEN_MAX_RESULTS,
+            )
         verification_results = max(verification_floor, _ceil_div(budget, 2))
         return _HMCAttemptBudgetPolicy(
             target_dimension=dimension,
@@ -6303,6 +8761,30 @@ def _public_budget_policy_factory(
             public_budget_cap=budget_cap,
             public_max_attempts=config.max_attempts,
             public_diagnostic_preset=config.preset,
+            budget_formula=(
+                "bounded public diagnostic budget: budget_k=min(cap, "
+                "base(dimension,preset)*2**attempt_index)"
+            ),
+            budget_formula_parameters={
+                "preset": config.preset,
+                "base": base,
+                "budget_cap": budget_cap,
+                "screen_floor": screen_floor,
+                "verification_floor": verification_floor,
+                "burnin_floor": burnin_floor,
+                "non_promoting_diagnostic": True,
+            },
+            geometry_budget_summary=_geometry_scaled_budget_timing_policy().geometry_summary(
+                target_dimension=dimension
+            ),
+            budget0_uncapped=base,
+            budget0_after_floor_and_cap=(
+                min(base, budget_cap) if budget_cap is not None else base
+            ),
+            budget_claim=(
+                f"{config.preset} public diagnostic budget only; not posterior "
+                "convergence or sampler-validity evidence"
+            ),
         )
 
     return factory
@@ -6313,16 +8795,24 @@ def _public_final_kernel_handoff_payload(
 ) -> Mapping[str, Any]:
     if not loop.passed or loop.final_kernel_payload is None:
         raise ValueError("public handoff requires passed Phase 7 final kernel")
-    private_payload = loop.final_kernel_payload
+    return _public_final_kernel_summary_from_private_payload(
+        loop.final_kernel_payload,
+        phase7_final_kernel_hash=loop.final_kernel_hash,
+    )
+
+
+def _public_final_kernel_summary_from_private_payload(
+    private_payload: Mapping[str, Any],
+    *,
+    phase7_final_kernel_hash: str | None,
+) -> Mapping[str, Any]:
+    """Return a non-replayable public summary of a private frozen HMC kernel."""
+
     required_keys = (
         "schema",
         "target_scope",
         "target_dimension",
-        "adapted_mass_artifact_payload",
         "adapted_mass_artifact_signature",
-        "step_size",
-        "num_leapfrog_steps",
-        "trajectory_length",
         "target_accept_prob",
         "acceptance_band",
         "verification_acceptance_rate",
@@ -6345,9 +8835,150 @@ def _public_final_kernel_handoff_payload(
         "runtime": "bayesfilter.inference.tune_hmc_kernel",
         "public_handoff_schema": "bayesfilter.hmc_public_frozen_kernel_handoff.v1",
         **{key: private_payload[key] for key in required_keys if key in private_payload},
-        "phase7_final_kernel_hash": loop.final_kernel_hash,
+        "phase7_final_kernel_hash": phase7_final_kernel_hash,
         "internal_tuning_controls_exposed": False,
+        "hmc_mechanics_exposed": False,
+        "mass_arrays_exposed": False,
+        "raw_samples_exposed": False,
+        "private_replay_payload": False,
+        "public_reconstruction_api": False,
     }
+
+
+def _phase7_private_resume_split_contract(
+    *,
+    loop: HMCTuneVerifyRepairLoopResult,
+    attempt_index: int | None = None,
+) -> Mapping[str, Any]:
+    """Build a private-only Phase 7 repair handoff contract.
+
+    This is a resume/split contract for BayesFilter-owned repair orchestration,
+    not a public verifier-entry checkpoint and not a final frozen-kernel
+    handoff.  The returned payload may contain private HMC mechanics because it
+    is explicitly private-only; callers must expose only
+    ``_phase7_resume_split_public_summary``.
+    """
+
+    if not isinstance(loop, HMCTuneVerifyRepairLoopResult):
+        raise TypeError("loop must be HMCTuneVerifyRepairLoopResult")
+    attempts = tuple(loop.attempts)
+    selected_attempt = (
+        attempts[-1]
+        if attempt_index is None
+        else next(
+            (
+                attempt
+                for attempt in attempts
+                if int(attempt.attempt_index) == int(attempt_index)
+            ),
+            None,
+        )
+    )
+    if selected_attempt is None:
+        raise ValueError("Phase 7 resume/split attempt not found")
+    if selected_attempt.handoff_state_payload is None:
+        raise ValueError("Phase 7 resume/split contract requires private handoff state")
+    handoff_state = dict(selected_attempt.handoff_state_payload)
+    handoff_stage = str(handoff_state.get("handoff_stage", ""))
+    if not handoff_stage:
+        raise ValueError("Phase 7 resume/split contract missing handoff stage")
+    if handoff_state.get("required_private_handoff_complete") is not True:
+        raise ValueError("Phase 7 resume/split contract requires complete private handoff")
+    contract_payload = {
+        "schema": "bayesfilter.phase7_private_resume_split_contract.v1",
+        "runtime": "bayesfilter.inference.run_hmc_tune_verify_repair_loop",
+        "loop_artifact_hash": loop.artifact_hash,
+        "geometry_artifact_hash": loop.geometry_artifact_hash,
+        "bootstrap_artifact_hash": loop.bootstrap_artifact_hash,
+        "adapter_signature": loop.adapter_signature,
+        "target_dimension": loop.target_dimension,
+        "attempt_index": selected_attempt.attempt_index,
+        "attempt_final_status": selected_attempt.final_status,
+        "attempt_diagnostic_role": selected_attempt.diagnostic_role,
+        "handoff_stage": handoff_stage,
+        "private_handoff_state": handoff_state,
+        "private_handoff_state_hash": stable_config_hash(handoff_state),
+        "resume_entry_kind": "phase7_repair_handoff",
+        "resume_entry_stage": _phase7_resume_split_entry_stage(handoff_state),
+        "private_resume_payload_only": True,
+        "public_summary_schema": "bayesfilter.phase7_resume_split_public_summary.v1",
+        "checkpoint_kind": None,
+        "verifier_entry_manifest": False,
+        "final_kernel_handoff": False,
+        "actual_target_runtime_executed": False,
+        "public_payload_exposes_private_handoff": False,
+        "reports_posterior_convergence": False,
+        "reports_sampler_superiority": False,
+        "reports_default_readiness": False,
+        "reports_external_client_scientific_claim": False,
+        "reports_gpu_or_xla_readiness": False,
+        "nonclaims": TUNE_VERIFY_REPAIR_LOOP_NONCLAIMS,
+    }
+    return {
+        **contract_payload,
+        "contract_hash": stable_config_hash(contract_payload),
+    }
+
+
+def _phase7_resume_split_entry_stage(handoff_state: Mapping[str, Any]) -> str:
+    handoff_stage = str(handoff_state.get("handoff_stage", ""))
+    if handoff_stage == "phase4":
+        return "phase5_fixed_mass_step"
+    if handoff_stage in {"phase5_repair", "phase5_selected"}:
+        return "phase5_fixed_mass_step"
+    if handoff_stage == "phase6":
+        return "phase7_final_verification_or_verification_only_retry"
+    raise ValueError("Phase 7 resume/split contract has unsupported handoff stage")
+
+
+def _phase7_resume_split_public_summary(
+    contract: Mapping[str, Any],
+) -> Mapping[str, Any]:
+    """Return the public-safe summary of a private resume/split contract."""
+
+    if not isinstance(contract, Mapping):
+        raise TypeError("contract must be a mapping")
+    if contract.get("schema") != "bayesfilter.phase7_private_resume_split_contract.v1":
+        raise ValueError("Phase 7 resume/split contract schema mismatch")
+    public_payload = {
+        "schema": "bayesfilter.phase7_resume_split_public_summary.v1",
+        "private_contract_schema": contract.get("schema"),
+        "contract_hash": contract.get("contract_hash"),
+        "loop_artifact_hash": contract.get("loop_artifact_hash"),
+        "geometry_artifact_hash": contract.get("geometry_artifact_hash"),
+        "bootstrap_artifact_hash": contract.get("bootstrap_artifact_hash"),
+        "target_dimension": contract.get("target_dimension"),
+        "attempt_index": contract.get("attempt_index"),
+        "attempt_final_status": contract.get("attempt_final_status"),
+        "attempt_diagnostic_role": contract.get("attempt_diagnostic_role"),
+        "handoff_stage": contract.get("handoff_stage"),
+        "private_resume_payload_hash": contract.get("private_handoff_state_hash"),
+        "resume_entry_kind": contract.get("resume_entry_kind"),
+        "resume_entry_stage": contract.get("resume_entry_stage"),
+        "private_resume_payload_available": bool(
+            contract.get("private_resume_payload_only")
+        ),
+        "private_resume_payload_exposed": False,
+        "public_payload_contains_private_paths": False,
+        "public_payload_contains_checkpoint_filenames": False,
+        "public_payload_contains_hmc_draws_or_positions": False,
+        "public_payload_contains_hmc_tuning_mechanics": False,
+        "public_payload_contains_log_prob_values": False,
+        "checkpoint_kind": None,
+        "verifier_entry_manifest": False,
+        "final_kernel_handoff": False,
+        "actual_target_runtime_executed": False,
+        "reports_posterior_convergence": False,
+        "reports_sampler_superiority": False,
+        "reports_default_readiness": False,
+        "reports_external_client_scientific_claim": False,
+        "reports_gpu_or_xla_readiness": False,
+        "nonclaims": TUNE_VERIFY_REPAIR_LOOP_NONCLAIMS,
+    }
+    for key, value in public_payload.items():
+        if value is None and key not in {"checkpoint_kind"}:
+            raise ValueError(f"Phase 7 resume/split public summary missing {key}")
+    return public_payload
 
 
 def _public_tuning_artifact_path(output_dir: str | Path | None) -> Path | None:
@@ -6368,8 +8999,147 @@ def _public_tuning_progress_path(output_dir: str | Path | None) -> Path | None:
     return path / _PUBLIC_TUNING_PROGRESS_FILENAME
 
 
+def _private_tuning_diagnostics_dir(output_dir: str | Path | None) -> Path | None:
+    if output_dir is None:
+        return None
+    path = Path(output_dir)
+    if path.suffix:
+        return path.parent / "private_diagnostics"
+    return path / "private_diagnostics"
+
+
+def _private_tuning_events_path(private_dir: Path | None) -> Path | None:
+    if private_dir is None:
+        return None
+    return private_dir / "hmc_tuning_events.jsonl"
+
+
 def _utc_now_isoformat() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def _mass_matrix_private_summary(
+    mass_artifact: PrecomputedMassArtifact,
+    *,
+    mass_hash: str,
+    mass_npz_filename: str,
+) -> Mapping[str, Any]:
+    covariance = np.asarray(mass_artifact.covariance, dtype=float)
+    diagonal = np.diag(covariance)
+    eigenvalues = np.linalg.eigvalsh(0.5 * (covariance + covariance.T))
+    finite = bool(np.all(np.isfinite(covariance)) and np.all(np.isfinite(eigenvalues)))
+    positive = bool(finite and np.all(eigenvalues > 0.0))
+    if positive:
+        condition_number = float(np.max(eigenvalues) / np.min(eigenvalues))
+    else:
+        condition_number = None
+    return {
+        "schema": "bayesfilter.hmc_private_mass_matrix_summary.v1",
+        "mass_hash": str(mass_hash),
+        "mass_npz_filename": str(mass_npz_filename),
+        "dimension": int(mass_artifact.dimension),
+        "covariance_shape": tuple(int(dim) for dim in covariance.shape),
+        "factor_shape": tuple(int(dim) for dim in np.shape(mass_artifact.factor)),
+        "finite": finite,
+        "positive_definite": positive,
+        "eigen_min": None if not finite else float(np.min(eigenvalues)),
+        "eigen_max": None if not finite else float(np.max(eigenvalues)),
+        "condition_number": condition_number,
+        "diagonal_min": float(np.min(diagonal)),
+        "diagonal_max": float(np.max(diagonal)),
+        "diagonal_mean": float(np.mean(diagonal)),
+        "covariance_source": mass_artifact.covariance_source,
+        "regularization_report": dict(mass_artifact.regularization_report),
+        "nonclaims": mass_artifact.nonclaims,
+    }
+
+
+def _write_private_mass_matrix_artifact(
+    private_dir: Path | None,
+    *,
+    label: str,
+    mass_artifact: PrecomputedMassArtifact,
+) -> Mapping[str, Any] | None:
+    if private_dir is None:
+        return None
+    private_dir.mkdir(parents=True, exist_ok=True)
+    mass_hash = _mass_artifact_signature(mass_artifact)
+    safe_label = "".join(
+        char if char.isalnum() or char in {"_", "-"} else "_"
+        for char in str(label)
+    ).strip("_")
+    filename = f"mass_{safe_label}_{mass_hash[:16]}.npz"
+    path = private_dir / filename
+    np.savez(
+        path,
+        position=np.asarray(mass_artifact.position, dtype=float),
+        covariance=np.asarray(mass_artifact.covariance, dtype=float),
+        factor=np.asarray(mass_artifact.factor, dtype=float),
+    )
+    return _mass_matrix_private_summary(
+        mass_artifact,
+        mass_hash=mass_hash,
+        mass_npz_filename=filename,
+    )
+
+
+def _private_event_hash(event: Mapping[str, Any]) -> str:
+    return stable_config_hash({key: value for key, value in event.items() if key != "event_hash"})
+
+
+def _write_private_tuning_event(
+    events_path: Path | None,
+    *,
+    event_type: str,
+    stage: str,
+    payload: Mapping[str, Any],
+) -> Mapping[str, Any] | None:
+    if events_path is None:
+        return None
+    events_path.parent.mkdir(parents=True, exist_ok=True)
+    event = {
+        "schema": "bayesfilter.hmc_private_tuning_event.v1",
+        "event_type": str(event_type),
+        "stage": str(stage),
+        "timestamp_utc": _utc_now_isoformat(),
+        **dict(payload),
+        "reports_posterior_convergence": False,
+        "reports_sampler_superiority": False,
+        "reports_default_readiness": False,
+        "reports_gpu_or_xla_readiness": False,
+    }
+    event_hash = _private_event_hash(event)
+    event["event_hash"] = event_hash
+    with events_path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(_json_ready(event), sort_keys=True) + "\n")
+        handle.flush()
+        os.fsync(handle.fileno())
+    return event
+
+
+def _private_tuning_public_summary(
+    state: Mapping[str, Any],
+) -> Mapping[str, Any]:
+    return {
+        "schema": "bayesfilter.hmc_private_tuning_public_summary.v1",
+        "available": bool(state.get("enabled")),
+        "private_event_count": int(state.get("event_count", 0)),
+        "last_private_event_hash": state.get("last_event_hash"),
+        "mass_hash": state.get("last_mass_hash"),
+        "candidate_count": int(state.get("candidate_count", 0)),
+        "candidate_completed_count": int(state.get("candidate_completed_count", 0)),
+        "candidate_pass_count": int(state.get("candidate_pass_count", 0)),
+        "candidate_hard_veto_count": int(state.get("candidate_hard_veto_count", 0)),
+        "selected_pair_exists": bool(state.get("selected_pair_exists", False)),
+        "round_kind": state.get("round_kind"),
+        "edge_repair_direction": state.get("edge_repair_direction"),
+        "private_paths_publicized": False,
+        "hmc_mechanics_exposed": False,
+        "reports_posterior_convergence": False,
+        "reports_sampler_superiority": False,
+        "reports_default_readiness": False,
+        "reports_gpu_or_xla_readiness": False,
+    }
 
 
 def _write_public_tuning_progress_if_requested(
@@ -6456,6 +9226,7 @@ def _public_tuning_artifact_payload(
     active_repair_triggers = () if result.final_status == "passed" else result.repair_triggers
     historical_repair_triggers = result.repair_triggers if result.final_status == "passed" else ()
     phase7_public_summary = _phase7_public_summary(result.tune_verify_repair_loop)
+    phase7_early_closeout = _phase7_early_closeout_public_summary(result)
     return {
         "schema": "bayesfilter.hmc_kernel_tuning_public_artifact.v1",
         "result_hash": result.artifact_hash,
@@ -6486,6 +9257,7 @@ def _public_tuning_artifact_payload(
         if result.tune_verify_repair_loop is None
         else len(result.tune_verify_repair_loop.attempts),
         "phase7_public_summary": phase7_public_summary,
+        "phase7_early_closeout_public_summary": phase7_early_closeout,
         "diagnostic_roles": result.diagnostic_roles,
         "artifact_policy": {
             "posterior_samples_written": False,
@@ -6494,6 +9266,9 @@ def _public_tuning_artifact_payload(
             "mass_window_schedule_exposed": False,
             "candidate_grid_exposed": False,
             "phase7_public_summary_exposed": phase7_public_summary is not None,
+            "phase7_early_closeout_public_summary_exposed": (
+                phase7_early_closeout is not None
+            ),
             "raw_draw_counts_exposed": False,
             "private_state_exposed": False,
             "public_reconstruction_api": False,
@@ -6505,6 +9280,45 @@ def _public_tuning_artifact_payload(
         "reports_gpu_or_xla_readiness": False,
         "nonclaims": result.nonclaims,
     }
+
+
+def _phase7_early_closeout_public_summary(
+    result: HMCKernelTuningResult,
+) -> Mapping[str, Any] | None:
+    payload = result.phase7_early_closeout_public_summary
+    if not isinstance(payload, Mapping):
+        return None
+    allowed_keys = {
+        "schema",
+        "stage",
+        "enabled",
+        "timeout_budget_s",
+        "reserve_s",
+        "elapsed_s",
+        "remaining_s",
+        "within_closeout_window",
+        "deadline_clock_scope",
+        "closeout_required_before_phase7_loop",
+        "phase7_loop_entered",
+        "windowed_mass_runner_called",
+        "bootstrap_passed",
+        "bootstrap_public_summary",
+        "target_dimension",
+        "hard_veto",
+        "repair_trigger",
+        "diagnostic_role",
+        "progress_only",
+        "public_closeout_artifact_expected",
+        "hmc_mechanics_exposed",
+        "reports_posterior_convergence",
+        "reports_sampler_superiority",
+        "reports_default_readiness",
+        "reports_external_client_scientific_claim",
+        "reports_gpu_or_xla_readiness",
+        "nonclaims",
+        "staged_timeout",
+    }
+    return {key: payload[key] for key in allowed_keys if key in payload}
 
 
 def _phase7_public_summary(
@@ -6521,6 +9335,11 @@ def _phase7_public_summary(
     attempt_summaries = tuple(
         _phase7_attempt_public_summary(attempt) for attempt in loop.attempts
     )
+    latest_resume_split_summary = (
+        None
+        if last_attempt is None
+        else _phase7_loop_resume_split_public_summary(loop)
+    )
     return {
         "schema": "bayesfilter.hmc_tune_verify_repair_public_summary.v1",
         "final_status": loop.final_status,
@@ -6536,6 +9355,7 @@ def _phase7_public_summary(
         if last_attempt is None
         else last_attempt.repair_triggers,
         "latest_phase6_public_summary": last_phase6_summary,
+        "latest_resume_split_public_summary": latest_resume_split_summary,
         "terminal_budget_guard": _phase7_terminal_budget_guard_public_summary(
             loop.terminal_budget_guard_payload
         ),
@@ -6568,11 +9388,18 @@ def _phase7_terminal_budget_guard_public_summary(
         "next_attempt_public_budget_cap",
         "next_attempt_budget_is_public_policy",
         "last_attempt_index",
+        "base_max_attempts",
         "configured_max_attempts",
         "remaining_attempt_slots",
+        "terminal_phase6_repair_extra_attempt",
+        "terminal_phase6_repair_extra_attempt_index",
+        "terminal_phase6_repair_extra_attempts",
+        "terminal_phase6_repair_extra_attempts_consumed",
+        "attempt_index",
         "last_attempt_final_status",
         "last_attempt_diagnostic_role",
         "last_handoff_stage",
+        "verification_only_retry_eligible",
         "timeout_budget_s",
         "elapsed_s",
         "remaining_s",
@@ -6585,6 +9412,8 @@ def _phase7_terminal_budget_guard_public_summary(
         "closeout_required_before_next_attempt",
         "previous_verification_budget_results",
         "next_attempt_verification_budget_results",
+        "stalled_reason",
+        "closeout_required_before_extended_attempt",
         "remaining_attempts_after_next",
         "budget_increases_on_next_attempt",
         "closeout_required_before_identical_verify_only_retry",
@@ -6648,6 +9477,9 @@ def _phase7_attempt_public_summary(
         "phase6_public_summary": _frozen_step_trajectory_public_summary(
             attempt.frozen_step_trajectory_stage
         ),
+        "resume_split_public_summary": _phase7_attempt_resume_split_public_summary(
+            attempt
+        ),
         "private_handoff_payload_exposed": False,
         "hmc_mechanics_exposed": False,
         "reports_posterior_convergence": False,
@@ -6655,6 +9487,124 @@ def _phase7_attempt_public_summary(
         "reports_default_readiness": False,
         "reports_gpu_or_xla_readiness": False,
         "nonclaims": TUNE_VERIFY_REPAIR_LOOP_NONCLAIMS,
+    }
+
+
+def _phase7_loop_resume_split_public_summary(
+    loop: HMCTuneVerifyRepairLoopResult,
+    *,
+    attempt_index: int | None = None,
+) -> Mapping[str, Any]:
+    attempts = tuple(loop.attempts)
+    selected_attempt = (
+        attempts[-1]
+        if attempt_index is None
+        else next(
+            (
+                attempt
+                for attempt in attempts
+                if int(attempt.attempt_index) == int(attempt_index)
+            ),
+            None,
+        )
+    )
+    if selected_attempt is None:
+        raise ValueError("Phase 7 resume/split attempt not found")
+    loop_public_fields = {
+        "loop_artifact_hash": loop.artifact_hash,
+        "geometry_artifact_hash": loop.geometry_artifact_hash,
+        "bootstrap_artifact_hash": loop.bootstrap_artifact_hash,
+        "target_dimension": loop.target_dimension,
+    }
+    if selected_attempt.handoff_state_payload is None:
+        return {
+            **_phase7_attempt_resume_split_public_summary(selected_attempt),
+            **loop_public_fields,
+        }
+    try:
+        contract = _phase7_private_resume_split_contract(
+            loop=loop,
+            attempt_index=selected_attempt.attempt_index,
+        )
+        return _phase7_resume_split_public_summary(contract)
+    except ValueError:
+        return {
+            **_phase7_attempt_resume_split_public_summary(selected_attempt),
+            **loop_public_fields,
+        }
+
+
+def _phase7_attempt_resume_split_public_summary(
+    attempt: HMCTuneVerifyRepairAttempt,
+) -> Mapping[str, Any]:
+    """Public-safe resume/split availability without private HMC mechanics."""
+
+    base_payload: dict[str, Any] = {
+        "schema": "bayesfilter.phase7_resume_split_public_summary.v1",
+        "private_contract_schema": "bayesfilter.phase7_private_resume_split_contract.v1",
+        "contract_hash": None,
+        "loop_artifact_hash": None,
+        "geometry_artifact_hash": None,
+        "bootstrap_artifact_hash": None,
+        "target_dimension": None,
+        "attempt_index": attempt.attempt_index,
+        "attempt_final_status": attempt.final_status,
+        "attempt_diagnostic_role": attempt.diagnostic_role,
+        "handoff_stage": None,
+        "private_resume_payload_hash": None,
+        "resume_entry_kind": "phase7_repair_handoff",
+        "resume_entry_stage": None,
+        "private_resume_payload_available": False,
+        "private_resume_payload_exposed": False,
+        "public_payload_contains_private_paths": False,
+        "public_payload_contains_checkpoint_filenames": False,
+        "public_payload_contains_hmc_draws_or_positions": False,
+        "public_payload_contains_hmc_tuning_mechanics": False,
+        "public_payload_contains_log_prob_values": False,
+        "checkpoint_kind": None,
+        "verifier_entry_manifest": False,
+        "final_kernel_handoff": False,
+        "actual_target_runtime_executed": False,
+        "reports_posterior_convergence": False,
+        "reports_sampler_superiority": False,
+        "reports_default_readiness": False,
+        "reports_external_client_scientific_claim": False,
+        "reports_gpu_or_xla_readiness": False,
+        "nonclaims": TUNE_VERIFY_REPAIR_LOOP_NONCLAIMS,
+    }
+    handoff_state = attempt.handoff_state_payload
+    if not isinstance(handoff_state, Mapping):
+        return {
+            **base_payload,
+            "availability_status": "unavailable",
+            "unavailable_reason": "no_private_handoff_before_resume_split",
+        }
+    handoff_stage = str(handoff_state.get("handoff_stage", ""))
+    if handoff_state.get("required_private_handoff_complete") is not True:
+        return {
+            **base_payload,
+            "handoff_stage": handoff_stage or None,
+            "availability_status": "unavailable",
+            "unavailable_reason": "private_handoff_incomplete",
+        }
+    try:
+        resume_entry_stage = _phase7_resume_split_entry_stage(handoff_state)
+    except ValueError:
+        return {
+            **base_payload,
+            "handoff_stage": handoff_stage or None,
+            "private_resume_payload_hash": stable_config_hash(handoff_state),
+            "availability_status": "unavailable",
+            "unavailable_reason": "unsupported_private_handoff_stage",
+        }
+    return {
+        **base_payload,
+        "handoff_stage": handoff_stage,
+        "private_resume_payload_hash": stable_config_hash(handoff_state),
+        "resume_entry_stage": resume_entry_stage,
+        "private_resume_payload_available": True,
+        "availability_status": "available",
+        "unavailable_reason": None,
     }
 
 
@@ -6673,6 +9623,10 @@ def _stage_status_public_summary(stage: Any) -> Mapping[str, Any] | None:
     }
     if isinstance(stage, HMCWindowedMassStageResult):
         timeout_closeout = _windowed_mass_public_timeout_closeout_summary(stage)
+        if timeout_closeout is not None:
+            summary["public_timeout_closeout"] = timeout_closeout
+    if isinstance(stage, HMCFixedMassStepStageResult):
+        timeout_closeout = _fixed_mass_step_public_timeout_closeout_summary(stage)
         if timeout_closeout is not None:
             summary["public_timeout_closeout"] = timeout_closeout
     return summary
@@ -6710,6 +9664,60 @@ def _windowed_mass_public_timeout_closeout_summary(
         "reports_external_client_scientific_claim",
         "reports_gpu_or_xla_readiness",
         "nonclaims",
+        "staged_timeout",
+    }
+    return {key: timeout_closeout[key] for key in allowed_keys if key in timeout_closeout}
+
+
+def _fixed_mass_step_public_timeout_closeout_summary(
+    stage: HMCFixedMassStepStageResult,
+) -> Mapping[str, Any] | None:
+    timeout_closeout = stage.diagnostics.get("public_timeout_closeout")
+    if not isinstance(timeout_closeout, Mapping):
+        return None
+    allowed_keys = {
+        "schema",
+        "stage",
+        "attempt_index",
+        "enabled",
+        "timeout_budget_s",
+        "reserve_s",
+        "elapsed_s",
+        "remaining_s",
+        "within_closeout_window",
+        "deadline_clock_scope",
+        "stage_elapsed_s",
+        "stage_remaining_s",
+        "effective_remaining_s",
+        "estimated_next_candidate_s",
+        "stage_enlargement_available",
+        "completed_candidate_elapsed_count",
+        "completed_candidate_elapsed_estimator",
+        "completed_candidate_elapsed_recent_window",
+        "closeout_required_before_hmc_call",
+        "closeout_required_before_next_candidate",
+        "diagnostic_role",
+        "hard_veto",
+        "repair_trigger",
+        "budget_incomplete",
+        "budget_incomplete_scope",
+        "selected_pair_progress_before_closeout",
+        "progress_only",
+        "public_closeout_artifact_expected",
+        "round_index",
+        "grid_stage",
+        "candidate_index",
+        "candidate_count",
+        "completed_candidate_count",
+        "reason",
+        "hmc_mechanics_exposed",
+        "reports_posterior_convergence",
+        "reports_sampler_superiority",
+        "reports_default_readiness",
+        "reports_external_client_scientific_claim",
+        "reports_gpu_or_xla_readiness",
+        "nonclaims",
+        "staged_timeout",
     }
     return {key: timeout_closeout[key] for key in allowed_keys if key in timeout_closeout}
 
@@ -6728,6 +9736,10 @@ def _phase7_attempt_budget_public_summary(
         "public_budget_cap",
         "public_max_attempts",
         "public_diagnostic_preset",
+        "terminal_phase6_repair_extra_attempt",
+        "terminal_phase6_repair_extra_attempt_index",
+        "terminal_phase6_repair_extra_attempts",
+        "terminal_phase6_repair_extra_attempts_consumed",
         "diagnostic_role",
         "internal_policy_only",
     }
@@ -6841,6 +9853,9 @@ def _phase7_verification_public_summary(
             diagnostics
         ),
         "runner_route_public_summary": route_summary,
+        "public_timeout_closeout": _phase7_pre_windowed_timeout_public_summary(
+            diagnostics.get("public_timeout_closeout")
+        ),
         "phase7_retry_class": diagnostics.get("phase7_retry_class"),
         "verification_only_retry": bool(
             diagnostics.get("phase7_verification_only_retry")
@@ -6856,6 +9871,45 @@ def _phase7_verification_public_summary(
         "nonclaims": TUNE_VERIFY_REPAIR_LOOP_NONCLAIMS,
     }
     return summary
+
+
+def _phase7_pre_windowed_timeout_public_summary(
+    payload: Any,
+) -> Mapping[str, Any] | None:
+    if not isinstance(payload, Mapping):
+        return None
+    allowed_keys = {
+        "schema",
+        "stage",
+        "attempt_index",
+        "enabled",
+        "timeout_budget_s",
+        "reserve_s",
+        "elapsed_s",
+        "remaining_s",
+        "within_closeout_window",
+        "deadline_clock_scope",
+        "closeout_required_before_windowed_mass_runner_build",
+        "diagnostic_role",
+        "hard_veto",
+        "repair_trigger",
+        "progress_only",
+        "public_closeout_artifact_expected",
+        "windowed_mass_runner_called",
+        "target_dimension",
+        "public_budget_class",
+        "public_budget_cap",
+        "budget_is_public_policy",
+        "hmc_mechanics_exposed",
+        "reports_posterior_convergence",
+        "reports_sampler_superiority",
+        "reports_default_readiness",
+        "reports_external_client_scientific_claim",
+        "reports_gpu_or_xla_readiness",
+        "nonclaims",
+        "staged_timeout",
+    }
+    return {key: payload[key] for key in allowed_keys if key in payload}
 
 
 def _checkpoint_reference_is_public_safe(reference: Any) -> bool:
@@ -6901,6 +9955,9 @@ def _bootstrap_public_summary(
         return {
             "round_count": None,
             "final_status": None,
+            "preflight_passed": False,
+            "acceptance_promoted_kernel": False,
+            "handoff_kernel_source": "not_available",
             "last_round_index": None,
             "last_classification": None,
             "last_diagnostic_role": None,
@@ -6976,6 +10033,15 @@ def _bootstrap_public_summary(
     return {
         "round_count": len(rounds),
         "final_status": bootstrap.final_status,
+        "preflight_passed": _bootstrap_preflight_passed(bootstrap),
+        "acceptance_promoted_kernel": bool(bootstrap.passed),
+        "handoff_kernel_source": "bootstrap_acceptance_selection"
+        if bootstrap.passed
+        else (
+            "geometry_preflight_fallback"
+            if _bootstrap_preflight_passed(bootstrap)
+            else "not_available"
+        ),
         "last_round_index": None if last_round is None else last_round.round_index,
         "last_classification": None if last_round is None else last_round.classification,
         "last_diagnostic_role": None
@@ -7127,6 +10193,12 @@ class _HMCAttemptBudgetPolicy:
     public_budget_cap: int | None = None
     public_max_attempts: int | None = None
     public_diagnostic_preset: str | None = None
+    budget_formula: str | None = None
+    budget_formula_parameters: Mapping[str, Any] | None = None
+    geometry_budget_summary: Mapping[str, Any] | None = None
+    budget0_uncapped: int | None = None
+    budget0_after_floor_and_cap: int | None = None
+    budget_claim: str | None = None
 
     def __post_init__(self) -> None:
         for name in (
@@ -7181,6 +10253,63 @@ class _HMCAttemptBudgetPolicy:
             else str(self.public_diagnostic_preset)
         )
         object.__setattr__(self, "public_diagnostic_preset", preset)
+        budget_formula = (
+            "budget0=clamp(ceil(dimension_factor*d*geometry_multiplier), "
+            "min_initial_budget, max_initial_budget); "
+            "budget_k=min(max_tune_budget, budget0*2**attempt_index)"
+            if self.budget_formula is None
+            else str(self.budget_formula)
+        )
+        if not budget_formula:
+            raise ValueError("budget_formula must be non-empty")
+        object.__setattr__(self, "budget_formula", budget_formula)
+        formula_parameters = (
+            _geometry_scaled_budget_timing_policy().budget_formula_parameters()
+            if self.budget_formula_parameters is None
+            else dict(self.budget_formula_parameters)
+        )
+        object.__setattr__(
+            self,
+            "budget_formula_parameters",
+            formula_parameters,
+        )
+        geometry_summary = (
+            _geometry_scaled_budget_timing_policy().geometry_summary(
+                target_dimension=self.target_dimension
+            )
+            if self.geometry_budget_summary is None
+            else dict(self.geometry_budget_summary)
+        )
+        object.__setattr__(self, "geometry_budget_summary", geometry_summary)
+        uncapped = (
+            int(
+                np.ceil(
+                    float(formula_parameters.get("dimension_factor", 20.0))
+                    * float(self.target_dimension)
+                    * float(geometry_summary.get("geometry_multiplier", 1.0))
+                )
+            )
+            if self.budget0_uncapped is None
+            else int(self.budget0_uncapped)
+        )
+        if uncapped <= 0:
+            raise ValueError("budget0_uncapped must be positive")
+        object.__setattr__(self, "budget0_uncapped", uncapped)
+        after_cap = self.budget if self.budget0_after_floor_and_cap is None else int(
+            self.budget0_after_floor_and_cap
+        )
+        if after_cap <= 0:
+            raise ValueError("budget0_after_floor_and_cap must be positive")
+        object.__setattr__(self, "budget0_after_floor_and_cap", after_cap)
+        budget_claim = (
+            "dimension/geometry-scaled tuning work budget; not posterior "
+            "convergence or sampler-validity evidence"
+            if self.budget_claim is None
+            else str(self.budget_claim)
+        )
+        if not budget_claim:
+            raise ValueError("budget_claim must be non-empty")
+        object.__setattr__(self, "budget_claim", budget_claim)
 
     def payload(self) -> Mapping[str, Any]:
         return {
@@ -7195,16 +10324,12 @@ class _HMCAttemptBudgetPolicy:
             "phase6_screen_burnin_steps": self.phase6_screen_burnin_steps,
             "verification_num_results": self.verification_num_results,
             "verification_num_burnin_steps": self.verification_num_burnin_steps,
-            "budget_formula": (
-                "budget0=min(max_budget, max(min_run, 20*dimension)); "
-                "budget_k=min(max_tune, budget0*2**k)"
-            ),
-            "budget_formula_parameters": {
-                "min_run": _SERIOUS_TUNING_MIN_RUN_BUDGET,
-                "dimension_factor": _SERIOUS_TUNING_DIMENSION_FACTOR,
-                "max_budget": _SERIOUS_TUNING_MAX_INITIAL_BUDGET,
-                "max_tune": _SERIOUS_TUNING_MAX_TUNE_BUDGET,
-            },
+            "budget_formula": self.budget_formula,
+            "budget_formula_parameters": dict(self.budget_formula_parameters),
+            "geometry_budget_summary": dict(self.geometry_budget_summary),
+            "budget0_uncapped": self.budget0_uncapped,
+            "budget0_after_floor_and_cap": self.budget0_after_floor_and_cap,
+            "budget_claim": self.budget_claim,
             "subbudget_formula": {
                 "phase4_warmup_steps": "budget_k",
                 "phase5_tune_budgets": "(ceil(budget_k/4), ceil(budget_k/2), budget_k)",
@@ -7245,6 +10370,9 @@ def _phase7_progress_budget_payload(
         "public_budget_cap": budget_policy.public_budget_cap,
         "public_max_attempts": budget_policy.public_max_attempts,
         "public_diagnostic_preset": budget_policy.public_diagnostic_preset,
+        "geometry_budget_summary": dict(budget_policy.geometry_budget_summary),
+        "budget_formula": budget_policy.budget_formula,
+        "budget_claim": budget_policy.budget_claim,
         "diagnostic_role": (
             "public_bounded_timeout_diagnostic"
             if budget_policy.public_diagnostic_preset == "diagnostic"
@@ -7345,10 +10473,128 @@ def _windowed_mass_progress_extra(payload: Mapping[str, Any]) -> Mapping[str, An
     return {key: payload[key] for key in allowed_keys if key in payload}
 
 
+def _staged_timeout_round(
+    rounds: Mapping[str, int] | None,
+    stage: str,
+) -> int:
+    if rounds is None:
+        return 0
+    return int(rounds.get(str(stage), 0))
+
+
+def _staged_timeout_public_state(
+    *,
+    policy: HMCStagedTimeoutPolicy,
+    stage: str,
+    attempt_index: int | None,
+    global_started_perf_counter_s: float | None,
+    stage_started_perf_counter_s: float | None,
+    enlargement_rounds: Mapping[str, int] | None,
+) -> Mapping[str, Any]:
+    now = time.perf_counter()
+    global_anchor = (
+        now
+        if global_started_perf_counter_s is None
+        else float(global_started_perf_counter_s)
+    )
+    stage_anchor = (
+        now
+        if stage_started_perf_counter_s is None
+        else float(stage_started_perf_counter_s)
+    )
+    stage_name = str(stage)
+    stage_budget = float(policy.stage_budgets_s[stage_name])
+    stage_elapsed = max(0.0, now - stage_anchor)
+    global_elapsed = max(0.0, now - global_anchor)
+    stage_remaining = stage_budget - stage_elapsed
+    global_remaining = float(policy.global_cap_s) - global_elapsed
+    enlargement_round = _staged_timeout_round(enlargement_rounds, stage_name)
+    cap_hit = bool(
+        global_remaining <= float(policy.reserve_s)
+        or stage_remaining <= float(policy.reserve_s)
+    )
+    payload: dict[str, Any] = {
+        "policy_id": policy.policy_id,
+        "stage": stage_name,
+        "attempt_index": None if attempt_index is None else int(attempt_index),
+        "stage_timeout_budget_s": stage_budget,
+        "stage_elapsed_s": stage_elapsed,
+        "stage_remaining_s": stage_remaining,
+        "stage_budget_provenance": policy.stage_budget_provenance[stage_name],
+        "global_cap_s": policy.global_cap_s,
+        "global_elapsed_s": global_elapsed,
+        "global_remaining_s": global_remaining,
+        "timeout_role": "emergency_cap_machine_protection_only",
+        "progress_monitor_role": "meaningful_progress_decides_stall_separately",
+        "no_progress_timeout_is_separate": True,
+        "enlargement_round": enlargement_round,
+        "max_enlargement_rounds": policy.max_enlargement_rounds_per_stage,
+        "cap_hit": cap_hit,
+        "hard_veto": None,
+        "repair_trigger": stage_name,
+        "hmc_mechanics_exposed": False,
+        "reports_posterior_convergence": False,
+        "nonclaims": TUNE_VERIFY_REPAIR_LOOP_NONCLAIMS,
+    }
+    if enlargement_round < int(policy.max_enlargement_rounds_per_stage):
+        proposed = min(
+            stage_budget * float(policy.enlargement_multiplier),
+            max(0.0, global_remaining),
+        )
+        payload["proposed_stage_timeout_budget_s"] = proposed
+        payload["repair_loop_available"] = bool(
+            proposed > stage_budget + float(policy.reserve_s)
+        )
+    else:
+        payload["repair_loop_available"] = False
+    return payload
+
+
+def _staged_timeout_public_payload_for_config(
+    config: HMCWindowedMassStageConfig,
+    *,
+    stage: str,
+    attempt_index: int | None,
+) -> Mapping[str, Any] | None:
+    policy = config.staged_timeout_policy
+    if policy is None or not policy.enabled:
+        return None
+    return _staged_timeout_public_state(
+        policy=policy,
+        stage=stage,
+        attempt_index=attempt_index,
+        global_started_perf_counter_s=(
+            config.staged_timeout_global_started_perf_counter_s
+        ),
+        stage_started_perf_counter_s=(
+            config.staged_timeout_stage_started_perf_counter_s
+        ),
+        enlargement_rounds=config.staged_timeout_enlargement_rounds,
+    )
+
+
 
 def _windowed_mass_public_timeout_state(
     config: HMCWindowedMassStageConfig,
 ) -> Mapping[str, Any]:
+    staged = _staged_timeout_public_payload_for_config(
+        config,
+        stage="windowed_mass",
+        attempt_index=None,
+    )
+    if staged is not None:
+        return {
+            "enabled": True,
+            "timeout_budget_s": staged["stage_timeout_budget_s"],
+            "reserve_s": config.staged_timeout_policy.reserve_s,
+            "elapsed_s": staged["stage_elapsed_s"],
+            "remaining_s": staged["stage_remaining_s"],
+            "within_closeout_window": staged["cap_hit"],
+            "deadline_clock_scope": "staged_timeout_windowed_mass_stage_local",
+            "staged_timeout": staged,
+            "hmc_mechanics_exposed": False,
+            "reports_posterior_convergence": False,
+        }
     if config.public_timeout_budget_s is None:
         return {
             "enabled": False,
@@ -7379,6 +10625,117 @@ def _windowed_mass_public_timeout_state(
         ),
         "hmc_mechanics_exposed": False,
         "reports_posterior_convergence": False,
+    }
+
+
+def _phase7_early_global_timeout_before_loop(
+    *,
+    config: HMCKernelTuningConfig,
+    public_timeout_started_perf_counter_s: float | None,
+    bootstrap: HMCBootstrapScreenResult,
+    target_dimension: int,
+    xla_requested: bool,
+) -> Mapping[str, Any] | None:
+    if config.staged_timeout_policy is not None and config.staged_timeout_policy.enabled:
+        policy = config.staged_timeout_policy
+        staged = _staged_timeout_public_state(
+            policy=policy,
+            stage="phase7_pre_windowed",
+            attempt_index=0,
+            global_started_perf_counter_s=(
+                config.staged_timeout_global_started_perf_counter_s
+            ),
+            stage_started_perf_counter_s=(
+                config.staged_timeout_stage_started_perf_counter_s
+            ),
+            enlargement_rounds=config.staged_timeout_enlargement_rounds,
+        )
+        if (
+            float(staged["stage_remaining_s"]) > float(policy.reserve_s)
+            and float(staged["global_remaining_s"]) > float(policy.reserve_s)
+        ):
+            return None
+        bootstrap_summary = _bootstrap_public_summary(
+            bootstrap,
+            xla_requested=xla_requested,
+        )
+        return {
+            "schema": "bayesfilter.phase7_early_global_timeout_closeout.v1",
+            "stage": "phase7_before_tune_verify_repair_loop",
+            "enabled": True,
+            "timeout_budget_s": staged["stage_timeout_budget_s"],
+            "reserve_s": policy.reserve_s,
+            "elapsed_s": staged["stage_elapsed_s"],
+            "remaining_s": staged["stage_remaining_s"],
+            "within_closeout_window": True,
+            "deadline_clock_scope": "staged_timeout_phase7_pre_windowed_stage_local",
+            "staged_timeout": {
+                **dict(staged),
+                "hard_veto": _PHASE7_EARLY_GLOBAL_TIMEOUT_BEFORE_LOOP_HARD_VETO,
+                "repair_trigger": _PHASE7_EARLY_GLOBAL_TIMEOUT_BEFORE_LOOP_REPAIR_TRIGGER,
+            },
+            "closeout_required_before_phase7_loop": True,
+            "phase7_loop_entered": False,
+            "windowed_mass_runner_called": False,
+            "bootstrap_passed": bool(bootstrap.passed),
+            "bootstrap_public_summary": dict(bootstrap_summary),
+            "target_dimension": int(target_dimension),
+            "hard_veto": _PHASE7_EARLY_GLOBAL_TIMEOUT_BEFORE_LOOP_HARD_VETO,
+            "repair_trigger": _PHASE7_EARLY_GLOBAL_TIMEOUT_BEFORE_LOOP_REPAIR_TRIGGER,
+            "diagnostic_role": _PHASE7_EARLY_GLOBAL_TIMEOUT_BEFORE_LOOP_HARD_VETO,
+            "progress_only": True,
+            "public_closeout_artifact_expected": True,
+            "hmc_mechanics_exposed": False,
+            "reports_posterior_convergence": False,
+            "reports_sampler_superiority": False,
+            "reports_default_readiness": False,
+            "reports_external_client_scientific_claim": False,
+            "reports_gpu_or_xla_readiness": False,
+            "nonclaims": TUNE_VERIFY_REPAIR_LOOP_NONCLAIMS,
+        }
+    if config.public_timeout_budget_s is None:
+        return None
+    if public_timeout_started_perf_counter_s is None:
+        return None
+    budget = float(config.public_timeout_budget_s)
+    reserve = max(0.0, min(_WINDOWED_MASS_PUBLIC_TIMEOUT_RESERVE_S, budget * 0.5))
+    now = time.perf_counter()
+    elapsed = max(0.0, now - float(public_timeout_started_perf_counter_s))
+    remaining = budget - elapsed
+    if remaining > reserve:
+        return None
+    bootstrap_summary = _bootstrap_public_summary(
+        bootstrap,
+        xla_requested=xla_requested,
+    )
+    return {
+        "schema": "bayesfilter.phase7_early_global_timeout_closeout.v1",
+        "stage": "phase7_before_tune_verify_repair_loop",
+        "enabled": True,
+        "timeout_budget_s": budget,
+        "reserve_s": reserve,
+        "elapsed_s": elapsed,
+        "remaining_s": remaining,
+        "within_closeout_window": True,
+        "deadline_clock_scope": "public_one_call_global",
+        "closeout_required_before_phase7_loop": True,
+        "phase7_loop_entered": False,
+        "windowed_mass_runner_called": False,
+        "bootstrap_passed": bool(bootstrap.passed),
+        "bootstrap_public_summary": dict(bootstrap_summary),
+        "target_dimension": int(target_dimension),
+        "hard_veto": _PHASE7_EARLY_GLOBAL_TIMEOUT_BEFORE_LOOP_HARD_VETO,
+        "repair_trigger": _PHASE7_EARLY_GLOBAL_TIMEOUT_BEFORE_LOOP_REPAIR_TRIGGER,
+        "diagnostic_role": _PHASE7_EARLY_GLOBAL_TIMEOUT_BEFORE_LOOP_HARD_VETO,
+        "progress_only": True,
+        "public_closeout_artifact_expected": True,
+        "hmc_mechanics_exposed": False,
+        "reports_posterior_convergence": False,
+        "reports_sampler_superiority": False,
+        "reports_default_readiness": False,
+        "reports_external_client_scientific_claim": False,
+        "reports_gpu_or_xla_readiness": False,
+        "nonclaims": TUNE_VERIFY_REPAIR_LOOP_NONCLAIMS,
     }
 
 
@@ -7418,6 +10775,121 @@ def _windowed_mass_public_timeout_preflight(
     if attempt_index is not None:
         payload["attempt_index"] = int(attempt_index)
     return payload
+
+
+def _windowed_mass_next_segment_soft_deadline_preflight(
+    config: HMCWindowedMassStageConfig,
+    *,
+    stage: str,
+    attempt_index: int | None,
+    completed_segment_elapsed_s: Sequence[float],
+) -> Mapping[str, Any] | None:
+    if config.public_timeout_budget_s is None:
+        return None
+    state = dict(_windowed_mass_public_timeout_state(config))
+    completed = tuple(float(value) for value in completed_segment_elapsed_s)
+    if not completed:
+        estimated_next_s = min(
+            _WINDOWED_MASS_PUBLIC_TIMEOUT_RESERVE_S,
+            max(1.0, float(state["timeout_budget_s"]) * 0.25),
+        )
+        estimator = "fallback_min_reserve_or_quarter_budget"
+        recent_window_count = 0
+    else:
+        recent_window = max(
+            1,
+            int(_WINDOWED_MASS_SEGMENT_SOFT_DEADLINE_RECENT_WINDOW),
+        )
+        recent_completed = tuple(completed[-recent_window:])
+        estimated_next_s = (
+            max(recent_completed)
+            * _WINDOWED_MASS_SEGMENT_SOFT_DEADLINE_SAFETY_MULTIPLIER
+        )
+        estimator = "recent_max_times_safety_multiplier"
+        recent_window_count = min(len(completed), recent_window)
+    remaining_values = [float(state["remaining_s"])]
+    staged = state.get("staged_timeout")
+    if isinstance(staged, Mapping):
+        remaining_values.append(float(staged["global_remaining_s"]))
+    effective_remaining_s = min(remaining_values)
+    stage_enlargement_available = bool(
+        isinstance(staged, Mapping)
+        and staged.get("repair_loop_available") is True
+        and float(staged.get("global_remaining_s", 0.0))
+        > float(state["reserve_s"]) + float(estimated_next_s)
+    )
+    closeout_required = bool(
+        state["within_closeout_window"]
+        or effective_remaining_s <= float(state["reserve_s"]) + float(estimated_next_s)
+    )
+    if not closeout_required or stage_enlargement_available:
+        return None
+    payload: dict[str, Any] = {
+        **state,
+        "schema": "bayesfilter.windowed_mass_public_timeout_closeout.v1",
+        "stage": str(stage),
+        "effective_remaining_s": float(effective_remaining_s),
+        "estimated_next_segment_s": float(estimated_next_s),
+        "stage_enlargement_available": False,
+        "completed_segment_elapsed_count": len(completed),
+        "completed_segment_elapsed_estimator": estimator,
+        "completed_segment_elapsed_recent_window": recent_window_count,
+        "closeout_required_before_hmc_call": True,
+        "closeout_required_before_next_segment": True,
+        "diagnostic_role": "public_timeout_closeout_hard_veto",
+        "hard_veto": _WINDOWED_MASS_PUBLIC_TIMEOUT_HARD_VETO,
+        "repair_trigger": _WINDOWED_MASS_PUBLIC_TIMEOUT_REPAIR_TRIGGER,
+        "progress_only": True,
+        "public_closeout_artifact_expected": True,
+        "hmc_mechanics_exposed": False,
+        "reports_posterior_convergence": False,
+        "reports_sampler_superiority": False,
+        "reports_default_readiness": False,
+        "reports_external_client_scientific_claim": False,
+        "reports_gpu_or_xla_readiness": False,
+        "nonclaims": WINDOWED_MASS_STAGE_NONCLAIMS,
+    }
+    if attempt_index is not None:
+        payload["attempt_index"] = int(attempt_index)
+    return payload
+
+
+def _phase7_public_timeout_before_windowed_mass(
+    config: HMCWindowedMassStageConfig,
+    *,
+    attempt_index: int,
+    target_dimension: int,
+    budget_policy: "_HMCAttemptBudgetPolicy",
+) -> Mapping[str, Any] | None:
+    closeout = _windowed_mass_public_timeout_preflight(
+        config,
+        stage="phase7_loop_attempt_before_windowed_mass",
+        attempt_index=attempt_index,
+    )
+    if closeout is None:
+        return None
+    return {
+        **dict(closeout),
+        "schema": "bayesfilter.phase7_public_timeout_before_windowed_mass.v1",
+        "stage": "phase7_loop_attempt_before_windowed_mass",
+        "hard_veto": _PHASE7_PUBLIC_TIMEOUT_BEFORE_WINDOWED_MASS_HARD_VETO,
+        "repair_trigger": _PHASE7_PUBLIC_TIMEOUT_BEFORE_WINDOWED_MASS_REPAIR_TRIGGER,
+        "diagnostic_role": "phase7_pre_windowed_public_timeout_hard_veto",
+        "closeout_required_before_windowed_mass_runner_build": True,
+        "windowed_mass_runner_called": False,
+        "target_dimension": int(target_dimension),
+        "public_budget_class": budget_policy.public_budget_class,
+        "public_budget_cap": budget_policy.public_budget_cap,
+        "budget_is_public_policy": budget_policy.public_budget_class is not None,
+        "hmc_mechanics_exposed": False,
+        "reports_posterior_convergence": False,
+        "reports_sampler_superiority": False,
+        "reports_default_readiness": False,
+        "reports_external_client_scientific_claim": False,
+        "reports_gpu_or_xla_readiness": False,
+        "nonclaims": TUNE_VERIFY_REPAIR_LOOP_NONCLAIMS,
+    }
+
 
 def _budget_ladder_progress_extra(payload: Mapping[str, Any]) -> Mapping[str, Any]:
     allowed_keys = {
@@ -7572,7 +11044,15 @@ def _phase6_next_candidate_soft_deadline_veto(
     if not completed:
         estimated_next_s = _FROZEN_STEP_TRAJECTORY_SOFT_DEADLINE_RESERVE_S
     else:
-        estimated_next_s = max(completed) * _FROZEN_STEP_TRAJECTORY_SOFT_DEADLINE_SAFETY_MULTIPLIER
+        recent_window = max(
+            1,
+            int(_FROZEN_STEP_TRAJECTORY_SOFT_DEADLINE_RECENT_WINDOW),
+        )
+        recent_completed = tuple(completed[-recent_window:])
+        estimated_next_s = (
+            max(recent_completed)
+            * _FROZEN_STEP_TRAJECTORY_SOFT_DEADLINE_SAFETY_MULTIPLIER
+        )
     closeout_required = bool(
         state["within_closeout_window"]
         or float(state["remaining_s"]) <= estimated_next_s + float(state["reserve_s"])
@@ -7583,6 +11063,10 @@ def _phase6_next_candidate_soft_deadline_veto(
         **state,
         "estimated_next_candidate_s": float(estimated_next_s),
         "completed_candidate_elapsed_count": len(completed),
+        "completed_candidate_elapsed_estimator": "recent_max_times_safety_multiplier",
+        "completed_candidate_elapsed_recent_window": min(len(completed), recent_window)
+        if completed
+        else 0,
         "closeout_required_before_next_candidate": True,
         "diagnostic_role": "public_timeout_closeout_hard_veto",
         "hmc_mechanics_exposed": False,
@@ -7590,6 +11074,142 @@ def _phase6_next_candidate_soft_deadline_veto(
         "reports_sampler_superiority": False,
         "reports_default_readiness": False,
         "reports_gpu_or_xla_readiness": False,
+    }
+
+
+def _fixed_mass_step_public_timeout_state(
+    config: HMCFixedMassStepStageConfig,
+    *,
+    stage_start_perf_counter_s: float,
+    attempt_index: int | None,
+) -> Mapping[str, Any]:
+    staged = _staged_timeout_public_payload_for_config(
+        config,
+        stage="fixed_mass_step",
+        attempt_index=attempt_index,
+    )
+    if staged is not None:
+        return {
+            "enabled": True,
+            "timeout_budget_s": staged["stage_timeout_budget_s"],
+            "reserve_s": config.staged_timeout_policy.reserve_s,
+            "elapsed_s": staged["stage_elapsed_s"],
+            "remaining_s": staged["stage_remaining_s"],
+            "within_closeout_window": staged["cap_hit"],
+            "deadline_clock_scope": "staged_timeout_fixed_mass_step_stage_local",
+            "stage_elapsed_s": staged["stage_elapsed_s"],
+            "stage_remaining_s": staged["stage_remaining_s"],
+            "staged_timeout": staged,
+            "hmc_mechanics_exposed": False,
+            "reports_posterior_convergence": False,
+        }
+    if config.public_timeout_budget_s is None:
+        return {
+            "enabled": False,
+            "hmc_mechanics_exposed": False,
+            "reports_posterior_convergence": False,
+        }
+    budget = float(config.public_timeout_budget_s)
+    reserve = max(0.0, min(_FROZEN_STEP_TRAJECTORY_SOFT_DEADLINE_RESERVE_S, budget * 0.5))
+    now = time.perf_counter()
+    stage_elapsed = max(0.0, now - float(stage_start_perf_counter_s))
+    anchor = (
+        float(stage_start_perf_counter_s)
+        if config.public_timeout_started_perf_counter_s is None
+        else float(config.public_timeout_started_perf_counter_s)
+    )
+    elapsed = max(0.0, now - anchor)
+    remaining = budget - elapsed
+    return {
+        "enabled": True,
+        "timeout_budget_s": budget,
+        "reserve_s": reserve,
+        "elapsed_s": elapsed,
+        "remaining_s": remaining,
+        "within_closeout_window": remaining <= reserve,
+        "deadline_clock_scope": (
+            "fixed_mass_step_stage_local"
+            if config.public_timeout_started_perf_counter_s is None
+            else "public_one_call_global"
+        ),
+        "stage_elapsed_s": stage_elapsed,
+        "stage_remaining_s": budget - stage_elapsed,
+        "hmc_mechanics_exposed": False,
+        "reports_posterior_convergence": False,
+    }
+
+
+def _fixed_mass_step_next_candidate_soft_deadline_veto(
+    config: HMCFixedMassStepStageConfig,
+    *,
+    stage_start_perf_counter_s: float,
+    attempt_index: int | None,
+    completed_elapsed_s: Sequence[float],
+) -> Mapping[str, Any] | None:
+    if config.public_timeout_budget_s is None:
+        return None
+    state = dict(
+        _fixed_mass_step_public_timeout_state(
+            config,
+            stage_start_perf_counter_s=stage_start_perf_counter_s,
+            attempt_index=attempt_index,
+        )
+    )
+    completed = tuple(float(value) for value in completed_elapsed_s)
+    if not completed:
+        estimated_next_s = float(state["reserve_s"])
+        estimator = "fallback_reserve"
+        recent_window_count = 0
+    else:
+        recent_window = max(1, int(_FIXED_MASS_STEP_SOFT_DEADLINE_RECENT_WINDOW))
+        recent_completed = tuple(completed[-recent_window:])
+        estimated_next_s = (
+            max(recent_completed)
+            * _FIXED_MASS_STEP_SOFT_DEADLINE_SAFETY_MULTIPLIER
+        )
+        estimator = "recent_max_times_safety_multiplier"
+        recent_window_count = min(len(completed), recent_window)
+    remaining_values = [float(state["remaining_s"])]
+    staged = state.get("staged_timeout")
+    if isinstance(staged, Mapping):
+        remaining_values.append(float(staged["global_remaining_s"]))
+    effective_remaining_s = min(remaining_values)
+    stage_enlargement_available = bool(
+        isinstance(staged, Mapping)
+        and staged.get("repair_loop_available") is True
+        and float(staged.get("global_remaining_s", 0.0))
+        > float(state["reserve_s"]) + float(estimated_next_s)
+    )
+    closeout_required = bool(
+        state["within_closeout_window"]
+        or effective_remaining_s <= float(state["reserve_s"]) + float(estimated_next_s)
+    )
+    if not closeout_required or stage_enlargement_available:
+        return None
+    return {
+        **state,
+        "schema": "bayesfilter.fixed_mass_step_public_timeout_closeout.v1",
+        "stage": "fixed_mass_step_joint_l_epsilon_candidate_start",
+        "effective_remaining_s": float(effective_remaining_s),
+        "estimated_next_candidate_s": float(estimated_next_s),
+        "stage_enlargement_available": False,
+        "completed_candidate_elapsed_count": len(completed),
+        "completed_candidate_elapsed_estimator": estimator,
+        "completed_candidate_elapsed_recent_window": recent_window_count,
+        "closeout_required_before_hmc_call": True,
+        "closeout_required_before_next_candidate": True,
+        "diagnostic_role": "public_timeout_closeout_hard_veto",
+        "hard_veto": _FIXED_MASS_STEP_PUBLIC_TIMEOUT_HARD_VETO,
+        "repair_trigger": _FIXED_MASS_STEP_PUBLIC_TIMEOUT_REPAIR_TRIGGER,
+        "progress_only": True,
+        "public_closeout_artifact_expected": True,
+        "hmc_mechanics_exposed": False,
+        "reports_posterior_convergence": False,
+        "reports_sampler_superiority": False,
+        "reports_default_readiness": False,
+        "reports_external_client_scientific_claim": False,
+        "reports_gpu_or_xla_readiness": False,
+        "nonclaims": FIXED_MASS_STEP_STAGE_NONCLAIMS,
     }
 
 
@@ -7737,6 +11357,85 @@ def _phase7_verify_only_budget_saturation_blocker(
     }
 
 
+def _phase7_extended_attempt_stall_blocker(
+    *,
+    config: HMCTuneVerifyRepairLoopConfig,
+    attempt_state: "_HMCPhaseAttemptState | None",
+    last_attempt: HMCTuneVerifyRepairAttempt | None,
+    next_attempt_policy: "_HMCAttemptBudgetPolicy",
+) -> Mapping[str, Any] | None:
+    if int(next_attempt_policy.attempt_index) < _PHASE7_BASE_MAX_ATTEMPTS:
+        return None
+    if int(config.max_attempts) <= _PHASE7_BASE_MAX_ATTEMPTS:
+        return None
+    if attempt_state is None or last_attempt is None:
+        reason = "missing_previous_repair_handoff"
+    elif str(last_attempt.final_status) != "repair_or_retry":
+        reason = "previous_attempt_not_repair_or_retry"
+    elif tuple(last_attempt.hard_vetoes):
+        reason = "previous_attempt_hard_veto"
+    elif (
+        _phase7_should_retry_verification_only(attempt_state)
+        and attempt_state.verification_budget_results is not None
+        and int(next_attempt_policy.verification_num_results)
+        > int(attempt_state.verification_budget_results)
+    ):
+        return None
+    elif attempt_state.has_stage_repair_handoff and (
+        attempt_state.verification_repair_applied
+        or attempt_state.verification_repair_trigger is not None
+        or tuple(last_attempt.repair_triggers)
+    ):
+        return None
+    else:
+        reason = "previous_attempt_left_no_effective_repair_progress"
+    return {
+        "schema": "bayesfilter.hmc_phase7_extended_attempt_stall_blocker.v1",
+        "classification": _PHASE7_EXTENDED_ATTEMPT_STALLED,
+        "base_max_attempts": _PHASE7_BASE_MAX_ATTEMPTS,
+        "configured_max_attempts": int(config.max_attempts),
+        "next_attempt_index": int(next_attempt_policy.attempt_index),
+        "last_attempt_index": None
+        if last_attempt is None
+        else int(last_attempt.attempt_index),
+        "last_attempt_final_status": None
+        if last_attempt is None
+        else last_attempt.final_status,
+        "last_attempt_diagnostic_role": None
+        if last_attempt is None
+        else last_attempt.diagnostic_role,
+        "last_handoff_stage": None
+        if attempt_state is None
+        else attempt_state.handoff_stage,
+        "verification_repair_trigger": None
+        if attempt_state is None
+        else attempt_state.verification_repair_trigger,
+        "verification_repair_applied": False
+        if attempt_state is None
+        else bool(attempt_state.verification_repair_applied),
+        "verification_only_retry_eligible": False
+        if attempt_state is None
+        else _phase7_should_retry_verification_only(attempt_state),
+        "previous_verification_budget_results": None
+        if attempt_state is None
+        else attempt_state.verification_budget_results,
+        "next_attempt_verification_budget_results": int(
+            next_attempt_policy.verification_num_results
+        ),
+        "stalled_reason": reason,
+        "closeout_required_before_extended_attempt": True,
+        "diagnostic_role": _PHASE7_EXTENDED_ATTEMPT_STALLED,
+        "progress_only": True,
+        "hmc_mechanics_exposed": False,
+        "reports_posterior_convergence": False,
+        "reports_sampler_superiority": False,
+        "reports_default_readiness": False,
+        "reports_external_client_scientific_claim": False,
+        "reports_gpu_or_xla_readiness": False,
+        "nonclaims": TUNE_VERIFY_REPAIR_LOOP_NONCLAIMS,
+    }
+
+
 def _phase7_repair_handoff_attempt_slot_blocker(
     *,
     config: HMCTuneVerifyRepairLoopConfig,
@@ -7773,6 +11472,122 @@ def _phase7_repair_handoff_attempt_slot_blocker(
         "verification_repair_applied": True,
         "closeout_required_before_next_attempt": True,
         "diagnostic_role": _PHASE7_REPAIR_HANDOFF_BUDGET_EXHAUSTED,
+        "progress_only": False,
+        "hmc_mechanics_exposed": False,
+        "reports_posterior_convergence": False,
+        "reports_sampler_superiority": False,
+        "reports_default_readiness": False,
+        "reports_external_client_scientific_claim": False,
+        "reports_gpu_or_xla_readiness": False,
+        "nonclaims": TUNE_VERIFY_REPAIR_LOOP_NONCLAIMS,
+    }
+
+
+def _phase7_terminal_phase6_repair_slot_eligible(
+    *,
+    config: HMCTuneVerifyRepairLoopConfig,
+    attempt_state: "_HMCPhaseAttemptState | None",
+    last_attempt: HMCTuneVerifyRepairAttempt | None,
+    consumed_slots: int,
+) -> bool:
+    if int(config.terminal_phase6_repair_extra_attempts) <= int(consumed_slots):
+        return False
+    if attempt_state is None or last_attempt is None:
+        return False
+    if str(last_attempt.final_status) != "repair_or_retry":
+        return False
+    if tuple(last_attempt.hard_vetoes):
+        return False
+    return (
+        attempt_state.verification_repair_applied
+        and attempt_state.verification_repair_trigger
+        == _PHASE6_TRAJECTORY_ACCEPTANCE_REPAIR_TRIGGER
+        and attempt_state.has_stage_repair_handoff
+    )
+
+
+def _phase7_terminal_phase6_repair_slot_payload(
+    *,
+    config: HMCTuneVerifyRepairLoopConfig,
+    attempt_state: "_HMCPhaseAttemptState | None",
+    last_attempt: HMCTuneVerifyRepairAttempt | None,
+    attempt_index: int,
+    consumed_slots: int,
+) -> Mapping[str, Any]:
+    return {
+        "schema": "bayesfilter.hmc_phase7_terminal_phase6_repair_slot.v1",
+        "classification": "terminal_phase6_repair_extra_attempt",
+        "terminal_phase6_repair_extra_attempt": True,
+        "terminal_phase6_repair_extra_attempt_index": int(consumed_slots) + 1,
+        "terminal_phase6_repair_extra_attempts": (
+            int(config.terminal_phase6_repair_extra_attempts)
+        ),
+        "terminal_phase6_repair_extra_attempts_consumed": int(consumed_slots) + 1,
+        "attempt_index": int(attempt_index),
+        "last_attempt_index": None
+        if last_attempt is None
+        else int(last_attempt.attempt_index),
+        "configured_max_attempts": int(config.max_attempts),
+        "verification_repair_trigger": None
+        if attempt_state is None
+        else attempt_state.verification_repair_trigger,
+        "verification_repair_applied": False
+        if attempt_state is None
+        else bool(attempt_state.verification_repair_applied),
+        "last_handoff_stage": None
+        if attempt_state is None
+        else attempt_state.handoff_stage,
+        "hmc_mechanics_exposed": False,
+        "reports_posterior_convergence": False,
+        "reports_sampler_superiority": False,
+        "reports_default_readiness": False,
+        "reports_external_client_scientific_claim": False,
+        "reports_gpu_or_xla_readiness": False,
+        "nonclaims": TUNE_VERIFY_REPAIR_LOOP_NONCLAIMS,
+    }
+
+
+def _phase7_terminal_phase6_repair_slot_exhausted_payload(
+    *,
+    config: HMCTuneVerifyRepairLoopConfig,
+    attempt_state: "_HMCPhaseAttemptState | None",
+    last_attempt: HMCTuneVerifyRepairAttempt | None,
+    consumed_slots: int,
+) -> Mapping[str, Any]:
+    return {
+        "schema": "bayesfilter.hmc_phase7_terminal_phase6_repair_slot_exhausted.v1",
+        "classification": _PHASE7_TERMINAL_PHASE6_REPAIR_SLOT_EXHAUSTED,
+        "terminal_phase6_repair_extra_attempts": (
+            int(config.terminal_phase6_repair_extra_attempts)
+        ),
+        "terminal_phase6_repair_extra_attempts_consumed": int(consumed_slots),
+        "last_attempt_index": None
+        if last_attempt is None
+        else int(last_attempt.attempt_index),
+        "configured_max_attempts": int(config.max_attempts),
+        "last_attempt_final_status": None
+        if last_attempt is None
+        else last_attempt.final_status,
+        "last_attempt_diagnostic_role": None
+        if last_attempt is None
+        else last_attempt.diagnostic_role,
+        "last_handoff_stage": None
+        if attempt_state is None
+        else attempt_state.handoff_stage,
+        "previous_verification_acceptance_relation": None
+        if attempt_state is None
+        else attempt_state.verification_acceptance_relation,
+        "previous_verification_repair_source": None
+        if attempt_state is None
+        else attempt_state.verification_repair_source,
+        "verification_repair_trigger": None
+        if attempt_state is None
+        else attempt_state.verification_repair_trigger,
+        "verification_repair_applied": False
+        if attempt_state is None
+        else bool(attempt_state.verification_repair_applied),
+        "closeout_required_before_next_attempt": True,
+        "diagnostic_role": _PHASE7_TERMINAL_PHASE6_REPAIR_SLOT_EXHAUSTED,
         "progress_only": False,
         "hmc_mechanics_exposed": False,
         "reports_posterior_convergence": False,
@@ -7920,6 +11735,8 @@ class _HMCPhaseAttemptState:
     selected_step_hash: str | None = None
     selected_num_leapfrog_steps: int | None = None
     selected_trajectory_hash: str | None = None
+    phase6_retry_num_leapfrog_steps: int | None = None
+    phase6_retry_anchor_source: str | None = None
     verification_acceptance_rate: float | None = None
     verification_acceptance_relation: str = "unavailable"
     verification_repair_trigger: str | None = None
@@ -7963,6 +11780,24 @@ class _HMCPhaseAttemptState:
             else str(self.selected_trajectory_hash)
         )
         object.__setattr__(self, "selected_trajectory_hash", trajectory_hash)
+        retry_leapfrog = (
+            None
+            if self.phase6_retry_num_leapfrog_steps is None
+            else int(self.phase6_retry_num_leapfrog_steps)
+        )
+        if retry_leapfrog is not None and retry_leapfrog <= 0:
+            raise ValueError("phase6_retry_num_leapfrog_steps must be positive")
+        object.__setattr__(self, "phase6_retry_num_leapfrog_steps", retry_leapfrog)
+        retry_anchor_source = (
+            None
+            if self.phase6_retry_anchor_source is None
+            else str(self.phase6_retry_anchor_source)
+        )
+        if retry_anchor_source is not None and not retry_anchor_source:
+            raise ValueError("phase6_retry_anchor_source must be non-empty when provided")
+        if (retry_leapfrog is None) != (retry_anchor_source is None):
+            raise ValueError("phase6 retry anchor L/source must be paired")
+        object.__setattr__(self, "phase6_retry_anchor_source", retry_anchor_source)
         stage = str(self.handoff_stage)
         if stage not in {"initial", "phase4", "phase5_repair", "phase5_selected", "phase6"}:
             raise ValueError("attempt handoff_stage is invalid")
@@ -8114,6 +11949,8 @@ class _HMCPhaseAttemptState:
             "selected_step_hash": self.selected_step_hash,
             "selected_num_leapfrog_steps": self.selected_num_leapfrog_steps,
             "selected_trajectory_hash": self.selected_trajectory_hash,
+            "phase6_retry_num_leapfrog_steps": self.phase6_retry_num_leapfrog_steps,
+            "phase6_retry_anchor_source": self.phase6_retry_anchor_source,
             "verification_acceptance_rate": self.verification_acceptance_rate,
             "verification_acceptance_relation": self.verification_acceptance_relation,
             "verification_repair_trigger": self.verification_repair_trigger,
@@ -8184,45 +12021,33 @@ def _phase7_positive_finite_or_none(value: Any) -> float | None:
 def _default_attempt_budget_policy(
     target_dimension: int,
     attempt_index: int,
+    mass_artifact: PrecomputedMassArtifact | None = None,
+    policy: HMCGeometryScaledBudgetTimingPolicy | None = None,
 ) -> _HMCAttemptBudgetPolicy:
-    dimension = int(target_dimension)
-    if dimension <= 0:
-        raise ValueError("target_dimension must be positive")
-    index = int(attempt_index)
-    if index < 0:
-        raise ValueError("attempt_index must be non-negative")
-    budget0 = min(
-        _SERIOUS_TUNING_MAX_INITIAL_BUDGET,
-        max(
-            _SERIOUS_TUNING_MIN_RUN_BUDGET,
-            _SERIOUS_TUNING_DIMENSION_FACTOR * dimension,
-        ),
+    central = _geometry_scaled_budget_timing_policy() if policy is None else policy
+    payload = central.attempt_budget_payload(
+        target_dimension=int(target_dimension),
+        attempt_index=int(attempt_index),
+        mass_artifact=mass_artifact,
     )
-    budget = min(_SERIOUS_TUNING_MAX_TUNE_BUDGET, int(budget0 * (2 ** index)))
-    phase5_screen = max(32, _ceil_div(budget, 4))
-    phase6_screen = max(32, _ceil_div(budget, 4))
-    verification_results = max(64, _ceil_div(budget, 2))
-    return _HMCAttemptBudgetPolicy(
-        target_dimension=dimension,
-        attempt_index=index,
-        budget=budget,
-        phase4_warmup_steps=budget,
-        phase5_tune_budgets=(
-            _ceil_div(budget, 4),
-            _ceil_div(budget, 2),
-            budget,
-        ),
-        phase5_screen_num_results=phase5_screen,
-        phase5_screen_burnin_steps=max(8, _ceil_div(phase5_screen, 4)),
-        phase6_screen_num_results=phase6_screen,
-        phase6_screen_burnin_steps=max(8, _ceil_div(phase6_screen, 4)),
-        verification_num_results=verification_results,
-        verification_num_burnin_steps=max(16, _ceil_div(verification_results, 4)),
+    return _attempt_budget_policy_from_payload(
+        payload,
+        serious_policy=True,
     )
 
 
 def _phase7_attempt_seed(root_seed: tuple[int, int], attempt_index: int) -> tuple[int, int]:
     return _derive_seed(root_seed, stage_index=10 + int(attempt_index))
+
+
+def _staged_timeout_stage_budget(
+    policy: HMCStagedTimeoutPolicy | None,
+    stage: str,
+    fallback: float | None,
+) -> float | None:
+    if policy is None or not policy.enabled:
+        return fallback
+    return float(policy.stage_budgets_s[str(stage)])
 
 
 def _phase7_windowed_stage_config(
@@ -8237,8 +12062,24 @@ def _phase7_windowed_stage_config(
         use_xla=config.use_xla,
         target_scope=config.target_scope,
         target_status_trace_policy=config.target_status_trace_policy,
-        public_timeout_budget_s=config.public_timeout_budget_s,
-        public_timeout_started_perf_counter_s=config.public_timeout_started_perf_counter_s,
+        public_timeout_budget_s=_staged_timeout_stage_budget(
+            config.staged_timeout_policy,
+            "windowed_mass",
+            config.public_timeout_budget_s,
+        ),
+        public_timeout_started_perf_counter_s=None
+        if config.staged_timeout_policy is not None
+        else config.public_timeout_started_perf_counter_s,
+        staged_timeout_policy=config.staged_timeout_policy,
+        staged_timeout_global_started_perf_counter_s=(
+            config.staged_timeout_global_started_perf_counter_s
+        ),
+        staged_timeout_stage_started_perf_counter_s=(
+            None
+            if config.staged_timeout_policy is None
+            else time.perf_counter()
+        ),
+        staged_timeout_enlargement_rounds=config.staged_timeout_enlargement_rounds,
         source=config.source,
     )
 
@@ -8260,13 +12101,31 @@ def _phase7_fixed_step_stage_config(
         step_repair_high_acceptance_ladder_max_factor=(
             config.step_repair_high_acceptance_ladder_max_factor
         ),
+        trajectory_window_lower_multiplier=config.trajectory_window_lower_multiplier,
+        trajectory_window_upper_multiplier=config.trajectory_window_upper_multiplier,
         seed=_derive_seed(_phase7_attempt_seed(config.seed, attempt_index), stage_index=1),
         chain_execution_mode=config.chain_execution_mode,
         use_xla=config.use_xla,
         target_scope=config.target_scope,
         target_status_trace_policy=config.target_status_trace_policy,
-        public_timeout_budget_s=config.public_timeout_budget_s,
-        public_timeout_started_perf_counter_s=config.public_timeout_started_perf_counter_s,
+        public_timeout_budget_s=_staged_timeout_stage_budget(
+            config.staged_timeout_policy,
+            "fixed_mass_step",
+            config.public_timeout_budget_s,
+        ),
+        public_timeout_started_perf_counter_s=None
+        if config.staged_timeout_policy is not None
+        else config.public_timeout_started_perf_counter_s,
+        staged_timeout_policy=config.staged_timeout_policy,
+        staged_timeout_global_started_perf_counter_s=(
+            config.staged_timeout_global_started_perf_counter_s
+        ),
+        staged_timeout_stage_started_perf_counter_s=(
+            None
+            if config.staged_timeout_policy is None
+            else time.perf_counter()
+        ),
+        staged_timeout_enlargement_rounds=config.staged_timeout_enlargement_rounds,
         source=config.source,
     )
 
@@ -8287,8 +12146,24 @@ def _phase7_trajectory_stage_config(
         use_xla=config.use_xla,
         target_scope=config.target_scope,
         target_status_trace_policy=config.target_status_trace_policy,
-        public_timeout_budget_s=config.public_timeout_budget_s,
-        public_timeout_started_perf_counter_s=config.public_timeout_started_perf_counter_s,
+        public_timeout_budget_s=_staged_timeout_stage_budget(
+            config.staged_timeout_policy,
+            "frozen_step_trajectory",
+            config.public_timeout_budget_s,
+        ),
+        public_timeout_started_perf_counter_s=None
+        if config.staged_timeout_policy is not None
+        else config.public_timeout_started_perf_counter_s,
+        staged_timeout_policy=config.staged_timeout_policy,
+        staged_timeout_global_started_perf_counter_s=(
+            config.staged_timeout_global_started_perf_counter_s
+        ),
+        staged_timeout_stage_started_perf_counter_s=(
+            None
+            if config.staged_timeout_policy is None
+            else time.perf_counter()
+        ),
+        staged_timeout_enlargement_rounds=config.staged_timeout_enlargement_rounds,
         source=config.source,
     )
 
@@ -8368,13 +12243,32 @@ def _selected_bootstrap_kernel_from_windowed_stage(
     windowed_stage: HMCWindowedMassStageResult,
     *,
     bootstrap: HMCBootstrapScreenResult,
+    geometry: HMCGeometryInitializationResult,
 ) -> Mapping[str, Any]:
-    selected = bootstrap.selected_kernel_payload
-    if selected is None:
-        raise ValueError("Phase 5 requires selected bootstrap kernel payload")
-    selected_hash = bootstrap.selected_kernel_hash
+    selected = _active_bootstrap_handoff_kernel_payload(
+        geometry=geometry,
+        bootstrap=bootstrap,
+    )
+    selected_hash = _active_bootstrap_handoff_kernel_hash(
+        geometry=geometry,
+        bootstrap=bootstrap,
+    )
     if selected_hash != windowed_stage.selected_bootstrap_kernel_hash:
         raise ValueError("Phase 5 selected bootstrap kernel hash mismatch")
+    return selected
+
+
+def _mass_window_seed_kernel_from_windowed_stage(
+    windowed_stage: HMCWindowedMassStageResult,
+    *,
+    bootstrap: HMCBootstrapScreenResult,
+    geometry: HMCGeometryInitializationResult,
+) -> Mapping[str, Any]:
+    _selected_bootstrap_kernel_from_windowed_stage(
+        windowed_stage,
+        bootstrap=bootstrap,
+        geometry=geometry,
+    )
     payload = None
     if windowed_stage.diagnostic_run_config_payload is not None:
         payload = windowed_stage.diagnostic_run_config_payload
@@ -8384,10 +12278,6 @@ def _selected_bootstrap_kernel_from_windowed_stage(
     leapfrog = payload.get("num_leapfrog_steps")
     if step_size is None or leapfrog is None:
         raise ValueError("Phase 4 diagnostic config missing selected kernel fields")
-    if float(step_size) != float(selected["step_size"]):
-        raise ValueError("Phase 4 diagnostic step does not match bootstrap selection")
-    if int(leapfrog) != int(selected["num_leapfrog_steps"]):
-        raise ValueError("Phase 4 diagnostic L does not match bootstrap selection")
     return {"step_size": float(step_size), "num_leapfrog_steps": int(leapfrog)}
 
 
@@ -8485,6 +12375,730 @@ def _fixed_mass_step_initial_state_factory(
     return factory
 
 
+def _joint_l_epsilon_anchor_l(
+    *,
+    selected_kernel: Mapping[str, Any],
+    attempt_state: "_HMCPhaseAttemptState | None",
+) -> int:
+    if attempt_state is not None:
+        for value in (
+            attempt_state.selected_num_leapfrog_steps,
+            attempt_state.phase6_retry_num_leapfrog_steps,
+        ):
+            if value is not None:
+                anchor = int(value)
+                if anchor > 0:
+                    return anchor
+    anchor = int(selected_kernel["num_leapfrog_steps"])
+    if anchor <= 0:
+        raise ValueError("joint L/epsilon grid anchor L must be positive")
+    return anchor
+
+
+def _joint_l_epsilon_grid_values(
+    *,
+    anchor_l: int,
+    max_leapfrog_steps: int,
+    offsets: Sequence[int],
+) -> tuple[int, ...]:
+    anchor = int(anchor_l)
+    if anchor <= 0:
+        raise ValueError("joint L/epsilon grid anchor must be positive")
+    max_l = _validate_max_leapfrog_steps(max_leapfrog_steps)
+    values = [
+        int(np.clip(anchor + int(offset), _GEOMETRY_MIN_LEAPFROG, max_l))
+        for offset in offsets
+    ]
+    values.append(int(np.clip(anchor, _GEOMETRY_MIN_LEAPFROG, max_l)))
+    return tuple(sorted(dict.fromkeys(values)))
+
+
+def _joint_l_epsilon_ladder_config(
+    config: HMCFixedMassStepStageConfig,
+    *,
+    initial_step: float,
+    num_leapfrog_steps: int,
+    target_scope: str,
+    seed_offset: int,
+    attempt_budget_policy: "_HMCAttemptBudgetPolicy | None" = None,
+    attempt_state: "_HMCPhaseAttemptState | None" = None,
+) -> FixedMassHMCTuningBudgetLadderConfig:
+    ladder_config = _fixed_mass_step_stage_ladder_config(
+        config,
+        initial_step=initial_step,
+        num_leapfrog_steps=int(num_leapfrog_steps),
+        target_scope=target_scope,
+        attempt_budget_policy=attempt_budget_policy,
+        attempt_state=attempt_state,
+    )
+    return dataclasses.replace(
+        ladder_config,
+        tune_seed_base=_round_seed(ladder_config.tune_seed_base, int(seed_offset)),
+        screen_seed_base=_round_seed(ladder_config.screen_seed_base, int(seed_offset)),
+    )
+
+
+def _joint_l_epsilon_ladder_candidate_payload(
+    *,
+    round_index: int,
+    grid_stage: str,
+    candidate_index: int,
+    num_leapfrog_steps: int,
+    ladder: FixedMassHMCTuningBudgetLadderResult,
+    target_trajectory: float,
+    target_accept_prob: float,
+    trajectory_window_lower_multiplier: float,
+    trajectory_window_upper_multiplier: float,
+    max_leapfrog_steps: int,
+) -> Mapping[str, Any]:
+    selected = ladder.selected_round
+    selected_step = None if selected is None else selected.tuned_step_size
+    acceptance = None
+    selected_budget = None
+    if selected is not None:
+        acceptance = _scalar_or_none(selected.screen_diagnostics.get("acceptance_rate"))
+        selected_budget = int(selected.budget)
+    trajectory = (
+        None
+        if selected_step is None
+        else float(selected_step) * int(num_leapfrog_steps)
+    )
+    candidate_hard_vetoes = _collect_ladder_hard_vetoes_for_joint_grid(ladder)
+    candidate_continuation_vetoes = (
+        _collect_ladder_continuation_vetoes_for_joint_grid(ladder)
+    )
+    repair_triggers = list(_collect_ladder_repair_triggers_for_joint_grid(ladder))
+    trajectory_window = None
+    trajectory_relation = "unavailable"
+    trajectory_ratio = None
+    minimum_step_size_for_tau_floor = None
+    required_leapfrog_for_tau_floor = None
+    tau_floor_feasible_at_step = None
+    if selected_step is not None and np.isfinite(float(selected_step)) and float(selected_step) > 0.0:
+        trajectory_window = _trajectory_window_payload(
+            step_size=float(selected_step),
+            num_leapfrog_steps=int(num_leapfrog_steps),
+            target_trajectory_length=float(target_trajectory),
+            lower_multiplier=float(trajectory_window_lower_multiplier),
+            upper_multiplier=float(trajectory_window_upper_multiplier),
+            max_leapfrog_steps=int(max_leapfrog_steps),
+        )
+        trajectory_relation = str(trajectory_window["trajectory_window_relation"])
+        trajectory_ratio = trajectory_window["trajectory_target_ratio"]
+        minimum_step_size_for_tau_floor = trajectory_window[
+            "minimum_step_size_for_tau_floor"
+        ]
+        required_leapfrog_for_tau_floor = trajectory_window[
+            "required_leapfrog_for_tau_floor"
+        ]
+        tau_floor_feasible_at_step = trajectory_window["tau_floor_feasible_at_step"]
+        if trajectory_relation != "inside_trajectory_window":
+            repair_triggers.append("trajectory_length_outside_window")
+            if trajectory_relation == "below_trajectory_window":
+                repair_triggers.append("trajectory_length_below_window")
+            elif trajectory_relation == "above_trajectory_window":
+                repair_triggers.append("trajectory_length_above_window")
+            elif trajectory_relation == "invalid_trajectory_length":
+                repair_triggers.append("trajectory_length_invalid")
+    elif selected_step is not None:
+        trajectory_relation = "invalid_trajectory_length"
+        repair_triggers.append("trajectory_length_invalid")
+    candidate_repair_triggers = tuple(dict.fromkeys(str(item) for item in repair_triggers))
+    trajectory_inside_window = trajectory_relation == "inside_trajectory_window"
+    return {
+        "schema": "bayesfilter.hmc_joint_l_epsilon_candidate.v1",
+        "round_index": int(round_index),
+        "grid_stage": str(grid_stage),
+        "candidate_index": int(candidate_index),
+        "num_leapfrog_steps": int(num_leapfrog_steps),
+        "ladder_final_status": ladder.final_status,
+        "ladder_passed": bool(ladder.passed),
+        "selected_round_index": ladder.selected_round_index,
+        "selected_budget": selected_budget,
+        "selected_step_size": selected_step,
+        "screen_acceptance_rate": acceptance,
+        "trajectory_length": trajectory,
+        "target_trajectory_length": float(target_trajectory),
+        "target_trajectory_distance": None
+        if trajectory is None
+        else abs(float(trajectory) - float(target_trajectory)),
+        "trajectory_window": None
+        if trajectory_window is None
+        else trajectory_window["trajectory_window"],
+        "trajectory_window_lower_multiplier": float(trajectory_window_lower_multiplier),
+        "trajectory_window_upper_multiplier": float(trajectory_window_upper_multiplier),
+        "trajectory_window_relation": trajectory_relation,
+        "trajectory_window_policy_role": _TRAJECTORY_WINDOW_POLICY_ROLE,
+        "trajectory_window_viability_gate_active": True,
+        "trajectory_target_ratio": trajectory_ratio,
+        "minimum_step_size_for_tau_floor": minimum_step_size_for_tau_floor,
+        "required_leapfrog_for_tau_floor": required_leapfrog_for_tau_floor,
+        "tau_floor_feasible_at_step": tau_floor_feasible_at_step,
+        "acceptance_distance_to_target": None
+        if acceptance is None
+        else abs(float(acceptance) - float(target_accept_prob)),
+        "hard_vetoes": candidate_hard_vetoes,
+        "continuation_vetoes": candidate_continuation_vetoes,
+        "repair_triggers": candidate_repair_triggers,
+        "viable": bool(
+            ladder.passed
+            and selected_step is not None
+            and acceptance is not None
+            and not candidate_hard_vetoes
+            and not candidate_continuation_vetoes
+            and trajectory_inside_window
+        ),
+        "ladder_artifact_hash": ladder.artifact_hash,
+        "ladder_payload": ladder.payload(),
+        "reports_posterior_convergence": False,
+        "reports_sampler_superiority": False,
+        "nonclaims": FIXED_MASS_STEP_STAGE_NONCLAIMS,
+    }
+
+
+def _joint_l_epsilon_ladder_error_candidate_payload(
+    *,
+    round_index: int,
+    grid_stage: str,
+    candidate_index: int,
+    num_leapfrog_steps: int,
+    error: Exception,
+    target_trajectory: float,
+) -> Mapping[str, Any]:
+    return {
+        "schema": "bayesfilter.hmc_joint_l_epsilon_candidate.v1",
+        "round_index": int(round_index),
+        "grid_stage": str(grid_stage),
+        "candidate_index": int(candidate_index),
+        "num_leapfrog_steps": int(num_leapfrog_steps),
+        "ladder_final_status": "ladder_error",
+        "ladder_passed": False,
+        "selected_round_index": None,
+        "selected_budget": None,
+        "selected_step_size": None,
+        "screen_acceptance_rate": None,
+        "trajectory_length": None,
+        "target_trajectory_length": float(target_trajectory),
+        "target_trajectory_distance": None,
+        "trajectory_window": None,
+        "trajectory_window_relation": "unavailable",
+        "trajectory_target_ratio": None,
+        "acceptance_distance_to_target": None,
+        "hard_vetoes": ("fixed_mass_step_ladder_error",),
+        "continuation_vetoes": (),
+        "repair_triggers": (),
+        "viable": False,
+        "run_error_type": type(error).__name__,
+        "run_error_message": str(error),
+        "reports_posterior_convergence": False,
+        "reports_sampler_superiority": False,
+        "nonclaims": FIXED_MASS_STEP_STAGE_NONCLAIMS,
+    }
+
+
+def _collect_ladder_hard_vetoes_for_joint_grid(
+    ladder: FixedMassHMCTuningBudgetLadderResult,
+) -> tuple[str, ...]:
+    values: list[str] = []
+    for round_result in ladder.rounds:
+        values.extend(round_result.hard_vetoes)
+    return tuple(dict.fromkeys(str(item) for item in values))
+
+
+def _collect_ladder_continuation_vetoes_for_joint_grid(
+    ladder: FixedMassHMCTuningBudgetLadderResult,
+) -> tuple[str, ...]:
+    values: list[str] = []
+    for round_result in ladder.rounds:
+        values.extend(round_result.continuation_vetoes)
+    return tuple(dict.fromkeys(str(item) for item in values))
+
+
+def _collect_ladder_repair_triggers_for_joint_grid(
+    ladder: FixedMassHMCTuningBudgetLadderResult,
+) -> tuple[str, ...]:
+    values: list[str] = []
+    for round_result in ladder.rounds:
+        values.extend(round_result.repair_triggers)
+    return tuple(dict.fromkeys(str(item) for item in values))
+
+
+def _select_joint_l_epsilon_candidate(
+    candidates: Sequence[Mapping[str, Any]],
+    *,
+    target_accept_prob: float,
+    target_trajectory: float,
+) -> int | None:
+    viable = [
+        (index, candidate)
+        for index, candidate in enumerate(candidates)
+        if candidate.get("viable") is True
+        and _scalar_or_none(candidate.get("screen_acceptance_rate")) is not None
+        and _scalar_or_none(candidate.get("selected_step_size")) is not None
+    ]
+    if not viable:
+        return None
+    selected_index, _candidate = min(
+        viable,
+        key=lambda item: (
+            abs(float(item[1]["screen_acceptance_rate"]) - float(target_accept_prob)),
+            abs(float(item[1]["trajectory_length"]) - float(target_trajectory)),
+            float(item[1]["trajectory_length"]),
+            int(item[1]["num_leapfrog_steps"]),
+            int(item[1]["candidate_index"]),
+        ),
+    )
+    return int(selected_index)
+
+
+def _joint_l_epsilon_selected_at_grid_edge(
+    *,
+    selected_l: int,
+    grid_values: Sequence[int],
+    max_leapfrog_steps: int,
+) -> str | None:
+    values = tuple(sorted(dict.fromkeys(int(item) for item in grid_values)))
+    if not values:
+        return None
+    selected = int(selected_l)
+    max_l = _validate_max_leapfrog_steps(max_leapfrog_steps)
+    if selected == values[0] and selected > _GEOMETRY_MIN_LEAPFROG:
+        return "lower"
+    if selected == values[-1] and selected < max_l:
+        return "upper"
+    return None
+
+
+def _joint_l_epsilon_round_summary(
+    *,
+    round_index: int,
+    grid_stage: str,
+    anchor_l: int,
+    grid_values: Sequence[int],
+    selected_candidate: Mapping[str, Any] | None,
+    edge_direction: str | None,
+) -> Mapping[str, Any]:
+    return {
+        "round_index": int(round_index),
+        "grid_stage": str(grid_stage),
+        "anchor_l": int(anchor_l),
+        "candidate_l_values": tuple(int(item) for item in grid_values),
+        "selected_candidate_index": None
+        if selected_candidate is None
+        else int(selected_candidate["candidate_index"]),
+        "selected_num_leapfrog_steps": None
+        if selected_candidate is None
+        else int(selected_candidate["num_leapfrog_steps"]),
+        "selected_step_size": None
+        if selected_candidate is None
+        else selected_candidate.get("selected_step_size"),
+        "selected_acceptance_rate": None
+        if selected_candidate is None
+        else selected_candidate.get("screen_acceptance_rate"),
+        "selected_at_grid_edge": edge_direction is not None,
+        "edge_direction": edge_direction,
+        "reports_posterior_convergence": False,
+        "reports_sampler_superiority": False,
+        "nonclaims": FIXED_MASS_STEP_STAGE_NONCLAIMS,
+    }
+
+
+def _run_joint_l_epsilon_grid_round(
+    *,
+    adapter: Any,
+    adapted_mass: PrecomputedMassArtifact,
+    initial_state_factory: Callable[[tuple[int, int], str, int, int, float], np.ndarray],
+    config: HMCFixedMassStepStageConfig,
+    initial_step: float,
+    target_scope: str,
+    target_trajectory: float,
+    anchor_l: int,
+    max_leapfrog_steps: int,
+    round_index: int,
+    grid_stage: str,
+    grid_values: Sequence[int],
+    fixed_mass_stage_start_perf_counter_s: float,
+    completed_candidate_elapsed_s: list[float],
+    screen_callback: FixedMassScreenCallback | None,
+    run_full_chain: RunFullChainFn,
+    attempt_budget_policy: "_HMCAttemptBudgetPolicy | None",
+    attempt_state: "_HMCPhaseAttemptState | None",
+    progress_callback: LoopProgressCallback | None,
+    progress_attempt_index: int,
+    private_diagnostic_callback: PrivateTuningDiagnosticCallback | None = None,
+) -> Mapping[str, Any]:
+    candidates: list[Mapping[str, Any]] = []
+    ladders_by_candidate_index: dict[int, FixedMassHMCTuningBudgetLadderResult] = {}
+    run_errors: list[Mapping[str, Any]] = []
+    grid = tuple(int(item) for item in grid_values)
+    public_timeout_closeout: Mapping[str, Any] | None = None
+    for candidate_index, leapfrog_count in enumerate(grid):
+        soft_deadline_veto = _fixed_mass_step_next_candidate_soft_deadline_veto(
+            config,
+            stage_start_perf_counter_s=fixed_mass_stage_start_perf_counter_s,
+            attempt_index=progress_attempt_index,
+            completed_elapsed_s=tuple(completed_candidate_elapsed_s),
+        )
+        if soft_deadline_veto is not None:
+            public_timeout_closeout = {
+                **soft_deadline_veto,
+                "round_index": int(round_index),
+                "grid_stage": str(grid_stage),
+                "candidate_index": int(candidate_index),
+                "candidate_count": len(grid),
+                "completed_candidate_count": len(candidates),
+                "progress_only": True,
+                "public_closeout_artifact_expected": True,
+                "reason": "fixed_mass_step_public_timeout_soft_deadline_before_next_candidate",
+            }
+            _emit_phase7_progress(
+                progress_callback,
+                "fixed_mass_step_candidate_soft_deadline_closeout",
+                attempt_index=progress_attempt_index,
+                budget_policy=attempt_budget_policy,
+                completed=True,
+                extra={
+                    "schema": "bayesfilter.fixed_mass_step_public_timeout_progress.v1",
+                    "stage": "fixed_mass_step_candidate_soft_deadline_closeout",
+                    "joint_l_epsilon_algorithm": "joint_l_epsilon_grid_fixed_mass_hmc",
+                    "joint_l_epsilon_grid_stage": str(grid_stage),
+                    "joint_l_epsilon_round_index": int(round_index),
+                    "joint_l_epsilon_candidate_index": int(candidate_index),
+                    "joint_l_epsilon_candidate_count": len(grid),
+                    "completed_candidate_count": len(candidates),
+                    "public_timeout_closeout": public_timeout_closeout,
+                    "progress_only": True,
+                    "hmc_mechanics_exposed": False,
+                    "reports_posterior_convergence": False,
+                    "reports_sampler_superiority": False,
+                    "reports_default_readiness": False,
+                    "reports_external_client_scientific_claim": False,
+                    "reports_gpu_or_xla_readiness": False,
+                    "nonclaims": FIXED_MASS_STEP_STAGE_NONCLAIMS,
+                },
+            )
+            break
+        seed_offset = int(round_index) * 100 + int(candidate_index)
+        budget_config = _joint_l_epsilon_ladder_config(
+            config,
+            initial_step=initial_step,
+            num_leapfrog_steps=int(leapfrog_count),
+            target_scope=target_scope,
+            seed_offset=seed_offset,
+            attempt_budget_policy=attempt_budget_policy,
+            attempt_state=attempt_state,
+        )
+
+        def forward_ladder_progress(stage: str, payload: Mapping[str, Any]) -> None:
+            _emit_phase7_progress(
+                progress_callback,
+                stage,
+                attempt_index=progress_attempt_index,
+                budget_policy=attempt_budget_policy,
+                started=bool(payload.get("started")),
+                completed=bool(payload.get("completed")),
+                extra={
+                    **_budget_ladder_progress_extra(payload),
+                    "joint_l_epsilon_algorithm": "joint_l_epsilon_grid_fixed_mass_hmc",
+                    "joint_l_epsilon_grid_stage": str(grid_stage),
+                    "joint_l_epsilon_round_index": int(round_index),
+                    "joint_l_epsilon_candidate_index": int(candidate_index),
+                    "joint_l_epsilon_candidate_count": len(grid),
+                    "hmc_mechanics_exposed": False,
+                },
+            )
+
+        candidate_start = time.perf_counter()
+        try:
+            ladder = run_fixed_mass_hmc_tuning_budget_ladder(
+                adapter=adapter,
+                mass_artifact=adapted_mass,
+                initial_state_factory=initial_state_factory,
+                config=budget_config,
+                screen_callback=screen_callback,
+                progress_callback=forward_ladder_progress,
+                run_full_chain=run_full_chain,
+            )
+            ladders_by_candidate_index[int(candidate_index)] = ladder
+            candidates.append(
+                _joint_l_epsilon_ladder_candidate_payload(
+                    round_index=round_index,
+                    grid_stage=grid_stage,
+                    candidate_index=candidate_index,
+                    num_leapfrog_steps=int(leapfrog_count),
+                    ladder=ladder,
+                    target_trajectory=target_trajectory,
+                    target_accept_prob=config.target_accept_prob,
+                    trajectory_window_lower_multiplier=(
+                        config.trajectory_window_lower_multiplier
+                    ),
+                    trajectory_window_upper_multiplier=(
+                        config.trajectory_window_upper_multiplier
+                    ),
+                    max_leapfrog_steps=max_leapfrog_steps,
+                )
+            )
+            candidate_payload = candidates[-1]
+            if private_diagnostic_callback is not None:
+                completed = len(candidates)
+                private_diagnostic_callback(
+                    "joint_l_epsilon_candidate_complete",
+                    {
+                        "stage": "joint_l_epsilon_candidate_complete",
+                        "round_index": int(round_index),
+                        "grid_stage": str(grid_stage),
+                        "candidate_index": int(candidate_index),
+                        "candidate_count": len(grid),
+                        "candidate_completed_count": completed,
+                        "candidate_pass_count": sum(
+                            1
+                            for candidate in candidates
+                            if candidate.get("viable") is True
+                        ),
+                        "candidate_hard_veto_count": sum(
+                            1
+                            for candidate in candidates
+                            if tuple(candidate.get("hard_vetoes", ()))
+                        ),
+                        "num_leapfrog_steps": int(leapfrog_count),
+                        "step_size": candidate_payload.get("selected_step_size"),
+                        "selected_round_index": candidate_payload.get(
+                            "selected_round_index"
+                        ),
+                        "selected_budget": candidate_payload.get("selected_budget"),
+                        "ladder_final_status": candidate_payload.get(
+                            "ladder_final_status"
+                        ),
+                        "ladder_passed": candidate_payload.get("ladder_passed"),
+                        "viable": candidate_payload.get("viable"),
+                        "screen_acceptance_rate": candidate_payload.get(
+                            "screen_acceptance_rate"
+                        ),
+                        "trajectory_length": candidate_payload.get("trajectory_length"),
+                        "trajectory_window_relation": candidate_payload.get(
+                            "trajectory_window_relation"
+                        ),
+                        "trajectory_target_ratio": candidate_payload.get(
+                            "trajectory_target_ratio"
+                        ),
+                        "target_trajectory_length": float(target_trajectory),
+                        "hard_vetoes": candidate_payload.get("hard_vetoes", ()),
+                        "continuation_vetoes": candidate_payload.get(
+                            "continuation_vetoes", ()
+                        ),
+                        "repair_triggers": candidate_payload.get(
+                            "repair_triggers", ()
+                        ),
+                        "ladder_artifact_hash": candidate_payload.get(
+                            "ladder_artifact_hash"
+                        ),
+                        "private_hmc_mechanics": True,
+                        "reports_posterior_convergence": False,
+                        "reports_sampler_superiority": False,
+                        "nonclaims": FIXED_MASS_STEP_STAGE_NONCLAIMS,
+                    },
+                )
+        except Exception as exc:  # noqa: BLE001 - candidate-level fail-closed record.
+            run_errors.append(
+                {
+                    "round_index": int(round_index),
+                    "grid_stage": str(grid_stage),
+                    "candidate_index": int(candidate_index),
+                    "num_leapfrog_steps": int(leapfrog_count),
+                    "run_error_type": type(exc).__name__,
+                    "run_error_message": str(exc),
+                }
+            )
+            candidates.append(
+                _joint_l_epsilon_ladder_error_candidate_payload(
+                    round_index=round_index,
+                    grid_stage=grid_stage,
+                    candidate_index=candidate_index,
+                    num_leapfrog_steps=int(leapfrog_count),
+                    error=exc,
+                    target_trajectory=target_trajectory,
+                )
+            )
+            if private_diagnostic_callback is not None:
+                private_diagnostic_callback(
+                    "joint_l_epsilon_candidate_complete",
+                    {
+                        "stage": "joint_l_epsilon_candidate_error",
+                        "round_index": int(round_index),
+                        "grid_stage": str(grid_stage),
+                        "candidate_index": int(candidate_index),
+                        "candidate_count": len(grid),
+                        "candidate_completed_count": len(candidates),
+                        "candidate_pass_count": sum(
+                            1
+                            for candidate in candidates
+                            if candidate.get("viable") is True
+                        ),
+                        "candidate_hard_veto_count": sum(
+                            1
+                            for candidate in candidates
+                            if tuple(candidate.get("hard_vetoes", ()))
+                        ),
+                        "num_leapfrog_steps": int(leapfrog_count),
+                        "step_size": None,
+                        "run_error_type": type(exc).__name__,
+                        "run_error_message": str(exc),
+                        "private_hmc_mechanics": True,
+                        "reports_posterior_convergence": False,
+                        "reports_sampler_superiority": False,
+                        "nonclaims": FIXED_MASS_STEP_STAGE_NONCLAIMS,
+                    },
+                )
+        finally:
+            completed_candidate_elapsed_s.append(
+                max(0.0, time.perf_counter() - float(candidate_start))
+            )
+
+    selected_index = _select_joint_l_epsilon_candidate(
+        candidates,
+        target_accept_prob=config.target_accept_prob,
+        target_trajectory=target_trajectory,
+    )
+    selected_candidate = None if selected_index is None else candidates[selected_index]
+    selected_ladder = (
+        None
+        if selected_index is None
+        else ladders_by_candidate_index.get(int(selected_candidate["candidate_index"]))
+    )
+    edge_direction = (
+        None
+        if selected_candidate is None
+        else _joint_l_epsilon_selected_at_grid_edge(
+            selected_l=int(selected_candidate["num_leapfrog_steps"]),
+            grid_values=grid,
+            max_leapfrog_steps=max_leapfrog_steps,
+        )
+    )
+    if private_diagnostic_callback is not None:
+        private_diagnostic_callback(
+            "joint_l_epsilon_round_selected",
+            {
+                "stage": "joint_l_epsilon_round_selected",
+                "round_index": int(round_index),
+                "grid_stage": str(grid_stage),
+                "candidate_count": len(grid),
+                "candidate_completed_count": len(candidates),
+                "candidate_pass_count": sum(
+                    1 for candidate in candidates if candidate.get("viable") is True
+                ),
+                "candidate_hard_veto_count": sum(
+                    1
+                    for candidate in candidates
+                    if tuple(candidate.get("hard_vetoes", ()))
+                ),
+                "selected_pair_exists": selected_candidate is not None,
+                "selected_candidate_index": selected_index,
+                "num_leapfrog_steps": None
+                if selected_candidate is None
+                else int(selected_candidate["num_leapfrog_steps"]),
+                "step_size": None
+                if selected_candidate is None
+                else selected_candidate.get("selected_step_size"),
+                "screen_acceptance_rate": None
+                if selected_candidate is None
+                else selected_candidate.get("screen_acceptance_rate"),
+                "trajectory_length": None
+                if selected_candidate is None
+                else selected_candidate.get("trajectory_length"),
+                "target_trajectory_length": float(target_trajectory),
+                "edge_direction": edge_direction,
+                "public_timeout_closeout": None
+                if public_timeout_closeout is None
+                else dict(public_timeout_closeout),
+                "private_hmc_mechanics": True,
+                "reports_posterior_convergence": False,
+                "reports_sampler_superiority": False,
+                "nonclaims": FIXED_MASS_STEP_STAGE_NONCLAIMS,
+            },
+        )
+    return {
+        "round_index": int(round_index),
+        "grid_stage": str(grid_stage),
+        "grid_values": grid,
+        "candidates": tuple(candidates),
+        "ladders_by_candidate_index": ladders_by_candidate_index,
+        "selected_candidate_index": selected_index,
+        "selected_candidate": selected_candidate,
+        "selected_ladder": selected_ladder,
+        "edge_direction": edge_direction,
+        "run_errors": tuple(run_errors),
+        "public_timeout_closeout": None
+        if public_timeout_closeout is None
+        else dict(public_timeout_closeout),
+        "summary": _joint_l_epsilon_round_summary(
+            round_index=round_index,
+            grid_stage=grid_stage,
+            anchor_l=int(anchor_l),
+            grid_values=grid,
+            selected_candidate=selected_candidate,
+            edge_direction=edge_direction,
+        ),
+    }
+
+
+def _select_joint_l_epsilon_repair_ladder(
+    rounds: Sequence[Mapping[str, Any]],
+    *,
+    target_accept_prob: float,
+    target_trajectory: float,
+) -> FixedMassHMCTuningBudgetLadderResult | None:
+    repair_options: list[
+        tuple[tuple[float, float, int, int, int], FixedMassHMCTuningBudgetLadderResult]
+    ] = []
+    for round_payload in rounds:
+        ladders = round_payload.get("ladders_by_candidate_index", {})
+        if not isinstance(ladders, Mapping):
+            continue
+        candidates = tuple(round_payload.get("candidates", ()))
+        for candidate in candidates:
+            candidate_index = int(candidate.get("candidate_index", -1))
+            ladder = ladders.get(candidate_index)
+            if ladder is None or ladder.repair_config_payload is None:
+                continue
+            acceptance = _scalar_or_none(candidate.get("screen_acceptance_rate"))
+            trajectory = _scalar_or_none(candidate.get("trajectory_length"))
+            repair_round = ladder.last_repair_compatible_round
+            repair_acceptance = (
+                None
+                if repair_round is None
+                else _scalar_or_none(repair_round.screen_diagnostics.get("acceptance_rate"))
+            )
+            acceptance_distance = (
+                abs(float(acceptance) - float(target_accept_prob))
+                if acceptance is not None
+                else (
+                    abs(float(repair_acceptance) - float(target_accept_prob))
+                    if repair_acceptance is not None
+                    else float("inf")
+                )
+            )
+            trajectory_distance = (
+                abs(float(trajectory) - float(target_trajectory))
+                if trajectory is not None
+                else float("inf")
+            )
+            repair_options.append(
+                (
+                    (
+                        acceptance_distance,
+                        trajectory_distance,
+                        int(candidate.get("num_leapfrog_steps", _GEOMETRY_MAX_LEAPFROG)),
+                        int(round_payload.get("round_index", 0)),
+                        candidate_index,
+                    ),
+                    ladder,
+                )
+            )
+    if not repair_options:
+        return None
+    return min(repair_options, key=lambda item: item[0])[1]
+
+
 def _fixed_mass_step_frozen_mass_invariant(
     before: str,
     after: str,
@@ -8563,8 +13177,8 @@ def _frozen_step_trajectory_candidate_generation(
     selected_step_size: float,
     fixed_bootstrap_l: int,
     max_leapfrog_steps: int = _GEOMETRY_MAX_LEAPFROG,
-    trajectory_window_lower_multiplier: float = 0.8,
-    trajectory_window_upper_multiplier: float = 1.25,
+    trajectory_window_lower_multiplier: float = 0.3,
+    trajectory_window_upper_multiplier: float = 3.0,
     attempt_state: _HMCPhaseAttemptState | None = None,
 ) -> Mapping[str, Any]:
     step = float(selected_step_size)
@@ -8588,9 +13202,13 @@ def _frozen_step_trajectory_candidate_generation(
     ]
     raw_candidates_list.append(int(fixed_bootstrap_l))
     raw_candidates_list.append(tau_floor_l)
-    previous_l = (
+    selected_previous_l = (
         None if attempt_state is None else attempt_state.selected_num_leapfrog_steps
     )
+    retry_anchor_l = (
+        None if attempt_state is None else attempt_state.phase6_retry_num_leapfrog_steps
+    )
+    previous_l = selected_previous_l if selected_previous_l is not None else retry_anchor_l
     if previous_l is not None:
         raw_candidates_list.append(int(previous_l))
     verification_repair_applied = bool(
@@ -8618,6 +13236,14 @@ def _frozen_step_trajectory_candidate_generation(
         for item in raw_candidates
     )
     candidates = tuple(sorted(dict.fromkeys(clamped)))
+    ordered_candidates, candidate_order = _frozen_step_trajectory_order_candidates(
+        candidates,
+        step_size=step,
+        tau_min=tau_min,
+        tau_max=tau_max,
+        target_trajectory=target,
+        attempt_state=attempt_state,
+    )
     return {
         "formula": "L*=ceil(geometry.target_trajectory_length / selected_step_size)",
         "center_candidate_l": center,
@@ -8626,11 +13252,27 @@ def _frozen_step_trajectory_candidate_generation(
         "trajectory_window": (tau_min, tau_max),
         "trajectory_window_lower_multiplier": float(trajectory_window_lower_multiplier),
         "trajectory_window_upper_multiplier": float(trajectory_window_upper_multiplier),
+        "trajectory_window_policy_role": _TRAJECTORY_WINDOW_POLICY_ROLE,
+        "trajectory_window_viability_gate_active": True,
         "minimum_step_size_for_tau_floor": tau_min / max_l,
         "tau_floor_candidate_l": tau_floor_l,
         "tau_floor_feasible_at_selected_step": tau_floor_l <= max_l,
         "fixed_bootstrap_num_leapfrog_steps": int(fixed_bootstrap_l),
         "previous_attempt_center_l": previous_l,
+        "previous_selected_num_leapfrog_steps": selected_previous_l,
+        "phase6_retry_num_leapfrog_steps": retry_anchor_l,
+        "phase6_retry_anchor_source": None
+        if attempt_state is None
+        else attempt_state.phase6_retry_anchor_source,
+        "previous_l_anchor_role": (
+            "selected_trajectory"
+            if selected_previous_l is not None
+            else (
+                "phase6_retry_anchor"
+                if retry_anchor_l is not None
+                else "unavailable"
+            )
+        ),
         "neighborhood_offsets": _FROZEN_STEP_TRAJECTORY_CANDIDATE_OFFSETS,
         "verification_repair_neighborhood_applied": verification_repair_applied,
         "verification_repair_neighborhood_offsets": (
@@ -8645,10 +13287,131 @@ def _frozen_step_trajectory_candidate_generation(
         "max_leapfrog_steps": max_l,
         "local_max_leapfrog": local_max,
         "local_max_leapfrog_formula": "min(max_leapfrog_steps, center_candidate_l + 10)",
-        "candidate_l_values": candidates,
-        "candidate_order": "ascending_clamped_l",
+        "candidate_l_values": ordered_candidates,
+        "candidate_order": candidate_order,
+        "candidate_set_order_before_directional_repair": candidates,
         "candidate_mechanics_are_diagnostic_telemetry_only": True,
     }
+
+
+def _joint_l_epsilon_selected_pair_candidate_generation(
+    *,
+    geometry: HMCGeometryInitializationResult,
+    selected_step_size: float,
+    selected_num_leapfrog_steps: int,
+    fixed_bootstrap_l: int,
+    max_leapfrog_steps: int,
+    trajectory_window_lower_multiplier: float,
+    trajectory_window_upper_multiplier: float,
+) -> Mapping[str, Any]:
+    step = float(selected_step_size)
+    if not np.isfinite(step) or step <= 0.0:
+        raise ValueError("selected_step_size must be positive and finite")
+    selected_l = int(selected_num_leapfrog_steps)
+    if selected_l <= 0:
+        raise ValueError("selected_num_leapfrog_steps must be positive")
+    max_l = _validate_max_leapfrog_steps(max_leapfrog_steps)
+    if selected_l > max_l:
+        raise ValueError("selected_num_leapfrog_steps exceeds max_leapfrog_steps")
+    target = float(geometry.target_trajectory_length)
+    if not np.isfinite(target) or target <= 0.0:
+        raise ValueError("target trajectory length must be positive and finite")
+    tau_min, tau_max = _trajectory_window_bounds(
+        target,
+        lower_multiplier=float(trajectory_window_lower_multiplier),
+        upper_multiplier=float(trajectory_window_upper_multiplier),
+    )
+    trajectory_length = step * selected_l
+    return {
+        "formula": "Phase 5 joint L/epsilon selected pair handoff screen",
+        "algorithm": "joint_l_epsilon_grid_fixed_mass_hmc_selected_pair_handoff",
+        "phase5_joint_l_epsilon_algorithm": True,
+        "selected_step_size": step,
+        "selected_num_leapfrog_steps": selected_l,
+        "target_trajectory_length": target,
+        "selected_trajectory_length": trajectory_length,
+        "trajectory_window": (tau_min, tau_max),
+        "trajectory_window_lower_multiplier": float(trajectory_window_lower_multiplier),
+        "trajectory_window_upper_multiplier": float(trajectory_window_upper_multiplier),
+        "trajectory_window_policy_role": _TRAJECTORY_WINDOW_POLICY_ROLE,
+        "trajectory_window_viability_gate_active": True,
+        "fixed_bootstrap_num_leapfrog_steps": int(fixed_bootstrap_l),
+        "bootstrap_l_is_lineage_not_constraint": True,
+        "internal_min_leapfrog": _GEOMETRY_MIN_LEAPFROG,
+        "internal_max_leapfrog": max_l,
+        "default_max_leapfrog_steps": _GEOMETRY_MAX_LEAPFROG,
+        "max_leapfrog_steps": max_l,
+        "candidate_l_values": (selected_l,),
+        "candidate_order": "selected_pair_only",
+        "candidate_mechanics_are_diagnostic_telemetry_only": True,
+        "no_second_frozen_epsilon_l_search": True,
+        "reports_posterior_convergence": False,
+        "reports_sampler_superiority": False,
+        "nonclaims": FROZEN_STEP_TRAJECTORY_STAGE_NONCLAIMS,
+    }
+
+
+def _frozen_step_trajectory_order_candidates(
+    candidates: Sequence[int],
+    *,
+    step_size: float,
+    tau_min: float,
+    tau_max: float,
+    target_trajectory: float,
+    attempt_state: _HMCPhaseAttemptState | None,
+) -> tuple[tuple[int, ...], str]:
+    """Order Phase 6 screens without changing the private candidate set.
+
+    A previous directional repair is evidence about which side of the trajectory
+    exposure should be tested first.  Keep the historical ascending order when
+    that evidence is unavailable so non-repair behavior remains stable.
+    """
+
+    unique_candidates = tuple(int(item) for item in candidates)
+    if attempt_state is None or not attempt_state.verification_repair_applied:
+        return unique_candidates, _FROZEN_STEP_TRAJECTORY_ORDER_ASCENDING
+    if attempt_state.verification_repair_trigger not in {
+        _PHASE6_TRAJECTORY_ACCEPTANCE_REPAIR_TRIGGER,
+        _PHASE7_VERIFICATION_ACCEPTANCE_REPAIR_TRIGGER,
+    }:
+        return unique_candidates, _FROZEN_STEP_TRAJECTORY_ORDER_ASCENDING
+    relation = attempt_state.verification_acceptance_relation
+    if relation not in {"above_acceptance_band", "below_acceptance_band"}:
+        return unique_candidates, _FROZEN_STEP_TRAJECTORY_ORDER_ASCENDING
+
+    def trajectory_length(leapfrog_count: int) -> float:
+        return float(step_size) * int(leapfrog_count)
+
+    def inside_rank(leapfrog_count: int) -> int:
+        tau = trajectory_length(leapfrog_count)
+        return 0 if float(tau_min) <= tau <= float(tau_max) else 1
+
+    if relation == "above_acceptance_band":
+        ordered = tuple(
+            sorted(
+                unique_candidates,
+                key=lambda item: (
+                    inside_rank(item),
+                    -trajectory_length(item),
+                    abs(trajectory_length(item) - float(target_trajectory)),
+                    -int(item),
+                ),
+            )
+        )
+        return ordered, _FROZEN_STEP_TRAJECTORY_ORDER_HIGH_ACCEPTANCE_REPAIR
+
+    ordered = tuple(
+        sorted(
+            unique_candidates,
+            key=lambda item: (
+                inside_rank(item),
+                trajectory_length(item),
+                abs(trajectory_length(item) - float(target_trajectory)),
+                int(item),
+            ),
+        )
+    )
+    return ordered, _FROZEN_STEP_TRAJECTORY_ORDER_LOW_ACCEPTANCE_REPAIR
 
 
 def _frozen_step_trajectory_screen_config(
@@ -8710,6 +13473,7 @@ def _run_kernel_stage_with_optional_reusable_route(
     target_dimension: int,
     mass_signature: str,
     event_payload: Mapping[str, Any],
+    dynamic_num_leapfrog_steps: bool = False,
 ) -> FullChainHMCRunResult:
     if run_full_chain is not run_full_chain_tfp_hmc or config.chain_execution_mode != "tf_function":
         route_event = {
@@ -8730,6 +13494,7 @@ def _run_kernel_stage_with_optional_reusable_route(
         target_dimension=target_dimension,
         mass_signature=mass_signature,
         initial_state=initial_state,
+        dynamic_num_leapfrog_steps=dynamic_num_leapfrog_steps,
     )
     contract_hash = stable_config_hash(contract_payload)
     runner = runner_cache.get(contract_hash)
@@ -8739,14 +13504,18 @@ def _run_kernel_stage_with_optional_reusable_route(
             adapter,
             initial_state,
             config,
+            dynamic_num_leapfrog_steps=dynamic_num_leapfrog_steps,
         )
         runner_cache[contract_hash] = runner
         runner_contract_payloads[contract_hash] = contract_payload
-    result = runner.run(
-        current_state=initial_state,
-        seed=config.seed,
-        step_size=config.step_size,
-    )
+    runner_kwargs = {
+        "current_state": initial_state,
+        "seed": config.seed,
+        "step_size": config.step_size,
+    }
+    if dynamic_num_leapfrog_steps:
+        runner_kwargs["num_leapfrog_steps"] = config.num_leapfrog_steps
+    result = runner.run(**runner_kwargs)
     route_event = {
         **dict(event_payload),
         "route_scope": str(route_scope),
@@ -8765,6 +13534,7 @@ def _run_kernel_stage_with_optional_reusable_route(
         "kernel_stage_call_config_hash": route_event["call_config_hash"],
         "kernel_stage_runner_reused": runner_reused,
         "kernel_stage_static_contract_payload": contract_payload,
+        "kernel_stage_dynamic_num_leapfrog_steps": bool(dynamic_num_leapfrog_steps),
     }
     return FullChainHMCRunResult(
         samples=result.samples,
@@ -8781,10 +13551,13 @@ def _kernel_stage_reusable_static_contract_payload(
     target_dimension: int,
     mass_signature: str,
     initial_state: Any,
+    dynamic_num_leapfrog_steps: bool = False,
 ) -> Mapping[str, Any]:
     payload = dict(config.signature_payload())
     payload.pop("seed", None)
     payload.pop("step_size", None)
+    if dynamic_num_leapfrog_steps:
+        payload.pop("num_leapfrog_steps", None)
     state_contract = _kernel_stage_reusable_state_template_contract(initial_state)
     return {
         "runner": "build_reusable_full_chain_tfp_hmc_runner",
@@ -8795,7 +13568,12 @@ def _kernel_stage_reusable_static_contract_payload(
         "initial_state_dtype": state_contract["initial_state_dtype"],
         "initial_state_dtype_source": state_contract["initial_state_dtype_source"],
         "static_config": payload,
-        "dynamic_inputs": ("current_state", "seed", "step_size"),
+        "dynamic_inputs": (
+            ("current_state", "seed", "step_size", "num_leapfrog_steps")
+            if dynamic_num_leapfrog_steps
+            else ("current_state", "seed", "step_size")
+        ),
+        "dynamic_num_leapfrog_steps": bool(dynamic_num_leapfrog_steps),
     }
 
 
@@ -9135,6 +13913,14 @@ def _frozen_step_trajectory_stage_diagnostics(
         else int(expected_candidate_count)
     )
     skipped_count = max(0, expected_count - candidate_count)
+    trajectory_window_relations_seen = tuple(
+        sorted(
+            {
+                str(candidate.get("trajectory_window_relation", "unavailable"))
+                for candidate in candidates
+            }
+        )
+    )
     return {
         "passed": final_status == "passed",
         "final_status": final_status,
@@ -9160,6 +13946,14 @@ def _frozen_step_trajectory_stage_diagnostics(
         "public_timeout_closeout": None
         if soft_deadline_closeout is None
         else dict(soft_deadline_closeout),
+        "phase6_handoff_screen_policy_role": _PHASE6_HANDOFF_SCREEN_POLICY_ROLE,
+        "phase6_handoff_screen_is_fresh_final_verification": False,
+        "phase6_handoff_screen_is_posterior_or_sampler_validity_evidence": False,
+        "trajectory_window_policy_role": _TRAJECTORY_WINDOW_POLICY_ROLE,
+        "trajectory_window_viability_gate_active": True,
+        "trajectory_window_relations_seen": trajectory_window_relations_seen,
+        "reports_sampler_superiority": False,
+        "reports_default_readiness": False,
         "runner_route_summary": runner_route_summary,
         "nonclaims": FROZEN_STEP_TRAJECTORY_STAGE_NONCLAIMS,
     }
@@ -9194,6 +13988,14 @@ def _frozen_step_trajectory_public_summary(
         "above_acceptance_band": 0,
         "unavailable": 0,
     }
+    trajectory_window_relations_seen = tuple(
+        sorted(
+            {
+                str(candidate.get("trajectory_window_relation", "unavailable"))
+                for candidate in candidate_results
+            }
+        )
+    )
     for candidate in candidate_results:
         diagnostics = candidate.get("diagnostics")
         acceptance = (
@@ -9278,6 +14080,35 @@ def _frozen_step_trajectory_public_summary(
         ),
         "hard_vetoes": stage.hard_vetoes,
         "repair_triggers": stage.repair_triggers,
+        "phase6_handoff_screen_policy_role": stage.diagnostics.get(
+            "phase6_handoff_screen_policy_role",
+            _PHASE6_HANDOFF_SCREEN_POLICY_ROLE,
+        ),
+        "phase6_handoff_screen_is_fresh_final_verification": bool(
+            stage.diagnostics.get(
+                "phase6_handoff_screen_is_fresh_final_verification",
+                False,
+            )
+        ),
+        "phase6_handoff_screen_is_posterior_or_sampler_validity_evidence": bool(
+            stage.diagnostics.get(
+                "phase6_handoff_screen_is_posterior_or_sampler_validity_evidence",
+                False,
+            )
+        ),
+        "trajectory_window_policy_role": stage.diagnostics.get(
+            "trajectory_window_policy_role",
+            _TRAJECTORY_WINDOW_POLICY_ROLE,
+        ),
+        "trajectory_window_viability_gate_active": bool(
+            stage.diagnostics.get("trajectory_window_viability_gate_active", True)
+        ),
+        "trajectory_window_relations_seen": tuple(
+            stage.diagnostics.get(
+                "trajectory_window_relations_seen",
+                trajectory_window_relations_seen,
+            )
+        ),
         "public_timeout_closeout": public_timeout_closeout,
         "runner_route_public_summary": route_summary,
         "candidate_grid_exposed": False,
@@ -9835,11 +14666,20 @@ def _phase7_attempt_state_from_stages(
             handoff_stage = "phase5_repair"
     leapfrog = None
     trajectory_hash = None
+    phase6_retry_l = None
+    phase6_retry_anchor_source = None
     if frozen_step_trajectory_stage is not None:
         leapfrog = frozen_step_trajectory_stage.selected_num_leapfrog_steps
         trajectory_hash = frozen_step_trajectory_stage.selected_trajectory_hash
         if frozen_step_trajectory_stage.passed:
             handoff_stage = "phase6"
+        else:
+            retry_anchor = _phase6_retry_l_anchor_payload(
+                config=config,
+                frozen_step_trajectory_stage=frozen_step_trajectory_stage,
+            )
+            phase6_retry_l = retry_anchor["phase6_retry_num_leapfrog_steps"]
+            phase6_retry_anchor_source = retry_anchor["phase6_retry_anchor_source"]
     verification_repair = _phase7_verification_repair_handoff_payload(
         config=config,
         selected_step_size=step_size,
@@ -9864,6 +14704,9 @@ def _phase7_attempt_state_from_stages(
             selected_step_hash=step_hash,
             frozen_step_trajectory_stage=frozen_step_trajectory_stage,
         )
+    phase6_bracket_state = verification_repair.get("fixed_mass_bracket_state")
+    if isinstance(phase6_bracket_state, Mapping):
+        fixed_mass_bracket_state = phase6_bracket_state
     verification_budget_results = None
     if verification_config_payload is not None:
         verification_budget_results = _scalar_or_none(
@@ -9877,6 +14720,8 @@ def _phase7_attempt_state_from_stages(
         selected_step_hash=step_hash,
         selected_num_leapfrog_steps=leapfrog,
         selected_trajectory_hash=trajectory_hash,
+        phase6_retry_num_leapfrog_steps=phase6_retry_l,
+        phase6_retry_anchor_source=phase6_retry_anchor_source,
         verification_acceptance_rate=verification_repair["verification_acceptance_rate"],
         verification_acceptance_relation=verification_repair["verification_acceptance_relation"],
         verification_repair_trigger=verification_repair["verification_repair_trigger"],
@@ -9978,6 +14823,211 @@ def _phase7_verification_repair_handoff_payload(
         "verification_repair_step_hash": repair_step_hash,
         "verification_repair_applied": repair_applied,
         "verification_repair_max_step_size": None,
+    }
+
+
+def _phase6_retry_l_anchor_payload(
+    *,
+    config: HMCTuneVerifyRepairLoopConfig,
+    frozen_step_trajectory_stage: HMCFrozenStepTrajectoryStageResult,
+) -> Mapping[str, Any]:
+    """Choose a private Phase 6 retry L anchor from failed candidates.
+
+    A failed Phase 6 stage has no selected final trajectory.  The retry still
+    needs a private, non-public anchor so the next candidate grid can refine
+    the informative failed region instead of rebuilding around only the new
+    formula center.  This anchor is diagnostic handoff state only; it is not a
+    final kernel selection.
+    """
+
+    if (
+        frozen_step_trajectory_stage.final_status != "repair_or_retry"
+        or not frozen_step_trajectory_stage.candidate_results
+    ):
+        return {
+            "phase6_retry_num_leapfrog_steps": None,
+            "phase6_retry_anchor_source": None,
+        }
+    candidates = tuple(
+        candidate
+        for candidate in frozen_step_trajectory_stage.candidate_results
+        if candidate.get("classification") == "repair_or_retry"
+        and candidate.get("num_leapfrog_steps") is not None
+    )
+    if not candidates:
+        return {
+            "phase6_retry_num_leapfrog_steps": None,
+            "phase6_retry_anchor_source": None,
+        }
+
+    def candidate_distance(candidate: Mapping[str, Any]) -> tuple[float, int]:
+        explicit_distance = _scalar_or_none(candidate.get("target_trajectory_distance"))
+        if explicit_distance is None:
+            trajectory = _scalar_or_none(candidate.get("trajectory_length"))
+            target = _scalar_or_none(candidate.get("target_trajectory_length"))
+            explicit_distance = (
+                abs(float(trajectory) - float(target))
+                if trajectory is not None and target is not None
+                else float("inf")
+            )
+        return (
+            float(explicit_distance),
+            int(candidate.get("num_leapfrog_steps")),
+        )
+
+    def acceptance_relation(candidate: Mapping[str, Any]) -> str:
+        diagnostics = candidate.get("diagnostics")
+        acceptance = (
+            diagnostics.get("acceptance_rate")
+            if isinstance(diagnostics, Mapping)
+            else None
+        )
+        return _acceptance_relation_to_band(acceptance, config.acceptance_band)
+
+    inside_acceptance = tuple(
+        candidate
+        for candidate in candidates
+        if acceptance_relation(candidate) == "inside_acceptance_band"
+    )
+    if inside_acceptance:
+        selected = min(inside_acceptance, key=candidate_distance)
+        source = "phase6_failed_candidate_inside_acceptance_nearest_tau"
+    else:
+        selected = min(candidates, key=candidate_distance)
+        source = "phase6_failed_candidate_nearest_tau"
+    return {
+        "phase6_retry_num_leapfrog_steps": int(selected["num_leapfrog_steps"]),
+        "phase6_retry_anchor_source": source,
+    }
+
+
+def _phase6_trajectory_feasible_step_interval(
+    *,
+    config: HMCTuneVerifyRepairLoopConfig,
+    frozen_step_trajectory_stage: HMCFrozenStepTrajectoryStageResult,
+) -> tuple[float | None, float | None, float | None, float | None]:
+    """Private feasible step interval implied by ``tau = L * step``."""
+
+    window = frozen_step_trajectory_stage.candidate_generation.get(
+        "trajectory_window"
+    )
+    if not isinstance(window, Sequence) or len(window) < 2:
+        return None, None, None, None
+    tau_min = float(window[0])
+    tau_max = float(window[1])
+    if (
+        not np.isfinite(tau_min)
+        or not np.isfinite(tau_max)
+        or tau_min <= 0.0
+        or tau_max <= 0.0
+        or tau_min > tau_max
+    ):
+        return None, None, None, None
+    max_l = int(
+        frozen_step_trajectory_stage.candidate_generation.get(
+            "max_leapfrog_steps",
+            config.max_leapfrog_steps,
+        )
+    )
+    max_l = _validate_max_leapfrog_steps(max_l)
+    min_l = int(
+        frozen_step_trajectory_stage.candidate_generation.get(
+            "internal_min_leapfrog",
+            _GEOMETRY_MIN_LEAPFROG,
+        )
+    )
+    min_l = max(_GEOMETRY_MIN_LEAPFROG, int(min_l))
+    if min_l > max_l:
+        min_l = max_l
+    lower = tau_min / float(max_l)
+    upper = tau_max / float(min_l)
+    if (
+        not np.isfinite(lower)
+        or not np.isfinite(upper)
+        or lower <= 0.0
+        or upper <= 0.0
+    ):
+        return None, None, tau_min, tau_max
+    if lower > upper:
+        return None, None, tau_min, tau_max
+    return float(lower), float(upper), float(tau_min), float(tau_max)
+
+
+def _phase6_clamp_repair_step_to_feasible_tau(
+    *,
+    config: HMCTuneVerifyRepairLoopConfig,
+    frozen_step_trajectory_stage: HMCFrozenStepTrajectoryStageResult,
+    repair_step_size: float,
+) -> tuple[float, Mapping[str, Any]]:
+    step = float(repair_step_size)
+    if not np.isfinite(step) or step <= 0.0:
+        raise ValueError("Phase 6 trajectory repair step size must be positive and finite")
+    lower, upper, tau_min, tau_max = _phase6_trajectory_feasible_step_interval(
+        config=config,
+        frozen_step_trajectory_stage=frozen_step_trajectory_stage,
+    )
+    if lower is None or upper is None:
+        return step, {
+            "tau_feasible_step_interval_available": False,
+            "tau_feasible_step_floor": lower,
+            "tau_feasible_step_ceiling": upper,
+            "tau_min": tau_min,
+            "tau_max": tau_max,
+            "step_floor_applied": False,
+            "step_ceiling_applied": False,
+        }
+    clamped = float(np.clip(step, lower, upper))
+    if not np.isfinite(clamped) or clamped <= 0.0:
+        raise ValueError(
+            "Phase 6 trajectory tau-clamped repair step must be positive and finite"
+        )
+    return clamped, {
+        "tau_feasible_step_interval_available": True,
+        "tau_feasible_step_floor": lower,
+        "tau_feasible_step_ceiling": upper,
+        "tau_min": tau_min,
+        "tau_max": tau_max,
+        "step_floor_applied": bool(clamped > step),
+        "step_ceiling_applied": bool(clamped < step),
+    }
+
+
+def _phase6_fixed_mass_bracket_state_payload(
+    *,
+    repair_step_size: float,
+    acceptance_relation: str,
+    repair_source: str,
+    tau_feasible_payload: Mapping[str, Any],
+) -> Mapping[str, Any]:
+    """Private handoff that makes the next fixed-mass stage screen directly."""
+
+    step = float(repair_step_size)
+    if not np.isfinite(step) or step <= 0.0:
+        raise ValueError("Phase 6 fixed-mass repair step must be positive and finite")
+    if acceptance_relation == "above_acceptance_band":
+        high_bound: float | None = step
+        low_bound: float | None = None
+        repair_action = "phase6_high_acceptance_direct_screen"
+    elif acceptance_relation == "below_acceptance_band":
+        high_bound = None
+        low_bound = step
+        repair_action = "phase6_low_acceptance_direct_screen"
+    else:
+        high_bound = None
+        low_bound = None
+        repair_action = "phase6_trajectory_direct_screen"
+    return {
+        "schema": "bayesfilter.fixed_mass_bracket_state.v1",
+        "next_step_size": step,
+        "high_acceptance_step_lower_bound": high_bound,
+        "low_acceptance_step_upper_bound": low_bound,
+        "bracketed": False,
+        "repair_action": repair_action,
+        "repair_source": str(repair_source),
+        "tau_feasible_handoff": dict(tau_feasible_payload),
+        "private_handoff_only": True,
+        "public_progress_exposes_step": False,
+        "reports_posterior_convergence": False,
     }
 
 
@@ -10090,9 +15140,21 @@ def _phase6_trajectory_repair_handoff_payload(
             if len(unique_acceptance_relations) == 1
             else "unavailable"
         )
+        repair_step_size, tau_feasible_payload = _phase6_clamp_repair_step_to_feasible_tau(
+            config=config,
+            frozen_step_trajectory_stage=frozen_step_trajectory_stage,
+            repair_step_size=repair_step_size,
+        )
+        repair_source = "phase6_frozen_step_trajectory_underreach"
+        bracket_state = _phase6_fixed_mass_bracket_state_payload(
+            repair_step_size=repair_step_size,
+            acceptance_relation=relation,
+            repair_source=repair_source,
+            tau_feasible_payload=tau_feasible_payload,
+        )
         repair_payload = {
             "runtime": "bayesfilter.inference.hmc_kernel_tuning.phase6_trajectory_repair",
-            "repair_source": "phase6_frozen_step_trajectory_underreach",
+            "repair_source": repair_source,
             "trajectory_final_status": frozen_step_trajectory_stage.final_status,
             "trajectory_diagnostic_role": frozen_step_trajectory_stage.diagnostic_role,
             "verification_repair_trigger": _PHASE6_TRAJECTORY_ACCEPTANCE_REPAIR_TRIGGER,
@@ -10107,6 +15169,8 @@ def _phase6_trajectory_repair_handoff_payload(
             "max_leapfrog_steps": max_l,
             "required_next_l_policy": "include_L_equals_max_or_recompute_ceil_tau_min_over_step",
             "step_size": repair_step_size,
+            "tau_feasible_handoff": tau_feasible_payload,
+            "fixed_mass_bracket_state": bracket_state,
             "trajectory_stage_artifact_hash": frozen_step_trajectory_stage.artifact_hash,
             "private_handoff_only": True,
             "public_progress_exposes_step": False,
@@ -10116,11 +15180,12 @@ def _phase6_trajectory_repair_handoff_payload(
             "verification_acceptance_rate": None,
             "verification_acceptance_relation": relation,
             "verification_repair_trigger": _PHASE6_TRAJECTORY_ACCEPTANCE_REPAIR_TRIGGER,
-            "verification_repair_source": "phase6_frozen_step_trajectory_underreach",
+            "verification_repair_source": repair_source,
             "verification_repair_step_size": repair_step_size,
             "verification_repair_step_hash": stable_config_hash(repair_payload),
             "verification_repair_applied": True,
             "verification_repair_max_step_size": None,
+            "fixed_mass_bracket_state": bracket_state,
         }
     overreach_candidates = tuple(
         candidate
@@ -10181,9 +15246,21 @@ def _phase6_trajectory_repair_handoff_payload(
             if len(unique_acceptance_relations) == 1
             else "unavailable"
         )
+        repair_step_size, tau_feasible_payload = _phase6_clamp_repair_step_to_feasible_tau(
+            config=config,
+            frozen_step_trajectory_stage=frozen_step_trajectory_stage,
+            repair_step_size=repair_step_size,
+        )
+        repair_source = "phase6_frozen_step_trajectory_overreach"
+        bracket_state = _phase6_fixed_mass_bracket_state_payload(
+            repair_step_size=repair_step_size,
+            acceptance_relation=relation,
+            repair_source=repair_source,
+            tau_feasible_payload=tau_feasible_payload,
+        )
         repair_payload = {
             "runtime": "bayesfilter.inference.hmc_kernel_tuning.phase6_trajectory_repair",
-            "repair_source": "phase6_frozen_step_trajectory_overreach",
+            "repair_source": repair_source,
             "trajectory_final_status": frozen_step_trajectory_stage.final_status,
             "trajectory_diagnostic_role": frozen_step_trajectory_stage.diagnostic_role,
             "verification_repair_trigger": _PHASE6_TRAJECTORY_ACCEPTANCE_REPAIR_TRIGGER,
@@ -10198,6 +15275,8 @@ def _phase6_trajectory_repair_handoff_payload(
             "maximum_step_size_for_tau_ceiling": maximum_step_size_for_tau_ceiling,
             "required_next_l_policy": "include_L_equals_min_or_recompute_ceil_tau_over_step",
             "step_size": repair_step_size,
+            "tau_feasible_handoff": tau_feasible_payload,
+            "fixed_mass_bracket_state": bracket_state,
             "trajectory_stage_artifact_hash": frozen_step_trajectory_stage.artifact_hash,
             "private_handoff_only": True,
             "public_progress_exposes_step": False,
@@ -10207,11 +15286,12 @@ def _phase6_trajectory_repair_handoff_payload(
             "verification_acceptance_rate": None,
             "verification_acceptance_relation": relation,
             "verification_repair_trigger": _PHASE6_TRAJECTORY_ACCEPTANCE_REPAIR_TRIGGER,
-            "verification_repair_source": "phase6_frozen_step_trajectory_overreach",
+            "verification_repair_source": repair_source,
             "verification_repair_step_size": repair_step_size,
             "verification_repair_step_hash": stable_config_hash(repair_payload),
             "verification_repair_applied": True,
             "verification_repair_max_step_size": maximum_step_size_for_tau_ceiling,
+            "fixed_mass_bracket_state": bracket_state,
         }
     relations = [
         _acceptance_relation_to_band(
@@ -10223,6 +15303,112 @@ def _phase6_trajectory_repair_handoff_payload(
         for candidate in repair_candidates
     ]
     unique_relations = set(relations)
+    inside_window_candidates = tuple(
+        candidate
+        for candidate in repair_candidates
+        if candidate.get("trajectory_window_relation") == "inside_trajectory_window"
+    )
+    if (
+        inside_window_candidates
+        and len(inside_window_candidates) < len(repair_candidates)
+        and unique_relations
+        not in (
+            {"below_acceptance_band"},
+            {"above_acceptance_band"},
+        )
+    ):
+        inside_relations = [
+            _acceptance_relation_to_band(
+                candidate.get("diagnostics", {}).get("acceptance_rate")
+                if isinstance(candidate.get("diagnostics"), Mapping)
+                else None,
+                config.acceptance_band,
+            )
+            for candidate in inside_window_candidates
+        ]
+        inside_unique_relations = set(inside_relations)
+        if inside_unique_relations in (
+            {"below_acceptance_band"},
+            {"above_acceptance_band"},
+        ):
+            relation = next(iter(inside_unique_relations))
+            factor = (
+                1.0 / float(config.step_repair_factor)
+                if relation == "below_acceptance_band"
+                else float(config.step_repair_high_acceptance_directional_factor)
+            )
+            repair_step_size = float(selected_step_size) * factor
+            if not np.isfinite(repair_step_size) or repair_step_size <= 0.0:
+                raise ValueError(
+                    "Phase 6 trajectory inside-window repair step size must be "
+                    "positive and finite"
+                )
+            inside_acceptance_values = tuple(
+                float(candidate["diagnostics"]["acceptance_rate"])
+                for candidate in inside_window_candidates
+                if isinstance(candidate.get("diagnostics"), Mapping)
+                and _finite_number(candidate["diagnostics"].get("acceptance_rate"))
+            )
+            acceptance_summary = None
+            if inside_acceptance_values:
+                acceptance_summary = {
+                    "count": len(inside_acceptance_values),
+                    "min": min(inside_acceptance_values),
+                    "max": max(inside_acceptance_values),
+                }
+            repair_step_size, tau_feasible_payload = _phase6_clamp_repair_step_to_feasible_tau(
+                config=config,
+                frozen_step_trajectory_stage=frozen_step_trajectory_stage,
+                repair_step_size=repair_step_size,
+            )
+            repair_source = "phase6_frozen_step_trajectory_inside_window_acceptance"
+            bracket_state = _phase6_fixed_mass_bracket_state_payload(
+                repair_step_size=repair_step_size,
+                acceptance_relation=relation,
+                repair_source=repair_source,
+                tau_feasible_payload=tau_feasible_payload,
+            )
+            repair_payload = {
+                "runtime": "bayesfilter.inference.hmc_kernel_tuning.phase6_trajectory_repair",
+                "repair_source": repair_source,
+                "trajectory_final_status": frozen_step_trajectory_stage.final_status,
+                "trajectory_diagnostic_role": frozen_step_trajectory_stage.diagnostic_role,
+                "verification_repair_trigger": _PHASE6_TRAJECTORY_ACCEPTANCE_REPAIR_TRIGGER,
+                "verification_acceptance_relation": relation,
+                "trajectory_candidate_count": len(frozen_step_trajectory_stage.candidate_results),
+                "inside_window_candidate_count": len(inside_window_candidates),
+                "inside_window_acceptance_summary": acceptance_summary,
+                "all_candidate_acceptance_relations": tuple(dict.fromkeys(relations)),
+                "inside_window_acceptance_relations": tuple(
+                    dict.fromkeys(inside_relations)
+                ),
+                "acceptance_band": tuple(float(item) for item in config.acceptance_band),
+                "base_step_size": float(selected_step_size),
+                "base_step_hash": selected_step_hash,
+                "repair_factor": factor,
+                "step_size": repair_step_size,
+                "tau_feasible_handoff": tau_feasible_payload,
+                "fixed_mass_bracket_state": bracket_state,
+                "trajectory_stage_artifact_hash": frozen_step_trajectory_stage.artifact_hash,
+                "private_handoff_only": True,
+                "public_progress_exposes_step": False,
+                "public_progress_exposes_candidate_grid": False,
+            }
+            return {
+                "verification_acceptance_rate": None,
+                "verification_acceptance_relation": relation,
+                "verification_repair_trigger": _PHASE6_TRAJECTORY_ACCEPTANCE_REPAIR_TRIGGER,
+                "verification_repair_source": repair_source,
+                "verification_repair_step_size": repair_step_size,
+                "verification_repair_step_hash": stable_config_hash(repair_payload),
+                "verification_repair_applied": True,
+                "verification_repair_max_step_size": (
+                    repair_step_size
+                    if tau_feasible_payload.get("step_ceiling_applied") is True
+                    else None
+                ),
+                "fixed_mass_bracket_state": bracket_state,
+            }
     if len(relations) != len(repair_candidates) or unique_relations not in (
         {"below_acceptance_band"},
         {"above_acceptance_band"},
@@ -10255,9 +15441,21 @@ def _phase6_trajectory_repair_handoff_payload(
             "min": min(acceptance_values),
             "max": max(acceptance_values),
         }
+    repair_step_size, tau_feasible_payload = _phase6_clamp_repair_step_to_feasible_tau(
+        config=config,
+        frozen_step_trajectory_stage=frozen_step_trajectory_stage,
+        repair_step_size=repair_step_size,
+    )
+    repair_source = "phase6_frozen_step_trajectory_acceptance"
+    bracket_state = _phase6_fixed_mass_bracket_state_payload(
+        repair_step_size=repair_step_size,
+        acceptance_relation=relation,
+        repair_source=repair_source,
+        tau_feasible_payload=tau_feasible_payload,
+    )
     repair_payload = {
         "runtime": "bayesfilter.inference.hmc_kernel_tuning.phase6_trajectory_repair",
-        "repair_source": "phase6_frozen_step_trajectory_acceptance",
+        "repair_source": repair_source,
         "trajectory_final_status": frozen_step_trajectory_stage.final_status,
         "trajectory_diagnostic_role": frozen_step_trajectory_stage.diagnostic_role,
         "verification_repair_trigger": _PHASE6_TRAJECTORY_ACCEPTANCE_REPAIR_TRIGGER,
@@ -10269,6 +15467,8 @@ def _phase6_trajectory_repair_handoff_payload(
         "base_step_hash": selected_step_hash,
         "repair_factor": factor,
         "step_size": repair_step_size,
+        "tau_feasible_handoff": tau_feasible_payload,
+        "fixed_mass_bracket_state": bracket_state,
         "trajectory_stage_artifact_hash": frozen_step_trajectory_stage.artifact_hash,
         "private_handoff_only": True,
         "public_progress_exposes_step": False,
@@ -10278,11 +15478,16 @@ def _phase6_trajectory_repair_handoff_payload(
         "verification_acceptance_rate": None,
         "verification_acceptance_relation": relation,
         "verification_repair_trigger": _PHASE6_TRAJECTORY_ACCEPTANCE_REPAIR_TRIGGER,
-        "verification_repair_source": "phase6_frozen_step_trajectory_acceptance",
+        "verification_repair_source": repair_source,
         "verification_repair_step_size": repair_step_size,
         "verification_repair_step_hash": stable_config_hash(repair_payload),
         "verification_repair_applied": True,
-        "verification_repair_max_step_size": None,
+        "verification_repair_max_step_size": (
+            repair_step_size
+            if tau_feasible_payload.get("step_ceiling_applied") is True
+            else None
+        ),
+        "fixed_mass_bracket_state": bracket_state,
     }
 
 
@@ -10472,6 +15677,64 @@ def _windowed_stage_valid_rows(chunk: FixedSizeHMCChunkRunResult, key: str) -> n
     return value[mask]
 
 
+def _windowed_stage_acceptance_capture(
+    value: Any,
+    *,
+    expected_steps: int,
+) -> Mapping[str, Any]:
+    """Return per-draw acceptance plus raw runtime decision counts.
+
+    TFP emits one accept/reject decision per chain at each draw.  Phase 4's
+    mass/step diagnostic consumes a rank-1 per-draw acceptance series, so
+    batched-chain traces are averaged across chain axes while raw binary
+    decisions remain available for provenance checks.
+    """
+
+    raw = np.asarray(_tensor_to_numpy(value), dtype=float)
+    if raw.shape[:1] != (int(expected_steps),):
+        return {
+            "acceptance_trace": None,
+            "raw_shape": tuple(int(dim) for dim in raw.shape),
+            "decision_count": None,
+            "accepted_decision_count": None,
+            "binary_trace": False,
+        }
+    if raw.ndim == 1:
+        acceptance = raw
+    else:
+        acceptance = np.mean(raw.reshape((int(expected_steps), -1)), axis=1)
+    finite = bool(np.all(np.isfinite(raw)) and np.all(np.isfinite(acceptance)))
+    binary = bool(np.all((raw == 0.0) | (raw == 1.0))) if finite else False
+    decision_count = int(raw.size)
+    accepted_count = int(np.sum(raw)) if binary else None
+    return {
+        "acceptance_trace": acceptance.astype(float, copy=False),
+        "raw_shape": tuple(int(dim) for dim in raw.shape),
+        "decision_count": decision_count,
+        "accepted_decision_count": accepted_count,
+        "binary_trace": binary,
+    }
+
+
+def _windowed_stage_per_draw_trace(
+    value: Any,
+    *,
+    expected_steps: int,
+) -> np.ndarray | None:
+    """Reduce scalar or per-chain draw telemetry to a finite per-draw vector."""
+
+    raw = np.asarray(_tensor_to_numpy(value), dtype=float)
+    if raw.shape[:1] != (int(expected_steps),):
+        return None
+    if raw.ndim == 1:
+        reduced = raw
+    else:
+        reduced = np.mean(raw.reshape((int(expected_steps), -1)), axis=1)
+    if not np.all(np.isfinite(raw)) or not np.all(np.isfinite(reduced)):
+        return None
+    return reduced.astype(float, copy=False)
+
+
 def _windowed_stage_segmented_capture_payload(
     *,
     config: HMCWindowedMassStageConfig,
@@ -10497,16 +15760,20 @@ def _windowed_stage_segmented_capture_payload(
     target_log_prob_segments: list[np.ndarray] = []
     finite_sample_count = 0
     nonfinite_sample_count = 0
+    accepted_decision_count = 0
+    acceptance_decision_count = 0
+    runtime_supported_segment_count = 0
     segment_elapsed: list[float] = []
     run_start = time.perf_counter()
 
     for segment_index in range(segment_count):
         completed = int(sum(segment.shape[0] for segment in sample_segments))
         active = min(segment_size, total_steps - completed)
-        timeout_closeout = _windowed_mass_public_timeout_preflight(
+        timeout_closeout = _windowed_mass_next_segment_soft_deadline_preflight(
             config,
             stage="windowed_mass_segment_start",
             attempt_index=attempt_index,
+            completed_segment_elapsed_s=segment_elapsed,
         )
         if timeout_closeout is not None:
             _emit_windowed_mass_progress(
@@ -10573,15 +15840,40 @@ def _windowed_stage_segmented_capture_payload(
         mask = np.asarray(_tensor_to_numpy(chunk.valid_mask), dtype=bool)
         samples = np.asarray(_tensor_to_numpy(chunk.samples), dtype=float)[mask]
         sample_segments.append(samples)
-        acceptance_segments.append(
-            _windowed_stage_valid_rows(chunk, "is_accepted").astype(float)
+        acceptance_capture = _windowed_stage_acceptance_capture(
+            _windowed_stage_valid_rows(chunk, "is_accepted"),
+            expected_steps=active,
         )
-        log_accept_segments.append(
-            _windowed_stage_valid_rows(chunk, "log_accept_ratio").astype(float)
+        acceptance_rows = acceptance_capture["acceptance_trace"]
+        if acceptance_rows is not None:
+            acceptance_segments.append(np.asarray(acceptance_rows, dtype=float))
+        segment_decision_count = _int_or_none(acceptance_capture["decision_count"])
+        segment_accepted_count = _int_or_none(
+            acceptance_capture["accepted_decision_count"]
         )
-        target_log_prob_segments.append(
-            _windowed_stage_valid_rows(chunk, "target_log_prob").astype(float)
+        if segment_decision_count is not None:
+            acceptance_decision_count += int(segment_decision_count)
+        if segment_accepted_count is not None:
+            accepted_decision_count += int(segment_accepted_count)
+        chunk_metadata = dict(chunk.metadata)
+        if (
+            chunk_metadata.get("fixed_size_chunk_runner") is True
+            and chunk_metadata.get("runtime")
+            == "tfp.mcmc.HamiltonianMonteCarlo.one_step_tf_while_loop"
+        ):
+            runtime_supported_segment_count += 1
+        log_accept_rows = _windowed_stage_per_draw_trace(
+            _windowed_stage_valid_rows(chunk, "log_accept_ratio"),
+            expected_steps=active,
         )
+        if log_accept_rows is not None:
+            log_accept_segments.append(log_accept_rows)
+        target_log_prob_rows = _windowed_stage_per_draw_trace(
+            _windowed_stage_valid_rows(chunk, "target_log_prob"),
+            expected_steps=active,
+        )
+        if target_log_prob_rows is not None:
+            target_log_prob_segments.append(target_log_prob_rows)
         finite_rows = np.all(np.isfinite(samples), axis=-1)
         finite_sample_count += int(np.sum(finite_rows))
         nonfinite_sample_count += int(np.sum(~finite_rows))
@@ -10618,7 +15910,40 @@ def _windowed_stage_segmented_capture_payload(
         else np.empty((0,), dtype=float)
     )
     runtime_s = time.perf_counter() - run_start
-    return {
+    acceptance_rate = (
+        None
+        if acceptance_decision_count <= 0
+        else float(accepted_decision_count) / float(acceptance_decision_count)
+    )
+    runtime_decision_supported = (
+        runtime_supported_segment_count == segment_count
+        and acceptance.shape == (total_steps,)
+        and acceptance_decision_count >= total_steps
+        and acceptance_decision_count % total_steps == 0
+    )
+    raw_diagnostics = {
+        "valid_sample_count": int(warmup_draws.shape[0]),
+        "finite_sample_count": int(finite_sample_count),
+        "nonfinite_sample_count": int(nonfinite_sample_count),
+        "accepted_decision_count": int(accepted_decision_count),
+        "acceptance_decision_count": int(acceptance_decision_count),
+        "acceptance_trace_decision_count": int(acceptance.shape[0]),
+        "acceptance_raw_chain_count": None
+        if acceptance_decision_count <= 0 or total_steps <= 0
+        else int(acceptance_decision_count // total_steps),
+        "acceptance_rate": acceptance_rate,
+        "acceptance_decision_source": (
+            "fixed_size_chunk_runner_trace_counts"
+            if runtime_decision_supported
+            else "unavailable"
+        ),
+        "runtime_supported_segment_count": int(runtime_supported_segment_count),
+        "segment_count": int(segment_count),
+        "completed_segment_count": int(segment_count),
+        "hmc_mechanics_exposed": False,
+        "reports_posterior_convergence": False,
+    }
+    payload = {
         "warmup_draws": warmup_draws,
         "acceptance_trace": acceptance,
         "log_accept_ratio": log_accept,
@@ -10633,15 +15958,7 @@ def _windowed_stage_segmented_capture_payload(
         "target_dimension": int(target_dimension),
         "finite_sample_count": finite_sample_count,
         "nonfinite_sample_count": nonfinite_sample_count,
-        "raw_diagnostics": {
-            "valid_sample_count": int(warmup_draws.shape[0]),
-            "finite_sample_count": int(finite_sample_count),
-            "nonfinite_sample_count": int(nonfinite_sample_count),
-            "segment_count": int(segment_count),
-            "completed_segment_count": int(segment_count),
-            "hmc_mechanics_exposed": False,
-            "reports_posterior_convergence": False,
-        },
+        "raw_diagnostics": raw_diagnostics,
         "runtime_metadata": {
             "runtime": "tfp.mcmc.HamiltonianMonteCarlo.one_step_tf_while_loop",
             "windowed_stage_segmented_chunk_runner": True,
@@ -10664,15 +15981,15 @@ def _windowed_stage_segmented_capture_payload(
         "runtime_evidence": "tfp_hmc_runtime",
         "fixture_or_synthetic": False,
         "acceptance_trace_key_present": True,
-        "acceptance_policy_filled_or_default": (
-            not _valid_trace_vector(acceptance, total_steps, bounds=(0.0, 1.0))
-            or _acceptance_trace_is_default_like(acceptance)
-        ),
         "trace_summary": {
             "trace_keys": ("is_accepted", "log_accept_ratio", "target_log_prob"),
             "trace_unavailability": {},
         },
     }
+    payload["acceptance_policy_filled_or_default"] = (
+        _windowed_stage_acceptance_policy_filled_or_default(payload)
+    )
+    return payload
 
 
 def _windowed_stage_capture_payload(
@@ -10685,17 +16002,43 @@ def _windowed_stage_capture_payload(
     trace = dict(run_result.trace)
     metadata = dict(run_result.metadata)
     samples = np.asarray(_tensor_to_numpy(run_result.samples), dtype=float)
-    acceptance = _trace_array_or_none(trace, "is_accepted")
-    log_accept = _trace_array_or_none(trace, "log_accept_ratio")
-    target_log_prob = _trace_array_or_none(trace, "target_log_prob")
+    raw_acceptance = _trace_array_or_none(trace, "is_accepted")
+    acceptance_capture = (
+        None
+        if raw_acceptance is None
+        else _windowed_stage_acceptance_capture(
+            raw_acceptance,
+            expected_steps=int(expected_steps),
+        )
+    )
+    acceptance = (
+        None
+        if acceptance_capture is None
+        else acceptance_capture["acceptance_trace"]
+    )
+    raw_log_accept = _trace_array_or_none(trace, "log_accept_ratio")
+    log_accept = (
+        None
+        if raw_log_accept is None
+        else _windowed_stage_per_draw_trace(
+            raw_log_accept,
+            expected_steps=int(expected_steps),
+        )
+    )
+    raw_target_log_prob = _trace_array_or_none(trace, "target_log_prob")
+    target_log_prob = (
+        None
+        if raw_target_log_prob is None
+        else _windowed_stage_per_draw_trace(
+            raw_target_log_prob,
+            expected_steps=int(expected_steps),
+        )
+    )
     runtime_s = _runtime_seconds_or_none(metadata)
     finite_acceptance = _valid_trace_vector(
         acceptance,
         expected_steps,
         bounds=(0.0, 1.0),
-    )
-    policy_filled_or_default = (
-        not finite_acceptance or _acceptance_trace_is_default_like(acceptance)
     )
     runtime_evidence = _windowed_stage_runtime_evidence(metadata)
     fixture_or_synthetic = _metadata_marks_fixture_or_synthetic(metadata)
@@ -10722,17 +16065,49 @@ def _windowed_stage_capture_payload(
         "nonfinite_sample_count": _int_or_none(
             diagnostics.get("nonfinite_sample_count")
         ),
-        "raw_diagnostics": _json_ready(diagnostics),
+        "raw_diagnostics": _json_ready(
+            {
+                **diagnostics,
+                "acceptance_decision_source": (
+                    "sample_chain_trace_counts"
+                    if acceptance_capture is not None
+                    and acceptance_capture.get("binary_trace") is True
+                    else "unavailable"
+                ),
+                "accepted_decision_count": None
+                if acceptance_capture is None
+                else acceptance_capture.get("accepted_decision_count"),
+                "acceptance_decision_count": None
+                if acceptance_capture is None
+                else acceptance_capture.get("decision_count"),
+                "acceptance_trace_decision_count": None
+                if acceptance is None
+                else int(np.asarray(acceptance).shape[0]),
+                "acceptance_raw_chain_count": None
+                if acceptance_capture is None
+                or acceptance_capture.get("decision_count") is None
+                else int(
+                    int(acceptance_capture["decision_count"]) // int(expected_steps)
+                ),
+                "raw_acceptance_shape": None
+                if acceptance_capture is None
+                else acceptance_capture.get("raw_shape"),
+            }
+        ),
         "runtime_metadata": _json_ready(metadata),
         "runtime_evidence": runtime_evidence,
         "fixture_or_synthetic": fixture_or_synthetic,
         "acceptance_trace_key_present": "is_accepted" in trace,
-        "acceptance_policy_filled_or_default": policy_filled_or_default,
         "trace_summary": {
             "trace_keys": tuple(sorted(trace.keys())),
             "trace_unavailability": metadata.get("trace_unavailability"),
         },
     }
+    payload["acceptance_policy_filled_or_default"] = (
+        _windowed_stage_acceptance_policy_filled_or_default(payload)
+        if finite_acceptance
+        else True
+    )
     return payload
 
 
@@ -10913,6 +16288,79 @@ def _acceptance_trace_is_default_like(value: Any) -> bool:
     return bool(np.allclose(array, array.reshape(-1)[0]))
 
 
+def _windowed_stage_acceptance_has_runtime_decision_support(
+    capture: Mapping[str, Any],
+) -> bool:
+    expected_steps = capture.get("expected_steps")
+    acceptance = capture.get("acceptance_trace")
+    if not _valid_trace_vector(acceptance, expected_steps, bounds=(0.0, 1.0)):
+        return False
+    if capture.get("runtime_evidence") != "tfp_hmc_runtime":
+        return False
+    if capture.get("fixture_or_synthetic") is True:
+        return False
+    raw = capture.get("raw_diagnostics")
+    if not isinstance(raw, Mapping):
+        return False
+    if raw.get("acceptance_decision_source") != "fixed_size_chunk_runner_trace_counts":
+        if raw.get("acceptance_decision_source") != "sample_chain_trace_counts":
+            return False
+        metadata = capture.get("runtime_metadata")
+        if not isinstance(metadata, Mapping):
+            return False
+        if metadata.get("runtime") != "tfp.mcmc.sample_chain":
+            return False
+        invocation_count = _int_or_none(metadata.get("sample_chain_invocation_count"))
+        if invocation_count is None or invocation_count <= 0:
+            return False
+        if metadata.get("program_signature") is None:
+            return False
+    decision_count = _int_or_none(raw.get("acceptance_decision_count"))
+    accepted_count = _int_or_none(raw.get("accepted_decision_count"))
+    trace_decision_count = _int_or_none(raw.get("acceptance_trace_decision_count"))
+    if decision_count is None or accepted_count is None or expected_steps is None:
+        return False
+    if trace_decision_count is None or trace_decision_count != int(expected_steps):
+        return False
+    if decision_count < int(expected_steps):
+        return False
+    if decision_count % int(expected_steps) != 0:
+        return False
+    if accepted_count < 0 or accepted_count > decision_count:
+        return False
+    array = np.asarray(acceptance, dtype=float)
+    raw_shape = raw.get("raw_acceptance_shape")
+    if raw_shape is None:
+        chain_count = _int_or_none(raw.get("acceptance_raw_chain_count"))
+        if chain_count is None:
+            chain_count = max(1, decision_count // int(expected_steps))
+    else:
+        try:
+            normalized_shape = tuple(int(item) for item in raw_shape)
+        except (TypeError, ValueError):
+            return False
+        if not normalized_shape or normalized_shape[0] != int(expected_steps):
+            return False
+        chain_count = int(np.prod(normalized_shape[1:])) if len(normalized_shape) > 1 else 1
+    if chain_count <= 0 or decision_count != int(expected_steps) * int(chain_count):
+        return False
+    return bool(
+        np.isclose(float(np.sum(array)) * float(chain_count), float(accepted_count))
+    )
+
+
+def _windowed_stage_acceptance_policy_filled_or_default(
+    capture: Mapping[str, Any],
+) -> bool:
+    expected_steps = capture.get("expected_steps")
+    acceptance = capture.get("acceptance_trace")
+    if not _valid_trace_vector(acceptance, expected_steps, bounds=(0.0, 1.0)):
+        return True
+    if not _acceptance_trace_is_default_like(acceptance):
+        return False
+    return not _windowed_stage_acceptance_has_runtime_decision_support(capture)
+
+
 def _windowed_stage_runtime_evidence(metadata: Mapping[str, Any]) -> str:
     if _metadata_marks_fixture_or_synthetic(metadata):
         return "fixture_or_synthetic"
@@ -10948,7 +16396,13 @@ def _windowed_stage_diagnostics(
     *,
     windowed_result: WindowedMassAdaptationResult | None,
     hard_vetoes: tuple[str, ...],
+    mass_window_seed_kernel: Mapping[str, Any],
+    bootstrap_kernel: Mapping[str, Any],
 ) -> Mapping[str, Any]:
+    seed_step = float(mass_window_seed_kernel["step_size"])
+    seed_l = int(mass_window_seed_kernel["num_leapfrog_steps"])
+    bootstrap_step = float(bootstrap_kernel["step_size"])
+    bootstrap_l = int(bootstrap_kernel["num_leapfrog_steps"])
     return {
         "passed": not hard_vetoes,
         "hard_vetoes": hard_vetoes,
@@ -10969,6 +16423,31 @@ def _windowed_stage_diagnostics(
         "candidate_step_size": None
         if windowed_result is None
         else windowed_result.final_step_size,
+        "mass_window_seed_kernel": {
+            "step_size": seed_step,
+            "num_leapfrog_steps": seed_l,
+            "seed_kernel_source": mass_window_seed_kernel.get(
+                "private_kernel_source",
+                "bootstrap_or_geometry_handoff",
+            ),
+            "uses_private_retry_pair": bool(
+                mass_window_seed_kernel.get(
+                    "bootstrap_kernel_is_lineage_not_active_mass_window_seed",
+                    False,
+                )
+            ),
+            "bootstrap_step_size": bootstrap_step,
+            "bootstrap_num_leapfrog_steps": bootstrap_l,
+            "bootstrap_kernel_is_lineage_not_active_mass_window_seed": bool(
+                mass_window_seed_kernel.get(
+                    "bootstrap_kernel_is_lineage_not_active_mass_window_seed",
+                    False,
+                )
+            ),
+            "hmc_mechanics_publicized": False,
+            "reports_posterior_convergence": False,
+            "nonclaims": WINDOWED_MASS_STAGE_NONCLAIMS,
+        },
         "reports_posterior_convergence": False,
         "raw_diagnostics": capture.get("raw_diagnostics", {}),
         "runtime_metadata": capture.get("runtime_metadata", {}),
@@ -11010,6 +16489,20 @@ def _acceptance_telemetry_provenance(
         "fixture_or_synthetic": bool(capture.get("fixture_or_synthetic")),
         "policy_filled_or_default": bool(
             capture.get("acceptance_policy_filled_or_default")
+        ),
+        "constant_trace": _acceptance_trace_is_default_like(acceptance),
+        "runtime_decision_count_supported": (
+            _windowed_stage_acceptance_has_runtime_decision_support(capture)
+        ),
+        "accepted_decision_count": _int_or_none(
+            capture.get("raw_diagnostics", {}).get("accepted_decision_count")
+            if isinstance(capture.get("raw_diagnostics"), Mapping)
+            else None
+        ),
+        "acceptance_decision_count": _int_or_none(
+            capture.get("raw_diagnostics", {}).get("acceptance_decision_count")
+            if isinstance(capture.get("raw_diagnostics"), Mapping)
+            else None
         ),
         "runtime_evidence": capture.get("runtime_evidence"),
         "finite_and_aligned": _valid_trace_vector(

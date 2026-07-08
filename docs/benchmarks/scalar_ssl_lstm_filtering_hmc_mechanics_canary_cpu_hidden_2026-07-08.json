@@ -1,0 +1,804 @@
+{
+  "artifact_role": "cpu_hidden_scalar_filtering_hmc_mechanics_canary",
+  "candidate_rows": [
+    {
+      "candidate_index": 0,
+      "diagnostics": {
+        "acceptance_rate": 1.0,
+        "divergence_count": null,
+        "divergence_source": null,
+        "divergence_status": "not_exposed_by_kernel",
+        "finite_sample_count": 2,
+        "hmc_health_diagnostics": {
+          "acceptance_finite": true,
+          "acceptance_rate": 1.0,
+          "diagnostic_role": "hmc_health_diagnostics_not_native_divergence",
+          "log_accept_ratio": {
+            "available": true,
+            "finite": true,
+            "finite_count": 2,
+            "max_abs_finite": 5.2630449265400614e-05,
+            "nonfinite_count": 0
+          },
+          "nonclaims": [
+            "acceptance/log-accept/target-log-prob diagnostics are not native divergence telemetry",
+            "no sampler convergence claim"
+          ],
+          "target_log_prob": {
+            "available": true,
+            "finite": true,
+            "max": -37.831386467856575,
+            "min": -37.8707033844048
+          }
+        },
+        "max_target_log_prob": -37.831386467856575,
+        "min_target_log_prob": -37.8707033844048,
+        "native_divergence_status": "not_exposed_by_kernel",
+        "nonclaims": [
+          "finite tiny-chain diagnostics only",
+          "no sampler convergence claim",
+          "native divergence unavailability is not zero divergences"
+        ],
+        "nonfinite_sample_count": 0,
+        "sample_shape": [
+          2,
+          4
+        ],
+        "trace_policy": "standard"
+      },
+      "hard_vetoes": [],
+      "hmc_error": null,
+      "initial": {
+        "score": [
+          -0.04456522616094209,
+          0.1433934025886262,
+          0.12440293581509135,
+          0.3807781120936709
+        ],
+        "score_norm": 0.42780344596292547,
+        "u": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "value": -37.84742912954012
+      },
+      "metadata": {
+        "adaptation_policy": "fixed_kernel_no_adaptation",
+        "adaptation_policy_source": "reviewed_stage_7_phase_3",
+        "chain_execution_mode": "eager",
+        "first_call_s": 63.15472391500953,
+        "first_sample_chain_compile_execute_s": 63.15472391500953,
+        "initial_state_dtype": "float64",
+        "initial_state_shape": [
+          4
+        ],
+        "jit_compile": false,
+        "nonclaims": [
+          "tiny full-chain HMC engineering gate only",
+          "no sampler convergence claim",
+          "no posterior validity claim",
+          "no GPU readiness claim",
+          "no performance superiority claim"
+        ],
+        "program_signature": "8f9701b3d8455956c763105e45832b83e23bf8815e1a3ce80597081cd5a3e2cf",
+        "requested_target_scope": "scalar_ssl_lstm:svd_ukf_filtering_geometry:phase3_mechanics_u",
+        "runner_build_s": 3.6199926398694515e-06,
+        "runtime": "tfp.mcmc.sample_chain",
+        "sample_chain_call_s": 63.15472391500953,
+        "sample_chain_invocation_count": 1,
+        "sample_chain_timing_scope": "compile_plus_execute_when_xla_first_call",
+        "target_scope": "scalar_ssl_lstm:svd_ukf_filtering_geometry:phase3_mechanics_u",
+        "target_status_trace_policy": "none",
+        "timing_buckets": {
+          "first_call_s": "explanatory_only_first_sample_chain_call",
+          "runner_build_s": "explanatory_only_runner_callable_construction",
+          "trace_capture_s": "explanatory_only_post_sample_chain_trace_diagnostics_capture",
+          "warm_call_s": "not_available_single_use_runner"
+        },
+        "trace_capture_s": 0.016182057006517425,
+        "trace_capture_timing_scope": "post_sample_chain_public_safe_trace_diagnostics_capture",
+        "trace_policy": "standard",
+        "trace_unavailability": {
+          "divergence": "native boolean divergence field not exposed by TensorFlow Probability HMC kernel results"
+        },
+        "tuning_policy": {
+          "adaptation_policy": "fixed_kernel_no_adaptation",
+          "diagnostic_role": "fixed-kernel bounded HMC screen",
+          "enabled": false,
+          "implemented": true,
+          "label": "fixed_kernel_screen",
+          "nonclaims": [
+            "fixed-kernel screen only",
+            "no posterior convergence claim",
+            "no sampler superiority claim",
+            "no default adaptation readiness claim"
+          ],
+          "num_adaptation_steps": 0,
+          "source": "reviewed_stage_7_phase_3",
+          "target_accept_prob": null
+        },
+        "use_xla": false,
+        "value_score_authority": "graph_native",
+        "warm_call_s": null,
+        "warm_sample_chain_execute_s": null,
+        "warm_sample_shape": null,
+        "warm_trace_keys": []
+      },
+      "metric_roles": {
+        "acceptance_rate": "explanatory_mechanics_only",
+        "hard_vetoes": "hard_veto_evidence",
+        "initial_score_finite": "hard_veto_evidence",
+        "initial_value_finite": "hard_veto_evidence",
+        "log_accept_ratio": "explanatory_mechanics_only",
+        "native_divergence": "hard_veto_if_available_positive; unavailable is not zero divergences",
+        "nonfinite_hmc_samples": "hard_veto_evidence",
+        "runtime_seconds": "explanatory_only",
+        "status": "primary_phase3_mechanics_pass_fail",
+        "trajectory_length_L_times_epsilon": "explanatory_mechanics_only"
+      },
+      "nonclaims": [
+        "candidate mechanics telemetry only",
+        "not HMC convergence evidence",
+        "not posterior correctness evidence",
+        "not a tuned kernel claim"
+      ],
+      "num_leapfrog_steps": 1,
+      "runtime_seconds": 109.69628690302488,
+      "samples_summary": {
+        "final_u": [
+          -0.04237305627271235,
+          -0.0036559449728190835,
+          -0.03440353840633859,
+          0.053190690829271144
+        ],
+        "finite_sample_count": 2,
+        "max_abs_u": 0.07699729249971801,
+        "nonfinite_sample_count": 0,
+        "shape": [
+          2,
+          4
+        ]
+      },
+      "status": "passed_mechanics_canary",
+      "step_size": 0.1,
+      "trace_summary": {
+        "acceptance_rate": 1.0,
+        "is_accepted": [
+          true,
+          true
+        ],
+        "log_accept_ratio": {
+          "finite_count": 2,
+          "max_abs_finite": 5.2630449265400614e-05,
+          "nonfinite_count": 0,
+          "values": [
+            -5.2630449265400614e-05,
+            1.508818662232514e-07
+          ]
+        },
+        "native_divergence": {
+          "available": false,
+          "nonclaim": "unavailable native divergence telemetry is not zero divergences",
+          "status": "not_exposed_by_kernel"
+        },
+        "target_log_prob": {
+          "finite": true,
+          "max": -37.831386467856575,
+          "min": -37.8707033844048,
+          "values": [
+            -37.8707033844048,
+            -37.831386467856575
+          ]
+        }
+      },
+      "trajectory_length_L_times_epsilon": 0.1
+    },
+    {
+      "candidate_index": 1,
+      "diagnostics": {
+        "acceptance_rate": 1.0,
+        "divergence_count": null,
+        "divergence_source": null,
+        "divergence_status": "not_exposed_by_kernel",
+        "finite_sample_count": 2,
+        "hmc_health_diagnostics": {
+          "acceptance_finite": true,
+          "acceptance_rate": 1.0,
+          "diagnostic_role": "hmc_health_diagnostics_not_native_divergence",
+          "log_accept_ratio": {
+            "available": true,
+            "finite": true,
+            "finite_count": 2,
+            "max_abs_finite": 0.013509534583253213,
+            "nonfinite_count": 0
+          },
+          "nonclaims": [
+            "acceptance/log-accept/target-log-prob diagnostics are not native divergence telemetry",
+            "no sampler convergence claim"
+          ],
+          "target_log_prob": {
+            "available": true,
+            "finite": true,
+            "max": -38.180511023479035,
+            "min": -38.78611759780555
+          }
+        },
+        "max_target_log_prob": -38.180511023479035,
+        "min_target_log_prob": -38.78611759780555,
+        "native_divergence_status": "not_exposed_by_kernel",
+        "nonclaims": [
+          "finite tiny-chain diagnostics only",
+          "no sampler convergence claim",
+          "native divergence unavailability is not zero divergences"
+        ],
+        "nonfinite_sample_count": 0,
+        "sample_shape": [
+          2,
+          4
+        ],
+        "trace_policy": "standard"
+      },
+      "hard_vetoes": [],
+      "hmc_error": null,
+      "initial": {
+        "score": [
+          -0.04456522616094209,
+          0.1433934025886262,
+          0.12440293581509135,
+          0.3807781120936709
+        ],
+        "score_norm": 0.42780344596292547,
+        "u": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "value": -37.84742912954012
+      },
+      "metadata": {
+        "adaptation_policy": "fixed_kernel_no_adaptation",
+        "adaptation_policy_source": "reviewed_stage_7_phase_3",
+        "chain_execution_mode": "eager",
+        "first_call_s": 1.7244274959957693,
+        "first_sample_chain_compile_execute_s": 1.7244274959957693,
+        "initial_state_dtype": "float64",
+        "initial_state_shape": [
+          4
+        ],
+        "jit_compile": false,
+        "nonclaims": [
+          "tiny full-chain HMC engineering gate only",
+          "no sampler convergence claim",
+          "no posterior validity claim",
+          "no GPU readiness claim",
+          "no performance superiority claim"
+        ],
+        "program_signature": "023b5422bf38b8a37bd0e7b08923f2c50938710276d5f57b201da854a070ad61",
+        "requested_target_scope": "scalar_ssl_lstm:svd_ukf_filtering_geometry:phase3_mechanics_u",
+        "runner_build_s": 3.5200209822505713e-06,
+        "runtime": "tfp.mcmc.sample_chain",
+        "sample_chain_call_s": 1.7244274959957693,
+        "sample_chain_invocation_count": 1,
+        "sample_chain_timing_scope": "compile_plus_execute_when_xla_first_call",
+        "target_scope": "scalar_ssl_lstm:svd_ukf_filtering_geometry:phase3_mechanics_u",
+        "target_status_trace_policy": "none",
+        "timing_buckets": {
+          "first_call_s": "explanatory_only_first_sample_chain_call",
+          "runner_build_s": "explanatory_only_runner_callable_construction",
+          "trace_capture_s": "explanatory_only_post_sample_chain_trace_diagnostics_capture",
+          "warm_call_s": "not_available_single_use_runner"
+        },
+        "trace_capture_s": 0.00268632301595062,
+        "trace_capture_timing_scope": "post_sample_chain_public_safe_trace_diagnostics_capture",
+        "trace_policy": "standard",
+        "trace_unavailability": {
+          "divergence": "native boolean divergence field not exposed by TensorFlow Probability HMC kernel results"
+        },
+        "tuning_policy": {
+          "adaptation_policy": "fixed_kernel_no_adaptation",
+          "diagnostic_role": "fixed-kernel bounded HMC screen",
+          "enabled": false,
+          "implemented": true,
+          "label": "fixed_kernel_screen",
+          "nonclaims": [
+            "fixed-kernel screen only",
+            "no posterior convergence claim",
+            "no sampler superiority claim",
+            "no default adaptation readiness claim"
+          ],
+          "num_adaptation_steps": 0,
+          "source": "reviewed_stage_7_phase_3",
+          "target_accept_prob": null
+        },
+        "use_xla": false,
+        "value_score_authority": "graph_native",
+        "warm_call_s": null,
+        "warm_sample_chain_execute_s": null,
+        "warm_sample_shape": null,
+        "warm_trace_keys": []
+      },
+      "metric_roles": {
+        "acceptance_rate": "explanatory_mechanics_only",
+        "hard_vetoes": "hard_veto_evidence",
+        "initial_score_finite": "hard_veto_evidence",
+        "initial_value_finite": "hard_veto_evidence",
+        "log_accept_ratio": "explanatory_mechanics_only",
+        "native_divergence": "hard_veto_if_available_positive; unavailable is not zero divergences",
+        "nonfinite_hmc_samples": "hard_veto_evidence",
+        "runtime_seconds": "explanatory_only",
+        "status": "primary_phase3_mechanics_pass_fail",
+        "trajectory_length_L_times_epsilon": "explanatory_mechanics_only"
+      },
+      "nonclaims": [
+        "candidate mechanics telemetry only",
+        "not HMC convergence evidence",
+        "not posterior correctness evidence",
+        "not a tuned kernel claim"
+      ],
+      "num_leapfrog_steps": 2,
+      "runtime_seconds": 1.758558505011024,
+      "samples_summary": {
+        "final_u": [
+          -0.8070853742099707,
+          0.19446394339209125,
+          -0.09555720900118805,
+          -1.1771417860859845
+        ],
+        "finite_sample_count": 2,
+        "max_abs_u": 1.1771417860859845,
+        "nonfinite_sample_count": 0,
+        "shape": [
+          2,
+          4
+        ]
+      },
+      "status": "passed_mechanics_canary",
+      "step_size": 0.25,
+      "trace_summary": {
+        "acceptance_rate": 1.0,
+        "is_accepted": [
+          true,
+          true
+        ],
+        "log_accept_ratio": {
+          "finite_count": 2,
+          "max_abs_finite": 0.013509534583253213,
+          "nonfinite_count": 0,
+          "values": [
+            -0.013509534583253213,
+            -0.009968466743373705
+          ]
+        },
+        "native_divergence": {
+          "available": false,
+          "nonclaim": "unavailable native divergence telemetry is not zero divergences",
+          "status": "not_exposed_by_kernel"
+        },
+        "target_log_prob": {
+          "finite": true,
+          "max": -38.180511023479035,
+          "min": -38.78611759780555,
+          "values": [
+            -38.180511023479035,
+            -38.78611759780555
+          ]
+        }
+      },
+      "trajectory_length_L_times_epsilon": 0.5
+    },
+    {
+      "candidate_index": 2,
+      "diagnostics": {
+        "acceptance_rate": 1.0,
+        "divergence_count": null,
+        "divergence_source": null,
+        "divergence_status": "not_exposed_by_kernel",
+        "finite_sample_count": 2,
+        "hmc_health_diagnostics": {
+          "acceptance_finite": true,
+          "acceptance_rate": 1.0,
+          "diagnostic_role": "hmc_health_diagnostics_not_native_divergence",
+          "log_accept_ratio": {
+            "available": true,
+            "finite": true,
+            "finite_count": 2,
+            "max_abs_finite": 0.04780834101333564,
+            "nonfinite_count": 0
+          },
+          "nonclaims": [
+            "acceptance/log-accept/target-log-prob diagnostics are not native divergence telemetry",
+            "no sampler convergence claim"
+          ],
+          "target_log_prob": {
+            "available": true,
+            "finite": true,
+            "max": -37.98990588303308,
+            "min": -38.71255455321041
+          }
+        },
+        "max_target_log_prob": -37.98990588303308,
+        "min_target_log_prob": -38.71255455321041,
+        "native_divergence_status": "not_exposed_by_kernel",
+        "nonclaims": [
+          "finite tiny-chain diagnostics only",
+          "no sampler convergence claim",
+          "native divergence unavailability is not zero divergences"
+        ],
+        "nonfinite_sample_count": 0,
+        "sample_shape": [
+          2,
+          4
+        ],
+        "trace_policy": "standard"
+      },
+      "hard_vetoes": [],
+      "hmc_error": null,
+      "initial": {
+        "score": [
+          -0.04456522616094209,
+          0.1433934025886262,
+          0.12440293581509135,
+          0.3807781120936709
+        ],
+        "score_norm": 0.42780344596292547,
+        "u": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "value": -37.84742912954012
+      },
+      "metadata": {
+        "adaptation_policy": "fixed_kernel_no_adaptation",
+        "adaptation_policy_source": "reviewed_stage_7_phase_3",
+        "chain_execution_mode": "eager",
+        "first_call_s": 3.1475446650001686,
+        "first_sample_chain_compile_execute_s": 3.1475446650001686,
+        "initial_state_dtype": "float64",
+        "initial_state_shape": [
+          4
+        ],
+        "jit_compile": false,
+        "nonclaims": [
+          "tiny full-chain HMC engineering gate only",
+          "no sampler convergence claim",
+          "no posterior validity claim",
+          "no GPU readiness claim",
+          "no performance superiority claim"
+        ],
+        "program_signature": "374922120a4ef11770e3284246e0b7514ce07d35a463a4fdb67112535dc3420d",
+        "requested_target_scope": "scalar_ssl_lstm:svd_ukf_filtering_geometry:phase3_mechanics_u",
+        "runner_build_s": 2.3600005079060793e-06,
+        "runtime": "tfp.mcmc.sample_chain",
+        "sample_chain_call_s": 3.1475446650001686,
+        "sample_chain_invocation_count": 1,
+        "sample_chain_timing_scope": "compile_plus_execute_when_xla_first_call",
+        "target_scope": "scalar_ssl_lstm:svd_ukf_filtering_geometry:phase3_mechanics_u",
+        "target_status_trace_policy": "none",
+        "timing_buckets": {
+          "first_call_s": "explanatory_only_first_sample_chain_call",
+          "runner_build_s": "explanatory_only_runner_callable_construction",
+          "trace_capture_s": "explanatory_only_post_sample_chain_trace_diagnostics_capture",
+          "warm_call_s": "not_available_single_use_runner"
+        },
+        "trace_capture_s": 0.0026181329740211368,
+        "trace_capture_timing_scope": "post_sample_chain_public_safe_trace_diagnostics_capture",
+        "trace_policy": "standard",
+        "trace_unavailability": {
+          "divergence": "native boolean divergence field not exposed by TensorFlow Probability HMC kernel results"
+        },
+        "tuning_policy": {
+          "adaptation_policy": "fixed_kernel_no_adaptation",
+          "diagnostic_role": "fixed-kernel bounded HMC screen",
+          "enabled": false,
+          "implemented": true,
+          "label": "fixed_kernel_screen",
+          "nonclaims": [
+            "fixed-kernel screen only",
+            "no posterior convergence claim",
+            "no sampler superiority claim",
+            "no default adaptation readiness claim"
+          ],
+          "num_adaptation_steps": 0,
+          "source": "reviewed_stage_7_phase_3",
+          "target_accept_prob": null
+        },
+        "use_xla": false,
+        "value_score_authority": "graph_native",
+        "warm_call_s": null,
+        "warm_sample_chain_execute_s": null,
+        "warm_sample_shape": null,
+        "warm_trace_keys": []
+      },
+      "metric_roles": {
+        "acceptance_rate": "explanatory_mechanics_only",
+        "hard_vetoes": "hard_veto_evidence",
+        "initial_score_finite": "hard_veto_evidence",
+        "initial_value_finite": "hard_veto_evidence",
+        "log_accept_ratio": "explanatory_mechanics_only",
+        "native_divergence": "hard_veto_if_available_positive; unavailable is not zero divergences",
+        "nonfinite_hmc_samples": "hard_veto_evidence",
+        "runtime_seconds": "explanatory_only",
+        "status": "primary_phase3_mechanics_pass_fail",
+        "trajectory_length_L_times_epsilon": "explanatory_mechanics_only"
+      },
+      "nonclaims": [
+        "candidate mechanics telemetry only",
+        "not HMC convergence evidence",
+        "not posterior correctness evidence",
+        "not a tuned kernel claim"
+      ],
+      "num_leapfrog_steps": 4,
+      "runtime_seconds": 3.1827549200097565,
+      "samples_summary": {
+        "final_u": [
+          1.6885459870975361,
+          -0.2898665612696324,
+          0.5426108838004468,
+          0.8209022546767664
+        ],
+        "finite_sample_count": 2,
+        "max_abs_u": 2.704452978845203,
+        "nonfinite_sample_count": 0,
+        "shape": [
+          2,
+          4
+        ]
+      },
+      "status": "passed_mechanics_canary",
+      "step_size": 0.3925,
+      "trace_summary": {
+        "acceptance_rate": 1.0,
+        "is_accepted": [
+          true,
+          true
+        ],
+        "log_accept_ratio": {
+          "finite_count": 2,
+          "max_abs_finite": 0.04780834101333564,
+          "nonfinite_count": 0,
+          "values": [
+            0.04780834101333564,
+            0.03191336805177325
+          ]
+        },
+        "native_divergence": {
+          "available": false,
+          "nonclaim": "unavailable native divergence telemetry is not zero divergences",
+          "status": "not_exposed_by_kernel"
+        },
+        "target_log_prob": {
+          "finite": true,
+          "max": -37.98990588303308,
+          "min": -38.71255455321041,
+          "values": [
+            -38.71255455321041,
+            -37.98990588303308
+          ]
+        }
+      },
+      "trajectory_length_L_times_epsilon": 1.57
+    }
+  ],
+  "classification": "extension_or_invention",
+  "created_at_utc": "2026-07-07T22:33:26.763472+00:00",
+  "decision": {
+    "candidate_count": 3,
+    "mechanics_canary_passed": true,
+    "next_justified_action": "draft and review Phase 4 short HMC smoke subplan",
+    "passed_candidate_count": 3,
+    "vetoes": [],
+    "viable_for_phase4_short_hmc_smoke": true
+  },
+  "environment": {
+    "cuda_visible_devices": "-1",
+    "python": "3.13.13",
+    "tensorflow": "2.20.0",
+    "tf_logical_gpus": [],
+    "tf_physical_devices": [
+      {
+        "device_type": "CPU",
+        "name": "/physical_device:CPU:0"
+      }
+    ]
+  },
+  "git": {
+    "commit": "b1c97c9424907e177f8a95ab98657f07b064a081",
+    "dirty": true,
+    "dirty_line_count": 294,
+    "dirty_preview": [
+      " M bayesfilter/__init__.py",
+      " M bayesfilter/inference/__init__.py",
+      " M bayesfilter/inference/hmc.py",
+      " M bayesfilter/inference/hmc_kernel_tuning.py",
+      " M bayesfilter/inference/mass_matrix.py",
+      " M docs/chapters/ch21_hmc_for_state_space.tex",
+      " M docs/chapters/ch22_mass_matrices.tex",
+      " M tests/test_hmc_fixed_size_chunk_runner.py",
+      " M tests/test_hmc_kernel_tuning_bootstrap.py",
+      " M tests/test_hmc_kernel_tuning_fixed_mass_step.py",
+      " M tests/test_hmc_kernel_tuning_frozen_step_trajectory.py",
+      " M tests/test_hmc_kernel_tuning_outer_loop.py",
+      " M tests/test_hmc_kernel_tuning_public_api.py",
+      " M tests/test_hmc_kernel_tuning_windowed_mass.py",
+      " M tests/test_nonlinear_ssm_phase4_full_chain_hmc.py",
+      "?? bayesfilter/inference/quadratic_geometry.py",
+      "?? bayesfilter/nonlinear/ssl_lstm_protocol.py",
+      "?? bayesfilter/nonlinear/ssl_lstm_sgqf_ukf_adapters.py",
+      "?? bayesfilter/nonlinear/ssl_lstm_zhaocui_fixed_adapter.py",
+      "?? bayesfilter/nonlinear/ssl_lstm_zhaocui_hmc_minimal.py"
+    ]
+  },
+  "inference_status": {
+    "default_readiness": "not assessed",
+    "descriptive_only_differences": "acceptance, log accept ratio, target log-prob range, trajectory length, and runtime",
+    "hard_veto_screen": "passed",
+    "hmc_readiness": "not assessed; mechanics canary only",
+    "next_evidence_needed": "reviewed Phase 4 short HMC smoke only if Phase 3 passes",
+    "statistically_supported_ranking": "none; fixed tiny mechanics grid"
+  },
+  "metric_roles": {
+    "acceptance_rate": "explanatory_mechanics_only",
+    "candidate_hard_vetoes": "hard_veto_evidence",
+    "finite_hmc_samples": "hard_veto_evidence",
+    "finite_initial_value_score": "hard_veto_evidence",
+    "log_accept_ratio": "explanatory_mechanics_only",
+    "mechanics_canary_passed": "primary_phase3_pass_fail",
+    "native_divergence": "hard_veto_if_available_positive",
+    "runtime": "explanatory_only",
+    "trajectory_length_L_times_epsilon": "explanatory_mechanics_only"
+  },
+  "nonclaims": [
+    "HMC mechanics canary only",
+    "not HMC readiness evidence",
+    "not HMC convergence evidence",
+    "not posterior correctness evidence",
+    "not a tuned step-size claim",
+    "not a zero-divergence claim",
+    "not sampler superiority evidence",
+    "not statistical ranking evidence",
+    "not GPU/XLA production-readiness evidence",
+    "not default-readiness evidence",
+    "not Zhao-Cui source-faithfulness evidence"
+  ],
+  "plan_path": "docs/plans/bayesfilter-scalar-filtering-geometry-to-hmc-readiness-master-program-2026-07-08.md",
+  "precondition": {
+    "adapter_signature": "cf79ab984f8c8f48a6b790078dff62dc7eac0e6a9085b3d883b43fb5cafa3b39",
+    "base_adapter_signature": "663169a7857901cfe83957b7fecdf5f9c31af2e0be614cd207be80d1ebd959a0",
+    "coordinate_contract": {
+      "base_adapter_coordinate": "free parameter values",
+      "center_role": "truth_free_initial_center",
+      "free_parameter_indices": [
+        12,
+        13,
+        14,
+        15
+      ],
+      "free_parameter_names": [
+        "latent_mean_weight.0.0",
+        "latent_mean_bias.0",
+        "observation_weight.0.0",
+        "observation_bias.0"
+      ],
+      "free_parameters_from_u": "free = center + scale * (u @ chol(M_z).T)",
+      "phase1_target_coordinate_z": "theta = center + scale * z",
+      "refined_center_used": false,
+      "tfp_hmc_coordinate_u": "z = u @ chol(M_z).T"
+    },
+    "mass_audit": {
+      "K_z_eigen_summary": {
+        "condition_number": 35.99055026387431,
+        "eigenvalues": [
+          0.18410291302915638,
+          0.18410291302915746,
+          4.077978217374147,
+          6.625965145101533
+        ],
+        "finite": true,
+        "max": 6.625965145101533,
+        "min": 0.18410291302915638,
+        "positive": true
+      },
+      "K_z_times_M_z_identity_max_abs_error": 4.501727238562539e-15,
+      "M_z_eigen_summary": {
+        "condition_number": 35.99055026387433,
+        "eigenvalues": [
+          0.15092140965143508,
+          0.2452195540769482,
+          5.431744579954698,
+          5.431744579954743
+        ],
+        "finite": true,
+        "max": 5.431744579954743,
+        "min": 0.15092140965143508,
+        "positive": true
+      },
+      "factor_reconstructs_M_z_max_abs_error": 8.881784197001252e-16,
+      "factor_shape": [
+        4,
+        4
+      ],
+      "free_parameter_covariance_eigen_summary": {
+        "condition_number": 35.99055026387458,
+        "eigenvalues": [
+          0.018487872682300666,
+          0.03003939537442647,
+          0.6653887110444505,
+          0.6653887110444558
+        ],
+        "finite": true,
+        "max": 0.6653887110444558,
+        "min": 0.018487872682300666,
+        "positive": true
+      }
+    },
+    "matrix_convention": {
+      "K_z": "whitened precision from Phase 1 low-rank geometry",
+      "M_z": "whitened covariance/mass candidate equal to inv(regularized K_z)",
+      "hmc_handoff_matrix": "M_z",
+      "tfp_dense_mass_handling": "stock TFP HMC identity kinetic energy; dense mass represented by affine u->z transform"
+    },
+    "precondition_passed": true,
+    "vetoes": []
+  },
+  "result_path": "docs/plans/bayesfilter-scalar-filtering-geometry-to-hmc-readiness-phase3-mechanics-canary-result-2026-07-08.md",
+  "run_manifest": {
+    "command": "timeout 180 env CUDA_VISIBLE_DEVICES=-1 python docs/benchmarks/benchmark_scalar_ssl_lstm_filtering_hmc_mechanics_canary_2026_07_08.py",
+    "conda_env": "tfgpu",
+    "cpu_gpu_status": "CPU-hidden debug/reference exception",
+    "data_version": "stateless_simulated_scalar_ssl_lstm_filtering_path_v1",
+    "jit_compile": false,
+    "output_artifacts": [
+      "docs/benchmarks/scalar_ssl_lstm_filtering_hmc_mechanics_canary_cpu_hidden_2026-07-08.json",
+      "docs/benchmarks/scalar_ssl_lstm_filtering_hmc_mechanics_canary_cpu_hidden_2026-07-08.md"
+    ],
+    "plan_file": "docs/plans/bayesfilter-scalar-filtering-geometry-to-hmc-readiness-master-program-2026-07-08.md",
+    "random_seeds": [
+      20260708,
+      3301
+    ],
+    "result_file": "docs/plans/bayesfilter-scalar-filtering-geometry-to-hmc-readiness-phase3-mechanics-canary-result-2026-07-08.md",
+    "subplan_file": "docs/plans/bayesfilter-scalar-filtering-geometry-to-hmc-readiness-phase3-mechanics-canary-subplan-2026-07-08.md",
+    "tf32_mode": "disabled_by_cpu_hidden_debug_contract",
+    "wall_time_seconds": 114.93521001198678
+  },
+  "schema_version": "scalar_ssl_lstm.filtering_hmc_mechanics_canary.v1",
+  "script": "docs/benchmarks/benchmark_scalar_ssl_lstm_filtering_hmc_mechanics_canary_2026_07_08.py",
+  "settings": {
+    "candidate_grid": [
+      {
+        "num_leapfrog_steps": 1,
+        "step_size": 0.1,
+        "trajectory_length": 0.1
+      },
+      {
+        "num_leapfrog_steps": 2,
+        "step_size": 0.25,
+        "trajectory_length": 0.5
+      },
+      {
+        "num_leapfrog_steps": 4,
+        "step_size": 0.3925,
+        "trajectory_length": 1.57
+      }
+    ],
+    "chain_execution_mode": "eager",
+    "num_burnin_steps": 1,
+    "num_results": 2,
+    "seed": [
+      20260708,
+      3301
+    ],
+    "use_xla": false
+  },
+  "source_artifacts": {
+    "geometry_json": "docs/benchmarks/scalar_ssl_lstm_filtering_geometry_cpu_hidden_2026-07-08.json",
+    "mass_json": "docs/benchmarks/scalar_ssl_lstm_filtering_mass_handoff_cpu_hidden_2026-07-08.json"
+  },
+  "subplan_path": "docs/plans/bayesfilter-scalar-filtering-geometry-to-hmc-readiness-phase3-mechanics-canary-subplan-2026-07-08.md",
+  "target_scope": "scalar_ssl_lstm:svd_ukf_filtering_geometry:phase3_mechanics_u"
+}

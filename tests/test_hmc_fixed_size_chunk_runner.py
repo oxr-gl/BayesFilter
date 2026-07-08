@@ -1018,6 +1018,97 @@ def test_fixed_size_chunk_runner_standard_trace_returns_valid_row_vectors() -> N
     assert np.asarray(result.trace["is_accepted"].numpy())[mask].shape == (3, 3)
     assert np.all(np.isfinite(np.asarray(result.trace["log_accept_ratio"].numpy())[mask]))
     assert np.all(np.isfinite(np.asarray(result.trace["target_log_prob"].numpy())[mask]))
+
+
+def test_fixed_size_chunk_runner_tf_function_accepts_dynamic_acceptance_trace_shape(
+    monkeypatch,
+) -> None:
+    from collections import namedtuple
+
+    import tensorflow_probability as tfp
+
+    _AcceptedResults = namedtuple("_AcceptedResults", ("target_log_prob",))
+    _KernelResults = namedtuple(
+        "_KernelResults",
+        ("is_accepted", "log_accept_ratio", "accepted_results"),
+    )
+
+    class _DynamicAcceptanceShapeHMC:
+        def __init__(
+            self,
+            *,
+            target_log_prob_fn,
+            step_size,
+            num_leapfrog_steps,
+        ) -> None:
+            self.target_log_prob_fn = target_log_prob_fn
+            self.step_size = step_size
+            self.num_leapfrog_steps = num_leapfrog_steps
+
+        def _results(self, state: tf.Tensor) -> _KernelResults:
+            chain_shape = tf.shape(state)[:1]
+            dtype = state.dtype
+            return _KernelResults(
+                is_accepted=tf.ensure_shape(
+                    tf.ones(chain_shape, dtype=tf.bool),
+                    [None],
+                ),
+                log_accept_ratio=tf.ensure_shape(
+                    tf.zeros(chain_shape, dtype=dtype),
+                    [None],
+                ),
+                accepted_results=_AcceptedResults(
+                    target_log_prob=tf.ensure_shape(
+                        tf.zeros(chain_shape, dtype=dtype),
+                        [None],
+                    ),
+                ),
+            )
+
+        def bootstrap_results(self, current_state: tf.Tensor) -> _KernelResults:
+            return self._results(current_state)
+
+        def one_step(
+            self,
+            state: tf.Tensor,
+            previous_kernel_results: _KernelResults,
+            *,
+            seed=None,
+        ) -> tuple[tf.Tensor, _KernelResults]:
+            del previous_kernel_results, seed
+            next_state = state + tf.cast(0.001, state.dtype)
+            return next_state, self._results(next_state)
+
+    monkeypatch.setattr(
+        tfp.mcmc,
+        "HamiltonianMonteCarlo",
+        _DynamicAcceptanceShapeHMC,
+    )
+    config = FixedSizeHMCChunkConfig(
+        max_results=3,
+        num_burnin_steps=1,
+        step_size=0.05,
+        num_leapfrog_steps=1,
+        seed=(20260705, 8),
+        use_xla=False,
+        trace_policy="standard",
+        target_scope="fixed_size_hmc_chunk_gaussian",
+        chain_execution_mode="tf_function",
+    )
+    runner = build_fixed_size_hmc_chunk_runner(
+        ReviewedBatchedGaussianAdapter(),
+        _initial_state(),
+        config,
+    )
+
+    result = runner.run(active_results=2, seed=(20260705, 9))
+
+    assert tuple(result.trace["is_accepted"].shape) == (3, 3)
+    assert tuple(result.trace["log_accept_ratio"].shape) == (3, 3)
+    assert tuple(result.trace["target_log_prob"].shape) == (3, 3)
+    assert int(result.diagnostics["valid_sample_count"].numpy()) == 2
+    assert int(result.diagnostics["acceptance_decision_count"].numpy()) == 6
+    assert result.metadata["compile_trace_count"] == 1
     assert result.metadata["trace_policy"] == "standard"
 
 

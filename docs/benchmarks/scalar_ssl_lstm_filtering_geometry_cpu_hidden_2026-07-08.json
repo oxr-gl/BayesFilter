@@ -1,0 +1,510 @@
+{
+  "artifact_array_policy": {
+    "array_scope": "private_local_four_dimensional_diagnostic_artifact",
+    "low_rank_geometry_arrays_included": true,
+    "reason": "Phase 2 mass handoff requires auditable precision and covariance matrices"
+  },
+  "artifact_role": "cpu_hidden_scalar_filtering_likelihood_geometry_diagnostic",
+  "center": {
+    "coordinate_system": "free_parameters_center_plus_scale_times_z",
+    "free_parameter_values": [
+      0.35,
+      -0.08,
+      0.65,
+      0.05
+    ],
+    "log_prob": -37.84742912954012,
+    "position_role": "truth_free_initial_center",
+    "reports_map_quality": false,
+    "score": [
+      0.04136499462054382,
+      1.5569199957141024,
+      0.25645839913165336,
+      2.385670540067278
+    ],
+    "score_norm": 1.0012022558294065,
+    "status": "finite"
+  },
+  "classification": "extension_or_invention",
+  "compiled_value_score": {
+    "checked": true,
+    "execution_role": "cpu_hidden_non_xla_debug_optimization",
+    "jit_compile": false,
+    "passed": true,
+    "score_max_abs_error": 0.0,
+    "value_abs_error": 7.105427357601002e-15
+  },
+  "created_at_utc": "2026-07-07T22:07:51.919406+00:00",
+  "decision": {
+    "compiled_eager_parity_passed": true,
+    "condition_passed": true,
+    "geometry_sanity_passed": true,
+    "initial_finite_passed": true,
+    "low_rank_geometry_accepted": true,
+    "next_justified_action": "draft geometry-to-mass handoff subplan",
+    "precision_spd_passed": true,
+    "sample_ratio_passed": true,
+    "vetoes": [],
+    "viable_for_phase2_mass_handoff": true
+  },
+  "environment": {
+    "cpu_hidden": true,
+    "cuda_visible_devices": "-1",
+    "tf_physical_gpus": [],
+    "tf_version": "2.20.0",
+    "trust_basis": "cpu_hidden_debug_reference_exception"
+  },
+  "finite_difference_curvature": {
+    "computed": true,
+    "coordinate_system": "whitened_center_plus_scale_times_z",
+    "failures": [],
+    "finite": true,
+    "negative_score_jacobian_eigen_summary": {
+      "condition_number": null,
+      "finite": true,
+      "max": 7.299972061509976,
+      "min": -0.008772470496905606,
+      "positive": false,
+      "values": [
+        -0.008772470496905606,
+        0.009783197796838755,
+        3.7544462363074804,
+        7.299972061509976
+      ]
+    },
+    "role": "explanatory_only_not_phase1_promotion",
+    "step_scale": 0.001
+  },
+  "git": {
+    "commit": "b1c97c9424907e177f8a95ab98657f07b064a081"
+  },
+  "inference_status": {
+    "default_readiness": "not assessed",
+    "descriptive_only_differences": "score norm, finite-difference curvature, residuals, condition number, and runtime",
+    "hard_veto_screen": "passed",
+    "hmc_readiness": "not assessed; Phase 1 does not run HMC",
+    "next_evidence_needed": "geometry-to-mass handoff only if geometry_sanity_passed is true",
+    "statistically_supported_ranking": "none; single diagnostic target"
+  },
+  "low_rank_geometry": {
+    "accepted": true,
+    "center": [
+      0.35,
+      -0.08,
+      0.65,
+      0.05
+    ],
+    "center_refinement_accepted": false,
+    "covariance": [
+      [
+        5.341188190686037,
+        -0.10905179571588881,
+        -0.6667694773737616,
+        -0.07311376645515084
+      ],
+      [
+        -0.10905179571588881,
+        4.075136394524647,
+        -0.3539443186103265,
+        -2.2704498802074604
+      ],
+      [
+        -0.6667694773737616,
+        -0.3539443186103265,
+        0.35776082420220473,
+        0.2614068222188304
+      ],
+      [
+        -0.07311376645515084,
+        -2.2704498802074604,
+        0.2614068222188304,
+        1.4855447142249436
+      ]
+    ],
+    "covariance_eigen_summary": {
+      "condition_number": 35.9905502638742,
+      "eigenvalues": [
+        0.15092140965143516,
+        0.2452195540769481,
+        5.431744579954723,
+        5.431744579954725
+      ],
+      "finite": true,
+      "max": 5.431744579954725,
+      "min": 0.15092140965143516,
+      "positive": true
+    },
+    "diagnostics": {
+      "artifact_hash": "555b5b6589cb76fc",
+      "center_log_prob": -37.84742912954012,
+      "center_refinement": {
+        "accepted": false,
+        "center_log_prob": -37.84742912954012,
+        "center_score_norm": 1.0012022558294065,
+        "reason": "outside_trust_radius",
+        "refined_center": [
+          0.31395184022925354,
+          0.022022045649693137,
+          0.666750333965736,
+          0.058958065769932885
+        ],
+        "refined_log_prob": -37.786099036348105,
+        "refined_score_norm": 0.3259204255737372,
+        "z_norm": 0.31388010517091036
+      },
+      "center_score_norm": 1.0012022558294065,
+      "classification": "extension_or_invention",
+      "config": {
+        "center_log_prob_tolerance": 1e-08,
+        "center_score_improvement_factor": 0.95,
+        "eigenvalue_floor": 0.0001,
+        "fit_max_iterations": 300,
+        "fit_tolerance": 1e-08,
+        "holdout_fraction": 0.25,
+        "holdout_rmse_abs_tolerance": 0.05,
+        "holdout_rmse_rel_tolerance": 0.005,
+        "max_condition_number": 100000.0,
+        "min_samples_per_parameter": 5,
+        "pilot_direction_count": 64,
+        "pilot_radius": 0.08,
+        "rank": 4,
+        "sample_count": 72,
+        "seed": [
+          20260708,
+          2301
+        ],
+        "trust_radius": 0.3
+      },
+      "coordinate_system": "whitened_center_plus_scale_times_z",
+      "covariance_eigen_summary": {
+        "condition_number": 35.9905502638742,
+        "eigenvalues": [
+          0.15092140965143516,
+          0.2452195540769481,
+          5.431744579954723,
+          5.431744579954725
+        ],
+        "finite": true,
+        "max": 5.431744579954725,
+        "min": 0.15092140965143516,
+        "positive": true
+      },
+      "dimension": 4,
+      "finite_sample_count": 72,
+      "fit": {
+        "condition_bound": 35.990550263874226,
+        "fit_method": "score_difference_linear_least_squares_with_value_intercept",
+        "intercept": -37.84673177441424,
+        "lambda0": 0.184102913029157,
+        "linear_term": [
+          0.014477748117190336,
+          0.5449219984999358,
+          0.08976043969607866,
+          0.8349846890235473
+        ],
+        "loss": 0.0004742324103277839,
+        "mu": [
+          6.441862232072383,
+          3.8938753043449954,
+          0.0
+        ],
+        "mu_clipped_count": 1,
+        "optimizer_converged": true,
+        "optimizer_failed": false,
+        "optimizer_iterations": 0,
+        "precision": null,
+        "raw_lambda0": 0.184102913029157,
+        "raw_mu": [
+          6.441862232072383,
+          3.8938753043449954,
+          -0.09210986237141938
+        ],
+        "score_design_condition_number": 4.608991283585775,
+        "score_design_rank": 4,
+        "score_lstsq_residual_sum_squares": 4.035108239097892,
+        "score_rmse": 0.13681476409618623,
+        "status": "usable"
+      },
+      "holdout_count": 18,
+      "holdout_passed": true,
+      "holdout_rmse": 0.0163226499041144,
+      "holdout_threshold": 0.18923714564770058,
+      "nonfinite_sample_count": 0,
+      "pilot": {
+        "basis_source": "directional_curvature_sketch",
+        "center_score_norm": 1.0012022558294065,
+        "curvature_max": 6.915395124919489,
+        "curvature_min": 0.13981198294916516,
+        "curvature_source": "central_score_difference_directional_curvature",
+        "finite_positive_curvature_count": 64,
+        "pilot_direction_count": 64,
+        "sketch_eigenvalues": [
+          93.49187005494227,
+          47.50749987142212,
+          34.24056086991125,
+          22.035202114119215
+        ]
+      },
+      "precision_eigen_summary": {
+        "condition_number": 35.99055026387422,
+        "eigenvalues": [
+          0.18410291302915693,
+          0.1841029130291583,
+          4.0779782173741514,
+          6.625965145101537
+        ],
+        "finite": true,
+        "max": 6.625965145101537,
+        "min": 0.18410291302915693,
+        "positive": true
+      },
+      "precision_form": "lambda0_identity_plus_q_diag_mu_q_transpose",
+      "rank": 3,
+      "regression_parameter_count": 9,
+      "reports_default_readiness": false,
+      "reports_hmc_convergence": false,
+      "reports_map_quality": false,
+      "required_finite_samples": 45,
+      "sample_count": 72,
+      "sample_ratio_rule": "finite_sample_count >= min_samples_per_parameter * regression_parameter_count",
+      "train_rmse": 0.021776877882923987
+    },
+    "dimension": 4,
+    "intercept": -37.84673177441424,
+    "lambda0": 0.184102913029157,
+    "linear_term": [
+      0.014477748117190336,
+      0.5449219984999358,
+      0.08976043969607866,
+      0.8349846890235473
+    ],
+    "mu": [
+      6.441862232072383,
+      3.8938753043449954,
+      0.0
+    ],
+    "nonclaims": [
+      "low-rank quadratic geometry diagnostic only",
+      "not a certified MAP covariance",
+      "not posterior correctness evidence",
+      "not HMC convergence evidence",
+      "not sampler superiority evidence",
+      "not default-readiness evidence",
+      "not source-faithful Zhao-Cui evidence"
+    ],
+    "precision": [
+      [
+        0.2538155634452477,
+        0.05310188691898085,
+        0.5246010632742992,
+        0.001338423354218452
+      ],
+      [
+        0.05310188691898085,
+        1.6822227104608258,
+        -0.1345642826770066,
+        2.5973374042385586
+      ],
+      [
+        0.5246010632742992,
+        -0.1345642826770066,
+        4.327572705373828,
+        -0.9413536430804595
+      ],
+      [
+        0.001338423354218452,
+        2.5973374042385586,
+        -0.9413536430804595,
+        4.808538209254106
+      ]
+    ],
+    "precision_eigen_summary": {
+      "condition_number": 35.99055026387422,
+      "eigenvalues": [
+        0.18410291302915693,
+        0.1841029130291583,
+        4.0779782173741514,
+        6.625965145101537
+      ],
+      "finite": true,
+      "max": 6.625965145101537,
+      "min": 0.18410291302915693,
+      "positive": true
+    },
+    "q_basis": [
+      [
+        -0.02639493920632008,
+        -0.12942401340085757,
+        0.931345906924551
+      ],
+      [
+        0.4400174627129883,
+        -0.25382756036406173,
+        -0.314914505749716
+      ],
+      [
+        -0.3672399677294729,
+        -0.9170517928984362,
+        -0.09228967834433915
+      ],
+      [
+        0.8190376949774499,
+        -0.27899283771560657,
+        0.1578172075357942
+      ]
+    ],
+    "rank": 3,
+    "refined_center": null,
+    "scale": [
+      0.35,
+      0.35,
+      0.35,
+      0.35
+    ],
+    "schema": "bayesfilter.low_rank_spd_quadratic_geometry.v1",
+    "status": "usable"
+  },
+  "metric_roles": {
+    "center_score_norm": "explanatory_only",
+    "compiled_eager_parity": "implementation_veto",
+    "finite_difference_curvature": "explanatory_only",
+    "finite_sample_count": "promotion_veto",
+    "geometry_sanity_passed": "primary_phase1_pass_fail",
+    "holdout_rmse": "geometry_fit_gate_only_not_hmc_evidence",
+    "initial_value_score_finiteness": "promotion_veto",
+    "low_rank_geometry_accepted": "promotion_veto",
+    "precision_condition_number": "promotion_veto",
+    "precision_spd": "promotion_veto"
+  },
+  "nonclaims": [
+    "scalar filtering-likelihood geometry diagnostic only",
+    "not complete-data oracle evidence",
+    "not HMC readiness evidence",
+    "not an HMC run",
+    "not HMC convergence evidence",
+    "not posterior correctness evidence",
+    "not sampler superiority evidence",
+    "not statistical ranking evidence",
+    "not Zhao-Cui source-faithfulness evidence",
+    "not GPU/XLA production-readiness evidence",
+    "not default-readiness evidence",
+    "low-rank quadratic geometry diagnostic only",
+    "not a certified MAP covariance",
+    "not posterior correctness evidence",
+    "not HMC convergence evidence",
+    "not sampler superiority evidence",
+    "not default-readiness evidence",
+    "not source-faithful Zhao-Cui evidence"
+  ],
+  "plan_path": "docs/plans/bayesfilter-scalar-filtering-geometry-to-hmc-readiness-master-program-2026-07-08.md",
+  "result_path": "docs/plans/bayesfilter-scalar-filtering-geometry-to-hmc-readiness-phase1-filtering-geometry-result-2026-07-08.md",
+  "run_manifest": {
+    "command": "timeout 300 env CUDA_VISIBLE_DEVICES=-1 python docs/benchmarks/benchmark_scalar_ssl_lstm_filtering_geometry_2026_07_08.py",
+    "compiled_value_score_status": "tf.function_jit_compile_false_cpu_hidden_debug",
+    "conda_env": "tfgpu",
+    "cpu_gpu_status": "CPU-hidden debug/reference exception",
+    "data_version": "stateless_simulated_scalar_ssl_lstm_filtering_path_v1",
+    "output_artifacts": [
+      "docs/benchmarks/scalar_ssl_lstm_filtering_geometry_cpu_hidden_2026-07-08.json",
+      "docs/benchmarks/scalar_ssl_lstm_filtering_geometry_cpu_hidden_2026-07-08.md"
+    ],
+    "plan_file": "docs/plans/bayesfilter-scalar-filtering-geometry-to-hmc-readiness-master-program-2026-07-08.md",
+    "random_seeds": [
+      20260708,
+      2301
+    ],
+    "result_file": "docs/plans/bayesfilter-scalar-filtering-geometry-to-hmc-readiness-phase1-filtering-geometry-result-2026-07-08.md",
+    "subplan_file": "docs/plans/bayesfilter-scalar-filtering-geometry-to-hmc-readiness-phase1-filtering-geometry-subplan-2026-07-08.md",
+    "wall_time_seconds": 54.558820242993534
+  },
+  "schema_version": "scalar_ssl_lstm.filtering_geometry.v1",
+  "script": "docs/benchmarks/benchmark_scalar_ssl_lstm_filtering_geometry_2026_07_08.py",
+  "settings": {
+    "compute_finite_difference_curvature": true,
+    "effective_low_rank_rank": 3,
+    "filter_name": "svd_ukf",
+    "finite_difference_step_scale": 0.001,
+    "free_parameter_names": [
+      "latent_mean_weight.0.0",
+      "latent_mean_bias.0",
+      "observation_weight.0.0",
+      "observation_bias.0"
+    ],
+    "free_parameter_scale": [
+      0.35,
+      0.35,
+      0.35,
+      0.35
+    ],
+    "horizon": 30,
+    "jit_compile_value_score": false,
+    "low_rank_eigenvalue_floor": 0.0001,
+    "low_rank_fit_max_iterations": 300,
+    "low_rank_holdout_rmse_abs_tolerance": 0.05,
+    "low_rank_holdout_rmse_rel_tolerance": 0.005,
+    "low_rank_max_condition_number": 100000.0,
+    "low_rank_min_samples_per_parameter": 5,
+    "low_rank_pilot_direction_count": 64,
+    "low_rank_pilot_radius": 0.08,
+    "low_rank_rank": 4,
+    "low_rank_sample_count": 72,
+    "low_rank_trust_radius": 0.3,
+    "prior_scale": 4.0,
+    "regression_parameter_count": 9,
+    "required_finite_samples": 45,
+    "seed": [
+      20260708,
+      2301
+    ],
+    "simulation_noise_scale": 1.0,
+    "spectral_gap_tolerance": 1e-10,
+    "use_compiled_value_score": true
+  },
+  "subplan_path": "docs/plans/bayesfilter-scalar-filtering-geometry-to-hmc-readiness-phase1-filtering-geometry-subplan-2026-07-08.md",
+  "target": {
+    "augmented_state_dim": 3,
+    "filter_name": "svd_ukf",
+    "filter_score_helper": "tf_ssl_lstm_svd_ukf_score",
+    "fixed_parameter_count": 20,
+    "free_parameter_dim": 4,
+    "free_parameter_indices": [
+      12,
+      13,
+      14,
+      15
+    ],
+    "free_parameter_names": [
+      "latent_mean_weight.0.0",
+      "latent_mean_bias.0",
+      "observation_weight.0.0",
+      "observation_bias.0"
+    ],
+    "full_parameter_dim": 24,
+    "hidden_dim": 1,
+    "horizon": 30,
+    "latent_dim": 1,
+    "likelihood_terms": [
+      "svd_ukf_filtering_log_likelihood",
+      "weak_gaussian_prior_on_four_free_parameters"
+    ],
+    "model": "scalar_ssl_lstm_filtering_likelihood",
+    "observation_dim": 1,
+    "observation_shape": [
+      30,
+      1
+    ],
+    "parameter_slice_starts": {
+      "latent_bias_start": 13,
+      "latent_weight_start": 12,
+      "observation_bias_start": 15,
+      "observation_weight_start": 14
+    },
+    "truth_free_parameters": [
+      0.35,
+      -0.08,
+      0.65,
+      0.05
+    ]
+  },
+  "target_scope": "scalar_ssl_lstm:svd_ukf_filtering_geometry:phase1"
+}

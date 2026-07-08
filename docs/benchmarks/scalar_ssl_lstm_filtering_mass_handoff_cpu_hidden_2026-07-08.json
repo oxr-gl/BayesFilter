@@ -1,0 +1,265 @@
+{
+  "artifact_role": "cpu_hidden_scalar_filtering_geometry_mass_handoff",
+  "classification": "extension_or_invention",
+  "coordinate_contract": {
+    "center_role": "truth_free_initial_center",
+    "coordinate_system": "whitened_center_plus_scale_times_z",
+    "free_parameter_indices": [
+      12,
+      13,
+      14,
+      15
+    ],
+    "free_parameter_names": [
+      "latent_mean_weight.0.0",
+      "latent_mean_bias.0",
+      "observation_weight.0.0",
+      "observation_bias.0"
+    ],
+    "refined_center_reason": "phase1_center_refinement_rejected; mass handoff uses declared center",
+    "refined_center_used": false,
+    "scale": [
+      0.35,
+      0.35,
+      0.35,
+      0.35
+    ],
+    "theta_from_z": "theta = center + scale * z"
+  },
+  "created_at_utc": "2026-07-07T22:10:25.922841+00:00",
+  "decision": {
+    "mass_handoff_passed": true,
+    "next_justified_action": "draft HMC mechanics canary subplan",
+    "vetoes": [],
+    "viable_for_phase3_mechanics_canary": true
+  },
+  "inference_status": {
+    "default_readiness": "not assessed",
+    "hard_veto_screen": "passed",
+    "hmc_readiness": "not assessed; Phase 2 does not run HMC",
+    "next_evidence_needed": "HMC mechanics canary only if mass_handoff_passed is true",
+    "statistically_supported_ranking": "none; single mass handoff target"
+  },
+  "mass_handoff": {
+    "factor": [
+      [
+        2.3111010775572005,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        -0.0471860780019015,
+        2.0181451554750534,
+        0.0,
+        0.0
+      ],
+      [
+        -0.2885072764011383,
+        -0.1821265653075305,
+        0.49127822043632646,
+        0.0
+      ],
+      [
+        -0.03163590167697455,
+        -1.1257578019936056,
+        0.09617611890528324,
+        0.4560300531246419
+      ]
+    ],
+    "mass_covariance_M_z": [
+      [
+        5.341188190686053,
+        -0.10905179571589267,
+        -0.6667694773737638,
+        -0.07311376645514951
+      ],
+      [
+        -0.10905179571589267,
+        4.0751363945246295,
+        -0.3539443186103233,
+        -2.2704498802074493
+      ],
+      [
+        -0.6667694773737638,
+        -0.3539443186103233,
+        0.3577608242022048,
+        0.2614068222188286
+      ],
+      [
+        -0.07311376645514951,
+        -2.2704498802074493,
+        0.2614068222188286,
+        1.4855447142249363
+      ]
+    ],
+    "mass_covariance_eigen_summary": {
+      "condition_number": 35.99055026387433,
+      "eigenvalues": [
+        0.15092140965143508,
+        0.2452195540769482,
+        5.431744579954698,
+        5.431744579954743
+      ],
+      "finite": true,
+      "max": 5.431744579954743,
+      "min": 0.15092140965143508,
+      "positive": true
+    },
+    "precision_covariance_identity_max_abs_error": 4.501727238562539e-15,
+    "precision_eigen_summary": {
+      "condition_number": 35.99055026387431,
+      "eigenvalues": [
+        0.18410291302915638,
+        0.18410291302915746,
+        4.077978217374147,
+        6.625965145101533
+      ],
+      "finite": true,
+      "max": 6.625965145101533,
+      "min": 0.18410291302915638,
+      "positive": true
+    },
+    "regularization_report": {
+      "clipped_eigenvalue_count": 0,
+      "diagonal_fallback_used": false,
+      "effective_eigenvalue_floor": 6.625965145101537e-05,
+      "input_asymmetric": false,
+      "input_asymmetry_max_abs": 0.0,
+      "jitter": 0.0,
+      "max_condition_number": 100000.0,
+      "method": "symmetric_eigendecomposition_floor",
+      "raw_max_eigenvalue": 6.625965145101537,
+      "raw_min_eigenvalue": 0.1841029130291565,
+      "raw_nonpositive_eigenvalue_count": 0,
+      "regularized_max_eigenvalue": 6.625965145101537,
+      "regularized_min_eigenvalue": 0.1841029130291565,
+      "requested_eigenvalue_floor": 1e-06,
+      "silent_eigenvalue_reflection": false,
+      "symmetry_projection": "average_with_transpose"
+    },
+    "regularized_precision_K_z": [
+      [
+        0.2538155634452472,
+        0.053101886918980865,
+        0.5246010632742992,
+        0.0013384233542184498
+      ],
+      [
+        0.053101886918980865,
+        1.6822227104608225,
+        -0.13456428267700798,
+        2.5973374042385533
+      ],
+      [
+        0.5246010632742992,
+        -0.13456428267700798,
+        4.327572705373827,
+        -0.9413536430804603
+      ],
+      [
+        0.0013384233542184498,
+        2.5973374042385533,
+        -0.9413536430804603,
+        4.808538209254101
+      ]
+    ],
+    "reported_covariance_max_abs_error": 1.7763568394002505e-14
+  },
+  "matrix_convention": {
+    "K_z": "whitened precision from Phase 1 low-rank geometry",
+    "M_z": "whitened covariance/mass candidate equal to inv(regularized K_z)",
+    "hmc_handoff_matrix": "M_z",
+    "inverse_mass_for_formula": "K_z",
+    "original_coordinate_mass": "not used for handoff"
+  },
+  "metric_roles": {
+    "center_refinement": "boundary_guard_explanatory",
+    "center_score_norm": "explanatory_only",
+    "condition_number": "promotion_veto",
+    "mass_covariance_spd": "promotion_veto",
+    "mass_handoff_passed": "primary_phase2_pass_fail",
+    "reconstruction_error": "promotion_veto",
+    "regularized_precision_spd": "promotion_veto"
+  },
+  "nonclaims": [
+    "geometry-to-mass handoff artifact only",
+    "not an HMC run",
+    "not HMC readiness evidence",
+    "not HMC convergence evidence",
+    "not posterior correctness evidence",
+    "not a MAP covariance claim",
+    "not sampler superiority evidence",
+    "not statistical ranking evidence",
+    "not GPU/XLA production-readiness evidence",
+    "not default-readiness evidence",
+    "not Zhao-Cui source-faithfulness evidence"
+  ],
+  "plan_path": "docs/plans/bayesfilter-scalar-filtering-geometry-to-hmc-readiness-master-program-2026-07-08.md",
+  "regularization_policy": {
+    "eigenvalue_floor": 1e-06,
+    "helper": "bayesfilter.inference.mass_matrix.covariance_from_precision",
+    "jitter": 0.0,
+    "max_condition_number": 100000.0
+  },
+  "result_path": "docs/plans/bayesfilter-scalar-filtering-geometry-to-hmc-readiness-phase2-mass-handoff-result-2026-07-08.md",
+  "run_manifest": {
+    "command": "env CUDA_VISIBLE_DEVICES=-1 python docs/benchmarks/prepare_scalar_ssl_lstm_filtering_mass_handoff_2026_07_08.py",
+    "conda_env": "tfgpu",
+    "cpu_gpu_status": "CPU-hidden debug/reference exception",
+    "plan_file": "docs/plans/bayesfilter-scalar-filtering-geometry-to-hmc-readiness-master-program-2026-07-08.md",
+    "result_file": "docs/plans/bayesfilter-scalar-filtering-geometry-to-hmc-readiness-phase2-mass-handoff-result-2026-07-08.md",
+    "subplan_file": "docs/plans/bayesfilter-scalar-filtering-geometry-to-hmc-readiness-phase2-mass-handoff-subplan-2026-07-08.md",
+    "wall_time_seconds": 0.001033715991070494
+  },
+  "schema_version": "scalar_ssl_lstm.filtering_mass_handoff.v1",
+  "script": "docs/benchmarks/prepare_scalar_ssl_lstm_filtering_mass_handoff_2026_07_08.py",
+  "source_geometry_artifact": "docs/benchmarks/benchmark_scalar_ssl_lstm_filtering_geometry_2026_07_08.py",
+  "source_geometry_summary": {
+    "center_refinement": {
+      "accepted": false,
+      "center_log_prob": -37.84742912954012,
+      "center_score_norm": 1.0012022558294065,
+      "reason": "outside_trust_radius",
+      "refined_center": [
+        0.31395184022925354,
+        0.022022045649693137,
+        0.666750333965736,
+        0.058958065769932885
+      ],
+      "refined_log_prob": -37.786099036348105,
+      "refined_score_norm": 0.3259204255737372,
+      "z_norm": 0.31388010517091036
+    },
+    "center_score_norm": 1.0012022558294065,
+    "geometry_sanity_passed": true,
+    "phase1_covariance_eigen_summary": {
+      "condition_number": 35.9905502638742,
+      "eigenvalues": [
+        0.15092140965143516,
+        0.2452195540769481,
+        5.431744579954723,
+        5.431744579954725
+      ],
+      "finite": true,
+      "max": 5.431744579954725,
+      "min": 0.15092140965143516,
+      "positive": true
+    },
+    "phase1_precision_eigen_summary": {
+      "condition_number": 35.99055026387422,
+      "eigenvalues": [
+        0.18410291302915693,
+        0.1841029130291583,
+        4.0779782173741514,
+        6.625965145101537
+      ],
+      "finite": true,
+      "max": 6.625965145101537,
+      "min": 0.18410291302915693,
+      "positive": true
+    },
+    "phase1_vetoes": []
+  },
+  "subplan_path": "docs/plans/bayesfilter-scalar-filtering-geometry-to-hmc-readiness-phase2-mass-handoff-subplan-2026-07-08.md"
+}

@@ -245,18 +245,27 @@ def _windowed_stage() -> HMCWindowedMassStageResult:
     )
 
 
-def _scripted_step_runner(screen_acceptances: list[float]):
+def _scripted_step_runner(screen_acceptances: list[float] | Mapping[int, float]):
     calls: list[Mapping[str, Any]] = []
+    acceptance_sequence = (
+        None if isinstance(screen_acceptances, Mapping) else list(screen_acceptances)
+    )
+    acceptance_by_l = (
+        {int(key): float(value) for key, value in screen_acceptances.items()}
+        if isinstance(screen_acceptances, Mapping)
+        else None
+    )
 
     def run(adapter: Any, initial_state: Any, config: Any) -> _FakeRunResult:
         uses_tuning = bool(config.tuning_policy.uses_dual_averaging)
+        leapfrog = int(config.num_leapfrog_steps)
         calls.append(
             {
                 "role": "tune" if uses_tuning else "screen",
                 "num_results": int(config.num_results),
                 "num_burnin_steps": int(config.num_burnin_steps),
                 "step_size": float(config.step_size),
-                "num_leapfrog_steps": int(config.num_leapfrog_steps),
+                "num_leapfrog_steps": leapfrog,
                 "seed": tuple(config.seed),
                 "adapter_signature": adapter.adapter_signature(),
                 "initial_state": np.asarray(initial_state, dtype=float),
@@ -265,16 +274,22 @@ def _scripted_step_runner(screen_acceptances: list[float]):
         )
         np.testing.assert_allclose(np.asarray(initial_state, dtype=float), np.zeros(2))
         if uses_tuning:
+            target_tau = np.pi / 2.0
             return _fake_result(
                 num_results=int(config.num_results),
                 acceptance=0.70,
-                step_size=0.2 + 0.01 * len(calls),
+                step_size=target_tau / float(leapfrog),
                 num_adaptation_steps=config.tuning_policy.num_adaptation_steps,
                 samples=np.zeros((int(config.num_results), 2)),
             )
+        if acceptance_by_l is not None:
+            acceptance = acceptance_by_l.get(leapfrog, 0.82)
+        else:
+            assert acceptance_sequence is not None
+            acceptance = acceptance_sequence.pop(0)
         return _fake_result(
             num_results=int(config.num_results),
-            acceptance=screen_acceptances.pop(0),
+            acceptance=acceptance,
             samples=np.zeros((int(config.num_results), 2)),
         )
 
@@ -291,6 +306,7 @@ def test_fixed_mass_step_config_does_not_expose_hmc_mechanics() -> None:
         "step_size",
         "initial_step_size",
         "num_leapfrog_steps",
+        "max_leapfrog_steps",
         "min_leapfrog",
         "max_leapfrog",
         "trajectory_grid",
@@ -302,12 +318,59 @@ def test_fixed_mass_step_config_does_not_expose_hmc_mechanics() -> None:
     assert parameters.isdisjoint(forbidden)
 
 
+def test_joint_l_epsilon_candidate_outside_tau_window_is_not_viable() -> None:
+    class Round:
+        tuned_step_size = 10.0
+        budget = 3
+        screen_diagnostics = {"acceptance_rate": 0.70}
+        hard_vetoes = ()
+        continuation_vetoes = ()
+        repair_triggers = ()
+
+    class Ladder:
+        selected_round = Round()
+        selected_round_index = 0
+        final_status = "passed"
+        passed = True
+        rounds = (Round(),)
+        artifact_hash = "fake-ladder-hash"
+
+        def payload(self):
+            return {"schema": "fake-ladder"}
+
+    candidate = hmc_kernel_tuning._joint_l_epsilon_ladder_candidate_payload(
+        round_index=0,
+        grid_stage="test",
+        candidate_index=0,
+        num_leapfrog_steps=8,
+        ladder=Ladder(),
+        target_trajectory=1.5707963267948968,
+        target_accept_prob=0.70,
+        trajectory_window_lower_multiplier=0.8,
+        trajectory_window_upper_multiplier=1.25,
+        max_leapfrog_steps=8,
+    )
+
+    assert candidate["trajectory_length"] == pytest.approx(80.0)
+    assert candidate["trajectory_window_relation"] == "above_trajectory_window"
+    assert (
+        candidate["trajectory_window_policy_role"]
+        == "engineering_viability_gate_non_scientific"
+    )
+    assert candidate["trajectory_window_viability_gate_active"] is True
+    assert candidate["viable"] is False
+    assert "trajectory_length_outside_window" in candidate["repair_triggers"]
+    assert "trajectory_length_above_window" in candidate["repair_triggers"]
+    assert candidate["reports_posterior_convergence"] is False
+    assert candidate["reports_sampler_superiority"] is False
+
+
 def test_fixed_mass_step_stage_passes_with_frozen_mass_and_internal_budget() -> None:
     geometry = _geometry()
     bootstrap = _bootstrap()
     windowed = _windowed_stage()
     assert windowed.passed is True
-    run, calls = _scripted_step_runner([0.70])
+    run, calls = _scripted_step_runner({3: 0.82, 4: 0.66, 5: 0.70, 7: 0.73})
 
     result = run_hmc_fixed_mass_step_stage(
         adapter=_ToyGaussianAdapter(),
@@ -321,14 +384,33 @@ def test_fixed_mass_step_stage_passes_with_frozen_mass_and_internal_budget() -> 
     assert isinstance(result, HMCFixedMassStepStageResult)
     assert result.passed is True
     assert result.final_status == "passed"
-    assert [call["role"] for call in calls] == ["tune", "screen"]
-    assert calls[0]["step_size"] == pytest.approx(windowed.candidate_step_size)
-    assert calls[0]["num_leapfrog_steps"] == bootstrap.selected_round.num_leapfrog_steps
-    assert calls[1]["num_leapfrog_steps"] == bootstrap.selected_round.num_leapfrog_steps
-    assert calls[0]["use_xla"] is False
-    assert calls[1]["use_xla"] is False
+    assert result.diagnostics["algorithm"] == "joint_l_epsilon_grid_fixed_mass_hmc"
+    assert result.diagnostics["promoted_default"] is True
+    assert result.diagnostics["final_local_grid_ran"] is True
+    tune_l = [call["num_leapfrog_steps"] for call in calls if call["role"] == "tune"]
+    screen_l = [call["num_leapfrog_steps"] for call in calls if call["role"] == "screen"]
+    assert set(tune_l).issubset(set(screen_l))
+    assert all(leapfrog in tune_l for leapfrog in {3, 4, 5, 6, 8})
+    assert set(result.diagnostics["round_summaries"][0]["candidate_l_values"]) == {
+        3,
+        4,
+        5,
+        6,
+        8,
+    }
+    assert set(result.diagnostics["round_summaries"][-1]["candidate_l_values"]) == {
+        3,
+        4,
+        5,
+        6,
+        7,
+    }
+    assert result.fixed_num_leapfrog_steps == 5
+    assert result.selected_step_payload["num_leapfrog_steps"] == 5
+    assert result.selected_step_size == pytest.approx((np.pi / 2.0) / 5.0)
+    assert all(call["step_size"] == pytest.approx(windowed.candidate_step_size) for call in calls if call["role"] == "tune")
+    assert all(call["use_xla"] is False for call in calls)
     assert result.initial_step_size == pytest.approx(windowed.candidate_step_size)
-    assert result.fixed_num_leapfrog_steps == bootstrap.selected_round.num_leapfrog_steps
     assert result.budget_ladder_config_payload["budget_schedule"] == (3, 6, 12)
     assert result.budget_ladder_config_payload["tune_num_results"] == 4
     assert result.budget_ladder_config_payload["screen_num_results"] == 4
@@ -336,11 +418,57 @@ def test_fixed_mass_step_stage_passes_with_frozen_mass_and_internal_budget() -> 
     assert result.frozen_mass_invariant["mass_update_allowed"] is False
 
 
+def test_fixed_mass_step_private_callback_records_candidates_and_selected_pair() -> None:
+    geometry = _geometry()
+    bootstrap = _bootstrap()
+    windowed = _windowed_stage()
+    run, _calls = _scripted_step_runner({3: 0.82, 4: 0.66, 5: 0.70, 7: 0.73})
+    events: list[tuple[str, Mapping[str, Any]]] = []
+
+    result = run_hmc_fixed_mass_step_stage(
+        adapter=_ToyGaussianAdapter(),
+        geometry=geometry,
+        bootstrap=bootstrap,
+        windowed_stage=windowed,
+        config=_stage_config(),
+        run_full_chain=run,
+        _private_diagnostic_callback=lambda event_type, payload: events.append(
+            (event_type, dict(payload))
+        ),
+    )
+
+    assert result.passed is True
+    candidate_events = [
+        payload
+        for event_type, payload in events
+        if event_type == "joint_l_epsilon_candidate_complete"
+    ]
+    selected_events = [
+        payload
+        for event_type, payload in events
+        if event_type == "joint_l_epsilon_round_selected"
+    ]
+    assert candidate_events
+    assert selected_events
+    assert candidate_events[-1]["candidate_completed_count"] == (
+        candidate_events[-1]["candidate_count"]
+    )
+    assert any(payload["step_size"] is not None for payload in candidate_events)
+    assert all(payload["num_leapfrog_steps"] > 0 for payload in candidate_events)
+    assert all(payload["private_hmc_mechanics"] is True for payload in candidate_events)
+    final_selection = selected_events[-1]
+    assert final_selection["selected_pair_exists"] is True
+    assert final_selection["num_leapfrog_steps"] == result.fixed_num_leapfrog_steps
+    assert final_selection["step_size"] == pytest.approx(result.selected_step_size)
+    assert final_selection["grid_stage"] == "final_local"
+    assert final_selection["reports_posterior_convergence"] is False
+
+
 def test_fixed_mass_step_config_use_xla_propagates_to_tune_and_screen_configs() -> None:
     geometry = _geometry()
     bootstrap = _bootstrap()
     windowed = _windowed_stage()
-    run, calls = _scripted_step_runner([0.70])
+    run, calls = _scripted_step_runner({3: 0.70, 4: 0.70, 5: 0.70, 7: 0.70})
 
     result = run_hmc_fixed_mass_step_stage(
         adapter=_ToyGaussianAdapter(),
@@ -353,7 +481,8 @@ def test_fixed_mass_step_config_use_xla_propagates_to_tune_and_screen_configs() 
 
     assert result.passed is True
     assert result.config.payload()["use_xla"] is True
-    assert [call["use_xla"] for call in calls] == [True, True]
+    assert calls
+    assert all(call["use_xla"] is True for call in calls)
     assert result.selected_step_payload is not None
     assert result.selected_step_hash
     assert result.selected_step_size == pytest.approx(
@@ -361,11 +490,11 @@ def test_fixed_mass_step_config_use_xla_propagates_to_tune_and_screen_configs() 
     )
     assert result.payload()["reports_trajectory_tuning"] is False
     assert result.payload()["reports_posterior_convergence"] is False
-    assert "no trajectory tuning claim" in result.nonclaims
+    assert "each candidate leapfrog count gets its own epsilon tuning ladder" in result.nonclaims
 
 
 def test_fixed_mass_step_stage_repairs_without_selected_step_when_budget_exhausts() -> None:
-    run, _calls = _scripted_step_runner([0.82, 0.83, 0.84])
+    run, _calls = _scripted_step_runner({3: 0.82, 4: 0.83, 5: 0.84, 7: 0.84})
     geometry = _geometry()
     bootstrap = _bootstrap()
     windowed = _windowed_stage()
@@ -394,7 +523,8 @@ def test_fixed_mass_step_stage_repairs_without_selected_step_when_budget_exhaust
         result.budget_ladder_result.last_finite_tuned_round.tuned_step_size
     )
     assert result.budget_ladder_result.final_status == "budget_exhausted"
-    assert result.repair_triggers == ("acceptance_outside_pass_band_inside_repair_band",)
+    assert "acceptance_outside_pass_band_inside_repair_band" in result.repair_triggers
+    assert "joint_l_epsilon_no_viable_pair" in result.repair_triggers
     payload = result.payload()
     assert payload["repair_step_available"] is True
     assert payload["repair_step_payload_exposed"] is False
@@ -408,6 +538,240 @@ def test_fixed_mass_step_stage_repairs_without_selected_step_when_budget_exhaust
             fixed_mass_step_stage=result,
             run_full_chain=_scripted_step_runner([0.70])[0],
         )
+
+
+def test_fixed_mass_step_public_timeout_preflight_skips_ladder_without_mechanics() -> None:
+    geometry = _geometry()
+    bootstrap = _bootstrap()
+    windowed = _windowed_stage()
+    progress_events: list[tuple[str, Mapping[str, Any]]] = []
+
+    def forbidden_run(*_args: Any, **_kwargs: Any) -> _FakeRunResult:
+        raise AssertionError("fixed-mass ladder runner should be skipped")
+
+    result = run_hmc_fixed_mass_step_stage(
+        adapter=_ToyGaussianAdapter(),
+        geometry=geometry,
+        bootstrap=bootstrap,
+        windowed_stage=windowed,
+        config=_stage_config(
+            public_timeout_budget_s=10.0,
+            public_timeout_started_perf_counter_s=hmc_kernel_tuning.time.perf_counter()
+            - 9.5,
+        ),
+        run_full_chain=forbidden_run,
+        _progress_callback=lambda stage, payload: progress_events.append(
+            (stage, dict(payload))
+        ),
+        _attempt_index=2,
+    )
+
+    assert result.final_status == "hard_veto"
+    assert result.passed is False
+    assert (
+        hmc_kernel_tuning._FIXED_MASS_STEP_PUBLIC_TIMEOUT_HARD_VETO
+        in result.hard_vetoes
+    )
+    assert (
+        hmc_kernel_tuning._FIXED_MASS_STEP_PUBLIC_TIMEOUT_REPAIR_TRIGGER
+        in result.repair_triggers
+    )
+    assert "joint_l_epsilon_no_viable_pair" not in result.repair_triggers
+    assert result.selected_step_payload is None
+    assert result.budget_ladder_result is None
+    closeout = result.diagnostics["public_timeout_closeout"]
+    assert closeout["schema"] == "bayesfilter.fixed_mass_step_public_timeout_closeout.v1"
+    assert closeout["closeout_required_before_next_candidate"] is True
+    assert closeout["candidate_index"] == 0
+    assert closeout["completed_candidate_count"] == 0
+    assert closeout["public_closeout_artifact_expected"] is True
+    assert closeout["hmc_mechanics_exposed"] is False
+    assert result.diagnostics["candidate_count"] == 0
+
+    public_summary = hmc_kernel_tuning._stage_status_public_summary(result)
+    public_closeout = public_summary["public_timeout_closeout"]
+    assert public_closeout["hard_veto"] == (
+        hmc_kernel_tuning._FIXED_MASS_STEP_PUBLIC_TIMEOUT_HARD_VETO
+    )
+    assert public_closeout["repair_trigger"] == (
+        hmc_kernel_tuning._FIXED_MASS_STEP_PUBLIC_TIMEOUT_REPAIR_TRIGGER
+    )
+    assert public_closeout["hmc_mechanics_exposed"] is False
+    assert progress_events
+    progress_text = json.dumps(progress_events, sort_keys=True)
+    public_text = json.dumps(public_summary, sort_keys=True)
+    for forbidden in (
+        "step_size",
+        "num_leapfrog_steps",
+        "mass_artifact_payload",
+        "samples",
+        "trace",
+        "target_log_prob",
+        "final_state",
+        "ladder_payload",
+        "candidate_l_values",
+    ):
+        assert forbidden not in progress_text
+        assert forbidden not in public_text
+
+
+def test_fixed_mass_step_timeout_after_selected_pair_is_budget_incomplete(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    geometry = _geometry()
+    bootstrap = _bootstrap()
+    windowed = _windowed_stage()
+    clock = {"now": 0.0}
+    run, calls = _scripted_step_runner({3: 0.82, 4: 0.82, 5: 0.82, 6: 0.82, 8: 0.70})
+    progress_events: list[tuple[str, Mapping[str, Any]]] = []
+    timed_screen_l: set[int] = set()
+
+    def fake_perf_counter() -> float:
+        return float(clock["now"])
+
+    def timed_run(adapter: Any, initial_state: Any, config: Any) -> _FakeRunResult:
+        result = run(adapter, initial_state, config)
+        leapfrog = int(config.num_leapfrog_steps)
+        if (
+            not bool(config.tuning_policy.uses_dual_averaging)
+            and leapfrog not in timed_screen_l
+        ):
+            timed_screen_l.add(leapfrog)
+            clock["now"] += 12.0
+        return result
+
+    monkeypatch.setattr(hmc_kernel_tuning.time, "perf_counter", fake_perf_counter)
+
+    result = run_hmc_fixed_mass_step_stage(
+        adapter=_ToyGaussianAdapter(),
+        geometry=geometry,
+        bootstrap=bootstrap,
+        windowed_stage=windowed,
+        config=_stage_config(
+            public_timeout_budget_s=130.0,
+            public_timeout_started_perf_counter_s=0.0,
+        ),
+        run_full_chain=timed_run,
+        _max_leapfrog_steps=12,
+        _progress_callback=lambda stage, payload: progress_events.append(
+            (stage, dict(payload))
+        ),
+        _attempt_index=2,
+    )
+
+    assert result.final_status == "budget_exhausted"
+    assert result.diagnostic_role == (
+        hmc_kernel_tuning._FIXED_MASS_STEP_PUBLIC_TIMEOUT_BUDGET_INCOMPLETE_ROLE
+    )
+    assert result.passed is False
+    assert result.hard_vetoes == ()
+    assert (
+        hmc_kernel_tuning._FIXED_MASS_STEP_PUBLIC_TIMEOUT_HARD_VETO
+        not in result.hard_vetoes
+    )
+    assert (
+        hmc_kernel_tuning._FIXED_MASS_STEP_PUBLIC_TIMEOUT_BUDGET_INCOMPLETE_REPAIR_TRIGGER
+        in result.repair_triggers
+    )
+    assert result.selected_step_payload is None
+    assert result.selected_step_hash is None
+    assert result.repair_step_payload is None
+    assert result.repair_step_hash is None
+    assert result.payload()["repair_step_available"] is False
+    assert result.diagnostics["viable_candidate_count"] >= 1
+    assert result.diagnostics["public_timeout_budget_incomplete"] is True
+    assert (
+        result.diagnostics["selected_pair_progress_before_timeout_closeout"] is True
+    )
+    assert result.diagnostics["final_local_grid_ran"] is False
+
+    closeout = result.diagnostics["public_timeout_closeout"]
+    assert closeout["grid_stage"] == "edge_repair"
+    assert closeout["candidate_index"] == 0
+    assert closeout["completed_candidate_count"] == 0
+    assert closeout["selected_pair_progress_before_closeout"] is True
+    assert closeout["budget_incomplete"] is True
+    assert closeout["budget_incomplete_scope"] == (
+        "edge_or_final_local_after_selected_pair_progress"
+    )
+    assert closeout["diagnostic_role"] == (
+        hmc_kernel_tuning._FIXED_MASS_STEP_PUBLIC_TIMEOUT_BUDGET_INCOMPLETE_ROLE
+    )
+    assert "hard_veto" not in closeout
+    assert closeout["hmc_mechanics_exposed"] is False
+
+    public_summary = hmc_kernel_tuning._stage_status_public_summary(result)
+    public_closeout = public_summary["public_timeout_closeout"]
+    assert public_closeout["budget_incomplete"] is True
+    assert public_closeout["selected_pair_progress_before_closeout"] is True
+    assert public_closeout["repair_trigger"] == (
+        hmc_kernel_tuning._FIXED_MASS_STEP_PUBLIC_TIMEOUT_BUDGET_INCOMPLETE_REPAIR_TRIGGER
+    )
+    assert "hard_veto" not in public_closeout
+    assert public_closeout["hmc_mechanics_exposed"] is False
+    public_text = json.dumps(public_summary, sort_keys=True)
+    progress_text = json.dumps(progress_events, sort_keys=True)
+    for forbidden in (
+        "step_size",
+        "num_leapfrog_steps",
+        "mass_artifact_payload",
+        "samples",
+        "trace",
+        "target_log_prob",
+        "final_state",
+        "ladder_payload",
+        "candidate_l_values",
+    ):
+        assert forbidden not in public_text
+        assert forbidden not in progress_text
+    called_l = {int(call["num_leapfrog_steps"]) for call in calls}
+    assert called_l.issubset({3, 4, 5, 6, 8})
+
+
+def test_fixed_mass_step_stage_edge_selected_l_repairs_grid_and_final_local_retunes() -> None:
+    geometry = _geometry()
+    bootstrap = _bootstrap()
+    windowed = _windowed_stage()
+    run, calls = _scripted_step_runner(
+        {
+            3: 0.82,
+            4: 0.82,
+            5: 0.82,
+            6: 0.82,
+            8: 0.65,
+            9: 0.70,
+            10: 0.70,
+            11: 0.82,
+            12: 0.82,
+        }
+    )
+
+    result = run_hmc_fixed_mass_step_stage(
+        adapter=_ToyGaussianAdapter(),
+        geometry=geometry,
+        bootstrap=bootstrap,
+        windowed_stage=windowed,
+        config=_stage_config(),
+        run_full_chain=run,
+        _max_leapfrog_steps=12,
+    )
+
+    assert result.passed is True
+    summaries = result.diagnostics["round_summaries"]
+    assert [summary["grid_stage"] for summary in summaries] == [
+        "initial",
+        "edge_repair",
+        "final_local",
+    ]
+    assert summaries[0]["edge_direction"] == "upper"
+    assert summaries[1]["anchor_l"] == 12
+    assert summaries[2]["candidate_l_values"] == (8, 9, 10, 11, 12)
+    assert result.diagnostics["edge_repair_round_count"] == 1
+    assert result.diagnostics["final_local_grid_ran"] is True
+    assert result.fixed_num_leapfrog_steps == 9
+    tune_l = [call["num_leapfrog_steps"] for call in calls if call["role"] == "tune"]
+    assert 12 in tune_l
+    assert tune_l.count(10) >= 2
 
 
 def test_fixed_mass_step_stage_private_repair_handoff_preserves_bracket_state_without_public_leak() -> None:

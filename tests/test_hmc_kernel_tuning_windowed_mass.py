@@ -542,6 +542,11 @@ def test_windowed_mass_segmented_timeout_between_chunks_returns_closeout(
     closeout = result.diagnostics["public_timeout_closeout"]
     assert closeout["completed_segment_count"] == 1
     assert closeout["planned_segment_count"] == 3
+    assert closeout["closeout_required_before_next_segment"] is True
+    assert closeout["estimated_next_segment_s"] == pytest.approx(100.0)
+    assert closeout["completed_segment_elapsed_estimator"] == (
+        "recent_max_times_safety_multiplier"
+    )
     assert closeout["hmc_mechanics_exposed"] is False
     assert [stage for stage, _payload in events if "segment" in stage] == [
         "windowed_mass_segment_start",
@@ -556,6 +561,189 @@ def test_windowed_mass_segmented_timeout_between_chunks_returns_closeout(
         '"samples"',
         '"trace"',
         '"final_state"',
+    ):
+        assert forbidden not in public_text
+
+
+def test_windowed_mass_segmented_staged_timeout_enlargement_allows_next_chunk(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    clock = {"now": 0.0}
+    events: list[tuple[str, Mapping[str, Any]]] = []
+    calls = {"count": 0}
+
+    class _SlowChunkRunner:
+        def __init__(self, _adapter: Any, _initial_state: Any, _config: Any) -> None:
+            pass
+
+        def run(
+            self,
+            *,
+            active_results: Any,
+            current_state: Any = None,
+            seed: Any = None,
+            step_size: Any = None,
+        ) -> Any:
+            del current_state, seed, step_size
+            calls["count"] += 1
+            clock["now"] += 80.0
+            active = int(active_results)
+            samples = _warmup_draws(active) + (0.1 * calls["count"])
+            return hmc_kernel_tuning.FixedSizeHMCChunkRunResult(
+                samples=tf.constant(samples, dtype=tf.float64),
+                valid_mask=tf.ones((active,), dtype=tf.bool),
+                final_state=tf.constant(samples[-1], dtype=tf.float64),
+                trace={
+                    "is_accepted": tf.constant(
+                        [True, False, True, True, False][:active],
+                        dtype=tf.bool,
+                    ),
+                    "log_accept_ratio": tf.constant(
+                        np.linspace(-0.1, 0.1, active),
+                        dtype=tf.float64,
+                    ),
+                    "target_log_prob": tf.constant(
+                        -0.5 * np.sum(np.square(samples), axis=-1),
+                        dtype=tf.float64,
+                    ),
+                },
+                diagnostics={},
+                metadata={
+                    "fixed_size_chunk_runner": True,
+                    "runtime": (
+                        "tfp.mcmc.HamiltonianMonteCarlo.one_step_tf_while_loop"
+                    ),
+                },
+            )
+
+    monkeypatch.setattr(hmc_kernel_tuning.time, "perf_counter", lambda: clock["now"])
+    monkeypatch.setattr(hmc_kernel_tuning, "_WINDOWED_MASS_SEGMENT_SIZE", 5)
+    monkeypatch.setattr(
+        hmc_kernel_tuning,
+        "build_fixed_size_hmc_chunk_runner",
+        lambda adapter, initial_state, config: _SlowChunkRunner(
+            adapter,
+            initial_state,
+            config,
+        ),
+    )
+
+    result = run_hmc_windowed_mass_stage(
+        adapter=_ToyGaussianAdapter(),
+        geometry=_geometry(),
+        bootstrap=_bootstrap(),
+        config=_stage_config(
+            public_timeout_budget_s=100.0,
+            staged_timeout_policy=hmc_kernel_tuning.HMCStagedTimeoutPolicy(
+                stage_budgets_s={
+                    "geometry_and_bootstrap": 100.0,
+                    "phase7_pre_windowed": 100.0,
+                    "windowed_mass": 100.0,
+                    "fixed_mass_step": 100.0,
+                    "frozen_step_trajectory": 100.0,
+                    "fresh_fixed_kernel_verification": 100.0,
+                },
+                global_cap_s=1000.0,
+                reserve_s=10.0,
+                max_enlargement_rounds_per_stage=1,
+                enlargement_multiplier=2.0,
+            ),
+            staged_timeout_global_started_perf_counter_s=0.0,
+            staged_timeout_stage_started_perf_counter_s=0.0,
+            staged_timeout_enlargement_rounds={"windowed_mass": 0},
+        ),
+        _progress_callback=lambda stage, payload: events.append((stage, payload)),
+        _attempt_index=6,
+    )
+
+    assert calls["count"] == 3
+    assert result.passed is True
+    assert "windowed_mass_public_timeout_closeout" not in [
+        stage for stage, _payload in events
+    ]
+    assert [stage for stage, _payload in events if "segment" in stage] == [
+        "windowed_mass_segment_start",
+        "windowed_mass_segment_complete",
+        "windowed_mass_segment_start",
+        "windowed_mass_segment_complete",
+        "windowed_mass_segment_start",
+        "windowed_mass_segment_complete",
+    ]
+
+
+def test_windowed_mass_segmented_soft_deadline_skips_first_chunk(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    clock = {"now": 30.0}
+    events: list[tuple[str, Mapping[str, Any]]] = []
+    calls = {"count": 0}
+
+    class _UnexpectedChunkRunner:
+        def __init__(self, _adapter: Any, _initial_state: Any, _config: Any) -> None:
+            pass
+
+        def run(
+            self,
+            *,
+            active_results: Any,
+            current_state: Any = None,
+            seed: Any = None,
+            step_size: Any = None,
+        ) -> Any:
+            del active_results, current_state, seed, step_size
+            calls["count"] += 1
+            raise AssertionError("soft deadline should close out before segment 0")
+
+    monkeypatch.setattr(hmc_kernel_tuning.time, "perf_counter", lambda: clock["now"])
+    monkeypatch.setattr(hmc_kernel_tuning, "_WINDOWED_MASS_SEGMENT_SIZE", 5)
+    monkeypatch.setattr(
+        hmc_kernel_tuning,
+        "build_fixed_size_hmc_chunk_runner",
+        lambda adapter, initial_state, config: _UnexpectedChunkRunner(
+            adapter,
+            initial_state,
+            config,
+        ),
+    )
+
+    result = run_hmc_windowed_mass_stage(
+        adapter=_ToyGaussianAdapter(),
+        geometry=_geometry(),
+        bootstrap=_bootstrap(),
+        config=_stage_config(
+            public_timeout_budget_s=100.0,
+            public_timeout_started_perf_counter_s=0.0,
+        ),
+        _progress_callback=lambda stage, payload: events.append((stage, payload)),
+        _attempt_index=5,
+    )
+
+    assert calls["count"] == 0
+    assert result.passed is False
+    assert result.final_status == "hard_veto"
+    assert result.hard_vetoes == ("windowed_mass_public_timeout_soft_deadline",)
+    closeout = result.diagnostics["public_timeout_closeout"]
+    assert closeout["remaining_s"] == pytest.approx(70.0)
+    assert closeout["reserve_s"] == pytest.approx(50.0)
+    assert closeout["estimated_next_segment_s"] == pytest.approx(25.0)
+    assert closeout["completed_segment_elapsed_count"] == 0
+    assert closeout["completed_segment_elapsed_estimator"] == (
+        "fallback_min_reserve_or_quarter_budget"
+    )
+    assert closeout["completed_segment_count"] == 0
+    assert closeout["planned_segment_count"] == 3
+    assert closeout["closeout_required_before_next_segment"] is True
+    assert [stage for stage, _payload in events if "segment" in stage] == []
+    assert events[-1][0] == "windowed_mass_public_timeout_closeout"
+    public_text = json.dumps(events[-1][1], sort_keys=True)
+    for forbidden in (
+        '"step_size"',
+        '"num_leapfrog_steps"',
+        '"samples"',
+        '"trace"',
+        '"target_log_prob"',
+        '"final_state"',
+        '"mass_artifact"',
     ):
         assert forbidden not in public_text
 
@@ -769,10 +957,161 @@ def test_windowed_mass_stage_hard_vetoes_default_like_acceptance_trace() -> None
     assert result.windowed_mass_result is None
 
 
-def test_windowed_mass_stage_requires_passed_bootstrap_selected_kernel() -> None:
-    bootstrap = replace(_bootstrap(), selected_round_index=None, final_status="hard_veto")
+def test_windowed_mass_stage_accepts_constant_signed_sample_chain_telemetry() -> None:
+    def run(_adapter: Any, _initial_state: Any, config: Any) -> _FakeRunResult:
+        result = _runtime_shaped_result(
+            warmup_steps=int(config.num_results),
+            acceptance_trace=[True] * int(config.num_results),
+        )
+        metadata = dict(result.metadata)
+        metadata["program_signature"] = "signed-bayesfilter-sample-chain-runtime"
+        return replace(result, metadata=metadata)
 
-    with pytest.raises(ValueError, match="passed bootstrap"):
+    result = run_hmc_windowed_mass_stage(
+        adapter=_ToyGaussianAdapter(),
+        geometry=_geometry(),
+        bootstrap=_bootstrap(),
+        config=_stage_config(),
+        run_full_chain=run,
+    )
+
+    assert result.passed is True
+    provenance = result.acceptance_telemetry_provenance
+    assert provenance["constant_trace"] is True
+    assert provenance["runtime_decision_count_supported"] is True
+    assert provenance["policy_filled_or_default"] is False
+    assert provenance["accepted_decision_count"] == 12
+    assert provenance["acceptance_decision_count"] == 12
+
+
+def test_windowed_mass_acceptance_runtime_support_rejects_count_mismatch() -> None:
+    payload = {
+        "expected_steps": 4,
+        "acceptance_trace": np.ones((4,), dtype=float),
+        "runtime_evidence": "tfp_hmc_runtime",
+        "fixture_or_synthetic": False,
+        "raw_diagnostics": {
+            "acceptance_decision_source": "sample_chain_trace_counts",
+            "accepted_decision_count": 5,
+            "acceptance_decision_count": 5,
+            "acceptance_trace_decision_count": 4,
+            "raw_acceptance_shape": (4,),
+        },
+        "runtime_metadata": {
+            "runtime": "tfp.mcmc.sample_chain",
+            "sample_chain_invocation_count": 1,
+            "program_signature": "signed-bayesfilter-sample-chain-runtime",
+        },
+    }
+
+    assert (
+        hmc_kernel_tuning._windowed_stage_acceptance_has_runtime_decision_support(
+            payload
+        )
+        is False
+    )
+    assert (
+        hmc_kernel_tuning._windowed_stage_acceptance_policy_filled_or_default(
+            payload
+        )
+        is True
+    )
+
+
+def test_windowed_mass_segmented_constant_runtime_acceptance_uses_decision_counts(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class _AllAcceptedChunkRunner:
+        def __init__(self, _adapter: Any, _initial_state: Any, config: Any) -> None:
+            self.config = config
+            self.call_count = 0
+
+        def run(
+            self,
+            *,
+            active_results: Any,
+            current_state: Any = None,
+            seed: Any = None,
+            step_size: Any = None,
+        ) -> Any:
+            del seed, step_size
+            self.call_count += 1
+            active = int(active_results)
+            base_state = np.asarray(current_state, dtype=float)
+            samples = (
+                np.tile(base_state, (int(self.config.max_results), 1))
+                + 0.01 * self.call_count
+            )
+            trace = {
+                "is_accepted": tf.ones((int(self.config.max_results),), dtype=tf.bool),
+                "log_accept_ratio": tf.zeros(
+                    (int(self.config.max_results),),
+                    dtype=tf.float64,
+                ),
+                "target_log_prob": tf.zeros(
+                    (int(self.config.max_results),),
+                    dtype=tf.float64,
+                ),
+            }
+            return hmc_kernel_tuning.FixedSizeHMCChunkRunResult(
+                samples=tf.constant(samples, dtype=tf.float64),
+                valid_mask=tf.range(int(self.config.max_results)) < active,
+                final_state=tf.constant(samples[-1], dtype=tf.float64),
+                trace=trace,
+                diagnostics={
+                    "valid_sample_count": tf.constant(active, dtype=tf.int32),
+                    "nonfinite_valid_sample_count": tf.constant(0, dtype=tf.int32),
+                    "accepted_decision_count": tf.constant(active, dtype=tf.int32),
+                    "acceptance_decision_count": tf.constant(active, dtype=tf.int32),
+                    "acceptance_rate": tf.constant(1.0, dtype=tf.float64),
+                },
+                metadata={
+                    "runtime": (
+                        "tfp.mcmc.HamiltonianMonteCarlo.one_step_tf_while_loop"
+                    ),
+                    "fixed_size_chunk_runner": True,
+                    "fixture_or_synthetic": False,
+                },
+            )
+
+    monkeypatch.setattr(hmc_kernel_tuning, "_WINDOWED_MASS_SEGMENT_SIZE", 5)
+    monkeypatch.setattr(
+        hmc_kernel_tuning,
+        "build_fixed_size_hmc_chunk_runner",
+        lambda adapter, initial_state, config: _AllAcceptedChunkRunner(
+            adapter,
+            initial_state,
+            config,
+        ),
+    )
+
+    result = run_hmc_windowed_mass_stage(
+        adapter=_ToyGaussianAdapter(),
+        geometry=_geometry(),
+        bootstrap=_bootstrap(),
+        config=_stage_config(public_timeout_budget_s=1000.0),
+    )
+
+    assert result.passed is True
+    provenance = result.acceptance_telemetry_provenance
+    assert provenance["constant_trace"] is True
+    assert provenance["runtime_decision_count_supported"] is True
+    assert provenance["policy_filled_or_default"] is False
+    assert provenance["accepted_decision_count"] == 12
+    assert provenance["acceptance_decision_count"] == 12
+
+
+def test_windowed_mass_stage_requires_bootstrap_without_hard_veto() -> None:
+    bootstrap = run_hmc_bootstrap_screen(
+        adapter=_ToyGaussianAdapter(),
+        geometry=_geometry(),
+        run_full_chain=lambda _adapter, _initial_state, _config: _fake_result(
+            finite_log_accept=False
+        ),
+    )
+    assert bootstrap.final_status == "hard_veto"
+
+    with pytest.raises(ValueError, match="bootstrap preflight without hard veto"):
         run_hmc_windowed_mass_stage(
             adapter=_ToyGaussianAdapter(),
             geometry=_geometry(),
@@ -780,6 +1119,129 @@ def test_windowed_mass_stage_requires_passed_bootstrap_selected_kernel() -> None
             config=_stage_config(),
             run_full_chain=lambda *_args: _fake_result(),
         )
+
+
+def test_windowed_mass_stage_accepts_non_promoting_bootstrap_preflight() -> None:
+    geometry = _geometry()
+    bootstrap = run_hmc_bootstrap_screen(
+        adapter=_ToyGaussianAdapter(),
+        geometry=geometry,
+        config=None,
+        run_full_chain=lambda _adapter, _initial_state, _config: _fake_result(
+            acceptance_trace=[True] * 12
+        ),
+    )
+    assert bootstrap.passed is False
+    assert bootstrap.final_status == "repair_budget_exhausted"
+
+    calls: list[tuple[float, int]] = []
+
+    def run(_adapter: Any, _initial_state: Any, config: Any) -> _FakeRunResult:
+        calls.append((float(config.step_size), int(config.num_leapfrog_steps)))
+        return _runtime_shaped_result(warmup_steps=int(config.num_results))
+
+    result = run_hmc_windowed_mass_stage(
+        adapter=_ToyGaussianAdapter(),
+        geometry=geometry,
+        bootstrap=bootstrap,
+        config=_stage_config(),
+        run_full_chain=run,
+    )
+
+    assert result.passed is True
+    assert calls == [
+        (
+            geometry.initial_step_size,
+            geometry.initial_num_leapfrog_steps,
+        )
+    ]
+    assert result.selected_bootstrap_kernel_hash != bootstrap.selected_kernel_hash
+    assert result.diagnostic_run_config_payload["step_size"] == geometry.initial_step_size
+    assert result.diagnostic_run_config_payload["num_leapfrog_steps"] == (
+        geometry.initial_num_leapfrog_steps
+    )
+
+
+def test_windowed_mass_stage_retry_uses_private_selected_pair_seed() -> None:
+    geometry = _geometry()
+    bootstrap = _bootstrap()
+    retry_state = hmc_kernel_tuning._HMCPhaseAttemptState(
+        selected_step_size=0.125,
+        selected_step_hash="previous-selected-step-hash",
+        selected_num_leapfrog_steps=9,
+        selected_trajectory_hash="previous-trajectory-hash",
+        handoff_stage="phase6",
+    )
+    calls: list[tuple[float, int]] = []
+
+    def run(_adapter: Any, _initial_state: Any, config: Any) -> _FakeRunResult:
+        calls.append((float(config.step_size), int(config.num_leapfrog_steps)))
+        return _runtime_shaped_result(warmup_steps=int(config.num_results))
+
+    result = run_hmc_windowed_mass_stage(
+        adapter=_ToyGaussianAdapter(),
+        geometry=geometry,
+        bootstrap=bootstrap,
+        config=_stage_config(),
+        run_full_chain=run,
+        _attempt_state=retry_state,
+    )
+
+    assert result.passed is True
+    assert calls == [(0.125, 9)]
+    assert result.selected_bootstrap_kernel_hash == (
+        hmc_kernel_tuning._active_bootstrap_handoff_kernel_hash(
+            geometry=geometry,
+            bootstrap=bootstrap,
+        )
+    )
+    assert result.diagnostic_run_config_payload["step_size"] == pytest.approx(0.125)
+    assert result.diagnostic_run_config_payload["num_leapfrog_steps"] == 9
+    seed = result.diagnostics["mass_window_seed_kernel"]
+    assert seed["uses_private_retry_pair"] is True
+    assert seed["bootstrap_kernel_is_lineage_not_active_mass_window_seed"] is True
+    assert seed["seed_kernel_source"] == "phase7_private_selected_step"
+
+
+def test_windowed_mass_stage_retry_uses_private_repair_pair_seed() -> None:
+    geometry = _geometry()
+    bootstrap = _bootstrap()
+    retry_state = hmc_kernel_tuning._HMCPhaseAttemptState(
+        selected_step_size=0.125,
+        selected_step_hash="previous-selected-step-hash",
+        phase6_retry_num_leapfrog_steps=11,
+        phase6_retry_anchor_source="phase6_failed_candidate_nearest_tau",
+        verification_acceptance_rate=0.90,
+        verification_acceptance_relation="above_acceptance_band",
+        verification_repair_trigger="phase6_trajectory_acceptance_outside_pass_band",
+        verification_repair_source="phase6_frozen_step_trajectory_acceptance",
+        verification_repair_step_size=0.25,
+        verification_repair_step_hash="private-repair-step-hash",
+        verification_repair_applied=True,
+        handoff_stage="phase5_selected",
+    )
+    calls: list[tuple[float, int]] = []
+
+    def run(_adapter: Any, _initial_state: Any, config: Any) -> _FakeRunResult:
+        calls.append((float(config.step_size), int(config.num_leapfrog_steps)))
+        return _runtime_shaped_result(warmup_steps=int(config.num_results))
+
+    result = run_hmc_windowed_mass_stage(
+        adapter=_ToyGaussianAdapter(),
+        geometry=geometry,
+        bootstrap=bootstrap,
+        config=_stage_config(),
+        run_full_chain=run,
+        _attempt_state=retry_state,
+    )
+
+    assert result.passed is True
+    assert calls == [(0.25, 11)]
+    assert result.diagnostic_run_config_payload["step_size"] == pytest.approx(0.25)
+    assert result.diagnostic_run_config_payload["num_leapfrog_steps"] == 11
+    seed = result.diagnostics["mass_window_seed_kernel"]
+    assert seed["uses_private_retry_pair"] is True
+    assert seed["seed_kernel_source"] == "phase7_private_repair_step"
 
 
 def test_windowed_mass_stage_validates_adapter_and_mass_signatures() -> None:

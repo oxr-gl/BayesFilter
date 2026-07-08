@@ -1,0 +1,769 @@
+{
+  "adapter_signature": "cb02d189aca011496a78c07cc826a7caad08538d2caf30e3b0428c9d8cd30491",
+  "all_predeclared_seeds_passed": true,
+  "artifact_role": "trusted_gpu_xla_longer_hard_veto_diagnostics",
+  "candidate_rows": [
+    {
+      "adapter_signature": "cb02d189aca011496a78c07cc826a7caad08538d2caf30e3b0428c9d8cd30491",
+      "hard_vetoes": [],
+      "hmc_runtime": {
+        "diagnostics": {
+          "acceptance_rate": 1.0,
+          "divergence_count": null,
+          "divergence_source": null,
+          "divergence_status": "not_exposed_by_kernel",
+          "finite_sample_count": 8,
+          "hmc_health_diagnostics": {
+            "acceptance_finite": true,
+            "acceptance_rate": 1.0,
+            "diagnostic_role": "hmc_health_diagnostics_not_native_divergence",
+            "log_accept_ratio": {
+              "available": true,
+              "finite": true,
+              "finite_count": 8,
+              "max_abs_finite": 9.103828801926284e-15,
+              "nonfinite_count": 0
+            },
+            "nonclaims": [
+              "acceptance/log-accept/target-log-prob diagnostics are not native divergence telemetry",
+              "no sampler convergence claim"
+            ],
+            "target_log_prob": {
+              "available": true,
+              "finite": true,
+              "max": -1.2478964212257686,
+              "min": -1.2479369449147608
+            }
+          },
+          "max_target_log_prob": -1.2478964212257686,
+          "min_target_log_prob": -1.2479369449147608,
+          "native_divergence_status": "not_exposed_by_kernel",
+          "nonclaims": [
+            "finite tiny-chain diagnostics only",
+            "no sampler convergence claim",
+            "native divergence unavailability is not zero divergences"
+          ],
+          "nonfinite_sample_count": 0,
+          "sample_shape": [
+            8,
+            24
+          ],
+          "trace_policy": "standard"
+        },
+        "error": null,
+        "metadata": {
+          "adaptation_policy": "fixed_kernel_no_adaptation",
+          "adaptation_policy_source": "reviewed_stage_7_phase_3",
+          "chain_execution_mode": "tf_function",
+          "first_call_s": 8.814503415997024,
+          "first_sample_chain_compile_execute_s": 8.814503415997024,
+          "initial_state_dtype": "float64",
+          "initial_state_shape": [
+            24
+          ],
+          "jit_compile": true,
+          "nonclaims": [
+            "tiny full-chain HMC engineering gate only",
+            "no sampler convergence claim",
+            "no posterior validity claim",
+            "no GPU readiness claim",
+            "no performance superiority claim"
+          ],
+          "program_signature": "9c613f121e84ad91b432a02bc1b52818c25aedd537ced2c63d6ecb82e165ab7f",
+          "requested_target_scope": "minimal_ssl_lstm_zhaocui_hmc_ladder:zhaocui_fixed:phase1",
+          "runner_build_s": 0.00010781899618450552,
+          "runtime": "tfp.mcmc.sample_chain",
+          "sample_chain_call_s": 8.814503415997024,
+          "sample_chain_invocation_count": 1,
+          "sample_chain_timing_scope": "compile_plus_execute_when_xla_first_call",
+          "target_scope": "minimal_ssl_lstm_zhaocui_hmc_ladder:zhaocui_fixed:phase1",
+          "target_status_trace_policy": "none",
+          "timing_buckets": {
+            "first_call_s": "explanatory_only_first_sample_chain_call",
+            "runner_build_s": "explanatory_only_runner_callable_construction",
+            "trace_capture_s": "explanatory_only_post_sample_chain_trace_diagnostics_capture",
+            "warm_call_s": "not_available_single_use_runner"
+          },
+          "trace_capture_s": 0.10340652499871794,
+          "trace_capture_timing_scope": "post_sample_chain_public_safe_trace_diagnostics_capture",
+          "trace_policy": "standard",
+          "trace_unavailability": {
+            "divergence": "native boolean divergence field not exposed by TensorFlow Probability HMC kernel results"
+          },
+          "tuning_policy": {
+            "adaptation_policy": "fixed_kernel_no_adaptation",
+            "diagnostic_role": "fixed-kernel bounded HMC screen",
+            "enabled": false,
+            "implemented": true,
+            "label": "fixed_kernel_screen",
+            "nonclaims": [
+              "fixed-kernel screen only",
+              "no posterior convergence claim",
+              "no sampler superiority claim",
+              "no default adaptation readiness claim"
+            ],
+            "num_adaptation_steps": 0,
+            "source": "reviewed_stage_7_phase_3",
+            "target_accept_prob": null
+          },
+          "use_xla": true,
+          "value_score_authority": "graph_native",
+          "warm_call_s": null,
+          "warm_sample_chain_execute_s": null,
+          "warm_sample_shape": null,
+          "warm_trace_keys": []
+        },
+        "runtime_s": 9.56123704300262,
+        "sample_shape": [
+          8,
+          24
+        ],
+        "sample_summary": {
+          "max": 0.6502298726465465,
+          "mean": 0.08082685289279896,
+          "min": -0.34938158410194026,
+          "std": 0.21320521131076253
+        },
+        "samples_all_finite": true
+      },
+      "hmc_settings": {
+        "adaptation_policy": "fixed_kernel_no_adaptation",
+        "chain_execution_mode": "tf_function",
+        "jit_compile": true,
+        "num_burnin_steps": 4,
+        "num_leapfrog_steps": 1,
+        "num_results": 8,
+        "seed": [
+          20260706,
+          5101
+        ],
+        "step_size": 1e-05,
+        "target_scope": "minimal_ssl_lstm_zhaocui_hmc_ladder:zhaocui_fixed:phase1",
+        "trace_policy": "standard",
+        "trusted_gpu_xla_approval": true,
+        "use_xla": true
+      },
+      "initial_target": {
+        "initial_offset_scale": 0.001,
+        "log_prob": -1.3985848756201187,
+        "score_finite": true,
+        "score_norm": 1.6247791059774361,
+        "score_shape": [
+          24
+        ],
+        "value_finite": true
+      },
+      "not_run_reason": null,
+      "seed": [
+        20260706,
+        5101
+      ],
+      "status": "passed"
+    },
+    {
+      "adapter_signature": "cb02d189aca011496a78c07cc826a7caad08538d2caf30e3b0428c9d8cd30491",
+      "hard_vetoes": [],
+      "hmc_runtime": {
+        "diagnostics": {
+          "acceptance_rate": 1.0,
+          "divergence_count": null,
+          "divergence_source": null,
+          "divergence_status": "not_exposed_by_kernel",
+          "finite_sample_count": 8,
+          "hmc_health_diagnostics": {
+            "acceptance_finite": true,
+            "acceptance_rate": 1.0,
+            "diagnostic_role": "hmc_health_diagnostics_not_native_divergence",
+            "log_accept_ratio": {
+              "available": true,
+              "finite": true,
+              "finite_count": 8,
+              "max_abs_finite": 4.884981308350689e-15,
+              "nonfinite_count": 0
+            },
+            "nonclaims": [
+              "acceptance/log-accept/target-log-prob diagnostics are not native divergence telemetry",
+              "no sampler convergence claim"
+            ],
+            "target_log_prob": {
+              "available": true,
+              "finite": true,
+              "max": -1.2479051904162144,
+              "min": -1.2479631329638097
+            }
+          },
+          "max_target_log_prob": -1.2479051904162144,
+          "min_target_log_prob": -1.2479631329638097,
+          "native_divergence_status": "not_exposed_by_kernel",
+          "nonclaims": [
+            "finite tiny-chain diagnostics only",
+            "no sampler convergence claim",
+            "native divergence unavailability is not zero divergences"
+          ],
+          "nonfinite_sample_count": 0,
+          "sample_shape": [
+            8,
+            24
+          ],
+          "trace_policy": "standard"
+        },
+        "error": null,
+        "metadata": {
+          "adaptation_policy": "fixed_kernel_no_adaptation",
+          "adaptation_policy_source": "reviewed_stage_7_phase_3",
+          "chain_execution_mode": "tf_function",
+          "first_call_s": 8.637552323998534,
+          "first_sample_chain_compile_execute_s": 8.637552323998534,
+          "initial_state_dtype": "float64",
+          "initial_state_shape": [
+            24
+          ],
+          "jit_compile": true,
+          "nonclaims": [
+            "tiny full-chain HMC engineering gate only",
+            "no sampler convergence claim",
+            "no posterior validity claim",
+            "no GPU readiness claim",
+            "no performance superiority claim"
+          ],
+          "program_signature": "5472ad76c925827392626a985dd557a4c82113d746ab7807d80888f89db9a389",
+          "requested_target_scope": "minimal_ssl_lstm_zhaocui_hmc_ladder:zhaocui_fixed:phase1",
+          "runner_build_s": 0.000180157003342174,
+          "runtime": "tfp.mcmc.sample_chain",
+          "sample_chain_call_s": 8.637552323998534,
+          "sample_chain_invocation_count": 1,
+          "sample_chain_timing_scope": "compile_plus_execute_when_xla_first_call",
+          "target_scope": "minimal_ssl_lstm_zhaocui_hmc_ladder:zhaocui_fixed:phase1",
+          "target_status_trace_policy": "none",
+          "timing_buckets": {
+            "first_call_s": "explanatory_only_first_sample_chain_call",
+            "runner_build_s": "explanatory_only_runner_callable_construction",
+            "trace_capture_s": "explanatory_only_post_sample_chain_trace_diagnostics_capture",
+            "warm_call_s": "not_available_single_use_runner"
+          },
+          "trace_capture_s": 0.0062136199994711205,
+          "trace_capture_timing_scope": "post_sample_chain_public_safe_trace_diagnostics_capture",
+          "trace_policy": "standard",
+          "trace_unavailability": {
+            "divergence": "native boolean divergence field not exposed by TensorFlow Probability HMC kernel results"
+          },
+          "tuning_policy": {
+            "adaptation_policy": "fixed_kernel_no_adaptation",
+            "diagnostic_role": "fixed-kernel bounded HMC screen",
+            "enabled": false,
+            "implemented": true,
+            "label": "fixed_kernel_screen",
+            "nonclaims": [
+              "fixed-kernel screen only",
+              "no posterior convergence claim",
+              "no sampler superiority claim",
+              "no default adaptation readiness claim"
+            ],
+            "num_adaptation_steps": 0,
+            "source": "reviewed_stage_7_phase_3",
+            "target_accept_prob": null
+          },
+          "use_xla": true,
+          "value_score_authority": "graph_native",
+          "warm_call_s": null,
+          "warm_sample_chain_execute_s": null,
+          "warm_sample_shape": null,
+          "warm_trace_keys": []
+        },
+        "runtime_s": 8.645765050998307,
+        "sample_shape": [
+          8,
+          24
+        ],
+        "sample_summary": {
+          "max": 0.650231893116179,
+          "mean": 0.08083418827150995,
+          "min": -0.34935944373343336,
+          "std": 0.21320424897414222
+        },
+        "samples_all_finite": true
+      },
+      "hmc_settings": {
+        "adaptation_policy": "fixed_kernel_no_adaptation",
+        "chain_execution_mode": "tf_function",
+        "jit_compile": true,
+        "num_burnin_steps": 4,
+        "num_leapfrog_steps": 1,
+        "num_results": 8,
+        "seed": [
+          20260706,
+          5102
+        ],
+        "step_size": 1e-05,
+        "target_scope": "minimal_ssl_lstm_zhaocui_hmc_ladder:zhaocui_fixed:phase1",
+        "trace_policy": "standard",
+        "trusted_gpu_xla_approval": true,
+        "use_xla": true
+      },
+      "initial_target": {
+        "initial_offset_scale": 0.001,
+        "log_prob": -1.3985848756201187,
+        "score_finite": true,
+        "score_norm": 1.6247791059774361,
+        "score_shape": [
+          24
+        ],
+        "value_finite": true
+      },
+      "not_run_reason": null,
+      "seed": [
+        20260706,
+        5102
+      ],
+      "status": "passed"
+    },
+    {
+      "adapter_signature": "cb02d189aca011496a78c07cc826a7caad08538d2caf30e3b0428c9d8cd30491",
+      "hard_vetoes": [],
+      "hmc_runtime": {
+        "diagnostics": {
+          "acceptance_rate": 1.0,
+          "divergence_count": null,
+          "divergence_source": null,
+          "divergence_status": "not_exposed_by_kernel",
+          "finite_sample_count": 8,
+          "hmc_health_diagnostics": {
+            "acceptance_finite": true,
+            "acceptance_rate": 1.0,
+            "diagnostic_role": "hmc_health_diagnostics_not_native_divergence",
+            "log_accept_ratio": {
+              "available": true,
+              "finite": true,
+              "finite_count": 8,
+              "max_abs_finite": 2.886579864025407e-15,
+              "nonfinite_count": 0
+            },
+            "nonclaims": [
+              "acceptance/log-accept/target-log-prob diagnostics are not native divergence telemetry",
+              "no sampler convergence claim"
+            ],
+            "target_log_prob": {
+              "available": true,
+              "finite": true,
+              "max": -1.247876614359419,
+              "min": -1.2479227660326666
+            }
+          },
+          "max_target_log_prob": -1.247876614359419,
+          "min_target_log_prob": -1.2479227660326666,
+          "native_divergence_status": "not_exposed_by_kernel",
+          "nonclaims": [
+            "finite tiny-chain diagnostics only",
+            "no sampler convergence claim",
+            "native divergence unavailability is not zero divergences"
+          ],
+          "nonfinite_sample_count": 0,
+          "sample_shape": [
+            8,
+            24
+          ],
+          "trace_policy": "standard"
+        },
+        "error": null,
+        "metadata": {
+          "adaptation_policy": "fixed_kernel_no_adaptation",
+          "adaptation_policy_source": "reviewed_stage_7_phase_3",
+          "chain_execution_mode": "tf_function",
+          "first_call_s": 8.656479684999795,
+          "first_sample_chain_compile_execute_s": 8.656479684999795,
+          "initial_state_dtype": "float64",
+          "initial_state_shape": [
+            24
+          ],
+          "jit_compile": true,
+          "nonclaims": [
+            "tiny full-chain HMC engineering gate only",
+            "no sampler convergence claim",
+            "no posterior validity claim",
+            "no GPU readiness claim",
+            "no performance superiority claim"
+          ],
+          "program_signature": "7418375dc5722c0b067dafdb4e5566a941a2216b943f0049816e589ab6df50f7",
+          "requested_target_scope": "minimal_ssl_lstm_zhaocui_hmc_ladder:zhaocui_fixed:phase1",
+          "runner_build_s": 0.0002006370050366968,
+          "runtime": "tfp.mcmc.sample_chain",
+          "sample_chain_call_s": 8.656479684999795,
+          "sample_chain_invocation_count": 1,
+          "sample_chain_timing_scope": "compile_plus_execute_when_xla_first_call",
+          "target_scope": "minimal_ssl_lstm_zhaocui_hmc_ladder:zhaocui_fixed:phase1",
+          "target_status_trace_policy": "none",
+          "timing_buckets": {
+            "first_call_s": "explanatory_only_first_sample_chain_call",
+            "runner_build_s": "explanatory_only_runner_callable_construction",
+            "trace_capture_s": "explanatory_only_post_sample_chain_trace_diagnostics_capture",
+            "warm_call_s": "not_available_single_use_runner"
+          },
+          "trace_capture_s": 0.005762217988376506,
+          "trace_capture_timing_scope": "post_sample_chain_public_safe_trace_diagnostics_capture",
+          "trace_policy": "standard",
+          "trace_unavailability": {
+            "divergence": "native boolean divergence field not exposed by TensorFlow Probability HMC kernel results"
+          },
+          "tuning_policy": {
+            "adaptation_policy": "fixed_kernel_no_adaptation",
+            "diagnostic_role": "fixed-kernel bounded HMC screen",
+            "enabled": false,
+            "implemented": true,
+            "label": "fixed_kernel_screen",
+            "nonclaims": [
+              "fixed-kernel screen only",
+              "no posterior convergence claim",
+              "no sampler superiority claim",
+              "no default adaptation readiness claim"
+            ],
+            "num_adaptation_steps": 0,
+            "source": "reviewed_stage_7_phase_3",
+            "target_accept_prob": null
+          },
+          "use_xla": true,
+          "value_score_authority": "graph_native",
+          "warm_call_s": null,
+          "warm_sample_chain_execute_s": null,
+          "warm_sample_shape": null,
+          "warm_trace_keys": []
+        },
+        "runtime_s": 8.664164752990473,
+        "sample_shape": [
+          8,
+          24
+        ],
+        "sample_summary": {
+          "max": 0.6502366052130156,
+          "mean": 0.08082678812410171,
+          "min": -0.349337536329858,
+          "std": 0.2132000163065992
+        },
+        "samples_all_finite": true
+      },
+      "hmc_settings": {
+        "adaptation_policy": "fixed_kernel_no_adaptation",
+        "chain_execution_mode": "tf_function",
+        "jit_compile": true,
+        "num_burnin_steps": 4,
+        "num_leapfrog_steps": 1,
+        "num_results": 8,
+        "seed": [
+          20260706,
+          5103
+        ],
+        "step_size": 1e-05,
+        "target_scope": "minimal_ssl_lstm_zhaocui_hmc_ladder:zhaocui_fixed:phase1",
+        "trace_policy": "standard",
+        "trusted_gpu_xla_approval": true,
+        "use_xla": true
+      },
+      "initial_target": {
+        "initial_offset_scale": 0.001,
+        "log_prob": -1.3985848756201187,
+        "score_finite": true,
+        "score_norm": 1.6247791059774361,
+        "score_shape": [
+          24
+        ],
+        "value_finite": true
+      },
+      "not_run_reason": null,
+      "seed": [
+        20260706,
+        5103
+      ],
+      "status": "passed"
+    }
+  ],
+  "capability": {
+    "evidence_path": "docs/plans/bayesfilter-minimal-ssl-lstm-zhaocui-hmc-next-phase5-longer-diagnostics-execution-subplan-2026-07-06.md",
+    "full_chain_xla_diagnostic_ready": true,
+    "nonclaims": [
+      "clean-room fixed adaptation only",
+      "no source-faithful SSL-LSTM Zhao-Cui parity claim",
+      "no TTSIRT or KR map implementation claim",
+      "no HMC convergence claim",
+      "no posterior correctness claim",
+      "no method superiority claim",
+      "no default-readiness claim",
+      "Phase 1 target-adapter admission only",
+      "CPU-hidden debug/reference exception only",
+      "not an HMC sample or canary result",
+      "not HMC convergence evidence",
+      "not posterior correctness evidence",
+      "not a method ranking or superiority claim",
+      "not source-faithful SSL-LSTM Zhao-Cui parity evidence",
+      "not GPU/XLA production-readiness evidence",
+      "not default-readiness evidence",
+      "not LEDH evidence"
+    ],
+    "runtime_backend": "tensorflow",
+    "target_scope": "minimal_ssl_lstm_zhaocui_hmc_ladder:zhaocui_fixed:phase1",
+    "value_score_authority": "graph_native",
+    "xla_hmc_ready": true
+  },
+  "date": "2026-07-06",
+  "decision_table": {
+    "decision": "longer GPU/XLA hard-veto diagnostic only",
+    "main_uncertainty": "Modest fixed-kernel ladder cannot assess convergence, posterior correctness, ranking, default readiness, or production readiness.",
+    "next_justified_action": "write Phase 5 result and close out Phase 6",
+    "primary_criterion_status": "passed",
+    "veto_diagnostic_status": "no hard veto for predeclared seeds",
+    "what_is_not_being_concluded": "No HMC convergence, posterior correctness, R-hat/ESS, ranking, default readiness, production readiness, source-faithful parity, public API/package readiness, or LEDH result."
+  },
+  "evidence_contract": {
+    "baseline_comparator": "Phase 3 trusted GPU/XLA smoke, Phase 2 CPU regression only as non-GPU debug context, and the Phase 4 reviewed design.",
+    "explanatory_diagnostics": "Acceptance, runtime, sample shape, sample finite counts, sample summaries, per-seed rows, TensorFlow logs, and native divergence availability status when not positive. ESS/R-hat are not computed.",
+    "not_concluded": [
+      "Phase 5 longer trusted GPU/XLA hard-veto diagnostic ladder only",
+      "not HMC convergence evidence",
+      "not R-hat or ESS evidence",
+      "not posterior correctness evidence",
+      "not a method ranking or superiority claim",
+      "not source-faithful SSL-LSTM Zhao-Cui parity evidence",
+      "not GPU/XLA production-readiness evidence",
+      "not default-readiness evidence",
+      "not public API or package readiness evidence",
+      "not LEDH evidence"
+    ],
+    "primary_pass_criterion": "All three predeclared seeds complete with GPU provenance, use_xla=True, jit_compile=True, finite samples, and no hard vetoes.",
+    "question": "Does the minimally longer trusted GPU/XLA ladder avoid hard runtime/sampler vetoes under fixed settings?",
+    "veto_diagnostics": "Runtime exception, hidden/missing GPU, missing approval, nonfinite target/sample, invalid artifact, missing provenance, positive native divergence if exposed, post-hoc criterion change, or unsupported claim."
+  },
+  "filter_name": "zhaocui_fixed",
+  "fixture": {
+    "augmented_state_dim": 3,
+    "hidden_dim": 1,
+    "horizon": 2,
+    "latent_dim": 1,
+    "observation_dim": 1,
+    "observations": [
+      [
+        0.12
+      ],
+      [
+        -0.03
+      ]
+    ],
+    "parameter_dim": 24,
+    "theta": [
+      0.09,
+      -0.07,
+      0.05,
+      0.04,
+      0.03,
+      -0.02,
+      0.06,
+      -0.05,
+      0.01,
+      0.04,
+      -0.03,
+      0.02,
+      0.35,
+      -0.08,
+      0.65,
+      0.05,
+      0.15,
+      -0.1,
+      0.2,
+      -0.35,
+      0.15,
+      0.55,
+      0.35,
+      -0.15
+    ]
+  },
+  "hard_veto_summary": {
+    "(20260706, 5101)": [],
+    "(20260706, 5102)": [],
+    "(20260706, 5103)": []
+  },
+  "hard_vetoes": [],
+  "inference_status": {
+    "convergence": "not_checked",
+    "default_readiness": "not_checked",
+    "descriptive_only_differences": "Acceptance, runtime, and sample summaries are descriptive only.",
+    "hard_veto_screen": "passed",
+    "native_divergence_telemetry": "not_exposed_by_kernel",
+    "next_evidence_needed": "Longer chains, convergence diagnostics, posterior/reference checks, and uncertainty-aware replication before convergence, ranking, or readiness claims.",
+    "statistically_supported_ranking": "not_claimed"
+  },
+  "initial_target": {
+    "initial_offset_scale": 0.001,
+    "log_prob": -1.3985848756201187,
+    "score_finite": true,
+    "score_norm": 1.6247791059774361,
+    "score_shape": [
+      24
+    ],
+    "value_finite": true
+  },
+  "metric_roles": {
+    "acceptance_rate": "explanatory_only_in_longer_ladder",
+    "all_predeclared_seeds_passed": "primary_hard_veto_screen",
+    "ess": "not_computed_in_longer_ladder",
+    "gpu_devices": "hard_veto_evidence",
+    "hard_vetoes": "hard_veto_evidence",
+    "hmc_runtime_exception": "hard_veto_evidence",
+    "initial_score_finite": "hard_veto_evidence",
+    "initial_value_finite": "hard_veto_evidence",
+    "native_divergence_count": "hard_veto_when_available_and_positive",
+    "native_divergence_status": "telemetry_availability_not_zero_divergences",
+    "nonfinite_sample_count": "hard_veto_evidence",
+    "rhat": "not_computed_in_longer_ladder",
+    "runtime": "explanatory_only",
+    "sample_summary": "explanatory_only",
+    "trusted_gpu_xla_approval": "hard_veto_evidence"
+  },
+  "native_divergence_interpretation": "native divergence status 'not_exposed_by_kernel' is telemetry unavailability, not zero divergences",
+  "native_divergence_statuses": [
+    "not_exposed_by_kernel"
+  ],
+  "nonclaims": [
+    "Phase 5 longer trusted GPU/XLA hard-veto diagnostic ladder only",
+    "not HMC convergence evidence",
+    "not R-hat or ESS evidence",
+    "not posterior correctness evidence",
+    "not a method ranking or superiority claim",
+    "not source-faithful SSL-LSTM Zhao-Cui parity evidence",
+    "not GPU/XLA production-readiness evidence",
+    "not default-readiness evidence",
+    "not public API or package readiness evidence",
+    "not LEDH evidence"
+  ],
+  "phase": "PHASE5",
+  "post_run_red_team": {
+    "result_that_would_overturn": "Any reproduced runtime exception, nonfinite sample, invalid artifact, missing provenance, or positive native divergence under the reviewed settings.",
+    "strongest_alternative_explanation": "A no-hard-veto result may reflect the tiny scalar target and conservative step size, not robust sampler behavior.",
+    "weakest_part_of_evidence": "No ESS/R-hat, no posterior/reference comparison, no adaptation assessment, and only three short seeds."
+  },
+  "predeclared_settings": {
+    "adaptation_policy": "fixed_kernel_no_adaptation",
+    "chain_execution_mode": "tf_function",
+    "initial_offset_scale": 0.001,
+    "jit_compile": true,
+    "num_burnin_steps": 4,
+    "num_leapfrog_steps": 1,
+    "num_results": 8,
+    "prior_scale": 5.0,
+    "seeds": [
+      [
+        20260706,
+        5101
+      ],
+      [
+        20260706,
+        5102
+      ],
+      [
+        20260706,
+        5103
+      ]
+    ],
+    "step_size": 1e-05,
+    "trace_policy": "standard",
+    "trusted_gpu_xla_approval": true,
+    "use_xla": true
+  },
+  "run_manifest": {
+    "command": [
+      "docs/benchmarks/benchmark_minimal_ssl_lstm_zhaocui_hmc_ladder_2026_07_06.py",
+      "--mode",
+      "phase5-longer-gpu-xla-ladder",
+      "--trusted-gpu-xla-approval",
+      "--output",
+      "docs/benchmarks/minimal_ssl_lstm_zhaocui_hmc_next_phase5_longer_gpu_xla_ladder_2026-07-06.json",
+      "--markdown-output",
+      "docs/benchmarks/minimal_ssl_lstm_zhaocui_hmc_next_phase5_longer_gpu_xla_ladder_2026-07-06.md",
+      "--num-results",
+      "8",
+      "--num-burnin-steps",
+      "4",
+      "--step-size",
+      "1e-5",
+      "--num-leapfrog-steps",
+      "1"
+    ],
+    "compile_mode": "tf_function",
+    "cpu_gpu_status": {
+      "cuda_visible_devices": "0",
+      "gpu_devices": [
+        "/physical_device:GPU:0"
+      ],
+      "physical_devices": [
+        "/physical_device:CPU:0",
+        "/physical_device:GPU:0"
+      ],
+      "trust_basis": "explicit_user_approved_trusted_gpu_xla_longer_diagnostics"
+    },
+    "data_version": "frozen_inline_scalar_fixture_2026-07-06",
+    "git_commit": "f98be292faabf3d1728f876ad211a70ac1ddf98c",
+    "git_dirty_summary": {
+      "dirty": true,
+      "line_count": 141,
+      "preview": [
+        " M bayesfilter/__init__.py",
+        " M bayesfilter/inference/__init__.py",
+        " M bayesfilter/inference/hmc.py",
+        " M bayesfilter/inference/hmc_kernel_tuning.py",
+        " M bayesfilter/nonlinear/experimental_batched_svd_sigma_point_tf.py",
+        " M tests/test_hmc_fixed_size_chunk_runner.py",
+        " M tests/test_hmc_kernel_tuning_frozen_step_trajectory.py",
+        " M tests/test_hmc_kernel_tuning_outer_loop.py",
+        " M tests/test_hmc_kernel_tuning_public_api.py",
+        " M tests/test_hmc_kernel_tuning_windowed_mass.py",
+        " M tests/test_nonlinear_ssm_phase4_full_chain_hmc.py",
+        "?? bayesfilter/nonlinear/ssl_lstm_protocol.py",
+        "?? bayesfilter/nonlinear/ssl_lstm_sgqf_ukf_adapters.py",
+        "?? bayesfilter/nonlinear/ssl_lstm_zhaocui_fixed_adapter.py",
+        "?? bayesfilter/nonlinear/ssl_lstm_zhaocui_hmc_minimal.py",
+        "?? docs/benchmarks/benchmark_minimal_ssl_lstm_zhaocui_hmc_ladder_2026_07_06.py",
+        "?? docs/benchmarks/benchmark_minimal_ssl_lstm_zhaocui_smoke_2026_07_06.py",
+        "?? docs/benchmarks/benchmark_ssl_lstm_filter_hmc_phase6.py",
+        "?? docs/benchmarks/benchmark_ssl_lstm_filter_hmc_phase7.py",
+        "?? docs/benchmarks/minimal_ssl_lstm_zhaocui_hmc_adapter_cpu_hidden_2026-07-06.json"
+      ]
+    },
+    "jit_compile": true,
+    "plan_file": "docs/plans/bayesfilter-minimal-ssl-lstm-zhaocui-hmc-next-program-master-2026-07-06.md",
+    "platform": "Linux-6.8.0-124-generic-x86_64-with-glibc2.35",
+    "python": "3.13.13 | packaged by Anaconda, Inc. | (main, Apr 14 2026, 06:19:41) [GCC 14.3.0]",
+    "quiet_log_path": "docs/benchmarks/logs/minimal_ssl_lstm_zhaocui_hmc_next_2026-07-06/phase5_longer_gpu_xla_ladder_2026-07-06.log",
+    "random_seeds": {
+      "hmc_seeds": [
+        [
+          20260706,
+          5101
+        ],
+        [
+          20260706,
+          5102
+        ],
+        [
+          20260706,
+          5103
+        ]
+      ],
+      "zhaocui_initial_seed": [
+        20260705,
+        41
+      ],
+      "zhaocui_process_seed": [
+        20260705,
+        43
+      ]
+    },
+    "result_file": "docs/plans/bayesfilter-minimal-ssl-lstm-zhaocui-hmc-next-phase5-longer-diagnostics-execution-result-2026-07-06.md",
+    "runtime_s": 26.874834936999832,
+    "subplan_file": "docs/plans/bayesfilter-minimal-ssl-lstm-zhaocui-hmc-next-phase5-longer-diagnostics-execution-subplan-2026-07-06.md",
+    "tensorflow_version": "2.20.0",
+    "tf32_enabled": true,
+    "timestamp": "2026-07-06T09:59:31.531095+00:00",
+    "trust_basis": "explicit_user_approved_trusted_gpu_xla_longer_diagnostics",
+    "trusted_gpu_xla_approval": true,
+    "use_xla": true,
+    "wall_time_s": 31.257503817003453
+  },
+  "schema_version": "minimal_ssl_lstm_zhaocui_hmc_next.phase5_longer_gpu_xla_ladder.v1",
+  "status": "passed"
+}
