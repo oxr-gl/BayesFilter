@@ -5486,6 +5486,11 @@ def run_hmc_fixed_mass_step_stage(
     viable_candidates = tuple(
         candidate for candidate in joint_candidates if candidate.get("viable") is True
     )
+    nomination_candidates = tuple(
+        candidate
+        for candidate in joint_candidates
+        if candidate.get("nomination_eligible") is True
+    )
     selected_pair_progress_before_closeout = bool(viable_candidates)
     budget_incomplete_closeout = bool(
         public_timeout_closeout is not None
@@ -5601,6 +5606,7 @@ def run_hmc_fixed_mass_step_stage(
         "passed": final_status == "passed",
         "algorithm": "joint_l_epsilon_grid_fixed_mass_hmc",
         "promoted_default": True,
+        "handoff_screen_policy": cfg.handoff_screen_policy,
         "bootstrap_l_is_anchor_not_fixed_policy": True,
         "initial_anchor_l": int(anchor_l),
         "selected_num_leapfrog_steps": None
@@ -5623,6 +5629,7 @@ def run_hmc_fixed_mass_step_stage(
         "round_summaries": joint_round_summaries,
         "candidate_count": len(joint_candidates),
         "viable_candidate_count": len(viable_candidates),
+        "nomination_candidate_count": len(nomination_candidates),
         "candidates": tuple(joint_candidates),
         "candidate_run_errors": joint_run_errors,
         "public_timeout_closeout": None
@@ -5776,6 +5783,7 @@ def run_hmc_frozen_step_trajectory_stage(
             max_leapfrog_steps=cfg.max_leapfrog_steps,
             trajectory_window_lower_multiplier=cfg.trajectory_window_lower_multiplier,
             trajectory_window_upper_multiplier=cfg.trajectory_window_upper_multiplier,
+            handoff_screen_policy=cfg.handoff_screen_policy,
         )
     else:
         candidate_generation = _frozen_step_trajectory_candidate_generation(
@@ -5785,6 +5793,7 @@ def run_hmc_frozen_step_trajectory_stage(
             max_leapfrog_steps=cfg.max_leapfrog_steps,
             trajectory_window_lower_multiplier=cfg.trajectory_window_lower_multiplier,
             trajectory_window_upper_multiplier=cfg.trajectory_window_upper_multiplier,
+            handoff_screen_policy=cfg.handoff_screen_policy,
             attempt_state=_attempt_state,
         )
     candidates = tuple(int(item) for item in candidate_generation["candidate_l_values"])
@@ -6018,6 +6027,26 @@ def run_hmc_frozen_step_trajectory_stage(
                 "tau_floor_feasible_at_step"
             ],
             "max_leapfrog_steps": trajectory_window["max_leapfrog_steps"],
+            "handoff_screen_policy": cfg.handoff_screen_policy,
+            "nomination_eligible": classification in {
+                "passed_screen",
+                "nomination_screen",
+            },
+            "nomination_role": (
+                "phase23_candidate_for_phase7_verification"
+                if classification == "nomination_screen"
+                else (
+                    "phase6_passed_screen_for_phase7_verification"
+                    if classification == "passed_screen"
+                    else "phase6_not_eligible_for_handoff"
+                )
+            ),
+            "trajectory_window_viability_gate_active": (
+                not _phase23_nomination_policy_active(cfg.handoff_screen_policy)
+            ),
+            "trajectory_window_nomination_only": _phase23_nomination_policy_active(
+                cfg.handoff_screen_policy
+            ),
             "classification": classification,
             "diagnostic_role": diagnostic_role,
             "screen_config_payload": screen_config.signature_payload(),
@@ -6239,6 +6268,7 @@ def run_hmc_frozen_step_trajectory_stage(
             run_error=run_error,
             hard_vetoes=tuple(stage_hard_vetoes),
             repair_triggers=tuple(stage_repair_triggers),
+            handoff_screen_policy=cfg.handoff_screen_policy,
             runner_route_summary=_kernel_stage_runner_route_summary(
                 active_route=(
                     "frozen_step_trajectory_scoped_reusable_runner"
@@ -14092,10 +14122,13 @@ def _frozen_step_trajectory_stage_diagnostics(
     run_error: Exception | None,
     hard_vetoes: tuple[str, ...],
     repair_triggers: tuple[str, ...],
+    handoff_screen_policy: str = _HANDOFF_SCREEN_POLICY_PHASE22_HEURISTIC_GATE,
     runner_route_summary: Mapping[str, Any],
     soft_deadline_closeout: Mapping[str, Any] | None = None,
     expected_candidate_count: int | None = None,
 ) -> Mapping[str, Any]:
+    policy = _validate_handoff_screen_policy(handoff_screen_policy)
+    phase23_policy = _phase23_nomination_policy_active(policy)
     candidate_count = len(candidates)
     expected_count = (
         candidate_count
@@ -14122,6 +14155,10 @@ def _frozen_step_trajectory_stage_diagnostics(
             candidate.get("classification") == "passed_screen"
             for candidate in candidates
         ),
+        "nomination_candidate_count": sum(
+            candidate.get("classification") == "nomination_screen"
+            for candidate in candidates
+        ),
         "selected_candidate_index": selected_candidate_index,
         "selected_acceptance_rate": None
         if selected_candidate_index is None
@@ -14139,8 +14176,10 @@ def _frozen_step_trajectory_stage_diagnostics(
         "phase6_handoff_screen_policy_role": _PHASE6_HANDOFF_SCREEN_POLICY_ROLE,
         "phase6_handoff_screen_is_fresh_final_verification": False,
         "phase6_handoff_screen_is_posterior_or_sampler_validity_evidence": False,
+        "handoff_screen_policy": policy,
         "trajectory_window_policy_role": _TRAJECTORY_WINDOW_POLICY_ROLE,
-        "trajectory_window_viability_gate_active": True,
+        "trajectory_window_viability_gate_active": not phase23_policy,
+        "trajectory_window_nomination_only": phase23_policy,
         "trajectory_window_relations_seen": trajectory_window_relations_seen,
         "reports_sampler_superiority": False,
         "reports_default_readiness": False,
@@ -14262,6 +14301,9 @@ def _frozen_step_trajectory_public_summary(
             stage.diagnostics.get("skipped_candidate_count", 0)
         ),
         "passed_candidate_count": int(stage.diagnostics.get("passed_candidate_count", 0)),
+        "nomination_candidate_count": int(
+            stage.diagnostics.get("nomination_candidate_count", 0)
+        ),
         "selected_candidate_index": stage.selected_candidate_index,
         "selected_acceptance_relation": selected_relation,
         "candidate_acceptance_relation_counts": relation_counts,
@@ -14286,12 +14328,19 @@ def _frozen_step_trajectory_public_summary(
                 False,
             )
         ),
+        "handoff_screen_policy": stage.diagnostics.get(
+            "handoff_screen_policy",
+            stage.config.handoff_screen_policy,
+        ),
         "trajectory_window_policy_role": stage.diagnostics.get(
             "trajectory_window_policy_role",
             _TRAJECTORY_WINDOW_POLICY_ROLE,
         ),
         "trajectory_window_viability_gate_active": bool(
             stage.diagnostics.get("trajectory_window_viability_gate_active", True)
+        ),
+        "trajectory_window_nomination_only": bool(
+            stage.diagnostics.get("trajectory_window_nomination_only", False)
         ),
         "trajectory_window_relations_seen": tuple(
             stage.diagnostics.get(
