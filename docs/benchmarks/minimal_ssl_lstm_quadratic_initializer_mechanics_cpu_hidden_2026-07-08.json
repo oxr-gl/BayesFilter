@@ -1,0 +1,273 @@
+{
+  "artifact_role": "cpu_hidden_minimal_ssl_lstm_quadratic_initializer_mechanics",
+  "created_at_utc": "2026-07-08T14:41:44.469350+00:00",
+  "decision": {
+    "errors": [],
+    "mechanics_smoke_passed": true,
+    "next_justified_action": "write closeout and decide whether a separate short-chain plan is warranted",
+    "vetoes": []
+  },
+  "environment": {
+    "cpu_hidden": true,
+    "cuda_visible_devices": "-1",
+    "tf_physical_gpus": [],
+    "tf_version": "2.20.0",
+    "trust_basis": "cpu_hidden_debug_reference_exception"
+  },
+  "git": {
+    "commit": "9220d90aab5b789da1568f9472b646f17925a06a"
+  },
+  "hmc": {
+    "config": {
+      "adaptation_policy": "fixed_kernel_no_adaptation",
+      "chain_execution_mode": "eager",
+      "num_burnin_steps": 1,
+      "num_leapfrog_steps": 7,
+      "num_results": 4,
+      "seed": [
+        20260708,
+        4301
+      ],
+      "step_size": 0.22590050090246147,
+      "target_scope": "minimal_ssl_lstm_zhaocui_hmc_ladder:zhaocui_fixed:phase1",
+      "target_status_trace_policy": "none",
+      "trace_policy": "standard",
+      "tuning_policy": {
+        "adaptation_policy": "fixed_kernel_no_adaptation",
+        "diagnostic_role": "fixed-kernel bounded HMC screen",
+        "enabled": false,
+        "implemented": true,
+        "label": "fixed_kernel_screen",
+        "nonclaims": [
+          "fixed-kernel screen only",
+          "no posterior convergence claim",
+          "no sampler superiority claim",
+          "no default adaptation readiness claim"
+        ],
+        "num_adaptation_steps": 0,
+        "source": "reviewed_stage_7_phase_3",
+        "target_accept_prob": null
+      },
+      "use_xla": false
+    },
+    "diagnostics": {
+      "acceptance_rate": 1.0,
+      "divergence_count": null,
+      "divergence_source": null,
+      "divergence_status": "not_exposed_by_kernel",
+      "finite_sample_count": 4,
+      "hmc_health_diagnostics": {
+        "acceptance_finite": true,
+        "acceptance_rate": 1.0,
+        "diagnostic_role": "hmc_health_diagnostics_not_native_divergence",
+        "log_accept_ratio": {
+          "available": true,
+          "finite": true,
+          "finite_count": 4,
+          "max_abs_finite": 0.092133554154608,
+          "nonfinite_count": 0
+        },
+        "nonclaims": [
+          "acceptance/log-accept/target-log-prob diagnostics are not native divergence telemetry",
+          "no sampler convergence claim"
+        ],
+        "target_log_prob": {
+          "available": true,
+          "finite": true,
+          "max": -5.962127100479027,
+          "min": -10.07256227895811
+        }
+      },
+      "max_target_log_prob": -5.962127100479027,
+      "min_target_log_prob": -10.07256227895811,
+      "native_divergence_status": "not_exposed_by_kernel",
+      "nonclaims": [
+        "finite tiny-chain diagnostics only",
+        "no sampler convergence claim",
+        "native divergence unavailability is not zero divergences"
+      ],
+      "nonfinite_sample_count": 0,
+      "sample_shape": [
+        4,
+        24
+      ],
+      "trace_policy": "standard"
+    },
+    "metadata": {
+      "adaptation_policy": "fixed_kernel_no_adaptation",
+      "adaptation_policy_source": "reviewed_stage_7_phase_3",
+      "chain_execution_mode": "eager",
+      "first_call_s": 4.583843728993088,
+      "first_sample_chain_compile_execute_s": 4.583843728993088,
+      "initial_state_dtype": "float64",
+      "initial_state_shape": [
+        24
+      ],
+      "jit_compile": false,
+      "nonclaims": [
+        "tiny full-chain HMC engineering gate only",
+        "no sampler convergence claim",
+        "no posterior validity claim",
+        "no GPU readiness claim",
+        "no performance superiority claim"
+      ],
+      "program_signature": "6838a5de002ec9209bee566b456095bb03c34704c288d3ebf10eea2ab242f570",
+      "requested_target_scope": "minimal_ssl_lstm_zhaocui_hmc_ladder:zhaocui_fixed:phase1",
+      "runner_build_s": 4.240020643919706e-06,
+      "runtime": "tfp.mcmc.sample_chain",
+      "sample_chain_call_s": 4.583843728993088,
+      "sample_chain_invocation_count": 1,
+      "sample_chain_timing_scope": "compile_plus_execute_when_xla_first_call",
+      "target_scope": "minimal_ssl_lstm_zhaocui_hmc_ladder:zhaocui_fixed:phase1",
+      "target_status_trace_policy": "none",
+      "timing_buckets": {
+        "first_call_s": "explanatory_only_first_sample_chain_call",
+        "runner_build_s": "explanatory_only_runner_callable_construction",
+        "trace_capture_s": "explanatory_only_post_sample_chain_trace_diagnostics_capture",
+        "warm_call_s": "not_available_single_use_runner"
+      },
+      "trace_capture_s": 0.012230709020514041,
+      "trace_capture_timing_scope": "post_sample_chain_public_safe_trace_diagnostics_capture",
+      "trace_policy": "standard",
+      "trace_unavailability": {
+        "divergence": "native boolean divergence field not exposed by TensorFlow Probability HMC kernel results"
+      },
+      "tuning_policy": {
+        "adaptation_policy": "fixed_kernel_no_adaptation",
+        "diagnostic_role": "fixed-kernel bounded HMC screen",
+        "enabled": false,
+        "implemented": true,
+        "label": "fixed_kernel_screen",
+        "nonclaims": [
+          "fixed-kernel screen only",
+          "no posterior convergence claim",
+          "no sampler superiority claim",
+          "no default adaptation readiness claim"
+        ],
+        "num_adaptation_steps": 0,
+        "source": "reviewed_stage_7_phase_3",
+        "target_accept_prob": null
+      },
+      "use_xla": false,
+      "value_score_authority": "graph_native",
+      "warm_call_s": null,
+      "warm_sample_chain_execute_s": null,
+      "warm_sample_shape": null,
+      "warm_trace_keys": []
+    },
+    "samples_shape": [
+      4,
+      24
+    ]
+  },
+  "hmc_runtime_invoked": true,
+  "hmc_tuning_invoked": false,
+  "inference_status": {
+    "default_readiness": "not assessed",
+    "descriptive_only_differences": "acceptance, runtime, sample movement, and log-acceptance summaries are explanatory only",
+    "hard_veto_screen": "passed",
+    "next_evidence_needed": "separate short-chain validation plan with uncertainty and native divergence policy",
+    "statistically_supported_ranking": "none; single tiny mechanics smoke"
+  },
+  "nonclaims": [
+    "Phase 3 bounded mechanics smoke only",
+    "CPU-hidden debug/reference exception only",
+    "fixed-kernel tiny HMC runtime only",
+    "not HMC readiness evidence",
+    "not HMC tuning success evidence",
+    "not posterior correctness evidence",
+    "not sampler convergence evidence",
+    "not sampler superiority evidence",
+    "not default-readiness evidence",
+    "not GPU/XLA production-readiness evidence",
+    "not source-faithful Zhao-Cui parity evidence",
+    "native divergence telemetry unavailable is not zero divergences",
+    "Phase 1 target-adapter admission only",
+    "CPU-hidden debug/reference exception only",
+    "not an HMC sample or canary result",
+    "not HMC convergence evidence",
+    "not posterior correctness evidence",
+    "not a method ranking or superiority claim",
+    "not source-faithful SSL-LSTM Zhao-Cui parity evidence",
+    "not GPU/XLA production-readiness evidence",
+    "not default-readiness evidence",
+    "not LEDH evidence"
+  ],
+  "phase1_initializer_summary": {
+    "accepted": true,
+    "covariance_source": "low_rank_spd_quadratic_geometry_precision_theta_coordinates",
+    "map_candidate_role": "locator_position_geometry_covariance_only",
+    "status": "usable"
+  },
+  "phase2_artifact_path": "docs/benchmarks/minimal_ssl_lstm_quadratic_initializer_geometry_cpu_hidden_2026-07-08.json",
+  "phase2_decision": {
+    "errors": [],
+    "geometry_initialization_passed": true,
+    "next_justified_action": "draft Phase 3 bounded mechanics smoke subplan",
+    "vetoes": []
+  },
+  "phase2_geometry_summary": {
+    "covariance_source": "low_rank_spd_quadratic_geometry_precision_theta_coordinates",
+    "fallback_used": false,
+    "initial_num_leapfrog_steps": 7,
+    "initial_step_size": 0.22590050090246147,
+    "position_role": "locator_position_geometry_covariance_only",
+    "selected_hint": "negative_hessian",
+    "target_trajectory_length": 1.570796326794897
+  },
+  "plan_path": "docs/plans/bayesfilter-quadratic-initializer-to-minimal-hmc-readiness-phase3-bounded-mechanics-subplan-2026-07-08.md",
+  "result_path": "docs/plans/bayesfilter-quadratic-initializer-to-minimal-hmc-readiness-phase3-bounded-mechanics-result-2026-07-08.md",
+  "run_manifest": {
+    "command": "CUDA_VISIBLE_DEVICES=-1 python docs/benchmarks/benchmark_minimal_ssl_lstm_quadratic_initializer_mechanics_2026_07_08.py",
+    "conda_env": "tfgpu",
+    "cpu_gpu_status": "CPU-hidden debug/reference exception",
+    "data_version": "minimal_ssl_lstm_zhaocui_fixed_horizon2_v1",
+    "git_commit": "9220d90aab5b789da1568f9472b646f17925a06a",
+    "output_artifacts": [
+      "docs/benchmarks/minimal_ssl_lstm_quadratic_initializer_mechanics_cpu_hidden_2026-07-08.json",
+      "docs/benchmarks/minimal_ssl_lstm_quadratic_initializer_mechanics_cpu_hidden_2026-07-08.md"
+    ],
+    "plan_file": "docs/plans/bayesfilter-quadratic-initializer-to-minimal-hmc-readiness-phase3-bounded-mechanics-subplan-2026-07-08.md",
+    "random_seeds": [
+      20260708,
+      4301
+    ],
+    "result_file": "docs/plans/bayesfilter-quadratic-initializer-to-minimal-hmc-readiness-phase3-bounded-mechanics-result-2026-07-08.md",
+    "started_at_utc": "2026-07-08T14:41:39.718930+00:00",
+    "wall_time_seconds": 4.75973219104344
+  },
+  "schema_version": "minimal_ssl_lstm.quadratic_initializer_mechanics.v1",
+  "script": "docs/benchmarks/benchmark_minimal_ssl_lstm_quadratic_initializer_mechanics_2026_07_08.py",
+  "settings": {
+    "chain_execution_mode": "eager",
+    "num_burnin_steps": 1,
+    "num_results": 4,
+    "seed": [
+      20260708,
+      4301
+    ],
+    "target_status_trace_policy": "none",
+    "trace_policy": "standard",
+    "use_xla": false
+  },
+  "trace_summary": {
+    "acceptance_count": 4,
+    "acceptance_rate_from_trace": 1.0,
+    "keys": [
+      "is_accepted",
+      "log_accept_ratio",
+      "target_log_prob"
+    ],
+    "log_accept_ratio_finite_count": 4,
+    "log_accept_ratio_max": 0.092133554154608,
+    "log_accept_ratio_min": -0.051352939451947854,
+    "log_accept_ratio_nonfinite_count": 0,
+    "native_divergence_interpretation": "not zero divergences; native boolean divergence field was not exposed",
+    "native_divergence_trace_present": false,
+    "required_trace_keys_present": true,
+    "target_log_prob_finite_count": 4,
+    "target_log_prob_max": -5.962127100479027,
+    "target_log_prob_min": -10.07256227895811,
+    "target_log_prob_nonfinite_count": 0
+  }
+}

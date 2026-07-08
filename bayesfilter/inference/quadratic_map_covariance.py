@@ -201,7 +201,10 @@ def estimate_quadratic_map_covariance(
     return scalar log probability and gradient in the same coordinates as
     ``initial_position``.  L-BFGS is used only to choose the geometry center.
     Accepted covariance is rebuilt from the fitted SPD precision via
-    :func:`covariance_from_precision`.
+    :func:`covariance_from_precision`.  When ``scale`` is supplied, the
+    quadratic fit is performed in whitened ``z`` coordinates, but the returned
+    ``precision`` and ``covariance`` are transformed back to the original
+    ``initial_position`` coordinates.
     """
 
     locator_cfg = (
@@ -276,10 +279,12 @@ def estimate_quadratic_map_covariance(
             },
         )
 
+    theta_precision = _precision_from_geometry_to_theta(geometry)
+    transform_diagnostics = _coordinate_transform_diagnostics(geometry)
     try:
         mass = covariance_from_precision(
-            geometry.precision,
-            source="low_rank_spd_quadratic_geometry_precision",
+            theta_precision,
+            source="low_rank_spd_quadratic_geometry_precision_theta_coordinates",
             jitter=mass_cfg.jitter,
             eigenvalue_floor=mass_cfg.eigenvalue_floor,
             max_condition_number=mass_cfg.max_condition_number,
@@ -297,6 +302,7 @@ def estimate_quadratic_map_covariance(
                 "classification": "diagnostic_initializer_rejected",
                 "geometry_status": geometry.status,
                 "mass_matrix_attempted": True,
+                **transform_diagnostics,
                 "mass_matrix_exception_type": type(exc).__name__,
                 "mass_matrix_exception": str(exc),
                 "reports_map_quality": False,
@@ -328,6 +334,7 @@ def estimate_quadratic_map_covariance(
                 "classification": "diagnostic_initializer_rejected",
                 "geometry_status": geometry.status,
                 "mass_matrix_attempted": True,
+                **transform_diagnostics,
                 "reports_map_quality": False,
                 "reports_hmc_convergence": False,
                 "reports_default_readiness": False,
@@ -350,8 +357,11 @@ def estimate_quadratic_map_covariance(
         mass_matrix=mass,
         diagnostics={
             "classification": "diagnostic_initializer_accepted",
-            "precision_authority": "low_rank_spd_quadratic_geometry_precision",
+            "precision_authority": (
+                "low_rank_spd_quadratic_geometry_precision_transformed_to_theta"
+            ),
             "covariance_authority": "covariance_from_precision",
+            **transform_diagnostics,
             "optimizer_authority": "locator_only",
             "geometry_center_refinement_accepted": geometry.center_refinement_accepted,
             "map_candidate_role": map_candidate_role,
@@ -522,6 +532,44 @@ def _vector(value: Any, name: str) -> np.ndarray:
     if not np.all(np.isfinite(vector)):
         raise ValueError(f"{name} must be finite")
     return vector
+
+
+def _precision_from_geometry_to_theta(
+    geometry: LowRankSPDQuadraticGeometryResult,
+) -> np.ndarray:
+    if geometry.precision is None:
+        raise ValueError("geometry precision is required")
+    precision_z = np.asarray(geometry.precision, dtype=float)
+    scale = np.asarray(geometry.scale, dtype=float).reshape([-1])
+    if precision_z.shape != (scale.size, scale.size):
+        raise ValueError("geometry precision shape must match geometry scale")
+    if not np.all(np.isfinite(scale)) or np.any(scale <= 0.0):
+        raise ValueError("geometry scale must be positive finite")
+    inverse_scale = 1.0 / scale
+    precision_theta = (
+        inverse_scale[:, np.newaxis]
+        * precision_z
+        * inverse_scale[np.newaxis, :]
+    )
+    return 0.5 * (precision_theta + precision_theta.T)
+
+
+def _coordinate_transform_diagnostics(
+    geometry: LowRankSPDQuadraticGeometryResult,
+) -> Mapping[str, Any]:
+    scale = np.asarray(geometry.scale, dtype=float).reshape([-1])
+    return {
+        "geometry_fit_coordinate_system": "whitened_z",
+        "geometry_coordinate_transform": "theta = center + scale * z",
+        "geometry_precision_coordinate_system": "z",
+        "mass_precision_coordinate_system": "theta",
+        "mass_covariance_coordinate_system": "theta",
+        "precision_transform": "P_theta = diag(1 / scale) @ P_z @ diag(1 / scale)",
+        "covariance_transform": "C_theta = diag(scale) @ C_z @ diag(scale)",
+        "scale_min": float(np.min(scale)),
+        "scale_max": float(np.max(scale)),
+        "scale_all_ones": bool(np.allclose(scale, np.ones_like(scale))),
+    }
 
 
 def _mass_matrix_payload(

@@ -129,7 +129,9 @@ def test_reusable_quadratic_map_covariance_smoke_on_oracle_target() -> None:
     payload = result.payload()
     assert result.accepted is True
     assert payload["status"] == "usable"
-    assert payload["covariance_source"] == "low_rank_spd_quadratic_geometry_precision"
+    assert payload["covariance_source"] == (
+        "low_rank_spd_quadratic_geometry_precision_theta_coordinates"
+    )
     assert payload["diagnostics"]["optimizer_authority"] == "locator_only"
     assert payload["diagnostics"]["covariance_authority"] == "covariance_from_precision"
     assert payload["geometry"]["status"] == "usable"

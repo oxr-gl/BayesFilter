@@ -89,10 +89,59 @@ def test_quadratic_initializer_recovers_gaussian_mode_and_covariance() -> None:
     )
 
     payload = result.payload()
-    assert payload["covariance_source"] == "low_rank_spd_quadratic_geometry_precision"
+    assert payload["covariance_source"] == (
+        "low_rank_spd_quadratic_geometry_precision_theta_coordinates"
+    )
     assert payload["diagnostics"]["covariance_authority"] == "covariance_from_precision"
     assert payload["locator_diagnostics"]["uses_optimizer_inverse_hessian"] is False
     assert "not HMC readiness evidence" in payload["nonclaims"]
+
+
+def test_scaled_quadratic_initializer_returns_original_coordinate_mass() -> None:
+    precision_theta = np.diag([4.0, 0.25])
+    mode = np.array([0.12, -0.08])
+    scale = np.array([0.5, 2.0])
+    expected_precision_z = scale[:, np.newaxis] * precision_theta * scale[np.newaxis, :]
+
+    result = estimate_quadratic_map_covariance(
+        _quadratic_target(precision_theta, mode=mode),
+        np.array([0.0, 0.0]),
+        scale=scale,
+        locator_config=QuadraticMapCovarianceLocatorConfig(enabled=False),
+        quadratic_config=_geometry_config(
+            rank=1,
+            sample_count=260,
+            pilot_direction_count=1024,
+            holdout_rmse_abs_tolerance=8.0e-2,
+            seed=(13, 14),
+        ),
+        mass_config=QuadraticMapCovarianceMassConfig(
+            jitter=0.0,
+            eigenvalue_floor=0.1,
+            max_condition_number=100.0,
+        ),
+    )
+
+    assert result.accepted is True
+    assert result.geometry is not None
+    np.testing.assert_allclose(
+        result.geometry.precision,
+        expected_precision_z,
+        atol=0.12,
+        rtol=0.06,
+    )
+    np.testing.assert_allclose(result.precision, precision_theta, atol=0.12, rtol=0.06)
+    np.testing.assert_allclose(
+        result.covariance,
+        np.linalg.inv(precision_theta),
+        atol=0.04,
+        rtol=0.08,
+    )
+    payload = result.payload()
+    assert payload["diagnostics"]["geometry_precision_coordinate_system"] == "z"
+    assert payload["diagnostics"]["mass_precision_coordinate_system"] == "theta"
+    assert payload["diagnostics"]["mass_covariance_coordinate_system"] == "theta"
+    assert payload["diagnostics"]["scale_all_ones"] is False
 
 
 def test_enabled_locator_is_finite_locator_only_not_covariance_authority() -> None:
@@ -125,7 +174,9 @@ def test_enabled_locator_is_finite_locator_only_not_covariance_authority() -> No
     assert diagnostics["optimizer_role"] == "finite_neighborhood_locator_only"
     assert diagnostics["uses_optimizer_inverse_hessian"] is False
     assert result.payload()["diagnostics"]["optimizer_authority"] == "locator_only"
-    assert result.covariance_source == "low_rank_spd_quadratic_geometry_precision"
+    assert result.covariance_source == (
+        "low_rank_spd_quadratic_geometry_precision_theta_coordinates"
+    )
 
 
 def test_locator_exception_falls_back_to_initial_position_for_geometry(monkeypatch) -> None:
@@ -155,7 +206,9 @@ def test_locator_exception_falls_back_to_initial_position_for_geometry(monkeypat
     assert result.locator_diagnostics["accepted_optimizer_position"] is False
     assert np.array_equal(result.locator_position, np.zeros(2))
     assert result.diagnostics["optimizer_authority"] == "locator_only"
-    assert result.covariance_source == "low_rank_spd_quadratic_geometry_precision"
+    assert result.covariance_source == (
+        "low_rank_spd_quadratic_geometry_precision_theta_coordinates"
+    )
 
 
 def test_nonfinite_initial_position_target_fails_closed() -> None:

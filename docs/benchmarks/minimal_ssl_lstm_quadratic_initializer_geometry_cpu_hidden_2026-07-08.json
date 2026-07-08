@@ -1,0 +1,372 @@
+{
+  "artifact_role": "cpu_hidden_minimal_ssl_lstm_quadratic_initializer_geometry",
+  "created_at_utc": "2026-07-08T14:31:20.064153+00:00",
+  "decision": {
+    "errors": [],
+    "geometry_initialization_passed": true,
+    "next_justified_action": "draft Phase 3 bounded mechanics smoke subplan",
+    "vetoes": []
+  },
+  "environment": {
+    "cpu_hidden": true,
+    "cuda_visible_devices": "-1",
+    "tf_physical_gpus": [],
+    "tf_version": "2.20.0",
+    "trust_basis": "cpu_hidden_debug_reference_exception"
+  },
+  "geometry": {
+    "adapter_signature": "d711a53952380e941f08e4f132be7cf823431eec5c2457a3871881646b3fa4e9",
+    "artifact_type": "bayesfilter_hmc_geometry_initialization_result",
+    "config": {
+      "allow_geometry_fallback": false,
+      "covariance_jitter": 1e-09,
+      "eigenvalue_floor": 1e-09,
+      "geometry_scaling_c": 0.5,
+      "max_condition_number": null,
+      "max_leapfrog_steps": 512,
+      "negative_hessian_source": "low_rank_spd_quadratic_geometry_precision_theta_coordinates",
+      "position_role": "locator_position_geometry_covariance_only",
+      "seed": [
+        20260708,
+        4201
+      ],
+      "source": "bayesfilter.phase2.quadratic_initializer_geometry_smoke",
+      "stability_guard": 0.8
+    },
+    "curvature_report": {
+      "finite": true,
+      "omega_count": 24,
+      "omega_max": 1.000000000000004,
+      "omega_median": 0.9999999999999998,
+      "omega_min": 0.9999999999999788,
+      "omega_rms": 0.9999999999999989,
+      "positive": true
+    },
+    "formula_report": {
+      "default_max_leapfrog_steps": 25,
+      "formula": "epsilon=min(c*d^(-1/4)/rms(omega), rho*2/max(omega)); L=ceil(tau/epsilon)",
+      "geometry_scaling_c": 0.5,
+      "internal_max_leapfrog": 512,
+      "internal_min_leapfrog": 3,
+      "leapfrog_clamped": false,
+      "stability_guard": 0.8,
+      "target_trajectory_length": 1.570796326794897
+    },
+    "hint_report": {
+      "covariance_source": "low_rank_spd_quadratic_geometry_precision_theta_coordinates",
+      "fallback_failures": [],
+      "fallback_used": false,
+      "hint_precedence": [
+        "negative_hessian",
+        "initial_covariance",
+        "parameter_scales",
+        "identity"
+      ],
+      "parameterization": "same as initial_position",
+      "regularization_report": {
+        "clipped_eigenvalue_count": 0,
+        "diagonal_fallback_used": false,
+        "effective_eigenvalue_floor": 1e-09,
+        "input_asymmetric": false,
+        "input_asymmetry_max_abs": 0.0,
+        "jitter": 1e-09,
+        "max_condition_number": null,
+        "method": "symmetric_eigendecomposition_floor",
+        "raw_max_eigenvalue": 3.3192590362870007,
+        "raw_min_eigenvalue": 0.060345666331429695,
+        "raw_nonpositive_eigenvalue_count": 0,
+        "regularized_max_eigenvalue": 3.3192590362870007,
+        "regularized_min_eigenvalue": 0.060345666331429695,
+        "requested_eigenvalue_floor": 1e-09,
+        "silent_eigenvalue_reflection": false,
+        "symmetry_projection": "average_with_transpose"
+      },
+      "selected_hint": "negative_hessian",
+      "sign_convention": "-d2 log posterior in unconstrained coordinates",
+      "supplied_hints": {
+        "initial_covariance": false,
+        "negative_hessian": true,
+        "parameter_scales": false
+      }
+    },
+    "initial_num_leapfrog_steps": 7,
+    "initial_step_size": 0.22590050090246147,
+    "mass_artifact_payload": {
+      "adapter_signature": "d711a53952380e941f08e4f132be7cf823431eec5c2457a3871881646b3fa4e9",
+      "artifact_type": "bayesfilter_precomputed_mass_artifact",
+      "covariance_source": "low_rank_spd_quadratic_geometry_precision_theta_coordinates",
+      "dimension": 24,
+      "eigen_summary": {
+        "condition_number": 55.00409951655944,
+        "eigenvalues": [
+          0.30127205772966964,
+          0.5421686035688847,
+          2.6662042427255668,
+          12.87795670356124,
+          16.57119824492101,
+          16.5711982449211,
+          16.571198244921106,
+          16.571198244921113,
+          16.571198244921128,
+          16.571198244921135,
+          16.57119824492115,
+          16.571198244921153,
+          16.571198244921167,
+          16.571198244921167,
+          16.571198244921188,
+          16.571198244921195,
+          16.571198244921202,
+          16.571198244921213,
+          16.571198244921213,
+          16.571198244921224,
+          16.571198244921234,
+          16.571198244921238,
+          16.571198244921273,
+          16.57119824492139
+        ],
+        "finite": true,
+        "max": 16.57119824492139,
+        "min": 0.30127205772966964,
+        "positive": true
+      },
+      "factor_orientation": "row_right_transpose",
+      "include_arrays": false,
+      "log_jacobian_convention": "constant_omitted",
+      "matrix_used_for_square_root": "geometry_initialization_covariance",
+      "nonclaims": [
+        "geometry initialization only",
+        "no HMC runtime claim",
+        "no tuning success claim",
+        "no posterior convergence claim",
+        "no sampler superiority claim",
+        "no default-readiness claim"
+      ],
+      "position_role": "locator_position_geometry_covariance_only",
+      "precision_eigen_summary": null,
+      "reconstruction_atol": 1e-10,
+      "reconstruction_rtol": 1e-10,
+      "regularization_report": {
+        "clipped_eigenvalue_count": 0,
+        "diagonal_fallback_used": false,
+        "effective_eigenvalue_floor": 1e-09,
+        "geometry_initializer_source": "bayesfilter.phase2.quadratic_initializer_geometry_smoke",
+        "input_asymmetric": false,
+        "input_asymmetry_max_abs": 0.0,
+        "jitter": 1e-09,
+        "max_condition_number": null,
+        "method": "symmetric_eigendecomposition_floor",
+        "raw_max_eigenvalue": 3.3192590362870007,
+        "raw_min_eigenvalue": 0.060345666331429695,
+        "raw_nonpositive_eigenvalue_count": 0,
+        "regularized_max_eigenvalue": 3.3192590362870007,
+        "regularized_min_eigenvalue": 0.060345666331429695,
+        "requested_eigenvalue_floor": 1e-09,
+        "silent_eigenvalue_reflection": false,
+        "symmetry_projection": "average_with_transpose"
+      },
+      "schema_version": 1,
+      "source": "geometry_initialization_negative_hessian"
+    },
+    "mass_artifact_signature": "e119b38fe516e444463a09daca0855904e5d7a911f87410626581b3a0e0dc5fc",
+    "nonclaims": [
+      "geometry initialization only",
+      "no HMC runtime claim",
+      "no tuning success claim",
+      "no posterior convergence claim",
+      "no sampler superiority claim",
+      "no default-readiness claim"
+    ],
+    "reports_hmc_runtime_readiness": false,
+    "reports_posterior_convergence": false,
+    "reports_sampler_superiority": false,
+    "reports_tuning_success": false,
+    "schema_version": 1,
+    "seed_report": {
+      "fresh_verification_seed_reserved": [
+        20265753,
+        13377
+      ],
+      "geometry_seed": [
+        20260708,
+        13377
+      ],
+      "nonclaim": "geometry seed provenance only; no HMC run executed",
+      "root_seed": [
+        20260708,
+        4201
+      ],
+      "seed_owner": "BayesFilter"
+    },
+    "target_dimension": 24,
+    "target_trajectory_length": 1.570796326794897,
+    "unclamped_num_leapfrog_steps": 7
+  },
+  "git": {
+    "commit": "9220d90aab5b789da1568f9472b646f17925a06a"
+  },
+  "hmc_geometry_invoked": true,
+  "hmc_runtime_invoked": false,
+  "inference_status": {
+    "default_readiness": "not assessed",
+    "descriptive_only_differences": "L*step_size, curvature summaries, and formula outputs are explanatory only",
+    "hard_veto_screen": "passed",
+    "next_evidence_needed": "separate bounded mechanics smoke with predeclared runtime vetoes",
+    "statistically_supported_ranking": "none; single geometry diagnostic"
+  },
+  "nonclaims": [
+    "Phase 2 geometry initialization smoke only",
+    "CPU-hidden debug/reference exception only",
+    "not an HMC runtime result",
+    "not HMC tuning success evidence",
+    "not HMC readiness evidence",
+    "not posterior correctness evidence",
+    "not sampler convergence evidence",
+    "not sampler superiority evidence",
+    "not default-readiness evidence",
+    "not GPU/XLA production-readiness evidence",
+    "not source-faithful Zhao-Cui parity evidence",
+    "geometry initialization only",
+    "no HMC runtime claim",
+    "no tuning success claim",
+    "no posterior convergence claim",
+    "no sampler superiority claim",
+    "no default-readiness claim",
+    "Phase 1 target-adapter admission only",
+    "CPU-hidden debug/reference exception only",
+    "not an HMC sample or canary result",
+    "not HMC convergence evidence",
+    "not posterior correctness evidence",
+    "not a method ranking or superiority claim",
+    "not source-faithful SSL-LSTM Zhao-Cui parity evidence",
+    "not GPU/XLA production-readiness evidence",
+    "not default-readiness evidence",
+    "not LEDH evidence"
+  ],
+  "phase1_artifact_path": "docs/benchmarks/minimal_ssl_lstm_quadratic_initializer_artifact_cpu_hidden_2026-07-08.json",
+  "phase1_decision": {
+    "errors": [],
+    "initializer_artifact_passed": true,
+    "next_justified_action": "draft Phase 2 HMC geometry-initialization-only subplan",
+    "vetoes": []
+  },
+  "phase1_initializer_summary": {
+    "accepted": true,
+    "covariance_eigen_summary": {
+      "condition_number": 55.004100411471086,
+      "eigenvalues": [
+        0.3012720578204372,
+        0.5421686038628352,
+        2.6662042498342147,
+        12.87795686940301,
+        16.5711985195257,
+        16.571198519525726,
+        16.57119851952573,
+        16.57119851952574,
+        16.571198519525755,
+        16.571198519525765,
+        16.571198519525772,
+        16.571198519525776,
+        16.57119851952578,
+        16.571198519525787,
+        16.57119851952579,
+        16.571198519525794,
+        16.5711985195258,
+        16.571198519525804,
+        16.571198519525808,
+        16.571198519525815,
+        16.571198519525836,
+        16.57119851952584,
+        16.571198519525847,
+        16.57119851952585
+      ],
+      "finite": true,
+      "max": 16.57119851952585,
+      "min": 0.3012720578204372,
+      "positive": true
+    },
+    "covariance_source": "low_rank_spd_quadratic_geometry_precision_theta_coordinates",
+    "geometry_precision_coordinate_system": "z",
+    "map_candidate_role": "locator_position_geometry_covariance_only",
+    "mass_covariance_coordinate_system": "theta",
+    "mass_precision_coordinate_system": "theta",
+    "precision_eigen_summary": {
+      "condition_number": 55.004100411471235,
+      "eigenvalues": [
+        0.06034566533142975,
+        0.060345665331430265,
+        0.06034566533143031,
+        0.060345665331430376,
+        0.0603456653314304,
+        0.060345665331430404,
+        0.06034566533143046,
+        0.06034566533143046,
+        0.06034566533143049,
+        0.06034566533143049,
+        0.0603456653314305,
+        0.06034566533143053,
+        0.06034566533143055,
+        0.06034566533143056,
+        0.0603456653314306,
+        0.060345665331430626,
+        0.06034566533143069,
+        0.060345665331430716,
+        0.06034566533143075,
+        0.06034566533143096,
+        0.07765206935705143,
+        0.3750650386451751,
+        1.8444446854266594,
+        3.3192590352870006
+      ],
+      "finite": true,
+      "max": 3.3192590352870006,
+      "min": 0.06034566533142975,
+      "positive": true
+    },
+    "status": "usable"
+  },
+  "plan_path": "docs/plans/bayesfilter-quadratic-initializer-to-minimal-hmc-readiness-phase2-geometry-initialization-subplan-2026-07-08.md",
+  "result_path": "docs/plans/bayesfilter-quadratic-initializer-to-minimal-hmc-readiness-phase2-geometry-initialization-result-2026-07-08.md",
+  "run_manifest": {
+    "command": "CUDA_VISIBLE_DEVICES=-1 python docs/benchmarks/benchmark_minimal_ssl_lstm_quadratic_initializer_geometry_2026_07_08.py",
+    "conda_env": "tfgpu",
+    "cpu_gpu_status": "CPU-hidden debug/reference exception",
+    "data_version": "minimal_ssl_lstm_zhaocui_fixed_horizon2_v1",
+    "git_commit": "9220d90aab5b789da1568f9472b646f17925a06a",
+    "output_artifacts": [
+      "docs/benchmarks/minimal_ssl_lstm_quadratic_initializer_geometry_cpu_hidden_2026-07-08.json",
+      "docs/benchmarks/minimal_ssl_lstm_quadratic_initializer_geometry_cpu_hidden_2026-07-08.md"
+    ],
+    "plan_file": "docs/plans/bayesfilter-quadratic-initializer-to-minimal-hmc-readiness-phase2-geometry-initialization-subplan-2026-07-08.md",
+    "random_seeds": [
+      20260708,
+      4201
+    ],
+    "result_file": "docs/plans/bayesfilter-quadratic-initializer-to-minimal-hmc-readiness-phase2-geometry-initialization-result-2026-07-08.md",
+    "started_at_utc": "2026-07-08T14:31:19.909285+00:00",
+    "wall_time_seconds": 0.16295116499532014
+  },
+  "schema_version": "minimal_ssl_lstm.quadratic_initializer_geometry.v1",
+  "script": "docs/benchmarks/benchmark_minimal_ssl_lstm_quadratic_initializer_geometry_2026_07_08.py",
+  "settings": {
+    "covariance_jitter": 1e-09,
+    "eigenvalue_floor": 1e-09,
+    "geometry_scaling_c": 0.5,
+    "max_condition_number": null,
+    "max_leapfrog_steps": 512,
+    "pi_over_two_reference": 1.5707963267948966,
+    "seed": [
+      20260708,
+      4201
+    ],
+    "stability_guard": 0.8
+  },
+  "trajectory_diagnostics": {
+    "diagnostic_role": "explanatory_only",
+    "l_times_step_size": 1.5813035063172303,
+    "l_times_step_size_minus_pi_over_two": 0.01050717952233371,
+    "pass_fail_role": "not_a_phase2_promotion_criterion",
+    "pi_over_two_reference": 1.5707963267948966,
+    "target_trajectory_length": 1.570796326794897,
+    "target_trajectory_minus_pi_over_two": 4.440892098500626e-16
+  }
+}

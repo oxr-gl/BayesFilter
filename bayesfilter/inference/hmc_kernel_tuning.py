@@ -916,6 +916,12 @@ _PHASE6_TRAJECTORY_ACCEPTANCE_REPAIR_TRIGGER = (
 )
 _PHASE6_HANDOFF_SCREEN_POLICY_ROLE = "handoff_screen_repair_trigger_non_promoting"
 _TRAJECTORY_WINDOW_POLICY_ROLE = "engineering_viability_gate_non_scientific"
+_HANDOFF_SCREEN_POLICY_PHASE22_HEURISTIC_GATE = "phase22_heuristic_viability_gate"
+_HANDOFF_SCREEN_POLICY_PHASE23_NOMINATION_ONLY = "phase23_nomination_only"
+_HANDOFF_SCREEN_POLICIES = {
+    _HANDOFF_SCREEN_POLICY_PHASE22_HEURISTIC_GATE,
+    _HANDOFF_SCREEN_POLICY_PHASE23_NOMINATION_ONLY,
+}
 _PHASE7_VERIFICATION_ACCEPTANCE_REPAIR_TRIGGER = (
     "verification_acceptance_outside_pass_band"
 )
@@ -937,6 +943,27 @@ def _validate_max_leapfrog_steps(value: Any, *, name: str = "max_leapfrog_steps"
     if max_l < _GEOMETRY_MIN_LEAPFROG:
         raise ValueError(f"{name} must be at least {_GEOMETRY_MIN_LEAPFROG}")
     return max_l
+
+
+def _validate_handoff_screen_policy(value: Any) -> str:
+    policy = str(value)
+    if policy not in _HANDOFF_SCREEN_POLICIES:
+        allowed = ", ".join(sorted(_HANDOFF_SCREEN_POLICIES))
+        raise ValueError(f"handoff_screen_policy must be one of: {allowed}")
+    return policy
+
+
+def _phase23_nomination_policy_active(policy: str) -> bool:
+    return str(policy) == _HANDOFF_SCREEN_POLICY_PHASE23_NOMINATION_ONLY
+
+
+def _trajectory_window_class_penalty(relation: Any) -> int:
+    relation_name = str(relation)
+    if relation_name == "inside_trajectory_window":
+        return 0
+    if relation_name in {"below_trajectory_window", "above_trajectory_window"}:
+        return 1
+    return 2
 
 
 def _validate_trajectory_window_multiplier(
@@ -2071,6 +2098,7 @@ class HMCFixedMassStepStageConfig:
     step_repair_high_acceptance_ladder_max_factor: float | None = None
     trajectory_window_lower_multiplier: float = 0.3
     trajectory_window_upper_multiplier: float = 3.0
+    handoff_screen_policy: str = _HANDOFF_SCREEN_POLICY_PHASE22_HEURISTIC_GATE
     seed: tuple[int, int] = (20260621, 5)
     chain_execution_mode: str = "tf_function"
     use_xla: bool = False
@@ -2152,6 +2180,11 @@ class HMCFixedMassStepStageConfig:
         )
         object.__setattr__(self, "trajectory_window_lower_multiplier", lower)
         object.__setattr__(self, "trajectory_window_upper_multiplier", upper)
+        object.__setattr__(
+            self,
+            "handoff_screen_policy",
+            _validate_handoff_screen_policy(self.handoff_screen_policy),
+        )
         object.__setattr__(self, "seed", _validate_seed(self.seed))
         mode = str(self.chain_execution_mode)
         if mode not in {"tf_function", "eager"}:
@@ -2251,6 +2284,7 @@ class HMCFixedMassStepStageConfig:
             "trajectory_window_upper_multiplier": (
                 self.trajectory_window_upper_multiplier
             ),
+            "handoff_screen_policy": self.handoff_screen_policy,
             "seed": self.seed,
             "chain_execution_mode": self.chain_execution_mode,
             "use_xla": self.use_xla,
@@ -2452,6 +2486,7 @@ class HMCFrozenStepTrajectoryStageConfig:
     max_leapfrog_steps: int = _GEOMETRY_MAX_LEAPFROG
     trajectory_window_lower_multiplier: float = 0.3
     trajectory_window_upper_multiplier: float = 3.0
+    handoff_screen_policy: str = _HANDOFF_SCREEN_POLICY_PHASE22_HEURISTIC_GATE
     seed: tuple[int, int] = (20260621, 6)
     chain_execution_mode: str = "tf_function"
     use_xla: bool = False
@@ -2486,6 +2521,11 @@ class HMCFrozenStepTrajectoryStageConfig:
         )
         object.__setattr__(self, "trajectory_window_lower_multiplier", lower)
         object.__setattr__(self, "trajectory_window_upper_multiplier", upper)
+        object.__setattr__(
+            self,
+            "handoff_screen_policy",
+            _validate_handoff_screen_policy(self.handoff_screen_policy),
+        )
         object.__setattr__(self, "seed", _validate_seed(self.seed))
         mode = str(self.chain_execution_mode)
         if mode not in {"tf_function", "eager"}:
@@ -2571,6 +2611,7 @@ class HMCFrozenStepTrajectoryStageConfig:
             "max_leapfrog_steps": self.max_leapfrog_steps,
             "trajectory_window_lower_multiplier": self.trajectory_window_lower_multiplier,
             "trajectory_window_upper_multiplier": self.trajectory_window_upper_multiplier,
+            "handoff_screen_policy": self.handoff_screen_policy,
             "seed": self.seed,
             "chain_execution_mode": self.chain_execution_mode,
             "use_xla": self.use_xla,
@@ -2802,6 +2843,7 @@ class HMCTuneVerifyRepairLoopConfig:
     step_repair_high_acceptance_ladder_max_factor: float | None = None
     trajectory_window_lower_multiplier: float = 0.3
     trajectory_window_upper_multiplier: float = 3.0
+    handoff_screen_policy: str = _HANDOFF_SCREEN_POLICY_PHASE22_HEURISTIC_GATE
     max_attempts: int = 5
     terminal_phase6_repair_extra_attempts: int = 0
     seed: tuple[int, int] = (20260621, 7)
@@ -2887,6 +2929,11 @@ class HMCTuneVerifyRepairLoopConfig:
         )
         object.__setattr__(self, "trajectory_window_lower_multiplier", lower)
         object.__setattr__(self, "trajectory_window_upper_multiplier", upper)
+        object.__setattr__(
+            self,
+            "handoff_screen_policy",
+            _validate_handoff_screen_policy(self.handoff_screen_policy),
+        )
         attempts = int(self.max_attempts)
         if attempts <= 0:
             raise ValueError("max_attempts must be positive")
@@ -2999,6 +3046,7 @@ class HMCTuneVerifyRepairLoopConfig:
             ),
             "trajectory_window_lower_multiplier": self.trajectory_window_lower_multiplier,
             "trajectory_window_upper_multiplier": self.trajectory_window_upper_multiplier,
+            "handoff_screen_policy": self.handoff_screen_policy,
             "max_attempts": self.max_attempts,
             "terminal_phase6_repair_extra_attempts": (
                 self.terminal_phase6_repair_extra_attempts
@@ -3255,6 +3303,7 @@ class HMCKernelTuningConfig:
     step_repair_high_acceptance_ladder_max_factor: float | None = None
     trajectory_window_lower_multiplier: float = 0.3
     trajectory_window_upper_multiplier: float = 3.0
+    handoff_screen_policy: str = _HANDOFF_SCREEN_POLICY_PHASE22_HEURISTIC_GATE
     bootstrap_max_repairs: int = 5
     max_attempts: int = 5
     terminal_phase6_repair_extra_attempts: int = 0
@@ -3357,6 +3406,11 @@ class HMCKernelTuningConfig:
         )
         object.__setattr__(self, "trajectory_window_lower_multiplier", lower)
         object.__setattr__(self, "trajectory_window_upper_multiplier", upper)
+        object.__setattr__(
+            self,
+            "handoff_screen_policy",
+            _validate_handoff_screen_policy(self.handoff_screen_policy),
+        )
         repairs = int(self.bootstrap_max_repairs)
         if repairs < 0:
             raise ValueError("bootstrap_max_repairs must be non-negative")
@@ -3573,6 +3627,7 @@ class HMCKernelTuningConfig:
             ),
             "trajectory_window_lower_multiplier": self.trajectory_window_lower_multiplier,
             "trajectory_window_upper_multiplier": self.trajectory_window_upper_multiplier,
+            "handoff_screen_policy": self.handoff_screen_policy,
             "bootstrap_max_repairs": self.bootstrap_max_repairs,
             "max_attempts": self.max_attempts,
             "terminal_phase6_repair_extra_attempts": (
@@ -8485,6 +8540,7 @@ def _validate_frozen_step_trajectory_stage_inputs(
             trajectory_window_upper_multiplier=(
                 fixed_mass_step_stage.config.trajectory_window_upper_multiplier
             ),
+            handoff_screen_policy=fixed_mass_step_stage.config.handoff_screen_policy,
             seed=fixed_mass_step_stage.config.seed,
             chain_execution_mode=fixed_mass_step_stage.config.chain_execution_mode,
             target_scope=config.target_scope
@@ -8638,6 +8694,7 @@ def _public_loop_config(
         ),
         trajectory_window_lower_multiplier=config.trajectory_window_lower_multiplier,
         trajectory_window_upper_multiplier=config.trajectory_window_upper_multiplier,
+        handoff_screen_policy=config.handoff_screen_policy,
         max_attempts=config.max_attempts,
         terminal_phase6_repair_extra_attempts=(
             config.terminal_phase6_repair_extra_attempts
@@ -12103,6 +12160,7 @@ def _phase7_fixed_step_stage_config(
         ),
         trajectory_window_lower_multiplier=config.trajectory_window_lower_multiplier,
         trajectory_window_upper_multiplier=config.trajectory_window_upper_multiplier,
+        handoff_screen_policy=config.handoff_screen_policy,
         seed=_derive_seed(_phase7_attempt_seed(config.seed, attempt_index), stage_index=1),
         chain_execution_mode=config.chain_execution_mode,
         use_xla=config.use_xla,
@@ -12141,6 +12199,7 @@ def _phase7_trajectory_stage_config(
         max_leapfrog_steps=config.max_leapfrog_steps,
         trajectory_window_lower_multiplier=config.trajectory_window_lower_multiplier,
         trajectory_window_upper_multiplier=config.trajectory_window_upper_multiplier,
+        handoff_screen_policy=config.handoff_screen_policy,
         seed=_derive_seed(_phase7_attempt_seed(config.seed, attempt_index), stage_index=2),
         chain_execution_mode=config.chain_execution_mode,
         use_xla=config.use_xla,
