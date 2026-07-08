@@ -2750,8 +2750,17 @@ class HMCFrozenStepTrajectoryStageResult:
                 raise ValueError("passed trajectory stage cannot have hard vetoes")
             if selected is None or selected_payload is None or selected_hash is None:
                 raise ValueError("passed trajectory stage requires selected payload")
-            if candidates[selected].get("classification") != "passed_screen":
-                raise ValueError("selected trajectory candidate must have passed")
+            selected_classification = candidates[selected].get("classification")
+            if selected_classification != "passed_screen" and not (
+                selected_classification == "nomination_screen"
+                and _phase23_nomination_policy_active(
+                    self.config.handoff_screen_policy
+                )
+            ):
+                raise ValueError(
+                    "selected trajectory candidate must have passed or be an "
+                    "opt-in Phase 23 nomination screen"
+                )
 
     @property
     def passed(self) -> bool:
@@ -12509,7 +12518,10 @@ def _joint_l_epsilon_ladder_candidate_payload(
     trajectory_window_lower_multiplier: float,
     trajectory_window_upper_multiplier: float,
     max_leapfrog_steps: int,
+    handoff_screen_policy: str = _HANDOFF_SCREEN_POLICY_PHASE22_HEURISTIC_GATE,
 ) -> Mapping[str, Any]:
+    policy = _validate_handoff_screen_policy(handoff_screen_policy)
+    phase23_policy = _phase23_nomination_policy_active(policy)
     selected = ladder.selected_round
     selected_step = None if selected is None else selected.tuned_step_size
     acceptance = None
@@ -12564,12 +12576,39 @@ def _joint_l_epsilon_ladder_candidate_payload(
         repair_triggers.append("trajectory_length_invalid")
     candidate_repair_triggers = tuple(dict.fromkeys(str(item) for item in repair_triggers))
     trajectory_inside_window = trajectory_relation == "inside_trajectory_window"
+    historical_viable = bool(
+        ladder.passed
+        and selected_step is not None
+        and acceptance is not None
+        and not candidate_hard_vetoes
+        and not candidate_continuation_vetoes
+        and trajectory_inside_window
+    )
+    selected_step_finite = _finite_number(selected_step)
+    acceptance_finite = _finite_number(acceptance)
+    artifact_hash_available = bool(str(ladder.artifact_hash))
+    trajectory_relation_allowed = trajectory_relation in {
+        "inside_trajectory_window",
+        "below_trajectory_window",
+        "above_trajectory_window",
+    }
+    nomination_eligible = bool(
+        phase23_policy
+        and ladder.passed
+        and selected_step_finite
+        and acceptance_finite
+        and not candidate_hard_vetoes
+        and not candidate_continuation_vetoes
+        and trajectory_relation_allowed
+        and artifact_hash_available
+    )
     return {
         "schema": "bayesfilter.hmc_joint_l_epsilon_candidate.v1",
         "round_index": int(round_index),
         "grid_stage": str(grid_stage),
         "candidate_index": int(candidate_index),
         "num_leapfrog_steps": int(num_leapfrog_steps),
+        "handoff_screen_policy": policy,
         "ladder_final_status": ladder.final_status,
         "ladder_passed": bool(ladder.passed),
         "selected_round_index": ladder.selected_round_index,
@@ -12588,7 +12627,8 @@ def _joint_l_epsilon_ladder_candidate_payload(
         "trajectory_window_upper_multiplier": float(trajectory_window_upper_multiplier),
         "trajectory_window_relation": trajectory_relation,
         "trajectory_window_policy_role": _TRAJECTORY_WINDOW_POLICY_ROLE,
-        "trajectory_window_viability_gate_active": True,
+        "trajectory_window_viability_gate_active": not phase23_policy,
+        "trajectory_window_nomination_only": phase23_policy,
         "trajectory_target_ratio": trajectory_ratio,
         "minimum_step_size_for_tau_floor": minimum_step_size_for_tau_floor,
         "required_leapfrog_for_tau_floor": required_leapfrog_for_tau_floor,
@@ -12599,13 +12639,16 @@ def _joint_l_epsilon_ladder_candidate_payload(
         "hard_vetoes": candidate_hard_vetoes,
         "continuation_vetoes": candidate_continuation_vetoes,
         "repair_triggers": candidate_repair_triggers,
-        "viable": bool(
-            ladder.passed
-            and selected_step is not None
-            and acceptance is not None
-            and not candidate_hard_vetoes
-            and not candidate_continuation_vetoes
-            and trajectory_inside_window
+        "viable": historical_viable,
+        "nomination_eligible": nomination_eligible,
+        "nomination_role": (
+            "phase23_candidate_for_phase7_verification"
+            if nomination_eligible
+            else (
+                "historical_viability_gate"
+                if not phase23_policy
+                else "phase23_not_eligible_for_nomination"
+            )
         ),
         "ladder_artifact_hash": ladder.artifact_hash,
         "ladder_payload": ladder.payload(),
@@ -12623,13 +12666,17 @@ def _joint_l_epsilon_ladder_error_candidate_payload(
     num_leapfrog_steps: int,
     error: Exception,
     target_trajectory: float,
+    handoff_screen_policy: str = _HANDOFF_SCREEN_POLICY_PHASE22_HEURISTIC_GATE,
 ) -> Mapping[str, Any]:
+    policy = _validate_handoff_screen_policy(handoff_screen_policy)
+    phase23_policy = _phase23_nomination_policy_active(policy)
     return {
         "schema": "bayesfilter.hmc_joint_l_epsilon_candidate.v1",
         "round_index": int(round_index),
         "grid_stage": str(grid_stage),
         "candidate_index": int(candidate_index),
         "num_leapfrog_steps": int(num_leapfrog_steps),
+        "handoff_screen_policy": policy,
         "ladder_final_status": "ladder_error",
         "ladder_passed": False,
         "selected_round_index": None,
@@ -12643,10 +12690,18 @@ def _joint_l_epsilon_ladder_error_candidate_payload(
         "trajectory_window_relation": "unavailable",
         "trajectory_target_ratio": None,
         "acceptance_distance_to_target": None,
+        "trajectory_window_viability_gate_active": not phase23_policy,
+        "trajectory_window_nomination_only": phase23_policy,
         "hard_vetoes": ("fixed_mass_step_ladder_error",),
         "continuation_vetoes": (),
         "repair_triggers": (),
         "viable": False,
+        "nomination_eligible": False,
+        "nomination_role": (
+            "historical_viability_gate"
+            if not phase23_policy
+            else "phase23_not_eligible_for_nomination"
+        ),
         "run_error_type": type(error).__name__,
         "run_error_message": str(error),
         "reports_posterior_convergence": False,
@@ -12687,7 +12742,44 @@ def _select_joint_l_epsilon_candidate(
     *,
     target_accept_prob: float,
     target_trajectory: float,
+    handoff_screen_policy: str = _HANDOFF_SCREEN_POLICY_PHASE22_HEURISTIC_GATE,
 ) -> int | None:
+    policy = _validate_handoff_screen_policy(handoff_screen_policy)
+    if _phase23_nomination_policy_active(policy):
+        nomination_candidates = [
+            (index, candidate)
+            for index, candidate in enumerate(candidates)
+            if candidate.get("nomination_eligible") is True
+            and _finite_number(candidate.get("screen_acceptance_rate"))
+            and _finite_number(candidate.get("selected_step_size"))
+        ]
+        if not nomination_candidates:
+            return None
+        selected_index, _candidate = min(
+            nomination_candidates,
+            key=lambda item: (
+                len(tuple(item[1].get("hard_vetoes", ()))),
+                len(tuple(item[1].get("continuation_vetoes", ()))),
+                abs(float(item[1]["screen_acceptance_rate"]) - float(target_accept_prob)),
+                _trajectory_window_class_penalty(
+                    item[1].get("trajectory_window_relation", "unavailable")
+                ),
+                abs(
+                    float(item[1].get("trajectory_length", float("inf")))
+                    - float(target_trajectory)
+                ),
+                float(
+                    item[1].get(
+                        "selected_budget",
+                        item[1].get("num_leapfrog_steps", _GEOMETRY_MAX_LEAPFROG),
+                    )
+                ),
+                int(item[1]["num_leapfrog_steps"]),
+                int(item[1]["candidate_index"]),
+                int(item[1].get("round_index", 0)),
+            ),
+        )
+        return int(selected_index)
     viable = [
         (index, candidate)
         for index, candidate in enumerate(candidates)
@@ -12895,6 +12987,7 @@ def _run_joint_l_epsilon_grid_round(
                         config.trajectory_window_upper_multiplier
                     ),
                     max_leapfrog_steps=max_leapfrog_steps,
+                    handoff_screen_policy=config.handoff_screen_policy,
                 )
             )
             candidate_payload = candidates[-1]
@@ -12976,6 +13069,7 @@ def _run_joint_l_epsilon_grid_round(
                     num_leapfrog_steps=int(leapfrog_count),
                     error=exc,
                     target_trajectory=target_trajectory,
+                    handoff_screen_policy=config.handoff_screen_policy,
                 )
             )
             if private_diagnostic_callback is not None:
@@ -13017,6 +13111,7 @@ def _run_joint_l_epsilon_grid_round(
         candidates,
         target_accept_prob=config.target_accept_prob,
         target_trajectory=target_trajectory,
+        handoff_screen_policy=config.handoff_screen_policy,
     )
     selected_candidate = None if selected_index is None else candidates[selected_index]
     selected_ladder = (
@@ -13238,8 +13333,11 @@ def _frozen_step_trajectory_candidate_generation(
     max_leapfrog_steps: int = _GEOMETRY_MAX_LEAPFROG,
     trajectory_window_lower_multiplier: float = 0.3,
     trajectory_window_upper_multiplier: float = 3.0,
+    handoff_screen_policy: str = _HANDOFF_SCREEN_POLICY_PHASE22_HEURISTIC_GATE,
     attempt_state: _HMCPhaseAttemptState | None = None,
 ) -> Mapping[str, Any]:
+    policy = _validate_handoff_screen_policy(handoff_screen_policy)
+    phase23_policy = _phase23_nomination_policy_active(policy)
     step = float(selected_step_size)
     if not np.isfinite(step) or step <= 0.0:
         raise ValueError("selected_step_size must be positive and finite")
@@ -13312,7 +13410,9 @@ def _frozen_step_trajectory_candidate_generation(
         "trajectory_window_lower_multiplier": float(trajectory_window_lower_multiplier),
         "trajectory_window_upper_multiplier": float(trajectory_window_upper_multiplier),
         "trajectory_window_policy_role": _TRAJECTORY_WINDOW_POLICY_ROLE,
-        "trajectory_window_viability_gate_active": True,
+        "handoff_screen_policy": policy,
+        "trajectory_window_viability_gate_active": not phase23_policy,
+        "trajectory_window_nomination_only": phase23_policy,
         "minimum_step_size_for_tau_floor": tau_min / max_l,
         "tau_floor_candidate_l": tau_floor_l,
         "tau_floor_feasible_at_selected_step": tau_floor_l <= max_l,
@@ -13362,7 +13462,10 @@ def _joint_l_epsilon_selected_pair_candidate_generation(
     max_leapfrog_steps: int,
     trajectory_window_lower_multiplier: float,
     trajectory_window_upper_multiplier: float,
+    handoff_screen_policy: str = _HANDOFF_SCREEN_POLICY_PHASE22_HEURISTIC_GATE,
 ) -> Mapping[str, Any]:
+    policy = _validate_handoff_screen_policy(handoff_screen_policy)
+    phase23_policy = _phase23_nomination_policy_active(policy)
     step = float(selected_step_size)
     if not np.isfinite(step) or step <= 0.0:
         raise ValueError("selected_step_size must be positive and finite")
@@ -13393,7 +13496,9 @@ def _joint_l_epsilon_selected_pair_candidate_generation(
         "trajectory_window_lower_multiplier": float(trajectory_window_lower_multiplier),
         "trajectory_window_upper_multiplier": float(trajectory_window_upper_multiplier),
         "trajectory_window_policy_role": _TRAJECTORY_WINDOW_POLICY_ROLE,
-        "trajectory_window_viability_gate_active": True,
+        "handoff_screen_policy": policy,
+        "trajectory_window_viability_gate_active": not phase23_policy,
+        "trajectory_window_nomination_only": phase23_policy,
         "fixed_bootstrap_num_leapfrog_steps": int(fixed_bootstrap_l),
         "bootstrap_l_is_lineage_not_constraint": True,
         "internal_min_leapfrog": _GEOMETRY_MIN_LEAPFROG,
@@ -13836,6 +13941,15 @@ def _classify_frozen_step_trajectory_candidate(
             triggers.append("trajectory_length_above_window")
         if acceptance_relation != "inside_acceptance_band":
             triggers.append("acceptance_outside_pass_band")
+        if _phase23_nomination_policy_active(config.handoff_screen_policy):
+            return (
+                "nomination_screen",
+                "phase23_nomination_handoff_screen_non_promoting",
+                (),
+                (),
+                (),
+                tuple(dict.fromkeys(triggers)),
+            )
         return (
             "repair_or_retry",
             "trajectory_window_repair_trigger",
@@ -13851,6 +13965,15 @@ def _classify_frozen_step_trajectory_candidate(
         if acceptance_relation == "below_acceptance_band"
         else "acceptance_above_pass_band_valid_tau"
     )
+    if _phase23_nomination_policy_active(config.handoff_screen_policy):
+        return (
+            "nomination_screen",
+            "phase23_nomination_handoff_screen_non_promoting",
+            (),
+            (),
+            (),
+            ("acceptance_outside_pass_band", trigger),
+        )
     return (
         "repair_or_retry",
         "trajectory_acceptance_repair_trigger",
@@ -13867,19 +13990,27 @@ def _select_frozen_step_trajectory_candidate(
     config: HMCFrozenStepTrajectoryStageConfig,
     target_trajectory: float,
 ) -> int | None:
-    passed = [
+    if _phase23_nomination_policy_active(config.handoff_screen_policy):
+        selectable_classifications = {"passed_screen", "nomination_screen"}
+    else:
+        selectable_classifications = {"passed_screen"}
+    selectable = [
         (index, candidate)
         for index, candidate in enumerate(candidates)
-        if candidate.get("classification") == "passed_screen"
+        if candidate.get("classification") in selectable_classifications
     ]
-    if not passed:
+    if not selectable:
         return None
     lower, upper = config.acceptance_band
     midpoint = 0.5 * (lower + upper)
     selected_index, _selected = min(
-        passed,
+        selectable,
         key=lambda item: (
+            0 if item[1].get("classification") == "passed_screen" else 1,
             abs(float(item[1]["diagnostics"]["acceptance_rate"]) - midpoint),
+            _trajectory_window_class_penalty(
+                item[1].get("trajectory_window_relation", "unavailable")
+            ),
             abs(float(item[1]["trajectory_length"]) - float(target_trajectory)),
             float(item[1]["trajectory_length"]),
             int(item[1]["candidate_index"]),
