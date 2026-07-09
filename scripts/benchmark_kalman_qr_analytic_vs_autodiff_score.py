@@ -260,7 +260,7 @@ def build_analytic_fn(
     )
     def analytical_score(parameters: tf.Tensor) -> tuple[tf.Tensor, tf.Tensor]:
         tensors = _model_tensors(parameters, fixture)
-        return tf_qr_sqrt_kalman_score(
+        return tf_qr_sqrt_kalman_score.python_function(
             observations=fixture.observations,
             transition_offset=tensors[0],
             transition_matrix=tensors[1],
@@ -354,6 +354,47 @@ def build_autodiff_fn(
     return autodiff_score
 
 
+def build_compiled_autodiff_fn(
+    fixture: Fixture,
+    *,
+    value_backend: str,
+) -> Callable[[tf.Tensor], tuple[tf.Tensor, tf.Tensor]]:
+    @tf.function(
+        jit_compile=True,
+        reduce_retracing=True,
+        input_signature=[tf.TensorSpec([PARAMETER_DIM], DTYPE)],
+    )
+    def autodiff_score(parameters: tf.Tensor) -> tuple[tf.Tensor, tf.Tensor]:
+        params = tf.convert_to_tensor(parameters, dtype=DTYPE)
+        with tf.GradientTape() as tape:
+            tape.watch(params)
+            tensors = _model_tensors(params, fixture)
+            value_kernel = (
+                tf_qr_sqrt_kalman_log_likelihood_compact.python_function
+                if value_backend == "compact"
+                else tf_qr_sqrt_kalman_log_likelihood_while_loop.python_function
+            )
+            value = value_kernel(
+                observations=fixture.observations,
+                transition_offset=tensors[0],
+                transition_matrix=tensors[1],
+                transition_covariance=tensors[2],
+                observation_offset=tensors[3],
+                observation_matrix=tensors[4],
+                observation_covariance=tensors[5],
+                initial_state_mean=tensors[6],
+                initial_state_covariance=tensors[7],
+                jitter=tf.constant(1.0e-9, dtype=DTYPE),
+                jitter_updates_filtered_covariance=True,
+            )
+        score = tape.gradient(value, params)
+        if score is None:
+            score = tf.fill(tf.shape(params), tf.constant(float("nan"), dtype=DTYPE))
+        return value, score
+
+    return autodiff_score
+
+
 def _materialize(outputs: tuple[tf.Tensor, tf.Tensor]) -> tuple[float, list[float], list[str]]:
     value, score = outputs
     value_np = value.numpy()
@@ -411,12 +452,20 @@ def benchmark_dimension(
 ) -> dict[str, Any]:
     fixture = make_fixture(state_dim, observation_dim, timesteps)
     analytical_fn = build_analytic_fn(fixture, jit_compile=jit_compile)
-    autodiff_fn = build_autodiff_fn(
-        fixture,
-        jit_compile=jit_compile,
-        value_backend=autodiff_value_backend,
-        execution=autodiff_execution,
-    )
+    if autodiff_execution == "compiled_full":
+        if not jit_compile:
+            raise ValueError("compiled_full autodiff execution requires --jit-compile")
+        autodiff_fn = build_compiled_autodiff_fn(
+            fixture,
+            value_backend=autodiff_value_backend,
+        )
+    else:
+        autodiff_fn = build_autodiff_fn(
+            fixture,
+            jit_compile=jit_compile,
+            value_backend=autodiff_value_backend,
+            execution=autodiff_execution,
+        )
     methods = {
         "analytical_qr_score": analytical_fn,
         "autodiff_qr_score": autodiff_fn,
@@ -685,9 +734,12 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--autodiff-execution",
-        choices=["eager", "tf_function"],
+        choices=["eager", "tf_function", "compiled_full"],
         default="eager",
-        help="Whether the autodiff value call is eager or wrapped in tf.function.",
+        help=(
+            "Whether the autodiff value call is eager, wrapped in tf.function, "
+            "or fully inside one jit-compiled GradientTape function."
+        ),
     )
     parser.add_argument("--output-json", default=DEFAULT_JSON)
     parser.add_argument("--output-md", default=DEFAULT_MD)

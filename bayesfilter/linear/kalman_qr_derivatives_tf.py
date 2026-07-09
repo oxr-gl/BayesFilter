@@ -1670,6 +1670,7 @@ def tf_qr_sqrt_kalman_score(
             log_likelihood0,
             score0,
         ),
+        maximum_iterations=n_timesteps,
         parallel_iterations=1,
     )
     return log_likelihood, score
