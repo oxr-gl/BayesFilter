@@ -1,0 +1,289 @@
+{
+  "manifest": {
+    "autodiff_execution": "eager",
+    "autodiff_value_backend": "compact",
+    "command": "scripts/benchmark_kalman_qr_analytic_vs_autodiff_score.py --dimensions 10 20 30 --timesteps 120 --warmups 0 --repeats 1 --no-jit-compile --device cpu --autodiff-execution eager --flush-after-row --output-json docs/benchmarks/kalman_qr_analytic_vs_autodiff_score_scaling_cpu_hidden_2026-07-09.json --output-md docs/benchmarks/kalman_qr_analytic_vs_autodiff_score_scaling_cpu_hidden_2026-07-09.md",
+    "cuda_visible_devices": "-1",
+    "cwd": "/home/ubuntu/python/BayesFilter",
+    "device_manifest": {
+      "cpu_only_exception": true,
+      "logical_gpus": [],
+      "physical_gpus": [],
+      "requested_device": "cpu",
+      "selected_device": "/CPU:0",
+      "trust_basis": "cpu_debug_or_reference_exception"
+    },
+    "dimensions": [
+      10,
+      20,
+      30
+    ],
+    "git_commit": "f297b103303c64019302ed5d9b9aaf2c8f919b64",
+    "git_status_short": "M bayesfilter/inference/hmc_diagnostics.py\n M bayesfilter/linear/kalman_qr_tf.py\n M tests/test_common_inference_runtime_contracts.py\n?? docs/benchmarks/benchmark_scalar_ssl_lstm_filtering_hmc_validation_phase1_2026_07_09.py\n?? docs/benchmarks/benchmark_scalar_ssl_lstm_filtering_hmc_validation_phase1r_2026_07_09.py\n?? docs/benchmarks/kalman_qr_analytic_vs_autodiff_score_scaling_cpu_hidden_2026-07-09.json\n?? docs/benchmarks/kalman_qr_analytic_vs_autodiff_score_scaling_cpu_hidden_2026-07-09.md\n?? docs/benchmarks/scalar_ssl_lstm_filtering_hmc_validation_phase1_cpu_hidden_2026-07-09.json\n?? docs/benchmarks/scalar_ssl_lstm_filtering_hmc_validation_phase1_cpu_hidden_2026-07-09.md\n?? docs/benchmarks/scalar_ssl_lstm_filtering_hmc_validation_phase1r_longer_same_kernel_cpu_hidden_2026-07-09.json\n?? docs/benchmarks/scalar_ssl_lstm_filtering_hmc_validation_phase1r_longer_same_kernel_cpu_hidden_2026-07-09.md\n?? docs/plans/bayesfilter-kalman-qr-analytic-vs-autodiff-score-scaling-subplan-2026-07-09.md\n?? docs/plans/bayesfilter-scalar-filtering-hmc-validation-master-program-2026-07-09.md\n?? docs/plans/bayesfilter-scalar-filtering-hmc-validation-phase0-telemetry-policy-result-2026-07-09.md\n?? docs/plans/bayesfilter-scalar-filtering-hmc-validation-phase0-telemetry-policy-subplan-2026-07-09.md\n?? docs/plans/bayesfilter-scalar-filtering-hmc-validation-phase1-cpu-short-chain-result-2026-07-09.md\n?? docs/plans/bayesfilter-scalar-filtering-hmc-validation-phase1-cpu-short-chain-subplan-2026-07-09.md\n?? docs/plans/bayesfilter-scalar-filtering-hmc-validation-phase1r-acceptance-envelope-repair-result-2026-07-09.md\n?? docs/plans/bayesfilter-scalar-filtering-hmc-validation-phase1r-acceptance-envelope-repair-subplan-2026-07-09.md\n?? docs/plans/bayesfilter-scalar-filtering-hmc-validation-phase2-reference-agreement-subplan-2026-07-09.md\n?? docs/plans/bayesfilter-scalar-filtering-hmc-validation-phase3-gpu-xla-subplan-2026-07-09.md\n?? docs/plans/bayesfilter-scalar-filtering-hmc-validation-phase4-expansion-decision-subplan-2026-07-09.md\n?? docs/plans/bayesfilter-scalar-filtering-hmc-validation-phase5-closeout-subplan-2026-07-09.md\n?? docs/plans/bayesfilter-scalar-filtering-hmc-validation-visible-execution-ledger-2026-07-09.md\n?? docs/plans/bayesfilter-scalar-filtering-hmc-validation-visible-gated-execution-runbook-2026-07-09.md\n?? docs/plans/bayesfilter-scalar-filtering-hmc-validation-visible-stop-handoff-2026-07-09.md\n?? docs/reviews/bayesfilter-scalar-filtering-hmc-validation-phase0-governance-review-bundle-2026-07-09.md\n?? scripts/benchmark_kalman_qr_analytic_vs_autodiff_score.py\n?? tests/test_scalar_ssl_lstm_filtering_hmc_validation_phase1.py\n?? tests/test_scalar_ssl_lstm_filtering_hmc_validation_phase1r.py",
+    "jit_compile": false,
+    "json_path": "docs/benchmarks/kalman_qr_analytic_vs_autodiff_score_scaling_cpu_hidden_2026-07-09.json",
+    "markdown_path": "docs/benchmarks/kalman_qr_analytic_vs_autodiff_score_scaling_cpu_hidden_2026-07-09.md",
+    "parameter_dim": 2,
+    "plan_path": "docs/plans/bayesfilter-kalman-qr-analytic-vs-autodiff-score-scaling-subplan-2026-07-09.md",
+    "python": "3.13.13 | packaged by Anaconda, Inc. | (main, Apr 14 2026, 06:19:41) [GCC 14.3.0]",
+    "python_executable": "/home/ubuntu/anaconda3/envs/tfgpu/bin/python",
+    "repeats": 1,
+    "tensorflow_version": "2.20.0",
+    "tf32_execution_enabled": true,
+    "timestamp_utc": "2026-07-08T21:45:19.879485+00:00",
+    "timesteps": 120,
+    "warmups": 0
+  },
+  "rows": [
+    {
+      "agreement": {
+        "all_finite": true,
+        "parity_passed": true,
+        "score_max_abs_residual": 3.410605131648481e-13,
+        "score_relative_residual": 5.560738195028207e-16,
+        "value_abs_residual": 2.842170943040401e-14
+      },
+      "autodiff_execution": "eager",
+      "autodiff_value_backend": "compact",
+      "descriptive_autodiff_over_analytical_median_ratio": 20.498517384972953,
+      "device_name": "/CPU:0",
+      "first_call_seconds": {
+        "analytical_qr_score": 1.7364970030030236,
+        "autodiff_qr_score": 1.9792145490064286
+      },
+      "input_shapes": {
+        "observations": [
+          120,
+          10
+        ],
+        "parameters": [
+          2
+        ]
+      },
+      "jit_compile": false,
+      "observation_dim": 10,
+      "outputs": {
+        "analytical_devices": [
+          "/job:localhost/replica:0/task:0/device:CPU:0",
+          "/job:localhost/replica:0/task:0/device:CPU:0"
+        ],
+        "analytical_score": [
+          -6.07633429886099,
+          -613.3066572095554
+        ],
+        "analytical_value": -150.38192347028559,
+        "autodiff_devices": [
+          "/job:localhost/replica:0/task:0/device:CPU:0",
+          "/job:localhost/replica:0/task:0/device:CPU:0"
+        ],
+        "autodiff_score": [
+          -6.076334298860987,
+          -613.3066572095557
+        ],
+        "autodiff_value": -150.3819234702856
+      },
+      "parameter_dim": 2,
+      "repeated_call_seconds": {
+        "analytical_qr_score": [
+          0.0948870069696568
+        ],
+        "autodiff_qr_score": [
+          1.9450429619755596
+        ]
+      },
+      "state_dim": 10,
+      "timesteps": 120,
+      "warm_call_summary": {
+        "analytical_qr_score": {
+          "count": 1,
+          "max_seconds": 0.0948870069696568,
+          "mean_seconds": 0.0948870069696568,
+          "median_seconds": 0.0948870069696568,
+          "min_seconds": 0.0948870069696568
+        },
+        "autodiff_qr_score": {
+          "count": 1,
+          "max_seconds": 1.9450429619755596,
+          "mean_seconds": 1.9450429619755596,
+          "median_seconds": 1.9450429619755596,
+          "min_seconds": 1.9450429619755596
+        }
+      },
+      "warmup_call_seconds": {
+        "analytical_qr_score": [],
+        "autodiff_qr_score": []
+      }
+    },
+    {
+      "agreement": {
+        "all_finite": true,
+        "parity_passed": true,
+        "score_max_abs_residual": 2.2737367544323206e-13,
+        "score_relative_residual": 1.8725905829439842e-16,
+        "value_abs_residual": 5.684341886080802e-14
+      },
+      "autodiff_execution": "eager",
+      "autodiff_value_backend": "compact",
+      "descriptive_autodiff_over_analytical_median_ratio": 16.533146787452388,
+      "device_name": "/CPU:0",
+      "first_call_seconds": {
+        "analytical_qr_score": 0.7017753740074113,
+        "autodiff_qr_score": 1.9957236020127311
+      },
+      "input_shapes": {
+        "observations": [
+          120,
+          20
+        ],
+        "parameters": [
+          2
+        ]
+      },
+      "jit_compile": false,
+      "observation_dim": 20,
+      "outputs": {
+        "analytical_devices": [
+          "/job:localhost/replica:0/task:0/device:CPU:0",
+          "/job:localhost/replica:0/task:0/device:CPU:0"
+        ],
+        "analytical_score": [
+          -12.175741608717184,
+          -1214.158853754022
+        ],
+        "analytical_value": -314.4788246291303,
+        "autodiff_devices": [
+          "/job:localhost/replica:0/task:0/device:CPU:0",
+          "/job:localhost/replica:0/task:0/device:CPU:0"
+        ],
+        "autodiff_score": [
+          -12.175741608717187,
+          -1214.1588537540222
+        ],
+        "autodiff_value": -314.4788246291304
+      },
+      "parameter_dim": 2,
+      "repeated_call_seconds": {
+        "analytical_qr_score": [
+          0.12066075403708965
+        ],
+        "autodiff_qr_score": [
+          1.9949019579798914
+        ]
+      },
+      "state_dim": 20,
+      "timesteps": 120,
+      "warm_call_summary": {
+        "analytical_qr_score": {
+          "count": 1,
+          "max_seconds": 0.12066075403708965,
+          "mean_seconds": 0.12066075403708965,
+          "median_seconds": 0.12066075403708965,
+          "min_seconds": 0.12066075403708965
+        },
+        "autodiff_qr_score": {
+          "count": 1,
+          "max_seconds": 1.9949019579798914,
+          "mean_seconds": 1.9949019579798914,
+          "median_seconds": 1.9949019579798914,
+          "min_seconds": 1.9949019579798914
+        }
+      },
+      "warmup_call_seconds": {
+        "analytical_qr_score": [],
+        "autodiff_qr_score": []
+      }
+    },
+    {
+      "agreement": {
+        "all_finite": true,
+        "parity_passed": true,
+        "score_max_abs_residual": 1.1368683772161603e-12,
+        "score_relative_residual": 6.243778997132554e-16,
+        "value_abs_residual": 0.0
+      },
+      "autodiff_execution": "eager",
+      "autodiff_value_backend": "compact",
+      "descriptive_autodiff_over_analytical_median_ratio": 10.65835586217588,
+      "device_name": "/CPU:0",
+      "first_call_seconds": {
+        "analytical_qr_score": 0.4275188760366291,
+        "autodiff_qr_score": 2.2164647669997066
+      },
+      "input_shapes": {
+        "observations": [
+          120,
+          30
+        ],
+        "parameters": [
+          2
+        ]
+      },
+      "jit_compile": false,
+      "observation_dim": 30,
+      "outputs": {
+        "analytical_devices": [
+          "/job:localhost/replica:0/task:0/device:CPU:0",
+          "/job:localhost/replica:0/task:0/device:CPU:0"
+        ],
+        "analytical_score": [
+          -18.311591523449078,
+          -1820.7096765171505
+        ],
+        "analytical_value": -471.8273538006997,
+        "autodiff_devices": [
+          "/job:localhost/replica:0/task:0/device:CPU:0",
+          "/job:localhost/replica:0/task:0/device:CPU:0"
+        ],
+        "autodiff_score": [
+          -18.31159152344908,
+          -1820.7096765171493
+        ],
+        "autodiff_value": -471.8273538006997
+      },
+      "parameter_dim": 2,
+      "repeated_call_seconds": {
+        "analytical_qr_score": [
+          0.2071515900315717
+        ],
+        "autodiff_qr_score": [
+          2.2078953639720567
+        ]
+      },
+      "state_dim": 30,
+      "timesteps": 120,
+      "warm_call_summary": {
+        "analytical_qr_score": {
+          "count": 1,
+          "max_seconds": 0.2071515900315717,
+          "mean_seconds": 0.2071515900315717,
+          "median_seconds": 0.2071515900315717,
+          "min_seconds": 0.2071515900315717
+        },
+        "autodiff_qr_score": {
+          "count": 1,
+          "max_seconds": 2.2078953639720567,
+          "mean_seconds": 2.2078953639720567,
+          "median_seconds": 2.2078953639720567,
+          "min_seconds": 2.2078953639720567
+        }
+      },
+      "warmup_call_seconds": {
+        "analytical_qr_score": [],
+        "autodiff_qr_score": []
+      }
+    }
+  ],
+  "schema": "kalman_qr_analytic_vs_autodiff_score_scaling_v1",
+  "summary": {
+    "all_rows_parity_passed": true,
+    "nonclaims": [
+      "descriptive timing only",
+      "no HMC readiness claim",
+      "no posterior correctness claim",
+      "no production default change",
+      "no statistically supported ranking"
+    ],
+    "run_status": "complete",
+    "wall_time_seconds": 15.877422676014248
+  }
+}
