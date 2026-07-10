@@ -407,6 +407,7 @@ def tf_qr_sqrt_kalman_log_likelihood_while_loop(
         (t0, mean0, covariance_factor0, log_likelihood0),
         maximum_iterations=n_timesteps,
         parallel_iterations=1,
+        maximum_iterations=n_timesteps,
     )
     return log_likelihood
 
@@ -663,6 +664,7 @@ def tf_qr_sqrt_kalman_log_likelihood_batched_static_while_loop(
         body,
         (t0, mean0, covariance_factor0, log_likelihood0),
         parallel_iterations=1,
+        maximum_iterations=n_timesteps,
     )
     return log_likelihood
 
